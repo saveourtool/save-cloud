@@ -3,17 +3,18 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.table.columns
@@ -71,21 +72,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
         initialPageSize = 10,
         useServerPaging = false,
         usePageSelection = false,
-    ) { _, _ ->
-        val response = get(
-            url = "$apiUrl/projects/not-deleted",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
-        )
-        if (response.ok) {
-            response.unsafeMap {
-                it.decodeFromJsonString<Array<Project>>()
-            }
-        } else {
-            emptyArray()
-        }
-    }
+    )
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
@@ -106,12 +93,29 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 }
             }
         }
-        child(projectsTable) { }
+        child(projectsTable) {
+            attrs.getData = { _, _ ->
+                val response = get(
+                    url = "$apiUrl/projects/not-deleted",
+                    headers = Headers().also {
+                        it.set("Accept", "application/json")
+                    },
+                    loadingHandler = ::classLoadingHandler,
+                )
+                if (response.ok) {
+                    response.unsafeMap {
+                        it.decodeFromJsonString<Array<Project>>()
+                    }
+                } else {
+                    emptyArray()
+                }
+            }
+        }
     }
 
-    companion object : RStatics<CreationViewProps, State, CollectionView, Context<StateSetter<Response?>>>(CollectionView::class) {
+    companion object : RStatics<CreationViewProps, State, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

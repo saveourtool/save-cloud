@@ -53,6 +53,21 @@ external interface ManageUserRoleCardProps : Props {
      * Flag that shows if the confirm windows was shown or not
      */
     var wasConfirmationModalShown: Boolean
+
+    /**
+     * Lambda to show error after fail response
+     */
+    var updateErrorMessage: (Response) -> Unit
+
+    /**
+     * Lambda to get users from project/organization
+     */
+    var getUserGroups: (UserInfo) -> Map<String, Role>
+
+    /**
+     * Lambda to show warning if current user is super admin
+     */
+    var showGlobalRoleWarning: () -> Unit
 }
 
 private fun String.toRole() = Role.values().find {
@@ -62,9 +77,6 @@ private fun String.toRole() = Role.values().find {
 /**
  * A functional `RComponent` for a card that shows users from the group and their permissions.
  *
- * @param updateErrorMessage
- * @param getUserGroups
- * @param showGlobalRoleWarning
  * @return a functional component representing a role managing card
  */
 @Suppress(
@@ -74,12 +86,7 @@ private fun String.toRole() = Role.values().find {
     "MAGIC_NUMBER",
     "ComplexMethod",
 )
-fun manageUserRoleCardComponent(
-    updateErrorMessage: (Response) -> Unit,
-    getUserGroups: (UserInfo) -> Map<String, Role>,
-    showGlobalRoleWarning: () -> Unit,
-) = fc<ManageUserRoleCardProps> { props ->
-
+fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
     val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
     val getUsersFromGroup = useRequest(dependencies = arrayOf(changeUsersFromGroup)) {
@@ -88,6 +95,7 @@ fun manageUserRoleCardComponent(
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
+            loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString<List<UserInfo>>()
@@ -105,9 +113,10 @@ fun manageUserRoleCardComponent(
             "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers,
             Json.encodeToString(roleChange),
+            loadingHandler = ::noopLoadingHandler,
         )
         if (!response.ok) {
-            updateErrorMessage(response)
+            props.updateErrorMessage(response)
         } else {
             getUsersFromGroup()
         }
@@ -124,6 +133,7 @@ fun manageUserRoleCardComponent(
             val users = get(
                 url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
                 headers = headers,
+                loadingHandler = ::noopLoadingHandler,
             )
                 .unsafeMap {
                     it.decodeFromJsonString<List<UserInfo>>()
@@ -141,6 +151,7 @@ fun manageUserRoleCardComponent(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = headers,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
+            loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
@@ -148,7 +159,7 @@ fun manageUserRoleCardComponent(
             getUsersFromGroup()
             setUsersNotFromGroup(emptyList())
         } else {
-            updateErrorMessage(response)
+            props.updateErrorMessage(response)
         }
     }
 
@@ -162,9 +173,10 @@ fun manageUserRoleCardComponent(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
             headers = headers,
             body = Json.encodeToString(userToDelete),
+            loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
-            updateErrorMessage(response)
+            props.updateErrorMessage(response)
         } else {
             setChangeUsersFromGroup { !it }
             getUsersFromGroup()
@@ -179,13 +191,14 @@ fun manageUserRoleCardComponent(
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
+            loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString<String>()
             }
             .toRole()
         if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
-            showGlobalRoleWarning()
+            props.showGlobalRoleWarning()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }()
@@ -233,7 +246,7 @@ fun manageUserRoleCardComponent(
         }
         for (user in usersFromGroup) {
             val userName = user.name
-            val userRole = getUserGroups(user)[props.groupPath] ?: Role.VIEWER
+            val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
             val userIndex = usersFromGroup.indexOf(user)
             div("row mt-2 mr-0 justify-content-between align-items-center") {
                 div("col-7 d-flex justify-content-start align-items-center") {

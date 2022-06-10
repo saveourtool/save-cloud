@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.TestingType
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.fileUploader
@@ -18,12 +19,11 @@ import com.saveourtool.save.frontend.components.basic.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projectStatisticMenu
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.basic.testResourcesSelection
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -41,7 +41,6 @@ import react.PropsWithChildren
 import react.RBuilder
 import react.RStatics
 import react.State
-import react.StateSetter
 import react.dom.a
 import react.dom.button
 import react.dom.div
@@ -49,7 +48,6 @@ import react.dom.h1
 import react.dom.li
 import react.dom.nav
 import react.dom.p
-import react.dom.span
 import react.setState
 
 import kotlinx.browser.document
@@ -61,7 +59,6 @@ import kotlinx.datetime.Month
 import kotlinx.html.ButtonType
 import kotlinx.html.classes
 import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -123,11 +120,6 @@ external interface ProjectViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
-
-    /**
-     * Flag to handle loading
-     */
-    var isLoading: Boolean?
 
     /**
      * Selected sdk
@@ -411,7 +403,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isSubmitButtonPressed = false
         state.errorMessage = ""
         state.errorLabel = ""
-        state.isLoading = true
         state.files = mutableListOf()
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
@@ -434,13 +425,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         super.componentDidMount()
 
         scope.launch {
             val result = getProject(props.name, props.owner)
             val project = if (result.isFailure) {
-                setState { isLoading = false }
                 return@launch
             } else {
                 result.getOrThrow()
@@ -454,7 +445,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post("$apiUrl/projects/git", headers, jsonProject).decodeFromJsonString<GitDto>()
+            gitDto = post(
+                "$apiUrl/projects/git",
+                headers,
+                jsonProject,
+                loadingHandler = ::noopLoadingHandler,
+            ).decodeFromJsonString<GitDto>()
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
@@ -463,13 +459,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-            standardTestSuites = get("$apiUrl/allStandardTestSuites", headers).decodeFromJsonString()
+            standardTestSuites = get(
+                "$apiUrl/allStandardTestSuites",
+                headers, loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
                 this.availableFiles.clear()
                 this.availableFiles.addAll(availableFiles)
-                isLoading = false
             }
 
             fetchLatestExecutionId()
@@ -545,20 +543,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
-        setState {
-            isLoading = true
-        }
         scope.launch {
-            val response = post(apiUrl + url, headers, body)
+            val response = post(
+                apiUrl + url,
+                headers,
+                body,
+                loadingHandler = ::classLoadingHandler,
+            )
             if (response.ok) {
                 window.location.href = "${window.location}/history"
             }
         }
-            .invokeOnCompletion {
-                setState {
-                    isLoading = false
-                }
-            }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -587,7 +582,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             setState { isConfirmWindowOpen = false }
         }
-        runLoadingModal()
         // Page Heading
         div("d-sm-flex align-items-center justify-content-center mb-4") {
             h1("h3 mb-0 text-gray-800") {
@@ -731,7 +725,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         Headers(),
                         FormData().apply {
                             append("file", file)
-                        }
+                        },
+                        loadingHandler = ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
 
@@ -752,21 +747,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
         (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
-    }
-
-    private fun RBuilder.runLoadingModal() = modal {
-        attrs {
-            isOpen = state.isLoading
-            contentLabel = "Loading"
-        }
-        div("d-flex justify-content-center mt-4") {
-            div("spinner-border text-primary spinner-border-lg") {
-                attrs.role = "status"
-                span("sr-only") {
-                    +"Loading..."
-                }
-            }
-        }
     }
 
     private fun RBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
@@ -840,7 +820,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-        return post("$apiUrl/projects/update", headers, Json.encodeToString(draftProject))
+        return post(
+            "$apiUrl/projects/update",
+            headers,
+            Json.encodeToString(draftProject),
+            loadingHandler = ::noopLoadingHandler,
+        )
     }
 
     private fun deleteProjectBuilder() {
@@ -850,7 +835,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         scope.launch {
             responseFromDeleteProject =
-                    delete("$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete", headers, body = undefined)
+                    delete(
+                        "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete",
+                        headers,
+                        body = undefined,
+                        loadingHandler = ::noopLoadingHandler,
+                    )
         }.invokeOnCompletion {
             if (responseFromDeleteProject.ok) {
                 window.location.href = "${window.location.origin}/"
@@ -863,7 +853,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
             headers,
-            responseHandler = ::noopResponseHandler
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         when {
             !response.ok -> setState {
@@ -894,7 +885,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             val response = get(
                 "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
                 headers,
-                responseHandler = ::noopResponseHandler
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
             val rootPath = response.text().await()
             when {
@@ -908,13 +900,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private suspend fun getFilesList(
         organizationName: String,
         projectName: String,
-    ) = get("$apiUrl/files/$organizationName/$projectName/list", Headers())
+    ) = get(
+        "$apiUrl/files/$organizationName/$projectName/list",
+        Headers(),
+        loadingHandler = ::noopLoadingHandler,
+    )
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
     companion object :
-        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<StateSetter<Response?>>>(ProjectView::class) {
+        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>
@@ -929,7 +925,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         const val TEST_SUITE_ROW = 4
 
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

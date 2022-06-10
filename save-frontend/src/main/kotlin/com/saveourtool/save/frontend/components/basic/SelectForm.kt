@@ -62,6 +62,7 @@ fun selectFormRequired(
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
+                    loadingHandler = ::loadingHandler,
                 )
                     .unsafeMap {
                         it.decodeFromJsonString<List<Organization>>()
