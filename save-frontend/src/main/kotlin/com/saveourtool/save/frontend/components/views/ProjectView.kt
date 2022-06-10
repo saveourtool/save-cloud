@@ -723,6 +723,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
                 headers,
                 Json.encodeToString(file),
+                loadingHandler = ::noopLoadingHandler,
             )
 
             if (response.ok) {
