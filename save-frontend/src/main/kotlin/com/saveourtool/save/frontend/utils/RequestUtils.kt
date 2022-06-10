@@ -157,7 +157,7 @@ suspend fun WithRequestStatusContext.delete(
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Response) = run {
     setLoadingCounter { it + 1 }
-    val job = coroutineScope.async { request() }
+    val deferred = coroutineScope.async { request() }
     job.invokeOnCompletion {
         setLoadingCounter { it - 1 }
     }
