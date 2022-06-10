@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.ByteArrayResponse
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -44,7 +43,6 @@ class DownloadFilesController(
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -67,12 +65,33 @@ class DownloadFilesController(
     }
 
     /**
+     * @param organizationName
+     * @param projectName
+     * @param creationTimestamp
+     * @param authentication
+     * @return [Mono] with response
+     */
+    @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/{creationTimestamp}"])
+    @Suppress("UnsafeCallOnNullableType")
+    fun delete(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @PathVariable creationTimestamp: String,
+        authentication: Authentication,
+    ) = projectService.findWithPermissionByNameAndOrganization(
+        authentication, projectName, organizationName, Permission.DELETE
+    ).map {
+        additionalToolsFileSystemRepository.deleteFileByDirName(ProjectCoordinates(organizationName, projectName), creationTimestamp)
+        ResponseEntity.ok("File deleted successfully")
+    }
+
+    /**
      * @param fileInfo a FileInfo based on which a file should be located
      * @param organizationName
      * @param projectName
      * @return [Mono] with file contents
      */
-    @GetMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
