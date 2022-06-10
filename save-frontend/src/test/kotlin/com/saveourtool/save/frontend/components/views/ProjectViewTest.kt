@@ -92,7 +92,7 @@ class ProjectViewTest {
             name = testProject.name
             currentUserInfo = userInfo
         }
-        }.let {
-            render(it)
-        }
+    }.let {
+        render(it)
+    }
 }
