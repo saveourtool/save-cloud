@@ -367,6 +367,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
         onFileInput = { postFileUpload(it) },
+        onFileDelete = { postFileDelete(it) },
         onExecutableChange = { selectedFile, checked ->
             setState {
                 files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
@@ -647,6 +648,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.suiteByteSize = state.suiteByteSize
                     attrs.bytesReceived = state.bytesReceived
                     attrs.isUploading = state.isUploading
+                    attrs.projectCoordinates = ProjectCoordinates(props.owner, props.name)
                 }
 
                 // ======== sdk selection =========
@@ -707,6 +709,30 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         child(projectSettingsMenu) {
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+        }
+    }
+
+    private fun postFileDelete(file: FileInfo) {
+        scope.launch {
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
+
+            val response = delete(
+                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                headers,
+                Json.encodeToString(file),
+                loadingHandler = ::noopLoadingHandler,
+            )
+
+            if (response.ok) {
+                setState {
+                    files.remove(file)
+                    bytesReceived -= file.sizeBytes
+                    suiteByteSize -= file.sizeBytes
+                }
+            }
         }
     }
 
