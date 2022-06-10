@@ -11,11 +11,13 @@ import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
-import kotlinx.js.jso
+
 import react.create
 import react.react
+
 import kotlin.js.Promise
 import kotlin.test.*
+import kotlinx.js.jso
 
 class ProjectViewTest {
     private val testOrganization = Organization(
