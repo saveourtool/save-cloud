@@ -262,7 +262,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             it.set("Content-Type", "application/json")
         }
         scope.launch {
-            post("$apiUrl/users/save", headers, Json.encodeToString(newUserInfo))
+            post(
+                "$apiUrl/users/save",
+                headers,
+                Json.encodeToString(newUserInfo),
+                loadingHandler = ::classLoadingHandler,
+            )
         }
     }
 
@@ -277,7 +282,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         Headers(),
                         FormData().apply {
                             append("file", file)
-                        }
+                        },
+                        loadingHandler = ::classLoadingHandler,
                     )
                         .decodeFromJsonString()
                     setState {
@@ -289,7 +295,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 }
             }
 
-    private suspend fun getAvatar() = get("$apiUrl/users/${props.userName}/avatar", Headers())
+    private suspend fun getAvatar() = get(
+        "$apiUrl/users/${props.userName}/avatar",
+        Headers(),
+        loadingHandler = ::noopLoadingHandler,
+    )
         .unsafeMap {
             it.decodeFromJsonString<ImageInfo>()
         }
@@ -298,6 +308,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     private suspend fun getOrganizationInfos() = get(
         "$apiUrl/organizations/by-user/not-deleted",
         Headers(),
+        loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString<List<OrganizationInfo>>() }
 }
