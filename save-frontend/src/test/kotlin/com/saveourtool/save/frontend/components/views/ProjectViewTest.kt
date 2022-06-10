@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.js.jso
 import react.create
 import react.react
 import kotlin.js.Promise
@@ -65,7 +66,12 @@ class ProjectViewTest {
     @Test
     fun projectViewShouldRender(): Promise<Unit> {
         renderProjectView()
-        return screen.findByText("Project ${testProject.name}", waitForOptions = mapOf("timeout" to 5000))
+        return screen.findByText(
+            "Project ${testProject.name}",
+            waitForOptions = jso {
+                timeout = 5000
+            }
+        )
             .then {
                 assertNotNull(it, "Should show project name")
             }
