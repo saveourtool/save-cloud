@@ -62,7 +62,7 @@ fun projectInfo(
 ) = FC<ProjectInfoProps> { props ->
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
-    useEffect(arrayOf<dynamic>(props.project)) {
+    useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
             projectRef.current = props.project

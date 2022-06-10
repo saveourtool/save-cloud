@@ -199,7 +199,7 @@ fun fileUploader(
         }
     }
 
-    useEffect(listOf<dynamic>()) {
+    useEffect {
         val jquery = kotlinext.js.require("jquery")
         kotlinext.js.require("popper.js")
         kotlinext.js.require("bootstrap")
