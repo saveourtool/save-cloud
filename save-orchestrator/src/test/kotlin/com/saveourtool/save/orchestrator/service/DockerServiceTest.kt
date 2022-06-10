@@ -64,7 +64,8 @@ class DockerServiceTest {
             resourcesRootPath = "foo"
             id = 42L
         }
-        testContainerId = dockerService.buildAndCreateContainers(testExecution, null).single()
+        val (baseImageId, agentRunCmd) = dockerService.buildBaseImage(testExecution, null)
+        testContainerId = dockerService.createContainers(testExecution.id!!, baseImageId, agentRunCmd).single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend

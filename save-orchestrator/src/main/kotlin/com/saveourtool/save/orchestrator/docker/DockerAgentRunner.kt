@@ -1,13 +1,15 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
-import com.saveourtool.save.orchestrator.execTimed
-import com.saveourtool.save.orchestrator.getHostIp
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
+import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.LogConfig
 import io.micrometer.core.instrument.MeterRegistry
@@ -67,7 +69,7 @@ class DockerAgentRunner(
         }
     }
 
-    override fun stop(executionId: String) {
+    override fun stop(executionId: Long) {
         val runningContainersForExecution = dockerClient.listContainersCmd().withStatusFilter(listOf("running")).exec()
             .filter { container -> container.names.any { it.contains("-$executionId-") } }
         runningContainersForExecution.map { it.id }.forEach { agentId ->
@@ -75,14 +77,20 @@ class DockerAgentRunner(
         }
     }
 
-    override fun stopByAgentId(agentId: String) {
+    override fun stopByAgentId(agentId: String): Boolean {
         logger.info("Stopping agent with id=$agentId")
         val state = dockerClient.inspectContainerCmd(agentId).exec().state
-        if (state.running == true) {
-            dockerClient.stopContainerCmd(agentId).exec()
+        return if (state.status == "running") {
+            try {
+                dockerClient.stopContainerCmd(agentId).exec()
+            } catch (dex: DockerException) {
+                throw AgentRunnerException("Exception when stopping agent id=$agentId", dex)
+            }
             logger.info("Agent with id=$agentId has been stopped")
+            true
         } else {
             logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
+            false
         }
     }
 
@@ -120,13 +128,10 @@ class DockerAgentRunner(
                                          runCmd: String,
                                          containerName: String,
     ): String {
-        val baseImage = dockerClient.listImagesCmd().execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")!!.find {
-            // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
-            it.id.replaceFirst("sha256:", "").startsWith(baseImageId.replaceFirst("sha256:", ""))
-        }
+        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
-        val createContainerCmdResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
             .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
             .withName(containerName)
@@ -152,7 +157,7 @@ class DockerAgentRunner(
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
-        val containerId = createContainerCmdResponse!!.id
+        val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
                 AGENT_ID=$containerId""".trimIndent()
@@ -181,7 +186,7 @@ class DockerAgentRunner(
             dockerClient.copyArchiveToContainerCmd(containerId)
                 .withTarInputStream(out.toByteArray().inputStream())
                 .withRemotePath(remotePath)
-                .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
+                .execTimed<CopyArchiveToContainerCmd, Void?>(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
 

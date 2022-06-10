@@ -27,11 +27,12 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.mockito.kotlin.any
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -83,6 +84,12 @@ class HeartbeatControllerTest {
             .build()
     }
 
+    @AfterEach
+    fun cleanup() {
+        mockServer.checkQueues()
+        mockServer.cleanup()
+    }
+
     @Test
     fun checkAcceptingHeartbeat() {
         val heartBeatBusy = Heartbeat("test", AgentState.BUSY, ExecutionProgress(0), Clock.System.now() + 30.seconds)
@@ -122,7 +129,8 @@ class HeartbeatControllerTest {
 
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
 
-        assertTrue(monoResponse.tests.isNotEmpty() && monoResponse.tests.first().filePath == "qwe")
+        assertTrue(monoResponse.tests.isNotEmpty())
+        assertEquals("qwe", monoResponse.tests.first().filePath)
     }
 
     @Test
@@ -137,7 +145,8 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -162,13 +171,14 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
     @Test
     fun `should shutdown idle agents when there are no tests left`() {
-        whenever(dockerService.stopAgents(any())).thenReturn(true)
+        whenever(dockerService.stopAgents(anyList())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -200,7 +210,7 @@ class HeartbeatControllerTest {
                 )
             }
         ) {
-            verify(dockerService, times(1)).stopAgents(any())
+            verify(dockerService, times(1)).stopAgents(anyList())
         }
     }
 
@@ -225,7 +235,8 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            verify(dockerService, times(0)).stopAgents(any())
+            verify(dockerService, times(0)).stopAgents(anyList())
+            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
@@ -323,7 +334,7 @@ class HeartbeatControllerTest {
                 )
             }
         ) {
-            verify(dockerService, times(1)).stopAgents(any())
+            verify(dockerService, times(1)).stopAgents(anyList())
         }
     }
 
@@ -435,6 +446,13 @@ class HeartbeatControllerTest {
             )
         }
 
+        /* mockServer.enqueue(
+            "/agents/[^/]+/execution/id",
+            MockResponse().setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(99))
+        )*/
+
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution
             mockServer.enqueue(
@@ -483,12 +501,6 @@ class HeartbeatControllerTest {
     companion object {
         @JvmStatic
         private lateinit var mockServer: MockWebServer
-
-        @AfterEach
-        fun cleanup() {
-            mockServer.checkQueues()
-            mockServer.cleanup()
-        }
 
         @AfterAll
         fun tearDown() {
