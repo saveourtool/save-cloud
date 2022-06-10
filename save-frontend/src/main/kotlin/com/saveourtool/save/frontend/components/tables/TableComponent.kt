@@ -133,7 +133,7 @@ fun <D : Any> tableComponent(
         additionalOptions()
     }, plugins = plugins)
 
-    useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
+    useEffect(tableInstance.state.pageSize) {
         if (useServerPaging) {
             scope.launch {
                 val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
@@ -153,6 +153,7 @@ fun <D : Any> tableComponent(
     }
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
+        override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }

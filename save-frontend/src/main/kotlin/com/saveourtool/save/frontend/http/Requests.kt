@@ -12,7 +12,6 @@ import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-import react.Component
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -20,7 +19,7 @@ import kotlinx.serialization.json.Json
 /**
  * @param testExecutionDto
  */
-suspend fun Component<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
+suspend fun ComponentWithScope<*, *>.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
         getDebugInfoFor(testExecutionDto, this::post)
 
 /**
@@ -34,7 +33,7 @@ suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecu
  * @param organizationName
  * @return project
  */
-suspend fun Component<*, *>.getProject(name: String, organizationName: String) = get(
+suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: String) = get(
     "$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName",
     Headers().apply {
         set("Accept", "application/json")
@@ -49,12 +48,12 @@ suspend fun Component<*, *>.getProject(name: String, organizationName: String) =
  * @param name organization name
  * @return organization
  */
-suspend fun Component<*, *>.getOrganization(name: String) = get(
+suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
     "$apiUrl/organization/$name",
     Headers().apply {
         set("Accept", "application/json")
     },
-    loadingHandler = ::noopLoadingHandler,
+    loadingHandler = ::classLoadingHandler,
 )
     .decodeFromJsonString<Organization>()
 
@@ -62,7 +61,7 @@ suspend fun Component<*, *>.getOrganization(name: String) = get(
  * @param name username
  * @return info about user
  */
-suspend fun Component<*, *>.getUser(name: String) = get(
+suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
     "$apiUrl/users/$name",
     Headers().apply {
         set("Accept", "application/json")
