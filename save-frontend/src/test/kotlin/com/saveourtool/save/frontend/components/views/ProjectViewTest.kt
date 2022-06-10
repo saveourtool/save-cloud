@@ -65,9 +65,10 @@ class ProjectViewTest {
     @Test
     fun projectViewShouldRender(): Promise<Unit> {
         renderProjectView()
-        return screen.findByText("Project ${testProject.name}").then {
-            assertNotNull(it, "Should show project name")
-        }
+        return screen.findByText("Project ${testProject.name}", waitForOptions = mapOf("timeout" to 5000))
+            .then {
+                assertNotNull(it, "Should show project name")
+            }
     }
 
     @Test
