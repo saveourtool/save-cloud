@@ -80,7 +80,7 @@ class DockerAgentRunner(
     override fun stopByAgentId(agentId: String): Boolean {
         logger.info("Stopping agent with id=$agentId")
         val state = dockerClient.inspectContainerCmd(agentId).exec().state
-        return if (state.running == true) {
+        return if (state.status == "running") {
             try {
                 dockerClient.stopContainerCmd(agentId).exec()
             } catch (dex: DockerException) {

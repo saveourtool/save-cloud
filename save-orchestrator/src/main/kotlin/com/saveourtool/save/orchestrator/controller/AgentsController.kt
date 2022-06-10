@@ -96,11 +96,10 @@ class AgentsController(
     }
 
     /**
-     * @param executionId ID of execution for which agents should be stopped
      * @param agentIds list of IDs of agents to stop
      */
     @PostMapping("/stopAgents")
-    fun stopAgents(@RequestParam executionId: Long, @RequestBody agentIds: List<String>) {
+    fun stopAgents(@RequestBody agentIds: List<String>) {
         dockerService.stopAgents(agentIds)
     }
 

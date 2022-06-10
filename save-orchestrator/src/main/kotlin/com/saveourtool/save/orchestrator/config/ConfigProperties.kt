@@ -59,9 +59,10 @@ data class DockerSettings(
 )
 
 /**
- * @property apiServerUrl see https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
- * @property serviceAccount
- * @property namespace
+ * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+ * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
+ * to authenticate orchestrator to the API server
+ * @property namespace Kubernetes namespace, into which agents will be deployed.
  */
 data class KubernetesSettings(
     val apiServerUrl: String,

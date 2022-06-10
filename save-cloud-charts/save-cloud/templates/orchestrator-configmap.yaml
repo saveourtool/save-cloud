@@ -15,9 +15,5 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    {{- if .Values.orchestrator.clusterIP }}
-    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.clusterIP }}:{{ .Values.orchestrator.containerPort }}
-    {{- end }}
-    {{- if .Values.backend.clusterIP }}
-    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.clusterIP }}:{{ .Values.backend.containerPort }}
-    {{- end }}
+    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.backend.name }}:{{ .Values.orchestrator.containerPort }}
+    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}:{{ .Values.backend.containerPort }}
