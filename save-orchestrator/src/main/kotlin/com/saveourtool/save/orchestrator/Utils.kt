@@ -6,9 +6,12 @@ package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.orchestrator.config.AgentSettings
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.command.AsyncDockerCmd
+import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
+import com.github.dockerjava.api.model.Image
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -58,16 +61,30 @@ inline fun <reified CMD_T : AsyncDockerCmd<CMD_T, A_RES_T>, RC_T : ResultCallbac
  * @param tags additional tags for the timer (command name in form of Java class name is assigned automatically)
  * @return sync result
  */
-inline fun <reified CMD_T : SyncDockerCmd<RES_T>, RES_T> CMD_T.execTimed(
+inline fun <reified CMD_T : SyncDockerCmd<RES_T>, RES_T : Any?> CMD_T.execTimed(
     meterRegistry: MeterRegistry,
     name: String,
     vararg tags: String,
-): RES_T? {
+): RES_T {
     val timer = meterRegistry.timer(name, "cmd", "${CMD_T::class.simpleName}", *tags)
-    return timer.record(Supplier {
+    val result = timer.record(Supplier {
         exec()
     })
+    // nullability should be specified at call site
+    return result as RES_T
 }
+
+/**
+ * @param imageId id (not name) of the image to look for
+ * @param meterRegistry a [MeterRegistry] to record the operation to
+ * @return list of images
+ */
+internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistry) = listImagesCmd()
+    .execTimed<ListImagesCmd, MutableList<Image>>(meterRegistry, "$DOCKER_METRIC_PREFIX.image.list")
+    .find {
+        // fixme: sometimes createImageCmd returns short id without prefix, sometimes full and with prefix.
+        it.id.replaceFirst("sha256:", "").startsWith(imageId.replaceFirst("sha256:", ""))
+    }
 
 /**
  * Create synthetic toml config for standard mode in aim to execute all suites at the same time
