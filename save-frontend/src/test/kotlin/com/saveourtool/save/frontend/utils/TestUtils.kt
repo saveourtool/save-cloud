@@ -4,7 +4,8 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 
 import org.w3c.fetch.Response
 import react.FC
@@ -16,8 +17,9 @@ import kotlinx.serialization.json.Json
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)
-    errorStatusContext.Provider {
-        value = setMockState
+    val (_, setLoadingCounter) = useState(0)
+    requestStatusContext.Provider {
+        value = RequestStatusContext(setMockState, setLoadingCounter)
         +it.children
     }
 }
