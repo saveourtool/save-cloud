@@ -29,7 +29,7 @@ import kotlinx.html.js.onClickFunction
 fun scrollToTopButton() = fc<PropsWithChildren> {
     val (isVisible, setIsVisible) = useState(false)
 
-    useEffect(emptyList<dynamic>()) {
+    useEffect {
         document.addEventListener("scroll", callback = {
             setIsVisible(window.pageYOffset > 100)
         })
