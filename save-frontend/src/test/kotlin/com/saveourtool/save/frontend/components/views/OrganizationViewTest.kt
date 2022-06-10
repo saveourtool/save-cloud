@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
+import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
 import react.create
@@ -65,11 +66,13 @@ class OrganizationViewTest {
             }
     }
 
-    private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = OrganizationView::class.react
-        .create {
+    private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = wrapper.create {
+        OrganizationView::class.react {
             organizationName = testOrganization.name
             currentUserInfo = userInfo
-        }.let {
+        }
+    }
+        .let {
             render(it)
         }
 }

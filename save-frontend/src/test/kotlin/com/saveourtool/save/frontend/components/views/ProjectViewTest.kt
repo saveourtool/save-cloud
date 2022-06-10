@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
+import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
 import react.create
@@ -85,11 +86,12 @@ class ProjectViewTest {
             }
     }
 
-    private fun renderProjectView(userInfo: UserInfo = testUserInfo) = ProjectView::class.react
-        .create {
+    private fun renderProjectView(userInfo: UserInfo = testUserInfo) = wrapper.create {
+        ProjectView::class.react {
             owner = testOrganization.name
             name = testProject.name
             currentUserInfo = userInfo
+        }
         }.let {
             render(it)
         }
