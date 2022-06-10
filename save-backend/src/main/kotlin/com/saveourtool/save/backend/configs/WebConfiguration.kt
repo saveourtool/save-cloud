@@ -61,10 +61,7 @@ class WebConfiguration(
             "/api/$v1/avatar/users/{*resourcePath}",
             "${configProperties.fileStorage.location}/images/avatars/users",
         )
-        cacheableFsResource(
-            "/api/$v1/resource/{*resourcePath}",
-            "${configProperties.fileStorage.location}/storage",
-        )
+        resources("/api/$v1/resource/**", FileSystemResource("${configProperties.fileStorage.location}/storage/"))
     }
 
     /**
