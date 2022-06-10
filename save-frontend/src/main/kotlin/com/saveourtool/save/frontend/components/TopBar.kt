@@ -61,7 +61,7 @@ fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
-    useEffect(listOf<dynamic>()) {
+    useEffect {
         cleanup {
             if (scope.isActive) {
                 scope.cancel()
