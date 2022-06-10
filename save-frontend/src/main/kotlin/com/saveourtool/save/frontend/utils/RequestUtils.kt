@@ -158,10 +158,10 @@ suspend fun WithRequestStatusContext.delete(
 suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Response) = run {
     setLoadingCounter { it + 1 }
     val deferred = coroutineScope.async { request() }
-    job.invokeOnCompletion {
+    deferred.invokeOnCompletion {
         setLoadingCounter { it - 1 }
     }
-    job.await()
+    deferred.await()
 }
 
 /**
@@ -203,11 +203,11 @@ internal suspend fun ComponentWithScope<*, *>.classLoadingHandler(request: suspe
 private suspend fun ComponentWithScope<*, *>.loadingHandler(request: suspend () -> Response) = run {
     val context: RequestStatusContext = this.asDynamic().context
     context.setLoadingCounter { it + 1 }
-    val job = scope.async { request() }
-    job.invokeOnCompletion {
+    val deferred = scope.async { request() }
+    deferred.invokeOnCompletion {
         context.setLoadingCounter { it - 1 }
     }
-    job.await()
+    deferred.await()
 }
 
 private fun ComponentWithScope<*, *>.withModalResponseHandler(
