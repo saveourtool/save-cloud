@@ -383,7 +383,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     headers = Headers().apply {
                         set("Accept", "application/json")
                     },
-                    loadingHandler = ::noopLoadingHandler,
+                    loadingHandler = ::classLoadingHandler,
                 )
                     .unsafeMap {
                         Json.decodeFromString<Array<TestExecutionDto>>(
@@ -412,7 +412,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
-                    loadingHandler = ::noopLoadingHandler,
+                    loadingHandler = ::classLoadingHandler,
                 )
                     .json()
                     .await()

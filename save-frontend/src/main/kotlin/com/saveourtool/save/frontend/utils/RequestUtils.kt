@@ -15,18 +15,12 @@ import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
-import react.Component
 import react.useContext
 import react.useEffect
 import react.useState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.await
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -36,6 +30,11 @@ val apiUrl = "${window.location.origin}/api/$v1"
  * Interface for objects that have access to [requestStatusContext]
  */
 interface WithRequestStatusContext {
+    /**
+     * Coroutine used for processing [setLoadingCounter]
+     */
+    val coroutineScope: CoroutineScope
+
     /**
      * @param response
      */
@@ -73,7 +72,7 @@ suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFrom
  * @return [Response]
  */
 @Suppress("KDOC_WITHOUT_PARAM_TAG")
-suspend fun Component<*, *>.get(
+suspend fun ComponentWithScope<*, *>.get(
     url: String,
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
@@ -86,7 +85,7 @@ suspend fun Component<*, *>.get(
  * @return [Response]
  */
 @Suppress("KDOC_WITHOUT_PARAM_TAG")
-suspend fun Component<*, *>.post(
+suspend fun ComponentWithScope<*, *>.post(
     url: String,
     headers: Headers,
     body: dynamic,
@@ -100,7 +99,7 @@ suspend fun Component<*, *>.post(
  * @return [Response]
  */
 @Suppress("KDOC_WITHOUT_PARAM_TAG")
-suspend fun Component<*, *>.delete(
+suspend fun ComponentWithScope<*, *>.delete(
     url: String,
     headers: Headers,
     body: dynamic,
@@ -158,9 +157,11 @@ suspend fun WithRequestStatusContext.delete(
 @Suppress("EXTENSION_FUNCTION_WITH_CLASS")
 suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Response) = run {
     setLoadingCounter { it + 1 }
-    val response = request()
-    setLoadingCounter { it - 1 }
-    response
+    val deferred = coroutineScope.async { request() }
+    deferred.invokeOnCompletion {
+        setLoadingCounter { it - 1 }
+    }
+    deferred.await()
 }
 
 /**
@@ -169,7 +170,7 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
  * @param response
  */
 @Suppress("MAGIC_NUMBER")
-internal fun Component<*, *>.classComponentResponseHandler(
+internal fun ComponentWithScope<*, *>.classComponentResponseHandler(
     response: Response,
 ) {
     val hasResponseContext = this.asDynamic().context is RequestStatusContext
@@ -185,7 +186,7 @@ internal fun Component<*, *>.classComponentResponseHandler(
  * @return [Response] received with [request]
  */
 @Suppress("MAGIC_NUMBER")
-internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
+internal suspend fun ComponentWithScope<*, *>.classLoadingHandler(request: suspend () -> Response): Response {
     val hasRequestStatusContext = this.asDynamic().context is RequestStatusContext
     if (hasRequestStatusContext) {
         return this.loadingHandler(request)
@@ -199,15 +200,17 @@ internal suspend fun Component<*, *>.classLoadingHandler(request: suspend () -> 
  * @param request REST API method
  * @return [Response] received with [request]
  */
-private suspend fun Component<*, *>.loadingHandler(request: suspend () -> Response) = run {
+private suspend fun ComponentWithScope<*, *>.loadingHandler(request: suspend () -> Response) = run {
     val context: RequestStatusContext = this.asDynamic().context
     context.setLoadingCounter { it + 1 }
-    val response = request()
-    context.setLoadingCounter { it - 1 }
-    response
+    val deferred = scope.async { request() }
+    deferred.invokeOnCompletion {
+        context.setLoadingCounter { it - 1 }
+    }
+    deferred.await()
 }
 
-private fun Component<*, *>.withModalResponseHandler(
+private fun ComponentWithScope<*, *>.withModalResponseHandler(
     response: Response,
 ) {
     if (!response.ok) {
@@ -244,6 +247,7 @@ fun <R> useRequest(
     val (isSending, setIsSending) = useState(false)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
+        override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
