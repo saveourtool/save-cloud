@@ -35,12 +35,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan
-          restore-keys: |
-            ${{ runner.os }}-gradle-konan
-      - run: |
-          ls -l ~/.konan
-          tree ~/.konan
+          key: ${{ runner.os }}-gradle-konan-1.6.21
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
