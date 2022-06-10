@@ -375,7 +375,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
         onFileInput = { postFileUpload(it) },
-        onFileOutput = { postFileDownload(it) },
         onFileDelete = { postFileDelete(it) },
         onExecutableChange = { selectedFile, checked ->
             setState {
@@ -655,6 +654,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.suiteByteSize = state.suiteByteSize
                     attrs.bytesReceived = state.bytesReceived
                     attrs.isUploading = state.isUploading
+                    attrs.projectCoordinates = ProjectCoordinates(props.owner, props.name)
                 }
 
                 // ======== sdk selection =========
@@ -718,22 +718,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun postFileDownload(file: FileInfo) {
-        scope.launch {
-            val headers = Headers().also {
-                it.set("Accept", "application/octet-stream")
-                it.set("Content-Type", "application/json")
-                it.set("Content-Disposition", "attachment; filename=\"${file.name}\"")
-            }
-
-            val response = post(
-                "$apiUrl/files/${props.owner}/${props.name}/download",
-                headers,
-                Json.encodeToString(file),
-            )
-        }
-    }
-
     private fun postFileDelete(file: FileInfo) {
         scope.launch {
             val headers = Headers().also {
@@ -742,7 +726,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}/delete",
+                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
                 headers,
                 Json.encodeToString(file),
             )

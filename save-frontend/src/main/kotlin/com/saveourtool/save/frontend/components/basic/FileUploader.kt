@@ -7,9 +7,11 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.ConfirmationType
 import com.saveourtool.save.frontend.utils.toPrettyString
+import com.saveourtool.save.v1
 
 import csstype.Width
 import org.w3c.dom.HTMLInputElement
@@ -71,6 +73,11 @@ external interface UploaderProps : PropsWithChildren {
      * Flag to handle uploading a file
      */
     var isUploading: Boolean?
+
+    /**
+     * Organization and project names
+     */
+    var projectCoordinates: ProjectCoordinates?
 }
 
 /**
@@ -78,7 +85,6 @@ external interface UploaderProps : PropsWithChildren {
  * @param onFileSelect invoked when a file is selected from [UploaderProps.availableFiles]
  * @param onFileRemove invoked when a file is removed from selection by pushing a button
  * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
- * @param onFileOutput invoked when a file is downloaded
  * @param onFileDelete invoked when a file is deleted forever
  * @return a RComponent
  */
@@ -86,14 +92,11 @@ external interface UploaderProps : PropsWithChildren {
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
     "LongMethod",
-    "TOO_MANY_PARAMETERS",
-    "LongParameterList",
 )
 fun fileUploader(
     onFileSelect: (HTMLSelectElement) -> Unit,
     onFileRemove: (FileInfo) -> Unit,
     onFileInput: (HTMLInputElement) -> Unit,
-    onFileOutput: (FileInfo) -> Unit,
     onFileDelete: (FileInfo) -> Unit,
     onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
 ) = fc<UploaderProps> { props ->
@@ -116,11 +119,12 @@ fun fileUploader(
                                 onFileRemove(fileInfo)
                             }
                         }
-                        button(classes = "btn") {
-                            fontAwesomeIcon(icon = faDownload)
-                            attrs.onClickFunction = {
-                                onFileOutput(fileInfo)
+                        a {
+                            button(classes = "btn") {
+                                fontAwesomeIcon(icon = faDownload)
                             }
+                            attrs["download"] = fileInfo.name
+                            attrs.href = getHref(fileInfo, props.projectCoordinates)
                         }
                         button(classes = "btn") {
                             fontAwesomeIcon(icon = faTrash)
@@ -241,3 +245,9 @@ internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: Fil
         }
     }
 }
+
+private fun getHref(
+    fileInfo: FileInfo,
+    projectCoordinates: ProjectCoordinates?
+) =
+        "/api/$v1/resource/${projectCoordinates?.organizationName}/${projectCoordinates?.projectName}/${fileInfo.uploadedMillis}/${fileInfo.name}"

@@ -67,21 +67,21 @@ class DownloadFilesController(
     /**
      * @param organizationName
      * @param projectName
-     * @param dirName
+     * @param creationTimestamp
      * @param authentication
      * @return [Mono] with response
      */
-    @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/{dirName}/delete"])
+    @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/{creationTimestamp}"])
     @Suppress("UnsafeCallOnNullableType")
     fun delete(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @PathVariable dirName: String,
+        @PathVariable creationTimestamp: String,
         authentication: Authentication,
     ) = projectService.findWithPermissionByNameAndOrganization(
-        authentication, projectName, organizationName, Permission.WRITE
+        authentication, projectName, organizationName, Permission.DELETE
     ).map {
-        additionalToolsFileSystemRepository.deleteFileByDirName(ProjectCoordinates(organizationName, projectName), dirName)
+        additionalToolsFileSystemRepository.deleteFileByDirName(ProjectCoordinates(organizationName, projectName), creationTimestamp)
         ResponseEntity.ok("File deleted successfully")
     }
 
