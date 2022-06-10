@@ -133,7 +133,7 @@ fun <D : Any> tableComponent(
         additionalOptions()
     }, plugins = plugins)
 
-    useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
+    useEffect(tableInstance.state.pageSize) {
         if (useServerPaging) {
             scope.launch {
                 val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
