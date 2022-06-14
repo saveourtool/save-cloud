@@ -8,13 +8,17 @@ import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller to manipulate with Agent related data
@@ -108,6 +112,17 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         .map(Agent::containerId)
 
     /**
+     * Return ID of execution for which agent [agentId] has been created
+     *
+     * @param agentId id of an agent to look for
+     * @return id of an execution
+     */
+    @GetMapping("/agents/{agentId}/execution/id")
+    fun findExecutionIdByAgentId(@PathVariable agentId: String) = agentRepository.findByContainerId(agentId)
+        .toMono()
+        .mapNotNull { it.execution.id }
+
+    /**
      * Get agent by containerId.
      *
      * @param containerId containerId of an agent.
@@ -117,7 +132,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         val agent = agentRepository.findOne { root, _, cb ->
             cb.equal(root.get<String>("containerId"), containerId)
         }
-        return agent.orElseThrow { IllegalStateException("Agent with containerId=$containerId not found in the DB") }
+        return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
     }
 
     companion object {

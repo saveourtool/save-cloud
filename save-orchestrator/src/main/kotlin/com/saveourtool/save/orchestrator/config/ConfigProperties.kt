@@ -21,13 +21,15 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  * @property agentSettings if set, this will override defaults in agent.properties
+ * @property kubernetes configuration for setup in Kubernetes
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
-    val docker: DockerSettings,
+    val docker: DockerSettings?,
+    val kubernetes: KubernetesSettings?,
     val agentsCount: Int,
     val executionLogs: String,
     val shutdownChecksIntervalMillis: Long,
@@ -56,6 +58,18 @@ data class DockerSettings(
     val loggingDriver: String,
     val runtime: String = "runc",
     val registry: String = "docker.io/library",
+)
+
+/**
+ * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+ * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
+ * to authenticate orchestrator to the API server
+ * @property namespace Kubernetes namespace, into which agents will be deployed.
+ */
+data class KubernetesSettings(
+    val apiServerUrl: String,
+    val serviceAccount: String,
+    val namespace: String,
 )
 
 /**

@@ -17,6 +17,8 @@ import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
 
+private val projectPermissionManagerCard = manageUserRoleCardComponent()
+
 /**
  * ProjectSettingsMenu component props
  */
@@ -64,20 +66,6 @@ fun projectSettingsMenu(
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    val projectPermissionManagerCard = manageUserRoleCardComponent({
-        updateErrorMessage(it)
-    },
-        {
-            it.projects
-        },
-        {
-            updateNotificationMessage(
-                "Super admin message",
-                "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
-            )
-            setWasConfirmationModalShown(true)
-        }
-    )
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -90,6 +78,15 @@ fun projectSettingsMenu(
                 attrs.groupPath = projectPath
                 attrs.groupType = "project"
                 attrs.wasConfirmationModalShown = wasConfirmationModalShown
+                attrs.updateErrorMessage = updateErrorMessage
+                attrs.getUserGroups = { it.projects }
+                attrs.showGlobalRoleWarning = {
+                    updateNotificationMessage(
+                        "Super admin message",
+                        "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
+                    )
+                    setWasConfirmationModalShown(true)
+                }
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
