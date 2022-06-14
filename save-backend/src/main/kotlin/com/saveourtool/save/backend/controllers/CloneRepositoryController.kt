@@ -139,7 +139,7 @@ class CloneRepositoryController(
         }
         return files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, project.organization.name, project.name)
             .flatMap {
-                preprocessorWebClient.postMultipart(it, uri)
+                preprocessorWebClient.postMultipart(bodyBuilder, uri)
             }
     }
 
@@ -168,25 +168,24 @@ class CloneRepositoryController(
         .retrieve()
         .toEntity<String>()
 
+    @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
         multipartBodyBuilder: MultipartBodyBuilder,
         execution: Execution,
         organizationName: String,
         projectName: String,
-    ): Mono<MultipartBodyBuilder> {
+    ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
         val projectCoordinates = ProjectCoordinates(organizationName, projectName)
         return map {
+            val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
+            execution.appendAdditionalFile(path.toString())
             multipartBodyBuilder.part("fileInfo", it)
             multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
-            execution.appendAdditionalFile(
-                additionalToolsFileSystemRepository.getPath(it, projectCoordinates).toString()
-            )
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
             .doOnNext {
                 executionService.saveExecution(execution)
             }
-            .map { multipartBodyBuilder }
     }
 }

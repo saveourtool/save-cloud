@@ -240,7 +240,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
         val execution = executionRepository.findById(executionId).get()
         execution.allTests += tests.size.toLong()
-        execution.appendTestSuiteIds(tests.map { it.testSuite.id!! }.distinct())
+        execution.appendTestSuiteIds(tests.map { it.testSuite.id!! })
         executionRepository.save(execution)
 
         testIds.map { testId ->

@@ -128,28 +128,16 @@ class Execution(
         ?.map { it.toLong() }
 
     /**
-     * Format and set provided list of TestSuite IDs
-     *
-     * @param testSuiteIds list of TestSuite IDs
-     */
-    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = if (testSuiteIds.isNotEmpty()) {
-            testSuiteIds.sorted().joinToString(TEST_SUITE_IDS_DELIMITER)
-        } else {
-            null
-        }
-    }
-
-    /**
      * Appends testSuiteIds to existed formatted String
      *
      * @param newTestSuiteIds new list of TestSuite IDs
      */
     fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
-        parseAndGetTestSuiteIds()
-            ?.let { it + newTestSuiteIds }
-            ?.distinct()
-            ?.let { formatAndSetTestSuiteIds(it) }
+        (parseAndGetTestSuiteIds().orEmpty() + newTestSuiteIds)
+            .distinct()
+            .sorted()
+            .joinToString(TEST_SUITE_IDS_DELIMITER)
+            .let { this.testSuiteIds = it }
     }
 
     /**
@@ -160,19 +148,6 @@ class Execution(
     fun parseAndGetAdditionalFiles(): List<String>? = this.additionalFiles
         ?.split(ADDITIONAL_FILES_DELIMITER)
         ?.filter { it.isNotBlank() }
-
-    /**
-     * Format and set provided list of additional files
-     *
-     * @param additionalFiles list of additional files
-     */
-    fun formatAndSetAdditionalFiles(additionalFiles: List<String>) {
-        this.additionalFiles = if (additionalFiles.isNotEmpty()) {
-            additionalFiles.joinToString(ADDITIONAL_FILES_DELIMITER)
-        } else {
-            null
-        }
-    }
 
     /**
      * Appends additional file to existed formatted String

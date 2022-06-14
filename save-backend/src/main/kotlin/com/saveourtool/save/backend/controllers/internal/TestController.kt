@@ -34,9 +34,9 @@ class TestController(
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
         log.debug { "Received the following tests for initialization under executionId=$executionId: $testDtos" }
-        meterRegistry.timer("save.backend.saveTests").record<List<Test>> {
+        meterRegistry.timer("save.backend.saveTests").record {
             testService.saveTests(testDtos)
-        }!!
+        }
     }
 
     /**
@@ -45,7 +45,7 @@ class TestController(
      */
     @PostMapping("/executeTestsByExecutionId")
     fun executeTestsByExecutionId(@RequestParam executionId: Long) {
-        val tests = getTestsByExecutionId(executionId)
+        val tests = testService.findTestsByExecutionId(executionId)
         log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.id }}" }
         meterRegistry.timer("save.backend.saveTestExecution").record {
             testExecutionService.updateExecutionAndSaveTestExecutions(executionId, tests)
@@ -58,13 +58,6 @@ class TestController(
      */
     @GetMapping("/getTestsByTestSuiteId")
     fun getTestsByTestSuiteId(@RequestParam testSuiteId: Long): List<Test> = testService.findTestsByTestSuiteId(testSuiteId)
-
-    /**
-     * @param executionId ID of the [Execution][com.saveourtool.save.entities.Execution], for which all corresponding tests will be returned
-     * @return list of tests
-     */
-    @GetMapping("/getTestsByExecutionId")
-    fun getTestsByExecutionId(@RequestParam executionId: Long): List<Test> = testService.findTestsByExecutionId(executionId)
 
     /**
      * @param agentId
