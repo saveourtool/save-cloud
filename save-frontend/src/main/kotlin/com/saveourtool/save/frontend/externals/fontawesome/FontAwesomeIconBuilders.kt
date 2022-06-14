@@ -55,5 +55,6 @@ fun ChildrenBuilder.fontAwesomeIcon(
 ): Unit = child(FontAwesomeIcon::class.react, props = jso {
     this.icon = icon.definition
     this.className = classes
-    handler(this)
+    // explicit receiver is required because of `@JsoDsl` which is a `@DslMarker` on `jso` argument
+    this@fontAwesomeIcon.handler(this)
 })
