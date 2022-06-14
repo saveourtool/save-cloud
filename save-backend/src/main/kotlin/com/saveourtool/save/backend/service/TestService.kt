@@ -107,13 +107,14 @@ class TestService(
     /**
      * @param executionId
      * @return all tests which has testSuiteId from [execution][com.saveourtool.save.entities.Execution] found by provided [executionId]
+     * @throws ResponseStatusException when execution is not found by [executionId] or found execution doesn't contain testSuiteIds
      */
     fun findTestsByExecutionId(executionId: Long): List<Test> {
         val execution = executionRepository.findById(executionId).orElseGet {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution (id=$executionId) not found")
         }
         return execution.parseAndGetTestSuiteIds()?.flatMap { findTestsByTestSuiteId(it) }
-            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=${executionId}) doesn't contain testSuiteIds")
+            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=$executionId) doesn't contain testSuiteIds")
     }
 
     /**

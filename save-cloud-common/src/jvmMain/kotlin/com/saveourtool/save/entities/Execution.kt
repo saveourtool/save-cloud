@@ -175,9 +175,8 @@ class Execution(
     }
 
     companion object {
-        private const val TEST_SUITE_IDS_DELIMITER = ", "
-
         private const val ADDITIONAL_FILES_DELIMITER = ";"
+        private const val TEST_SUITE_IDS_DELIMITER = ", "
 
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.

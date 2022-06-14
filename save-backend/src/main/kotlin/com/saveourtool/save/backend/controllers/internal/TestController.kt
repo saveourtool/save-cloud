@@ -28,15 +28,14 @@ class TestController(
     private val testSuitesService: TestSuitesService,
     private val meterRegistry: MeterRegistry,
 ) {
-
     /**
      * @param testDtos list of [TestDto]s to save into the DB
      * @param executionId ID of the [Execution], during which these tests will be initialized
+     * @return list of initialized [Tests][Test]
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long): List<Test> {
-        return doInitializeTests(testDtos, executionId)
-    }
+    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long): List<Test> =
+        doInitializeTests(testDtos, executionId)
 
     /**
      * @param testDtos list of [TestDto]s to save into the DB
