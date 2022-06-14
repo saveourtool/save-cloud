@@ -387,16 +387,6 @@ class DownloadProjectController(
     } else {
         getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository)
     }
-//
-//    private fun getTestRootPath(execution: Execution, location: String, testRootPath: String): File {
-//        val projectRelativePath = when (execution.type) {
-//            ExecutionType.STANDARD ->
-//            ExecutionType.GIT ->
-//        }
-//        File(configProperties.repository)
-//            .resolve(location)
-//            .resolve(testRootPath)
-//    }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
@@ -418,14 +408,11 @@ class DownloadProjectController(
         .retrieve()
         .bodyToMono<Execution>()
 
-    private fun getTestSuiteDtosById(testSuiteIds: List<Long>) = Flux.fromIterable(testSuiteIds)
-        .flatMap {
-            webClientBackend.get()
-                .uri("/testSuiteDto/$it")
-                .retrieve()
-                .bodyToMono<TestSuiteDto>()
-        }
-        .collectList()
+    private fun getTestSuiteDtosById(testSuiteIds: List<Long>) = webClientBackend.post()
+            .uri("/findAllTestSuiteDtoByIds")
+            .bodyValue(testSuiteIds)
+            .retrieve()
+            .bodyToMono<List<TestSuiteDto>>()
 
     @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(

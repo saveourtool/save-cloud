@@ -35,7 +35,7 @@ class TestController(
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long): List<Test> =
-        doInitializeTests(testDtos, executionId)
+            doInitializeTests(testDtos, executionId)
 
     /**
      * @param testDtos list of [TestDto]s to save into the DB
