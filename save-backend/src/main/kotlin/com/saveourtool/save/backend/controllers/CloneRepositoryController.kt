@@ -175,17 +175,18 @@ class CloneRepositoryController(
         projectName: String,
     ): Mono<MultipartBodyBuilder> {
         val projectCoordinates = ProjectCoordinates(organizationName, projectName)
-        return this.collectList()
+        return map {
+            multipartBodyBuilder.part("fileInfo", it)
+            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
+            execution.appendAdditionalFile(
+                additionalToolsFileSystemRepository.getPath(it, projectCoordinates).toString()
+            )
+        }
+            .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
-            .map { fileInfos ->
-                fileInfos.forEach {
-                    multipartBodyBuilder.part("fileInfo", it)
-                    multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
-                }
-                execution.formatAndSetAdditionalFiles(fileInfos.map { additionalToolsFileSystemRepository.getPath(it, projectCoordinates) }
-                    .map { it.toString() })
+            .doOnNext {
                 executionService.saveExecution(execution)
-                return@map multipartBodyBuilder
             }
+            .map { multipartBodyBuilder }
     }
 }

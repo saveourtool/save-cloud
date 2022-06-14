@@ -174,6 +174,19 @@ class Execution(
         }
     }
 
+    /**
+     * Appends additional file to existed formatted String
+     *
+     * @param additionalFile a new additional file
+     */
+    fun appendAdditionalFile(additionalFile: String) {
+        additionalFiles = if (!additionalFiles.isNullOrEmpty()) {
+            additionalFiles + ADDITIONAL_FILES_DELIMITER + additionalFile
+        } else {
+            additionalFile
+        }
+    }
+
     companion object {
         private const val ADDITIONAL_FILES_DELIMITER = ";"
         private const val TEST_SUITE_IDS_DELIMITER = ", "
