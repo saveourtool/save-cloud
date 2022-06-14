@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.Python
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -37,7 +36,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
-import reactor.kotlin.core.publisher.toFlux
 
 import java.io.File
 import java.nio.file.Files
@@ -385,20 +383,20 @@ class DockerService(private val configProperties: ConfigProperties,
     }
 
     private fun collectStandardTestSuitesForDocker(execution: Execution): List<TestSuiteDto> = when (execution.type) {
-            ExecutionType.GIT -> emptyList()
-            ExecutionType.STANDARD -> {
-                val testSuiteIds = execution.parseAndGetTestSuiteIds() ?: throw ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Execution (id=${execution.id}) doesn't contain testSuiteIds"
-                )
-                webClientBackend.post()
-                    .uri("/findAllTestSuiteDtoByIds")
-                    .bodyValue(testSuiteIds)
-                    .retrieve()
-                    .bodyToMono<List<TestSuiteDto>>()
-                    .block()!!
-            }
+        ExecutionType.GIT -> emptyList()
+        ExecutionType.STANDARD -> {
+            val testSuiteIds = execution.parseAndGetTestSuiteIds() ?: throw ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Execution (id=${execution.id}) doesn't contain testSuiteIds"
+            )
+            webClientBackend.post()
+                .uri("/findAllTestSuiteDtoByIds")
+                .bodyValue(testSuiteIds)
+                .retrieve()
+                .bodyToMono<List<TestSuiteDto>>()
+                .block()!!
         }
+    }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
