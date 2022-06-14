@@ -418,14 +418,6 @@ class DownloadProjectController(
         .retrieve()
         .bodyToMono<Execution>()
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun getTestSuitesIfStandard(executionType: ExecutionType, execution: Execution, location: String) = if (executionType == ExecutionType.GIT) {
-        // Do nothing
-        Mono.fromCallable { Triple(location, execution, null) }
-    } else {
-        getTestSuiteDtosById(execution.parseAndGetTestSuiteIds()!!).map { Triple(location, execution, it) }
-    }
-
     private fun getTestSuiteDtosById(testSuiteIds: List<Long>) = Flux.fromIterable(testSuiteIds)
         .flatMap {
             webClientBackend.get()
