@@ -106,25 +106,25 @@ class DownloadProjectController(
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val resourcesLocation = getResourceLocationForGit(location, executionRequest.testRootPath)
-                    log.info("Downloading additional files into $resourcesLocation")
-                    files.zipWith(fileInfos).download(resourcesLocation)
+                    val testRootAbsolutePath = getResourceLocationForGit(location, executionRequest.testRootPath)
+                    log.info("Downloading additional files into $testRootAbsolutePath")
+                    files.zipWith(fileInfos).download(testRootAbsolutePath)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
                             Mono.just(emptyList())
                         )
                         .map {
-                            log.info("Downloaded ${it.size} files into $resourcesLocation")
-                            Pair(location, version)
+                            log.info("Downloaded ${it.size} files into $testRootAbsolutePath")
+                            Triple(location, version, testRootAbsolutePath)
                         }
                 }
-                .flatMap { (location, version) ->
+                .flatMap { (location, version, testRootAbsolutePath) ->
                     updateExecution(executionRequest.project, location, version).map { execution ->
-                        Pair(execution, location)
+                        Pair(execution, testRootAbsolutePath)
                     }
                 }
-                .flatMap { (execution, location) ->
-                    getTestsFromGit(execution, executionRequest.testRootPath, location, executionRequest.gitDto.url)
+                .flatMap { (execution, testRootAbsolutePath) ->
+                    getTestsFromGit(execution, executionRequest.testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
                         .sendToBackendAndOrchestrator(execution)
                 }
                 .subscribeOn(scheduler)
@@ -175,19 +175,18 @@ class DownloadProjectController(
                     val files = execution.parseAndGetAdditionalFiles()?.map { File(it) } ?: emptyList()
                     execution to files
                 }
-                .zipWhen { (execution, files) -> getProjectRootAndResourceLocation(executionRerunRequest, execution.type, files)
+                .zipWhen { (execution, files) -> getResourceLocation(executionRerunRequest, execution.type, files) }
+                .map { (executionAndFiles, testRootAbsolutePath) ->
+                    copyAdditionalFiles(executionAndFiles.second, testRootAbsolutePath)
+                    executionAndFiles.first to testRootAbsolutePath
                 }
-                .map { (executionAndFiles, locationAndResourceLocation) ->
-                    copyAdditionalFiles(executionAndFiles.second, locationAndResourceLocation.second)
-                    executionAndFiles.first to locationAndResourceLocation.first
-                }
-                .flatMap { (execution, location) ->
+                .flatMap { (execution, testRootAbsolutePath) ->
                     val tests = when (executionType) {
                         ExecutionType.GIT -> getTestsFromGit(
-                            execution,
-                            executionRerunRequest.testRootPath,
-                            location!!,
-                            executionRerunRequest.gitDto.url
+                            execution = execution,
+                            testRootPath = executionRerunRequest.testRootPath,
+                            testRootAbsolutePath = testRootAbsolutePath,
+                            gitUrl = executionRerunRequest.gitDto.url
                         )
                         ExecutionType.STANDARD -> getTestsForStandard(execution)
                     }
@@ -388,6 +387,16 @@ class DownloadProjectController(
     } else {
         getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository)
     }
+//
+//    private fun getTestRootPath(execution: Execution, location: String, testRootPath: String): File {
+//        val projectRelativePath = when (execution.type) {
+//            ExecutionType.STANDARD ->
+//            ExecutionType.GIT ->
+//        }
+//        File(configProperties.repository)
+//            .resolve(location)
+//            .resolve(testRootPath)
+//    }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
@@ -395,13 +404,13 @@ class DownloadProjectController(
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
-    private fun getProjectRootAndResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
+    private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
         when (executionType) {
             ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
-                .map { (location, _) -> location to getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
+                .map { (location, _) -> getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
             ExecutionType.STANDARD ->
                 // In standard mode we will calculate location later, according list of additional files
-                Mono.just(null to getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository))
+                Mono.fromCallable { getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository) }
         }
 
     private fun getExecution(executionId: Long) = webClientBackend.get()
@@ -462,12 +471,11 @@ class DownloadProjectController(
 
     private fun getTestsFromGit(execution: Execution,
                                 testRootPath: String,
-                                projectRootRelativePath: String,
+                                testRootAbsolutePath: File,
                                 gitUrl: String,
     ): Flux<Test> {
         return Mono.fromCallable {
-            val testResourcesRootAbsolutePath =
-                getTestResourcesRootAbsolutePath(testRootPath, projectRootRelativePath)
+            val testResourcesRootAbsolutePath = testRootAbsolutePath.absolutePath
             testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
         }
             .zipWhen { rootTestConfig ->
@@ -480,31 +488,10 @@ class DownloadProjectController(
             .flatMap { Flux.fromIterable(it) }
     }
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun prepareForExecutionFromGit(execution: Execution,
-                                           testRootPath: String,
-                                           projectRootRelativePath: String,
-                                           gitUrl: String,
-    ): Flux<EmptyResponse> =
-        getTestsFromGit(execution, testRootPath, projectRootRelativePath, gitUrl)
-            .buffer(TESTS_BUFFER_SIZE)
-            .flatMap { tests ->
-                executeTests(tests, execution)
-            }
-
     private fun getTestsForStandard(execution: Execution): Flux<Test> = webClientBackend.get()
         .uri("/getTestsByExecutionId?executionId=${execution.id}")
         .retrieve()
         .bodyToFlux()
-
-    private fun prepareExecutionForStandard(execution: Execution): Flux<EmptyResponse> = getTestsForStandard(execution)
-        .buffer(TESTS_BUFFER_SIZE)
-        .flatMap { executeTests(it, execution) }
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun getTestResourcesRootAbsolutePath(testRootPath: String,
-                                                 projectRootRelativePath: String): String =
-            File(configProperties.repository, projectRootRelativePath).resolve(testRootPath).absolutePath
 
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
@@ -520,7 +507,6 @@ class DownloadProjectController(
     /**
      * Discover tests and send them to backend
      */
-    @Suppress("MagicNumber")
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig
     ): Flux<List<Test>> {
@@ -540,7 +526,6 @@ class DownloadProjectController(
     /**
      * Discover tests and send them to backend
      */
-    @Suppress("MagicNumber")
     private fun executeTests(tests: List<Test>,
                              execution: Execution,
     ): Mono<EmptyResponse> {

@@ -185,7 +185,7 @@ class CloneRepositoryController(
                 execution.formatAndSetAdditionalFiles(fileInfos.map { additionalToolsFileSystemRepository.getPath(it, projectCoordinates) }
                     .map { it.toString() })
                 executionService.saveExecution(execution)
-                multipartBodyBuilder
+                return@map multipartBodyBuilder
             }
     }
 }
