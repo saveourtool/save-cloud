@@ -34,9 +34,7 @@ class DockerAgentRunner(
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
-    private val settings: DockerSettings = requireNotNull(configProperties.docker) {
-        "orchestrator.docker properties are missing but are required with current active profiles"
-    }
+    private val settings: DockerSettings = configProperties.docker
 
     @Suppress("TYPE_ALIAS")
     private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()

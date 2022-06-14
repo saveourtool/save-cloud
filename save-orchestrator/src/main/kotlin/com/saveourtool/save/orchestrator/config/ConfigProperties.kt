@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
-    val docker: DockerSettings?,
+    val docker: DockerSettings,
     val kubernetes: KubernetesSettings?,
     val agentsCount: Int,
     val executionLogs: String,
