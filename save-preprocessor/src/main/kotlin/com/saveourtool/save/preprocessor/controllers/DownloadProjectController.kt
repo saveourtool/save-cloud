@@ -54,7 +54,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 import reactor.util.function.Tuple2
-import reactor.util.function.Tuple4
 
 import java.io.File
 import java.io.FileOutputStream
@@ -176,7 +175,7 @@ class DownloadProjectController(
                     val files = execution.parseAndGetAdditionalFiles()?.map { File(it) } ?: emptyList()
                     execution to files
                 }
-                .zipWhen { (_, files) -> getExecutionAndResourceLocation(executionRerunRequest, executionType, files)
+                .zipWhen { (execution, files) -> getProjectRootAndResourceLocation(executionRerunRequest, execution.type, files)
                 }
                 .map { (executionAndFiles, locationAndResourceLocation) ->
                     copyAdditionalFiles(executionAndFiles.second, locationAndResourceLocation.second)
@@ -285,8 +284,15 @@ class DownloadProjectController(
             }
         }
 
-    private fun calculateLocation(executionType: ExecutionType): String {
-
+    private fun generateLocation(execution: Execution, files: List<File>, executionRequest: ExecutionRequest): String {
+        val seeds = when (execution.type) {
+            ExecutionType.STANDARD ->
+                files.map { it.toHash() }.sorted()
+            ExecutionType.GIT ->
+                listOf(executionRequest.gitDto.url)
+        }
+        return generateDirectory(seeds, configProperties.repository, deleteExisting = false)
+            .relativeTo(File(configProperties.repository)).normalize().path
     }
 
     @Suppress(
@@ -389,7 +395,7 @@ class DownloadProjectController(
 
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
-    private fun getExecutionAndResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
+    private fun getProjectRootAndResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
         when (executionType) {
             ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
                 .map { (location, _) -> location to getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
