@@ -66,16 +66,8 @@ class TestSuitesController(
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
 
     /**
-     * @param id id of the test suite
-     * @return response with test suite with provided id
-     */
-    @GetMapping("/internal/testSuiteDto/{id}")
-    fun getTestSuiteDtoById(@PathVariable id: Long) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id).map { it.toDto() })
-
-    /**
      * @param ids list of test suite ID
-     * @return response with test suites with provided ids
+     * @return response with test suites with id from provided list
      */
     @PostMapping("/internal/findAllTestSuiteDtoByIds")
     fun findAllTestSuiteDtoByIds(@RequestBody ids: List<Long>) =

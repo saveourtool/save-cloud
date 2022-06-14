@@ -9,7 +9,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
-import com.saveourtool.save.testsuite.TestSuiteDto
 
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
