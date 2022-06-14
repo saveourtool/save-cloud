@@ -51,7 +51,7 @@ class TestController(
      * @param testDtos list of [TestDto]s to save into the DB
      * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
      */
-    @PostMapping("/initializeAndExecuteTests")
+    @PostMapping("/executeTests")
     fun executeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
         val tests = doInitializeTests(testDtos, executionId)
         doExecuteTests(tests, executionId)
