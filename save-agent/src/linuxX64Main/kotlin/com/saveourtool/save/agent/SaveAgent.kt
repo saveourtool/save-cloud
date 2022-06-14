@@ -24,23 +24,19 @@ import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import platform.posix.exit
 
 /**
  * A main class for SAVE Agent
@@ -100,6 +96,11 @@ class SaveAgent(internal val config: AgentConfiguration,
                     }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
+                    is TerminateResponse -> {
+                        // Here `coroutineScope` is the topmost scope, which is passed all the way from `fun main()`.
+                        // So by cancelling it we can gracefully shut down the whole application.
+                        coroutineScope.cancel()
+                    }
                 }
             } else {
                 logErrorCustom("Exception during heartbeat: ${response.exceptionOrNull()?.message}")

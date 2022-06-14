@@ -50,18 +50,13 @@ class AgentService(
      * @param agentId
      * @return Mono<NewJobResponse>
      */
-    fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
+    internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
             webClientBackend
                 .get()
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<TestBatch>()
                 .flatMap { batch -> batch.toHeartbeatResponse(agentId) }
-                .doOnSuccess {
-                    if (it is NewJobResponse) {
-                        updateAssignedAgent(agentId, it)
-                    }
-                }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.

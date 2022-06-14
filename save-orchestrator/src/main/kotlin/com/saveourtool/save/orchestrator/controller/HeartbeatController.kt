@@ -4,11 +4,8 @@
 
 package com.saveourtool.save.orchestrator.controller
 
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.ContinueResponse
-import com.saveourtool.save.agent.Heartbeat
-import com.saveourtool.save.agent.HeartbeatResponse
-import com.saveourtool.save.agent.WaitResponse
+import com.saveourtool.save.agent.*
+import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -22,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.time.Duration
 import java.time.LocalDateTime
@@ -31,6 +30,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 private val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
@@ -74,23 +74,16 @@ class HeartbeatController(private val agentService: AgentService,
             .then(
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    AgentState.STARTING -> agentService.getNewTestsIds(heartbeat.agentId)
+                    STARTING -> handleVacantAgent(heartbeat.agentId, isStarting = true)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    AgentState.IDLE -> handleVacantAgent(heartbeat.agentId)
-                    AgentState.FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
-                        if (isSavingSuccessful) {
-                            handleVacantAgent(heartbeat.agentId)
-                        } else {
-                            // Agent finished its work, however only part of results were received, other should be marked as failed
-                            agentService.markTestExecutionsAsFailed(listOf(heartbeat.agentId), AgentState.FINISHED)
-                                .subscribeOn(agentService.scheduler)
-                                .subscribe()
-                            Mono.just(WaitResponse)
-                        }
+                    IDLE -> handleVacantAgent(heartbeat.agentId, isStarting = false)
+                    // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
+                    FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
+                        handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
                     }
-                    AgentState.BUSY -> Mono.just(ContinueResponse)
-                    AgentState.BACKEND_FAILURE, AgentState.BACKEND_UNREACHABLE, AgentState.CLI_FAILED, AgentState.STOPPED_BY_ORCH -> Mono.just(WaitResponse)
-                    AgentState.CRASHED -> {
+                    BUSY -> Mono.just(ContinueResponse)
+                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED, STOPPED_BY_ORCH -> Mono.just(WaitResponse)
+                    CRASHED -> {
                         logger.warn("Agent sent CRASHED status, but should be offline in that case!")
                         Mono.just(WaitResponse)
                     }
@@ -101,12 +94,33 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> = agentService.getNewTestsIds(agentId)
-        .doOnSuccess {
-            if (it is WaitResponse) {
-                initiateShutdownSequence(agentId, areAllAgentsCrashed = false)
+    private fun handleVacantAgent(agentId: String, isStarting: Boolean = false): Mono<HeartbeatResponse> =
+        agentService.getNewTestsIds(agentId)
+            .doOnSuccess {
+                if (it is NewJobResponse) {
+                    agentService.updateAssignedAgent(agentId, it)
+                }
             }
+            .zipWhen {
+                if (it is WaitResponse && !isStarting) agentService.getAgentsAwaitingStop(agentId)
+                else Mono.just(-1 to emptyList())
+            }
+            .map { (response, executionIdToFinishedAgents) ->
+                if (agentId in executionIdToFinishedAgents.second) TerminateResponse
+                else response
+            }
+
+    private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> {
+        return if (isSavingSuccessful) {
+            handleVacantAgent(agentId, isStarting = false)
+        } else {
+            // Agent finished its work, however only part of results were received, other should be marked as failed
+            agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
+                .subscribeOn(agentService.scheduler)
+                .subscribe()
+            Mono.just(WaitResponse)
         }
+    }
 
     /**
      * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
