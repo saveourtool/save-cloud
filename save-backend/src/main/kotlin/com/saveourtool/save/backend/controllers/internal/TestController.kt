@@ -34,26 +34,17 @@ class TestController(
      * @return list of initialized [Tests][Test]
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long): List<Test> =
-            doInitializeTests(testDtos, executionId)
-
-    /**
-     * @param testDtos list of [TestDto]s to save into the DB
-     * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
-     */
-    @PostMapping("/initializeAndExecuteTests")
-    fun initializeAndExecuteTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
-        val tests = doInitializeTests(testDtos, executionId)
-        doExecuteTests(tests, executionId)
+    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
+        doInitializeTests(testDtos, executionId)
     }
 
     /**
-     * @param testDtos list of [TestDto]s to save into the DB
-     * @param executionId ID of the [Execution], during which these tests will be initiliazed and executed
+     * @param executionId ID of the [Execution][com.saveourtool.save.entities.Execution],
+     * all tests are initialized for this execution will be executed (creating an instance of [TestExecution][com.saveourtool.save.entities.TestExecution])
      */
-    @PostMapping("/executeTests")
-    fun executeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
-        val tests = doInitializeTests(testDtos, executionId)
+    @PostMapping("/executeTestsByExecutionId")
+    fun executeTestsByExecutionId(@RequestParam executionId: Long) {
+        val tests = getTestsByExecutionId(executionId)
         doExecuteTests(tests, executionId)
     }
 
@@ -65,7 +56,7 @@ class TestController(
     }
 
     private fun doExecuteTests(tests: List<Test>, executionId: Long) {
-        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $tests" }
+        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.id }}" }
         meterRegistry.timer("save.backend.saveTestExecution").record {
             testExecutionService.updateExecutionAndSaveTestExecutions(executionId, tests)
         }

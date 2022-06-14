@@ -231,33 +231,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param testIds IDs of the tests, which will be executed
-     * @param executionId ID of the [Execution], during which these tests will be executed
-     */
-    fun saveTestExecution(executionId: Long, testIds: List<Long>) {
-        val execution = executionRepository.findById(executionId).get()
-        doSaveTestExecutions(execution, testIds)
-    }
-
-    /**
      * @param executionId ID of the [Execution], during which these tests will be executed
      * @param tests the tests, which will be executed
      */
     fun updateExecutionAndSaveTestExecutions(executionId: Long, tests: List<Test>) {
-        val testSuiteIds = tests.map { it.testSuite.id!! }.distinct()
         val testIds = tests.map { it.id!! }
+        log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
 
         val execution = executionRepository.findById(executionId).get()
-        execution.allTests += testIds.size.toLong()
-        execution.appendTestSuiteIds(testSuiteIds)
+        execution.allTests += tests.size.toLong()
+        execution.appendTestSuiteIds(tests.map { it.testSuite.id!! }.distinct())
         executionRepository.save(execution)
 
-        doSaveTestExecutions(execution, testIds)
-    }
-
-    private fun doSaveTestExecutions(execution: Execution, testIds: List<Long>) {
-        val executionId = execution.id!!
-        log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {

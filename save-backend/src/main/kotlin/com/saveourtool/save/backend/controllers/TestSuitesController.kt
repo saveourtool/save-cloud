@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.scheduling.UpdateJob
-import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import java.util.*
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
@@ -29,7 +27,6 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 @RestController
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
-    private val testService: TestService,
     private val quartzScheduler: Scheduler,
 ) {
     /**

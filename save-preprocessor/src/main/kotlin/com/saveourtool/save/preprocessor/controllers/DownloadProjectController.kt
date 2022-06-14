@@ -124,9 +124,10 @@ class DownloadProjectController(
                     }
                 }
                 .flatMap { (execution, testRootAbsolutePath) ->
-                    getTestsFromGit(execution, executionRequest.testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
-                        .sendToBackendAndOrchestrator(execution)
+                    initializeTestsFromGit(execution, executionRequest.testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
+                        .map { execution }
                 }
+                .flatMap { it.executeTests() }
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -167,9 +168,7 @@ class DownloadProjectController(
     }
         .doOnSuccess {
             updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
-                .flatMap {
-                    cleanupInOrchestrator(executionRerunRequest.executionId!!)
-                }
+                .flatMap { cleanupInOrchestrator(executionRerunRequest.executionId!!) }
                 .flatMap { getExecution(executionRerunRequest.executionId!!) }
                 .map { execution ->
                     val files = execution.parseAndGetAdditionalFiles()?.map { File(it) } ?: emptyList()
@@ -181,17 +180,21 @@ class DownloadProjectController(
                     executionAndFiles.first to testRootAbsolutePath
                 }
                 .flatMap { (execution, testRootAbsolutePath) ->
-                    val tests = when (executionType) {
-                        ExecutionType.GIT -> getTestsFromGit(
-                            execution = execution,
-                            testRootPath = executionRerunRequest.testRootPath,
-                            testRootAbsolutePath = testRootAbsolutePath,
-                            gitUrl = executionRerunRequest.gitDto.url
-                        )
-                        ExecutionType.STANDARD -> getTestsForStandard(execution)
+                    when (execution.type) {
+                        ExecutionType.GIT ->
+                            initializeTestsFromGit(
+                                execution = execution,
+                                testRootPath = executionRerunRequest.testRootPath,
+                                testRootAbsolutePath = testRootAbsolutePath,
+                                gitUrl = executionRerunRequest.gitDto.url
+                            ).map { execution }
+                        ExecutionType.STANDARD -> {
+                            log.debug { "Skip initializing tests for execution.id = ${execution.id}: tests are standard" }
+                            Mono.just(execution)
+                        }
                     }
-                    tests.sendToBackendAndOrchestrator(execution)
                 }
+                .map { it.executeTests() }
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -348,16 +351,12 @@ class DownloadProjectController(
             execCmd,
             batchSizeForAnalyzer,
         )
-            .flatMap { getTestsForStandard(it).sendToBackendAndOrchestrator(it) }
+            .flatMap { it.executeTests() }
     }
 
     /**
-     *
-     * - Post request to backend to create PENDING executions
-     * - Discover all test suites in the cloned project
-     * - Post request to backend to save all test suites
-     * - Discover all tests in the cloned project
-     * - Post request to backend to save all tests and create TestExecutions for them
+     * Execute tests by execution id:
+     * - Post request to backend to find all tests by test suite id which are set in execution and create TestExecutions for them
      * - Send a request to orchestrator to initialize agents and start tests execution
      */
     @Suppress(
@@ -365,28 +364,18 @@ class DownloadProjectController(
         "TOO_MANY_PARAMETERS",
         "UnsafeCallOnNullableType"
     )
-    private fun Flux<Test>.sendToBackendAndOrchestrator(execution: Execution): Mono<StatusResponse> =
-        this.buffer(TESTS_BUFFER_SIZE)
-            .flatMap { executeTests(it, execution) }
-            .then(initializeAgents(execution))
-            .onErrorResume { ex ->
-                log.error(
-                    "Error during preprocessing, will mark execution.id=${execution.id} as failed; error: ",
-                    ex
-                )
-                updateExecutionStatus(execution.id!!, ExecutionStatus.ERROR)
-            }
-
-    private fun getResourceLocation(
-        executionType: ExecutionType,
-        location: String,
-        testRootPath: String,
-        files: List<File>,
-    ) = if (executionType == ExecutionType.GIT) {
-        getResourceLocationForGit(location, testRootPath)
-    } else {
-        getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository)
-    }
+    private fun Execution.executeTests(): Mono<StatusResponse> = webClientBackend.post()
+        .uri("/executeTestsByExecutionId?executionId=$id")
+        .retrieve()
+        .toBodilessEntity()
+        .then(initializeAgents(this))
+        .onErrorResume { ex ->
+            log.error(
+                "Error during preprocessing, will mark execution.id=$id as failed; error: ",
+                ex
+            )
+            updateExecutionStatus(id!!, ExecutionStatus.ERROR)
+        }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
@@ -407,12 +396,6 @@ class DownloadProjectController(
         .uri("${configProperties.backend}/execution?id=$executionId")
         .retrieve()
         .bodyToMono<Execution>()
-
-    private fun getTestSuiteDtosById(testSuiteIds: List<Long>) = webClientBackend.post()
-            .uri("/findAllTestSuiteDtoByIds")
-            .bodyValue(testSuiteIds)
-            .retrieve()
-            .bodyToMono<List<TestSuiteDto>>()
 
     @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
@@ -448,11 +431,11 @@ class DownloadProjectController(
                 .retrieve()
                 .toBodilessEntity()
 
-    private fun getTestsFromGit(execution: Execution,
-                                testRootPath: String,
-                                testRootAbsolutePath: File,
-                                gitUrl: String,
-    ): Flux<Test> {
+    private fun initializeTestsFromGit(execution: Execution,
+                                       testRootPath: String,
+                                       testRootAbsolutePath: File,
+                                       gitUrl: String,
+    ): Mono<List<EmptyResponse>> {
         return Mono.fromCallable {
             val testResourcesRootAbsolutePath = testRootAbsolutePath.absolutePath
             testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
@@ -464,13 +447,8 @@ class DownloadProjectController(
             .flatMap { (rootTestConfig, testSuites) ->
                 initializeTests(testSuites, rootTestConfig)
             }
-            .flatMap { Flux.fromIterable(it) }
+            .collectList()
     }
-
-    private fun getTestsForStandard(execution: Execution): Flux<Test> = webClientBackend.get()
-        .uri("/getTestsByExecutionId?executionId=${execution.id}")
-        .retrieve()
-        .bodyToFlux()
 
     private fun discoverAndSaveTestSuites(project: Project?,
                                           rootTestConfig: TestConfig,
@@ -488,7 +466,7 @@ class DownloadProjectController(
      */
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig
-    ): Flux<List<Test>> {
+    ): Flux<EmptyResponse> {
         return testDiscoveringService.getAllTests(rootTestConfig, testSuites)
             .toFlux()
             .buffer(TESTS_BUFFER_SIZE)
@@ -497,21 +475,9 @@ class DownloadProjectController(
             }
             .flatMap { testDtos ->
                 webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {
-                    it.bodyToMono()
+                    it.toBodilessEntity()
                 }
             }
-    }
-
-    /**
-     * Discover tests and send them to backend
-     */
-    private fun executeTests(tests: List<Test>,
-                             execution: Execution,
-    ): Mono<EmptyResponse> {
-        return webClientBackend.makeRequest(
-            BodyInserters.fromValue(tests),
-            "/executeTests?executionId=${execution.id}"
-        ) { it.toBodilessEntity() }
     }
 
     /**

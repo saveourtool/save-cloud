@@ -58,6 +58,7 @@ class TestService(
             }
                 .orElseGet {
                     log.trace("Test $testDto is not found in the DB, will save it")
+                    // FIXME: TestSuite should be found instead of creating a stub
                     val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                         id = testDto.testSuiteId
                     }
