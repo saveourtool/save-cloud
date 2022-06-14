@@ -130,13 +130,35 @@ are usually encapsulated and isolated from each other.
 
 ## SAVE-cloud
 
+### Processing
 So after the SAVE-cli was done, we started to implement our ideas in SAVE-cloud. We wanted these projects to be separated:
 - SAVE-cli for local testing and checking configuration by user;
 - SAVE-cloud for Cloud testing with SAVE-cli and storing of historical results;
 
-So we have created a platform:
+So the logic is the following on the high-level:
+1) SAVE-cloud provides a REST API or a WEB UI for the user;
+2) User can select existing or upload his own benchmarks;
+3) Processing triggers and orchestrates Kubernetes nodes where Native SAVE-cli executes tests in docker containers;
+4) All historical results for exeuctions are saved in a DB for analysis;
 
 <img src="https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg" width="512px"/>
+
+### How it looks for the user
+SAVE instance is deployed to **saveourtool.com**
+
+<img width="512px" alt="image" src="https://user-images.githubusercontent.com/58667063/173469699-762d100d-9c7a-43e3-a76d-4f487856ddda.png">
+
+<img width="512px" alt="image" src="https://user-images.githubusercontent.com/58667063/173469831-8ca547de-9db6-4c14-b8e2-4091c8a4af05.png">
+
+<img width="512px" alt="image" src="https://user-images.githubusercontent.com/58667063/173470024-a7af3ac1-e792-48fa-80f5-5ecd6cfceb70.png">
+
+<img width="512px" alt="image" src="https://user-images.githubusercontent.com/58667063/173470224-368e9118-6c75-454a-814d-bca367afb23d.png">
+
+<img width="512px" alt="image" src="https://user-images.githubusercontent.com/58667063/173470482-6f70755c-8a53-4c51-8fca-821f72fd5924.png">
+
+### SAVE API
+Of course, SAVE-cloud also have a REST API and a Java library that can be used a client to this API. Using this API it can be easily integrated to various CI/CD platforms, like GitHub Action, Genkins, TeamCity and many other. You can read about the API [here](https://github.com/saveourtool/save-cloud/blob/master/save-backend/Backend-API.md).
+
 
 ## Conclusion
 We think that SAVE in the future will become a standard for testing, benchmarking and standardization of dev-tools, especially
