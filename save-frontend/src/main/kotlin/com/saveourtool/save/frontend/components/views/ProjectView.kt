@@ -10,15 +10,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.TestingType
-import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.basic.fileUploader
-import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.projectInfo
-import com.saveourtool.save.frontend.components.basic.projectSettingsMenu
-import com.saveourtool.save.frontend.components.basic.projectStatisticMenu
-import com.saveourtool.save.frontend.components.basic.sdkSelection
-import com.saveourtool.save.frontend.components.basic.testResourcesSelection
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
@@ -210,6 +202,11 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Flag to handle confirm Window
+     */
+    var isOpenGitWindow: Boolean?
 }
 
 /**
@@ -220,6 +217,7 @@ external interface ProjectViewState : State {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
+    private val fieldsGitMap: MutableMap<InputTypes, String> = mutableMapOf()
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
@@ -287,6 +285,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         this.project = project
                     }
                 }
+            }
+        },
+        updateGit = {
+            setState {
+                isOpenGitWindow = it
             }
         },
         updateErrorMessage = {
@@ -567,6 +570,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         }
 
+        runSettingGitWindow(
+            state.isOpenGitWindow,
+            gitDto,
+            changeFields = { type, element -> changeGitFields(type, element) },
+            handlerCancel = { setState { isOpenGitWindow = false } }
+        ) {
+            updateGit()
+            // setState { isOpenGitWindow = false }
+        }
+
         runConfirmWindowModal(
             state.isConfirmWindowOpen,
             state.confirmLabel,
@@ -697,6 +710,44 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 child(projectInfoCard)
             }
         }
+    }
+
+    private fun updateGit() {
+        scope.launch {
+            val headers = Headers().also {
+                it.set("Accept", "application/json")
+                it.set("Content-Type", "application/json")
+            }
+
+            val git = GitDto(
+                fieldsGitMap[InputTypes.GIT_URL]?.trim() ?: gitDto!!.url,
+                fieldsGitMap[InputTypes.GIT_USER]?.trim() ?: gitDto?.username,
+                fieldsGitMap[InputTypes.GIT_TOKEN]?.trim() ?: gitDto?.password,
+                gitDto?.branch,
+                gitDto?.hash,
+            )
+
+            val response = post(
+                "$apiUrl/projects/update/git?projectId=${state.project.id}",
+                headers,
+                Json.encodeToString(git),
+                loadingHandler = ::noopLoadingHandler,
+            )
+
+            if (response.ok) {
+                setState {
+                    isOpenGitWindow = false
+                    gitDto = git
+                }
+            }
+        }
+    }
+
+    private fun changeGitFields(
+        fieldName: InputTypes,
+        element: HTMLInputElement,
+    ) {
+        fieldsGitMap[fieldName] = element.value
     }
 
     private fun RBuilder.renderStatistics() {

@@ -39,6 +39,7 @@ external interface ProjectSettingsMenuProps : Props {
  * @param updateProjectSettings
  * @param updateErrorMessage
  * @param updateNotificationMessage
+ * @param updateGit
  * @return ReactElement
  */
 @Suppress(
@@ -51,6 +52,7 @@ fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updateErrorMessage: (Response) -> Unit,
+    updateGit: (Boolean) -> Unit,
     updateNotificationMessage: (String, String) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
@@ -169,6 +171,19 @@ fun projectSettingsMenu(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
+                    div("col-5 text-left") {
+                        +"User settings:"
+                    }
+                    div("col-7 row") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
+                            attrs.onClickFunction = {
+                                updateGit(true)
+                            }
+                            +"Add"
                         }
                     }
                 }

@@ -9,6 +9,7 @@
     <include file="user.xml" relativeToChangelogFile="true"/>
     <include file="organization.xml" relativeToChangelogFile="true"/>
     <include file="project.xml" relativeToChangelogFile="true"/>
+    <include file="git.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="project-privacy.xml" relativeToChangelogFile="true"/>
     <include file="test_suite.xml" relativeToChangelogFile="true"/>
