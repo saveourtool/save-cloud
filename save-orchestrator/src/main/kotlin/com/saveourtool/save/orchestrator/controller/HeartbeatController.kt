@@ -83,8 +83,11 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED, STOPPED_BY_ORCH -> Mono.just(WaitResponse)
-                    CRASHED -> {
-                        logger.warn("Agent sent CRASHED status, but should be offline in that case!")
+                    CRASHED, TERMINATED -> {
+                        logger.warn("Agent sent ${heartbeat.state} status, but should be offline in that case!")
+                        if (heartbeat.agentId !in crashedAgentsList) {
+                            crashedAgentsList.add(heartbeat.agentId)
+                        }
                         Mono.just(WaitResponse)
                     }
                 }
@@ -105,9 +108,17 @@ class HeartbeatController(private val agentService: AgentService,
                 if (it is WaitResponse && !isStarting) agentService.getAgentsAwaitingStop(agentId)
                 else Mono.just(-1 to emptyList())
             }
-            .map { (response, executionIdToFinishedAgents) ->
-                if (agentId in executionIdToFinishedAgents.second) TerminateResponse
-                else response
+            .flatMap { (response, executionIdToFinishedAgents) ->
+                if (agentId in executionIdToFinishedAgents.second) {
+                        agentService.updateAgentStatusesWithDto(
+                            listOf(
+                                AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)
+                            )
+                        )
+                            .thenReturn(TerminateResponse)
+                } else {
+                    Mono.just(response)
+                }
             }
 
     private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> {
