@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - 'master'
+      
+concurrency:
+  # https://docs.github.com/en/actions/using-jobs/using-concurrency
+  # The latest queued workflow is preferred; the ones already in progress get cancelled
+  # Workflows on master branch shouldn't be cancelled, that's why they are identified by commit SHA
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}', github.workflow, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   build_and_test_with_code_coverage:
@@ -20,7 +27,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
       - name: Install system packages
         # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
@@ -28,9 +35,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan
-          restore-keys: |
-            ${{ runner.os }}-gradle-konan
+          key: ${{ runner.os }}-gradle-konan-1.6.21
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
@@ -45,22 +50,19 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            gradle/libs.versions.toml
           arguments: |
             build
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
-            gprUser=${{ github.actor }}
-            gprKey=${{ secrets.GITHUB_TOKEN }}
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            --scan
 
       - name: Upload gradle reports
         if: ${{ always() }}
