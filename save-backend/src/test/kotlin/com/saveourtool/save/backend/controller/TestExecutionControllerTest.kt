@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
@@ -37,7 +36,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(ProjectController::class),
 )
 class TestExecutionControllerTest {

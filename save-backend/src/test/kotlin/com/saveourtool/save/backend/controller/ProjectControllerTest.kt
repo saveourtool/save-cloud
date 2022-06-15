@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
@@ -31,7 +30,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(LnkUserProjectService::class),
 )
 @Suppress("UnsafeCallOnNullableType")

@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.AgentStatus
@@ -37,7 +36,6 @@ import javax.persistence.EntityManager
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
-    MockBean(StandardSuitesUpdateScheduler::class),
     MockBean(ProjectController::class),
     MockBean(ProjectPermissionEvaluator::class),
 )

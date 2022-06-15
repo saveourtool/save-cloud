@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
-    val docker: DockerSettings?,
+    val docker: DockerSettings,
     val kubernetes: KubernetesSettings?,
     val agentsCount: Int,
     val executionLogs: String,
@@ -51,11 +51,13 @@ data class TestResources(
  * @property host hostname of docker daemon
  * @property runtime OCI compliant runtime for docker
  * @property loggingDriver logging driver for the container
+ * @property registry docker registry to pull images for test executions from
  */
 data class DockerSettings(
     val host: String,
     val loggingDriver: String,
     val runtime: String = "runc",
+    val registry: String = "docker.io/library",
 )
 
 /**
