@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-1.6.21
+          key: ${{ runner.os }}-gradle-konan-1.7.0
 
       - uses: gradle/gradle-build-action@v2
         with:
