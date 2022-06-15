@@ -34,15 +34,6 @@ kotlin {
     js(LEGACY) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
-            repositories {
-                mavenCentral()
-                maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
-                    content {
-                        includeGroup("com.saveourtool.save")
-                    }
-                }
-            }
-
             testTask {
                 useKarma {
                     when (properties["save.profile"]) {

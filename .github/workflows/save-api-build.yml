@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
       - name: Install system packages
         # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
@@ -25,24 +25,19 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan
-          restore-keys: |
-            ${{ runner.os }}-gradle-konan
+          key: ${{ runner.os }}-gradle-konan-1.6.21
 
-      - uses: burrunan/gradle-cache-action@v1
+      - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
-          # additional files to calculate key for dependency cache
-          gradle-dependencies-cache-key: |
-            gradle/libs.versions.toml
           arguments: |
             save-api-cli:build
             -x detekt
-          properties: |
-            org.gradle.caching=true
-            detekt.multiplatform.disabled=true
-            gprUser=${{ github.actor }}
-            gprKey=${{ secrets.GITHUB_TOKEN }}
+            -x spotlessCheck
+            -Porg.gradle.caching=true
+            -Pdetekt.multiplatform.disabled=true
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload gradle reports
         if: ${{ always() }}
