@@ -70,7 +70,7 @@ class TestSuitesController(
      */
     @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    fun updateStandardTestSuites() = Mono.justOrEmpty(quartzScheduler)
+    fun updateStandardTestSuites() = Mono.just(quartzScheduler)
         .map {
             it.triggerJob(
                 UpdateJob.jobKey
