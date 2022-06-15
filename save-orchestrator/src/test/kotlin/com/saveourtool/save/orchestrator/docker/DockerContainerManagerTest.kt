@@ -27,8 +27,9 @@ import kotlin.io.path.createTempFile
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
 @Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
-@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
 class DockerContainerManagerTest {
+    @Autowired private lateinit var configProperties: ConfigProperties
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
     private lateinit var dockerContainerManager: DockerContainerManager
@@ -38,13 +39,13 @@ class DockerContainerManagerTest {
 
     @BeforeEach
     fun setUp() {
-        dockerContainerManager = DockerContainerManager(CompositeMeterRegistry(), dockerClient)
+        dockerContainerManager = DockerContainerManager(configProperties, CompositeMeterRegistry(), dockerClient)
         dockerClient.pullImageCmd("ubuntu")
             .withTag("latest")
             .exec(PullImageResultCallback())
             .awaitCompletion()
         baseImageId = dockerClient.listImagesCmd().exec().first {
-            it.repoTags!!.contains("ubuntu:latest")
+            it.repoTags?.contains("ubuntu:latest") == true
         }
             .id
     }
@@ -83,7 +84,7 @@ class DockerContainerManagerTest {
         val resourcesDir = createTempDirectory()
         repeat(5) { createTempFile(resourcesDir) }
         testImageId = dockerContainerManager.buildImageWithResources(
-            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesPath = "/app/resources"
+            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesTargetPath = "/app/resources"
         )
         val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)

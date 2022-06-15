@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.domain.Python
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
@@ -252,11 +254,50 @@ class DockerService(private val configProperties: ConfigProperties,
         val agentPropertiesFile = File(resourcesPath, "agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile, configProperties.agentSettings, saveCliExecFlags)
 
-        val baseImage = execution.sdk
+        val sdk = execution.sdk.toSdk()
+        val baseImage = baseImageName(sdk)
+        dockerContainerManager.findImages(baseImage).ifEmpty {
+            log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
+            buildBaseImage(sdk)
+        }
+        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
+        val imageId = dockerContainerManager.buildImageWithResources(
+            baseImage = baseImage,
+            imageName = imageName(execution.id!!),
+            baseDir = resourcesPath,
+            resourcesTargetPath = executionDir,
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
+                    |libcurl4-openssl-dev tzdata
+                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+                    |RUN rm -rf /var/lib/apt/lists/*
+                """.trimMargin(),
+            runOnResourcesCmd = """
+                    |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
+                    |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
+                """.trimMargin()
+        )
+        saveAgent.delete()
+        saveCli.delete()
+        return Pair(imageId, agentRunCmd)
+    }
+
+    /**
+     * @param sdk
+     * @return an ID of the built image or of an existing one
+     */
+    fun buildBaseImage(sdk: Sdk): String {
+        val images = dockerContainerManager.findImages(baseImageName(sdk))
+        if (images.isNotEmpty()) {
+            log.info("Base image for sdk=$sdk already exists, skipping build")
+            return images.first().id
+        }
+        log.info("Starting to build base image for sdk=$sdk")
+
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/saveourtool/save-cloud/issues/352
-        val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
-            """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
+        val additionalRunCmd = if (sdk is Python) {
+            """|RUN $aptCmd update
+               |RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
                |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
                |RUN ln -s ${'$'}(which java) /usr/bin/java
@@ -264,23 +305,16 @@ class DockerService(private val configProperties: ConfigProperties,
         } else {
             ""
         }
-        val imageId = dockerContainerManager.buildImageWithResources(
-            baseImage = baseImage,
-            imageName = imageName(execution.id!!),
-            baseDir = resourcesPath,
-            resourcesPath = executionDir,
-            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
-                    |libcurl4-openssl-dev tzdata
-                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-                    |$additionalRunCmd
-                    |RUN rm -rf /var/lib/apt/lists/*
-                    |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
-                    |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                """
-        )
-        saveAgent.delete()
-        saveCli.delete()
-        return Pair(imageId, agentRunCmd)
+
+        return dockerContainerManager.buildImageWithResources(
+            baseImage = sdk.toString(),
+            imageName = baseImageName(sdk),
+            baseDir = null,
+            resourcesTargetPath = null,
+            runCmd = additionalRunCmd
+        ).also {
+            log.debug("Successfully built base image id=$it")
+        }
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -382,6 +416,11 @@ class DockerService(private val configProperties: ConfigProperties,
  * @param executionId
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
+
+/**
+ * @param sdk
+ */
+internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
 /**
  * @param testSuiteDto
