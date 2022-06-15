@@ -29,10 +29,8 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 @RestController
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
+    private val quartzScheduler: Scheduler,
 ) {
-    @Autowired(required = false)
-    private lateinit var quartzScheduler: Optional<Scheduler>
-
     /**
      * Save new test suites into DB
      *
