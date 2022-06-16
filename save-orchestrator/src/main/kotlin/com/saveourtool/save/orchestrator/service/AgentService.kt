@@ -16,6 +16,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
@@ -43,6 +44,7 @@ import java.util.logging.Level
 class AgentService(
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
     private val configProperties: ConfigProperties,
+    private val agentRunner: AgentRunner,
 ) {
     /**
      * A scheduler that executes long-running background tasks
@@ -145,9 +147,13 @@ class AgentService(
                     getAgentsAwaitingStop(agentId)
                 )
             }
+            .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (executionId, finishedAgentIds) ->
                 if (finishedAgentIds.isNotEmpty()) {
                     markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
+                        .thenReturn(
+                            agentRunner.cleanup(executionId)
+                        )
                 } else {
                     log.debug("Agents other than $agentId are still running, so won't try to stop them")
                     Mono.empty()
@@ -176,8 +182,9 @@ class AgentService(
                 } else if (agentStatuses.map { it.state }.all {
                     it == CRASHED
                 }) {
-                    updateExecution(executionId, ExecutionStatus.ERROR)
-                    markTestExecutionsAsFailed(agentIds, CRASHED)
+                    updateExecution(executionId, ExecutionStatus.ERROR).then(
+                        markTestExecutionsAsFailed(agentIds, CRASHED)
+                    )
                 } else {
                     Mono.error(NotImplementedError())
                 }
