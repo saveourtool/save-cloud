@@ -4,8 +4,7 @@ save-core = "0.4.0-SNAPSHOT"
 ktor = "2.0.2"
 okio = "3.1.0"
 serialization = "1.3.3"
-# kx.datetime 0.3.3 is built with Kotlin 1.7, so currently not compatible with our build
-kotlinx-datetime = { require = "0.3.2", rejects = "0.3.3" }
+kotlinx-datetime = "0.3.3"
 kotlinx-coroutines = "1.6.2"
 kotlin-wrappers = "1.0.0-pre.345"
 spring-boot = "2.7.0"
