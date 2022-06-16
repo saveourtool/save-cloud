@@ -4,7 +4,10 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import org.w3c.dom.HTMLInputElement
+import com.saveourtool.save.frontend.externals.formik.Formik
+import com.saveourtool.save.frontend.externals.formik.FormikConfig
+import com.saveourtool.save.frontend.externals.formik.FormikProps
+import csstype.ClassName
 import org.w3c.dom.HTMLSelectElement
 import react.StateSetter
 import react.dom.RDOMBuilder
@@ -12,18 +15,29 @@ import react.dom.attrs
 import react.dom.button
 import react.dom.div
 import react.dom.em
-import react.dom.form
-import react.dom.input
 import react.dom.option
 import react.dom.select
 import react.table.TableInstance
 
 import kotlinx.html.ButtonType
-import kotlinx.html.InputType
 import kotlinx.html.Tag
 import kotlinx.html.hidden
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import kotlinx.js.jso
+import react.ElementType
+import react.FC
+import react.Props
+import react.PropsWithChildren
+import react.ReactNode
+import react.createElement
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.input
+import react.react
+import react.useState
 
 /**
  * @param tableInstance
@@ -155,7 +169,8 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 +js("String.fromCharCode(187)").unsafeCast<String>()
             }
             // Jump to the concrete page
-            jumpToPage(tableInstance, setPageIndex, pageCount)
+            // todo: create outside
+            jumpToPage(tableInstance, setPageIndex, pageCount).invoke()
 
             setEntries(tableInstance, setPageIndex)
         }
@@ -167,25 +182,41 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
  * @return jump to page block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
-        form {
-            var number = 0
-            div("row") {
-                div("col-7 pr-0") {
-                    div("input-group input-group-sm mb-3 mt-3") {
-                        input(type = InputType.text, classes = "form-control") {
-                            attrs["aria-describedby"] = "basic-addon2"
-                            attrs.placeholder = "Jump to the page"
-                            attrs {
-                                onChangeFunction = {
-                                    // TODO: Provide validation of non int types
-                                    val tg = it.target as HTMLInputElement
-                                    number = tg.value.toInt() - 1
-                                    if (number < 0) {
-                                        number = 0
-                                    }
-                                    if (number > pageCount - 1) {
-                                        number = pageCount - 1
+fun <D : Any> jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) = FC<Props> {
+    val (number, setNumber) = useState(0)
+    +Formik(jso {
+        initialValues = jso {
+            this.number = 0
+        }
+        asDynamic().validate = { values: dynamic ->
+            if (values.number < 0) {
+                jso { this.number = "Can't be negative" }
+            } else if (number > pageCount - 1) {
+                jso { this.number = "Can't exceed page count" }
+            } else {
+                jso<dynamic> {}
+            }
+        }
+        children = { props ->
+            createElement(FC {
+                form {
+                    div {
+                        className = ClassName("row")
+                        div {
+                            className = ClassName("col-7 pr-0")
+                            div {
+                                className = ClassName("input-group input-group-sm mb-3 mt-3")
+                                input {
+                                    className = ClassName("form-control")
+                                    type = InputType.text
+                                    id = "number"
+                                    asDynamic()["aria-describedby"] = "basic-addon2"
+                                    asDynamic().placeholder = "Jump to the page"
+                                    onChange = {
+                                        // TODO: Provide validation of non int types
+                                        val tg = it.target
+                                        setNumber(tg.value.toInt())
+                                        props.handleChange(it)
                                     }
                                 }
                             }
@@ -193,11 +224,16 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>
                     }
                 }
 
-                div("col-sm-offset-10 mr-3 justify-content-start") {
-                    div("input-group input-group-sm mb-6") {
-                        div("input-group-append mt-3") {
-                            button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
-                                attrs.onClickFunction = {
+                div {
+                    className = ClassName("col-sm-offset-10 mr-3 justify-content-start")
+                    div {
+                        className = ClassName("input-group input-group-sm mb-6")
+                        div {
+                            className = ClassName("input-group-append mt-3")
+                            button {
+                                className = ClassName("btn btn-outline-secondary")
+                                type = react.dom.html.ButtonType.submit
+                                onClick = {
                                     setPageIndexAndGoToPage(tableInstance, setPageIndex, number)
                                 }
                                 +js("String.fromCharCode(10143)").unsafeCast<String>()
@@ -205,8 +241,10 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>
                         }
                     }
                 }
-            }
+            })
         }
+    })
+}
 
 private fun <D : Any> setPageIndexAndGoToPage(
     tableInstance: TableInstance<D>,
