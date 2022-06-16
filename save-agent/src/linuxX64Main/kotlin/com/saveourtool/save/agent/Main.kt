@@ -37,6 +37,7 @@ internal val json = Json {
             subclass(NewJobResponse::class)
             subclass(ContinueResponse::class)
             subclass(WaitResponse::class)
+            subclass(TerminateResponse::class)
         }
     }
 }
