@@ -26,6 +26,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
  */
 @Suppress("TOO_LONG_FUNCTION", "GENERIC_VARIABLE_WRONG_DECLARATION", "COMPLEX_EXPRESSION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
+    // todo: apply kotlin("kapt")
     apply<SpringBootPlugin>()
 
     extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
@@ -47,6 +48,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("runtimeOnly", libs.springdoc.openapi.security)
         add("runtimeOnly", libs.springdoc.openapi.kotlin)
         add("implementation", libs.swagger.annotations)
+        add("kapt", "org.springframework.boot:spring-boot-configuration-processor:${libs.versions.spring.boot.get()}")
 
         add("testImplementation", libs.spring.boot.starter.test)
         add("testImplementation", libs.mockito.kotlin)
