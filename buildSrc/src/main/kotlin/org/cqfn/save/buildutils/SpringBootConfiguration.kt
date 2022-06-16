@@ -99,7 +99,10 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         environment = mapOf(
             "BP_JVM_VERSION" to Versions.jdk,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
-            "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
+            "BPE_APPEND_JAVA_TOOL_OPTIONS" to
+                    // Workaround for https://github.com/reactor/reactor-netty/issues/564
+                    "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
+                    // Override default configuration. Intended to be used on a particular environment.
                     "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
         )
         isVerboseLogging = true
