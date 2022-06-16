@@ -112,6 +112,7 @@ class HeartbeatController(private val agentService: AgentService,
                     agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
                         .thenReturn(TerminateResponse)
                         .doOnSuccess {
+                            logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
                             ensureGracefulShutdown(agentId)
                         }
                 } else {

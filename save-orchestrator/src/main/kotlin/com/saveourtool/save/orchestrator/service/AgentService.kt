@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.agent.HeartbeatResponse
 import com.saveourtool.save.agent.NewJobResponse
 import com.saveourtool.save.agent.TestExecutionDto
@@ -78,7 +79,7 @@ class AgentService(
         .log(log, Level.INFO, true)
         .flatMap { agentIds ->
             updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
-                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), AgentState.STARTING, agent.also { it.id = id })
+                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), STARTING, agent.also { it.id = id })
             })
         }
 
@@ -169,14 +170,14 @@ class AgentService(
             .bodyToMono<AgentStatusesForExecution>()
             .flatMap { (executionId, agentStatuses) ->
                 if (agentStatuses.map { it.state }.all {
-                    it == AgentState.STOPPED_BY_ORCH || it == AgentState.TERMINATED
+                    it == STOPPED_BY_ORCH || it == TERMINATED
                 }) {
                     updateExecution(executionId, ExecutionStatus.FINISHED)
                 } else if (agentStatuses.map { it.state }.all {
-                    it == AgentState.CRASHED
+                    it == CRASHED
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR)
-                    markTestExecutionsAsFailed(agentIds, AgentState.CRASHED)
+                    markTestExecutionsAsFailed(agentIds, CRASHED)
                 } else {
                     Mono.error(NotImplementedError())
                 }
@@ -215,7 +216,7 @@ class AgentService(
     fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
             updateAgentStatusesWithDto(
                 finishedAgentIds.map { agentId ->
-                    AgentStatusDto(LocalDateTime.now(), AgentState.STOPPED_BY_ORCH, agentId)
+                    AgentStatusDto(LocalDateTime.now(), STOPPED_BY_ORCH, agentId)
                 }
             )
                 .then(
@@ -287,7 +288,7 @@ class AgentService(
     internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
         updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
             updateAgentStatusesWithDto(listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, agentContainerId)
+                AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
             ))
         )
             .doOnSuccess {
@@ -384,7 +385,7 @@ class AgentService(
     }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH || it.state == AgentState.CRASHED
+        it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
     }
 
     /**
