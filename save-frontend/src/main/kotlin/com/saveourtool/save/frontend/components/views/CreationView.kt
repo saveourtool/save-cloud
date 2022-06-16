@@ -279,7 +279,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
     @Suppress(
         "TOO_LONG_FUNCTION",
-        "EMPTY_BLOCK_STRUCTURE_ERROR",
         "LongMethod",
     )
     override fun RBuilder.render() {
@@ -437,6 +436,9 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 div("spinner-border spinner-border-sm mt-3") {
                                                     attrs["role"] = "status"
                                                 }
+                                            else -> {
+                                                // do nothing
+                                            }
                                         }
                                     }
                                 }
