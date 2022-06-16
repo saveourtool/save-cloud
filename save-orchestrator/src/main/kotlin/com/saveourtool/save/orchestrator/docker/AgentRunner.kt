@@ -56,4 +56,6 @@ interface AgentRunner {
     fun discover(executionId: Long) {
         TODO("Not yet implemented")
     }
+
+    fun ensureStopped(agentId: String): Boolean
 }

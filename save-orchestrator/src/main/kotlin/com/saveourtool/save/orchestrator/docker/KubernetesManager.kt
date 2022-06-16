@@ -139,6 +139,11 @@ class KubernetesManager(
         }
     }
 
+    override fun ensureStopped(agentId: String): Boolean {
+        val pod = kc.pods().withName(agentId).get()
+        return pod == null//4 || pod.status.containerStatuses.first(). == PodStatus.
+    }
+
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
 
     companion object {

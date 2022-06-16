@@ -144,6 +144,10 @@ class DockerService(private val configProperties: ConfigProperties,
                 false
             }
 
+    fun ensureStopped(agentId: String): Boolean {
+        return agentRunner.ensureStopped(agentId)
+    }
+
     /**
      * @param executionId
      */
