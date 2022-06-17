@@ -37,32 +37,24 @@ internal class ExecutionTest {
     }
 
     @Test
-    fun appendTestSuiteIds() {
+    fun formatAndSetTestSuiteIds() {
         execution.testSuiteIds = null
 
-        execution.appendTestSuiteIds(emptyList())
+        execution.formatAndSetTestSuiteIds(emptyList())
         assertEquals("", execution.testSuiteIds)
 
         execution.testSuiteIds = null
-        execution.appendTestSuiteIds(listOf(1L, 2L, 3L))
+        execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L))
         assertEquals("1, 2, 3", execution.testSuiteIds)
-        execution.appendTestSuiteIds(listOf(4L))
-        assertEquals("1, 2, 3, 4", execution.testSuiteIds)
-
-        execution.testSuiteIds = null
-        execution.appendTestSuiteIds(listOf(4L))
+        execution.formatAndSetTestSuiteIds(listOf(4L))
         assertEquals("4", execution.testSuiteIds)
-        execution.appendTestSuiteIds(listOf(3L, 2L, 1L))
-        assertEquals("1, 2, 3, 4", execution.testSuiteIds)
 
         execution.testSuiteIds = null
-        execution.appendTestSuiteIds(listOf(2L, 3L))
-        assertEquals("2, 3", execution.testSuiteIds)
-        execution.appendTestSuiteIds(listOf(2L, 1L))
+        execution.formatAndSetTestSuiteIds(listOf(3L, 2L, 1L))
         assertEquals("1, 2, 3", execution.testSuiteIds)
 
         execution.testSuiteIds = null
-        execution.appendTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
+        execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
         assertEquals("1, 2, 3", execution.testSuiteIds)
     }
 

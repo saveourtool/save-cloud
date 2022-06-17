@@ -2,6 +2,12 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.ExecutionRequest
+import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -15,11 +21,11 @@ import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.preprocessor.utils.generateDirectory
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.info
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -118,7 +124,7 @@ class DownloadProjectController(
                         }
                 }
                 .flatMap { (location, version, testRootAbsolutePath) ->
-                    initializeTestsFromGit2(
+                    initializeTestSuitesAndTests(
                         executionRequest.project,
                         executionRequest.testRootPath,
                         testRootAbsolutePath,
@@ -239,20 +245,8 @@ class DownloadProjectController(
                     .flatMapMany { Flux.fromIterable(testSuiteRepoInfo.testSuitePaths) }
                     .flatMap { testRootPath ->
                         log.info("Starting to discover root test config in test root path: $testRootPath")
-                        val testResourcesRootAbsolutePath = tmpDir.resolve(testRootPath).absolutePath
-                        val rootTestConfig = testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-                        log.info("Starting to discover standard test suites for root test config ${rootTestConfig.location}")
-                        val testRootRelativePath = rootTestConfig.directory.toFile().relativeTo(tmpDir).toString()
-                        log.info("Starting to save new test suites for root test config in $testRootPath")
-                        discoverAndSaveTestSuites(null, rootTestConfig, testRootRelativePath, testSuiteUrl)
-                            .flatMap { testSuites ->
-                                log.info("Test suites size = ${testSuites.size}")
-                                log.info("Starting to save new tests for config test root $testRootPath")
-                                initializeTests(
-                                    testSuites,
-                                    rootTestConfig
-                                ).collectList()
-                            }
+                        val testRootAbsolutePath = tmpDir.resolve(testRootPath).absoluteFile
+                        initializeTestSuitesAndTests(null, testRootPath, testRootAbsolutePath, testSuiteUrl)
                     }
                     .doOnError {
                         log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
@@ -436,38 +430,23 @@ class DownloadProjectController(
                 .retrieve()
                 .toBodilessEntity()
 
-    private fun initializeTestsFromGit(execution: Execution,
-                                       testRootPath: String,
-                                       testRootAbsolutePath: File,
-                                       gitUrl: String,
-    ): Mono<List<EmptyResponse>> {
+    private fun initializeTestSuitesAndTests(project: Project?,
+                                             testRootPath: String,
+                                             testRootAbsolutePath: File,
+                                             gitUrl: String,
+    ): Mono<List<TestSuite>> {
+        log.info { "Starting to save new test suites for root test config in $testRootPath" }
         return Mono.fromCallable {
             val testResourcesRootAbsolutePath = testRootAbsolutePath.absolutePath
             testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
         }
             .zipWhen { rootTestConfig ->
-                discoverAndSaveTestSuites(execution.project, rootTestConfig, testRootPath, gitUrl)
-            }
-            .flux()
-            .flatMap { (rootTestConfig, testSuites) ->
-                initializeTests(testSuites, rootTestConfig)
-            }
-            .collectList()
-    }
-
-    private fun initializeTestsFromGit2(project: Project,
-                                        testRootPath: String,
-                                        testRootAbsolutePath: File,
-                                        gitUrl: String,
-    ): Mono<List<TestSuite>> {
-        return Mono.fromCallable {
-            val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(testRootAbsolutePath)
-            testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
-        }
-            .zipWhen { rootTestConfig ->
+                log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
                 discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
             }
             .flatMap { (rootTestConfig, testSuites) ->
+                log.info { "Test suites size = ${testSuites.size}" }
+                log.info { "Starting to save new tests for config test root $testRootPath" }
                 initializeTests(testSuites, rootTestConfig)
                     .collectList()
                     .map { testSuites }

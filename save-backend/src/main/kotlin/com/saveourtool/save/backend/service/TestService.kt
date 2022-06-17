@@ -46,10 +46,10 @@ class TestService(
 
     /**
      * @param tests
-     * @return list tests
+     * @return list tests id's
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun saveTests(tests: List<TestDto>): List<Test> {
+    fun saveTests(tests: List<TestDto>): List<Long> {
         val (existingTests, nonExistentTests) = tests.map { testDto ->
             // only match fields that are present in DTO
             testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
@@ -67,7 +67,7 @@ class TestService(
         }
             .partition { it.id != null }
         testRepository.saveAll(nonExistentTests)
-        return existingTests + nonExistentTests
+        return (existingTests + nonExistentTests).map { it.requiredId }
     }
 
     /**

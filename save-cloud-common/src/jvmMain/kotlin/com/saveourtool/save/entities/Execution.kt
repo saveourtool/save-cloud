@@ -140,15 +140,6 @@ class Execution(
     }
 
     /**
-     * Appends testSuiteIds to existed formatted String
-     *
-     * @param newTestSuiteIds new list of TestSuite IDs
-     */
-    fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
-        formatAndSetTestSuiteIds(parseAndGetTestSuiteIds().orEmpty() + newTestSuiteIds)
-    }
-
-    /**
      * Parse and get additionalFiles as List<String>
      *
      * @return list of additional files

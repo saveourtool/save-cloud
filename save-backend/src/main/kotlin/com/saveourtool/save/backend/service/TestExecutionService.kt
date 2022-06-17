@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
@@ -234,7 +233,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId ID of the [Execution], during which these tests will be executed
      * @param testIds IDs of the tests, which will be executed
      */
-    fun updateExecutionAndSaveTestExecutions(executionId: Long, testIds: List<Long>) {
+    fun saveTestExecutions(executionId: Long, testIds: List<Long>) {
         log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
         val execution = executionRepository.findById(executionId).get()
         testIds.map { testId ->
