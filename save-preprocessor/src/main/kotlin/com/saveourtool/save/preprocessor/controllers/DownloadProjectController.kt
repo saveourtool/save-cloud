@@ -111,34 +111,27 @@ class DownloadProjectController(
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
-                    val testRootAbsolutePath = getResourceLocationForGit(location, executionRequest.testRootPath)
+                    val testRootPath = executionRequest.testRootPath
+                    val testRootAbsolutePath = getResourceLocationForGit(location, testRootPath)
                     log.info("Downloading additional files into $testRootAbsolutePath")
                     files.zipWith(fileInfos).download(testRootAbsolutePath)
                         .switchIfEmpty(
                             // if no files have been provided, proceed with empty list
                             Mono.just(emptyList())
                         )
-                        .map {
+                        .doOnNext {
                             log.info("Downloaded ${it.size} files into $testRootAbsolutePath")
-                            Triple(location, version, testRootAbsolutePath)
+                        }.flatMap {
+                            initializeTestSuitesAndTests(executionRequest.project, testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
+                                .flatMap { testsSuites ->
+                                    updateExecution(
+                                        executionRequest.project,
+                                        location,
+                                        version,
+                                        testsSuites.map { it.requiredId }
+                                    )
+                                }
                         }
-                }
-                .flatMap { (location, version, testRootAbsolutePath) ->
-                    initializeTestSuitesAndTests(
-                        executionRequest.project,
-                        executionRequest.testRootPath,
-                        testRootAbsolutePath,
-                        executionRequest.gitDto.url
-                    )
-                        .map { testsSuites -> Triple(location, version, testsSuites) }
-                }
-                .flatMap { (location, version, testsSuites) ->
-                    updateExecution(
-                        executionRequest.project,
-                        location,
-                        version,
-                        testsSuites.map { it.requiredId }
-                    )
                 }
                 .flatMap { it.executeTests() }
                 .subscribeOn(scheduler)
