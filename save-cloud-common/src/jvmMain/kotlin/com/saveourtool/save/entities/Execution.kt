@@ -128,16 +128,24 @@ class Execution(
         ?.map { it.toLong() }
 
     /**
+     * Format and set provided list of TestSuite IDs
+     *
+     * @param testSuiteIds list of TestSuite IDs
+     */
+    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
+        this.testSuiteIds = testSuiteIds
+            .distinct()
+            .sorted()
+            .joinToString(TEST_SUITE_IDS_DELIMITER)
+    }
+
+    /**
      * Appends testSuiteIds to existed formatted String
      *
      * @param newTestSuiteIds new list of TestSuite IDs
      */
     fun appendTestSuiteIds(newTestSuiteIds: List<Long>) {
-        (parseAndGetTestSuiteIds().orEmpty() + newTestSuiteIds)
-            .distinct()
-            .sorted()
-            .joinToString(TEST_SUITE_IDS_DELIMITER)
-            .let { this.testSuiteIds = it }
+        formatAndSetTestSuiteIds(parseAndGetTestSuiteIds().orEmpty() + newTestSuiteIds)
     }
 
     /**

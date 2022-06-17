@@ -232,17 +232,11 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
 
     /**
      * @param executionId ID of the [Execution], during which these tests will be executed
-     * @param tests the tests, which will be executed
+     * @param testIds IDs of the tests, which will be executed
      */
-    fun updateExecutionAndSaveTestExecutions(executionId: Long, tests: List<Test>) {
-        val testIds = tests.map { it.id!! }
+    fun updateExecutionAndSaveTestExecutions(executionId: Long, testIds: List<Long>) {
         log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
-
         val execution = executionRepository.findById(executionId).get()
-        execution.allTests += tests.size.toLong()
-        execution.appendTestSuiteIds(tests.map { it.testSuite.id!! })
-        executionRepository.save(execution)
-
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {

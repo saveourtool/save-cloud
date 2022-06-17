@@ -42,7 +42,6 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
@@ -119,13 +118,21 @@ class DownloadProjectController(
                         }
                 }
                 .flatMap { (location, version, testRootAbsolutePath) ->
-                    updateExecution(executionRequest.project, location, version).map { execution ->
-                        Pair(execution, testRootAbsolutePath)
-                    }
+                    initializeTestsFromGit2(
+                        executionRequest.project,
+                        executionRequest.testRootPath,
+                        testRootAbsolutePath,
+                        executionRequest.gitDto.url
+                    )
+                        .map { testsSuites -> Triple(location, version, testsSuites) }
                 }
-                .flatMap { (execution, testRootAbsolutePath) ->
-                    initializeTestsFromGit(execution, executionRequest.testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
-                        .map { execution }
+                .flatMap { (location, version, testsSuites) ->
+                    updateExecution(
+                        executionRequest.project,
+                        location,
+                        version,
+                        testsSuites.map { it.requiredId }
+                    )
                 }
                 .flatMap { it.executeTests() }
                 .subscribeOn(scheduler)
@@ -179,20 +186,9 @@ class DownloadProjectController(
                     copyAdditionalFiles(executionAndFiles.second, testRootAbsolutePath)
                     executionAndFiles.first to testRootAbsolutePath
                 }
-                .flatMap { (execution, testRootAbsolutePath) ->
-                    when (execution.type) {
-                        ExecutionType.GIT ->
-                            initializeTestsFromGit(
-                                execution = execution,
-                                testRootPath = executionRerunRequest.testRootPath,
-                                testRootAbsolutePath = testRootAbsolutePath,
-                                gitUrl = executionRerunRequest.gitDto.url
-                            ).map { execution }
-                        ExecutionType.STANDARD -> {
-                            log.debug { "Skip initializing tests for execution.id = ${execution.id}: tests are standard" }
-                            Mono.just(execution)
-                        }
-                    }
+                .flatMap { (execution, _) ->
+                    log.debug { "Skip initializing tests for execution.id = ${execution.id}: it's rerun" }
+                    Mono.just(execution)
                 }
                 .map { it.executeTests() }
                 .subscribeOn(scheduler)
@@ -343,16 +339,25 @@ class DownloadProjectController(
         val version = files.first().name
         val execCmd = executionRequestForStandardSuites.execCmd
         val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
-        return updateExecution(
-            executionRequestForStandardSuites.project,
-            tmpDir.name,
-            version,
-            executionRequestForStandardSuites.testsSuites.joinToString(),
-            execCmd,
-            batchSizeForAnalyzer,
-        )
+        return getStandardTestSuiteIds(executionRequestForStandardSuites.testSuites)
+            .flatMap { testSuiteIds ->
+                updateExecution(
+                    executionRequestForStandardSuites.project,
+                    tmpDir.name,
+                    version,
+                    testSuiteIds,
+                    execCmd,
+                    batchSizeForAnalyzer,
+                )
+            }
             .flatMap { it.executeTests() }
     }
+
+    private fun getStandardTestSuiteIds(testSuiteNames: List<String>): Mono<List<Long>> = webClientBackend.post()
+        .uri("/findAllStandardTestSuiteIdsByName")
+        .bodyValue(testSuiteNames)
+        .retrieve()
+        .bodyToMono()
 
     /**
      * Execute tests by execution id:
@@ -402,7 +407,7 @@ class DownloadProjectController(
         project: Project,
         projectRootRelativePath: String,
         executionVersion: String,
-        testSuiteIds: String = "ALL",
+        testSuiteIds: List<Long>,
         execCmd: String? = null,
         batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
@@ -448,6 +453,25 @@ class DownloadProjectController(
                 initializeTests(testSuites, rootTestConfig)
             }
             .collectList()
+    }
+
+    private fun initializeTestsFromGit2(project: Project,
+                                        testRootPath: String,
+                                        testRootAbsolutePath: File,
+                                        gitUrl: String,
+    ): Mono<List<TestSuite>> {
+        return Mono.fromCallable {
+            val testResourcesRootAbsolutePath = getTestResourcesRootAbsolutePath(testRootAbsolutePath)
+            testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+        }
+            .zipWhen { rootTestConfig ->
+                discoverAndSaveTestSuites(project, rootTestConfig, testRootPath, gitUrl)
+            }
+            .flatMap { (rootTestConfig, testSuites) ->
+                initializeTests(testSuites, rootTestConfig)
+                    .collectList()
+                    .map { testSuites }
+            }
     }
 
     private fun discoverAndSaveTestSuites(project: Project?,

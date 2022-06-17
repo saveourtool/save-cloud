@@ -2,10 +2,12 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -25,6 +27,7 @@ import java.util.Optional
 @Service
 class ExecutionService(private val executionRepository: ExecutionRepository,
                        private val userRepository: UserRepository,
+                       private val testRepository: TestRepository,
                        private val testExecutionRepository: TestExecutionRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
@@ -121,7 +124,11 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
             )?.let { execution ->
                 require(execution.version == null) { "Execution was already updated" }
                 execution.version = executionInitializationDto.version
-                execution.testSuiteIds = executionInitializationDto.testSuiteIds
+                execution.formatAndSetTestSuiteIds(executionInitializationDto.testSuiteIds)
+                execution.allTests = executionInitializationDto.testSuiteIds
+                    .flatMap { testRepository.findAllByTestSuiteId(it) }
+                    .count()
+                    .toLong()
                 execution.resourcesRootPath = executionInitializationDto.resourcesRootPath
                 execution.execCmd = executionInitializationDto.execCmd
                 execution.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
@@ -156,7 +163,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
      */
     fun resetMetrics(execution: Execution) {
         execution.apply {
-            allTests = 0
             runningTests = 0
             passedTests = 0
             failedTests = 0

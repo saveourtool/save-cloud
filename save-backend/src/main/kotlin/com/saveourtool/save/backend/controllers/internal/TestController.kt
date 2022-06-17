@@ -28,12 +28,10 @@ class TestController(
 ) {
     /**
      * @param testDtos list of [TestDto]s to save into the DB
-     * @param executionId ID of the [Execution], during which these tests will be initialized
-     * @return list of initialized [Tests][Test]
      */
     @PostMapping("/initializeTests")
-    fun initializeTests(@RequestBody testDtos: List<TestDto>, @RequestParam executionId: Long) {
-        log.debug { "Received the following tests for initialization under executionId=$executionId: $testDtos" }
+    fun initializeTests(@RequestBody testDtos: List<TestDto>) {
+        log.debug { "Received the following tests for initialization: $testDtos" }
         meterRegistry.timer("save.backend.saveTests").record {
             testService.saveTests(testDtos)
         }
@@ -45,10 +43,10 @@ class TestController(
      */
     @PostMapping("/executeTestsByExecutionId")
     fun executeTestsByExecutionId(@RequestParam executionId: Long) {
-        val tests = testService.findTestsByExecutionId(executionId)
-        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.id }}" }
+        val testIds = testService.findTestsByExecutionId(executionId).map { it.requiredId }
+        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $testIds" }
         meterRegistry.timer("save.backend.saveTestExecution").record {
-            testExecutionService.updateExecutionAndSaveTestExecutions(executionId, tests)
+            testExecutionService.updateExecutionAndSaveTestExecutions(executionId, testIds)
         }
     }
 

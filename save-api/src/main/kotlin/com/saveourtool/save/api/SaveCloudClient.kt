@@ -4,14 +4,7 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.EvaluatedToolProperties
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.api.config.toSdk
-import com.saveourtool.save.api.utils.getAvailableFilesList
-import com.saveourtool.save.api.utils.getExecutionById
-import com.saveourtool.save.api.utils.getLatestExecution
-import com.saveourtool.save.api.utils.getProjectByNameAndOrganizationName
-import com.saveourtool.save.api.utils.getStandardTestSuites
-import com.saveourtool.save.api.utils.initializeHttpClient
-import com.saveourtool.save.api.utils.submitExecution
-import com.saveourtool.save.api.utils.uploadAdditionalFile
+import com.saveourtool.save.api.utils.*
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestBase
@@ -94,8 +87,8 @@ class SaveCloudClient(
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
         } else {
-            val userProvidedTestSuites = verifyTestSuites() ?: return null
-            buildExecutionRequestForStandardSuites(userProvidedTestSuites)
+            val userProvidedTestSuiteIds = verifyTestSuites() ?: return null
+            buildExecutionRequestForStandardSuites(userProvidedTestSuiteIds)
         }
         val response = httpClient.submitExecution(executionType, executionRequest, additionalFiles)
         if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
@@ -147,7 +140,7 @@ class SaveCloudClient(
 
         return ExecutionRequestForStandardSuites(
             project = project,
-            testsSuites = userProvidedTestSuites,
+            testSuites = userProvidedTestSuites,
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
@@ -160,6 +153,7 @@ class SaveCloudClient(
      *
      * @return list of test suites or nothing
      */
+    @Suppress("UnsafeCallOnNullableType")
     private suspend fun verifyTestSuites(): List<String>? {
         val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
         if (userProvidedTestSuites.isEmpty()) {
@@ -167,8 +161,7 @@ class SaveCloudClient(
             return null
         }
 
-        val existingTestSuites = httpClient.getStandardTestSuites().map { it.name }
-
+        val existingTestSuites = httpClient.getStandardTestSuite().map { it.name }
         userProvidedTestSuites.forEach {
             if (it !in existingTestSuites) {
                 log.error("Incorrect standard test suite $it, available are $existingTestSuites")
@@ -176,6 +169,7 @@ class SaveCloudClient(
             }
         }
         return userProvidedTestSuites
+
     }
 
     /**
