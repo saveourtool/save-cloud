@@ -8,7 +8,10 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.ExecutionRequest
+import com.saveourtool.save.entities.ExecutionRequestBase
+import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -100,8 +103,8 @@ suspend fun HttpClient.uploadAdditionalFile(
 /**
  * @return list of existing standard test suites
  */
-suspend fun HttpClient.getStandardTestSuite(
-): List<TestSuite> = getRequestWithAuthAndJsonContentType(
+suspend fun HttpClient.getStandardTestSuites(
+): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
     "${Backend.url}/api/$v1/allStandardTestSuites"
 ).body()
 
