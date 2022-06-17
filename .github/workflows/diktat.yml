@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
@@ -30,19 +30,19 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       # Upload reports only if code style checks were failed
       - name: Copy SARIF reports into a single directory
-        if: ${{ failure() }}
+        if: ${{ always() }}
         run: |
           mkdir -p build/diktat-sarif-reports
           i=0
           find . -path "*/build/reports/diktat/*.sarif" | while read -r f; do echo "$f -> diktat-$i.sarif" && cp $f build/diktat-sarif-reports/diktat-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
       - name: Upload SARIF report to Github
         uses: github/codeql-action/upload-sarif@v2
-        if: ${{ failure() }}
+        if: ${{ always() }}
         with:
           sarif_file: build/diktat-sarif-reports
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
-        if: ${{ failure() }}
+        if: ${{ always() }}
         with:
           name: sarif-reports
           path: "**/build/diktat-sarif-reports/"

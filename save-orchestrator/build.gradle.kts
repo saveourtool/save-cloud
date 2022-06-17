@@ -1,7 +1,4 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.*
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -13,11 +10,12 @@ plugins {
     kotlin("jvm")
     kotlin("kapt")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
-    id("org.gradle.test-retry") version "1.3.2"
+    id("org.gradle.test-retry") version "1.4.0"
 }
 
 configureSpringBoot()
 configureJacoco()
+configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -35,7 +33,7 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 
     src(KotlinClosure0(function = {
         val saveCliVersion = readSaveCliVersion()
-        "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
+        "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
     }))
     dest("$buildDir/resources/main")
     overwrite(false)
@@ -76,7 +74,10 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.fabric8.kubernetes.client)
     kapt(libs.spring.context.indexer)
+    testImplementation(libs.fabric8.kubernetes.server.mock)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

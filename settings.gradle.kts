@@ -3,13 +3,13 @@ rootProject.name = "save-cloud"
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
-        maven("https://oss.sonatype.org/content/repositories/snapshots") {
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") {
             content {
-                includeGroup("org.cqfn.save")
+                includeGroup("com.saveourtool.save")
             }
         }
         maven {
-            url = uri("https://maven.pkg.github.com/analysis-dev/sarif4k")
+            url = uri("https://maven.pkg.github.com/saveourtool/sarif4k")
             val gprUser: String? by settings
             val gprKey: String? by settings
             credentials {
@@ -23,8 +23,6 @@ dependencyResolutionManagement {
     }
 }
 
-val isIncludeSaveApi: String? = System.getProperty("includeSaveApi")
-
 include("api-gateway")
 include("save-backend")
 include("save-orchestrator")
@@ -34,8 +32,7 @@ include("save-agent")
 include("save-preprocessor")
 include("test-utils")
 include("save-cloud-charts")
-if (isIncludeSaveApi != null) {
-    include("save-api")
-}
+include("save-api")
+include("save-api-cli")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

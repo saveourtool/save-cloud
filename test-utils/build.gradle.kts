@@ -1,3 +1,4 @@
+import com.saveourtool.save.buildutils.configureSpotless
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -7,7 +8,7 @@ plugins {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -28,3 +29,5 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
+
+configureSpotless()

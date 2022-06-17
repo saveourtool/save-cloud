@@ -1,4 +1,4 @@
-imageRegistry: ghcr.io/analysis-dev
+imageRegistry: ghcr.io/saveourtool
 dockerTag: latest  # this should be set explicitly during chart installation
 
 env: staging
@@ -19,6 +19,7 @@ orchestrator:
   containerPort: 5100
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
@@ -49,6 +50,9 @@ mysql:
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
+  migrations:
+    # Whether database migrations should be executed while deploying the application
+    enabled: false
 
 # Values for dependencies
 grafana:
@@ -61,5 +65,66 @@ grafana:
   rbac:
     create: false
 
+prometheus:
+  alertmanager:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  configmapReload:
+    prometheus:
+      enabled: false
+    alertmanager:
+      enabled: false
+  nodeExporter:
+    enabled: false
+  server:
+    image:
+      tag: v2.35.0
+  pushgateway:
+    enabled: false
+  serverFiles:
+    prometheus.yml:
+      scrape_configs:
+      - job_name: 'save-cloud-kubernetes'
+        metrics_path: '/actuator/prometheus'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_io_kompose_service]
+            regex: .+
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: job
+
+promtail:
+  image:
+    tag: 2.5.0
+  config:
+    lokiAddress: http://save-cloud-loki:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        - docker: {}
+        - output:
+            source: output
+        - labels:
+            stream:
+        - multiline:
+            firstline: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - regex:
+            expression: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - labels:
+            level:
+      extraRelabelConfigs:
+        - action: keep
+          regex: true
+          source_labels: [__meta_kubernetes_pod_labelpresent_io_kompose_service]
+
 loki:
-  tag: 2.4.2
+  tag: 2.5.0
+  persistence:
+    enabled: true
+  config:
+    ingester:
+      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+      max_chunk_age: 2h
+      chunk_idle_period: 2h

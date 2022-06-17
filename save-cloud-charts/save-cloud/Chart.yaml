@@ -4,5 +4,5 @@ description: Helm chart for SAVE Cloud service
 # todo: separate versioning of charts or aligned with project version?
 version: 0.1.0
 sources:
-  - https://github.com/analysis-dev/save-cloud
-  - https://github.com/analysis-dev/save-cli
+  - https://github.com/saveourtool/save-cloud
+  - https://github.com/saveourtool/save-cli

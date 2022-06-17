@@ -3,7 +3,7 @@
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.cqfn.save.backend.SaveApplicationKt" />
+    <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.backend.SaveApplicationKt" />
     <module name="save-cloud.save-backend.main" />
     <method v="2">
       <option name="Make" enabled="true" />

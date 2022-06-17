@@ -1,5 +1,6 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -21,7 +22,7 @@ configureSpringBoot(true)
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -58,3 +59,4 @@ tasks.withType<Test> {
         excludes = listOf("**/CorsFilter.kt")
     }
 }
+configureSpotless()

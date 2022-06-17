@@ -1,5 +1,9 @@
+import com.saveourtool.save.buildutils.configureSpotless
+
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
@@ -30,11 +34,14 @@ kotlin {
     js(LEGACY) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
-            repositories {
-                mavenCentral()
-                maven("https://oss.sonatype.org/content/repositories/snapshots") {
-                    content {
-                        includeGroup("org.cqfn.save")
+            testTask {
+                useKarma {
+                    when (properties["save.profile"]) {
+                        "dev" -> {
+                            useChrome()
+                            // useFirefox()
+                        }
+                        null -> useChromeHeadless()
                     }
                 }
             }
@@ -67,8 +74,8 @@ kotlin {
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
             implementation(npm("bootstrap", "^4.6.0"))
-            implementation(npm("react", "17.0.2"))
-            implementation(npm("react-dom", "17.0.2"))
+            implementation(npm("react", "^18.0.0"))
+            implementation(npm("react-dom", "^18.0.0"))
             implementation(npm("react-modal", "^3.0.0"))
             implementation(npm("os-browserify", "^0.3.0"))
             implementation(npm("path-browserify", "^1.0.1"))
@@ -77,20 +84,86 @@ kotlin {
 
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
+            compileOnly(devNpm("async", "^2.6.4"))
+            compileOnly(devNpm("follow-redirects", "^1.14.8"))
+        }
+        sourceSets["test"].dependencies {
+            implementation(kotlin("test-js"))
+            implementation(devNpm("jsdom", "^19.0.0"))
+            implementation(devNpm("global-jsdom", "^8.4.0"))
+            implementation(devNpm("@testing-library/react", "^13.2.0"))
+            implementation(devNpm("@testing-library/user-event", "^14.0.0"))
+            implementation(devNpm("karma-mocha-reporter", "^2.0.0"))
+            implementation(devNpm("istanbul-instrumenter-loader", "^3.0.1"))
+            implementation(devNpm("karma-coverage-istanbul-reporter", "^3.0.3"))
+            implementation(devNpm("msw", "^0.40.0"))
         }
     }
 }
 
-// workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
 rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
     rootProject.the<NodeJsRootExtension>().versions.apply {
+        // workaround for continuous work of WebPack: (https://github.com/webpack/webpack-cli/issues/2990)
         webpackCli.version = "4.9.0"
+        webpackDevServer.version = "^4.9.0"
+        // override default version from KGP for security reasons
         karma.version = "^6.3.14"
+        mocha.version = "9.2.0"
     }
 }
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
     lockFileDirectory = rootProject.projectDir
+}
+
+val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
+val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
+    dependsOn(":kotlinNodeJsSetup", ":kotlinNpmInstall", "packageJson")
+    inputs.dir(mswScriptTargetPath)
+    outputs.file(mswScriptTargetFile)
+    // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
+    workingDir("$rootDir/build/js")
+
+    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
+    val nodeDir = nodeJsEnv.nodeDir
+    val nodeBinDir = nodeJsEnv.nodeBinDir
+    listOf(
+        System.getenv("PATH"),
+        nodeBinDir.absolutePath,
+    )
+        .filterNot { it.isNullOrEmpty() }
+        .joinToString(separator = File.pathSeparator)
+        .let { environment("PATH", it) }
+
+    if (!isWindows) {
+        doFirst {
+            // workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npx-cli.js", "$nodeBinDir/npx")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npm-cli.js", "$nodeBinDir/npm")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/corepack/dist/corepack.js", "$nodeBinDir/corepack")
+            }
+        }
+    }
+
+    commandLine(
+        nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
+        "msw",
+        "init",
+        mswScriptTargetPath,
+        "--no-save",
+    )
+}
+tasks.named<KotlinJsTest>("browserTest").configure {
+    dependsOn(installMwsScriptTaskProvider)
+    inputs.file(mswScriptTargetFile)
 }
 
 // generate kotlin file with project version to include in web page
@@ -150,3 +223,4 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
+configureSpotless()
