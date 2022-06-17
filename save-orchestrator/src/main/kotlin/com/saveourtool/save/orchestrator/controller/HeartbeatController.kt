@@ -107,8 +107,9 @@ class HeartbeatController(private val agentService: AgentService,
                 }
             }
             .flatMap { (response, executionIdToFinishedAgents) ->
+                val (executionId, finishedAgents) = executionIdToFinishedAgents
                 // to be more like the previous implementation, we wait for all agents to finish before returning
-                if (agentId in executionIdToFinishedAgents.second) {
+                if (agentId in finishedAgents) {
                     agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
                         .thenReturn(TerminateResponse)
                         .doOnSuccess {
@@ -155,6 +156,7 @@ class HeartbeatController(private val agentService: AgentService,
                     logger.warn("Agent id=$agentId is not stopped in 60 seconds after ${TerminateResponse::class.simpleName} signal, will add it to crashed list")
                     crashedAgentsList.add(agentId)
                 } else {
+                    logger.debug("Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal")
                     agentsLatestHeartBeatsMap.remove(agentId)
                     crashedAgentsList.remove(agentId)
                 }

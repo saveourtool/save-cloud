@@ -78,7 +78,6 @@ class AgentService(
         .body(BodyInserters.fromValue(agents))
         .retrieve()
         .bodyToMono<List<Long>>()
-        .log(log, Level.INFO, true)
         .flatMap { agentIds ->
             updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
                 AgentStatus(LocalDateTime.now(), LocalDateTime.now(), STARTING, agent.also { it.id = id })
@@ -130,9 +129,7 @@ class AgentService(
     }
 
     /**
-     * If agent was IDLE and there are no new tests - we check if the Execution is completed.
-     * We get all agents for the same execution, if they are all done.
-     * Then we stop them via DockerService and update necessary statuses in DB via AgentService.
+     * This method should be called when all agents are done and execution status can be updated and cleanup can be performed
      *
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
@@ -277,7 +274,8 @@ class AgentService(
                 executionId to if (agentStatuses.areIdleOrFinished()) {
                     // We assume, that all agents will eventually have one of these statuses.
                     // Situations when agent gets stuck with a different status and for whatever reason is unable to update
-                    // it, are not handled. Anyway, such agents should be eventually stopped: https://github.com/saveourtool/save-cloud/issues/208
+                    // it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
+                    log.info("For execution id=$executionId there are idle or finished agents")
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()

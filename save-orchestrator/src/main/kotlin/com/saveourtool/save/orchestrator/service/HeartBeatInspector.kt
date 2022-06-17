@@ -66,9 +66,13 @@ class HeartBeatInspector(
                     AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
                 }
             )
-            logger.warn("All agents are crashed, initialize shutdown sequence")
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
-                agentService.initiateShutdownSequence(crashedAgentsList.first(), areAllAgentsCrashed = true)
+                logger.warn("All agents are crashed, initialize shutdown sequence")
+                // fixme: should be cleared only for execution
+                val agentId = crashedAgentsList.first()
+                agentsLatestHeartBeatsMap.clear()
+                crashedAgentsList.clear()
+                agentService.initiateShutdownSequence(agentId, areAllAgentsCrashed = true)
             }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
