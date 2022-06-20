@@ -5,6 +5,9 @@ on:
     types:
       - opened
       - reopened
+  push:
+    branches:
+      - 'renovate/**'
       
 jobs:
   update_kjs_yarn_lock:
@@ -12,9 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        if: github.event_name == 'pull_request'
         with:
           # Checkout source branch directly, without merging base into it
           ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/checkout@v3
+        if: github.event_name == 'push'
+        with:
+          # Checkout source branch directly, without merging base into it
+          ref: ${{ github.event.push.ref }}
       - name: Generate yarn.lock
         run: ./gradlew kotlinStoreYarnLock
       - name: Commit and push if yarn.lock is changed
