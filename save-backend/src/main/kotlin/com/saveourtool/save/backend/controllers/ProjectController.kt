@@ -169,27 +169,36 @@ class ProjectController(
      * @return response
      */
     @PostMapping("/update/git")
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "TYPE_ALIAS",
+    )
     fun updateGit(
         @RequestParam projectId: Long,
         @RequestBody gitDto: GitDto,
         authentication: Authentication
-    ): ResponseEntity<String> {
+    ): Mono<ResponseEntity<String>> {
         val project = projectService.findById(projectId).get()
-        val git = gitService.findByProjectId(project.id!!)
 
-        git?.apply {
-            url = gitDto.url
-            username = gitDto.username
-            password = gitDto.password
-            branch = gitDto.branch
-        }
+        return projectService.findWithPermissionByNameAndOrganization(
+            authentication, project.name, project.organization.name, Permission.WRITE
+        ).map {
+            val git = gitService.findByProjectId(project.id!!)
 
-        git?.let {
-            val saveGit = gitService.save(it)
-            log.info("Update git id = ${saveGit.id}")
+            git?.let {
+                git.apply {
+                    url = gitDto.url
+                    username = gitDto.username
+                    password = gitDto.password
+                    branch = gitDto.branch
+                }
+                git.let {
+                    val saveGit = gitService.save(it)
+                    log.debug("Update git id = ${saveGit.id}")
+                }
+                ResponseEntity.ok("Git updated successfully")
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).body("Git doesn't exist")
         }
-        return ResponseEntity.ok("Git updated successfully")
     }
 
     /**

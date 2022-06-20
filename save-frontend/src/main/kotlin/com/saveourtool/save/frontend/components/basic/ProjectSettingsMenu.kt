@@ -2,7 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
@@ -32,6 +34,11 @@ external interface ProjectSettingsMenuProps : Props {
      * Information about current user
      */
     var currentUserInfo: UserInfo
+
+    /**
+     * Git data for project
+     */
+    var gitInitDto: GitDto?
 }
 
 /**
@@ -39,7 +46,6 @@ external interface ProjectSettingsMenuProps : Props {
  * @param updateProjectSettings
  * @param updateErrorMessage
  * @param updateNotificationMessage
- * @param updateGit
  * @return ReactElement
  */
 @Suppress(
@@ -52,7 +58,6 @@ fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
     updateErrorMessage: (Response) -> Unit,
-    updateGit: (Boolean) -> Unit,
     updateNotificationMessage: (String, String) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
@@ -68,6 +73,21 @@ fun projectSettingsMenu(
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
+    val (isOpenGitWindow, setOpenGitWindow) = useState(false)
+    val (gitDto, setGitDto) = useState(props.gitInitDto)
+
+    child(
+        runSettingGitWindow(
+            isOpenGitWindow,
+            props.project,
+            gitDto,
+            handlerCancel = { setOpenGitWindow(false) },
+            handler = {
+                setGitDto(it)
+                setOpenGitWindow(false)
+            }
+        )
+    )
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -181,9 +201,9 @@ fun projectSettingsMenu(
                     div("col-7 row") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
                             attrs.onClickFunction = {
-                                updateGit(true)
+                                setOpenGitWindow(true)
                             }
-                            +"Add"
+                            +"Add git credentials"
                         }
                     }
                 }

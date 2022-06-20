@@ -7,17 +7,24 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
+import org.w3c.fetch.Headers
+import react.Props
 import react.RBuilder
 import react.dom.*
+import react.fc
+import react.useState
 
 import kotlinx.html.ButtonType
 import kotlinx.html.InputType
 import kotlinx.html.js.onClickFunction
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Enum that stores types of confirmation windows for different situations.
@@ -104,92 +111,116 @@ fun RBuilder.runConfirmWindowModal(
 
 /**
  * @param isOpenGitWindow
+ * @param project
  * @param gitDto
- * @param changeFields
  * @param handlerCancel
  * @param handler
- * @return modal
+ * @return a function component
  */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun RBuilder.runSettingGitWindow(
-    isOpenGitWindow: Boolean?,
+fun runSettingGitWindow(
+    isOpenGitWindow: Boolean,
+    project: Project,
     gitDto: GitDto?,
-    changeFields: (InputTypes, HTMLInputElement) -> Unit,
     handlerCancel: (Event) -> Unit,
-    handler: (Event) -> Unit
-) = modal {
-    attrs {
-        isOpen = isOpenGitWindow
+    handler: (GitDto) -> Unit,
+) = fc<Props> {
+    val (fieldsWithGitInfo, setFieldsWithGitInfo) = useState(mutableMapOf<InputTypes, String>())
+
+    val updateGit = useRequest(arrayOf(project), isDeferred = true) {
+        val headers = Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        }
+
+        val git = GitDto(
+            fieldsWithGitInfo[InputTypes.GIT_URL]?.trim() ?: gitDto!!.url,
+            fieldsWithGitInfo[InputTypes.GIT_USER]?.trim() ?: gitDto?.username,
+            fieldsWithGitInfo[InputTypes.GIT_TOKEN]?.trim() ?: gitDto?.password,
+            gitDto?.branch,
+            gitDto?.hash,
+        )
+
+        val response = post(
+            "$apiUrl/projects/update/git?projectId=${project.id}",
+            headers,
+            Json.encodeToString(git),
+            loadingHandler = ::noopLoadingHandler,
+        )
+
+        if (response.ok) {
+            handler(git)
+        }
     }
 
-    div("row mt-2 ml-2 mr-2") {
-        div("col-5 text-left align-self-center") {
-            +"Git Username:"
+    modal {
+        attrs {
+            isOpen = isOpenGitWindow
         }
-        div("col-7 input-group pl-0") {
-            input(type = InputType.text) {
-                attrs["class"] = "form-control"
-                attrs {
-                    defaultValue = gitDto?.username ?: ""
-                    onChange = {
-                        changeFields(
-                            InputTypes.GIT_USER,
-                            it.target as HTMLInputElement,
-                        )
+
+        div("row mt-2 ml-2 mr-2") {
+            div("col-5 text-left align-self-center") {
+                +"Git Username:"
+            }
+            div("col-7 input-group pl-0") {
+                input(type = InputType.text) {
+                    attrs["class"] = "form-control"
+                    attrs {
+                        defaultValue = gitDto?.username ?: ""
+                        onChange = {
+                            fieldsWithGitInfo[InputTypes.GIT_USER] = (it.target as HTMLInputElement).value
+                        }
                     }
                 }
             }
         }
-    }
-    div("row mt-2 ml-2 mr-2") {
-        div("col-5 text-left align-self-center") {
-            +"Git Url:"
-        }
-        div("col-7 input-group pl-0") {
-            input(type = InputType.text) {
-                attrs["class"] = "form-control"
-                attrs {
-                    defaultValue = gitDto?.url ?: ""
-                    onChange = {
-                        changeFields(
-                            InputTypes.GIT_URL,
-                            it.target as HTMLInputElement,
-                        )
+        div("row mt-2 ml-2 mr-2") {
+            div("col-5 text-left align-self-center") {
+                +"Git Url:"
+            }
+            div("col-7 input-group pl-0") {
+                input(type = InputType.text) {
+                    attrs["class"] = "form-control"
+                    attrs {
+                        defaultValue = gitDto?.url ?: ""
+                        onChange = {
+                            fieldsWithGitInfo[InputTypes.GIT_URL] = (it.target as HTMLInputElement).value
+                        }
                     }
                 }
             }
         }
-    }
-    div("row mt-2 ml-2 mr-2") {
-        div("col-5 text-left align-self-center") {
-            +"Git Token:"
-        }
-        div("col-7 input-group pl-0") {
-            input(type = InputType.text) {
-                attrs["class"] = "form-control"
-                attrs {
-                    onChange = {
-                        changeFields(
-                            InputTypes.GIT_TOKEN,
-                            it.target as HTMLInputElement,
-                        )
+        div("row mt-2 ml-2 mr-2") {
+            div("col-5 text-left align-self-center") {
+                +"Git Token:"
+            }
+            div("col-7 input-group pl-0") {
+                input(type = InputType.text) {
+                    attrs["class"] = "form-control"
+                    attrs {
+                        onChange = {
+                            fieldsWithGitInfo[InputTypes.GIT_TOKEN] = (it.target as HTMLInputElement).value
+                        }
                     }
                 }
             }
         }
-    }
-    div("d-sm-flex align-items-center justify-content-center mt-4") {
-        button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
-            attrs.onClickFunction = handler
-            +"Save"
-        }
-        button(type = ButtonType.button, classes = "btn btn-outline-primary") {
-            attrs.onClickFunction = handlerCancel
-            +"Cancel"
+        div("d-sm-flex align-items-center justify-content-center mt-4") {
+            button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
+                attrs.onClickFunction = {
+                    setFieldsWithGitInfo(fieldsWithGitInfo)
+                    updateGit()
+                }
+                +"Save"
+            }
+            button(type = ButtonType.button, classes = "btn btn-outline-primary") {
+                attrs.onClickFunction = handlerCancel
+                +"Cancel"
+            }
         }
     }
 }

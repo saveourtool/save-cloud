@@ -202,11 +202,6 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
-
-    /**
-     * Flag to handle confirm Window
-     */
-    var isOpenGitWindow: Boolean?
 }
 
 /**
@@ -217,7 +212,6 @@ external interface ProjectViewState : State {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private val fieldsGitMap: MutableMap<InputTypes, String> = mutableMapOf()
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private var gitDto: GitDto? = null
@@ -285,11 +279,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         this.project = project
                     }
                 }
-            }
-        },
-        updateGit = {
-            setState {
-                isOpenGitWindow = it
             }
         },
         updateErrorMessage = {
@@ -449,12 +438,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post(
+            val gitDtoInit: GitDto = post(
                 "$apiUrl/projects/git",
                 headers,
                 jsonProject,
                 loadingHandler = ::noopLoadingHandler,
-            ).decodeFromJsonString<GitDto>()
+            ).decodeFromJsonString()
+            setState {
+                gitDto = gitDtoInit
+            }
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
@@ -568,16 +560,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 isErrorOpen = false
                 closeButtonLabel = null
             }
-        }
-
-        runSettingGitWindow(
-            state.isOpenGitWindow,
-            gitDto,
-            changeFields = { type, element -> changeGitFields(type, element) },
-            handlerCancel = { setState { isOpenGitWindow = false } }
-        ) {
-            updateGit()
-            // setState { isOpenGitWindow = false }
         }
 
         runConfirmWindowModal(
@@ -712,44 +694,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun updateGit() {
-        scope.launch {
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
-
-            val git = GitDto(
-                fieldsGitMap[InputTypes.GIT_URL]?.trim() ?: gitDto!!.url,
-                fieldsGitMap[InputTypes.GIT_USER]?.trim() ?: gitDto?.username,
-                fieldsGitMap[InputTypes.GIT_TOKEN]?.trim() ?: gitDto?.password,
-                gitDto?.branch,
-                gitDto?.hash,
-            )
-
-            val response = post(
-                "$apiUrl/projects/update/git?projectId=${state.project.id}",
-                headers,
-                Json.encodeToString(git),
-                loadingHandler = ::noopLoadingHandler,
-            )
-
-            if (response.ok) {
-                setState {
-                    isOpenGitWindow = false
-                    gitDto = git
-                }
-            }
-        }
-    }
-
-    private fun changeGitFields(
-        fieldName: InputTypes,
-        element: HTMLInputElement,
-    ) {
-        fieldsGitMap[fieldName] = element.value
-    }
-
     private fun RBuilder.renderStatistics() {
         child(projectStatisticMenu) {
             attrs.executionId = state.latestExecutionId
@@ -760,6 +704,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         child(projectSettingsMenu) {
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            attrs.gitInitDto = gitDto
         }
     }
 
