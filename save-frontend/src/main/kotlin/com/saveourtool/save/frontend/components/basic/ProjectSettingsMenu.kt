@@ -21,6 +21,8 @@ import kotlinx.html.js.onClickFunction
 
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
+private val runSettingGitWindow = runSettingGitWindow()
+
 /**
  * ProjectSettingsMenu component props
  */
@@ -67,14 +69,6 @@ fun projectSettingsMenu(
     val (draftProject, setDraftProject) = useState(props.project)
     val (isOpenGitWindow, setOpenGitWindow) = useState(false)
 
-    val runSettingGitWindow = runSettingGitWindow(
-        handlerCancel = { setOpenGitWindow(false) },
-        handler = {
-            updateGit(it)
-            setOpenGitWindow(false)
-        }
-    )
-
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
@@ -90,6 +84,11 @@ fun projectSettingsMenu(
         attrs.isOpenGitWindow = isOpenGitWindow
         attrs.project = props.project
         attrs.gitDto = props.gitInitDto
+        attrs.handlerCancel = { setOpenGitWindow(false) }
+        attrs.handler = {
+            updateGit(it)
+            setOpenGitWindow(false)
+        }
     }
 
     div("row justify-content-center mb-2") {

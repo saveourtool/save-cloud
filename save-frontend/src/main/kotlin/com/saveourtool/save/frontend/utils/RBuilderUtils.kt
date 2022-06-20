@@ -54,6 +54,16 @@ external interface RunSettingGitWindowProps : Props {
      * Git info for this project
      */
     var gitDto: GitDto?
+
+    /**
+     * Lambda to close window
+     */
+    var handlerCancel: (Event) -> Unit
+
+    /**
+     * Lambda to set new git dto in state
+     */
+    var handler: (GitDto) -> Unit
 }
 
 /**
@@ -130,8 +140,6 @@ fun RBuilder.runConfirmWindowModal(
 }
 
 /**
- * @param handlerCancel
- * @param handler
  * @return a function component
  */
 @Suppress(
@@ -139,10 +147,7 @@ fun RBuilder.runConfirmWindowModal(
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun runSettingGitWindow(
-    handlerCancel: (Event) -> Unit,
-    handler: (GitDto) -> Unit,
-) = fc<RunSettingGitWindowProps> { props ->
+fun runSettingGitWindow() = fc<RunSettingGitWindowProps> { props ->
     val (fieldsWithGitInfo, setFieldsWithGitInfo) = useState(mutableMapOf<InputTypes, String>())
 
     val updateGit = useRequest(arrayOf(props.project), isDeferred = true) {
@@ -167,7 +172,7 @@ fun runSettingGitWindow(
         )
 
         if (response.ok) {
-            handler(git)
+            props.handler(git)
         }
     }
 
@@ -232,7 +237,7 @@ fun runSettingGitWindow(
                 +"Save"
             }
             button(type = ButtonType.button, classes = "btn btn-outline-primary") {
-                attrs.onClickFunction = handlerCancel
+                attrs.onClickFunction = props.handlerCancel
                 +"Cancel"
             }
         }
