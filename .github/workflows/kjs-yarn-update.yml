@@ -11,7 +11,7 @@ on:
       
 jobs:
   update_kjs_yarn_lock:
-    if: startsWith(github.head_ref, 'renovate/')
+    if: startsWith(github.head_ref, 'renovate/') || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
