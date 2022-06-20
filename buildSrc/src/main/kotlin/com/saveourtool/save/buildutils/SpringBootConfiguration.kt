@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -26,7 +27,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
  */
 @Suppress("TOO_LONG_FUNCTION", "GENERIC_VARIABLE_WRONG_DECLARATION", "COMPLEX_EXPRESSION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
-    // todo: apply kotlin("kapt")
+    apply<Kapt3GradleSubplugin>()
     apply<SpringBootPlugin>()
 
     extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
@@ -35,6 +36,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
 
     val libs = the<LibrariesForLibs>()
     dependencies {
+        add("implementation", platform(libs.spring.boot.dependencies))
         add("implementation", libs.spring.boot.starter.webflux)
         add("implementation", libs.spring.boot.starter.actuator)
         add("implementation", libs.micrometer.registry.prometheus)  // expose prometheus metrics in actuator
