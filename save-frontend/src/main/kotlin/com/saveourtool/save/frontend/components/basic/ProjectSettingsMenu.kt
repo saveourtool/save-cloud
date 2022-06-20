@@ -85,7 +85,7 @@ fun projectSettingsMenu(
         attrs.project = props.project
         attrs.gitDto = props.gitInitDto
         attrs.handlerCancel = { setOpenGitWindow(false) }
-        attrs.handler = {
+        attrs.onGitUpdate = {
             updateGit(it)
             setOpenGitWindow(false)
         }

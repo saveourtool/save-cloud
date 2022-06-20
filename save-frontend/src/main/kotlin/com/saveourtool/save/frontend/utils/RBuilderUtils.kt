@@ -63,7 +63,7 @@ external interface RunSettingGitWindowProps : Props {
     /**
      * Lambda to set new git dto in state
      */
-    var handler: (GitDto) -> Unit
+    var onGitUpdate: (GitDto) -> Unit
 }
 
 /**
@@ -172,7 +172,7 @@ fun runSettingGitWindow() = fc<RunSettingGitWindowProps> { props ->
         )
 
         if (response.ok) {
-            props.handler(git)
+            props.onGitUpdate(git)
         }
     }
 
