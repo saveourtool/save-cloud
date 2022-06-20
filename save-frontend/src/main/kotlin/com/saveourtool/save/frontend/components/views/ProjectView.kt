@@ -10,15 +10,7 @@ import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.TestingType
-import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.basic.fileUploader
-import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.projectInfo
-import com.saveourtool.save.frontend.components.basic.projectSettingsMenu
-import com.saveourtool.save.frontend.components.basic.projectStatisticMenu
-import com.saveourtool.save.frontend.components.basic.sdkSelection
-import com.saveourtool.save.frontend.components.basic.testResourcesSelection
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
@@ -289,6 +281,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
+        updateGit = {
+            setState {
+                gitDto = it
+            }
+        },
         updateErrorMessage = {
             setState {
                 errorLabel = "Failed to save project info"
@@ -446,12 +443,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
             }
-            gitDto = post(
+            val gitDtoInit: GitDto = post(
                 "$apiUrl/projects/git",
                 headers,
                 jsonProject,
                 loadingHandler = ::noopLoadingHandler,
-            ).decodeFromJsonString<GitDto>()
+            ).decodeFromJsonString()
+            setState {
+                gitDto = gitDtoInit
+            }
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
                 state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
@@ -709,6 +709,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         child(projectSettingsMenu) {
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            attrs.gitInitDto = gitDto
         }
     }
 
