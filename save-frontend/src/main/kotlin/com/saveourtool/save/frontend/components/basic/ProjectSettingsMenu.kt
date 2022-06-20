@@ -46,6 +46,7 @@ external interface ProjectSettingsMenuProps : Props {
  * @param updateProjectSettings
  * @param updateErrorMessage
  * @param updateNotificationMessage
+ * @param updateGit
  * @return ReactElement
  */
 @Suppress(
@@ -57,12 +58,23 @@ external interface ProjectSettingsMenuProps : Props {
 fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
+    updateGit: (GitDto) -> Unit,
     updateErrorMessage: (Response) -> Unit,
     updateNotificationMessage: (String, String) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
+    val (isOpenGitWindow, setOpenGitWindow) = useState(false)
+
+    val runSettingGitWindow = runSettingGitWindow(
+        handlerCancel = { setOpenGitWindow(false) },
+        handler = {
+            updateGit(it)
+            setOpenGitWindow(false)
+        }
+    )
+
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
@@ -73,21 +85,12 @@ fun projectSettingsMenu(
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    val (isOpenGitWindow, setOpenGitWindow) = useState(false)
-    val (gitDto, setGitDto) = useState(props.gitInitDto)
 
-    child(
-        runSettingGitWindow(
-            isOpenGitWindow,
-            props.project,
-            gitDto,
-            handlerCancel = { setOpenGitWindow(false) },
-            handler = {
-                setGitDto(it)
-                setOpenGitWindow(false)
-            }
-        )
-    )
+    child(runSettingGitWindow) {
+        attrs.isOpenGitWindow = isOpenGitWindow
+        attrs.project = props.project
+        attrs.gitDto = props.gitInitDto
+    }
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================

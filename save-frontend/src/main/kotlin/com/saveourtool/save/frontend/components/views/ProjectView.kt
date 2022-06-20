@@ -281,6 +281,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
         },
+        updateGit = {
+            setState {
+                gitDto = it
+            }
+        },
         updateErrorMessage = {
             setState {
                 errorLabel = "Failed to save project info"

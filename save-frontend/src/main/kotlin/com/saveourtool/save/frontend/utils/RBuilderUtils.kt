@@ -37,6 +37,26 @@ enum class ConfirmationType {
 }
 
 /**
+ * RunSettingGitWindow component props
+ */
+external interface RunSettingGitWindowProps : Props {
+    /**
+     * Flag to open window
+     */
+    var isOpenGitWindow: Boolean?
+
+    /**
+     * Project
+     */
+    var project: Project?
+
+    /**
+     * Git info for this project
+     */
+    var gitDto: GitDto?
+}
+
+/**
  * @param isErrorOpen flag to handle error
  * @param errorLabel label of error
  * @param errorMessage message of error
@@ -110,9 +130,6 @@ fun RBuilder.runConfirmWindowModal(
 }
 
 /**
- * @param isOpenGitWindow
- * @param project
- * @param gitDto
  * @param handlerCancel
  * @param handler
  * @return a function component
@@ -123,30 +140,27 @@ fun RBuilder.runConfirmWindowModal(
     "LongMethod",
 )
 fun runSettingGitWindow(
-    isOpenGitWindow: Boolean,
-    project: Project,
-    gitDto: GitDto?,
     handlerCancel: (Event) -> Unit,
     handler: (GitDto) -> Unit,
-) = fc<Props> {
+) = fc<RunSettingGitWindowProps> { props ->
     val (fieldsWithGitInfo, setFieldsWithGitInfo) = useState(mutableMapOf<InputTypes, String>())
 
-    val updateGit = useRequest(arrayOf(project), isDeferred = true) {
+    val updateGit = useRequest(arrayOf(props.project), isDeferred = true) {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
 
         val git = GitDto(
-            fieldsWithGitInfo[InputTypes.GIT_URL]?.trim() ?: gitDto!!.url,
-            fieldsWithGitInfo[InputTypes.GIT_USER]?.trim() ?: gitDto?.username,
-            fieldsWithGitInfo[InputTypes.GIT_TOKEN]?.trim() ?: gitDto?.password,
-            gitDto?.branch,
-            gitDto?.hash,
+            fieldsWithGitInfo[InputTypes.GIT_URL]?.trim() ?: props.gitDto!!.url,
+            fieldsWithGitInfo[InputTypes.GIT_USER]?.trim() ?: props.gitDto?.username,
+            fieldsWithGitInfo[InputTypes.GIT_TOKEN]?.trim() ?: props.gitDto?.password,
+            props.gitDto?.branch,
+            props.gitDto?.hash,
         )
 
         val response = post(
-            "$apiUrl/projects/update/git?projectId=${project.id}",
+            "$apiUrl/projects/update/git?projectId=${props.project?.id}",
             headers,
             Json.encodeToString(git),
             loadingHandler = ::noopLoadingHandler,
@@ -159,7 +173,7 @@ fun runSettingGitWindow(
 
     modal {
         attrs {
-            isOpen = isOpenGitWindow
+            isOpen = props.isOpenGitWindow
         }
 
         div("row mt-2 ml-2 mr-2") {
@@ -170,7 +184,7 @@ fun runSettingGitWindow(
                 input(type = InputType.text) {
                     attrs["class"] = "form-control"
                     attrs {
-                        defaultValue = gitDto?.username ?: ""
+                        defaultValue = props.gitDto?.username ?: ""
                         onChange = {
                             fieldsWithGitInfo[InputTypes.GIT_USER] = (it.target as HTMLInputElement).value
                         }
@@ -186,7 +200,7 @@ fun runSettingGitWindow(
                 input(type = InputType.text) {
                     attrs["class"] = "form-control"
                     attrs {
-                        defaultValue = gitDto?.url ?: ""
+                        defaultValue = props.gitDto?.url ?: ""
                         onChange = {
                             fieldsWithGitInfo[InputTypes.GIT_URL] = (it.target as HTMLInputElement).value
                         }
