@@ -5,11 +5,10 @@ on:
     types:
       - opened
       - reopened
-    branches:
-      - 'renovate/**'
       
 jobs:
   update_kjs_yarn_lock:
+    if: startsWith(github.head_ref, 'renovate/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
