@@ -1,20 +1,18 @@
 package com.saveourtool.save.backend.repository
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.entities.TestExecution
-
-import com.fasterxml.jackson.databind.ObjectMapper
 import okio.Path.Companion.toPath
+import org.apache.commons.io.FilenameUtils
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-
 import java.nio.file.Path
 import java.nio.file.Paths
-
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -95,6 +93,9 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
      * @return path to file with additional data
      */
     internal fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
-        root / executionId.toString() / pluginName / testSuiteName / testLocation / "$testName-debug.json"
+        root / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName-debug.json"
+    }
+    fun sanitizePathName(name: String): String {
+        return name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
     }
 }

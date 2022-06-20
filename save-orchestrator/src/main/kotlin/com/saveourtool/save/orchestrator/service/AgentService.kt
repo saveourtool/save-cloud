@@ -17,6 +17,7 @@ import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
+import org.apache.commons.io.FilenameUtils
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -325,10 +326,10 @@ class AgentService(
             }
             .map { (isStandardMode, testPaths) ->
                 val cliArgs = if (!isStandardMode) {
-                    suitesToArgs.values.first()
+                    FilenameUtils.separatorsToUnix(suitesToArgs.values.first())
                 } else {
                     ""
-                } + " " + testPaths.joinToString(" ")
+                } + " " + testPaths.map { FilenameUtils.separatorsToUnix(it) }.joinToString(" ")
                 log.debug("Constructed cli args for SAVE-cli: $cliArgs")
                 cliArgs
             }
