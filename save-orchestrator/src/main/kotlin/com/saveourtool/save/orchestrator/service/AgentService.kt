@@ -183,7 +183,7 @@ class AgentService(
                         markTestExecutionsAsFailed(agentIds, CRASHED)
                     )
                 } else {
-                    Mono.error(NotImplementedError())
+                    Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
             }
     }
