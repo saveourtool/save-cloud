@@ -99,17 +99,17 @@ class HeartbeatController(private val agentService: AgentService,
                 }
             }
             .zipWhen {
+                // Check if all agents have completed their jobs; after that we can terminate them.
+                // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                 if (it is WaitResponse && !isStarting) {
-                    // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
-                    agentService.getAgentsAwaitingStop(agentId)
+                    agentService.areAllAgentsIdleOrFinished(agentId)
                 } else {
-                    Mono.just(-1 to emptyList())
+                    Mono.just(false)
                 }
             }
-            .flatMap { (response, executionIdToFinishedAgents) ->
-                val (executionId, finishedAgents) = executionIdToFinishedAgents
+            .flatMap { (response, shouldStop) ->
                 // to be more like the previous implementation, we wait for all agents to finish before returning
-                if (agentId in finishedAgents) {
+                if (shouldStop) {
                     agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
                         .thenReturn(TerminateResponse)
                         .doOnSuccess {

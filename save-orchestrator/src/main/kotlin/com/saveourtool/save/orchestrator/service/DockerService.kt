@@ -260,7 +260,7 @@ class DockerService(private val configProperties: ConfigProperties,
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
-        dockerContainerManager.findImages(baseImage).ifEmpty {
+        dockerContainerManager.findImages(saveId = baseImage).ifEmpty {
             log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
             buildBaseImage(sdk)
         }

@@ -22,7 +22,6 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
 
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -135,6 +134,8 @@ class AgentService(
      */
     @Suppress("TOO_LONG_FUNCTION")
     internal fun initiateShutdownSequence(agentId: String, areAllAgentsCrashed: Boolean) {
+        // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
+        // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
         getAgentsAwaitingStop(agentId)
             .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (_, _) ->
@@ -271,7 +272,7 @@ class AgentService(
             .bodyToMono<AgentStatusesForExecution>()
             .map { (executionId, agentStatuses) ->
                 log.debug("For executionId=$executionId agent statuses are $agentStatuses")
-                executionId to if (agentStatuses.areIdleOrFinished()) {
+                executionId to if (agentStatuses.areFinishedOrStopped()) {
                     // We assume, that all agents will eventually have one of these statuses.
                     // Situations when agent gets stuck with a different status and for whatever reason is unable to update
                     // it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
@@ -280,6 +281,18 @@ class AgentService(
                 } else {
                     emptyList()
                 }
+            }
+    }
+
+    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> {
+        return webClientBackend
+            .get()
+            .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
+            .retrieve()
+            .bodyToMono<AgentStatusesForExecution>()
+            .map { (executionId, agentStatuses) ->
+                log.debug("For executionId=$executionId agent statuses are $agentStatuses")
+                agentStatuses.areIdleOrFinished()
             }
     }
 
@@ -391,6 +404,10 @@ class AgentService(
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
+    }
+
+    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all {
+        it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
     }
 
     /**
