@@ -9,10 +9,7 @@ import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.NewProjectDto
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 
@@ -163,6 +160,45 @@ class ProjectController(
         }
         lnkUserProjectService.setRoleByIds(userId, projectId, Role.OWNER)
         return ResponseEntity.ok(projectStatus.message)
+    }
+
+    /**
+     * @param projectId
+     * @param gitDto
+     * @param authentication
+     * @return response
+     */
+    @PostMapping("/update/git")
+    @Suppress(
+        "UnsafeCallOnNullableType",
+        "TYPE_ALIAS",
+    )
+    fun updateGit(
+        @RequestParam projectId: Long,
+        @RequestBody gitDto: GitDto,
+        authentication: Authentication
+    ): Mono<ResponseEntity<String>> {
+        val project = projectService.findById(projectId).get()
+
+        return projectService.findWithPermissionByNameAndOrganization(
+            authentication, project.name, project.organization.name, Permission.WRITE
+        ).map {
+            val git = gitService.findByProjectId(project.id!!)
+
+            git?.let {
+                git.apply {
+                    url = gitDto.url
+                    username = gitDto.username
+                    password = gitDto.password
+                    branch = gitDto.branch
+                }
+                git.let {
+                    val saveGit = gitService.save(it)
+                    log.debug("Update git id = ${saveGit.id}")
+                }
+                ResponseEntity.ok("Git updated successfully")
+            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).body("Git doesn't exist")
+        }
     }
 
     /**
