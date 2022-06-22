@@ -1,17 +1,11 @@
 package com.saveourtool.save.orchestrator.controller.heartbeat
 
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.ExecutionProgress
-import com.saveourtool.save.agent.Heartbeat
-import com.saveourtool.save.agent.NewJobResponse
-import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
-import com.saveourtool.save.orchestrator.controller.HeartBeatInspector
 import com.saveourtool.save.orchestrator.controller.crashedAgentsList
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -21,6 +15,10 @@ import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.agent.*
+import com.saveourtool.save.orchestrator.controller.HeartbeatController
+import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -32,7 +30,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.mockito.ArgumentMatchers.anyList
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -59,14 +56,19 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.mockito.ArgumentMatchers.*
+import org.springframework.boot.test.mock.mockito.MockBeans
+import org.springframework.test.web.reactive.server.expectBody
+import io.kotest.matchers.collections.shouldContainExactly
 
-@WebFluxTest
+@WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
     Beans::class,
     AgentService::class,
     HeartBeatInspector::class,
     LocalDateTimeConfig::class
 )
+@MockBeans(MockBean(AgentRunner::class))
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
@@ -98,13 +100,13 @@ class HeartbeatControllerTest {
             .uri("/heartbeat")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(Mono.just(heartBeatBusy), Heartbeat::class.java)
+            .bodyValue(heartBeatBusy)
             .exchange()
             .expectStatus().isOk
     }
 
     @Test
-    fun checkNewJobResponse() {
+    fun `should respond with NewJobResponse when there are tests`() {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         // /getTestBatches
         mockServer.enqueue(
@@ -144,9 +146,9 @@ class HeartbeatControllerTest {
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
             mockAgentStatuses = true,
-        ) {
+        ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(anyList())
-            // verify(dockerService, times(0)).stop(anyLong())
+            assertTrue(heartbeatResponses.none { it is TerminateResponse })
         }
     }
 
@@ -172,13 +174,12 @@ class HeartbeatControllerTest {
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(anyList())
-            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
     @Test
-    fun `should shutdown idle agents when there are no tests left`() {
-        whenever(dockerService.stopAgents(anyList())).thenReturn(true)
+    fun `should send Terminate signal to idle agents when there are no tests left`() {
+        whenever(dockerService.ensureStopped(anyString())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -191,26 +192,46 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
             {
+                // set agents status to TERMINATED
+                /*mockServer.enqueue(
+                    "/updateAgentStatusesWithDto",
+                    MockResponse().setResponseCode(200)
+                )*/
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
-                mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution.*",
-                    MockResponse()
-                        .setBody(
-                            objectMapper.writeValueAsString(
-                                AgentStatusesForExecution(0, agentStatusDtos)
-                            )
-                        )
-                        .addHeader("Content-Type", "application/json")
-                )
+//                mockServer.enqueue(
+//                    "/getAgentsStatusesForSameExecution.*",
+//                    MockResponse()
+//                        .setBody(
+//                            objectMapper.writeValueAsString(
+//                                AgentStatusesForExecution(0, agentStatusDtos)
+//                            )
+//                        )
+//                        .addHeader("Content-Type", "application/json")
+//                )
                 // additional setup for marking stuff as FINISHED
+                // /getAgentsStatusesForSameExecution for determining final execution state
+//                mockServer.enqueue(
+//                    "/getAgentsStatusesForSameExecution.*",
+//                    MockResponse()
+//                        .setBody(
+//                            objectMapper.writeValueAsString(
+//                                AgentStatusesForExecution(0, agentStatusDtos)
+//                            )
+//                        )
+//                        .addHeader("Content-Type", "application/json")
+//                )
                 // /updateExecutionByDto
                 mockServer.enqueue(
                     "/updateExecutionByDto.*",
                     MockResponse().setResponseCode(200)
                 )
             }
-        ) {
-            verify(dockerService, times(1)).stopAgents(anyList())
+        ) { heartbeatResponses ->
+            assertTrue(heartbeatResponses.single() is TerminateResponse)
+            verify(
+                dockerService,
+                times(0).description("Orchestrator shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
+            ).stopAgents(anyList())
         }
     }
 
@@ -236,12 +257,13 @@ class HeartbeatControllerTest {
             mockAgentStatuses = false,
         ) {
             verify(dockerService, times(0)).stopAgents(anyList())
-            // verify(dockerService, times(0)).stop(anyLong())
         }
     }
 
     @Test
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
+        whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
+        whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
         testHeartbeat(
             agentStatusDtos = listOf(
@@ -271,7 +293,9 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            assertTrue(crashedAgentsList.toList() == listOf("test-2"))
+            crashedAgentsList.toList().shouldContainExactly(
+                "test-2"
+            )
         }
     }
 
@@ -307,6 +331,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
+        whenever(dockerService.stopAgents(anyCollection())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -334,7 +359,7 @@ class HeartbeatControllerTest {
                 )
             }
         ) {
-            verify(dockerService, times(1)).stopAgents(anyList())
+            verify(dockerService, times(1)).stopAgents(anyCollection())
         }
     }
 
@@ -423,7 +448,7 @@ class HeartbeatControllerTest {
         testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
         additionalSetup: () -> Unit = {},
-        verification: () -> Unit,
+        verification: (heartbeatResponses: List<HeartbeatResponse>) -> Unit,
     ) {
         // /getTestBatches
         testBatch?.let {
@@ -479,6 +504,7 @@ class HeartbeatControllerTest {
             }
         }
 
+        val heartbeatResponses = mutableListOf<HeartbeatResponse>()
         heartbeats.forEach { heartbeat ->
             webClient.post()
                 .uri("/heartbeat")
@@ -486,8 +512,18 @@ class HeartbeatControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(heartbeat))
                 .exchange()
-                .expectStatus()
-                .isOk
+                .expectAll(
+                    {
+                        it.expectBody<HeartbeatResponse>()
+                            .consumeWith {
+                                heartbeatResponses.add(it.responseBody)
+                            }
+                    },
+                    {
+                        it.expectStatus()
+                            .isOk
+                    }
+                )
             Thread.sleep(heartBeatInterval)
         }
 
@@ -495,7 +531,7 @@ class HeartbeatControllerTest {
         Thread.sleep(5_000)
 
         assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
-        verification.invoke()
+        verification.invoke(heartbeatResponses)
     }
 
     companion object {

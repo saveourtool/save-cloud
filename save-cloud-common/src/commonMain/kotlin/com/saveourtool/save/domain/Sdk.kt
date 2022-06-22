@@ -19,13 +19,16 @@ open class Sdk(val name: String, open val version: String) {
      */
     object Default : Sdk("ubuntu", "latest")
 
+    /**
+     * Fixme: we sometimes rely on this method, so this prevents child classes from being `data class`es
+     */
     override fun toString() = "$name:$version"
 }
 
 /**
  * @property version version of JDK
  */
-data class Jdk(override val version: String) : Sdk("openjdk", version) {
+class Jdk(override val version: String) : Sdk("openjdk", version) {
     companion object {
         const val NAME = "Java"
         val versions = listOf("8", "9", "10", "11", "12", "13", "14", "15", "16")
@@ -35,7 +38,7 @@ data class Jdk(override val version: String) : Sdk("openjdk", version) {
 /**
  * @property version version of Python
  */
-data class Python(override val version: String) : Sdk("python", version) {
+class Python(override val version: String) : Sdk("python", version) {
     companion object {
         const val NAME = "Python"
         val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9")

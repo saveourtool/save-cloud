@@ -17,6 +17,7 @@ import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
 import com.saveourtool.save.v1
+import io.kotest.matchers.collections.shouldExist
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -87,14 +88,12 @@ class CloneRepoTest {
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
-        Assertions.assertTrue(
-            executionRepository.findAll().any {
-                it.project.name == project.name &&
-                        it.project.organization == project.organization &&
-                        it.type == ExecutionType.GIT &&
-                        it.sdk == sdk.toString()
-            }
-        )
+        executionRepository.findAll().shouldExist {
+            it.project.name == project.name &&
+                    it.project.organization == project.organization &&
+                    it.type == ExecutionType.GIT &&
+                    it.sdk == sdk.toString()
+        }
     }
 
     @Test

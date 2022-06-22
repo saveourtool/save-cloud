@@ -10,13 +10,15 @@ class SdkTest {
             "Java:9",
             "openjdk:9"
         ).forEach {
-            Assertions.assertEquals(Jdk("9"), it.toSdk())
+            Assertions.assertTrue(it.toSdk() is Jdk)
+            Assertions.assertEquals("9", it.toSdk().version)
         }
         listOf(
             "Python:3.5",
             "python:3.5"
         ).forEach {
-            Assertions.assertEquals(Python("3.5"), it.toSdk())
+            Assertions.assertTrue(it.toSdk() is Python)
+            Assertions.assertEquals("3.5", it.toSdk().version)
         }
     }
 }
