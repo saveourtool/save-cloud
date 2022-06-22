@@ -42,6 +42,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                implementation(platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
