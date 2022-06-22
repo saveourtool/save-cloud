@@ -147,7 +147,7 @@ class HeartbeatController(private val agentService: AgentService,
         Flux.interval((shutdownTimeout / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {
-                dockerService.ensureStopped(agentId)
+                dockerService.isAgentStopped(agentId)
             }
             .takeUntil { it }
             // check whether we have got `true` or Flux has completed with only `false`

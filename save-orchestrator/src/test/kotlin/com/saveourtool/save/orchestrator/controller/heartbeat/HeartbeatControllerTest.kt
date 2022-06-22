@@ -178,7 +178,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should send Terminate signal to idle agents when there are no tests left`() {
-        whenever(dockerService.ensureStopped(anyString())).thenReturn(true)
+        whenever(dockerService.isAgentStopped(anyString())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -260,6 +260,7 @@ class HeartbeatControllerTest {
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
         whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
         whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
@@ -508,7 +509,7 @@ class HeartbeatControllerTest {
             }
         }
 
-        val heartbeatResponses = mutableListOf<HeartbeatResponse>()
+        val heartbeatResponses: MutableList<HeartbeatResponse> = mutableListOf()
         heartbeats.forEach { heartbeat ->
             webClient.post()
                 .uri("/heartbeat")

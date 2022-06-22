@@ -86,7 +86,7 @@ data class AgentSettings(
 /**
  * @property checksIntervalMillis interval between checks whether agents are really finished
  * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
- * @property gracefulNumChecks  during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
+ * @property gracefulNumChecks during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
  */
 data class ShutdownSettings(
     val checksIntervalMillis: Long,

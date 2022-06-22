@@ -196,6 +196,14 @@ class AgentService(
             }
     }
 
+    /**
+     * Updates status of agents and corresponding execution
+     *
+     * @param agentIds IDs of agents
+     * @param agentState new state for these agents
+     * @param executionStatus new state for execution, which corresponds to these agents
+     * @return
+     */
     fun markAgentsAndExecution(
         agentIds: List<String>,
         agentState: AgentState,
