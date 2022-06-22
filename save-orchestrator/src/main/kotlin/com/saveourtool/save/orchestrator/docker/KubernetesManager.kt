@@ -143,7 +143,7 @@ class KubernetesManager(
         }
     }
 
-    override fun ensureStopped(agentId: String): Boolean {
+    override fun isAgentStopped(agentId: String): Boolean {
         val pod = kc.pods().withName(agentId).get()
         return pod == null || run {
             // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839

@@ -4,15 +4,17 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
 import com.saveourtool.save.orchestrator.controller.crashedAgentsList
-import kotlinx.datetime.Clock
+
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+
 import java.time.LocalDateTime
+
+import kotlinx.datetime.Clock
 
 /**
  * Background inspector, which detect crashed agents

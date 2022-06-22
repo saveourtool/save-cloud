@@ -38,6 +38,7 @@ interface AgentRunner {
     /**
      * @param agentId ID of agent that should be stopped
      * @return true if agent has been stopped successfully
+     * todo: distinguish stopped / not stopped / error / already stopped
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun stopByAgentId(agentId: String): Boolean
@@ -57,5 +58,11 @@ interface AgentRunner {
         TODO("Not yet implemented")
     }
 
-    fun ensureStopped(agentId: String): Boolean
+    /**
+     * Check whether the agent [agentId] is stopped
+     *
+     * @param agentId id of the agent
+     * @return true if agent is not running
+     */
+    fun isAgentStopped(agentId: String): Boolean
 }

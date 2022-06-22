@@ -16,7 +16,6 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.json.JsonPlugin
 import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
 import platform.posix.SIGTERM
-import platform.posix.exit
 import platform.posix.signal
 
 import kotlinx.cinterop.staticCFunction
@@ -50,11 +49,6 @@ fun main() {
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
-    signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exit(1)
-    })
-
     val httpClient = HttpClient {
         install(JsonPlugin) {
             serializer = KotlinxSerializer(json)
@@ -64,9 +58,15 @@ fun main() {
         }
     }
 
-    val saveAgent = SaveAgent(config, httpClient)
     runBlocking {
-        val mainJob = saveAgent.start(this)
+        val saveAgent = SaveAgent(config, httpClient, coroutineScope = this)
+
+        signal(SIGTERM, staticCFunction<Int, Unit> {
+            logInfoCustom("Agent is shutting down because SIGTERM has been received")
+            saveAgent.shutdown()
+        })
+
+        val mainJob = saveAgent.start()
         mainJob.join()
     }
     logInfoCustom("Agent is shutting down")

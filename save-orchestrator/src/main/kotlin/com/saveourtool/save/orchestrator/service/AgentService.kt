@@ -140,8 +140,8 @@ class AgentService(
             .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (_, _) ->
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdownChecksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
-                Mono.delay(Duration.ofMillis(configProperties.shutdownChecksIntervalMillis)).then(
+                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
+                Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
                     getAgentsAwaitingStop(agentId)
                 )
             }
@@ -161,6 +161,13 @@ class AgentService(
             .subscribe()
     }
 
+    /**
+     * Updates status of execution [executionId] based on statues of agents [agentIds]
+     *
+     * @param executionId id of an [Execution]
+     * @param agentIds ids of agents
+     * @return Mono with response from backend
+     */
     fun markExecutionBasedOnAgentStates(
         executionId: Long,
         agentIds: List<String>,
@@ -284,17 +291,21 @@ class AgentService(
             }
     }
 
-    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> {
-        return webClientBackend
-            .get()
-            .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
-            .retrieve()
-            .bodyToMono<AgentStatusesForExecution>()
-            .map { (executionId, agentStatuses) ->
-                log.debug("For executionId=$executionId agent statuses are $agentStatuses")
-                agentStatuses.areIdleOrFinished()
-            }
-    }
+    /**
+     * Checks whether all agent under one execution have completed their jobs.
+     *
+     * @param agentId containerId of an agent
+     * @return true if all agents match [areIdleOrFinished]
+     */
+    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = webClientBackend
+        .get()
+        .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
+        .retrieve()
+        .bodyToMono<AgentStatusesForExecution>()
+        .map { (executionId, agentStatuses) ->
+            log.debug("For executionId=$executionId agent statuses are $agentStatuses")
+            agentStatuses.areIdleOrFinished()
+        }
 
     /**
      * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions

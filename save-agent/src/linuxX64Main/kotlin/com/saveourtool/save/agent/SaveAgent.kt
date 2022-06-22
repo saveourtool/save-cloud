@@ -40,9 +40,11 @@ import kotlinx.serialization.modules.subclass
 /**
  * A main class for SAVE Agent
  * @property config
+ * @property coroutineScope a [CoroutineScope] to launch other jobs
  */
 class SaveAgent(internal val config: AgentConfiguration,
-                private val httpClient: HttpClient
+                private val httpClient: HttpClient,
+                private val coroutineScope: CoroutineScope,
 ) {
     /**
      * The current [AgentState] of this agent
@@ -67,15 +69,23 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * Starts save-agent and required jobs in the background and then immediately returns
      *
-     * @param coroutineScope a [CoroutineScope] to launch other jobs
      * @return a descriptor of the main coroutine job
      */
-    fun start(coroutineScope: CoroutineScope): Job {
+    fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
             sendDataToBackend { saveAdditionalData() }
         }
         return coroutineScope.launch { startHeartbeats(this) }
+    }
+
+    /**
+     * Stop this agent by cancelling all jobs on [coroutineScope].
+     * [coroutineScope] is the topmost scope for all jobs, so by cancelling it
+     * we can gracefully shut down the whole application.
+     */
+    fun shutdown() {
+        coroutineScope.cancel()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
@@ -95,11 +105,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
-                    is TerminateResponse -> {
-                        // Here `coroutineScope` is the topmost scope, which is passed all the way from `fun main()`.
-                        // So by cancelling it we can gracefully shut down the whole application.
-                        coroutineScope.cancel()
-                    }
+                    is TerminateResponse -> shutdown()
                 }
             } else {
                 logErrorCustom("Exception during heartbeat: ${response.exceptionOrNull()?.message}")

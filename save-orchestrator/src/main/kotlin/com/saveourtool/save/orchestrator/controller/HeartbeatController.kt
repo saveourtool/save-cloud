@@ -11,8 +11,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import kotlinx.datetime.Instant
-import kotlinx.serialization.json.Json
+
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,11 +20,15 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
+import kotlinx.datetime.Instant
+import kotlinx.serialization.json.Json
 
 internal val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
 internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
@@ -92,45 +95,43 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     private fun handleVacantAgent(agentId: String, isStarting: Boolean = false): Mono<HeartbeatResponse> =
-        agentService.getNewTestsIds(agentId)
-            .doOnSuccess {
-                if (it is NewJobResponse) {
-                    agentService.updateAssignedAgent(agentId, it)
+            agentService.getNewTestsIds(agentId)
+                .doOnSuccess {
+                    if (it is NewJobResponse) {
+                        agentService.updateAssignedAgent(agentId, it)
+                    }
                 }
-            }
-            .zipWhen {
-                // Check if all agents have completed their jobs; after that we can terminate them.
-                // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
-                if (it is WaitResponse && !isStarting) {
-                    agentService.areAllAgentsIdleOrFinished(agentId)
-                } else {
-                    Mono.just(false)
+                .zipWhen {
+                    // Check if all agents have completed their jobs; after that we can terminate them.
+                    // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
+                    if (it is WaitResponse && !isStarting) {
+                        agentService.areAllAgentsIdleOrFinished(agentId)
+                    } else {
+                        Mono.just(false)
+                    }
                 }
-            }
-            .flatMap { (response, shouldStop) ->
-                // to be more like the previous implementation, we wait for all agents to finish before returning
-                if (shouldStop) {
-                    agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
-                        .thenReturn(TerminateResponse)
-                        .doOnSuccess {
-                            logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
-                            ensureGracefulShutdown(agentId)
-                        }
-                } else {
-                    Mono.just(response)
+                .flatMap { (response, shouldStop) ->
+                    // to be more like the previous implementation, we wait for all agents to finish before returning
+                    if (shouldStop) {
+                        agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
+                            .thenReturn(TerminateResponse)
+                            .doOnSuccess {
+                                logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
+                                ensureGracefulShutdown(agentId)
+                            }
+                    } else {
+                        Mono.just(response)
+                    }
                 }
-            }
 
-    private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> {
-        return if (isSavingSuccessful) {
-            handleVacantAgent(agentId, isStarting = false)
-        } else {
-            // Agent finished its work, however only part of results were received, other should be marked as failed
-            agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
-                .subscribeOn(agentService.scheduler)
-                .subscribe()
-            Mono.just(WaitResponse)
-        }
+    private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
+        handleVacantAgent(agentId, isStarting = false)
+    } else {
+        // Agent finished its work, however only part of results were received, other should be marked as failed
+        agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
+            .subscribeOn(agentService.scheduler)
+            .subscribe()
+        Mono.just(WaitResponse)
     }
 
     private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
@@ -141,8 +142,8 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     private fun ensureGracefulShutdown(agentId: String) {
-        val shutdownTimeout = 60.seconds
-        val numChecks = 10
+        val shutdownTimeout = configProperties.shutdown.gracefulTimeoutSeconds.seconds
+        val numChecks: Int = configProperties.shutdown.gracefulNumChecks
         Flux.interval((shutdownTimeout / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {

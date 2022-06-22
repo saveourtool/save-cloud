@@ -1,24 +1,25 @@
 package com.saveourtool.save.orchestrator.controller.heartbeat
 
+import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
+import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.controller.crashedAgentsList
+import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.agent.*
-import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.docker.AgentRunner
-import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import io.kotest.matchers.collections.shouldContainExactly
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -30,12 +31,14 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -43,8 +46,8 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-import reactor.core.publisher.Mono
 
 import java.time.Duration
 import java.time.LocalDateTime
@@ -56,10 +59,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.mockito.ArgumentMatchers.*
-import org.springframework.boot.test.mock.mockito.MockBeans
-import org.springframework.test.web.reactive.server.expectBody
-import io.kotest.matchers.collections.shouldContainExactly
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
@@ -193,33 +192,33 @@ class HeartbeatControllerTest {
             mockAgentStatuses = true,
             {
                 // set agents status to TERMINATED
-                /*mockServer.enqueue(
+                /* mockServer.enqueue(
                     "/updateAgentStatusesWithDto",
                     MockResponse().setResponseCode(200)
                 )*/
                 // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
-//                mockServer.enqueue(
-//                    "/getAgentsStatusesForSameExecution.*",
-//                    MockResponse()
-//                        .setBody(
-//                            objectMapper.writeValueAsString(
-//                                AgentStatusesForExecution(0, agentStatusDtos)
-//                            )
-//                        )
-//                        .addHeader("Content-Type", "application/json")
-//                )
+                // mockServer.enqueue(
+                // "/getAgentsStatusesForSameExecution.*",
+                // MockResponse()
+                // .setBody(
+                // objectMapper.writeValueAsString(
+                // AgentStatusesForExecution(0, agentStatusDtos)
+                // )
+                // )
+                // .addHeader("Content-Type", "application/json")
+                // )
                 // additional setup for marking stuff as FINISHED
                 // /getAgentsStatusesForSameExecution for determining final execution state
-//                mockServer.enqueue(
-//                    "/getAgentsStatusesForSameExecution.*",
-//                    MockResponse()
-//                        .setBody(
-//                            objectMapper.writeValueAsString(
-//                                AgentStatusesForExecution(0, agentStatusDtos)
-//                            )
-//                        )
-//                        .addHeader("Content-Type", "application/json")
-//                )
+                // mockServer.enqueue(
+                // "/getAgentsStatusesForSameExecution.*",
+                // MockResponse()
+                // .setBody(
+                // objectMapper.writeValueAsString(
+                // AgentStatusesForExecution(0, agentStatusDtos)
+                // )
+                // )
+                // .addHeader("Content-Type", "application/json")
+                // )
                 // /updateExecutionByDto
                 mockServer.enqueue(
                     "/updateExecutionByDto.*",
@@ -439,7 +438,12 @@ class HeartbeatControllerTest {
      * @param verification a lambda for test assertions
      */
     @OptIn(ExperimentalStdlibApi::class)
-    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongParameterList")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "TOO_MANY_PARAMETERS",
+        "LongParameterList",
+        "LongMethod"
+    )
     private fun testHeartbeat(
         agentStatusDtos: List<AgentStatusDto>,
         heartbeats: List<Heartbeat>,
@@ -512,15 +516,14 @@ class HeartbeatControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(heartbeat))
                 .exchange()
-                .expectAll(
-                    {
-                        it.expectBody<HeartbeatResponse>()
-                            .consumeWith {
-                                heartbeatResponses.add(it.responseBody)
-                            }
-                    },
-                    {
-                        it.expectStatus()
+                .expectAll({ responseSpec ->
+                    responseSpec.expectBody<HeartbeatResponse>()
+                        .consumeWith {
+                            heartbeatResponses.add(it.responseBody)
+                        }
+                },
+                    { responseSpec ->
+                        responseSpec.expectStatus()
                             .isOk
                     }
                 )

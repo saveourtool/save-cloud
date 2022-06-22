@@ -15,13 +15,13 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property docker configuration for docker API
  * @property agentsCount a number of agents to start for every [Execution]
  * @property executionLogs path to folder to store cli logs
- * @property shutdownChecksIntervalMillis interval between checks whether agents are really finished
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  * @property agentSettings if set, this will override defaults in agent.properties
  * @property kubernetes configuration for setup in Kubernetes
+ * @property shutdown configuration related to process of shutting down groups of agents for executions
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -32,7 +32,7 @@ data class ConfigProperties(
     val kubernetes: KubernetesSettings?,
     val agentsCount: Int,
     val executionLogs: String,
-    val shutdownChecksIntervalMillis: Long,
+    val shutdown: ShutdownSettings,
     val aptExtraFlags: String = "",
     val adjustResourceOwner: Boolean = true,
     val agentsHeartBeatTimeoutMillis: Long,
@@ -81,4 +81,15 @@ data class AgentSettings(
     val agentIdEnv: String? = null,
     val backendUrl: String? = null,
     val orchestratorUrl: String? = null,
+)
+
+/**
+ * @property checksIntervalMillis interval between checks whether agents are really finished
+ * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
+ * @property gracefulNumChecks  during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
+ */
+data class ShutdownSettings(
+    val checksIntervalMillis: Long,
+    val gracefulTimeoutSeconds: Long,
+    val gracefulNumChecks: Int,
 )
