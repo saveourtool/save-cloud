@@ -2,7 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.dom.HTMLInputElement
@@ -19,6 +21,8 @@ import kotlinx.html.js.onClickFunction
 
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
+private val runSettingGitWindow = runSettingGitWindow()
+
 /**
  * ProjectSettingsMenu component props
  */
@@ -32,6 +36,11 @@ external interface ProjectSettingsMenuProps : Props {
      * Information about current user
      */
     var currentUserInfo: UserInfo
+
+    /**
+     * Git data for project
+     */
+    var gitInitDto: GitDto?
 }
 
 /**
@@ -39,6 +48,7 @@ external interface ProjectSettingsMenuProps : Props {
  * @param updateProjectSettings
  * @param updateErrorMessage
  * @param updateNotificationMessage
+ * @param updateGit
  * @return ReactElement
  */
 @Suppress(
@@ -50,12 +60,15 @@ external interface ProjectSettingsMenuProps : Props {
 fun projectSettingsMenu(
     deleteProjectCallback: () -> Unit,
     updateProjectSettings: (Project) -> Unit,
+    updateGit: (GitDto) -> Unit,
     updateErrorMessage: (Response) -> Unit,
     updateNotificationMessage: (String, String) -> Unit,
 ) = fc<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
+    val (isOpenGitWindow, setOpenGitWindow) = useState(false)
+
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
@@ -66,6 +79,17 @@ fun projectSettingsMenu(
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
+
+    child(runSettingGitWindow) {
+        attrs.isOpenGitWindow = isOpenGitWindow
+        attrs.project = props.project
+        attrs.gitDto = props.gitInitDto
+        attrs.handlerCancel = { setOpenGitWindow(false) }
+        attrs.onGitUpdate = {
+            updateGit(it)
+            setOpenGitWindow(false)
+        }
+    }
 
     div("row justify-content-center mb-2") {
         // ===================== LEFT COLUMN =======================================================================
@@ -169,6 +193,19 @@ fun projectSettingsMenu(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
+                    div("col-5 text-left") {
+                        +"User settings:"
+                    }
+                    div("col-7 row") {
+                        button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
+                            attrs.onClickFunction = {
+                                setOpenGitWindow(true)
+                            }
+                            +"Add git credentials"
                         }
                     }
                 }
