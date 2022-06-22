@@ -161,7 +161,7 @@ class HeartbeatController(private val agentService: AgentService,
                     agentsLatestHeartBeatsMap.remove(agentId)
                     crashedAgentsList.remove(agentId)
                 }
-                agentService.initiateShutdownSequence(agentId, false)
+                agentService.initiateShutdownSequence(agentId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()

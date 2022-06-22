@@ -133,7 +133,7 @@ class AgentService(
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION")
-    internal fun initiateShutdownSequence(agentId: String, areAllAgentsCrashed: Boolean) {
+    internal fun initiateShutdownSequence(agentId: String) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
         getAgentsAwaitingStop(agentId)
@@ -202,7 +202,7 @@ class AgentService(
      * @param agentIds IDs of agents
      * @param agentState new state for these agents
      * @param executionStatus new state for execution, which corresponds to these agents
-     * @return
+     * @return Mono with response from backend
      */
     fun markAgentsAndExecution(
         agentIds: List<String>,

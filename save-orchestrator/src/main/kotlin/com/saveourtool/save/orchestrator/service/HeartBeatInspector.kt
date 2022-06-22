@@ -74,7 +74,7 @@ class HeartBeatInspector(
                 val agentId = crashedAgentsList.first()
                 agentsLatestHeartBeatsMap.clear()
                 crashedAgentsList.clear()
-                agentService.initiateShutdownSequence(agentId, areAllAgentsCrashed = true)
+                agentService.initiateShutdownSequence(agentId)
             }
         } else {
             logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")

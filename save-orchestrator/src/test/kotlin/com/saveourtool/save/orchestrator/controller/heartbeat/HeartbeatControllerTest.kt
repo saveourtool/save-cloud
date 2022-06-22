@@ -453,7 +453,7 @@ class HeartbeatControllerTest {
         testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
         additionalSetup: () -> Unit = {},
-        verification: (heartbeatResponses: List<HeartbeatResponse>) -> Unit,
+        verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
         // /getTestBatches
         testBatch?.let {
@@ -509,7 +509,7 @@ class HeartbeatControllerTest {
             }
         }
 
-        val heartbeatResponses: MutableList<HeartbeatResponse> = mutableListOf()
+        val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
         heartbeats.forEach { heartbeat ->
             webClient.post()
                 .uri("/heartbeat")
