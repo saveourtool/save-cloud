@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.tables
 
+import com.saveourtool.save.frontend.externals.formik.Form
 import com.saveourtool.save.frontend.externals.formik.Formik
 import com.saveourtool.save.frontend.externals.formik.FormikConfig
 import com.saveourtool.save.frontend.externals.formik.FormikProps
@@ -30,12 +31,14 @@ import react.FC
 import react.Props
 import react.PropsWithChildren
 import react.ReactNode
+import react.create
 import react.createElement
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.span
 import react.react
 import react.useState
 
@@ -71,6 +74,8 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>
         +" entries"
     }
 }
+
+val jumpToPageComponent = jumpToPage()
 
 /**
  * @param tableInstance
@@ -169,20 +174,26 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
                 +js("String.fromCharCode(187)").unsafeCast<String>()
             }
             // Jump to the concrete page
-            // todo: create outside
-            jumpToPage(tableInstance, setPageIndex, pageCount).invoke()
+            child(jumpToPageComponent, jso {
+                this.tableInstance = tableInstance
+                this.setPageIndex = setPageIndex
+                this.pageCount = pageCount
+            })
 
             setEntries(tableInstance, setPageIndex)
         }
 
+external interface JumpToPageProps : Props {
+    var tableInstance: TableInstance<*>?
+    var setPageIndex: StateSetter<Int>?
+    var pageCount: Int?
+}
+
 /**
- * @param tableInstance
- * @param setPageIndex
- * @param pageCount
  * @return jump to page block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <D : Any> jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) = FC<Props> {
+fun jumpToPage() = FC<JumpToPageProps> { props ->
     val (number, setNumber) = useState(0)
     +Formik(jso {
         initialValues = jso {
@@ -191,15 +202,15 @@ fun <D : Any> jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSet
         asDynamic().validate = { values: dynamic ->
             if (values.number < 0) {
                 jso { this.number = "Can't be negative" }
-            } else if (number > pageCount - 1) {
+            } else if (number > props.pageCount!! - 1) {
                 jso { this.number = "Can't exceed page count" }
             } else {
                 jso<dynamic> {}
             }
         }
-        children = { props ->
-            createElement(FC {
-                form {
+        children = { formikProps ->
+            ReactNode(arrayOf(
+                Form::class.react.create {
                     div {
                         className = ClassName("row")
                         div {
@@ -212,19 +223,20 @@ fun <D : Any> jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSet
                                     id = "number"
                                     asDynamic()["aria-describedby"] = "basic-addon2"
                                     asDynamic().placeholder = "Jump to the page"
+                                    value = formikProps.values.number
                                     onChange = {
                                         // TODO: Provide validation of non int types
                                         val tg = it.target
                                         setNumber(tg.value.toInt())
-                                        props.handleChange(it)
+                                        formikProps.handleChange(it)
                                     }
                                 }
                             }
                         }
                     }
-                }
+                },
 
-                div {
+                div.create {
                     className = ClassName("col-sm-offset-10 mr-3 justify-content-start")
                     div {
                         className = ClassName("input-group input-group-sm mb-6")
@@ -234,14 +246,14 @@ fun <D : Any> jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSet
                                 className = ClassName("btn btn-outline-secondary")
                                 type = react.dom.html.ButtonType.submit
                                 onClick = {
-                                    setPageIndexAndGoToPage(tableInstance, setPageIndex, number)
+                                    setPageIndexAndGoToPage(props.tableInstance!!, props.setPageIndex!!, number)
                                 }
                                 +js("String.fromCharCode(10143)").unsafeCast<String>()
                             }
                         }
                     }
-                }
-            })
+                })
+            )
         }
     })
 }
