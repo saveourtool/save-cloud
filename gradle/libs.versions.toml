@@ -91,7 +91,7 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gra
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
-spring-context-indexer = { module = "org.springframework:spring-context-indexer" }
+spring-context-indexer = { module = "org.springframework:spring-context-indexer", version.ref = "spring" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 
 springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springdoc" }
