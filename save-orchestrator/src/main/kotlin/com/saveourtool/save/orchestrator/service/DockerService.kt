@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.domain.Python
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
@@ -10,6 +12,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
 import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.AgentRunnerException
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -18,7 +21,6 @@ import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.exception.DockerException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
@@ -62,31 +64,44 @@ class DockerService(private val configProperties: ConfigProperties,
     private lateinit var webClientBackend: WebClient
 
     /**
-     * Function that builds a base image with test resources and then creates containers with agents.
+     * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
      * @param testSuiteDtos test suites, selected by user
-     * @return list of IDs of created containers
+     * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun buildAndCreateContainers(
+    fun buildBaseImage(
         execution: Execution,
         testSuiteDtos: List<TestSuiteDto>?,
-    ): List<String> {
+    ): Pair<String, String> {
         log.info("Building base image for execution.id=${execution.id}")
         val (imageId, agentRunCmd) = buildBaseImageForExecution(execution, testSuiteDtos)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("Built base image for execution.id=${execution.id}")
+        log.info("Built base image [id=$imageId] for execution.id=${execution.id}")
 
-        return agentRunner.create(
-            executionId = execution.id!!,
-            baseImageId = imageId,
-            replicas = configProperties.agentsCount,
-            agentRunCmd = agentRunCmd,
-            workingDir = executionDir,
-        )
+        return imageId to agentRunCmd
     }
+
+    /**
+     * creates containers with agents
+     *
+     * @param executionId
+     * @param baseImageId
+     * @param agentRunCmd
+     * @return list of IDs of created containers
+     */
+    fun createContainers(executionId: Long,
+                         baseImageId: String,
+                         agentRunCmd: String,
+    ) = agentRunner.create(
+        executionId = executionId,
+        baseImageId = baseImageId,
+        replicas = configProperties.agentsCount,
+        agentRunCmd = agentRunCmd,
+        workingDir = executionDir,
+    )
 
     /**
      * @param execution an [Execution] for which containers are being started
@@ -111,16 +126,15 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param agentIds list of IDs of agents to stop
      * @return true if agents have been stopped, false if another thread is already stopping them
      */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
             if (isAgentStoppingInProgress.compareAndSet(false, true)) {
                 try {
-                    agentIds.forEach { agentId ->
+                    agentIds.all { agentId ->
                         agentRunner.stopByAgentId(agentId)
                     }
-                    true
-                } catch (dex: DockerException) {
-                    log.error("Error while stopping agents $agentIds", dex)
+                } catch (e: AgentRunnerException) {
+                    log.error("Error while stopping agents $agentIds", e)
                     false
                 } finally {
                     isAgentStoppingInProgress.lazySet(false)
@@ -129,6 +143,24 @@ class DockerService(private val configProperties: ConfigProperties,
                 log.info("Agents stopping is already in progress, skipping")
                 false
             }
+
+    /**
+     * @param executionId
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun stop(executionId: Long): Boolean {
+        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
+        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
+            try {
+                agentRunner.stop(executionId)
+                true
+            } finally {
+                isAgentStoppingInProgress.lazySet(false)
+            }
+        } else {
+            false
+        }
+    }
 
     /**
      * @param imageName name of the image to remove
@@ -222,11 +254,50 @@ class DockerService(private val configProperties: ConfigProperties,
         val agentPropertiesFile = File(resourcesPath, "agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile, configProperties.agentSettings, saveCliExecFlags)
 
-        val baseImage = execution.sdk
+        val sdk = execution.sdk.toSdk()
+        val baseImage = baseImageName(sdk)
+        dockerContainerManager.findImages(baseImage).ifEmpty {
+            log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
+            buildBaseImage(sdk)
+        }
+        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
+        val imageId = dockerContainerManager.buildImageWithResources(
+            baseImage = baseImage,
+            imageName = imageName(execution.id!!),
+            baseDir = resourcesPath,
+            resourcesTargetPath = executionDir,
+            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
+                    |libcurl4-openssl-dev tzdata
+                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+                    |RUN rm -rf /var/lib/apt/lists/*
+                """.trimMargin(),
+            runOnResourcesCmd = """
+                    |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
+                    |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
+                """.trimMargin()
+        )
+        saveAgent.delete()
+        saveCli.delete()
+        return Pair(imageId, agentRunCmd)
+    }
+
+    /**
+     * @param sdk
+     * @return an ID of the built image or of an existing one
+     */
+    fun buildBaseImage(sdk: Sdk): String {
+        val images = dockerContainerManager.findImages(baseImageName(sdk))
+        if (images.isNotEmpty()) {
+            log.info("Base image for sdk=$sdk already exists, skipping build")
+            return images.first().id
+        }
+        log.info("Starting to build base image for sdk=$sdk")
+
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/saveourtool/save-cloud/issues/352
-        val additionalRunCmd = if (execution.sdk.startsWith(Python.NAME, ignoreCase = true)) {
-            """|RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
+        val additionalRunCmd = if (sdk is Python) {
+            """|RUN $aptCmd update
+               |RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
                |RUN curl -s "https://get.sdkman.io" | bash
                |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
                |RUN ln -s ${'$'}(which java) /usr/bin/java
@@ -234,23 +305,16 @@ class DockerService(private val configProperties: ConfigProperties,
         } else {
             ""
         }
-        val imageId = dockerContainerManager.buildImageWithResources(
-            baseImage = baseImage,
-            imageName = imageName(execution.id!!),
-            baseDir = resourcesPath,
-            resourcesPath = executionDir,
-            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
-                    |libcurl4-openssl-dev tzdata
-                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-                    |$additionalRunCmd
-                    |RUN rm -rf /var/lib/apt/lists/*
-                    |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
-                    |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                """
-        )
-        saveAgent.delete()
-        saveCli.delete()
-        return Pair(imageId, agentRunCmd)
+
+        return dockerContainerManager.buildImageWithResources(
+            baseImage = sdk.toString(),
+            imageName = baseImageName(sdk),
+            baseDir = null,
+            resourcesTargetPath = null,
+            runCmd = additionalRunCmd
+        ).also {
+            log.debug("Successfully built base image id=$it")
+        }
     }
 
     private fun changeOwnerRecursively(directory: File, user: String) {
@@ -352,6 +416,11 @@ class DockerService(private val configProperties: ConfigProperties,
  * @param executionId
  */
 internal fun imageName(executionId: Long) = "save-execution:$executionId"
+
+/**
+ * @param sdk
+ */
+internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
 /**
  * @param testSuiteDto

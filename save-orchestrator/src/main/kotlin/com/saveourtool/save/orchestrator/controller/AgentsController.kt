@@ -12,6 +12,7 @@ import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import com.github.dockerjava.api.exception.DockerException
+import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -62,10 +63,17 @@ class AgentsController(
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             Mono.fromCallable {
                 // todo: pass SDK via request body
-                dockerService.buildAndCreateContainers(execution, testSuiteDtos)
+                dockerService.buildBaseImage(execution, testSuiteDtos)
             }
                 .onErrorResume(DockerException::class) {
                     log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR")
+                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
+                }
+                .map { (baseImageId, agentRunCmd) ->
+                    dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd)
+                }
+                .onErrorResume({ it is DockerException || it is KubernetesClientException }) {
+                    log.error("Unable to create containers for executionId=${execution.id}, will mark it as ERROR", it)
                     agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
                 }
                 .flatMap { agentIds ->

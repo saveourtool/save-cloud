@@ -1,13 +1,12 @@
 [versions]
-kotlin = "1.6.21"
+kotlin = "1.7.0"
 save-core = "0.4.0-SNAPSHOT"
 ktor = "2.0.2"
 okio = "3.1.0"
 serialization = "1.3.3"
-# kx.datetime 0.3.3 is built with Kotlin 1.7, so currently not compatible with our build
-kotlinx-datetime = { require = "0.3.2", rejects = "0.3.3" }
+kotlinx-datetime = "0.3.3"
 kotlinx-coroutines = "1.6.2"
-kotlin-wrappers = "1.0.0-pre.341"
+kotlin-wrappers = "1.0.0-pre.346"
 spring-boot = "2.7.0"
 spring-security = "5.7.1"
 spring-cloud = "3.1.3"
@@ -15,21 +14,21 @@ spring-cloud-kubernetes = "2.1.3"
 junit = "5.8.2"
 diktat = "1.1.0"
 detekt = "1.20.0"
-liquibase-core = "4.11.0"
+liquibase-core = "4.12.0"
 docker-java = "3.2.13"
-jgit = "6.1.0.202203080745-r"
+jgit = "6.2.0.202206071550-r"
 reactor = "1.1.6"
 jackson = "2.13.3"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 logback = "1.2.11"
 log4j = "2.17.2"
-micrometer = "1.9.0"
+micrometer = "1.9.1"
 jpa = "1.0.2"
 hibernate = "5.6.9.Final"
 mySql = "8.0.29"
 testcontainers = "1.17.2"
-okhttp3 = "4.9.3"
+okhttp3 = "4.10.0"
 reckon = "0.16.1"
 commons-compress = "1.21"
 picocli = "4.6.3"
@@ -37,7 +36,8 @@ zip4j = "2.10.0"
 ktoml = "0.2.12"
 springdoc = "1.6.9"
 kotlinx-cli = "0.3.4"
-spotless = "6.7.0"
+spotless = "6.7.2"
+fabric8 = "5.12.2"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -98,7 +98,7 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.0" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.1" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
@@ -144,3 +144,6 @@ picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 gradle-plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+
+fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "fabric8" }
+fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock", version.ref = "fabric8" }

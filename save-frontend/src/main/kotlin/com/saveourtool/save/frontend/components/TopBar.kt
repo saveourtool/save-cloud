@@ -61,7 +61,7 @@ fun topBar() = fc<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
-    useEffect(listOf<dynamic>()) {
+    useEffect {
         cleanup {
             if (scope.isActive) {
                 scope.cancel()
@@ -129,7 +129,7 @@ fun topBar() = fc<TopBarProps> { props ->
                     attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save"
+                    attrs.href = "https://github.com/saveourtool/save-cli"
                     +"SAVE format"
                 }
             }

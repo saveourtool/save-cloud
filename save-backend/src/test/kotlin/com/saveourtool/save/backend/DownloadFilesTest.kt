@@ -140,7 +140,7 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, ProjectCoordinates("Example.com", "The Project"))
 
-        webTestClient.method(HttpMethod.GET).uri("/api/$v1/files/Example.com/The Project/download")
+        webTestClient.method(HttpMethod.POST).uri("/api/$v1/files/Example.com/The Project/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)

@@ -8,12 +8,16 @@ import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
+import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
+
 import react.create
 import react.react
+
 import kotlin.js.Promise
 import kotlin.test.*
+import kotlinx.js.jso
 
 class ProjectViewTest {
     private val testOrganization = Organization(
@@ -64,9 +68,15 @@ class ProjectViewTest {
     @Test
     fun projectViewShouldRender(): Promise<Unit> {
         renderProjectView()
-        return screen.findByText("Project ${testProject.name}").then {
-            assertNotNull(it, "Should show project name")
-        }
+        return screen.findByText(
+            "Project ${testProject.name}",
+            waitForOptions = jso {
+                timeout = 5000
+            }
+        )
+            .then {
+                assertNotNull(it, "Should show project name")
+            }
     }
 
     @Test
@@ -85,12 +95,13 @@ class ProjectViewTest {
             }
     }
 
-    private fun renderProjectView(userInfo: UserInfo = testUserInfo) = ProjectView::class.react
-        .create {
+    private fun renderProjectView(userInfo: UserInfo = testUserInfo) = wrapper.create {
+        ProjectView::class.react {
             owner = testOrganization.name
             name = testProject.name
             currentUserInfo = userInfo
-        }.let {
-            render(it)
         }
+    }.let {
+        render(it)
+    }
 }

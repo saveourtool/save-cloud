@@ -8,12 +8,13 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
 import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
-import com.saveourtool.save.frontend.components.errorStatusContext
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -21,13 +22,11 @@ import com.saveourtool.save.frontend.utils.*
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.Context
 import react.Props
 import react.RBuilder
 import react.RStatics
 import react.State
-import react.StateSetter
 import react.dom.*
 import react.setState
 
@@ -158,7 +157,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 gitConnectionCheckingStatus = GitConnectionStatusEnum.VALIDATING
             }
             val responseFromCreationProject =
-                    get("$apiUrl/check-git-connectivity-adaptor$urlArguments", headers)
+                    get(
+                        "$apiUrl/check-git-connectivity-adaptor$urlArguments",
+                        headers, loadingHandler = ::classLoadingHandler,
+                    )
 
             if (responseFromCreationProject.ok) {
                 if (responseFromCreationProject.text().await().toBoolean()) {
@@ -209,7 +211,12 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
         scope.launch {
             val responseFromCreationProject =
-                    post("$apiUrl/projects/save", headers, Json.encodeToString(newProjectRequest))
+                    post(
+                        "$apiUrl/projects/save",
+                        headers,
+                        Json.encodeToString(newProjectRequest),
+                        loadingHandler = ::classLoadingHandler,
+                    )
             if (responseFromCreationProject.ok == true) {
                 window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/" +
                         newProjectRequest.project.name.replace(" ", "%20")
@@ -272,7 +279,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
     @Suppress(
         "TOO_LONG_FUNCTION",
-        "EMPTY_BLOCK_STRUCTURE_ERROR",
         "LongMethod",
     )
     override fun RBuilder.render() {
@@ -430,6 +436,9 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 div("spinner-border spinner-border-sm mt-3") {
                                                     attrs["role"] = "status"
                                                 }
+                                            else -> {
+                                                // do nothing
+                                            }
                                         }
                                     }
                                 }
@@ -446,9 +455,9 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 +text
             }
 
-    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<StateSetter<Response?>>>(CreationView::class) {
+    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
         init {
-            contextType = errorStatusContext
+            contextType = requestStatusContext
         }
     }
 }

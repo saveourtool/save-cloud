@@ -1,5 +1,6 @@
 plugins {
-    `kotlin-dsl`
+    // workaround https://github.com/gradle/gradle/issues/16345
+    `kotlin-dsl`.version("2.3.3")
 }
 
 repositories {

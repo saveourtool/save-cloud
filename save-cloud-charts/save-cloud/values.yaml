@@ -19,6 +19,7 @@ orchestrator:
   containerPort: 5100
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor

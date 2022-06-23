@@ -338,6 +338,15 @@ class AgentService(
         it.state == AgentState.IDLE || it.state == AgentState.FINISHED || it.state == AgentState.STOPPED_BY_ORCH || it.state == AgentState.CRASHED
     }
 
+    /**
+     * @param agentId ID of an agent
+     * @return Mono containing ID of execution during which the agent has been created
+     */
+    fun getExecutionIdByAgentId(agentId: String) = webClientBackend.get()
+        .uri("/agents/$agentId/execution/id")
+        .retrieve()
+        .bodyToMono<Long>()
+
     companion object {
         private val log = Loggers.getLogger(AgentService::class.java)
     }

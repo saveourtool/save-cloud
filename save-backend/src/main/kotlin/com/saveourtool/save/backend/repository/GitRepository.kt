@@ -14,4 +14,10 @@ interface GitRepository : BaseEntityRepository<Git> {
      * @return git by project
      */
     fun findByProject(project: Project): Git?
+
+    /**
+     * @param projectId
+     * @return git by project
+     */
+    fun findByProjectId(projectId: Long): Git?
 }

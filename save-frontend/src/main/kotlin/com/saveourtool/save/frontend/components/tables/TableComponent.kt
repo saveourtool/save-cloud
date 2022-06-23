@@ -6,12 +6,13 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import com.saveourtool.save.frontend.components.errorStatusContext
 import com.saveourtool.save.frontend.components.modal.errorModal
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
 
+import org.w3c.fetch.Response
 import react.Props
 import react.RBuilder
 import react.dom.RDOMBuilder
@@ -53,22 +54,31 @@ import kotlinx.js.jso
 /**
  * [Props] of a data table
  */
-external interface TableProps : Props {
+external interface TableProps<D : Any> : Props {
     /**
      * Table header
      */
     var tableHeader: String
+
+    /**
+     * Lambda to get table data
+     */
+    @Suppress("TYPE_ALIAS")
+    var getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>
+
+    /**
+     * Lambda to update number of pages
+     */
+    var getPageCount: (suspend (pageSize: Int) -> Int)?
 }
 
 /**
  * A `RComponent` for a data table
  *
  * @param columns columns as an array of [Column]
- * @param getData a function to retrieve data for the table, returns an array of data of type [out D] that will be inserted into the table
  * @param initialPageSize initial size of table page
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
- * @param getPageCount a function to retrieve number of pages of data, is [useServerPaging] is `true`
  * @param usePageSelection whether to display entries settings
  * @param plugins
  * @param additionalOptions
@@ -95,12 +105,10 @@ fun <D : Any> tableComponent(
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
-    getPageCount: (suspend (pageSize: Int) -> Int)? = null,
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-    getData: suspend WithRequestStatusContext.(pageIndex: Int, pageSize: Int) -> Array<out D>,
-) = fc<TableProps> { props ->
-    require(useServerPaging xor (getPageCount == null)) {
+) = fc<TableProps<D>> { props ->
+    require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
 
@@ -125,11 +133,13 @@ fun <D : Any> tableComponent(
         additionalOptions()
     }, plugins = plugins)
 
-    useEffect(arrayOf<dynamic>(tableInstance.state.pageSize, pageCount)) {
+    useEffect(tableInstance.state.pageSize) {
         if (useServerPaging) {
             scope.launch {
-                val newPageCount = getPageCount!!.invoke(tableInstance.state.pageSize)
-                setPageCount(newPageCount)
+                val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
+                if (newPageCount != pageCount) {
+                    setPageCount(newPageCount)
+                }
             }
         }
     }
@@ -141,14 +151,16 @@ fun <D : Any> tableComponent(
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
     }
-    val setResponse = useContext(errorStatusContext)
-    val context = WithRequestStatusContext {
-        setResponse(it)
+    val statusContext = useContext(requestStatusContext)
+    val context = object : WithRequestStatusContext {
+        override val coroutineScope = CoroutineScope(Dispatchers.Default)
+        override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
     useEffect(*dependencies) {
         scope.launch {
             try {
-                setData(context.getData(tableInstance.state.pageIndex, tableInstance.state.pageSize))
+                setData(context.(props.getData)(tableInstance.state.pageIndex, tableInstance.state.pageSize))
             } catch (e: CancellationException) {
                 // this means, that view is re-rendering while network request was still in progress
                 // no need to display an error message in this case

@@ -1,12 +1,11 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.scheduling.StandardSuitesUpdateScheduler
+import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.v1
 
-import org.quartz.JobKey
 import org.quartz.Scheduler
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.util.*
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
@@ -28,7 +28,7 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 @RestController
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
-    private val scheduler: Scheduler,
+    private val quartzScheduler: Scheduler,
 ) {
     /**
      * Save new test suites into DB
@@ -70,11 +70,12 @@ class TestSuitesController(
      */
     @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    fun updateStandardTestSuites() = Mono.fromCallable {
-        scheduler.triggerJob(
-            JobKey.jobKey(StandardSuitesUpdateScheduler.jobName)
-        )
-    }
+    fun updateStandardTestSuites() = Mono.just(quartzScheduler)
+        .map {
+            it.triggerJob(
+                UpdateJob.jobKey
+            )
+        }
 
     /**
      * @param testSuiteDtos suites, which need to be marked as obsolete

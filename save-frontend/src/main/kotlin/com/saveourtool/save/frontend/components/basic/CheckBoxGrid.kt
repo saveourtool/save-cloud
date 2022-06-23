@@ -121,7 +121,7 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
                         }
                     }
             }
-            useEffect(emptyList<dynamic>()) {
+            useEffect {
                 js("var jQuery = require(\"jquery\")")
                 js("require(\"popper.js\")")
                 js("require(\"bootstrap\")")
