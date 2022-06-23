@@ -104,8 +104,8 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
             "BPE_APPEND_JAVA_TOOL_OPTIONS" to
                     // Workaround for https://github.com/reactor/reactor-netty/issues/564
                     "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
-                    // Override default configuration. Intended to be used on a particular environment.
-                    "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
+                            // Override default configuration. Intended to be used on a particular environment.
+                            "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
         )
         isVerboseLogging = true
         val registryPassword: String? = System.getenv("GHCR_PWD")
