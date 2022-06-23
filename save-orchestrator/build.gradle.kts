@@ -8,7 +8,6 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
-    kotlin("kapt")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
     id("org.gradle.test-retry") version "1.4.0"
 }
@@ -76,7 +75,6 @@ dependencies {
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
-    kapt(libs.spring.context.indexer)
     testImplementation(libs.fabric8.kubernetes.server.mock)
 }
 
