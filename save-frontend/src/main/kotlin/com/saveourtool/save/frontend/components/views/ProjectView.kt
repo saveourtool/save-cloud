@@ -753,7 +753,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         FormData().apply {
                             append("file", file)
                         },
-                        loadingHandler = ::classLoadingHandler,
+                        loadingHandler = ::noopLoadingHandler,
                     )
                         .decodeFromJsonString()
 
