@@ -5,13 +5,16 @@ on:
     types:
       - opened
       - reopened
+    paths:
+      - 'gradle/libs.versions.toml'
+      - 'save-frontend/build.gradle.kts'
   push:
-    branches:
-      - 'renovate/**'
+    paths:
+      - 'gradle/libs.versions.toml'
+      - 'save-frontend/build.gradle.kts'
       
 jobs:
   update_kjs_yarn_lock:
-    if: startsWith(github.head_ref, 'renovate/') || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
