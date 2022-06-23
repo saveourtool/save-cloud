@@ -199,44 +199,42 @@ fun jumpToPage() = FC<JumpToPageProps> { props ->
         initialValues = jso {
             this.number = 0
         }
-        asDynamic().validate = { values: dynamic ->
+        validate = { values: dynamic ->
             if (values.number < 0) {
                 jso { this.number = "Can't be negative" }
             } else if (number > props.pageCount!! - 1) {
                 jso { this.number = "Can't exceed page count" }
             } else {
-                jso<dynamic> {}
+                jso {}
             }
         }
-        children = { formikProps ->
-            ReactNode(arrayOf(
-                Form::class.react.create {
+        component = FC { formikProps ->
+            Form::class.react {
+                div {
+                    className = ClassName("row")
                     div {
-                        className = ClassName("row")
+                        className = ClassName("col-7 pr-0")
                         div {
-                            className = ClassName("col-7 pr-0")
-                            div {
-                                className = ClassName("input-group input-group-sm mb-3 mt-3")
-                                input {
-                                    className = ClassName("form-control")
-                                    type = InputType.text
-                                    id = "number"
-                                    asDynamic()["aria-describedby"] = "basic-addon2"
-                                    asDynamic().placeholder = "Jump to the page"
-                                    value = formikProps.values.number
-                                    onChange = {
-                                        // TODO: Provide validation of non int types
-                                        val tg = it.target
-                                        setNumber(tg.value.toInt())
-                                        formikProps.handleChange(it)
-                                    }
+                            className = ClassName("input-group input-group-sm mb-3 mt-3")
+                            input {
+                                className = ClassName("form-control")
+                                type = InputType.text
+                                id = "number"
+                                asDynamic()["aria-describedby"] = "basic-addon2"
+                                asDynamic().placeholder = "Jump to the page"
+                                value = formikProps.values.number
+                                onChange = {
+                                    // TODO: Provide validation of non int types
+                                    val tg = it.target
+                                    setNumber(tg.value.toInt())
+                                    formikProps.handleChange(it)
+                                    console.log(formikProps.asDynamic().errors)
                                 }
                             }
                         }
                     }
-                },
-
-                div.create {
+                }
+                div {
                     className = ClassName("col-sm-offset-10 mr-3 justify-content-start")
                     div {
                         className = ClassName("input-group input-group-sm mb-6")
@@ -252,8 +250,8 @@ fun jumpToPage() = FC<JumpToPageProps> { props ->
                             }
                         }
                     }
-                })
-            )
+                }
+            }
         }
     })
 }

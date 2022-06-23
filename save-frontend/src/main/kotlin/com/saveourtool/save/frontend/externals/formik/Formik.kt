@@ -4,6 +4,7 @@
 package com.saveourtool.save.frontend.externals.formik
 
 import react.Component
+import react.ComponentType
 import react.ElementType
 import react.PropsWithChildren
 import react.ReactElement
@@ -46,11 +47,12 @@ external fun Formik(fc: FormikConfig): ReactElement<*>
 
 external class FormikConfig {
     var initialValues: dynamic
+    var validate: (dynamic) -> dynamic
     var handleChange: (ChangeEvent<*>) -> Unit
     var onReset: (values: dynamic, formikBag: dynamic) -> Unit
     var enableReinitialize: Boolean
-    var component: dynamic
     var children: ((formikProps: FormikProps) -> ReactNode)?
+    var component: ComponentType<FormikProps>?
 }
 
 @JsName("Form")
