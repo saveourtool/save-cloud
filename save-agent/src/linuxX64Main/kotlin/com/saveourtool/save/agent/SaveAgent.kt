@@ -7,6 +7,7 @@ import com.saveourtool.save.agent.utils.logErrorCustom
 import com.saveourtool.save.agent.utils.logInfoCustom
 import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.sendDataToBackend
+import com.saveourtool.save.core.config.SaveProperties
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
@@ -150,7 +151,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             0 -> if (executionLogs.cliLogs.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
-                handleSuccessfulExit()
+                handleSuccessfulExit(SaveProperties(cliArgs.split(" ").toTypedArray()).testFiles!![0])
                 state.value = AgentState.FINISHED
             }
             else -> {
@@ -172,7 +173,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         )
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
+    private fun CoroutineScope.readExecutionResults(jsonFile: String, rootPath: String): List<TestExecutionDto> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         return reports.flatMap { report ->
@@ -224,10 +225,10 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
     }
 
-    private fun CoroutineScope.handleSuccessfulExit() {
+    private fun CoroutineScope.handleSuccessfulExit(rootPath: String) {
         val jsonReport = "save.out.json"
         val testExecutionDtos = runCatching {
-            readExecutionResults(jsonReport)
+            readExecutionResults(jsonReport, rootPath)
         }
         if (testExecutionDtos.isFailure) {
             logErrorCustom("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +

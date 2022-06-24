@@ -20,6 +20,7 @@ data class TestSuiteDto(
     val description: String?,
     val project: Project? = null,
     val testRootPath: String,
+    val topRootPath: String,
     val testSuiteRepoUrl: String? = null,
     val language: String? = null,
 )

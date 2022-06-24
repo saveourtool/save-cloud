@@ -1,10 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="save-backend not docker" type="JetRunConfigurationType">
     <envs>
-      <env name="SPRING_PROFILES_ACTIVE" value="dev" />
+      <env name="SPRING_PROFILES_ACTIVE" value="dev,secure,win" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.backend.SaveApplicationKt" />
     <module name="save-cloud.save-backend.main" />
+    <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

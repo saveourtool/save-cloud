@@ -2,6 +2,7 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.core.files.ConfigDetector
+import com.saveourtool.save.core.files.createRelativePathToTheRoot
 import com.saveourtool.save.core.plugin.GeneralConfig
 import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
@@ -66,6 +67,7 @@ class TestDiscoveringService {
                 config.description,
                 project,
                 testRootPath,
+                testRootPath.removeSuffix(rootTestConfig.directory.createRelativePathToTheRoot(rootTestConfig.getRootConfig().directory).toString()),
                 testSuiteRepoUrl,
                 config.language,
             )
@@ -99,7 +101,7 @@ class TestDiscoveringService {
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
                         val testRelativePath = it.test.toFile()
-                            .relativeTo(rootTestConfig.directory.toFile())
+                            .relativeTo(rootTestConfig.getRootConfig().directory.toFile())
                             .path
                         TestDto(testRelativePath, plugin::class.simpleName!!, testSuite.id!!, it.test.toFile().toHash(), generalConfig.tags!!)
                     }

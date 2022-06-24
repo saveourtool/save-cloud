@@ -4,7 +4,7 @@
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="--continuous" />
+      <option name="scriptParameters" value="--continuous -Psave.profile=dev -Pprofile=dev" />
       <option name="taskDescriptions">
         <list />
       </option>
