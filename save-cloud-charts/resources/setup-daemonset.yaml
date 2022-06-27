@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: setup
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: gvisor
+  template:
+    metadata:
+      labels:
+        app: gvisor
+    spec:
+      hostPID: true
+      restartPolicy: Always
+      containers:
+        - image: alpine:3.16.0
+          name: gvisor-installer
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - wget https://raw.githubusercontent.com/saveourtool/save-cloud/master/save-deploy/install-gvisor.sh -O - | sh
+          securityContext:
+            privileged: true
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: k8s-node
+              mountPath: /k8s-node
+      volumes:
+        - name: k8s-node
+          hostPath:
+            path: /tmp/gvisor
+      tolerations:
+        - key: gvisor
+          operator: Equal
+          value: "enabled"
+          effect: NoSchedule
+      nodeSelector:
+        gvisor: enabled

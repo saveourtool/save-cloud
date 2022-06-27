@@ -3,6 +3,7 @@ package com.saveourtool.save.orchestrator.docker
 import com.saveourtool.save.orchestrator.findImage
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -22,6 +23,7 @@ import javax.annotation.PreDestroy
 class KubernetesManager(
     private val dockerClient: DockerClient,
     private val kc: KubernetesClient,
+    private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
     /**
@@ -71,6 +73,7 @@ class KubernetesManager(
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
+                                runtimeClassName = configProperties.docker.runtime
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
