@@ -70,10 +70,6 @@ external interface ManageUserRoleCardProps : Props {
     var showGlobalRoleWarning: () -> Unit
 }
 
-private fun String.toRole() = Role.values().find {
-    this == it.formattedName || this == it.toString()
-} ?: throw IllegalStateException("Unknown role is passed: $this")
-
 /**
  * A functional `RComponent` for a card that shows users from the group and their permissions.
  *
@@ -267,8 +263,11 @@ fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
                 div("col-5 align-self-right d-flex align-items-center justify-content-end") {
                     button(classes = "btn col-2 align-items-center mr-2") {
                         fontAwesomeIcon(icon = faTimesCircle)
+                        val canDelete = selfRole == Role.SUPER_ADMIN ||
+                                selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                                userRole.isLowerThan(selfRole)
                         attrs.id = "remove-user-$userIndex"
-                        attrs.hidden = selfRole.priority <= userRole.priority
+                        attrs.hidden = !canDelete
                         attrs.onClick = {
                             val deletedUserIndex = attrs.id.split("-")[2].toInt()
                             setUserToDelete(usersFromGroup[deletedUserIndex])
@@ -282,19 +281,23 @@ fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
                             updatePermissions()
                         }
                         attrs.id = "role-$userIndex"
-                        for (role in Role.values()) {
-                            if (role != Role.NONE && (role.priority < selfRole.priority || role == userRole)) {
+                        Role.values()
+                            .filter { it != Role.NONE }
+                            .filter { it != Role.SUPER_ADMIN }
+                            .filter { selfRole == Role.OWNER || it.isLowerThan(selfRole) || userRole == it }
+                            .map {
                                 option {
-                                    attrs.value = role.formattedName
-                                    attrs.selected = role == userRole
-                                    +role.formattedName
+                                    attrs.value = it.formattedName
+                                    attrs.selected = it == userRole
+                                    +it.formattedName
                                 }
                             }
-                        }
-                        attrs.disabled = userRole.priority >= selfRole.priority
+                        attrs.disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) || !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
                     }
                 }
             }
         }
     }
 }
+
+private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = otherUserInfo.name == selfUserInfo.name

@@ -21,6 +21,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.getHighestRole
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
@@ -202,6 +203,11 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Role of a user that is seeing this view
+     */
+    var selfRole: Role
 }
 
 /**
@@ -412,6 +418,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.RUN
         state.closeButtonLabel = null
+        state.selfRole = Role.NONE
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -437,7 +444,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 this.project = project
             }
-
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().apply {
                 set("Accept", "application/json")
@@ -449,8 +455,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 jsonProject,
                 loadingHandler = ::noopLoadingHandler,
             ).decodeFromJsonString()
+            val currentUserRole: Role = get(
+                "${apiUrl}/projects/${state.project.organization.name}/${state.project.name}/users/roles",
+                headers,
+                loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
             setState {
                 gitDto = gitDtoInit
+                selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             }
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
@@ -593,7 +605,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         div("row align-items-center justify-content-center") {
             nav("nav nav-tabs mb-4") {
-                ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
+                ProjectMenuBar.values()
+                    .filter { it != ProjectMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                    .forEachIndexed { i, projectMenu ->
                     li("nav-item") {
                         val classVal =
                                 if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
@@ -693,7 +707,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         }
                     }
                 }
-
                 child(projectInfoCard)
             }
         }
@@ -710,6 +723,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             attrs.gitInitDto = gitDto
+            attrs.selfRole = state.selfRole
         }
     }
 

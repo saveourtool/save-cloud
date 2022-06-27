@@ -75,15 +75,16 @@ class ProjectController(
      */
     @GetMapping("/get/organization-name")
     @PreAuthorize("hasRole('VIEWER')")
-    fun getProjectByNameAndOrganizationName(@RequestParam name: String,
-                                            @RequestParam organizationName: String,
-                                            authentication: Authentication,
+    fun getProjectByNameAndOrganizationName(
+        @RequestParam name: String,
+        @RequestParam organizationName: String,
+        authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
-            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+            project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
         }
     }
 
@@ -108,8 +109,10 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     fun getNonDeletedProjectsByOrganizationName(@RequestParam organizationName: String,
                                                 authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName).filter { it.status != ProjectStatus.DELETED }
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+        .filter { it.status != ProjectStatus.DELETED }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
+            .also { has -> println("${it.name}: $has") } }
 
     /**
      * @param project

@@ -42,17 +42,16 @@ class ProjectPermissionEvaluator {
         }
 
         val userId = (authentication.details as AuthenticationDetails).id
-        val isOrganizationOwner = project.organization.ownerId == userId
         val projectRole by lazy { lnkUserProjectService.findRoleByUserIdAndProject(userId, project) }
 
-        if (isOrganizationOwner || authentication.hasRole(Role.SUPER_ADMIN)) {
+        if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
         return when (permission) {
-            Permission.READ -> project.public || hasWriteAccess(userId, project, projectRole)
-            Permission.WRITE -> hasWriteAccess(userId, project, projectRole)
-            Permission.DELETE -> project.userId == userId || projectRole == Role.OWNER
+            Permission.READ -> project.public || projectRole.isHigherOrEqualThan(Role.VIEWER)
+            Permission.WRITE -> projectRole.isHigherOrEqualThan(Role.ADMIN)
+            Permission.DELETE -> projectRole.isHigherOrEqualThan(Role.OWNER)
         }
     }
 
@@ -88,11 +87,9 @@ class ProjectPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasWriteAccess(userId: Long?, project: Project, projectRole: Role): Boolean = when {
-        userId == null -> false
-        project.userId == userId -> true
-        else -> projectRole == Role.ADMIN || projectRole == Role.OWNER
-    }
+    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+        projectRole == Role.ADMIN || projectRole == Role.OWNER
+    } ?: false
 
     /**
      * @param authentication

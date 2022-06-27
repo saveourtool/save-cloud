@@ -2,10 +2,12 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.getHighestRole
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -18,6 +20,7 @@ import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
+import org.w3c.fetch.Headers
 
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
@@ -41,6 +44,8 @@ external interface ProjectSettingsMenuProps : Props {
      * Git data for project
      */
     var gitInitDto: GitDto?
+
+    var selfRole: Role
 }
 
 /**
@@ -222,6 +227,7 @@ fun projectSettingsMenu(
                     }
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.disabled = !props.selfRole.isHigherOrEqualThan(Role.OWNER)
                             attrs.onClickFunction = {
                                 deleteProjectCallback()
                             }
@@ -233,3 +239,4 @@ fun projectSettingsMenu(
         }
     }
 }
+

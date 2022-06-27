@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Response
@@ -26,6 +27,11 @@ external interface OrganizationSettingsMenuProps : Props {
      * Information about current user
      */
     var currentUserInfo: UserInfo
+
+    /**
+     * [Role] of user that is observing this component
+     */
+    var selfRole: Role
 }
 
 /**
@@ -79,6 +85,7 @@ fun organizationSettingsMenu(
                 div("row d-flex justify-content-center mt-3") {
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.disabled = props.selfRole.isLowerThan(Role.OWNER)
                             attrs.onClickFunction = {
                                 deleteOrganizationCallback()
                             }

@@ -81,10 +81,10 @@ class LnkUserOrganizationController(
         val selfId = (authentication.details as AuthenticationDetails).id
         val organization = organizationService.findByName(organizationName)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        if (!organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.READ)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
         val user = userName?.let { name ->
+            if (!organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.READ)) {
+                throw ResponseStatusException(HttpStatus.FORBIDDEN)
+            }
             lnkUserOrganizationService.getUserByName(name)
                 .orElseThrow {
                     ResponseStatusException(HttpStatus.NOT_FOUND)

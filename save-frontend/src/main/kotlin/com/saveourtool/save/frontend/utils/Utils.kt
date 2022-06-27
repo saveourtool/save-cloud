@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Role
 
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
@@ -92,3 +93,11 @@ internal fun RBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
+
+/**
+ * @return [Role] if string matches any role, else throws [IllegalStateException]
+ * @throws IllegalStateException if string is not matched with any role
+ */
+fun String.toRole() = Role.values().find {
+    this == it.formattedName || this == it.toString()
+} ?: throw IllegalStateException("Unknown role is passed: $this")
