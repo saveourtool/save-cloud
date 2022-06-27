@@ -38,50 +38,50 @@ data class ConfigProperties(
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
     val agentSettings: AgentSettings = AgentSettings(),
-)
+) {
+    /**
+     * @property basePath path to the root directory, where all test resources are stored
+     */
+    data class TestResources(
+        val basePath: String,
+    )
 
-/**
- * @property basePath path to the root directory, where all test resources are stored
- */
-data class TestResources(
-    val basePath: String,
-)
+    /**
+     * @property host hostname of docker daemon
+     * @property runtime OCI compliant runtime for docker
+     * @property loggingDriver logging driver for the container
+     * @property registry docker registry to pull images for test executions from
+     */
+    data class DockerSettings(
+        val host: String,
+        val loggingDriver: String,
+        val runtime: String = "runc",
+        val registry: String = "docker.io/library",
+    )
 
-/**
- * @property host hostname of docker daemon
- * @property runtime OCI compliant runtime for docker
- * @property loggingDriver logging driver for the container
- * @property registry docker registry to pull images for test executions from
- */
-data class DockerSettings(
-    val host: String,
-    val loggingDriver: String,
-    val runtime: String = "runc",
-    val registry: String = "docker.io/library",
-)
+    /**
+     * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+     * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
+     * to authenticate orchestrator to the API server
+     * @property namespace Kubernetes namespace, into which agents will be deployed.
+     */
+    data class KubernetesSettings(
+        val apiServerUrl: String,
+        val serviceAccount: String,
+        val namespace: String,
+    )
 
-/**
- * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
- * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
- * to authenticate orchestrator to the API server
- * @property namespace Kubernetes namespace, into which agents will be deployed.
- */
-data class KubernetesSettings(
-    val apiServerUrl: String,
-    val serviceAccount: String,
-    val namespace: String,
-)
-
-/**
- * @property backendUrl url of save-backend that will be used by save-agent
- * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
- * @property agentIdEnv name of an environment variable that can be used by save-agent to read its ID
- */
-data class AgentSettings(
-    val agentIdEnv: String? = null,
-    val backendUrl: String? = null,
-    val orchestratorUrl: String? = null,
-)
+    /**
+     * @property backendUrl url of save-backend that will be used by save-agent
+     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+     * @property agentIdEnv name of an environment variable that can be used by save-agent to read its ID
+     */
+    data class AgentSettings(
+        val agentIdEnv: String? = null,
+        val backendUrl: String? = null,
+        val orchestratorUrl: String? = null,
+    )
+}
 
 /**
  * @property checksIntervalMillis interval between checks whether agents are really finished

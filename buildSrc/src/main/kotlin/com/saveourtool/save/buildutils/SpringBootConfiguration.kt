@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin
 import org.springframework.boot.gradle.dsl.SpringBootExtension
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
@@ -26,6 +27,7 @@ import org.springframework.boot.gradle.tasks.run.BootRun
  */
 @Suppress("TOO_LONG_FUNCTION", "GENERIC_VARIABLE_WRONG_DECLARATION", "COMPLEX_EXPRESSION")
 fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
+    apply<Kapt3GradleSubplugin>()
     apply<SpringBootPlugin>()
 
     extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
@@ -34,6 +36,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
 
     val libs = the<LibrariesForLibs>()
     dependencies {
+        add("implementation", platform(libs.spring.boot.dependencies))
         add("implementation", libs.spring.boot.starter.webflux)
         add("implementation", libs.spring.boot.starter.actuator)
         add("implementation", libs.micrometer.registry.prometheus)  // expose prometheus metrics in actuator
@@ -47,6 +50,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("runtimeOnly", libs.springdoc.openapi.security)
         add("runtimeOnly", libs.springdoc.openapi.kotlin)
         add("implementation", libs.swagger.annotations)
+        add("kapt", "org.springframework.boot:spring-boot-configuration-processor:${libs.versions.spring.boot.get()}")
 
         add("testImplementation", libs.spring.boot.starter.test)
         add("testImplementation", libs.mockito.kotlin)
@@ -98,8 +102,11 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         environment = mapOf(
             "BP_JVM_VERSION" to Versions.jdk,
             "BPE_DELIM_JAVA_TOOL_OPTIONS" to " ",
-            "BPE_APPEND_JAVA_TOOL_OPTIONS" to "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
-                    "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
+            "BPE_APPEND_JAVA_TOOL_OPTIONS" to
+                    // Workaround for https://github.com/reactor/reactor-netty/issues/564
+                    "-Dreactor.netty.pool.maxIdleTime=60000 -Dreactor.netty.pool.leasingStrategy=lifo " +
+                            // Override default configuration. Intended to be used on a particular environment.
+                            "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
         )
         isVerboseLogging = true
         val registryPassword: String? = System.getenv("GHCR_PWD")
