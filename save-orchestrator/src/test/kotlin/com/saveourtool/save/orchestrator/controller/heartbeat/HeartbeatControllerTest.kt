@@ -19,7 +19,11 @@ import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSingleElement
+import io.kotest.matchers.shouldNot
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -146,8 +150,8 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
         ) { heartbeatResponses ->
-            verify(dockerService, times(0)).stopAgents(anyList())
-            assertTrue(heartbeatResponses.none { it is TerminateResponse })
+            verify(dockerService, times(0)).stopAgents(anyCollection())
+            heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
@@ -171,8 +175,9 @@ class HeartbeatControllerTest {
                 id = 0
             },
             mockAgentStatuses = false,
-        ) {
-            verify(dockerService, times(0)).stopAgents(anyList())
+        ) { heartbeatResponses ->
+            verify(dockerService, times(0)).stopAgents(anyCollection())
+            heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
@@ -226,11 +231,11 @@ class HeartbeatControllerTest {
                 )
             }
         ) { heartbeatResponses ->
-            assertTrue(heartbeatResponses.single() is TerminateResponse)
+            heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
             verify(
                 dockerService,
                 times(0).description("Orchestrator shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
-            ).stopAgents(anyList())
+            ).stopAgents(anyCollection())
         }
     }
 
@@ -254,8 +259,9 @@ class HeartbeatControllerTest {
                 id = 0
             },
             mockAgentStatuses = false,
-        ) {
-            verify(dockerService, times(0)).stopAgents(anyList())
+        ) { heartbeatResponses ->
+            verify(dockerService, times(0)).stopAgents(anyCollection())
+            heartbeatResponses shouldNot exist { it is TerminateResponse }
         }
     }
 
@@ -293,7 +299,46 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgentsList.toList().shouldContainExactly(
+            crashedAgentsList.shouldContainExactly(
+                "test-2"
+            )
+        }
+    }
+    @Test
+    @Suppress("TOO_LONG_FUNCTION")
+    fun `should shutdown agent, which doesn't shutdown gracefully for some time, despite sending heartbeats`() {
+        whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
+        whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
+        val currTime = Clock.System.now()
+        testHeartbeat(
+            agentStatusDtos = listOf(
+                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
+                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
+            ),
+            heartbeats = listOf(
+                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), currTime),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(1.seconds)),
+                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), currTime.plus(2.seconds)),
+                // 3 absent heartbeats from test-2
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(3.seconds)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(4.seconds)),
+                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(10.seconds)),
+            ),
+            heartBeatInterval = 1_000,
+            testBatch = TestBatch(
+                listOf(
+                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
+                ),
+                mapOf(1L to "")
+            ),
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+                id = 0
+            },
+            mockAgentStatuses = false,
+        ) {
+            crashedAgentsList.shouldContainExactly(
                 "test-2"
             )
         }
@@ -325,13 +370,12 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            assertTrue(crashedAgentsList.toList().sorted() == listOf("test-1", "test-2"))
+            crashedAgentsList shouldContainExactlyInAnyOrder listOf("test-1", "test-2")
         }
     }
 
     @Test
     fun `should shutdown agents even if there are some already FINISHED`() {
-        whenever(dockerService.stopAgents(anyCollection())).thenReturn(true)
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
             AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
@@ -346,20 +390,17 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
             {
-                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
                 mockServer.enqueue(
-                    "/getAgentsStatusesForSameExecution.*",
-                    MockResponse()
-                        .setBody(
-                            objectMapper.writeValueAsString(
-                                AgentStatusesForExecution(0, agentStatusDtos)
-                            )
-                        )
-                        .addHeader("Content-Type", "application/json")
+                    "/updateExecutionByDto.*",
+                    MockResponse().setResponseCode(200)
                 )
             }
-        ) {
-            verify(dockerService, times(1)).stopAgents(anyCollection())
+        ) { heartbeatResponses ->
+            heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
+            verify(
+                dockerService,
+                times(0).description("Orchestrator shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
+            ).stopAgents(anyCollection())
         }
     }
 
@@ -438,7 +479,6 @@ class HeartbeatControllerTest {
      * @param additionalSetup is executed before the request is performed
      * @param verification a lambda for test assertions
      */
-    @OptIn(ExperimentalStdlibApi::class)
     @Suppress(
         "TOO_LONG_FUNCTION",
         "TOO_MANY_PARAMETERS",
