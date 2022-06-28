@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.mock
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
@@ -28,8 +29,10 @@ class KubernetesManagerTest {
     private val kubernetesManager: KubernetesManager = KubernetesManager(
         dockerClient,
         kubernetesClient,
+        configProperties,
         CompositeMeterRegistry(),
     )
+    @Autowired private lateinit var configProperties: ConfigProperties
 
     @Test
     fun `should delete a Job when stop is requested`() {

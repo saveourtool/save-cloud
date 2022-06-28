@@ -1,9 +1,9 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
