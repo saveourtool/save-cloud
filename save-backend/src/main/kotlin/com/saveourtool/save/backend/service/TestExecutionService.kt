@@ -8,7 +8,6 @@ import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug

@@ -21,6 +21,7 @@ abstract class BaseEntity {
      * @return [id] as not null with validating
      * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
      */
+    @Suppress("CUSTOM_GETTERS_SETTERS")
     open val requiredId get(): Long = requireNotNull(id) {
         "Entity is not saved yet: $this"
     }

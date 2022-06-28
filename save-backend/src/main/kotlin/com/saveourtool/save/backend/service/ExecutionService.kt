@@ -7,7 +7,6 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
