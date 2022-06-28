@@ -463,16 +463,16 @@ class DownloadProjectController(
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig
     ): Flux<EmptyResponse> = testDiscoveringService.getAllTests(rootTestConfig, testSuites)
-            .toFlux()
-            .buffer(TESTS_BUFFER_SIZE)
-            .doOnNext {
-                log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+        .toFlux()
+        .buffer(TESTS_BUFFER_SIZE)
+        .doOnNext {
+            log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+        }
+        .flatMap { testDtos ->
+            webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {
+                it.toBodilessEntity()
             }
-            .flatMap { testDtos ->
-                webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {
-                    it.toBodilessEntity()
-                }
-            }
+        }
 
     /**
      * POST request to orchestrator to initiate its work
