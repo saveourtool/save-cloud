@@ -135,9 +135,7 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
         logger.warn("Agent id=$agentId sent $state status, but should be offline in that case!")
-        if (agentId !in crashedAgents) {
-            crashedAgents.add(agentId)
-        }
+        crashedAgents.add(agentId)
     }
 
     private fun ensureGracefulShutdown(agentId: String) {
