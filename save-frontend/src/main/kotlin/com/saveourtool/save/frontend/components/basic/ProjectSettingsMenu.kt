@@ -228,7 +228,7 @@ fun projectSettingsMenu(
                     }
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.disabled = !props.selfRole.isHigherOrEqualThan(Role.OWNER)
+                            attrs.disabled = props.selfRole.isLowerThan(Role.OWNER)
                             attrs.onClickFunction = {
                                 deleteProjectCallback()
                             }
