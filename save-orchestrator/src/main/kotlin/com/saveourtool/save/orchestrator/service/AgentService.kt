@@ -147,14 +147,14 @@ class AgentService(
             }
             .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (executionId, finishedAgentIds) ->
-                if (finishedAgentIds.isNotEmpty()) {
-                    markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
-                        .thenReturn(
-                            agentRunner.cleanup(executionId)
-                        )
-                } else {
+                markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
+                    .thenReturn(
+                        agentRunner.cleanup(executionId)
+                    )
+            }
+            .doOnSuccess {
+                if (it == null) {
                     log.debug("Agents other than $agentId are still running, so won't try to stop them")
-                    Mono.empty()
                 }
             }
             .subscribeOn(scheduler)

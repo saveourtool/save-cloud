@@ -23,7 +23,6 @@ import reactor.kotlin.core.util.function.component2
 
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentLinkedQueue
 
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
@@ -31,7 +30,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 
 internal val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
-internal val crashedAgentsList: ConcurrentLinkedQueue<String> = ConcurrentLinkedQueue()
+internal val crashedAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
 typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, Instant>>
 
@@ -135,9 +134,9 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
-        logger.warn("Agent sent $state status, but should be offline in that case!")
-        if (agentId !in crashedAgentsList) {
-            crashedAgentsList.add(agentId)
+        logger.warn("Agent id=$agentId sent $state status, but should be offline in that case!")
+        if (agentId !in crashedAgents) {
+            crashedAgents.add(agentId)
         }
     }
 
@@ -155,11 +154,11 @@ class HeartbeatController(private val agentService: AgentService,
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     logger.warn("Agent id=$agentId is not stopped in 60 seconds after ${TerminateResponse::class.simpleName} signal, will add it to crashed list")
-                    crashedAgentsList.add(agentId)
+                    crashedAgents.add(agentId)
                 } else {
                     logger.debug("Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal")
                     agentsLatestHeartBeatsMap.remove(agentId)
-                    crashedAgentsList.remove(agentId)
+                    crashedAgents.remove(agentId)
                 }
                 agentService.initiateShutdownSequence(agentId)
             }

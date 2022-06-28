@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.controller.crashedAgentsList
+import com.saveourtool.save.orchestrator.controller.crashedAgents
 import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -196,34 +196,6 @@ class HeartbeatControllerTest {
             testSuite = null,
             mockAgentStatuses = true,
             {
-                // set agents status to TERMINATED
-                /* mockServer.enqueue(
-                    "/updateAgentStatusesWithDto",
-                    MockResponse().setResponseCode(200)
-                )*/
-                // /getAgentsStatusesForSameExecution after shutdownIntervalMillis
-                // mockServer.enqueue(
-                // "/getAgentsStatusesForSameExecution.*",
-                // MockResponse()
-                // .setBody(
-                // objectMapper.writeValueAsString(
-                // AgentStatusesForExecution(0, agentStatusDtos)
-                // )
-                // )
-                // .addHeader("Content-Type", "application/json")
-                // )
-                // additional setup for marking stuff as FINISHED
-                // /getAgentsStatusesForSameExecution for determining final execution state
-                // mockServer.enqueue(
-                // "/getAgentsStatusesForSameExecution.*",
-                // MockResponse()
-                // .setBody(
-                // objectMapper.writeValueAsString(
-                // AgentStatusesForExecution(0, agentStatusDtos)
-                // )
-                // )
-                // .addHeader("Content-Type", "application/json")
-                // )
                 // /updateExecutionByDto
                 mockServer.enqueue(
                     "/updateExecutionByDto.*",
@@ -299,8 +271,8 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgentsList.shouldContainExactly(
-                "test-2"
+            crashedAgents.shouldContainExactly(
+                setOf("test-2")
             )
         }
     }
@@ -338,8 +310,8 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgentsList.shouldContainExactly(
-                "test-2"
+            crashedAgents.shouldContainExactly(
+                setOf("test-2")
             )
         }
     }
@@ -370,7 +342,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgentsList shouldContainExactlyInAnyOrder listOf("test-1", "test-2")
+            crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
         }
     }
 

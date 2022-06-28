@@ -5,7 +5,7 @@ import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
-import com.saveourtool.save.orchestrator.controller.crashedAgentsList
+import com.saveourtool.save.orchestrator.controller.crashedAgents
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
@@ -41,13 +41,13 @@ class HeartBeatInspector(
      */
     fun determineCrashedAgents() {
         agentsLatestHeartBeatsMap.filter { (currentAgentId, _) ->
-            currentAgentId !in crashedAgentsList
+            currentAgentId !in crashedAgents
         }.forEach { (currentAgentId, stateToLatestHeartBeatPair) ->
             val duration = (Clock.System.now() - stateToLatestHeartBeatPair.second).inWholeMilliseconds
             logger.debug("Latest heartbeat from $currentAgentId was sent: $duration ms ago")
             if (duration >= configProperties.agentsHeartBeatTimeoutMillis) {
                 logger.debug("Adding $currentAgentId to list crashed agents")
-                crashedAgentsList.add(currentAgentId)
+                crashedAgents.add(currentAgentId)
             }
         }
     }
@@ -56,28 +56,28 @@ class HeartBeatInspector(
      * Stop crashed agents and mark corresponding test executions as failed with internal error
      */
     fun processCrashedAgents() {
-        if (crashedAgentsList.isEmpty()) {
+        if (crashedAgents.isEmpty()) {
             return
         }
-        logger.debug("Stopping crashed agents: $crashedAgentsList")
+        logger.debug("Stopping crashed agents: $crashedAgents")
 
-        val areAgentsStopped = dockerService.stopAgents(crashedAgentsList)
+        val areAgentsStopped = dockerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
             agentService.updateAgentStatusesWithDto(
-                crashedAgentsList.map { agentId ->
+                crashedAgents.map { agentId ->
                     AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
                 }
             )
-            if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgentsList.toList()) {
+            if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgents.toList()) {
                 logger.warn("All agents are crashed, initialize shutdown sequence")
                 // fixme: should be cleared only for execution
-                val agentId = crashedAgentsList.first()
+                val agentId = crashedAgents.first()
                 agentsLatestHeartBeatsMap.clear()
-                crashedAgentsList.clear()
+                crashedAgents.clear()
                 agentService.initiateShutdownSequence(agentId)
             }
         } else {
-            logger.warn("Crashed agents $crashedAgentsList are not stopped after stop command")
+            logger.warn("Crashed agents $crashedAgents are not stopped after stop command")
         }
     }
 
