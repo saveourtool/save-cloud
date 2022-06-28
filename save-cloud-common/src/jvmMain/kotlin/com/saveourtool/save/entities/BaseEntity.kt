@@ -3,6 +3,7 @@ package com.saveourtool.save.entities
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
+import javax.persistence.Transient
 
 /**
  * base class for all entities
@@ -22,7 +23,8 @@ abstract class BaseEntity {
      * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
      */
     @Suppress("CUSTOM_GETTERS_SETTERS")
-    open val requiredId get(): Long = requireNotNull(id) {
-        "Entity is not saved yet: $this"
-    }
+    open val requiredId
+        @Transient get(): Long = requireNotNull(id) {
+            "Entity is not saved yet: $this"
+        }
 }
