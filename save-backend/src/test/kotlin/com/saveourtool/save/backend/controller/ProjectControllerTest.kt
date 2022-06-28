@@ -88,13 +88,13 @@ class ProjectControllerTest {
 
     @Test
     @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
-    fun `should return 403 if user doesn't have write access`() {
+    fun `should return 200 if project is public`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
         }
 
         getProjectAndAssert("huaweiName", "Huawei") {
-            expectStatus().isForbidden
+            expectStatus().isOk
         }
     }
 
@@ -231,9 +231,10 @@ class ProjectControllerTest {
             .isForbidden
     }
 
-    private fun getProjectAndAssert(name: String,
-                                    organizationName: String,
-                                    assertion: WebTestClient.ResponseSpec.() -> Unit
+    private fun getProjectAndAssert(
+        name: String,
+        organizationName: String,
+        assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
         .uri("/api/$v1/projects/get/organization-name?name=$name&organizationName=$organizationName")
@@ -241,9 +242,10 @@ class ProjectControllerTest {
         .exchange()
         .let { assertion(it) }
 
-    private fun saveProjectAndAssert(newProject: NewProjectDto,
-                                     saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
-                                     getAssertion: WebTestClient.ResponseSpec.() -> Unit,
+    private fun saveProjectAndAssert(
+        newProject: NewProjectDto,
+        saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
+        getAssertion: WebTestClient.ResponseSpec.() -> Unit,
     ) {
         webClient
             .post()

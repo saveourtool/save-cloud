@@ -48,9 +48,9 @@ class ProjectPermissionEvaluator {
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
         return when (permission) {
-            Permission.READ -> project.public || projectRole.isHigherOrEqualThan(Role.VIEWER)
-            Permission.WRITE -> projectRole.isHigherOrEqualThan(Role.ADMIN)
-            Permission.DELETE -> projectRole.isHigherOrEqualThan(Role.OWNER)
+            Permission.READ -> project.public || hasReadAccess(userId, projectRole)
+            Permission.WRITE -> hasWriteAccess(userId, projectRole)
+            Permission.DELETE -> hasDeleteAccess(userId, projectRole)
         }
     }
 
@@ -85,6 +85,18 @@ class ProjectPermissionEvaluator {
         }
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
+
+    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+        projectRole == Role.ADMIN || projectRole == Role.OWNER
+    } ?: false
+
+    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+        projectRole == Role.VIEWER || projectRole == Role.ADMIN || projectRole == Role.OWNER
+    } ?: false
+
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+        projectRole == Role.OWNER
+    } ?: false
 
     /**
      * @param authentication

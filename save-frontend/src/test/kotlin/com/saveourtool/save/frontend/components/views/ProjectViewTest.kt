@@ -1,15 +1,14 @@
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTime
 
 import react.create
@@ -39,9 +38,9 @@ class ProjectViewTest {
     private val testUserInfo = UserInfo(
         "TestUser",
         "basic",
-        mapOf(testProject.name to Role.OWNER),
-        mapOf(testOrganization.name to Role.OWNER),
-        globalRole = Role.VIEWER,
+        mapOf(testProject.name to Role.VIEWER),
+        mapOf(testOrganization.name to Role.VIEWER),
+        globalRole = Role.SUPER_ADMIN,
     )
     private val worker = setupWorker(
         rest.get("$apiUrl/projects/get/organization-name") { _, res, _ ->
@@ -49,6 +48,54 @@ class ProjectViewTest {
                 mockMswResponse(
                     response,
                     testProject
+                )
+            }
+        },
+        rest.post("$apiUrl/projects/git") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    GitDto("")
+                )
+            }
+        },
+        rest.get("$apiUrl/projects/${testOrganization.name}/${testProject.name}/users/roles") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    testUserInfo.projects[testProject.name]
+                )
+            }
+        },
+        rest.get("$apiUrl/allStandardTestSuites") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    emptyList<TestSuiteDto>()
+                )
+            }
+        },
+        rest.get("$apiUrl/files/${testOrganization.name}/${testProject.name}/list") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    emptyList<FileInfo>()
+                )
+            }
+        },
+        rest.get("$apiUrl/latestExecution") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    0.toLong()
+                )
+            }
+        },
+        rest.get("$apiUrl/getTestRootPathByExecutionId") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    ""
                 )
             }
         },
@@ -82,15 +129,16 @@ class ProjectViewTest {
     @Test
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
         renderProjectView()
-        screen.getByText("SETTINGS").let {
-            userEvent.click(it)
-        }
-        return screen.findByText("Delete project").then {
+        return screen.findByText("SETTINGS").then {
             userEvent.click(it)
         }.then { _: Unit ->
-            screen.findByText("Ok")
+            screen.findByText("Delete project")
         }
             .then {
+                userEvent.click(it)
+            }.then { _: Unit ->
+                screen.findByText("Ok")
+            }.then {
                 assertNotNull(it, "Should show confirmation window")
             }
     }
