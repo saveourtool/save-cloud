@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
+import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
 import com.saveourtool.save.orchestrator.controller.crashedAgents
 import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -93,6 +94,8 @@ class HeartbeatControllerTest {
     fun cleanup() {
         mockServer.checkQueues()
         mockServer.cleanup()
+        crashedAgents.clear()
+        agentsLatestHeartBeatsMap.clear()
     }
 
     @Test
@@ -190,7 +193,7 @@ class HeartbeatControllerTest {
         )
         testHeartbeat(
             agentStatusDtos = agentStatusDtos,
-            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now())),
+            heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
             testBatch = TestBatch(emptyList(), emptyMap()),
             testSuite = null,
