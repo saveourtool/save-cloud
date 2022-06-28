@@ -507,6 +507,16 @@ class HeartbeatControllerTest {
                     )
                     .addHeader("Content-Type", "application/json")
             )
+            mockServer.setDefaultResponseForPath(
+                "/agents/statuses.*",
+                MockResponse()
+                    .setBody(
+                        objectMapper.writeValueAsString(
+                            agentStatusDtos
+                        )
+                    )
+                    .addHeader("Content-Type", "application/json")
+            )
         }
         additionalSetup()
         val assertions = CompletableFuture.supplyAsync {

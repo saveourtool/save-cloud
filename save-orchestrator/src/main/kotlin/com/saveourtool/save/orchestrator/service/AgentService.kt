@@ -132,7 +132,7 @@ class AgentService(
      *
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
     internal fun initiateShutdownSequence(agentId: String) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
@@ -176,7 +176,7 @@ class AgentService(
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return webClientBackend
             .get()
-            .uri("/getAgentsStatusesForSameExecution?agentId=${agentIds.first()}")
+            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = ",")}")
             .retrieve()
             .bodyToMono<AgentStatusesForExecution>()
             .flatMap { (executionId, agentStatuses) ->
@@ -214,7 +214,7 @@ class AgentService(
         }
         return webClientBackend
             .get()
-            .uri("/getAgentsStatusesForSameExecution?agentId=${agentIds.first()}")
+            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = ",")}")
             .retrieve()
             .bodyToMono<AgentStatusesForExecution>()
             .flatMap { (executionId, agentStatuses) ->
