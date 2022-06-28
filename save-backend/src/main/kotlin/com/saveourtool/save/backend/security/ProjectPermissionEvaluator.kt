@@ -45,7 +45,7 @@ class ProjectPermissionEvaluator {
         }
 
         val userId = (authentication.details as AuthenticationDetails).id
-        val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project).also { println(it) }
+        val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
         return when (permission) {
             Permission.READ -> project.public || hasReadAccess(userId, projectRole)
