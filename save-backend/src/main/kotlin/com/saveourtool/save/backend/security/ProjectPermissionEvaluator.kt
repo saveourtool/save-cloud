@@ -90,7 +90,7 @@ class ProjectPermissionEvaluator {
         projectRole == Role.VIEWER || projectRole == Role.ADMIN || projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
     } ?: false
 
-    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) || userId?. let { projectRole == Role.ADMIN } ?: false
         projectRole == Role.ADMIN || projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
     } ?: false
 
