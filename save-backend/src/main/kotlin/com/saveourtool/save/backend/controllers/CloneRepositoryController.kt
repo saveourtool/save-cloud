@@ -128,7 +128,7 @@ class CloneRepositoryController(
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
 
         val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-        val newExecutionId = newExecution.id!!
+        val newExecutionId = newExecution.requiredId
         log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
         val bodyBuilder = MultipartBodyBuilder().apply {
             configure(newExecutionId)
