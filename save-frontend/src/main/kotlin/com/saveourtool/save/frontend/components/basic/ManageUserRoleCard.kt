@@ -82,225 +82,223 @@ external interface ManageUserRoleCardProps : Props {
     "MAGIC_NUMBER",
     "ComplexMethod",
 )
-fun manageUserRoleCardComponent() =
-        
-        fc<ManageUserRoleCardProps> { props ->
-            val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
-            val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
-            val getUsersFromGroup = useRequest(dependencies = arrayOf(changeUsersFromGroup)) {
-                val usersFromDb = get(
-                    url = "$apiUrl/${props.groupType}s/${props.groupPath}/users",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::loadingHandler,
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<List<UserInfo>>()
-                    }
-                setUsersFromGroup(usersFromDb)
+fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
+    val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
+    val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
+    val getUsersFromGroup = useRequest(dependencies = arrayOf(changeUsersFromGroup)) {
+        val usersFromDb = get(
+            url = "$apiUrl/${props.groupType}s/${props.groupPath}/users",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<List<UserInfo>>()
             }
+        setUsersFromGroup(usersFromDb)
+    }
 
-            val (roleChange, setRoleChange) = useState(SetRoleRequest("", Role.NONE))
-            val updatePermissions = useRequest(dependencies = arrayOf(roleChange)) {
-                val headers = Headers().apply {
-                    set("Accept", "application/json")
-                    set("Content-Type", "application/json")
-                }
-                val response = post(
-                    "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-                    headers,
-                    Json.encodeToString(roleChange),
-                    loadingHandler = ::noopLoadingHandler,
-                )
-                if (!response.ok) {
-                    props.updateErrorMessage(response)
-                } else {
-                    getUsersFromGroup()
-                }
+    val (roleChange, setRoleChange) = useState(SetRoleRequest("", Role.NONE))
+    val updatePermissions = useRequest(dependencies = arrayOf(roleChange)) {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = post(
+            "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
+            headers,
+            Json.encodeToString(roleChange),
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (!response.ok) {
+            props.updateErrorMessage(response)
+        } else {
+            getUsersFromGroup()
+        }
+    }
+
+    val (userToAdd, setUserToAdd) = useState(UserInfo(""))
+    val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
+    val getUsersNotFromGroup = debounce(
+        useRequest(dependencies = arrayOf(changeUsersFromGroup, userToAdd)) {
+            val headers = Headers().apply {
+                set("Accept", "application/json")
+                set("Content-Type", "application/json")
             }
-
-            val (userToAdd, setUserToAdd) = useState(UserInfo(""))
-            val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
-            val getUsersNotFromGroup = debounce(
-                useRequest(dependencies = arrayOf(changeUsersFromGroup, userToAdd)) {
-                    val headers = Headers().apply {
-                        set("Accept", "application/json")
-                        set("Content-Type", "application/json")
-                    }
-                    val users = get(
-                        url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
-                        headers = headers,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                        .unsafeMap {
-                            it.decodeFromJsonString<List<UserInfo>>()
-                        }
-                    setUsersNotFromGroup(users)
-                },
-                500,
+            val users = get(
+                url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
+                headers = headers,
+                loadingHandler = ::noopLoadingHandler,
             )
-            val addUserToGroup = useRequest {
-                val headers = Headers().apply {
-                    set("Accept", "application/json")
-                    set("Content-Type", "application/json")
+                .unsafeMap {
+                    it.decodeFromJsonString<List<UserInfo>>()
                 }
-                val response = post(
-                    url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-                    headers = headers,
-                    body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
-                    loadingHandler = ::loadingHandler,
-                )
-                if (response.ok) {
-                    setUserToAdd(UserInfo(""))
-                    setChangeUsersFromGroup { !it }
-                    getUsersFromGroup()
-                    setUsersNotFromGroup(emptyList())
-                } else {
-                    props.updateErrorMessage(response)
-                }
-            }
+            setUsersNotFromGroup(users)
+        },
+        500,
+    )
+    val addUserToGroup = useRequest {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = post(
+            url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
+            headers = headers,
+            body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            setUserToAdd(UserInfo(""))
+            setChangeUsersFromGroup { !it }
+            getUsersFromGroup()
+            setUsersNotFromGroup(emptyList())
+        } else {
+            props.updateErrorMessage(response)
+        }
+    }
 
-            val (userToDelete, setUserToDelete) = useState(UserInfo(""))
-            val deleteUser = useRequest(dependencies = arrayOf(userToDelete)) {
-                val headers = Headers().apply {
-                    set("Accept", "application/json")
-                    set("Content-Type", "application/json")
-                }
-                val response = delete(
-                    url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
-                    headers = headers,
-                    body = Json.encodeToString(userToDelete),
-                    loadingHandler = ::loadingHandler,
-                )
-                if (!response.ok) {
-                    props.updateErrorMessage(response)
-                } else {
-                    setChangeUsersFromGroup { !it }
-                    getUsersFromGroup()
-                    setUsersNotFromGroup(emptyList())
-                }
-            }
+    val (userToDelete, setUserToDelete) = useState(UserInfo(""))
+    val deleteUser = useRequest(dependencies = arrayOf(userToDelete)) {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = delete(
+            url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
+            headers = headers,
+            body = Json.encodeToString(userToDelete),
+            loadingHandler = ::loadingHandler,
+        )
+        if (!response.ok) {
+            props.updateErrorMessage(response)
+        } else {
+            setChangeUsersFromGroup { !it }
+            getUsersFromGroup()
+            setUsersNotFromGroup(emptyList())
+        }
+    }
 
-            val (selfRole, setSelfRole) = useState(Role.NONE)
-            useRequest(isDeferred = false) {
-                val role = get(
-                    "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::loadingHandler,
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<String>()
+    val (selfRole, setSelfRole) = useState(Role.NONE)
+    useRequest(isDeferred = false) {
+        val role = get(
+            "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<String>()
+            }
+            .toRole()
+        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
+            props.showGlobalRoleWarning()
+        }
+        setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
+    }()
+
+    val (isFirstRender, setIsFirstRender) = useState(true)
+    if (isFirstRender) {
+        getUsersFromGroup()
+        setIsFirstRender(false)
+    }
+
+    div("card card-body mt-0 pt-0 pr-0 pl-0") {
+        div("row mt-0 ml-0 mr-0") {
+            div("input-group") {
+                input(type = InputType.text, classes = "form-control") {
+                    attrs.id = "input-users-to-add"
+                    attrs.list = "complete-users-to-add"
+                    attrs.placeholder = "username"
+                    attrs.value = userToAdd.name
+                    attrs.onChangeFunction = {
+                        setUserToAdd(UserInfo((it.target as HTMLInputElement).value))
+                        getUsersNotFromGroup()
                     }
-                    .toRole()
-                if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
-                    props.showGlobalRoleWarning()
                 }
-                setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
-            }()
-
-            val (isFirstRender, setIsFirstRender) = useState(true)
-            if (isFirstRender) {
-                getUsersFromGroup()
-                setIsFirstRender(false)
-            }
-
-            div("card card-body mt-0 pt-0 pr-0 pl-0") {
-                div("row mt-0 ml-0 mr-0") {
-                    div("input-group") {
-                        input(type = InputType.text, classes = "form-control") {
-                            attrs.id = "input-users-to-add"
-                            attrs.list = "complete-users-to-add"
-                            attrs.placeholder = "username"
-                            attrs.value = userToAdd.name
-                            attrs.onChangeFunction = {
-                                setUserToAdd(UserInfo((it.target as HTMLInputElement).value))
-                                getUsersNotFromGroup()
-                            }
-                        }
-                        datalist {
-                            attrs.id = "complete-users-to-add"
-                            attrs["style"] = jso<CSSProperties> {
-                                appearance = None.none
-                            }
-                            for (user in usersNotFromGroup) {
-                                option {
-                                    attrs.value = user.name
-                                    attrs.label = user.source ?: ""
-                                }
-                            }
-                        }
-                        div("input-group-append") {
-                            button(type = ButtonType.button, classes = "btn btn-sm btn-outline-success") {
-                                attrs.onClickFunction = {
-                                    addUserToGroup()
-                                }
-                                +"Add user"
-                            }
+                datalist {
+                    attrs.id = "complete-users-to-add"
+                    attrs["style"] = jso<CSSProperties> {
+                        appearance = None.none
+                    }
+                    for (user in usersNotFromGroup) {
+                        option {
+                            attrs.value = user.name
+                            attrs.label = user.source ?: ""
                         }
                     }
                 }
-                for (user in usersFromGroup) {
-                    val userName = user.name
-                    val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
-                    val userIndex = usersFromGroup.indexOf(user)
-                    div("row mt-2 mr-0 justify-content-between align-items-center") {
-                        div("col-7 d-flex justify-content-start align-items-center") {
-                            div("col-2 align-items-center") {
-                                fontAwesomeIcon(
-                                    when (user.source) {
-                                        "github" -> faGithub
-                                        "codehub" -> faCopyright
-                                        else -> faHome
-                                    },
-                                    classes = "h-75 w-75"
-                                )
-                            }
-                            div("col-7 text-left align-self-center pl-0") {
-                                +userName
-                            }
+                div("input-group-append") {
+                    button(type = ButtonType.button, classes = "btn btn-sm btn-outline-success") {
+                        attrs.onClickFunction = {
+                            addUserToGroup()
                         }
-                        div("col-5 align-self-right d-flex align-items-center justify-content-end") {
-                            button(classes = "btn col-2 align-items-center mr-2") {
-                                fontAwesomeIcon(icon = faTimesCircle)
-                                val canDelete = selfRole == Role.SUPER_ADMIN ||
-                                        selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
-                                        userRole.isLowerThan(selfRole)
-                                attrs.id = "remove-user-$userIndex"
-                                attrs.hidden = !canDelete
-                                attrs.onClick = {
-                                    val deletedUserIndex = attrs.id.split("-")[2].toInt()
-                                    setUserToDelete(usersFromGroup[deletedUserIndex])
-                                    deleteUser()
-                                }
-                            }
-                            select("custom-select col-9") {
-                                attrs.onChangeFunction = { event ->
-                                    val target = event.target as HTMLSelectElement
-                                    setRoleChange { SetRoleRequest(userName, target.value.toRole()) }
-                                    updatePermissions()
-                                }
-                                attrs.id = "role-$userIndex"
-                                Role.values()
-                                    .filter { it != Role.NONE }
-                                    .filter { it != Role.SUPER_ADMIN }
-                                    .filter { selfRole == Role.OWNER || it.isLowerThan(selfRole) || userRole == it }
-                                    .map {
-                                        option {
-                                            attrs.value = it.formattedName
-                                            attrs.selected = it == userRole
-                                            +it.formattedName
-                                        }
-                                    }
-                                attrs.disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) ||
-                                        !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
-                            }
-                        }
+                        +"Add user"
                     }
                 }
             }
         }
+        for (user in usersFromGroup) {
+            val userName = user.name
+            val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
+            val userIndex = usersFromGroup.indexOf(user)
+            div("row mt-2 mr-0 justify-content-between align-items-center") {
+                div("col-7 d-flex justify-content-start align-items-center") {
+                    div("col-2 align-items-center") {
+                        fontAwesomeIcon(
+                            when (user.source) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                else -> faHome
+                            },
+                            classes = "h-75 w-75"
+                        )
+                    }
+                    div("col-7 text-left align-self-center pl-0") {
+                        +userName
+                    }
+                }
+                div("col-5 align-self-right d-flex align-items-center justify-content-end") {
+                    button(classes = "btn col-2 align-items-center mr-2") {
+                        fontAwesomeIcon(icon = faTimesCircle)
+                        val canDelete = selfRole == Role.SUPER_ADMIN ||
+                                selfRole == Role.OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                                userRole.isLowerThan(selfRole)
+                        attrs.id = "remove-user-$userIndex"
+                        attrs.hidden = !canDelete
+                        attrs.onClick = {
+                            val deletedUserIndex = attrs.id.split("-")[2].toInt()
+                            setUserToDelete(usersFromGroup[deletedUserIndex])
+                            deleteUser()
+                        }
+                    }
+                    select("custom-select col-9") {
+                        attrs.onChangeFunction = { event ->
+                            val target = event.target as HTMLSelectElement
+                            setRoleChange { SetRoleRequest(userName, target.value.toRole()) }
+                            updatePermissions()
+                        }
+                        attrs.id = "role-$userIndex"
+                        Role.values()
+                            .filter { it != Role.NONE }
+                            .filter { it != Role.SUPER_ADMIN }
+                            .filter { selfRole == Role.OWNER || it.isLowerThan(selfRole) || userRole == it }
+                            .map {
+                                option {
+                                    attrs.value = it.formattedName
+                                    attrs.selected = it == userRole
+                                    +it.formattedName
+                                }
+                            }
+                        attrs.disabled = (selfRole == Role.OWNER && isSelfRecord(props.selfUserInfo, user)) ||
+                                !(selfRole.isHigherOrEqualThan(Role.OWNER) || userRole.isLowerThan(selfRole))
+                    }
+                }
+            }
+        }
+    }
+}
 
 private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = otherUserInfo.name == selfUserInfo.name
