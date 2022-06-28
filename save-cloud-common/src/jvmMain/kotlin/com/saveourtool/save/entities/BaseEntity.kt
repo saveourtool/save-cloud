@@ -3,7 +3,6 @@ package com.saveourtool.save.entities
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
-import javax.persistence.Transient
 
 /**
  * base class for all entities
