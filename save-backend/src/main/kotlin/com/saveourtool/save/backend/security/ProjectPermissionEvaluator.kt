@@ -86,13 +86,11 @@ class ProjectPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
-        projectRole == Role.VIEWER || projectRole == Role.ADMIN || projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
-    } ?: false
+    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = hasWriteAccess(userId, projectRole) ||
+            userId?.let { projectRole == Role.VIEWER } ?: false
 
-    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) || userId?. let { projectRole == Role.ADMIN } ?: false
-        projectRole == Role.ADMIN || projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
-    } ?: false
+    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
+            userId?.let { projectRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
         projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
