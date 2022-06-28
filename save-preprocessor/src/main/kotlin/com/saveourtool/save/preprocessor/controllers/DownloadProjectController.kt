@@ -22,10 +22,10 @@ import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.preprocessor.utils.generateDirectory
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.utils.info
 import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
@@ -376,13 +376,13 @@ class DownloadProjectController(
     private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
 
     private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
-        when (executionType) {
-            ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
-                .map { (location, _) -> getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
-            ExecutionType.STANDARD ->
-                // In standard mode we will calculate location later, according list of additional files
-                Mono.fromCallable { getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository) }
-        }
+            when (executionType) {
+                ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
+                    .map { (location, _) -> getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
+                ExecutionType.STANDARD ->
+                    // In standard mode we will calculate location later, according list of additional files
+                    Mono.fromCallable { getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository) }
+            }
 
     private fun getExecution(executionId: Long) = webClientBackend.get()
         .uri("${configProperties.backend}/execution?id=$executionId")
@@ -462,8 +462,7 @@ class DownloadProjectController(
      */
     private fun initializeTests(testSuites: List<TestSuite>,
                                 rootTestConfig: TestConfig
-    ): Flux<EmptyResponse> {
-        return testDiscoveringService.getAllTests(rootTestConfig, testSuites)
+    ): Flux<EmptyResponse> = testDiscoveringService.getAllTests(rootTestConfig, testSuites)
             .toFlux()
             .buffer(TESTS_BUFFER_SIZE)
             .doOnNext {
@@ -474,7 +473,6 @@ class DownloadProjectController(
                     it.toBodilessEntity()
                 }
             }
-    }
 
     /**
      * POST request to orchestrator to initiate its work
