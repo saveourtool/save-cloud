@@ -1,8 +1,6 @@
 package com.saveourtool.save.preprocessor.controllers
 
-import com.saveourtool.save.core.config.SaveProperties
 import com.saveourtool.save.core.config.TestConfig
-import com.saveourtool.save.core.config.defaultConfig
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRequest
@@ -548,20 +546,8 @@ class DownloadProjectController(
 
     @Suppress("UnsafeCallOnNullableType")
     private fun getTestResourcesRootAbsolutePath(testRootPath: String,
-                                                 projectRootRelativePath: String): String {
-        // TODO: File should be provided without explicit naming of `save.propeties`
-        val propertiesFile = File(configProperties.repository, projectRootRelativePath)
-            .resolve("$testRootPath/save.properties")
-        val saveProperties: SaveProperties = if (propertiesFile.exists()) {
-            decodeFromPropertiesFile<SaveProperties>(propertiesFile)
-                .mergeConfigWithPriorityToThis(defaultConfig())
-        } else {
-            defaultConfig()
-        }
-        return propertiesFile.parentFile
-            .resolve(saveProperties.testFiles!!.firstOrNull() ?: ".")
-            .absolutePath
-    }
+                                                 projectRootRelativePath: String): String =
+            File(configProperties.repository, projectRootRelativePath).resolve(testRootPath).absolutePath
 
     private fun discoverAndSaveTestSuites(project: Project,
                                           rootTestConfig: TestConfig,
