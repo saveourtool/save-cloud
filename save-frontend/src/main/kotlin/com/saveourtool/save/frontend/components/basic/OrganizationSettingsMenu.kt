@@ -85,7 +85,7 @@ fun organizationSettingsMenu(
                 div("row d-flex justify-content-center mt-3") {
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.disabled = props.selfRole.isLowerThan(Role.OWNER)
+                            attrs.disabled = !props.selfRole.hasDeletePermission()
                             attrs.onClickFunction = {
                                 deleteOrganizationCallback()
                             }

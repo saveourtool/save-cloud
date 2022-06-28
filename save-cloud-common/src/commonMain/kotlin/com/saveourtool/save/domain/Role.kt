@@ -56,4 +56,14 @@ enum class Role(val formattedName: String, val priority: Int) {
      * @return comparison result
      */
     fun isLowerThan(that: Role) = this.priority < that.priority
+
+    /**
+     * @return true if current role has `write` permission
+     */
+    fun hasWritePermission() = this.isHigherOrEqualThan(ADMIN)
+
+    /**
+     * @return true if current role has `delete` permission
+     */
+    fun hasDeletePermission() = this.isHigherOrEqualThan(OWNER)
 }

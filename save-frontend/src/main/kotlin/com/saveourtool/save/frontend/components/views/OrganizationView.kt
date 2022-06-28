@@ -344,7 +344,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if (state.selfRole.isHigherOrEqualThan(Role.ADMIN) && state.isEditDisabled) {
+                            if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -359,7 +359,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         textarea {
                             attrs["class"] = "auto_height form-control-plaintext pt-0 pb-0"
                             attrs.value = state.draftOrganizationDescription
-                            attrs.disabled = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
+                            attrs.disabled = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onChange = { event ->
                                 val tg = event.target as HTMLTextAreaElement
                                 setNewDescription(tg.value)
@@ -369,7 +369,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("ml-3 mt-2 align-items-right float-right") {
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
+                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
@@ -378,7 +378,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
+                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onClick = {
                                 turnEditMode(true)
                             }
