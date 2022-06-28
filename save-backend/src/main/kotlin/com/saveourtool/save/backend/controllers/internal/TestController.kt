@@ -43,7 +43,7 @@ class TestController(
      */
     @PostMapping("/executeTestsByExecutionId")
     fun executeTestsByExecutionId(@RequestParam executionId: Long) {
-        val testIds = testService.findTestsByExecutionId(executionId).map { it.requiredId }
+        val testIds = testService.findTestsByExecutionId(executionId).map { it.requiredId() }
         log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $testIds" }
         meterRegistry.timer("save.backend.saveTestExecution").record {
             testExecutionService.saveTestExecutions(executionId, testIds)

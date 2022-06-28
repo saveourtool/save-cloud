@@ -62,7 +62,7 @@ class TestSuitesController(
     fun getAllStandardTestSuiteIdsByName(@RequestBody names: List<String>) =
             ResponseEntity.status(HttpStatus.OK)
                 .body(names.flatMap { name -> testSuitesService.findStandardTestSuitesByName(name) }
-                    .map { it.requiredId })
+                    .map { it.requiredId() })
 
     /**
      * @param id id of the test suite

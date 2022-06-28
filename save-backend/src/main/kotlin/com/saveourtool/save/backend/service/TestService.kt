@@ -67,7 +67,7 @@ class TestService(
         }
             .partition { it.id != null }
         testRepository.saveAll(nonExistentTests)
-        return (existingTests + nonExistentTests).map { it.requiredId }
+        return (existingTests + nonExistentTests).map { it.requiredId() }
     }
 
     /**

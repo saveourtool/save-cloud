@@ -128,7 +128,7 @@ class DownloadProjectController(
                                         executionRequest.project,
                                         location,
                                         version,
-                                        testsSuites.map { it.requiredId }
+                                        testsSuites.map { it.requiredId() }
                                     )
                                 }
                         }
