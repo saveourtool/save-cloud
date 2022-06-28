@@ -52,6 +52,14 @@ inline fun <reified T> FormData.appendJson(name: String, obj: T) =
         )
 
 /**
+ * @return [Role] if string matches any role, else throws [IllegalStateException]
+ * @throws IllegalStateException if string is not matched with any role
+ */
+fun String.toRole() = Role.values().find {
+    this == it.formattedName || this == it.toString()
+} ?: throw IllegalStateException("Unknown role is passed: $this")
+
+/**
  * Adds this text to RBuilder line by line, separating with `<br>`
  *
  * @param text text to display
@@ -93,11 +101,3 @@ internal fun RBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
-
-/**
- * @return [Role] if string matches any role, else throws [IllegalStateException]
- * @throws IllegalStateException if string is not matched with any role
- */
-fun String.toRole() = Role.values().find {
-    this == it.formattedName || this == it.toString()
-} ?: throw IllegalStateException("Unknown role is passed: $this")

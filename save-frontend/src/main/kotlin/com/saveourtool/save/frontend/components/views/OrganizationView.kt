@@ -137,6 +137,9 @@ external interface OrganizationViewState : State {
      */
     var closeButtonLabel: String?
 
+    /**
+     * Current state of description input form
+     */
     var draftOrganizationDescription: String
 }
 
@@ -341,7 +344,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if (state.selfRole.isHigherOrEqualThan(Role.ADMIN) && state.isEditDisabled == true) {
+                            if (state.selfRole.isHigherOrEqualThan(Role.ADMIN) && state.isEditDisabled) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -356,7 +359,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         textarea {
                             attrs["class"] = "auto_height form-control-plaintext pt-0 pb-0"
                             attrs.value = state.draftOrganizationDescription
-                            attrs.disabled = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled ?: true)
+                            attrs.disabled = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
                             attrs.onChange = { event ->
                                 val tg = event.target as HTMLTextAreaElement
                                 setNewDescription(tg.value)
@@ -366,7 +369,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("ml-3 mt-2 align-items-right float-right") {
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled ?: true)
+                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
                             attrs.onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
@@ -375,7 +378,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled ?: true)
+                            attrs.hidden = state.selfRole.isLowerThan(Role.ADMIN) || (state.isEditDisabled)
                             attrs.onClick = {
                                 turnEditMode(true)
                             }
@@ -658,21 +661,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     OrganizationMenuBar.values()
                         .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
                         .forEachIndexed { i, projectMenu ->
-                        li("nav-item") {
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                            p("nav-link $classVal text-gray-800") {
-                                attrs.onClickFunction = {
-                                    if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
+                            li("nav-item") {
+                                val classVal =
+                                        if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                                p("nav-link $classVal text-gray-800") {
+                                    attrs.onClickFunction = {
+                                        if (state.selectedMenu != projectMenu) {
+                                            setState {
+                                                selectedMenu = projectMenu
+                                            }
                                         }
                                     }
+                                    +projectMenu.name
                                 }
-                                +projectMenu.name
                             }
                         }
-                    }
                 }
             }
 

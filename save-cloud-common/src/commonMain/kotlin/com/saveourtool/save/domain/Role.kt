@@ -57,4 +57,3 @@ enum class Role(val formattedName: String, val priority: Int) {
      */
     fun isLowerThan(that: Role) = this.priority < that.priority
 }
-

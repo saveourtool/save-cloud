@@ -7,7 +7,6 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.getHighestRole
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
@@ -20,7 +19,6 @@ import kotlinx.html.InputType
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import kotlinx.html.js.onClickFunction
-import org.w3c.fetch.Headers
 
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
@@ -45,6 +43,9 @@ external interface ProjectSettingsMenuProps : Props {
      */
     var gitInitDto: GitDto?
 
+    /**
+     * Role of a current user
+     */
     var selfRole: Role
 }
 
@@ -239,4 +240,3 @@ fun projectSettingsMenu(
         }
     }
 }
-

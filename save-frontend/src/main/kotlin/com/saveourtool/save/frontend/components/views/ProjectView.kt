@@ -456,7 +456,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 loadingHandler = ::noopLoadingHandler,
             ).decodeFromJsonString()
             val currentUserRole: Role = get(
-                "${apiUrl}/projects/${state.project.organization.name}/${state.project.name}/users/roles",
+                "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/users/roles",
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
@@ -608,21 +608,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 ProjectMenuBar.values()
                     .filter { it != ProjectMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
                     .forEachIndexed { i, projectMenu ->
-                    li("nav-item") {
-                        val classVal =
-                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                        p("nav-link $classVal text-gray-800") {
-                            attrs.onClickFunction = {
-                                if (state.selectedMenu != projectMenu) {
-                                    setState {
-                                        selectedMenu = projectMenu
+                        li("nav-item") {
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            p("nav-link $classVal text-gray-800") {
+                                attrs.onClickFunction = {
+                                    if (state.selectedMenu != projectMenu) {
+                                        setState {
+                                            selectedMenu = projectMenu
+                                        }
                                     }
                                 }
+                                +projectMenu.name
                             }
-                            +projectMenu.name
                         }
                     }
-                }
             }
         }
 

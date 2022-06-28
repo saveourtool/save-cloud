@@ -111,8 +111,7 @@ class ProjectController(
                                                 authentication: Authentication?,
     ): Flux<Project> = projectService.findByOrganizationName(organizationName)
         .filter { it.status != ProjectStatus.DELETED }
-        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-            .also { has -> println("${it.name}: $has") } }
+        .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
      * @param project
@@ -213,7 +212,6 @@ class ProjectController(
     fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, project.name, project.organization.name, Permission.WRITE
     )
-        .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
         .map { projectFromDb ->
             // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
             projectFromDb.apply {
