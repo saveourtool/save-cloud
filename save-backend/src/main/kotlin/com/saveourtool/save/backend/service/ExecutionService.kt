@@ -83,19 +83,6 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
     }
 
     /**
-     * @param execution
-     * @throws ResponseStatusException
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun updateExecution(execution: Execution) {
-        executionRepository.findById(execution.id!!).ifPresentOrElse({
-            executionRepository.save(execution)
-        }) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
-    }
-
-    /**
      * @param name name of project
      * @param organization organization of project
      * @return list of execution dtos

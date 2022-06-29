@@ -150,7 +150,7 @@ class DownloadProjectController(
         @RequestPart("file", required = true) files: Flux<FilePart>,
         @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
     ) = Mono.just(ResponseEntity(executionResponseBody(executionRequestForStandardSuites.executionId), HttpStatus.ACCEPTED))
-        .doOnSuccess { _ ->
+        .doOnSuccess {
             files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
                 .flatMap { files ->
                     saveBinaryFile(executionRequestForStandardSuites, files)
@@ -163,12 +163,11 @@ class DownloadProjectController(
      * Accept execution rerun request
      *
      * @param executionRerunRequest request
-     * @param executionType
      * @return status 202
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest, @RequestParam executionType: ExecutionType) = Mono.fromCallable {
+    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
         requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
@@ -183,20 +182,19 @@ class DownloadProjectController(
                 .zipWhen { (execution, files) -> getResourceLocation(executionRerunRequest, execution.type, files) }
                 .map { (executionAndFiles, testRootAbsolutePath) ->
                     copyAdditionalFiles(executionAndFiles.second, testRootAbsolutePath)
-                    executionAndFiles.first to testRootAbsolutePath
+                    executionAndFiles.first
                 }
-                .flatMap { (execution, _) ->
-                    log.debug { "Skip initializing tests for execution.id = ${execution.id}: it's rerun" }
-                    Mono.just(execution)
+                .doOnNext {
+                    log.info { "Skip initializing tests for execution.id = ${it.id}: it's rerun" }
                 }
-                .map { it.executeTests() }
+                .flatMap { it.executeTests() }
                 .subscribeOn(scheduler)
                 .subscribe()
         }
 
     private fun copyAdditionalFiles(files: List<File>, resourcesLocation: File) {
         files.forEach { file ->
-            log.debug("Copy additional file $file into ${resourcesLocation.resolve(file.name)}")
+            log.debug { "Copy additional file $file into ${resourcesLocation.resolve(file.name)}" }
             Files.copy(
                 Paths.get(file.absolutePath),
                 Paths.get(resourcesLocation.resolve(file.name).absolutePath),
@@ -280,6 +278,11 @@ class DownloadProjectController(
             .relativeTo(File(configProperties.repository)).normalize().path
     }
 
+    private fun downloadRepositoryLocation(gitDto: GitDto): Pair<File, String> {
+        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
+        return tmpDir to tmpDir.relativeTo(File(configProperties.repository)).normalize().path
+    }
+
     @Suppress(
         "TYPE_ALIAS",
         "TOO_LONG_FUNCTION",
@@ -288,13 +291,13 @@ class DownloadProjectController(
     )
     private fun downLoadRepository(executionRequest: ExecutionRequest): Mono<Pair<String, String>> {
         val gitDto = executionRequest.gitDto
-        val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
+        val (tmpDir, location) = downloadRepositoryLocation(gitDto)
         return Mono.fromCallable {
             pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")
-                return@fromCallable tmpDir.relativeTo(File(configProperties.repository)).normalize().path to version
+                return@fromCallable location to version
             }
         }
             .onErrorResume { exception ->
@@ -377,8 +380,13 @@ class DownloadProjectController(
 
     private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
             when (executionType) {
-                ExecutionType.GIT -> downLoadRepository(executionRerunRequest)
-                    .map { (location, _) -> getResourceLocationForGit(location, executionRerunRequest.testRootPath) }
+                ExecutionType.GIT ->
+                    Mono.fromCallable {
+                        getResourceLocationForGit(
+                            downloadRepositoryLocation(executionRerunRequest.gitDto).second,
+                            executionRerunRequest.testRootPath
+                        )
+                    }
                 ExecutionType.STANDARD ->
                     // In standard mode we will calculate location later, according list of additional files
                     Mono.fromCallable { getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository) }
@@ -430,8 +438,7 @@ class DownloadProjectController(
     ): Mono<List<TestSuite>> {
         log.info { "Starting to save new test suites for root test config in $testRootPath" }
         return Mono.fromCallable {
-            val testResourcesRootAbsolutePath = testRootAbsolutePath.absolutePath
-            testDiscoveringService.getRootTestConfig(testResourcesRootAbsolutePath)
+            testDiscoveringService.getRootTestConfig(testRootAbsolutePath.path)
         }
             .zipWhen { rootTestConfig ->
                 log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
@@ -544,16 +551,6 @@ class DownloadProjectController(
             ) { it.toEntity<HttpStatus>() }
                 .doOnSubscribe {
                     log.info("Making request to set execution status for id=$executionId to $executionStatus")
-                }
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun updateExecution(execution: Execution) =
-            webClientBackend.makeRequest(
-                BodyInserters.fromValue(execution),
-                "/updateExecution"
-            ) { it.toEntity<HttpStatus>() }
-                .doOnSubscribe {
-                    log.info("Making request to update execution with id=${execution.id!!}")
                 }
 
     companion object {
