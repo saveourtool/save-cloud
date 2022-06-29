@@ -178,8 +178,8 @@ class AgentService(
             .get()
             .uri("/agents/statuses?ids=${agentIds.joinToString(separator = ",")}")
             .retrieve()
-            .bodyToMono<AgentStatusesForExecution>()
-            .flatMap { (executionId, agentStatuses) ->
+            .bodyToMono<List<AgentStatusDto>>()
+            .flatMap { agentStatuses ->
                 if (agentStatuses.map { it.state }.all {
                     it == STOPPED_BY_ORCH || it == TERMINATED
                 }) {
@@ -193,36 +193,6 @@ class AgentService(
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
-            }
-    }
-
-    /**
-     * Updates status of agents and corresponding execution
-     *
-     * @param agentIds IDs of agents
-     * @param agentState new state for these agents
-     * @param executionStatus new state for execution, which corresponds to these agents
-     * @return Mono with response from backend
-     */
-    fun markAgentsAndExecution(
-        agentIds: List<String>,
-        agentState: AgentState,
-        executionStatus: ExecutionStatus,
-    ): Mono<*> {
-        require(agentIds.isNotEmpty()) {
-            "Can't do anything without agent IDs"
-        }
-        return webClientBackend
-            .get()
-            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = ",")}")
-            .retrieve()
-            .bodyToMono<AgentStatusesForExecution>()
-            .flatMap { (executionId, agentStatuses) ->
-                updateAgentStatusesWithDto(agentIds.map { agentId ->
-                    AgentStatusDto(time = LocalDateTime.now(), state = agentState, containerId = agentId)
-                }).zipWith(
-                    updateExecution(executionId, executionStatus)
-                )
             }
     }
 
