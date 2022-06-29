@@ -95,13 +95,12 @@ class KubernetesManager(
             .create(job)
         logger.info("Created Job for execution id=$executionId")
         // fixme: wait for pods to be created
-        return sequence<List<String>> {
+        return generateSequence<List<String>> {
+            Thread.sleep(1_000)
             kc.pods().withLabel("baseImageId", baseImageId)
                 .list()
                 .items
                 .map { it.metadata.name }
-                .let { yield(it) }
-            Thread.sleep(1_000)
         }
             .take(10)
             .firstOrNull { it.isNotEmpty() }
