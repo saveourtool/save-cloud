@@ -358,9 +358,9 @@ class DownloadProjectTest(
             CompletableFuture.supplyAsync {
                 mockServerBackend.takeRequest(60, TimeUnit.SECONDS)
             }
-        }.also {
-            it.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
-            it.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
+        }.also { list ->
+            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
+            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
         }
 
         webClient.post()
