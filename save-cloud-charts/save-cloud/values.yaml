@@ -56,8 +56,12 @@ mysql:
 
 # Values for dependencies
 grafana:
+  enabled: false
   image:
     tag: 8.4.5
+  deploymentStrategy:
+    # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
+    type: Recreate
   service:
     port: 9100
   persistence:
@@ -66,6 +70,7 @@ grafana:
     create: false
 
 prometheus:
+  enabled: false
   alertmanager:
     enabled: false
   kubeStateMetrics:
@@ -120,6 +125,7 @@ promtail:
           source_labels: [__meta_kubernetes_pod_labelpresent_io_kompose_service]
 
 loki:
+  enabled: false
   tag: 2.5.0
   persistence:
     enabled: true
