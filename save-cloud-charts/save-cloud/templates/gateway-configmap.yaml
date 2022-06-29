@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.gateway.name }}-config
 data:
   application.properties: |
+    gateway.backend.url=http://backend
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     {{ if .Values.gateway.applicationProperties }}

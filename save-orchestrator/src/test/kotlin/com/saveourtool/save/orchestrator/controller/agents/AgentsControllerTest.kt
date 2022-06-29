@@ -7,6 +7,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
+import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
@@ -28,6 +29,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.annotation.DirtiesContext
@@ -45,6 +47,7 @@ import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
+@MockBeans(MockBean(AgentRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
     @Autowired

@@ -18,6 +18,8 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
@@ -47,7 +49,7 @@ class SaveAgentTest {
                 }
             }
         }
-    })
+    }, coroutineScope = CoroutineScope(Dispatchers.Default))
 
     @BeforeTest
     fun setUp() {

@@ -31,6 +31,7 @@ class KubernetesManager(
      */
     @PreDestroy
     fun close() {
+        logger.info("Closing connection to Kubernetes API server")
         kc.close()
     }
 
@@ -95,6 +96,7 @@ class KubernetesManager(
         kc.batch().v1()
             .jobs()
             .create(job)
+        logger.info("Created Job for execution id=$executionId")
         return kc.pods().withLabel("baseImageId", baseImageId)
             .list()
             .items
@@ -114,6 +116,7 @@ class KubernetesManager(
         if (!isDeleted) {
             throw AgentRunnerException("Failed to delete job with name $jobName")
         }
+        logger.debug("Deleted Job for execution id=$executionId")
     }
 
     override fun stopByAgentId(agentId: String): Boolean {
@@ -126,6 +129,7 @@ class KubernetesManager(
         if (!isDeleted) {
             throw AgentRunnerException("Failed to delete pod with name $agentId")
         } else {
+            logger.debug("Deleted pod with name=$agentId")
             return true
         }
     }
@@ -139,6 +143,23 @@ class KubernetesManager(
             kc.batch().v1().jobs()
                 .withName(jobNameForExecution(executionId))
                 .delete()
+        }
+    }
+
+    override fun isAgentStopped(agentId: String): Boolean {
+        val pod = kc.pods().withName(agentId).get()
+        return pod == null || run {
+            // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839
+            val reason = pod.status.phase ?: pod.status.reason
+            val isRunning = pod.status.containerStatuses.any {
+                it.ready && it.state.running != null
+            }
+            logger.debug("Pod name=$agentId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}")
+            if (reason == "Completed" && isRunning) {
+                "ContainerReady" in pod.status.conditions.map { it.type }
+            } else {
+                !isRunning
+            }
         }
     }
 
