@@ -16,4 +16,12 @@ abstract class BaseEntity {
     @Id
     @GeneratedValue
     open var id: Long? = null
+
+    /**
+     * @return [id] as not null with validating
+     * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
+     */
+    open fun requiredId(): Long = requireNotNull(id) {
+        "Entity is not saved yet: $this"
+    }
 }

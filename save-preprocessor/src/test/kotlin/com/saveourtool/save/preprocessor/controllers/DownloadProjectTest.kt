@@ -4,6 +4,7 @@ import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
@@ -129,14 +130,6 @@ class DownloadProjectTest(
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
-        // /createExecution
-        mockServerBackend.enqueue(
-            "/updateNewExecution",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(execution))
-        )
         // /saveTestSuites
         mockServerBackend.enqueue(
             "/saveTestSuites",
@@ -152,15 +145,23 @@ class DownloadProjectTest(
                 )),
         )
 
-        // /updateExecution
+        // /initializeTests
         mockServerBackend.enqueue(
-            "/updateExecution",
+            "/initializeTests",
             MockResponse()
                 .setResponseCode(200)
         )
-        // /initializeTests?executionId=$executionId
+        // /updateNewExecution
         mockServerBackend.enqueue(
-            "/initializeTests\\?executionId=(\\d)+",
+            "/updateNewExecution",
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(execution))
+        )
+        // /executeTestsByExecutionId?executionId
+        mockServerBackend.enqueue(
+            "/executeTestsByExecutionId\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -170,14 +171,14 @@ class DownloadProjectTest(
             MockResponse()
                 .setResponseCode(200)
         )
-        val assertions = CompletableFuture.supplyAsync {
-            listOf(
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS),
-                mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS)
-            )
+        val assertions = sequence {
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+            yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+        }.onEach {
+            logger.info("Request $it")
         }
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", request)
@@ -196,7 +197,7 @@ class DownloadProjectTest(
         
         val dirName = listOf(validRepo.url).hashCode()
         Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.forEach { Assertions.assertNotNull(it) }
     }
 
     @Suppress("LongMethod")
@@ -225,6 +226,19 @@ class DownloadProjectTest(
         bodyBuilder.part("fileInfo", FileInfo(binFile.name, property.lastModified(), property.toPath().fileSize(), true))
         bodyBuilder.part("file", FileSystemResource(binFile))
 
+        // /findAllStandardTestSuiteIdsByName
+        mockServerBackend.enqueue(
+            "/findAllStandardTestSuiteIdsByName",
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(objectMapper.writeValueAsString(
+                    listOf(
+                        42
+                    )
+                )),
+        )
+
         // /updateNewExecution
         mockServerBackend.enqueue(
             "/updateNewExecution",
@@ -234,31 +248,9 @@ class DownloadProjectTest(
                 .setBody(objectMapper.writeValueAsString(execution))
         )
 
-        // /standardTestSuitesWithName
+        // /executeTestsByExecutionId
         mockServerBackend.enqueue(
-            "/standardTestSuitesWithName\\?name=.*",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.STANDARD, "stub", null, project, LocalDateTime.now(), "save.properties", "stub").apply {
-                            id = 42
-                        }
-                    )
-                )),
-        )
-
-        // /saveTestExecutionsForStandardByTestSuiteId
-        mockServerBackend.enqueue(
-            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+",
-            MockResponse()
-                .setResponseCode(200)
-        )
-
-        // /updateExecution
-        mockServerBackend.enqueue(
-            "/updateExecution",
+            "/executeTestsByExecutionId\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -271,7 +263,6 @@ class DownloadProjectTest(
         )
 
         val assertions = sequence {
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
@@ -334,6 +325,7 @@ class DownloadProjectTest(
                     ),
             )
         }
+
         repeat(requestSize) {
             mockServerBackend.enqueue(
                 "/initializeTests",
@@ -362,11 +354,13 @@ class DownloadProjectTest(
                 .setResponseCode(200)
         )
 
-        val assertions = CompletableFuture.supplyAsync {
-            MutableList(requestSize * 2) { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) }.also {
-                it.add(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-                it.add(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
+        val assertions = MutableList(requestSize * 2) {
+            CompletableFuture.supplyAsync {
+                mockServerBackend.takeRequest(60, TimeUnit.SECONDS)
             }
+        }.also { list ->
+            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
+            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
         }
 
         webClient.post()
@@ -375,7 +369,8 @@ class DownloadProjectTest(
             .expectStatus()
             .isAccepted
         Thread.sleep(15_000)
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach { Assertions.assertNotNull(it) }
+        assertions.map { it.orTimeout(60, TimeUnit.SECONDS).join() }
+            .forEach { Assertions.assertNotNull(it) }
         Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/saveourtool/save-cli".hashCode()}").exists())
     }
 
@@ -407,30 +402,9 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(execution))
         )
-        // /saveTestSuites
+        // /executeTestsByExecutionId?executionId=$executionId
         mockServerBackend.enqueue(
-            "/saveTestSuites",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties").apply {
-                            id = 42L
-                        }
-                    )
-                )),
-        )
-
-        // /updateExecution
-        mockServerBackend.enqueue(
-            "/updateExecution",
-            MockResponse()
-                .setResponseCode(200)
-        )
-        // /initializeTests?executionId=$executionId
-        mockServerBackend.enqueue(
-            "/initializeTests\\?executionId=(\\d)+",
+            "/executeTestsByExecutionId\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
         )
@@ -445,16 +419,13 @@ class DownloadProjectTest(
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
+        }.onEach {
+            logger.info("Request $it")
         }
-            .onEach {
-                logger.info("Request $it")
-            }
 
         webClient.post()
-            .uri("/rerunExecution?executionType=${ExecutionType.GIT}")
+            .uri("/rerunExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
@@ -462,7 +433,7 @@ class DownloadProjectTest(
             .isAccepted
             .expectBody<String>()
             .isEqualTo("Clone pending")
-        Thread.sleep(15_000)
+        Thread.sleep(30_000)
 
         assertions.forEach { Assertions.assertNotNull(it) }
     }
@@ -475,12 +446,9 @@ class DownloadProjectTest(
             testSuiteIds = "1"
             type = ExecutionType.STANDARD
             id = 98L
+            status = ExecutionStatus.PENDING
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
-
-        val testSuite = TestSuite(TestSuiteType.STANDARD, "", null, project, LocalDateTime.now(), ".").apply {
-            id = 42
-        }
 
         // /updateExecutionByDto
         mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))
@@ -497,38 +465,13 @@ class DownloadProjectTest(
                 .setBody(objectMapper.writeValueAsString(execution))
         )
 
-        // /testSuite/{id}
+        // /executeTestsByExecutionId
         mockServerBackend.enqueue(
-            "/testSuite/(\\d)+",
+            "/executeTestsByExecutionId\\?executionId=(\\d)+",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(testSuite))
-        )
-
-        // /standardTestSuitesWithName
-        mockServerBackend.enqueue(
-            "/standardTestSuitesWithName\\?name=.*",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(testSuite)
-                )),
-        )
-
-        // /saveTestExecutionsForStandardByTestSuiteId
-        mockServerBackend.enqueue(
-            "/saveTestExecutionsForStandardByTestSuiteId\\?testSuiteId=(\\d)+",
-            MockResponse()
-                .setResponseCode(200)
-        )
-
-        // /updateExecution
-        mockServerBackend.enqueue(
-            "/updateExecution",
-            MockResponse()
-                .setResponseCode(200)
+                .setBody(objectMapper.writeValueAsString(execution))
         )
 
         // /initializeAgents
@@ -542,9 +485,6 @@ class DownloadProjectTest(
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
         }
             .onEach {
@@ -552,7 +492,7 @@ class DownloadProjectTest(
             }
 
         webClient.post()
-            .uri("/rerunExecution?executionType=${ExecutionType.STANDARD}")
+            .uri("/rerunExecution")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
             .exchange()
