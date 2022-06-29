@@ -33,7 +33,7 @@ class KubernetesManager(
         kc.close()
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "MagicNumber")
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
@@ -94,10 +94,18 @@ class KubernetesManager(
             .jobs()
             .create(job)
         logger.info("Created Job for execution id=$executionId")
-        return kc.pods().withLabel("baseImageId", baseImageId)
-            .list()
-            .items
-            .map { it.metadata.name }
+        // fixme: wait for pods to be created
+        return sequence<List<String>> {
+            kc.pods().withLabel("baseImageId", baseImageId)
+                .list()
+                .items
+                .map { it.metadata.name }
+                .let { yield(it) }
+            Thread.sleep(1_000)
+        }
+            .take(10)
+            .firstOrNull { it.isNotEmpty() }
+            ?: emptyList()
     }
 
     override fun start(executionId: Long) {
