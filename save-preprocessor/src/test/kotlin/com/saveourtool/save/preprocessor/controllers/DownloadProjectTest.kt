@@ -4,6 +4,7 @@ import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
@@ -445,6 +446,7 @@ class DownloadProjectTest(
             testSuiteIds = "1"
             type = ExecutionType.STANDARD
             id = 98L
+            status = ExecutionStatus.PENDING
         }
         val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
