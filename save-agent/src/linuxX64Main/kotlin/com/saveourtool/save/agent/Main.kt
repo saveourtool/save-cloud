@@ -37,6 +37,7 @@ internal val json = Json {
             subclass(NewJobResponse::class)
             subclass(ContinueResponse::class)
             subclass(WaitResponse::class)
+            subclass(TerminateResponse::class)
         }
     }
 }
@@ -63,9 +64,10 @@ fun main() {
         }
     }
 
-    val saveAgent = SaveAgent(config, httpClient)
     runBlocking {
-        val mainJob = saveAgent.start(this)
+        val saveAgent = SaveAgent(config, httpClient, coroutineScope = this)
+
+        val mainJob = saveAgent.start()
         mainJob.join()
     }
     logInfoCustom("Agent is shutting down")

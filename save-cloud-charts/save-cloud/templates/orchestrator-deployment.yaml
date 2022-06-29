@@ -15,6 +15,9 @@ spec:
     spec:
       serviceAccountName: orchestrator-sa
       restartPolicy: Always
+      {{- if .Values.orchestrator.nodeName }}
+      nodeName: {{ .Values.orchestrator.nodeName }}
+      {{- end }}
       {{- include "spring-boot.securityContext" . | nindent 6 }}
       containers:
         - name: orchestrator

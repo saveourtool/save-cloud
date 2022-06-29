@@ -145,6 +145,14 @@ class DockerService(private val configProperties: ConfigProperties,
             }
 
     /**
+     * Check whether the agent agentId is stopped
+     *
+     * @param agentId id of an agent
+     * @return true if agent is stopped
+     */
+    fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
+
+    /**
      * @param executionId
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
@@ -256,7 +264,7 @@ class DockerService(private val configProperties: ConfigProperties,
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
-        dockerContainerManager.findImages(baseImage).ifEmpty {
+        dockerContainerManager.findImages(saveId = baseImage).ifEmpty {
             log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
             buildBaseImage(sdk)
         }
