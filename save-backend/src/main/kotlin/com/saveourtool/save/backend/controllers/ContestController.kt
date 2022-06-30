@@ -37,7 +37,7 @@ internal class ContestController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
-    @GetMapping("/get/active")
+    @GetMapping("/active")
     @PreAuthorize("permitAll()")
     fun getContestsInProgress(
         @RequestParam(required = false) pageSize: Int? = null,
