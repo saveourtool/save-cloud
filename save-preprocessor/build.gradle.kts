@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.save.plugins.fix.jvm)
     implementation(libs.save.plugins.fixAndWarn.jvm)
     implementation(libs.jgit)
+    implementation(libs.jgit.archive)
     implementation(libs.kotlinx.serialization.properties)
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)

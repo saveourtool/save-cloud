@@ -36,6 +36,7 @@ sealed class ExecutionRequestBase {
 @Serializable
 data class ExecutionRequest(
     override val project: Project,
+    // FIXME: need to pass only testSuitesIds
     val gitDto: GitDto,
     val testRootPath: String,
     override val sdk: Sdk,
@@ -44,7 +45,7 @@ data class ExecutionRequest(
 
 /**
  * @property project
- * @property testSuites
+ * @property testSuiteIds
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -54,7 +55,7 @@ data class ExecutionRequest(
 @Serializable
 data class ExecutionRequestForStandardSuites(
     override val project: Project,
-    val testSuites: List<String>,
+    val testSuiteIds: List<Long>,
     override val sdk: Sdk,
     val execCmd: String?,
     val batchSizeForAnalyzer: String?,

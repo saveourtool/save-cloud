@@ -1,5 +1,6 @@
 package com.saveourtool.save.domain
 
+import com.saveourtool.save.entities.Project
 import kotlinx.serialization.Serializable
 
 /**
@@ -11,3 +12,8 @@ data class ProjectCoordinates(
     val organizationName: String,
     val projectName: String,
 )
+
+/**
+ * @return [ProjectCoordinates] created from [Project]
+ */
+fun Project.toProjectCoordinates() = ProjectCoordinates(organization.name, name)

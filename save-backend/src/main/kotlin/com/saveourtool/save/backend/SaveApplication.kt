@@ -4,6 +4,8 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.core.io.Resource
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import java.nio.ByteBuffer
@@ -11,6 +13,8 @@ import java.nio.ByteBuffer
 typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
 typealias EmptyResponse = ResponseEntity<Void>
+typealias ResourceResponse = ResponseEntity<Resource>
+typealias DataBufferFluxResponse = ResponseEntity<Flux<DataBuffer>>
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 
 /**

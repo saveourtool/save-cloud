@@ -4,15 +4,8 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.EvaluatedToolProperties
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.api.config.toSdk
-import com.saveourtool.save.api.utils.getAvailableFilesList
-import com.saveourtool.save.api.utils.getExecutionById
-import com.saveourtool.save.api.utils.getLatestExecution
-import com.saveourtool.save.api.utils.getProjectByNameAndOrganizationName
-import com.saveourtool.save.api.utils.getStandardTestSuites
-import com.saveourtool.save.api.utils.initializeHttpClient
-import com.saveourtool.save.api.utils.submitExecution
-import com.saveourtool.save.api.utils.uploadAdditionalFile
-import com.saveourtool.save.domain.ShortFileInfo
+import com.saveourtool.save.api.utils.*
+import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestBase
 import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
@@ -89,7 +82,7 @@ class SaveCloudClient(
      */
     private suspend fun submitExecution(
         executionType: ExecutionType,
-        additionalFiles: List<ShortFileInfo>?
+        additionalFiles: List<FileInfo>?
     ): ExecutionRequestBase? {
         val executionRequest = if (executionType == ExecutionType.GIT) {
             buildExecutionRequest()
@@ -125,6 +118,7 @@ class SaveCloudClient(
 
         return ExecutionRequest(
             project = project,
+            // FIXME: need to pass test suite ids
             gitDto = gitDto,
             testRootPath = evaluatedToolProperties.testRootPath,
             sdk = evaluatedToolProperties.sdk.toSdk(),
@@ -135,10 +129,10 @@ class SaveCloudClient(
     /**
      * Build execution request for standard mode according provided configuration
      *
-     * @param userProvidedTestSuites test suites, specified by user in config file
+     * @param userProvidedTestSuiteIds test suites, specified by user in config file
      */
     private suspend fun buildExecutionRequestForStandardSuites(
-        userProvidedTestSuites: List<String>
+        userProvidedTestSuiteIds: List<Long>
     ): ExecutionRequestForStandardSuites {
         val project = getProject()
 
@@ -147,7 +141,7 @@ class SaveCloudClient(
 
         return ExecutionRequestForStandardSuites(
             project = project,
-            testSuites = userProvidedTestSuites,
+            testSuiteIds = userProvidedTestSuiteIds,
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
@@ -161,7 +155,7 @@ class SaveCloudClient(
      *
      * @return list of test suites or nothing
      */
-    private suspend fun verifyTestSuites(): List<String>? {
+    private suspend fun verifyTestSuites(): List<Long>? {
         val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
         if (userProvidedTestSuites.isEmpty()) {
             log.error("Set of test suites couldn't be empty in standard mode!")
@@ -176,7 +170,7 @@ class SaveCloudClient(
                 return null
             }
         }
-        return userProvidedTestSuites
+        return httpClient.getStandardTestSuiteIdsByName(userProvidedTestSuites)
     }
 
     /**
@@ -228,7 +222,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<ShortFileInfo>? {
+    ): List<FileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -239,17 +233,17 @@ class SaveCloudClient(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }

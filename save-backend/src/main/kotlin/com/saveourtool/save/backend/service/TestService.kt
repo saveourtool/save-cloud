@@ -1,14 +1,10 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
@@ -35,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Service
 class TestService(
     private val testRepository: TestRepository,
+    private val testSuiteRepository: TestSuiteRepository,
     private val agentRepository: AgentRepository,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
@@ -48,6 +45,7 @@ class TestService(
     /**
      * @param tests
      * @return list tests id's
+     * @throws ResponseStatusException
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveTests(tests: List<TestDto>): List<Long> {
@@ -62,16 +60,15 @@ class TestService(
                 }
                     .orElseGet {
                         log.trace("Test $testDto is not found in the DB, will save it")
-                        // FIXME: TestSuite should be found instead of creating a stub
-                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                            id = testDto.testSuiteId
+                        val testSuite = testSuiteRepository.findById(testDto.testSuiteId).orElseThrow {
+                            throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuite (id=${testDto.testSuiteId}) not found")
                         }
                         Test(
                             testDto.hash,
                             testDto.filePath,
                             testDto.pluginName,
                             LocalDateTime.now(),
-                            testSuiteStub,
+                            testSuite,
                             testDto.tags.joinToString(";"),
                             additionalFiles = testDto.joinAdditionalFiles(),
                         )
@@ -102,7 +99,7 @@ class TestService(
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.fromCallable {
                 val testBatch = TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                    it.id!! to it.testRootPath
+                    it.id!! to it.testRootPath()
                 })
                 log.debug("Releasing lock for executionId=$executionId")
                 testBatch

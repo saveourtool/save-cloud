@@ -38,6 +38,7 @@ springdoc = "1.6.9"
 kotlinx-cli = "0.3.5"
 spotless = "6.8.0"
 fabric8 = "5.12.2"
+sekret = "0.1.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -51,6 +52,7 @@ liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
 download = { id = "de.undercouch.download", version = "5.1.0" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
+sekret = { id = "net.afanasev.sekret", version.ref = "sekret" }
 
 [libraries]
 save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-core" }
@@ -137,6 +139,7 @@ junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.re
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
+jgit-archive = { module = "org.eclipse.jgit:org.eclipse.jgit.archive", version.ref = "jgit" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
 diktat-gradle-plugin = { module = "org.cqfn.diktat:diktat-gradle-plugin", version.ref = "diktat" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }

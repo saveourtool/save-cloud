@@ -216,7 +216,7 @@ external interface ProjectViewState : State {
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
     private var standardTestSuites: List<TestSuiteDto> = emptyList()
-    private val selectedStandardSuites: MutableList<String> = mutableListOf()
+    private val selectedStandardSuiteIds: MutableList<Long> = mutableListOf()
     private var gitDto: GitDto? = null
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
     private val testResourcesSelection = testResourcesSelection(
@@ -392,12 +392,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     val newGitDto = gitDto?.copy(url = urlWithTests, branch = newBranch, hash = newCommit)
                         ?: GitDto(url = urlWithTests, branch = newBranch, hash = newCommit)
-
+                    // FIXME: need to parse test suite ids
                     submitExecutionRequestWithCustomTests(newGitDto)
                 }
             }
             else -> {
-                if (selectedStandardSuites.isEmpty()) {
+                if (selectedStandardSuiteIds.isEmpty()) {
                     setState {
                         isErrorOpen = true
                         errorLabel = "Both type of project"
@@ -417,7 +417,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val request = ExecutionRequestForStandardSuites(
             state.project,
-            selectedStandardSuites,
+            selectedStandardSuiteIds,
             selectedSdk,
             state.execCmd,
             state.batchSizeForAnalyzer,
@@ -426,7 +426,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         formData.appendJson("execution", request)
         state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
+            formData.appendJson("file", it)
         }
         submitRequest("/executionRequestStandardTests", headers, formData)
     }
@@ -435,10 +435,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val formData = FormData()
         val testRootPath = state.testRootPath.ifBlank { "." }
+        // FIXME: need to pass test source ids
         val executionRequest = ExecutionRequest(state.project, correctGitDto, testRootPath, selectedSdk, null)
         formData.appendJson("executionRequest", executionRequest)
         state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
+            formData.appendJson("file", it)
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
@@ -633,7 +634,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     gitUrlFromInputField = state.gitUrlFromInputField
                     gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
-                    selectedStandardSuites = this@ProjectView.selectedStandardSuites
+                    selectedStandardSuiteIds = this@ProjectView.selectedStandardSuiteIds
                     standardTestSuites = this@ProjectView.standardTestSuites
                     selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
                     execCmd = state.execCmd
@@ -755,7 +756,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                "$apiUrl/files/${props.owner}/${props.name}",
                 headers,
                 Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,

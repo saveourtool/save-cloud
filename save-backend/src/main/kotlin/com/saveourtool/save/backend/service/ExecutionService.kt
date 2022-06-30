@@ -2,6 +2,8 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.domain.format
+import com.saveourtool.save.domain.toFileKey
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.execution.ExecutionInitializationDto
@@ -25,6 +27,7 @@ import java.util.Optional
 class ExecutionService(
     private val executionRepository: ExecutionRepository,
     private val userRepository: UserRepository,
+    private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
 ) {
@@ -113,13 +116,24 @@ class ExecutionService(
                 executionInitializationDto.project
             )?.let { execution ->
                 require(execution.version == null) { "Execution was already updated" }
-                execution.version = executionInitializationDto.version
+                execution.version = executionInitializationDto.testSuiteIds
+                    .map { testSuiteRepository.findById(it).get() }
+                    .map { it.version }
+                    .distinct()
+                    .single()
                 execution.formatAndSetTestSuiteIds(executionInitializationDto.testSuiteIds)
                 execution.allTests = executionInitializationDto.testSuiteIds
                     .flatMap { testRepository.findAllByTestSuiteId(it) }
                     .count()
                     .toLong()
-                execution.resourcesRootPath = FilenameUtils.separatorsToUnix(executionInitializationDto.resourcesRootPath)
+                execution.resourcesRootPath = executionInitializationDto.testSuiteIds
+                    .map { testSuiteRepository.findById(it).get() }
+                    .map { FilenameUtils.separatorsToUnix(it.testRootPath()) }
+                    .distinct()
+                    .single()
+                execution.additionalFiles = executionInitializationDto.additionalFiles
+                    .map { it.toFileKey() }
+                    .format()
                 execution.execCmd = executionInitializationDto.execCmd
                 execution.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
                 executionRepository.save(execution)

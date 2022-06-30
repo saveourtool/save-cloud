@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.mock
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -198,7 +199,12 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, listOf(1, 2, 3), "testPath", "executionVersion", null, null)
+        val executionUpdate = ExecutionInitializationDto(
+            execution.project,
+            listOf(1, 2, 3),
+            null,
+            null
+        )
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -210,8 +216,11 @@ class ExecutionControllerTest {
             .consumeWith {
                 val responseBody = requireNotNull(it.responseBody)
                 assertEquals("1, 2, 3", responseBody.testSuiteIds)
+                assertEquals("test1:123,test2:321", responseBody.additionalFiles)
+                // FIXME: need to take this value from TestSuite
                 assertEquals("testPath", responseBody.resourcesRootPath)
                 assertEquals(20, responseBody.batchSize)
+                // FIXME: need to take this value from TestSuite
                 assertEquals("executionVersion", responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
@@ -253,7 +262,7 @@ class ExecutionControllerTest {
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
     @Test
     @WithMockUser(username = "John Doe")
     fun `test testSuiteIds`() {
@@ -279,7 +288,8 @@ class ExecutionControllerTest {
                 type = TestSuiteType.PROJECT,
                 project = project,
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 1",
+                source = mock { },
+                version = "test 1",
             )
         )
         val testSuite2 = testSuiteRepository.save(
@@ -287,7 +297,8 @@ class ExecutionControllerTest {
                 type = TestSuiteType.PROJECT,
                 project = project,
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 2",
+                source = mock { },
+                version = "test 2",
             )
         )
         val testSuite3 = testSuiteRepository.save(
@@ -295,7 +306,8 @@ class ExecutionControllerTest {
                 type = TestSuiteType.PROJECT,
                 project = project,
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 3",
+                source = mock { },
+                version = "test 3",
             )
         )
         val executionTestSuiteIds = Execution.stub(project).apply {

@@ -197,6 +197,7 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 <details>
   <summary>Request for execution submission in Standard Mode</summary>
 
+
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
@@ -212,15 +213,21 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
-  "isExecutable": false
+  "isExecutable": false,
+  "uploadedMillis": 123,
+  "sizeBytes": -1
 };type=application/json' \
 -F 'file={
   "name": "diktat-analysis.yml",
-  "isExecutable":false
+  "isExecutable":false,
+  "uploadedMillis": 123,
+  "sizeBytes": -1
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
-  "isExecutable": false
+  "isExecutable": false,
+  "uploadedMillis": 123,
+  "sizeBytes": -1
 };type=application/json'
 ```
 </details>

@@ -14,10 +14,10 @@ fun suiteDescription(suite: TestSuiteDto) =
         """
             <div>
                   <ul class="pl-3">
-                  ${suite.testSuiteRepoUrl?.let {
+                  ${suite.testSuiteRepoUrl().let {
             "<li><a href=$it>$it</a></li>"
         }}
-                <li>${suite.testRootPath}</li>
+                <li>${suite.testRootPath()}</li>
                 </ul>
                 <p>${suite.description ?: ""}</p>
             </div>

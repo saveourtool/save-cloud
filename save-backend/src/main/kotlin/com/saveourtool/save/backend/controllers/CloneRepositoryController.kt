@@ -4,9 +4,11 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toFileKey
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestBase
@@ -42,7 +44,6 @@ import reactor.core.publisher.Mono
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    private val fileStorage: FileStorage,
     private val configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -63,20 +64,19 @@ class CloneRepositoryController(
     @PostMapping(path = ["/$v1/submitExecutionRequest"], consumes = ["multipart/form-data"])
     fun submitExecutionRequest(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("file", required = false) files: Flux<ShortFileInfo>,
+        @RequestPart("file", required = false) files: Flux<FileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequest.project) {
         // Project cannot be taken from executionRequest directly for permission evaluation:
         // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+        .flatMap {
             sendToPreprocessor(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+                files
             ) { executionRequest, savedExecution ->
                 executionRequest.copy(executionId = savedExecution.requiredId())
             }
@@ -93,18 +93,17 @@ class CloneRepositoryController(
     @PostMapping(path = ["/$v1/executionRequestStandardTests"], consumes = ["multipart/form-data"])
     fun executionRequestStandardTests(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
+        @RequestPart("file", required = true) files: Flux<FileInfo>,
         authentication: Authentication,
     ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
     }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+        .flatMap {
             sendToPreprocessor(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+                files
             ) { executionRequest, savedExecution ->
                 executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
             }

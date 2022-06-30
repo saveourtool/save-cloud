@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.mockito.ArgumentMatchers.*
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -69,6 +71,7 @@ import kotlinx.serialization.json.Json
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
@@ -116,7 +119,8 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
-        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+        val testSuitesSource: TestSuitesSource = mock { }
+        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
             id = 0
         }
 
@@ -154,6 +158,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should not shutdown any agents when all agents are IDLE but there are more tests left`() {
+        val testSuitesSource: TestSuitesSource = mock { }
         testHeartbeat(
             agentStatusDtos = listOf(
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-1"),
@@ -168,7 +173,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -210,6 +215,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should not shutdown any agents when they are STARTING`() {
+        val testSuitesSource: TestSuitesSource = mock { }
         testHeartbeat(
             agentStatusDtos = listOf(
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
@@ -224,7 +230,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -237,6 +243,7 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which don't sent heartbeat for some time`() {
+        val testSuitesSource: TestSuitesSource = mock { }
         whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
         whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
@@ -263,7 +270,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -276,6 +283,7 @@ class HeartbeatControllerTest {
     @Test
     @Suppress("TOO_LONG_FUNCTION")
     fun `should shutdown agent, which doesn't shutdown gracefully for some time, despite sending heartbeats`() {
+        val testSuitesSource: TestSuitesSource = mock { }
         whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
         whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
         val currTime = Clock.System.now()
@@ -302,7 +310,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -315,6 +323,7 @@ class HeartbeatControllerTest {
 
     @Test
     fun `should shutdown all agents, since all of them don't sent heartbeats for some time`() {
+        val testSuitesSource: TestSuitesSource = mock { }
         val agentStatusDtos = listOf(
             AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
         )
@@ -334,7 +343,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                 id = 0
             },
             mockAgentStatuses = false,

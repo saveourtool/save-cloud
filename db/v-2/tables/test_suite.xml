@@ -15,4 +15,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add-source-column" author="nulls" context="dev or prod">
+        <addColumn tableName="test_suite">
+            <column name="source_id" type="bigint">
+<!--                <constraints foreignKeyName="fk_lnk_test_suite_test_suites_source" references="test_suites_source(id)" nullable="false"/>-->
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

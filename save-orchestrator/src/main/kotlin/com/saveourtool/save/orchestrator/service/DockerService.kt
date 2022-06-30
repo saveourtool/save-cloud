@@ -1,8 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.domain.Python
-import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toSdk
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -335,8 +333,8 @@ class DockerService(private val configProperties: ConfigProperties,
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
-                .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
-                    .resolve(it.testRootPath)
+                .resolve(File("${listOf(it.testSuiteRepoUrl()).hashCode()}")
+                    .resolve(it.testRootPath())
                 )
             val currentSuiteDestination = destination.resolve(getLocationInStandardDirForTestSuite(it))
             if (!currentSuiteDestination.exists()) {
@@ -366,4 +364,4 @@ internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
  * @param testSuiteDto
  */
 internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
+        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl().hashCode()}_${testSuiteDto.testRootPath().hashCode()}"

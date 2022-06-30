@@ -3,8 +3,10 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.mock
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -34,8 +37,11 @@ class TestDiscoveringServiceTest {
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
+    private lateinit var testSuitesSource: TestSuitesSource
+    private lateinit var testSuitesSourceDto: TestSuitesSourceDto
 
     @BeforeAll
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     fun setUp() {
         tmpDir = createTempDirectory(this::class.simpleName)
         Git.cloneRepository()
@@ -46,6 +52,8 @@ class TestDiscoveringServiceTest {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
             }
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
+        testSuitesSourceDto = mock { }
+        testSuitesSource = mock { }
     }
 
     @AfterAll
@@ -58,7 +66,7 @@ class TestDiscoveringServiceTest {
         val testSuites = testDiscoveringService.getAllTestSuites(
             Project.stub(null),
             rootTestConfig,
-            propertiesRelativePath,
+            testSuitesSourceDto,
             "not-provided"
         )
 
@@ -73,7 +81,7 @@ class TestDiscoveringServiceTest {
             testDiscoveringService.getAllTestSuites(
                 Project.stub(null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                propertiesRelativePath,
+                testSuitesSourceDto,
                 "not-provided"
             )
         }
@@ -104,7 +112,7 @@ class TestDiscoveringServiceTest {
         }
     }
 
-    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, null, propertiesRelativePath).apply {
+    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, null, testSuitesSource, null, "1").apply {
         this.id = id
     }
 }

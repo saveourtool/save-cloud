@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSourceLog
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.v1
 
@@ -112,4 +113,12 @@ class TestSuitesController(
     @Transactional
     fun deleteTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))
+
+    /**
+     * @param testSuitesSourceLog
+     * @return list of [TestSuite] related to provided [TestSuitesSourceLog]
+     */
+    @PostMapping("/internal/test-suites/find-by-log")
+    fun findAllByLog(@RequestBody testSuitesSourceLog: TestSuitesSourceLog) = ResponseEntity.ok()
+        .body(testSuitesService.findAllByVersion(testSuitesSourceLog.source.toDto(), testSuitesSourceLog.version))
 }

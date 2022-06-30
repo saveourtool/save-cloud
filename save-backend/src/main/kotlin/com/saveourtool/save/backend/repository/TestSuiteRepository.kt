@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteType
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
@@ -32,14 +33,28 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
     /**
      * @param name name of the test suite
      * @param type type of the test suite
-     * @param testRootPath properties relative path of the test suite
-     * @param testSuiteRepoUrl test suite repo url of the test suite
+     * @param sourceId id of the source of the test suite
      * @return matched test suite
      */
-    fun findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
-        name: String,
-        type: TestSuiteType,
-        testRootPath: String,
-        testSuiteRepoUrl: String?,
+    fun findByNameAndTypeAndSourceId(
+        name: String, type: TestSuiteType, sourceId: Long,
     ): TestSuite
+
+    /**
+     * @param source source of the test suite
+     * @return a list of test suites
+     */
+    fun findAllBySource(
+        source: TestSuitesSource
+    ): List<TestSuite>
+
+    /**
+     * @param sourceId ID of [TestSuitesSource]
+     * @param version
+     * @return list of [TestSuite]
+     */
+    fun findAllBySourceIdAndVersion(
+        sourceId: Long,
+        version: String
+    ): List<TestSuite>
 }

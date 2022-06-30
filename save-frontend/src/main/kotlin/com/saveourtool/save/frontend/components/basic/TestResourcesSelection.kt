@@ -54,7 +54,7 @@ external interface TestResourcesProps : PropsWithChildren {
 
     // properties for STANDARD_BENCHMARKS mode
     var standardTestSuites: List<TestSuiteDto>
-    var selectedStandardSuites: MutableList<String>
+    var selectedStandardSuiteIds: MutableList<Long>
     var selectedLanguageForStandardTests: String?
 }
 
@@ -293,7 +293,7 @@ fun testResourcesSelection(
             )
 
             checkBox {
-                selectedStandardSuites = props.selectedStandardSuites
+                selectedStandardSuiteIds = props.selectedStandardSuiteIds
                 rowSize = ProjectView.TEST_SUITE_ROW
                 suites = props.standardTestSuites
                 selectedLanguageForStandardTests = props.selectedLanguageForStandardTests

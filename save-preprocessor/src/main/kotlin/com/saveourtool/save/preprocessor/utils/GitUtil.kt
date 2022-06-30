@@ -4,176 +4,84 @@
 
 package com.saveourtool.save.preprocessor.utils
 
-import com.saveourtool.save.entities.GitDto
-import org.eclipse.jgit.api.CreateBranchCommand
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.MergeCommand
-import org.eclipse.jgit.api.ResetCommand
+import org.eclipse.jgit.api.GitCommand
 import org.eclipse.jgit.api.errors.GitAPIException
-import org.eclipse.jgit.api.errors.InvalidConfigurationException
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException
-import org.eclipse.jgit.api.errors.RefNotAdvertisedException
-import org.eclipse.jgit.api.errors.RefNotFoundException
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.lang.IllegalArgumentException
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
- * @param gitDto
- * @param tmpDir
- * @param branchOrCommit
- * @return jGit git entity
+ * @return latest commit
  */
-fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrCommit: String?): Git? {
-    val userCredentials = if (gitDto.username != null && gitDto.password != null) {
-        UsernamePasswordCredentialsProvider(gitDto.username, gitDto.password)
-    } else {
-        CredentialsProvider.getDefault()
-    }
+fun com.saveourtool.save.testsuite.GitLocation.detectLatestSha1(): String = detectLatestSha1(credentialsProvider(), httpUrl, branch)
 
-    if (tmpDir.exists() && !tmpDir.list().isNullOrEmpty()) {
-        val result = pullProject(gitDto, tmpDir, userCredentials, branchOrCommit)
-        if (result.isFailure) {
-            log.error(result.toString())
-        } else {
-            return result.getOrNull()
-        }
-        // Pull was unsuccessful, clean directory before cloning
-        deleteDirectory(tmpDir)
-        generateDirectory(tmpDir)
-    }
-    log.info("Starting clone project ${gitDto.url} into the $tmpDir")
-    return Git.cloneRepository()
-        .setURI(gitDto.url)
-        .setCredentialsProvider(userCredentials)
-        .setDirectory(tmpDir)
-        .call()
-        .also { git ->
-            switchBranch(git, gitDto.url, branchOrCommit)
-        }
-}
-
+@SuppressWarnings("MaxLineLength")
 /**
- * @param gitDto
- * @param tmpDir
- * @param userCredentials
- * @param branchOrCommit
- * @return jGit git entity
+ * [How to use JGit to push changes to remote with OAuth access token](https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token)
+ *
+ * @return [CredentialsProvider]
  */
-fun pullProject(
-    gitDto: GitDto,
-    tmpDir: File,
-    userCredentials: CredentialsProvider?,
-    branchOrCommit: String?
-): Result<Git> {
-    log.info("Starting pull project ${gitDto.url} into the $tmpDir")
-    val git = Git.open(tmpDir)
+fun com.saveourtool.save.testsuite.GitLocation.credentialsProvider(): CredentialsProvider = credentialsProvider(username, token)
 
-    log.debug("Reset all changes in $tmpDir before pull command")
-    git.reset()
-        .setMode(ResetCommand.ResetType.HARD)
-        .call()
-
-    if (!switchBranch(git, gitDto.url, branchOrCommit)) {
-        git.close()
-        return Result.failure(InvalidConfigurationException("Error: cannot switch branch"))
-    }
-
-    val branchName = git.repository.branch
-
+private fun <R, T : GitCommand<*>> T.withRethrow(call: (T) -> R): R {
     try {
-        git.pull()
-            .setCredentialsProvider(userCredentials)
-            .setRemote(Constants.DEFAULT_REMOTE_NAME)
-            .setRemoteBranchName(branchName)
-            .setFastForward(MergeCommand.FastForwardMode.FF)
-            .call()
-    } catch (ex: RefNotAdvertisedException) {
-        git.close()
-        return Result.failure(
-            IllegalArgumentException("Provided branch $branchName seems to be an detached commit, pull command won't be performed! $ex", ex)
-        )
+        return call(this)
     } catch (ex: GitAPIException) {
-        git.close()
-        return Result.failure(Exception("Error during pull project: ", ex))
+        throw IllegalStateException("Error in JGit API", ex)
     }
-    log.info("Successfully pull branch $branchName for project ${gitDto.url}")
-    return Result.success(git)
 }
 
 /**
- * @param git
- * @param repoUrl
- * @param branchOrCommit
- * @return flag, whether the switching was successful
+ * @param httpUrl
+ * @param token
+ * @param username
+ * @return default branch name
+ * @throws IllegalStateException
  */
-@Suppress("FUNCTION_BOOLEAN_PREFIX")
-fun switchBranch(git: Git, repoUrl: String, branchOrCommit: String?): Boolean {
-    val branchName = if (branchOrCommit.isNullOrBlank()) {
-        log.info("Branch name wasn't provided, will checkout to the default branch")
-        getDefaultBranchName(repoUrl)
-    } else {
-        branchOrCommit
-    }
-    log.info("Start switch branch from ${git.repository.branch} to the $branchName for $repoUrl")
-    branchName ?: run {
-        log.error("Couldn't get default branch for repo $repoUrl")
-        return false
-    }
-
-    if (git.repository.branch == branchName.replace("${Constants.DEFAULT_REMOTE_NAME}/", "")) {
-        log.warn("Requested branch $branchName for git checkout command equals to the current branch, won't provide any actions")
-        return true
-    }
-
-    try {
-        try {
-            checkout(git, branchName, true)
-        } catch (ex: RefAlreadyExistsException) {
-            log.warn("Branch $branchName for $repoUrl already exists, won't create it one more time")
-            checkout(git, branchName, false)
+fun detectDefaultBranchName(httpUrl: String, username: String?, token: String?): String {
+    val head: Ref? = Git.lsRemoteRepository()
+        .setCredentialsProvider(credentialsProvider(username, token))
+        // ls without clone
+        // FIXME: need to extract to a common place
+        .setRemote(httpUrl)
+        .withRethrow {
+            it.callAsMap()[Constants.HEAD]
         }
-    } catch (ex: RefNotFoundException) {
-        log.warn("Provided branch/commit $branchName wasn't found, will use current branch: ${git.repository.branch}")
-    }
 
-    return true
-}
-
-private fun getDefaultBranchName(repoUrl: String): String? {
-    val head: Ref? = Git.lsRemoteRepository().setRemote(repoUrl).callAsMap()["HEAD"]
     val defaultBranch = head?.let {
         if (head.isSymbolic) {
             // Branch name
             head.target.name
         } else {
+            // FIXME: probably we should throw Exception here
             // SHA-1 hash
             head.objectId.name
         }
-    }
-        ?: run {
-            log.error("Couldn't get default branch name for $repoUrl")
-            return null
-        }
+    } ?: throw IllegalStateException("Couldn't detect default branch name for $httpUrl")
 
     log.debug("Getting default branch name: $defaultBranch")
 
-    return defaultBranch.replace("refs/heads/", "${Constants.DEFAULT_REMOTE_NAME}/")
+    return defaultBranch.replace(Constants.R_HEADS, "${Constants.DEFAULT_REMOTE_NAME}/")
 }
 
-private fun checkout(git: Git, branchOrCommit: String, setCreateBranchFlag: Boolean) {
-    git.checkout()
-        // We need to call this method anyway, in aim not to have `detached head` state,
-        // however, it will throw an exception, if branch already exists
-        .setCreateBranch(setCreateBranchFlag)
-        .setName(branchOrCommit.replace("${Constants.DEFAULT_REMOTE_NAME}/", ""))
-        .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-        .setStartPoint(branchOrCommit)
-        .call()
-}
+private fun detectLatestSha1(credentialsProvider: CredentialsProvider, httpUrl: String, branchName: String): String = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider)
+    .setRemote(httpUrl)
+    .withRethrow {
+        it.callAsMap()["${Constants.R_HEADS}$branchName"]
+    }
+    ?.objectId
+    ?.name
+    ?: throw IllegalStateException("Couldn't detect hash of ${Constants.HEAD} for $httpUrl/$branchName")
+
+private fun credentialsProvider(username: String?, token: String?): CredentialsProvider =
+        if (username != null && token != null) {
+            UsernamePasswordCredentialsProvider(username, token)
+        } else {
+            CredentialsProvider.getDefault()
+        }

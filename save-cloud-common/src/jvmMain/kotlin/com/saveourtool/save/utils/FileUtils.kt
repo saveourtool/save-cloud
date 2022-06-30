@@ -8,6 +8,7 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import reactor.core.publisher.Flux
 import java.io.File
 import java.io.FileNotFoundException
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -19,6 +20,11 @@ private const val DEFAULT_BUFFER_SIZE = 4096
  */
 fun Path.toDataBufferFlux(): Flux<DataBuffer> = DataBufferUtils.read(this, DefaultDataBufferFactory.sharedInstance, DEFAULT_BUFFER_SIZE)
     .cast(DataBuffer::class.java)
+
+/**
+ * @return content of file as [Flux] of [ByteBuffer]
+ */
+fun Path.toByteBufferFlux(): Flux<ByteBuffer> = this.toDataBufferFlux().map { it.asByteBuffer() }
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

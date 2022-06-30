@@ -7,7 +7,6 @@ package com.saveourtool.save.api.utils
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestBase
 import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
@@ -86,7 +85,8 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): ShortFileInfo = this.post {
+): FileInfo = this.post {
+    // FIXME: this url doesn't exist (need to add organization and project names in url)
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -109,6 +109,18 @@ suspend fun HttpClient.getStandardTestSuites(
 ).body()
 
 /**
+ * @param names
+ * @return list of IDs of standard test suites found by [names]
+ */
+suspend fun HttpClient.getStandardTestSuiteIdsByName(
+    names: List<String>
+): List<Long> = this.post {
+    url("${Backend.url}/test-suites/standard/ids-by-name")
+    header("X-Authorization-Source", UserInformation.source)
+    setBody(names)
+}.body()
+
+/**
  * Submit execution, according [executionType] with list of [additionalFiles]
  *
  * @param executionType type of requested execution git/standard
@@ -118,7 +130,7 @@ suspend fun HttpClient.getStandardTestSuites(
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
+suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<FileInfo>?): HttpResponse {
     val endpoint = if (executionType == ExecutionType.GIT) {
         "/api/$v1/submitExecutionRequest"
     } else {
@@ -144,10 +156,10 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
                     formDataHeaders
                 )
             }
-            additionalFiles?.forEach { shortFileInfo ->
+            additionalFiles?.forEach { fileInfo ->
                 append(
                     "file",
-                    json.encodeToString(shortFileInfo),
+                    json.encodeToString(fileInfo),
                     Headers.build {
                         append(HttpHeaders.ContentType, ContentType.Application.Json)
                     }

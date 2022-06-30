@@ -8,13 +8,13 @@ import org.springframework.util.FileSystemUtils
 import java.io.File
 import java.io.IOException
 import java.math.BigInteger
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.Properties
 
 import kotlin.io.path.createDirectories
+import kotlin.io.path.inputStream
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.properties.decodeFromMap
 
@@ -24,9 +24,14 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
 /**
  * @return hash of file content
  */
-fun File.toHash(): String {
+fun File.toHash(): String = this.toPath().toHash()
+
+/**
+ * @return hash of file content
+ */
+fun Path.toHash(): String {
     val md = MessageDigest.getInstance("MD5")
-    Files.newInputStream(Paths.get(this.path)).use { inputStream ->
+    this.inputStream().use { inputStream ->
         DigestInputStream(inputStream, md).readAllBytes()
     }
     return BigInteger(1, md.digest()).toString(RADIX)

@@ -18,7 +18,7 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
-import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockResponse
@@ -54,6 +54,7 @@ import reactor.core.scheduler.Schedulers
 import java.nio.file.Path
 import java.time.Duration
 import kotlin.io.path.createFile
+import kotlin.io.path.name
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(
@@ -148,10 +149,10 @@ class CloningRepositoryControllerTest {
         }
         fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
             binFile.toFileInfo().toFileKey(),
-            binFile.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
+            binFile.toByteBufferFlux()).subscribeOn(Schedulers.immediate()).block()
         fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
             property.toFileInfo().toFileKey(),
-            property.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
+            property.toByteBufferFlux()).subscribeOn(Schedulers.immediate()).block()
 
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null, "version")

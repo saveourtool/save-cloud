@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit
 @Import(LocalDateTimeConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "EMPTY_BLOCK_STRUCTURE_ERROR")
 class DownloadProjectTest(
     @Autowired private var webClient: WebTestClient,
     @Autowired private val configProperties: ConfigProperties,
@@ -117,6 +117,9 @@ class DownloadProjectTest(
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
         val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+        val testSuitesSource: TestSuitesSource = mock { }
+        // "save.properties", "https://github.com/saveourtool/save-cli.git"
         // /saveTestSuites
         mockServerBackend.enqueue(
             "/saveTestSuites",
@@ -125,7 +128,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/saveourtool/save-cli.git").apply {
+                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), testSuitesSource, null, "1").apply {
                             id = 42L
                         }
                     )
@@ -192,7 +195,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId, "version")
+        val request = ExecutionRequestForStandardSuites(project, listOf(1), Sdk.Default, null, null, executionId, "version")
 
         // /test-suites/standard/ids-by-name
         mockServerBackend.enqueue(
@@ -283,7 +286,7 @@ class DownloadProjectTest(
                     .setBody(
                         objectMapper.writeValueAsString(
                             listOf(
-                                TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
+                                TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), mock { }, null, "1")
                             )
                         )
                     ),
@@ -306,7 +309,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuiteDto(TestSuiteType.STANDARD, "stub", null, null, "save.properties", "stub")
+                        TestSuiteDto(null, TestSuiteType.STANDARD, "stub", null, null, mock { }, null, "stub")
                     )
                 ))
         )

@@ -7,11 +7,16 @@ plugins {
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
     `maven-publish`
+    alias(libs.plugins.sekret)
 }
 kotlin {
     allOpen {
         annotation("javax.persistence.Entity")
         annotation("org.springframework.stereotype.Service")
+    }
+    sekret {
+        mask = "***"
+        annotations = listOf("com.saveourtool.save.utils.Secret")
     }
 
     jvm {
@@ -38,6 +43,7 @@ kotlin {
                 implementation(libs.save.common)
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val jvmMain by getting {
@@ -46,6 +52,7 @@ kotlin {
                 implementation(libs.spring.security.core)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
+                implementation(libs.reactor.kotlin.extensions)
                 api(libs.slf4j.api)
                 implementation(libs.reactor.kotlin.extensions)
             }

@@ -1,10 +1,11 @@
 package com.saveourtool.save.preprocessor.controllers
 
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.service.GithubLocationPreprocessorService
+import com.saveourtool.save.preprocessor.utils.detectLatestSha1
 import com.saveourtool.save.preprocessor.utils.generateDirectory
-import com.saveourtool.save.preprocessor.utils.pullOrCloneProjectWithSpecificBranch
+import com.saveourtool.save.testsuite.GitLocation
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -20,6 +21,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
+import java.io.File
+import java.nio.file.Path
+
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
@@ -33,9 +37,10 @@ import kotlinx.serialization.serializer
 @RestController
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
+    private val githubLocationPreprocessorService: GithubLocationPreprocessorService,
 ) {
     private val webClientBackend = WebClient.create(configProperties.backend)
-    private val tmpDir = generateDirectory(listOf(AWESOME_BENCHMARKS_URL), "${configProperties.repository}/awesome-benchmarks")
+    private val tmpDir = generateDirectory(File("${configProperties.repository}/awesome-benchmarks"))
 
     /**
      * Controller to download standard test suites
@@ -46,27 +51,28 @@ class AwesomeBenchmarksDownloadController(
     @GetMapping("/download/awesome-benchmarks")
     fun downloadAwesomeBenchmarks() =
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
-                .doOnSuccess {
-                    log.debug("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
-                    pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, null)
+                .flatMap { response ->
+                    log.debug("Starting to download awesome-benchmarks")
+                    githubLocationPreprocessorService.processDirectoryAsMono(gitLocation, gitLocation.detectLatestSha1()) {
+                        processDirectoryAndCleanUp(it)
+                    }.map { response }
+                }
+                .doOnEach {
                     log.info("Awesome-benchmarks were downloaded to ${tmpDir.absolutePath}")
-                    processDirectoryAndCleanUp().subscribe()
-                    tmpDir.deleteRecursively()
                 }
                 .onErrorResume { exception ->
-                    tmpDir.deleteRecursively()
                     when (exception) {
                         is InvalidRemoteException,
                         is TransportException,
-                        is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
-                        else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
+                        is GitAPIException -> log.warn("Error with git API while cloning ${gitLocation.httpUrl} repository", exception)
+                        else -> log.warn("Cloning ${gitLocation.httpUrl} repository failed", exception)
                     }
                     Mono.just(ResponseEntity("Downloading of awesome-benchmarks failed", HttpStatus.INTERNAL_SERVER_ERROR))
                 }
 
-    private fun processDirectoryAndCleanUp(): Mono<Void> {
+    private fun processDirectoryAndCleanUp(directory: Path): Mono<Void> {
         val resultList =
-                (tmpDir.toPath() / "benchmarks")
+                (directory / "benchmarks")
                     .toFile()
                     .walk()
                     .filter { it.isFile }
@@ -97,6 +103,12 @@ class AwesomeBenchmarksDownloadController(
         internal val log = LoggerFactory.getLogger(AwesomeBenchmarksDownloadController::class.java)
 
         @JvmStatic
-        internal val gitDto = GitDto(AWESOME_BENCHMARKS_URL)
+        internal val gitLocation = GitLocation(
+            httpUrl = AWESOME_BENCHMARKS_URL,
+            username = null,
+            token = null,
+            branch = "master",
+            subDirectory = "."
+        )
     }
 }

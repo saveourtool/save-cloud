@@ -25,7 +25,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -106,7 +106,7 @@ class DownloadFilesTest {
 
     @Autowired
     lateinit var webTestClient: WebTestClient
-    
+
     @Autowired
     private lateinit var fileStorage: FileStorage
 
@@ -139,7 +139,7 @@ class DownloadFilesTest {
 
         val sampleFileInfo = tmpFile.toFileInfo()
         val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "The Project"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        fileStorage.upload(ProjectCoordinates("Example.com", "The Project"), fileKey, tmpFile.toByteBufferFlux())
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
@@ -208,8 +208,8 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ShortFileInfo>()
-            .consumeWith {
+            .expectBody<FileInfo>()
+            .consumeWith { result ->
                 Assertions.assertTrue(
                     fileStorage.convertToLatestFileInfo(ProjectCoordinates("Huawei", "huaweiName"), Flux.just(it.responseBody!!))
                         .map(FileInfo::sizeBytes)

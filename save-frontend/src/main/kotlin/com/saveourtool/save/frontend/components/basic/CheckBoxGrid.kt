@@ -34,7 +34,7 @@ external interface CheckBoxGridProps : PropsWithChildren {
     /**
      * Currently selected elements
      */
-    var selectedStandardSuites: MutableList<String>
+    var selectedStandardSuiteIds: MutableList<Long>
 
     /**
      * A list of [TestSuiteDto]s which should be displayed on the grid
@@ -113,12 +113,12 @@ fun checkBoxGrid() =
                                         input {
                                             type = InputType.checkbox
                                             className = ClassName("mr-2")
-                                            defaultChecked = props.selectedStandardSuites.contains(suite.name)
+                                            defaultChecked = props.selectedStandardSuiteIds.contains(suite.requiredId())
                                             onClick = {
-                                                if (props.selectedStandardSuites.contains(suite.name)) {
-                                                    props.selectedStandardSuites.remove(suite.name)
+                                                if (props.selectedStandardSuiteIds.contains(suite.requiredId())) {
+                                                    props.selectedStandardSuiteIds.remove(suite.requiredId())
                                                 } else {
-                                                    props.selectedStandardSuites.add(suite.name)
+                                                    props.selectedStandardSuiteIds.add(suite.requiredId())
                                                 }
                                             }
                                         }

@@ -307,7 +307,6 @@ class ExecutionController(private val executionService: ExecutionService,
             // for standard suites there is no need for a testRootPath
             "N/A"
         }
-
         executionService.resetMetrics(execution)
         executionService.updateExecutionWithUser(execution, authentication.username())
         val executionRequest = ExecutionRequest(
@@ -334,7 +333,7 @@ class ExecutionController(private val executionService: ExecutionService,
             }
         }
         ?.map {
-            it.testRootPath
+            it.testRootPath()
         }
         ?: emptyList()
 

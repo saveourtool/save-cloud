@@ -7,6 +7,9 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
+import com.saveourtool.save.backend.storage.AvatarKey
+import com.saveourtool.save.backend.storage.AvatarStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
@@ -68,8 +71,8 @@ class DownloadFilesController(
     /**
      * @param organizationName
      * @param projectName
-     * @param creationTimestamp
      * @param authentication
+     * @param fileInfo
      * @return [Mono] with response
      */
     @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/{creationTimestamp}"])
@@ -78,6 +81,7 @@ class DownloadFilesController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @PathVariable creationTimestamp: String,
+        @RequestBody fileInfo: FileInfo,
         authentication: Authentication,
     ) = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.DELETE
@@ -116,9 +120,19 @@ class DownloadFilesController(
         @RequestBody fileKey: FileKey,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
+    ): Mono<ByteBufferFluxResponse> = download(ProjectCoordinates(organizationName, projectName), fileKey)
+
+    /**
+     * @param projectCoordinates
+     * @param fileKey
+     */
+    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun download(
+        @RequestPart("projectCoordinates") projectCoordinates: ProjectCoordinates,
+        @RequestPart("fileKey") fileKey: FileKey
     ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileKey.name} to a client")
-        val content = fileStorage.download(ProjectCoordinates(organizationName, projectName), fileKey)
+        val content = fileStorage.download(projectCoordinates, fileKey)
         ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(content)
@@ -135,7 +149,7 @@ class DownloadFilesController(
         )
 
     /**
-     * @param file a file to be uploaded
+     * @param fileMono a file to be uploaded
      * @param returnShortFileInfo whether return FileInfo or ShortFileInfo
      * @param organizationName
      * @param projectName
@@ -145,7 +159,7 @@ class DownloadFilesController(
     @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Suppress("UnsafeCallOnNullableType")
     fun upload(
-        @RequestPart("file") file: Mono<FilePart>,
+        @RequestPart("file") fileMono: Mono<FilePart>,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
@@ -154,7 +168,7 @@ class DownloadFilesController(
         authentication, projectName, organizationName, Permission.WRITE
     )
         .flatMap {
-            fileStorage.uploadFilePart(file, ProjectCoordinates(organizationName, projectName))
+            fileStorage.uploadFilePart(fileMono, ProjectCoordinates(organizationName, projectName))
         }
         .map { fileInfo ->
             ResponseEntity.status(

@@ -8,8 +8,6 @@ import kotlinx.serialization.Serializable
  *
  * @property project project of new execution
  * @property testSuiteIds test suite ids of new execution
- * @property resourcesRootPath path to resources of new execution
- * @property version version of new execution
  * @property execCmd execCmd for SAVE-cli for testing in standard mode
  * @property batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
  */
@@ -17,8 +15,6 @@ import kotlinx.serialization.Serializable
 data class ExecutionInitializationDto(
     val project: Project,
     val testSuiteIds: List<Long>,
-    val resourcesRootPath: String,
-    val version: String,
     val execCmd: String?,
     val batchSizeForAnalyzer: String?,
 )

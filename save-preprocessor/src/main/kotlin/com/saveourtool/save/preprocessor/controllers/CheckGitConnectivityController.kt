@@ -1,12 +1,13 @@
 package com.saveourtool.save.preprocessor.controllers
 
+import com.saveourtool.save.preprocessor.utils.detectLatestSha1
+import com.saveourtool.save.testsuite.GitLocation
+
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
 /**
@@ -14,8 +15,6 @@ import reactor.core.publisher.Mono
  */
 @RestController
 class CheckGitConnectivityController {
-    private val log = LoggerFactory.getLogger(CheckGitConnectivityController::class.java)
-
     /**
      * Endpoint used to check git credentials and git url
      *
@@ -44,5 +43,36 @@ class CheckGitConnectivityController {
                 false
             }
         )
+    }
+
+    /**
+     * @param gitLocation
+     */
+    @PostMapping("/git/detect-latest-sha1")
+    fun detectLatestSha1(
+        @RequestBody gitLocation: GitLocation
+    ): Mono<String> {
+        log.info("Received a request to detect latest sha1 for $gitLocation")
+        return Mono.just(
+            gitLocation.detectLatestSha1()
+        )
+    }
+
+    /**
+     * @param gitLocation
+     * @return default branch name
+     */
+    @PostMapping("/git/detect-default-branch-name")
+    fun detectDefaultBranchName(
+        @RequestBody gitLocation: GitLocation
+    ): Mono<String> {
+        log.info("Received a request to detect latest sha1 for $gitLocation")
+        return Mono.just(
+            gitLocation.detectLatestSha1()
+        )
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CheckGitConnectivityController::class.java)
     }
 }
