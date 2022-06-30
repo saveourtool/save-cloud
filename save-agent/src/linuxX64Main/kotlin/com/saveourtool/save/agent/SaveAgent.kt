@@ -167,15 +167,22 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     @Suppress("MagicNumber")
-    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(
-            config.cliCommand.let {
-                "$it $cliArgs"
-            } + " --report-type json --result-output file --log all",
-            "",
-            config.logFilePath.toPath(),
-            1_000_000L
-        )
+    private fun runSave(cliArgs: String): ExecutionResult {
+        val fullCliCommand = buildString {
+            append(config.cliCommand)
+            append(" $cliArgs")
+            append(" --report-type json")
+            append(" --report-dir ${config.save.reportDir}")
+            append(" --log ${config.save.logType.name.lowercase()}")
+        }
+        return ProcessBuilder(true, FileSystem.SYSTEM)
+            .exec(
+                fullCliCommand,
+                "",
+                config.logFilePath.toPath(),
+                1_000_000L
+            )
+    }
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
@@ -231,7 +238,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private fun CoroutineScope.handleSuccessfulExit() {
-        val jsonReport = "save.out.json"
+        val jsonReport = "${config.save.reportDir}/save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
         }
