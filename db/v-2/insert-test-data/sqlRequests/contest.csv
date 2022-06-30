@@ -1,0 +1,6 @@
+id;name;status;start_time;end_time;description
+1;"ActiveContest1";"CREATED";"2021-01-01 00:00:00";"2025-01-01 00:00:00";"Test Contest 1"
+2;"ActiveContest2";"CREATED";"2021-06-15 09:15:00";"2023-01-01 00:00:00";"Test Contest 2"
+3;"FinishedContest1";"CREATED";"2021-06-15 09:15:00";"2022-06-15 09:15:00";"Finished Contest 1"
+4;"FinishedContest2";"CREATED";"2021-01-01 00:00:00";"2022-01-15 09:15:00";"Finished Contest 2"
+5;"DeletedContest";"DELETED";"2021-01-01 00:00:00";"2023-01-01 00:00:00";"Deleted Contest"

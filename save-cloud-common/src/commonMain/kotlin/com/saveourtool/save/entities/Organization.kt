@@ -28,7 +28,7 @@ data class Organization(
     var description: String? = null,
 ) {
     /**
-     * id of project
+     * id of organization
      */
     @Id
     @GeneratedValue
