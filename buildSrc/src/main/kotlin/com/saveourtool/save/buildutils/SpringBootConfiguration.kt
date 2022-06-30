@@ -56,6 +56,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("testImplementation", libs.mockito.kotlin)
         add("testImplementation", libs.okhttp)
         add("testImplementation", libs.okhttp.mockwebserver)
+        add("testImplementation", libs.kotest.assertions.core)
     }
 
     configure<SpringBootExtension> {
