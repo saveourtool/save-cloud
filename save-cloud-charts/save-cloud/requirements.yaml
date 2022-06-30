@@ -2,12 +2,17 @@ dependencies:
   - name: grafana
     version: ^5.0.0
     repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled
   - name: prometheus
     version: ^15.8.2
     repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
   - name: promtail
     version: ^4.0.0
     repository: https://grafana.github.io/helm-charts
+    # because promtail is only used in couple with Loki, the share condition here
+    condition: loki.enabled
   - name: loki
     version: ^2.0.0
     repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled

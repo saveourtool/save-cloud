@@ -29,12 +29,7 @@ import okio.Path.Companion.toPath
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -45,9 +40,11 @@ import kotlinx.serialization.modules.subclass
 /**
  * A main class for SAVE Agent
  * @property config
+ * @property coroutineScope a [CoroutineScope] to launch other jobs
  */
 class SaveAgent(internal val config: AgentConfiguration,
-                private val httpClient: HttpClient
+                private val httpClient: HttpClient,
+                private val coroutineScope: CoroutineScope,
 ) {
     /**
      * The current [AgentState] of this agent
@@ -72,15 +69,23 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * Starts save-agent and required jobs in the background and then immediately returns
      *
-     * @param coroutineScope a [CoroutineScope] to launch other jobs
      * @return a descriptor of the main coroutine job
      */
-    fun start(coroutineScope: CoroutineScope): Job {
+    fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
             sendDataToBackend { saveAdditionalData() }
         }
         return coroutineScope.launch { startHeartbeats(this) }
+    }
+
+    /**
+     * Stop this agent by cancelling all jobs on [coroutineScope].
+     * [coroutineScope] is the topmost scope for all jobs, so by cancelling it
+     * we can gracefully shut down the whole application.
+     */
+    fun shutdown() {
+        coroutineScope.cancel()
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
@@ -100,6 +105,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
+                    is TerminateResponse -> shutdown()
                 }
             } else {
                 logErrorCustom("Exception during heartbeat: ${response.exceptionOrNull()?.message}")
@@ -161,15 +167,22 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     @Suppress("MagicNumber")
-    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(
-            config.cliCommand.let {
-                "$it $cliArgs"
-            } + " --report-type json --result-output file --log all",
-            "",
-            config.logFilePath.toPath(),
-            1_000_000L
-        )
+    private fun runSave(cliArgs: String): ExecutionResult {
+        val fullCliCommand = buildString {
+            append(config.cliCommand)
+            append(" $cliArgs")
+            append(" --report-type ${config.save.reportType.name.lowercase()}")
+            append(" --report-dir ${config.save.reportDir}")
+            append(" --log ${config.save.logType.name.lowercase()}")
+        }
+        return ProcessBuilder(true, FileSystem.SYSTEM)
+            .exec(
+                fullCliCommand,
+                "",
+                config.logFilePath.toPath(),
+                1_000_000L
+            )
+    }
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
@@ -225,7 +238,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     private fun CoroutineScope.handleSuccessfulExit() {
-        val jsonReport = "save.out.json"
+        val jsonReport = "${config.save.reportDir}/save.out.json"
         val testExecutionDtos = runCatching {
             readExecutionResults(jsonReport)
         }

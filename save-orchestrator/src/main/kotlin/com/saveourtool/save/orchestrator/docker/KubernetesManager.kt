@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
 
 import com.github.dockerjava.api.DockerClient
@@ -22,6 +23,7 @@ import javax.annotation.PreDestroy
 class KubernetesManager(
     private val dockerClient: DockerClient,
     private val kc: KubernetesClient,
+    private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
     /**
@@ -29,10 +31,11 @@ class KubernetesManager(
      */
     @PreDestroy
     fun close() {
+        logger.info("Closing connection to Kubernetes API server")
         kc.close()
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "MagicNumber")
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
@@ -71,6 +74,7 @@ class KubernetesManager(
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
+                                runtimeClassName = configProperties.docker.runtime
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
@@ -92,10 +96,18 @@ class KubernetesManager(
         kc.batch().v1()
             .jobs()
             .create(job)
-        return kc.pods().withLabel("baseImageId", baseImageId)
-            .list()
-            .items
-            .map { it.metadata.name }
+        logger.info("Created Job for execution id=$executionId")
+        // fixme: wait for pods to be created
+        return generateSequence<List<String>> {
+            Thread.sleep(1_000)
+            kc.pods().withLabel("baseImageId", baseImageId)
+                .list()
+                .items
+                .map { it.metadata.name }
+        }
+            .take(10)
+            .firstOrNull { it.isNotEmpty() }
+            ?: emptyList()
     }
 
     override fun start(executionId: Long) {
@@ -111,6 +123,7 @@ class KubernetesManager(
         if (!isDeleted) {
             throw AgentRunnerException("Failed to delete job with name $jobName")
         }
+        logger.debug("Deleted Job for execution id=$executionId")
     }
 
     override fun stopByAgentId(agentId: String): Boolean {
@@ -123,6 +136,7 @@ class KubernetesManager(
         if (!isDeleted) {
             throw AgentRunnerException("Failed to delete pod with name $agentId")
         } else {
+            logger.debug("Deleted pod with name=$agentId")
             return true
         }
     }
@@ -136,6 +150,23 @@ class KubernetesManager(
             kc.batch().v1().jobs()
                 .withName(jobNameForExecution(executionId))
                 .delete()
+        }
+    }
+
+    override fun isAgentStopped(agentId: String): Boolean {
+        val pod = kc.pods().withName(agentId).get()
+        return pod == null || run {
+            // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839
+            val reason = pod.status.phase ?: pod.status.reason
+            val isRunning = pod.status.containerStatuses.any {
+                it.ready && it.state.running != null
+            }
+            logger.debug("Pod name=$agentId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}")
+            if (reason == "Completed" && isRunning) {
+                "ContainerReady" in pod.status.conditions.map { it.type }
+            } else {
+                !isRunning
+            }
         }
     }
 

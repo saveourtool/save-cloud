@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.docker
 import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.config.DockerSettings
+import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
 
 import com.github.dockerjava.api.DockerClient
@@ -91,6 +91,11 @@ class DockerAgentRunner(
             false
         }
     }
+
+    override fun isAgentStopped(agentId: String): Boolean = dockerClient.listContainersCmd()
+        .withStatusFilter(listOf("running"))
+        .exec()
+        .none { container -> container.names.any { it.contains(agentId) } }
 
     override fun cleanup(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
