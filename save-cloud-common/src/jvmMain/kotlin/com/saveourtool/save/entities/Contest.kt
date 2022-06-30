@@ -4,7 +4,6 @@ import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
 import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
@@ -14,7 +13,6 @@ import kotlinx.serialization.Serializable
  * @property description
  */
 @Entity
-@Serializable
 @Suppress("USE_DATA_CLASS")
 data class Contest(
     var name: String,

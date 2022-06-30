@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
  * The repository of contest entities
@@ -20,7 +21,7 @@ JpaSpecificationExecutor<Contest> {
      * @param name
      * @return contest by name
      */
-    fun findByName(name: String): Contest?
+    fun findByName(name: String): Optional<Contest>
 
     /**
      * @param currentTime

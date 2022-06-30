@@ -33,26 +33,24 @@ class ContestService(
      * @param pageSize amount of contests that should be taken
      * @return list of active contests
      */
-    @Suppress("MagicNumber")
-    fun findContestsInProgress(pageSize: Int? = null) = LocalDateTime.now().let {
+    fun findContestsInProgress(pageSize: Int): List<Contest> = LocalDateTime.now().let {
         contestRepository.findByStartTimeBeforeAndEndTimeAfterAndStatus(
             it,
             it,
             ContestStatus.CREATED,
-            Pageable.ofSize(pageSize ?: 10),
+            Pageable.ofSize(pageSize),
         )
-    }.content ?: emptyList()
+    }.content
 
     /**
      * @param pageSize amount of contests that should be taken
      * @return list of active contests
      */
-    @Suppress("MagicNumber")
-    fun findFinishedContests(pageSize: Int? = null) = LocalDateTime.now().let {
+    fun findFinishedContests(pageSize: Int): List<Contest> = LocalDateTime.now().let {
         contestRepository.findByEndTimeBeforeAndStatus(
             it,
             ContestStatus.CREATED,
-            Pageable.ofSize(pageSize ?: 10),
+            Pageable.ofSize(pageSize),
         )
-    }.content ?: emptyList()
+    }.content
 }
