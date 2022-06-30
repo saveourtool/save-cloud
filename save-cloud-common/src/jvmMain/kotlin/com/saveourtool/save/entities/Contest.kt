@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 
 import kotlinx.serialization.Contextual
 
@@ -30,6 +31,19 @@ data class Contest(
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    /**
+     * Create Data Transfer Object in order to pass entity to frontend
+     *
+     * @return [ContestDto]
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun toDto() = ContestDto(
+        name,
+        startTime!!.toKotlinLocalDateTime(),
+        endTime!!.toKotlinLocalDateTime(),
+        description,
+    )
 
     companion object {
         /**

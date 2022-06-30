@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.service.ContestService
 import com.saveourtool.save.backend.utils.justOrNotFound
-import com.saveourtool.save.entities.Contest
+import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.v1
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -35,9 +35,9 @@ internal class ContestController(
     fun getContestsInProgress(
         @RequestParam(defaultValue = "10") pageSize: Int,
         authentication: Authentication?,
-    ): Flux<Contest> = Flux.fromIterable(
+    ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findContestsInProgress(pageSize)
-    )
+    ).map { it.toDto() }
 
     /**
      * @param pageSize amount of contests that should be taken
@@ -49,7 +49,7 @@ internal class ContestController(
     fun getFinishedContests(
         @RequestParam(defaultValue = "10") pageSize: Int,
         authentication: Authentication?,
-    ): Flux<Contest> = Flux.fromIterable(
+    ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findFinishedContests(pageSize)
-    )
+    ).map { it.toDto() }
 }
