@@ -8,27 +8,26 @@ import kotlinx.serialization.Serializable
 
 /**
  * @property name organization
- * @property ownerId organization
- * @property dateCreated date created organization
- * @property avatar
  * @property status
+ * @property startTime the time contest starts
+ * @property endTime the time contest ends
  * @property description
  */
 @Entity
 @Serializable
 @Suppress("USE_DATA_CLASS")
-data class Organization(
+data class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
-    var status: OrganizationStatus,
-    var ownerId: Long? = null,
+    var status: ContestStatus,
     @Contextual
-    var dateCreated: LocalDateTime?,
-    var avatar: String? = null,
+    var startTime: LocalDateTime?,
+    @Contextual
+    var endTime: LocalDateTime?,
     var description: String? = null,
 ) {
     /**
-     * id of organization
+     * id of contest
      */
     @Id
     @GeneratedValue
@@ -38,17 +37,18 @@ data class Organization(
         /**
          * Create a stub for testing.
          *
-         * @param id id of created organization
+         * @param id id of created
+         * @param status
          * @return an organization
          */
         fun stub(
             id: Long?,
-        ) = Organization(
+            status: ContestStatus = ContestStatus.CREATED
+        ) = Contest(
             name = "stub",
-            status = OrganizationStatus.CREATED,
-            ownerId = -1,
-            dateCreated = null,
-            avatar = null,
+            status = status,
+            startTime = null,
+            endTime = null,
         ).apply {
             this.id = id
         }

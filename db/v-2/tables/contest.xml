@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="contest-1" author="sanyavertolet" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="contest"/>
+      </not>
+    </preConditions>
+    <createTable tableName="contest">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="name" type="varchar(250)" />
+      <column name="status" type="varchar(250)" defaultValue="CREATED"/>
+      <column name="start_time" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_time" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="varchar(1024)"/>
+    </createTable>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="contest" />
+    </rollback>
+
+    <addUniqueConstraint tableName="contest" columnNames="name" constraintName="uq_contest_name"/>
+  </changeSet>
+
+</databaseChangeLog>
