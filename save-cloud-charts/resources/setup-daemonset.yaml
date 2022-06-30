@@ -24,7 +24,9 @@ spec:
                   fieldPath: spec.nodeName
           command: [ "/bin/sh", "-c" ]
           args:
-            - wget https://raw.githubusercontent.com/saveourtool/save-cloud/master/save-deploy/install-gvisor.sh -O - | sh
+            - |
+              cd /k8s-node &&
+              wget https://raw.githubusercontent.com/saveourtool/save-cloud/master/save-deploy/install-gvisor.sh -O - | sh
           securityContext:
             privileged: true
             readOnlyRootFilesystem: true
