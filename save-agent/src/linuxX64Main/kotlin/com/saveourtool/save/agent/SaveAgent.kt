@@ -171,7 +171,7 @@ class SaveAgent(internal val config: AgentConfiguration,
         val fullCliCommand = buildString {
             append(config.cliCommand)
             append(" $cliArgs")
-            append(" --report-type json")
+            append(" --report-type ${config.save.reportType.name.lowercase()}")
             append(" --report-dir ${config.save.reportDir}")
             append(" --log ${config.save.logType.name.lowercase()}")
         }

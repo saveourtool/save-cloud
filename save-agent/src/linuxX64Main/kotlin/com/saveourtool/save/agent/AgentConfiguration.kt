@@ -5,6 +5,7 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.core.config.LogType
+import com.saveourtool.save.core.config.ReportType
 
 import platform.posix.getenv
 
@@ -86,11 +87,13 @@ data class RetryConfig(
 )
 
 /**
+ * @property reportType corresponds to flag `--report-type` of save-cli
  * @property reportDir corresponds to flag `--report-dir` of save-cli
  * @property logType corresponds to flag `--log` of save-cli
  */
 @Serializable
 data class SaveCliConfig(
+    val reportType: ReportType = ReportType.JSON,
     val reportDir: String = "save-reports",
     val logType: LogType = LogType.ALL,
 )
