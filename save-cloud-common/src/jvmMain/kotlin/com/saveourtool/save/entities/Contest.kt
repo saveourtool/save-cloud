@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
 
 import kotlinx.serialization.Contextual
 
@@ -40,8 +39,8 @@ data class Contest(
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ContestDto(
         name,
-        startTime!!.toKotlinLocalDateTime(),
-        endTime!!.toKotlinLocalDateTime(),
+        startTime!!,
+        endTime!!,
         description,
     )
 

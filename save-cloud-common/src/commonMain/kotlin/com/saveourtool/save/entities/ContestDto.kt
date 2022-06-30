@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
-import kotlinx.datetime.LocalDateTime
+import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
@@ -14,7 +15,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ContestDto(
     val name: String,
+    @Contextual
     val startTime: LocalDateTime,
+    @Contextual
     val endTime: LocalDateTime,
     val description: String?,
 )

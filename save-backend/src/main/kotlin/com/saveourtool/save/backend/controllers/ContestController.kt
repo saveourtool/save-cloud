@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 /**
  * Controller for working with contests.
@@ -23,7 +24,8 @@ internal class ContestController(
      */
     @GetMapping("/{contestName}")
     @PreAuthorize("permitAll()")
-    fun getContestByName(@PathVariable contestName: String) = justOrNotFound(contestService.findByName(contestName))
+    fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = justOrNotFound(contestService.findByName(contestName))
+        .map { it.toDto() }
 
     /**
      * @param pageSize amount of contests that should be taken
