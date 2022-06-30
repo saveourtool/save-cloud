@@ -57,7 +57,7 @@ mysql:
 # Values for dependencies
 grafana:
   image:
-    tag: 8.4.5
+    tag: 9.0.1
   service:
     port: 9100
   persistence:
@@ -79,7 +79,7 @@ prometheus:
     enabled: false
   server:
     image:
-      tag: v2.35.0
+      tag: v2.36.2
   pushgateway:
     enabled: false
   serverFiles:
