@@ -313,7 +313,7 @@ class ExecutionController(private val executionService: ExecutionService,
             executionId = execution.id
         )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution?executionType=$executionType")
+            .uri("/rerunExecution")
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()
