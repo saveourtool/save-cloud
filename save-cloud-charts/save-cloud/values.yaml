@@ -84,7 +84,10 @@ prometheus:
     enabled: false
   server:
     image:
-      tag: v2.35.0
+      tag: v2.36.2
+    strategy:
+      # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
+      type: Recreate
   pushgateway:
     enabled: false
   serverFiles:
@@ -121,9 +124,10 @@ promtail:
             level:
       extraRelabelConfigs:
         - action: keep
-          regex: true
-          source_labels: [__meta_kubernetes_pod_labelpresent_io_kompose_service]
-
+          regex: .*true.*
+          source_labels:
+            - __meta_kubernetes_pod_labelpresent_io_kompose_service
+            - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
   tag: 2.5.0
