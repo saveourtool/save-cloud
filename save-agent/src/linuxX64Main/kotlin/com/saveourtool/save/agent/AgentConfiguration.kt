@@ -4,6 +4,9 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.core.config.LogType
+import com.saveourtool.save.core.config.ReportType
+
 import platform.posix.getenv
 
 import kotlinx.cinterop.toKString
@@ -21,6 +24,7 @@ import kotlinx.serialization.Serializable
  * @property debug whether debug logging should be enabled
  * @property retry configuration for HTTP request retries
  * @property logFilePath path to logs of save-cli execution
+ * @property save additional configuration for save-cli
  */
 @Serializable
 data class AgentConfiguration(
@@ -32,7 +36,8 @@ data class AgentConfiguration(
     val retry: RetryConfig,
     val debug: Boolean = false,
     val cliCommand: String,
-    val logFilePath: String = "logs.txt"
+    val logFilePath: String = "logs.txt",
+    val save: SaveCliConfig = SaveCliConfig(),
 ) {
     /**
      * If [id] references an environment variable, reads its value and returns the actual ID of the agent.
@@ -79,4 +84,16 @@ data class BackendConfig(
 data class RetryConfig(
     val attempts: Int,
     val initialRetryMillis: Long,
+)
+
+/**
+ * @property reportType corresponds to flag `--report-type` of save-cli
+ * @property reportDir corresponds to flag `--report-dir` of save-cli
+ * @property logType corresponds to flag `--log` of save-cli
+ */
+@Serializable
+data class SaveCliConfig(
+    val reportType: ReportType = ReportType.JSON,
+    val reportDir: String = "save-reports",
+    val logType: LogType = LogType.ALL,
 )
