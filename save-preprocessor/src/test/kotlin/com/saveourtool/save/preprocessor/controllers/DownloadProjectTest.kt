@@ -226,9 +226,9 @@ class DownloadProjectTest(
         bodyBuilder.part("fileInfo", FileInfo(binFile.name, property.lastModified(), property.toPath().fileSize(), true))
         bodyBuilder.part("file", FileSystemResource(binFile))
 
-        // /findAllStandardTestSuiteIdsByName
+        // /test-suites/standard/ids-by-name
         mockServerBackend.enqueue(
-            "/findAllStandardTestSuiteIdsByName",
+            "/test-suites/standard/ids-by-name",
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")

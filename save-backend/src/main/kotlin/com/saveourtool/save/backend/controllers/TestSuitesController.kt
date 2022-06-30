@@ -58,7 +58,7 @@ class TestSuitesController(
      * @param names list of test suite names
      * @return response with IDs of standard test suites with name from provided list
      */
-    @PostMapping("/internal/findAllStandardTestSuiteIdsByName")
+    @PostMapping("/internal/test-suites/standard/ids-by-name")
     fun findAllStandardTestSuiteIdsByName(@RequestBody names: List<String>) =
             ResponseEntity.status(HttpStatus.OK)
                 .body(names.flatMap { name -> testSuitesService.findStandardTestSuitesByName(name) }

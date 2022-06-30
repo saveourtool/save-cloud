@@ -343,7 +343,7 @@ class DownloadProjectController(
     }
 
     private fun getStandardTestSuiteIds(testSuiteNames: List<String>): Mono<List<Long>> = webClientBackend.post()
-        .uri("/findAllStandardTestSuiteIdsByName")
+        .uri("/test-suites/standard/ids-by-name")
         .bodyValue(testSuiteNames)
         .retrieve()
         .bodyToMono()
