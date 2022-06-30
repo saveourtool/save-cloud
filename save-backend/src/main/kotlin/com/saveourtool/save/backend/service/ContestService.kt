@@ -46,6 +46,7 @@ class ContestService(
      * @param pageSize amount of contests that should be taken
      * @return list of active contests
      */
+    @Suppress("MagicNumber")
     fun findFinishedContests(pageSize: Int? = null) = LocalDateTime.now().let {
         contestRepository.findByEndTimeBeforeAndStatus(
             it,
