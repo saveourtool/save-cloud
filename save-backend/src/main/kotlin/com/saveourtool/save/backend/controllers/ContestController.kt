@@ -51,7 +51,7 @@ internal class ContestController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
-    @GetMapping("/get/finished")
+    @GetMapping("/finished")
     @PreAuthorize("permitAll()")
     fun getFinishedContests(
         @RequestParam(required = false) pageSize: Int? = null,
