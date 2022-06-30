@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.test.TestDto
+import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -102,7 +103,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId, pluginName, Paths.get(testLocation, testName).pathString
+            executionId, pluginName, FilenameUtils.separatorsToUnix(Paths.get(testLocation, testName).pathString)
         )
     }
 

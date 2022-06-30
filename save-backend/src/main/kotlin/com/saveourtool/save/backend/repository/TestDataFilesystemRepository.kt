@@ -7,7 +7,9 @@ import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.entities.TestExecution
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.backend.controllers.CloneRepositoryController
 import okio.Path.Companion.toPath
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -24,9 +26,11 @@ import kotlin.io.path.name
  * A repository for storing additional data associated with test results
  */
 @Repository
-class TestDataFilesystemRepository(configProperties: ConfigProperties,
-                                   private val objectMapper: ObjectMapper,
+class TestDataFilesystemRepository(
+    configProperties: ConfigProperties,
+    private val objectMapper: ObjectMapper,
 ) {
+    private val log = LoggerFactory.getLogger(TestDataFilesystemRepository::class.java)
     /**
      * Root directory for storing test data
      */
@@ -49,6 +53,7 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
         with(testResultDebugInfo) {
             val destination = testResultLocation.toFsResource(executionId).file
             destination.parentFile.mkdirs()
+            log.debug("Writing debug info for $executionId to $destination")
             objectMapper.writeValue(
                 destination,
                 testResultDebugInfo
@@ -61,21 +66,6 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
     )
 
     /**
-     * Get location of additional data for [testExecution]
-     *
-     * @param testExecution a `TestExecution` that exists in the DB
-     * @return path to file with additional data
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    @Transactional
-    fun getLocation(testExecution: TestExecution): Path {
-        val test = testExecution.test
-        val path = Paths.get(test.filePath)
-        val testResultLocation = TestResultLocation(test.testSuite.name, test.pluginName, path.parent.toString(), path.name)
-        return getLocation(testExecution.execution.id!!, testResultLocation)
-    }
-
-    /**
      * Get location of additional data for [testExecutionDto]
      *
      * @param executionId
@@ -85,7 +75,8 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
     @Suppress("UnsafeCallOnNullableType")
     fun getLocation(executionId: Long, testExecutionDto: TestExecutionDto): Path {
         val path = testExecutionDto.filePath.toPath()
-        val testResultLocation = TestResultLocation(testExecutionDto.testSuiteName!!, testExecutionDto.pluginName, path.parent.toString(), path.name)
+        val testResultLocation = TestResultLocation(testExecutionDto.testSuiteName!!, testExecutionDto.pluginName,
+            path.parent.toString(), path.name)
         return getLocation(executionId, testResultLocation)
     }
 
@@ -95,6 +86,12 @@ class TestDataFilesystemRepository(configProperties: ConfigProperties,
      * @return path to file with additional data
      */
     internal fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
-        root / executionId.toString() / pluginName / testSuiteName / testLocation / "$testName-debug.json"
+        root / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName-debug.json"
     }
+
+    /**
+     * remove non valid chars from path to work on windows
+     */
+    private fun sanitizePathName(name: String): String =
+            name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
 }
