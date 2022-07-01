@@ -147,7 +147,7 @@ class SaveCloudClient(
 
         return ExecutionRequestForStandardSuites(
             project = project,
-            testsSuites = userProvidedTestSuites,
+            testSuites = userProvidedTestSuites,
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
