@@ -74,7 +74,7 @@ fun Project.registerSaveCliVersionCheckTask() {
         outputs.file(file)
         outputs.upToDateWhen {
             // cache value of latest save-cli version for 10 minutes to keep request rate to Github reasonable
-            (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
+            (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(0).toMillis()
         }
         doFirst {
             val version = if (saveCoreVersion.endsWith("SNAPSHOT")) {
@@ -102,4 +102,13 @@ fun Project.registerSaveCliVersionCheckTask() {
 fun Project.readSaveCliVersion(): String {
     val file = file(pathToSaveCliVersion)
     return Properties().apply { load(file.reader()) }["version"] as String
+}
+
+/**
+ * @return save-cli file path to copy
+ */
+fun Project.getSaveCliPath(): String {
+    val saveCliVersion = readSaveCliVersion()
+    val saveCliPath = findProperty("saveCliPath") as String? ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
+    return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
 }
