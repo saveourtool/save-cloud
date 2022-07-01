@@ -115,7 +115,7 @@ class Execution(
         matchedChecks,
         expectedChecks,
         unexpectedChecks,
-        additionalFiles?.split(";")?.filter { it.isNotBlank() },
+        parseAndGetAdditionalFiles(),
     )
 
     /**
@@ -133,11 +133,36 @@ class Execution(
      * @param testSuiteIds list of TestSuite IDs
      */
     fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = testSuiteIds.sorted()
+        this.testSuiteIds = testSuiteIds
+            .distinct()
+            .sorted()
             .joinToString(TEST_SUITE_IDS_DELIMITER)
     }
 
+    /**
+     * Parse and get additionalFiles as List<String>
+     *
+     * @return list of additional files
+     */
+    fun parseAndGetAdditionalFiles(): List<String>? = this.additionalFiles
+        ?.split(ADDITIONAL_FILES_DELIMITER)
+        ?.filter { it.isNotBlank() }
+
+    /**
+     * Appends additional file to existed formatted String
+     *
+     * @param additionalFile a new additional file
+     */
+    fun appendAdditionalFile(additionalFile: String) {
+        additionalFiles = if (!additionalFiles.isNullOrEmpty()) {
+            additionalFiles + ADDITIONAL_FILES_DELIMITER + additionalFile
+        } else {
+            additionalFile
+        }
+    }
+
     companion object {
+        private const val ADDITIONAL_FILES_DELIMITER = ";"
         private const val TEST_SUITE_IDS_DELIMITER = ", "
 
         /**
