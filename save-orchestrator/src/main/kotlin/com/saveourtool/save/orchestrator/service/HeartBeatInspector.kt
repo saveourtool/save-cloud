@@ -50,6 +50,10 @@ class HeartBeatInspector(
                 crashedAgents.add(currentAgentId)
             }
         }
+
+        crashedAgents.removeIf {
+            !dockerService.isAgentRunning(it)
+        }
     }
 
     /**
