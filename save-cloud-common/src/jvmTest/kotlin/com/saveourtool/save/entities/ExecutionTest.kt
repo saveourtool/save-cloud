@@ -39,15 +39,52 @@ internal class ExecutionTest {
     @Test
     fun formatAndSetTestSuiteIds() {
         execution.testSuiteIds = null
+
         execution.formatAndSetTestSuiteIds(emptyList())
         assertEquals("", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L))
         assertEquals("1, 2, 3", execution.testSuiteIds)
+        execution.formatAndSetTestSuiteIds(listOf(4L))
+        assertEquals("4", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(3L, 2L, 1L))
         assertEquals("1, 2, 3", execution.testSuiteIds)
+
+        execution.testSuiteIds = null
+        execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
+        assertEquals("1, 2, 3", execution.testSuiteIds)
+    }
+
+    @Test
+    fun parseAndGetAdditionalFiles() {
+        execution.additionalFiles = null
+        assertNull(execution.parseAndGetAdditionalFiles())
+
+        execution.additionalFiles = "file1;file2;file3"
+        assertNotNull(execution.parseAndGetAdditionalFiles()) {
+            assertEquals(listOf("file1", "file2", "file3"), it)
+        }
+
+        execution.additionalFiles = "file3;file2;file1"
+        assertNotNull(execution.parseAndGetAdditionalFiles()) {
+            assertEquals(listOf("file3", "file2", "file1"), it)
+        }
+    }
+
+    @Test
+    fun appendAdditionalFile() {
+        execution.additionalFiles = null
+
+        execution.appendAdditionalFile("file1")
+        assertEquals("file1", execution.additionalFiles)
+
+        execution.appendAdditionalFile("file3")
+        assertEquals("file1;file3", execution.additionalFiles)
+
+        execution.appendAdditionalFile("file2")
+        assertEquals("file1;file3;file2", execution.additionalFiles)
     }
 }

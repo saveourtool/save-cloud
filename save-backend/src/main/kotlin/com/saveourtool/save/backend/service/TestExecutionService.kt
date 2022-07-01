@@ -10,8 +10,11 @@ import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.error
+import com.saveourtool.save.utils.getLogger
+import org.slf4j.Logger
 
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -35,7 +38,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                            private val executionRepository: ExecutionRepository,
                            transactionManager: PlatformTransactionManager,
 ) {
-    private val log = LoggerFactory.getLogger(TestExecutionService::class.java)
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
     private val transactionTemplate = TransactionTemplate(transactionManager).apply {
         propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
@@ -215,8 +217,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     failedTests += counters.failed
                     skippedTests += counters.skipped
 
-                    matchedChecks += counters.matchedChecks
                     unmatchedChecks += counters.unmatchedChecks
+                    matchedChecks += counters.matchedChecks
                     expectedChecks += counters.expectedChecks
                     unexpectedChecks += counters.unexpectedChecks
                 }
@@ -227,40 +229,39 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param testIds IDs of the tests, which will be executed
      * @param executionId ID of the [Execution], during which these tests will be executed
+     * @param testIds IDs of the tests, which will be executed
      */
-    fun saveTestExecution(executionId: Long, testIds: List<Long>) {
-        log.debug("Will create test executions for executionId=$executionId for tests $testIds")
+    fun saveTestExecutions(executionId: Long, testIds: List<Long>) {
+        log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
         val execution = executionRepository.findById(executionId).get()
-        execution.allTests += testIds.size
-        executionRepository.save(execution)
         testIds.map { testId ->
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
                 log.debug("For execution with id=$executionId test id=$testId already exists in DB, deleting it")
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
-            testRepository.findById(testId).ifPresentOrElse({ test ->
-                log.debug("Creating TestExecution for test $testId")
-                val id = testExecutionRepository.save(
-                    TestExecution(
-                        test = test,
-                        execution = execution,
-                        agent = null,
-                        status = TestResultStatus.READY_FOR_TESTING,
-                        startTime = null,
-                        endTime = null,
-                        unmatched = 0,
-                        matched = 0,
-                        expected = 0,
-                        unexpected = 0
+            testRepository.findById(testId)
+                .ifPresentOrElse({ test ->
+                    log.debug("Creating TestExecution for test $testId")
+                    val id = testExecutionRepository.save(
+                        TestExecution(
+                            test = test,
+                            execution = execution,
+                            agent = null,
+                            status = TestResultStatus.READY_FOR_TESTING,
+                            startTime = null,
+                            endTime = null,
+                            unmatched = null,
+                            matched = null,
+                            expected = null,
+                            unexpected = null,
+                        )
                     )
+                    log.debug { "Created TestExecution $id for test $testId" }
+                },
+                    { log.error { "Can't find test with id = $testId to save in testExecution" } }
                 )
-                log.debug("Created TestExecution $id for test $testId")
-            },
-                { log.error("Can't find test with id = $testId to save in testExecution") }
-            )
         }
     }
 
@@ -356,5 +357,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         // note: missedResults = expectedResults - matchedResults
     ) {
         fun total() = passed + failed + skipped
+    }
+
+    private companion object {
+        private val log: Logger = getLogger<TestExecutionService>()
     }
 }
