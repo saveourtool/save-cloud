@@ -4,15 +4,12 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
-import com.saveourtool.save.entities.TestExecution
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.backend.controllers.CloneRepositoryController
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -31,6 +28,7 @@ class TestDataFilesystemRepository(
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(TestDataFilesystemRepository::class.java)
+
     /**
      * Root directory for storing test data
      */

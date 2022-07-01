@@ -60,15 +60,15 @@ class TestService(
                     log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
                     it
                 }
-                .orElseGet {
-                    log.trace("Test $testDto is not found in the DB, will save it")
-                    // FIXME: TestSuite should be found instead of creating a stub
-                    val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                        id = testDto.testSuiteId
+                    .orElseGet {
+                        log.trace("Test $testDto is not found in the DB, will save it")
+                        // FIXME: TestSuite should be found instead of creating a stub
+                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
+                            id = testDto.testSuiteId
+                        }
+                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
                     }
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
-                }
-        }
+            }
             .partition { it.id != null }
         testRepository.saveAll(nonExistentTests)
         return (existingTests + nonExistentTests).map { it.requiredId() }
