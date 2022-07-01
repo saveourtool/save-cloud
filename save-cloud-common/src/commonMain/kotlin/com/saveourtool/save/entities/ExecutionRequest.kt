@@ -44,7 +44,7 @@ data class ExecutionRequest(
 
 /**
  * @property project
- * @property testsSuites
+ * @property testSuites
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
@@ -53,7 +53,7 @@ data class ExecutionRequest(
 @Serializable
 data class ExecutionRequestForStandardSuites(
     override val project: Project,
-    val testsSuites: List<String>,
+    val testSuites: List<String>,
     override val sdk: Sdk,
     val execCmd: String?,
     val batchSizeForAnalyzer: String?,

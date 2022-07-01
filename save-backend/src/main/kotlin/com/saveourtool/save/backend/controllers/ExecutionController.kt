@@ -84,14 +84,6 @@ class ExecutionController(private val executionService: ExecutionService,
     }
 
     /**
-     * @param execution
-     */
-    @PostMapping("/internal/updateExecution")
-    fun updateExecution(@RequestBody execution: Execution) {
-        executionService.updateExecution(execution)
-    }
-
-    /**
      * Get execution by id
      *
      * @param id id of execution
@@ -321,7 +313,7 @@ class ExecutionController(private val executionService: ExecutionService,
             executionId = execution.id
         )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution?executionType=$executionType")
+            .uri("/rerunExecution")
             .bodyValue(executionRequest)
             .retrieve()
             .bodyToMono()

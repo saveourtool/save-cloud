@@ -91,8 +91,7 @@ class TestDiscoveringService {
             if (plugins.isEmpty() || generalConfig == null) {
                 return@flatMap emptySequence()
             }
-            val testSuite = testSuites.firstOrNull { it.name == generalConfig.suiteName }
-            requireNotNull(testSuite) {
+            val testSuite = requireNotNull(testSuites.firstOrNull { it.name == generalConfig.suiteName }) {
                 "No test suite matching name=${generalConfig.suiteName} is provided. Provided names are: ${testSuites.map { it.name }}"
             }
             plugins.asSequence().flatMap { plugin ->
