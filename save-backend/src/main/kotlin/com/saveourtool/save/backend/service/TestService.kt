@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -50,21 +51,24 @@ class TestService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveTests(tests: List<TestDto>): List<Long> {
-        val (existingTests, nonExistentTests) = tests.map { testDto ->
-            // only match fields that are present in DTO
-            testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
-                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
-                it
-            }
-                .orElseGet {
-                    log.trace("Test $testDto is not found in the DB, will save it")
-                    // FIXME: TestSuite should be found instead of creating a stub
-                    val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                        id = testDto.testSuiteId
-                    }
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+        val (existingTests, nonExistentTests) = tests
+            .map { testDto -> testDto.copy(filePath = FilenameUtils.separatorsToUnix(testDto.filePath)) }
+            .map { testDto ->
+                // only match fields that are present in DTO
+                testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash,
+                    testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
+                    log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
+                    it
                 }
-        }
+                    .orElseGet {
+                        log.trace("Test $testDto is not found in the DB, will save it")
+                        // FIXME: TestSuite should be found instead of creating a stub
+                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
+                            id = testDto.testSuiteId
+                        }
+                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                    }
+            }
             .partition { it.id != null }
         testRepository.saveAll(nonExistentTests)
         return (existingTests + nonExistentTests).map { it.requiredId() }

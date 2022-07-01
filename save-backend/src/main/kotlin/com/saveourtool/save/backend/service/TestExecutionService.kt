@@ -13,8 +13,9 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
-import org.slf4j.Logger
 
+import org.apache.commons.io.FilenameUtils
+import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -104,7 +105,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      */
     internal fun getTestExecution(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
         testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(
-            executionId, pluginName, Paths.get(testLocation, testName).pathString
+            executionId, pluginName, FilenameUtils.separatorsToUnix(Paths.get(testLocation, testName).pathString)
         )
     }
 

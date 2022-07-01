@@ -28,12 +28,12 @@ Deployment is performed on server via docker swarm or locally via docker-compose
   * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
   * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above.
     This file is configured to be read from `$HOME/configs`; you can use the one from the repository as an example.
-* [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
+* [`docker-compose.yaml`](../docker-compose.yaml) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
 ## Override configuration per server
 If you wish to customize services configuration externally (i.e. leaving docker images intact), this is possible via additional properties files.
-In [docker-compose.yaml.template](../docker-compose.yaml.template) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
+In [docker-compose.yaml](../docker-compose.yaml) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
 `application.properties` file, it will override config from default `application.properties`.
 
 ## Running behind proxy
@@ -105,6 +105,6 @@ File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-avai
 
 # Adding a new service
 Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
-* Add it to [docker-compose.yaml.template](../docker-compose.yaml.template)
+* Add it to [docker-compose.yaml](../docker-compose.yaml)
 * Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/com/saveourtool/save/buildutils/DockerStackConfiguration.kt)
   so that config directory is created (if it's another Spring Boot service)
