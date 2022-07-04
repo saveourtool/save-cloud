@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 /**
  * Background inspector, which detect crashed agents
@@ -51,8 +52,13 @@ class HeartBeatInspector(
             }
         }
 
-        crashedAgents.removeIf {
-            !dockerService.isAgentRunning(it)
+        crashedAgents.removeIf { agentId ->
+            dockerService.isAgentStopped(agentId)
+        }
+        agentsLatestHeartBeatsMap.filterKeys { agentId ->
+            dockerService.isAgentStopped(agentId)
+        }.forEach { (agentId, _) ->
+            agentsLatestHeartBeatsMap.remove(agentId)
         }
     }
 
