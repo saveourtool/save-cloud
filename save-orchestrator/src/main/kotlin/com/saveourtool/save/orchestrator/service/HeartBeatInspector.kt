@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 
 /**
  * Background inspector, which detect crashed agents

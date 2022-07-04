@@ -187,7 +187,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             )
     }
 
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TYPE_ALIAS")
     private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionDto>> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
