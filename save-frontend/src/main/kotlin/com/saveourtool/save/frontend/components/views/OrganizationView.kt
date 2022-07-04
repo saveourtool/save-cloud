@@ -195,6 +195,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         useServerPaging = false,
         usePageSelection = false,
     )
+    private val projectScoreCardComponent = projectScoreCard()
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -536,8 +537,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     ).unsafeMap {
         it.decodeFromJsonString<ImageInfo>()
     }
-
-    private val projectScoreCardComponent = projectScoreCard()
 
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return

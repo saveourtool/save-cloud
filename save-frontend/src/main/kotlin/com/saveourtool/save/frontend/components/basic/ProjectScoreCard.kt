@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import csstype.*
+import react.FC
 import react.Props
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
@@ -10,7 +11,6 @@ import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-import react.FC
 
 import kotlinx.js.jso
 
@@ -89,7 +89,7 @@ fun projectScoreCard() = FC<ProjectScoreCardProps> { props ->
                             className = ClassName("progress progress-sm mr-2")
                             div {
                                 className = ClassName("progress-bar bg-info")
-                                role = AriaRole.progressbar
+                                role = "progressbar".unsafeCast<AriaRole>()
                                 style = jso {
                                     width = "${props.contestScore}%".unsafeCast<Width>()
                                 }
