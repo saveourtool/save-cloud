@@ -10,7 +10,7 @@ import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-import react.fc
+import react.FC
 
 import kotlinx.js.jso
 
@@ -26,7 +26,7 @@ external interface ProjectScoreCardProps : Props {
     /**
      * Score of a project in a contest
      */
-    var contestScore: Long
+    var contestScore: Double
 }
 
 /**
@@ -35,25 +35,25 @@ external interface ProjectScoreCardProps : Props {
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun projectScoreCard() = fc<ProjectScoreCardProps> { props ->
+fun projectScoreCard() = FC<ProjectScoreCardProps> { props ->
     div {
-        attrs.className = ClassName("card border-left-info shadow h-70 py-2")
+        className = ClassName("card border-left-info shadow h-70 py-2")
         div {
-            attrs.className = ClassName("card-body")
+            className = ClassName("card-body")
             div {
-                attrs.className = ClassName("row no-gutters align-items-center")
+                className = ClassName("row no-gutters align-items-center")
                 div {
-                    attrs.className = ClassName("col-12 row mr-2")
-                    attrs.style = jso {
+                    className = ClassName("col-12 row mr-2")
+                    style = jso {
                         justifyContent = JustifyContent.spaceAround
                         display = Display.flex
                         alignItems = AlignItems.center
                     }
                     div {
-                        attrs.className = ClassName("col-1")
+                        className = ClassName("col-1")
                         div {
-                            attrs.className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2")
-                            attrs.style = jso {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2")
+                            style = jso {
                                 justifyContent = JustifyContent.center
                                 display = Display.flex
                                 alignItems = AlignItems.center
@@ -62,8 +62,8 @@ fun projectScoreCard() = fc<ProjectScoreCardProps> { props ->
                             +"Rating"
                         }
                         div {
-                            attrs.className = ClassName("text-center h5 mb-0 font-weight-bold text-gray-800 mt-1 ml-2")
-                            attrs.style = jso {
+                            className = ClassName("text-center h5 mb-0 font-weight-bold text-gray-800 mt-1 ml-2")
+                            style = jso {
                                 justifyContent = JustifyContent.center
                                 display = Display.flex
                                 alignItems = AlignItems.center
@@ -73,10 +73,10 @@ fun projectScoreCard() = fc<ProjectScoreCardProps> { props ->
                         }
                     }
                     div {
-                        attrs.className = ClassName("col-10")
+                        className = ClassName("col-10")
                         div {
                             h6 {
-                                attrs.style = jso {
+                                style = jso {
                                     justifyContent = JustifyContent.center
                                     display = Display.flex
                                     alignItems = AlignItems.center
@@ -86,16 +86,16 @@ fun projectScoreCard() = fc<ProjectScoreCardProps> { props ->
                             }
                         }
                         div {
-                            attrs.className = ClassName("progress progress-sm mr-2")
+                            className = ClassName("progress progress-sm mr-2")
                             div {
-                                attrs.className = ClassName("progress-bar bg-info")
-                                attrs.role = AriaRole.progressbar
-                                attrs.style = jso {
+                                className = ClassName("progress-bar bg-info")
+                                role = AriaRole.progressbar
+                                style = jso {
                                     width = "${props.contestScore}%".unsafeCast<Width>()
                                 }
-                                attrs.ariaValueNow = props.contestScore.toDouble()
-                                attrs.ariaValueMin = 0.0
-                                attrs.ariaValueMax = 100.0
+                                ariaValueNow = props.contestScore
+                                ariaValueMin = 0.0
+                                ariaValueMax = 100.0
                             }
                         }
                     }

@@ -23,7 +23,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * Controller for processing links between users and their roles in organizations
  */
 @RestController
-@RequestMapping("/api/$v1/scores/")
+@RequestMapping("/api/$v1/contests/")
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
 ) {
@@ -34,7 +34,7 @@ class LnkContestProjectController(
      * @return score of a project with [projectName] in contest with [contestName]
      * @throws ResponseStatusException
      */
-    @GetMapping("{contestName}/{projectName}")
+    @GetMapping("{contestName}/{projectName}/scores")
     fun getProjectRatingInContest(
         @PathVariable contestName: String,
         @PathVariable projectName: String,
@@ -53,7 +53,7 @@ class LnkContestProjectController(
      * @return score of all projects in contest with [contestName]
      * @throws ResponseStatusException
      */
-    @GetMapping("/{contestName}")
+    @GetMapping("/{contestName}/scores")
     fun getRatingsInContest(
         @PathVariable contestName: String,
         authentication: Authentication,

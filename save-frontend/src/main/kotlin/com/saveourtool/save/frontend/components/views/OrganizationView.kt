@@ -537,12 +537,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         it.decodeFromJsonString<ImageInfo>()
     }
 
+    private val projectScoreCardComponent = projectScoreCard()
+
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div("col-3 mb-4") {
-            child(projectScoreCard()) {
+            child(projectScoreCardComponent) {
                 attrs.projectName = topProject.name
-                attrs.contestScore = topProject.contestRating
+                attrs.contestScore = topProject.contestRating.toDouble()
             }
         }
     }
