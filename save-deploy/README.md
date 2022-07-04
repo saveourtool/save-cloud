@@ -75,18 +75,19 @@ Usually not the whole stack is required for development. Application logic is pe
 ## Local debugging
 You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
 If you run on windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
-To run on windows and you need to compile save-agent on wsl and put saveCliDistribFilepath to %USERPROFILE%\.gradle\gradle.properties <br/>
-For example: `saveCliDistribFilepath=\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar` <br/>
-If you need to test changes in save-cli also you can compile save-cli on wsl and set saveCliPath and saveCliVersion in %USERPROFILE%\.gradle\gradle.properties <br/>
+To run on windows you need to compile save-agent on wsl and put saveAgentDistribFilepath to %USERPROFILE%\.gradle\gradle.properties <br/>
+For example: <br/> 
+`saveAgentDistribFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar` <br/>
+If you need to test changes in save-cli also you can compile snapshot version of save-cli on wsl <br/> 
+and set saveCliPath and saveCliVersion in %USERPROFILE%\.gradle\gradle.properties <br/>
 For example:<br/>
-`saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable` 
-`saveCliVersion=0.4.0-alpha.0.42+78a24a8`
+`saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable` <br/> 
+`saveCliVersion=0.4.0-alpha.0.42+78a24a8` <br/>
+the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
 
-the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe`
-
-#### Note:
-If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
-manually placed in `save-orchestrator/build/resources/main` before build, and it's version should be provided via `-PsaveCliVersion=...` when executing gradle.
+#### Note: 
+* This works only if snapshot version of save-core is set in lib.version.toml. 
+* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
 | port | description                                |
