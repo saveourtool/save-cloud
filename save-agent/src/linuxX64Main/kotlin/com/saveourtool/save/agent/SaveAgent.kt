@@ -42,6 +42,7 @@ import kotlinx.serialization.modules.subclass
  * @property config
  * @property coroutineScope a [CoroutineScope] to launch other jobs
  */
+@Suppress("AVOID_NULL_CHECKS")
 class SaveAgent(internal val config: AgentConfiguration,
                 private val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
