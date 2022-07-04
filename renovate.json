@@ -38,9 +38,9 @@
       "groupSlug": "all-docker-images"
     },
     {
-      "managers": ["helm-requirements"],
-      "groupName": "all Helm requirements",
-      "groupSlug": "all-helm-requirements"
+      "managers": ["helmv3", "helm-values"],
+      "groupName": "Helm dependencies",
+      "groupSlug": "helm-dependencies"
     }
   ]
 }
