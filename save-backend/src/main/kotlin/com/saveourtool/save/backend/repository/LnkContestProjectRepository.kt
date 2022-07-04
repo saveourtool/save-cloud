@@ -21,6 +21,18 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
     fun findByProject(project: Project): List<LnkContestProject>
 
     /**
+     * @param projectId
+     * @return List of [LnkContestProject] by [projectId]
+     */
+    fun findByProjectId(projectId: Long): List<LnkContestProject>
+
+    /**
+     * @param contestId
+     * @return List of [LnkContestProject] by [contestId]
+     */
+    fun findByContestId(contestId: Long): List<LnkContestProject>
+
+    /**
      * @param contestId
      * @param projectId
      * @return [LnkContestProject] by [contestId] and [projectId]
@@ -28,7 +40,26 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
     fun findByContestIdAndProjectId(contestId: Long, projectId: Long): Optional<LnkContestProject>
 
     /**
-     * Save [LnkContestProject] using only ids and role string.
+     * @param projectIds
+     * @return list of [LnkContestProject] in which [Project]s have ids from [projectIds]
+     */
+    fun findByProjectIdIn(projectIds: Set<Long>): List<LnkContestProject>
+
+    /**
+     * @param contestName
+     * @param projectName
+     * @return link contest-project for project with name [projectName] and contest with name [contestName]
+     */
+    fun findByContestNameAndProjectName(contestName: String, projectName: String): Optional<LnkContestProject>
+
+    /**
+     * @param contestName
+     * @return list of [LnkContestProject] linked to contest with name [contestName]
+     */
+    fun findByContestName(contestName: String): List<LnkContestProject>
+
+    /**
+     * Save [LnkContestProject] using only ids and contest score.
      *
      * @param contestId
      * @param projectId
