@@ -23,20 +23,28 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-// if required, file can be provided manually
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveAgentDistribTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistrib") {
+    enabled = findProperty("saveAgentDistribFilepath") != null
+    src(KotlinClosure0(function = { findProperty("saveAgentDistribFilepath") ?: "file:\\\\" }))
+    File("$buildDir/libs/").mkdirs()
+    dest("$buildDir/libs")
+    overwrite(false)
+}
+
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    dependsOn(downloadSaveAgentDistribTaskProvider)
+
     inputs.file(pathToSaveCliVersion)
 
-    src(KotlinClosure0(function = {
-        val saveCliVersion = readSaveCliVersion()
-        "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
-    }))
+    src(KotlinClosure0(function = { getSaveCliPath() }))
     dest("$buildDir/resources/main")
     overwrite(false)
 }
+
 // since we store save-cli in resources directory, a lot of tasks start using it
 // and gradle complains about missing dependency
 tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
@@ -62,8 +70,10 @@ dependencies {
     if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
         logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
                 " Task `:save-agent:linkReleaseExecutableLinuxX64` would fail without correct libcurl.so. If your changes are about " +
-                "save-agent, please test them on Linux or provide a file `save-agent-distribution.jar` built on Linux."
+                "save-agent, please test them on Linux " +
+                "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
+        runtimeOnly(fileTree("$buildDir/libs"))
     } else {
         runtimeOnly(project(":save-agent", "distribution"))
     }
