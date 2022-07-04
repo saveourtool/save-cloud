@@ -24,21 +24,20 @@ tasks.withType<KotlinCompile> {
 }
 
 val downloadSaveCliDistribTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCliDistrib") {
-    src(KotlinClosure0(function = { findProperty("saveCliDistribFilepath") }))
+    src(KotlinClosure0(function = { findProperty("saveCliDistribFilepath") ?: "file:\\\\" }))
+    File("$buildDir/libs/").mkdirs()
     dest("$buildDir/libs")
     overwrite(false)
 }
 
-// if required, file can be provided manually
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+downloadSaveCliDistribTaskProvider.configure {
+    enabled = findProperty("saveCliDistribFilepath") != null
+}
+
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     dependsOn(downloadSaveCliDistribTaskProvider)
-    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows
-        && hasProperty("saveCliDistribFilepath") ) {
-        dependsOn(downloadSaveCliDistribTaskProvider)
-    }
 
     inputs.file(pathToSaveCliVersion)
 

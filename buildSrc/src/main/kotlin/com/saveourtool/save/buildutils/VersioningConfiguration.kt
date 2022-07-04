@@ -74,7 +74,7 @@ fun Project.registerSaveCliVersionCheckTask() {
         outputs.file(file)
         outputs.upToDateWhen {
             // cache value of latest save-cli version for 10 minutes to keep request rate to Github reasonable
-            (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(0).toMillis()
+            (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
         }
         doFirst {
             val version = if (saveCoreVersion.endsWith("SNAPSHOT")) {

@@ -89,9 +89,8 @@ class DockerAgentRunner(
         } else {
             if (state.status != "exited") {
                 logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
-                false
             }
-            true
+            state.status == "exited"
         }
     }
 
