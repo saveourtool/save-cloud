@@ -20,6 +20,7 @@ import platform.posix.exit
 import platform.posix.signal
 
 import kotlinx.cinterop.staticCFunction
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
@@ -65,10 +66,14 @@ fun main() {
     }
 
     runBlocking {
-        val saveAgent = SaveAgent(config, httpClient, coroutineScope = this)
+        // Launch in a new scope, because we cancel the scope on graceful termination,
+        // and `BlockingCoroutine` shouldn't be cancelled.
+        launch {
+            val saveAgent = SaveAgent(config, httpClient, coroutineScope = this)
 
-        val mainJob = saveAgent.start()
-        mainJob.join()
+            val mainJob = saveAgent.start()
+            mainJob.join()
+        }
     }
     logInfoCustom("Agent is shutting down")
 }

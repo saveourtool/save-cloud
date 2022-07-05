@@ -103,3 +103,12 @@ fun Project.readSaveCliVersion(): String {
     val file = file(pathToSaveCliVersion)
     return Properties().apply { load(file.reader()) }["version"] as String
 }
+
+/**
+ * @return save-cli file path to copy
+ */
+fun Project.getSaveCliPath(): String {
+    val saveCliVersion = readSaveCliVersion()
+    val saveCliPath = findProperty("saveCliPath") as String? ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
+    return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
+}

@@ -1,5 +1,6 @@
 {
   "enabled": true,
+  "dependencyDashboard": true,
   "schedule": [
     "before 4am on Monday"
   ],
