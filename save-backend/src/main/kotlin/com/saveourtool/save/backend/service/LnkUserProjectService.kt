@@ -114,6 +114,13 @@ class LnkUserProjectService(
     fun getAllUsersByProject(project: Project): List<User> = lnkUserProjectRepository.findByProject(project).map { it.user }
 
     /**
+     * @param userId
+     * @return list of [Project]s that are connected to user with [userId]
+     */
+    fun getAllProjectsByUserId(userId: Long): List<Project> = lnkUserProjectRepository.findByUserId(userId)
+        .mapNotNull { it.project }
+
+    /**
      * @param authentication
      * @param project
      * @return the highest of two roles: the one in [project] and global one.

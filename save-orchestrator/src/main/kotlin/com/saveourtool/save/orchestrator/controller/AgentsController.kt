@@ -9,7 +9,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
-import com.saveourtool.save.testsuite.TestSuiteDto
 
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -42,14 +41,12 @@ class AgentsController(
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
      * @param execution
-     * @param testSuiteDtos test suites, selected by user
      * @return OK if everything went fine.
      * @throws ResponseStatusException
      */
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
-    fun initialize(@RequestPart(required = true) execution: Execution,
-                   @RequestPart(required = false) testSuiteDtos: List<TestSuiteDto>?): Mono<BodilessResponseEntity> {
+    fun initialize(@RequestPart(required = true) execution: Execution): Mono<BodilessResponseEntity> {
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
@@ -63,7 +60,7 @@ class AgentsController(
                     "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
             Mono.fromCallable {
                 // todo: pass SDK via request body
-                dockerService.buildBaseImage(execution, testSuiteDtos)
+                dockerService.buildBaseImage(execution)
             }
                 .onErrorResume(DockerException::class) { dex ->
                     log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR", dex)

@@ -20,6 +20,7 @@ import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
+import org.apache.commons.io.FilenameUtils
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -366,7 +367,7 @@ class AgentService(
                                     val testFilePathInStandardDir =
                                             Paths.get(locationInStandardDir)
                                                 .resolve(Paths.get(test.filePath))
-                                    testFilePathInStandardDir.toString()
+                                    FilenameUtils.separatorsToUnix(testFilePathInStandardDir.toString())
                                 }
                             }
                     }

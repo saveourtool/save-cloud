@@ -58,7 +58,7 @@ mysql:
 grafana:
   enabled: false
   image:
-    tag: 8.4.5
+    tag: 9.0.1
   deploymentStrategy:
     # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
     type: Recreate

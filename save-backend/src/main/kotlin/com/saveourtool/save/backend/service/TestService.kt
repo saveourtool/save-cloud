@@ -12,15 +12,18 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
@@ -48,23 +51,27 @@ class TestService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun saveTests(tests: List<TestDto>): List<Long> {
-        val (existingTests, nonExistentTests) = tests.map { testDto ->
-            // only match fields that are present in DTO
-            testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash, testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
-                log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
-                it
-            }
-                .orElseGet {
-                    log.trace("Test $testDto is not found in the DB, will save it")
-                    val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                        id = testDto.testSuiteId
-                    }
-                    Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+        val (existingTests, nonExistentTests) = tests
+            .map { testDto -> testDto.copy(filePath = FilenameUtils.separatorsToUnix(testDto.filePath)) }
+            .map { testDto ->
+                // only match fields that are present in DTO
+                testRepository.findByHashAndFilePathAndTestSuiteIdAndPluginName(testDto.hash,
+                    testDto.filePath, testDto.testSuiteId, testDto.pluginName).map {
+                    log.debug("Test $testDto is already present with id=${it.id} and testSuiteId=${testDto.testSuiteId}")
+                    it
                 }
-        }
+                    .orElseGet {
+                        log.trace("Test $testDto is not found in the DB, will save it")
+                        // FIXME: TestSuite should be found instead of creating a stub
+                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
+                            id = testDto.testSuiteId
+                        }
+                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                    }
+            }
             .partition { it.id != null }
         testRepository.saveAll(nonExistentTests)
-        return (existingTests + nonExistentTests).map { it.id!! }
+        return (existingTests + nonExistentTests).map { it.requiredId() }
     }
 
     /**
@@ -101,6 +108,19 @@ class TestService(
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
             testRepository.findAllByTestSuiteId(testSuiteId)
+
+    /**
+     * @param executionId
+     * @return all tests which has testSuiteId from [execution][com.saveourtool.save.entities.Execution] found by provided [executionId]
+     * @throws ResponseStatusException when execution is not found by [executionId] or found execution doesn't contain testSuiteIds
+     */
+    fun findTestsByExecutionId(executionId: Long): List<Test> {
+        val execution = executionRepository.findById(executionId).orElseThrow {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution (id=$executionId) not found")
+        }
+        return execution.parseAndGetTestSuiteIds()?.flatMap { findTestsByTestSuiteId(it) }
+            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=$executionId) doesn't contain testSuiteIds")
+    }
 
     /**
      * Retrieves a batch of test executions with status `READY_FOR_TESTING` from the datasource and sets their statuses to `RUNNING`

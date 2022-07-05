@@ -134,7 +134,7 @@ fun topBar() = fc<TopBarProps> { props ->
                 }
             }
             li("nav-item") {
-                a(classes = "nav-link me-2") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
                     attrs["style"] = jso<CSSProperties> {
                         width = 9.rem
                     }.unsafeCast<Width>()
@@ -143,7 +143,7 @@ fun topBar() = fc<TopBarProps> { props ->
                 }
             }
             li("nav-item") {
-                a(classes = "nav-link me-2") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
                     attrs["style"] = jso<CSSProperties> {
                         width = 8.rem
                     }.unsafeCast<Width>()
@@ -152,12 +152,20 @@ fun topBar() = fc<TopBarProps> { props ->
                 }
             }
             li("nav-item") {
-                a(classes = "nav-link me-2") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
+                    attrs["style"] = jso<CSSProperties> {
+                        width = 6.rem
+                    }.unsafeCast<Width>()
+                    attrs.href = "#/contests"
+                    +"Contests"
+                }
+            }
+            li("nav-item") {
+                a(classes = "nav-link d-flex align-items-center me-2 active") {
                     attrs["style"] = jso<CSSProperties> {
                         width = 6.rem
                     }.unsafeCast<Width>()
                     attrs.href = "https://github.com/saveourtool/save-cloud"
-                    fontAwesomeIcon(icon = faUser, classes = "fa opacity-6 text-dark me-1")
                     +"About"
                 }
             }

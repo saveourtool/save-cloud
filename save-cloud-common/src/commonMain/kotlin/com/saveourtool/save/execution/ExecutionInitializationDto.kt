@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ExecutionInitializationDto(
     val project: Project,
-    val testSuiteIds: String,
+    val testSuiteIds: List<Long>,
     val resourcesRootPath: String,
     val version: String,
     val execCmd: String?,

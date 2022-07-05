@@ -216,6 +216,14 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         +"User Settings"
                     }
                 }
+
+                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
+                    attrs.href = "/#/contests"
+                    h4 {
+                        fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
+                        +"Contests"
+                    }
+                }
             }
         }
     }
