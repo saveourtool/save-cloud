@@ -24,11 +24,11 @@ tasks.withType<KotlinCompile> {
 }
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveAgentDistribTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistrib") {
-    enabled = findProperty("saveAgentDistribFilepath") != null
-    src(KotlinClosure0(function = { findProperty("saveAgentDistribFilepath") ?: "file:\\\\" }))
-    File("$buildDir/libs/").mkdirs()
-    dest("$buildDir/libs")
+val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
+    enabled = findProperty("saveAgentDistroFilepath") != null
+    src(KotlinClosure0(function = { findProperty("saveAgentDistroFilepath") ?: "file:\\\\" }))
+    File("$buildDir/agentDistro/").mkdirs()
+    dest("$buildDir/agentDistro")
     overwrite(false)
 }
 
@@ -36,7 +36,7 @@ val downloadSaveAgentDistribTaskProvider: TaskProvider<Download> = tasks.registe
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    dependsOn(downloadSaveAgentDistribTaskProvider)
+    dependsOn(downloadSaveAgentDistroTaskProvider)
 
     inputs.file(pathToSaveCliVersion)
 
@@ -73,7 +73,7 @@ dependencies {
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
-        runtimeOnly(fileTree("$buildDir/libs"))
+        runtimeOnly(fileTree("$buildDir/agentDistro"))
     } else {
         runtimeOnly(project(":save-agent", "distribution"))
     }
