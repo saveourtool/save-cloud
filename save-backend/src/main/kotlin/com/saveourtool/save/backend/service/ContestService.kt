@@ -1,6 +1,8 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.ContestRepository
+import com.saveourtool.save.backend.repository.TestRepository
+import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
 import org.springframework.data.domain.Pageable
@@ -16,6 +18,8 @@ import java.util.*
 @Service
 class ContestService(
     private val contestRepository: ContestRepository,
+    private val testRepository: TestRepository,
+    private val testSuiteRepository: TestSuiteRepository
 ) {
     /**
      * @param contestId
@@ -53,4 +57,6 @@ class ContestService(
             Pageable.ofSize(pageSize),
         )
     }.content
+
+    // fun getTestFromDb(contest: Contest): Test = testRepository.findFirstByTestSuiteIdIn(contest.testSuiteIds).get()
 }

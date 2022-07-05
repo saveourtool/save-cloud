@@ -11,6 +11,7 @@ import kotlinx.serialization.Contextual
  * @property startTime the time contest starts
  * @property endTime the time contest ends
  * @property description
+ * @property testSuiteIds
  */
 @Entity
 @Suppress("USE_DATA_CLASS")
@@ -23,6 +24,7 @@ data class Contest(
     @Contextual
     var endTime: LocalDateTime?,
     var description: String? = null,
+    var testSuiteIds: String? = null,
 ) {
     /**
      * id of contest

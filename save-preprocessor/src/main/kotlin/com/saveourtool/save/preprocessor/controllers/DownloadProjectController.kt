@@ -20,6 +20,8 @@ import com.saveourtool.save.preprocessor.config.TestSuitesRepo
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.preprocessor.utils.generateDirectory
+import com.saveourtool.save.test.PublicTestDto
+import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
@@ -157,6 +159,20 @@ class DownloadProjectController(
                 .subscribeOn(scheduler)
                 .subscribe()
         }
+
+    /**
+     * @param testFilesRequest
+     * @return [PublicTestDto] filled with test files
+     */
+    @PostMapping("/getTest")
+    @Suppress("UnsafeCallOnNullableType")
+    fun getTest(@RequestBody testFilesRequest: TestFilesRequest): Mono<PublicTestDto> = Mono.just(
+        PublicTestDto(
+            testDiscoveringService.getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.filePath)!!,
+            testDiscoveringService.getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.additionalFiles.firstOrNull()),
+            testFilesRequest.test.tags,
+        )
+    )
 
     /**
      * Accept execution rerun request

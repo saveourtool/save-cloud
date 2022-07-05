@@ -66,7 +66,15 @@ class TestService(
                         val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
                             id = testDto.testSuiteId
                         }
-                        Test(testDto.hash, testDto.filePath, testDto.pluginName, LocalDateTime.now(), testSuiteStub, testDto.tags.joinToString(";"))
+                        Test(
+                            testDto.hash,
+                            testDto.filePath,
+                            testDto.pluginName,
+                            LocalDateTime.now(),
+                            testSuiteStub,
+                            testDto.tags.joinToString(";"),
+                            additionalFiles = testDto.additionalFiles.joinToString(","),
+                        )
                     }
             }
             .partition { it.id != null }
@@ -108,6 +116,13 @@ class TestService(
      */
     fun findTestsByTestSuiteId(testSuiteId: Long) =
             testRepository.findAllByTestSuiteId(testSuiteId)
+
+    /**
+     * @param testSuiteId
+     * @return tests with provided [testSuiteId]
+     */
+    fun findFirstTestByTestSuiteId(testSuiteId: Long) =
+            testRepository.findFirstByTestSuiteId(testSuiteId)
 
     /**
      * @param executionId
