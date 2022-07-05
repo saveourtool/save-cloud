@@ -177,6 +177,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             append(config.cliCommand)
             append(" $cliArgs")
             append(" --report-type ${config.save.reportType.name.lowercase()}")
+            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
             append(" --report-dir ${config.save.reportDir}")
             append(" --result-output ${OutputStreamType.FILE.name.lowercase()}")
             append(" --log ${config.save.logType.name.lowercase()}")
