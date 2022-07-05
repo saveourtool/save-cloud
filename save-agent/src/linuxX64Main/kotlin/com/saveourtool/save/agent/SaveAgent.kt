@@ -7,7 +7,6 @@ import com.saveourtool.save.agent.utils.logErrorCustom
 import com.saveourtool.save.agent.utils.logInfoCustom
 import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.sendDataToBackend
-import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
@@ -179,7 +178,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             append(" --report-type ${config.save.reportType.name.lowercase()}")
             append(" --result-output ${config.save.resultOutput.name.lowercase()}")
             append(" --report-dir ${config.save.reportDir}")
-            append(" --result-output ${OutputStreamType.FILE.name.lowercase()}")
+            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
             append(" --log ${config.save.logType.name.lowercase()}")
         }
         return ProcessBuilder(true, FileSystem.SYSTEM)
