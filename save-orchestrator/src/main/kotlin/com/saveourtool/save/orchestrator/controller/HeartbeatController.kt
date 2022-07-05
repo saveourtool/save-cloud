@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
@@ -66,10 +67,12 @@ class HeartbeatController(private val agentService: AgentService,
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
-            listOf(
-                AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
-            )
+            AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
         )
+            .onErrorResume(WebClientResponseException::class.java) {
+                logger.warn("Couldn't update agent statuses for agent ${heartbeat.agentId}, will skip this heartbeat: ${it.message}")
+                Mono.empty()
+            }
             .then(
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
@@ -81,8 +84,8 @@ class HeartbeatController(private val agentService: AgentService,
                         handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
                     }
                     BUSY -> Mono.just(ContinueResponse)
-                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED, STOPPED_BY_ORCH -> Mono.just(WaitResponse)
-                    CRASHED, TERMINATED -> Mono.fromCallable {
+                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
+                    CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
                         handleIllegallyOnlineAgent(heartbeat.agentId, heartbeat.state)
                         WaitResponse
                     }
@@ -93,6 +96,9 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
+    /**
+     * @param isStarting whether this is the very first heartbeat - if true, then we don't need to check if this agent needs to be shut down
+     */
     private fun handleVacantAgent(agentId: String, isStarting: Boolean = false): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
                 .doOnSuccess {
@@ -103,6 +109,7 @@ class HeartbeatController(private val agentService: AgentService,
                 .zipWhen {
                     // Check if all agents have completed their jobs; after that we can terminate them.
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
+                    //  but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash
                     if (it is WaitResponse && !isStarting) {
                         agentService.areAllAgentsIdleOrFinished(agentId)
                     } else {
@@ -112,7 +119,7 @@ class HeartbeatController(private val agentService: AgentService,
                 .flatMap { (response, shouldStop) ->
                     // to be more like the previous implementation, we wait for all agents to finish before returning
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
+                        agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
                             .thenReturn(TerminateResponse)
                             .doOnSuccess {
                                 logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
@@ -158,6 +165,7 @@ class HeartbeatController(private val agentService: AgentService,
                     agentsLatestHeartBeatsMap.remove(agentId)
                     crashedAgents.remove(agentId)
                 }
+                // Update final execution status, perform cleanup etc.
                 agentService.initiateShutdownSequence(agentId)
             }
             .subscribeOn(agentService.scheduler)

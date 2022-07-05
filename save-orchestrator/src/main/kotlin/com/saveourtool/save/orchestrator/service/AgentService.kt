@@ -100,11 +100,11 @@ class AgentService(
      * @param agentStates list of [AgentStatus]es to update in the DB
      * @return as bodiless entity of response
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
+    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
-                .body(BodyInserters.fromValue(agentStates))
+                .body(BodyInserters.fromValue(agentState))
                 .retrieve()
                 .toBodilessEntity()
 
@@ -295,9 +295,9 @@ class AgentService(
      */
     internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
         updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
-            updateAgentStatusesWithDto(listOf(
+            updateAgentStatusesWithDto(
                 AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
-            ))
+            )
         )
             .doOnSuccess {
                 log.trace("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")

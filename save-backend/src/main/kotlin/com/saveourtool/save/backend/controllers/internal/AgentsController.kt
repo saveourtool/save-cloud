@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
@@ -63,18 +64,21 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @PostMapping("/updateAgentStatusesWithDto")
     @Transactional
-    fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
-        agentStates.forEach { dto ->
-            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(dto.containerId)
-            if (agentStatus != null && agentStatus.state == dto.state) {
+    fun updateAgentStatusesWithDto(@RequestBody agentState: AgentStatusDto) {
+        val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
+        if (agentStatus != null) {
+            val latestState = agentStatus.state
+            if (latestState == AgentState.STOPPED_BY_ORCH || latestState == AgentState.TERMINATED) {
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
+            } else if (agentStatus.state == agentState.state) {
                 // updating time
-                agentStatus.endTime = dto.time
+                agentStatus.endTime = agentState.time
                 agentStatusRepository.save(agentStatus)
-            } else {
-                // insert new agent status
-                val agent = getAgentByContainerId(dto.containerId)
-                agentStatusRepository.save(AgentStatus(dto.time, dto.time, dto.state, agent))
             }
+        } else {
+            // insert new agent status
+            val agent = getAgentByContainerId(agentState.containerId)
+            agentStatusRepository.save(AgentStatus(agentState.time, agentState.time, agentState.state, agent))
         }
     }
 
