@@ -7,7 +7,7 @@
 
     <changeSet id="add-additional-files-column" author="sanyavertolet" context="dev or prod">
         <addColumn tableName="test">
-            <column name="additional_files" type="varchar(255)">
+            <column name="additional_files" type="varchar(255)" defaultValue="">
                 <constraints nullable="false"/>
             </column>
         </addColumn>
