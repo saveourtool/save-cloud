@@ -37,7 +37,7 @@
 
   <changeSet id="add-test_suite_ids-column" author="sanyavertolet">
     <addColumn tableName="contest">
-      <column name="test_suite_ids" type="varchar(500)">
+      <column name="test_suite_ids" type="varchar(500)" defaultValue="">
         <constraints nullable="false"/>
       </column>
     </addColumn>
