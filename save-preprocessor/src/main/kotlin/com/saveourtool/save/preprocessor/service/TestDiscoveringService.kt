@@ -10,12 +10,15 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestFilesContent
+import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
 
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -130,11 +133,19 @@ class TestDiscoveringService {
      * @return list of strings that are present in the file
      */
     fun getTestLinesByPath(pathPrefix: String, testPath: String?) = testPath?.let {
-        (pathPrefix.toPath() / it).toFile()
-            .bufferedReader()
-            .lineSequence()
-            .toList()
+        (pathPrefix.toPath() / it).toFile().readLines()
     }
+
+    /**
+     * @param testFilesRequest request for test files
+     * @return [TestFilesContent] of public tests with additional info
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun getPublicTestFiles(testFilesRequest: TestFilesRequest) = TestFilesContent(
+        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.filePath)!!,
+        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.additionalFiles.firstOrNull()),
+        testFilesRequest.test.tags,
+    )
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
 

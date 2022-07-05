@@ -3,29 +3,32 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.ContestService
 import com.saveourtool.save.backend.service.TestService
-import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.test.PublicTestDto
+import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.v1
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Controller for working with contests.
  */
 @RestController
+@OptIn(ExperimentalStdlibApi::class)
 @RequestMapping(path = ["/api/$v1/contests"])
 internal class ContestController(
     private val contestService: ContestService,
     private val testService: TestService,
-    private val testSuitesService: TestSuitesService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -80,14 +83,19 @@ internal class ContestController(
     @Suppress("UnsafeCallOnNullableType")
     fun getPublicTestForContest(
         @PathVariable contestName: String,
-    ): Mono<PublicTestDto> {
-        val contest = contestService.findByName(contestName).get()
-        val testSuite = testSuitesService.findTestSuiteById(
-            contest.testSuiteIds?.split(",")?.first()?.toLong()!!
-        ).get()
-        val test = testService.findTestsByTestSuiteId(testSuite.id!!).first()
-        val testRequest = TestFilesRequest(test.toDto(), testSuite.testRootPath)
-        return preprocessorWebClient.post().uri("/getTest").bodyValue(testRequest)
-            .retrieve().bodyToMono(PublicTestDto::class.java)
+    ): Mono<TestFilesContent> {
+        val contest = contestService.findByName(contestName).getOrNull()
+            ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        val testSuite = contestService.getTestSuiteForPublicTest(contest)
+            ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        val test = testService.findTestsByTestSuiteId(testSuite.id!!).firstOrNull()
+            ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        return TestFilesRequest(test.toDto(), testSuite.testRootPath).let {
+            preprocessorWebClient.post()
+                .uri("/getTest")
+                .bodyValue(it)
+                .retrieve()
+                .bodyToMono()
+        }
     }
 }

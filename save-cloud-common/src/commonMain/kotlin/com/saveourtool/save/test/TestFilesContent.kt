@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  * @property tags list of tags of current test
  */
 @Serializable
-data class PublicTestDto(
+data class TestFilesContent(
     val testLines: List<String>,
     val expectedLines: List<String>?,
     val tags: List<String> = emptyList(),

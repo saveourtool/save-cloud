@@ -1,25 +1,24 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.ContestRepository
-import com.saveourtool.save.backend.repository.TestRepository
-import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Service for contests
  *
  * @property contestRepository
  */
+@OptIn(ExperimentalStdlibApi::class)
 @Service
 class ContestService(
     private val contestRepository: ContestRepository,
-    private val testRepository: TestRepository,
-    private val testSuiteRepository: TestSuiteRepository
+    private val testSuitesService: TestSuitesService,
 ) {
     /**
      * @param contestId
@@ -58,5 +57,16 @@ class ContestService(
         )
     }.content
 
-    // fun getTestFromDb(contest: Contest): Test = testRepository.findFirstByTestSuiteIdIn(contest.testSuiteIds).get()
+    /**
+     * @param contest
+     * @return test suite that has public test as its part
+     */
+    @Suppress("COMPLEX_EXPRESSION")
+    fun getTestSuiteForPublicTest(contest: Contest) = contest.testSuiteIds
+        ?.split(",")
+        ?.first()
+        ?.toLongOrNull()
+        ?.let {
+            testSuitesService.findTestSuiteById(it)?.getOrNull()
+        }
 }
