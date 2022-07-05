@@ -3,8 +3,6 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
-import kotlinx.serialization.Contextual
-
 /**
  * @property name organization
  * @property status
@@ -19,9 +17,7 @@ data class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: ContestStatus,
-    @Contextual
     var startTime: LocalDateTime?,
-    @Contextual
     var endTime: LocalDateTime?,
     var description: String? = null,
     var testSuiteIds: String? = null,
