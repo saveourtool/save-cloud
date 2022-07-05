@@ -94,10 +94,11 @@ class DockerAgentRunner(
         }
     }
 
-    override fun isAgentStopped(agentId: String): Boolean = dockerClient.listContainersCmd()
-        .withStatusFilter(listOf("running"))
+    override fun isAgentStopped(agentId: String): Boolean = dockerClient.inspectContainerCmd(agentId)
         .exec()
-        .none { container -> container.names.any { it.contains(agentId) } }
+        .state
+        .also { logger.debug("Container $agentId has state $it") }
+        .status != "running"
 
     override fun cleanup(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()
