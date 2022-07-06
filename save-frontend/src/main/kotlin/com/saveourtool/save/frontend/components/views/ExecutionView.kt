@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.basic.executionStatistics
@@ -21,6 +22,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
+import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
@@ -188,6 +190,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 val trdi = getDebugInfoFor(te)
                                 if (trdi.ok) {
                                     cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                                } else {
+                                    val trei = getExecutionInfoFor(te)
+                                    if (trei.ok) {
+                                        cellProps.row.original.asDynamic().executionInfo =
+                                            trdi.decodeFromJsonString<ExecutionUpdateDto>()
+                                    }
                                 }
                                 cellProps.row.toggleRowExpanded()
                             }
@@ -241,10 +249,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
                 ?: run {
+                    val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
+                    val reasonText = trei?.let { it.failReason  } ?: "Debug info not available yet for this test execution"
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available yet for this test execution"
+                            + "$reasonText"
                         }
                     }
                 }

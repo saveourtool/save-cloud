@@ -63,15 +63,17 @@ class AgentsController(
                 dockerService.buildBaseImage(execution)
             }
                 .onErrorResume(DockerException::class) { dex ->
-                    log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR", dex)
-                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
+                    val failReason = "Unable to build image and containers"
+                    log.error("$failReason for executionId=${execution.id}, will mark it as ERROR", dex)
+                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR, failReason).then(Mono.empty())
                 }
                 .map { (baseImageId, agentRunCmd) ->
                     dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    log.error("Unable to create containers for executionId=${execution.id}, will mark it as ERROR", ex)
-                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
+                    val failReason = "Unable to create containers"
+                    log.error("$failReason for executionId=${execution.id}, will mark it as ERROR", ex)
+                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR, failReason).then(Mono.empty())
                 }
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(

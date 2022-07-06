@@ -188,31 +188,14 @@ class AgentService(
                 } else if (agentStatuses.map { it.state }.all {
                     it == CRASHED
                 }) {
-                    updateExecution(executionId, ExecutionStatus.ERROR).then(
-                        markTestExecutionsAsFailed(agentIds, CRASHED)
-                    )
+                    updateExecution(executionId, ExecutionStatus.ERROR,
+                        "All agents for this execution were crashed unexpectedly"
+                    ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
             }
     }
-
-    /**
-     * Marks agent states and then execution state as FINISHED
-     *
-     * @param executionId execution that should be updated
-     * @param finishedAgentIds agents that should be updated
-     * @return a bodiless response entity
-     */
-    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
-            updateAgentStatusesWithDto(
-                finishedAgentIds.map { agentId ->
-                    AgentStatusDto(LocalDateTime.now(), STOPPED_BY_ORCH, agentId)
-                }
-            )
-                .then(
-                    updateExecution(executionId, ExecutionStatus.FINISHED)  // todo: status based on results
-                )
 
     /**
      * Marks the execution to specified state
@@ -221,10 +204,10 @@ class AgentService(
      * @param executionStatus new status for execution
      * @return a bodiless response entity
      */
-    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus): Mono<BodilessResponseEntity> =
+    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
             webClientBackend.post()
                 .uri("/updateExecutionByDto")
-                .bodyValue(ExecutionUpdateDto(executionId, executionStatus))
+                .bodyValue(ExecutionUpdateDto(executionId, executionStatus, failReason))
                 .retrieve()
                 .toBodilessEntity()
 

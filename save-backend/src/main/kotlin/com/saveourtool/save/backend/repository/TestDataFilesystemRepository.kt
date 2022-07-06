@@ -6,10 +6,12 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.execution.ExecutionUpdateDto
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
+import java.io.File
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -62,6 +64,9 @@ class TestDataFilesystemRepository(
     private fun TestResultLocation.toFsResource(executionId: Long) = FileSystemResource(
         getLocation(executionId, this)
     )
+    fun getExecutionInfoFile(executionId: Long) = FileSystemResource(
+        root / executionId.toString() / "execution-info.json"
+    )
 
     /**
      * Get location of additional data for [testExecutionDto]
@@ -92,4 +97,33 @@ class TestDataFilesystemRepository(
      */
     private fun sanitizePathName(name: String): String =
             name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
+
+    fun save(executionInfo: ExecutionUpdateDto) {
+        val destination = getExecutionInfoFile(executionInfo.id).file
+        if (destination.exists()) {
+            val existingExecutionInfo = loadExecutionInfo(destination)
+            save(existingExecutionInfo.copy(
+                failReason = "${existingExecutionInfo.failReason}, ${executionInfo.failReason}"),
+                destination)
+        } else {
+            destination.parentFile.mkdirs()
+            save(executionInfo, destination)
+        }
+    }
+
+    private fun save(executionInfo: ExecutionUpdateDto, destination: File) {
+        log.debug("Writing debug info for ${executionInfo.id} to $destination")
+        objectMapper.writeValue(
+            destination,
+            executionInfo
+        )
+    }
+
+    private fun loadExecutionInfo(destination: File): ExecutionUpdateDto {
+        TODO("Not yet implemented")
+    }
+
+    fun getLocation(executionId: Long): Any {
+        TODO("Not yet implemented")
+    }
 }

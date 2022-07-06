@@ -301,13 +301,14 @@ class DownloadProjectController(
         }
             .onErrorResume { exception ->
                 tmpDir.deleteRecursively()
-                when (exception) {
+                val failReason = when (exception) {
                     is InvalidRemoteException,
                     is TransportException,
-                    is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
-                    else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
+                    is GitAPIException -> "Error with git API while cloning ${gitDto.url} repository"
+                    else -> "Cloning ${gitDto.url} repository failed"
                 }
-                updateExecutionStatus(executionRequest.executionId!!, ExecutionStatus.ERROR).flatMap {
+                log.error(failReason, exception)
+                updateExecutionStatus(executionRequest.executionId!!, ExecutionStatus.ERROR, failReason).flatMap {
                     Mono.error(exception)
                 }
             }
@@ -364,11 +365,12 @@ class DownloadProjectController(
         .toBodilessEntity()
         .then(initializeAgents(this))
         .onErrorResume { ex ->
+            val failReason = "Error during preprocessing"
             log.error(
-                "Error during preprocessing, will mark execution.id=$id as failed; error: ",
+                "$failReason, will mark execution.id=$id as failed; error: ",
                 ex
             )
-            updateExecutionStatus(id!!, ExecutionStatus.ERROR)
+            updateExecutionStatus(id!!, ExecutionStatus.ERROR, failReason)
         }
 
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
@@ -543,9 +545,9 @@ class DownloadProjectController(
     }
         .collectList()
 
-    private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus) =
+    private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus, failReason:String? = null) =
             webClientBackend.makeRequest(
-                BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus)),
+                BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus, failReason)),
                 "/updateExecutionByDto"
             ) { it.toEntity<HttpStatus>() }
                 .doOnSubscribe {

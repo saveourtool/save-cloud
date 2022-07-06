@@ -34,4 +34,5 @@ data class TestExecutionDto(
     val expected: Long?,
     val unexpected: Long?,
     val hasDebugInfo: Boolean? = null,
+    val executionId: Long? = null
 )

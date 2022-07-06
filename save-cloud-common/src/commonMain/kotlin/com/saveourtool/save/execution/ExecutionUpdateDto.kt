@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
  * @property status
  */
 @Serializable
-class ExecutionUpdateDto(
+data class ExecutionUpdateDto(
     val id: Long,
     val status: ExecutionStatus,
+    val failReason: String? = null
 )

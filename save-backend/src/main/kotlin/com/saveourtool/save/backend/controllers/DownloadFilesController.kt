@@ -192,11 +192,7 @@ class DownloadFilesController(
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {
-        val agentContainerId = testExecutionDto.agentContainerId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
-        val execution = agentRepository.findByContainerId(agentContainerId)?.execution
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution for agent $agentContainerId not found")
-        val executionId = execution.id!!
+        val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
         val debugInfoFile = testDataFilesystemRepository.getLocation(
             executionId,
@@ -207,6 +203,39 @@ class DownloadFilesController(
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
             debugInfoFile.readText()
+        }
+    }
+
+    private fun getExecutionId(testExecutionDto: TestExecutionDto): Long  {
+        if( testExecutionDto.executionId != null)
+            return testExecutionDto.executionId!!
+        val agentContainerId = testExecutionDto.agentContainerId
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
+        val execution = agentRepository.findByContainerId(agentContainerId)?.execution
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Execution for agent $agentContainerId not found"
+            )
+        return execution.id!!
+    }
+
+    /**
+     * @param testExecutionDto
+     * @return [Mono] with response
+     * @throws ResponseStatusException if request is invalid or result cannot be returned
+     */
+    @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
+    @PostMapping(path = ["/api/$v1/files/get-execution-info"])
+    fun getExecutionInfo(
+        @RequestBody testExecutionDto: TestExecutionDto,
+    ): String {
+        val executionId = getExecutionId(testExecutionDto)
+        val executionInfoFile = testDataFilesystemRepository.getExecutionInfoFile(executionId).file
+        return if (executionInfoFile.exists()) {
+            executionInfoFile.readText()
+        } else {
+            logger.debug("File ${executionInfoFile.absolutePath} not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         }
     }
 

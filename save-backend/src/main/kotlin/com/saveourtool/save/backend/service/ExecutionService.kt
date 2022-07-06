@@ -1,9 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.repository.TestRepository
-import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
@@ -25,10 +22,12 @@ import java.util.Optional
  * Service that is used to manipulate executions
  */
 @Service
-class ExecutionService(private val executionRepository: ExecutionRepository,
-                       private val userRepository: UserRepository,
-                       private val testRepository: TestRepository,
-                       private val testExecutionRepository: TestExecutionRepository,
+class ExecutionService(
+    private val executionRepository: ExecutionRepository,
+    private val userRepository: UserRepository,
+    private val testRepository: TestRepository,
+    private val testExecutionRepository: TestExecutionRepository,
+    private val testDataFilesystemRepository: TestDataFilesystemRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -65,9 +64,12 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
         "TOO_MANY_LINES_IN_LAMBDA",
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
+    @Transactional
     fun updateExecution(execution: ExecutionUpdateDto) {
+        log.debug("Updating execution $execution")
         executionRepository.findById(execution.id).ifPresentOrElse({
             it.status = execution.status
+            execution.failReason?.let { testDataFilesystemRepository.save(execution) }
             if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
                 // execution is completed, we can update end time
                 it.endTime = LocalDateTime.now()
