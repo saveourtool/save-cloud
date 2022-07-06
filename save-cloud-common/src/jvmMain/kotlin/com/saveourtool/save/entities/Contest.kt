@@ -44,13 +44,15 @@ data class Contest(
     )
 
     /**
-     * @param contest
-     * @return test suite that has public test as its part
+     * @return set of testSuiteIds
      */
-    @Suppress("COMPLEX_EXPRESSION")
     fun getTestSuiteIds() = testSuiteIds?.split(",")
-        ?.first()
-        ?.toLongOrNull()
+        ?.map { it.toLongOrNull() }
+        ?.distinct()
+        ?.filterNotNull()
+        ?.toSet()
+        ?: emptySet()
+
 
     companion object {
         /**
