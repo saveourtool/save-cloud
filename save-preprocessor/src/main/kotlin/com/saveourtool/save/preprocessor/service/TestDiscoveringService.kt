@@ -7,7 +7,6 @@ import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.plugin.warn.WarnPlugin
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
@@ -108,7 +107,7 @@ class TestDiscoveringService {
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
                         val additionalFiles = if (it is FixPlugin.FixTestFiles) {
-                            listOf((it as FixPlugin.FixTestFiles).expected.getRelativePath(rootTestConfig))
+                            listOf(it.expected.getRelativePath(rootTestConfig))
                         } else {
                             emptyList()
                         }

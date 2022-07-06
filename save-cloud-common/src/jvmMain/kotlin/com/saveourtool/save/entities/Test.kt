@@ -40,6 +40,11 @@ class Test(
     fun tagsAsList() = tags?.split(";")?.filter { it.isNotBlank() }
 
     /**
+     * @return [additionalFiles] as a list of strings
+     */
+    fun additionalFilesAsList() = additionalFiles.split(",").filter { it.isNotBlank() }
+
+    /**
      * @return [TestDto] constructed from `this`
      */
     @Suppress("UnsafeCallOnNullableType")
@@ -48,7 +53,7 @@ class Test(
         pluginName,
         testSuite.id!!,
         hash,
-        additionalFiles.split(","),
+        additionalFilesAsList(),
         tagsAsList() ?: emptyList(),
     )
 }

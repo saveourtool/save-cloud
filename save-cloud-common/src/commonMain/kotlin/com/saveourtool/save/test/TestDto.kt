@@ -22,7 +22,12 @@ data class TestDto(
     val hash: String,
     val tags: List<String> = emptyList(),
     val additionalFiles: List<String> = emptyList(),
-)
+) {
+    /**
+     * @return [additionalFiles] as a [String]
+     */
+    fun joinAdditionalFiles() = additionalFiles.joinToString(",")
+}
 
 /**
  * @property tests a list of tests in a batch

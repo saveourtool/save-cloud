@@ -73,7 +73,7 @@ class TestService(
                             LocalDateTime.now(),
                             testSuiteStub,
                             testDto.tags.joinToString(";"),
-                            additionalFiles = testDto.additionalFiles.joinToString(","),
+                            additionalFiles = testDto.joinAdditionalFiles(),
                         )
                     }
             }
