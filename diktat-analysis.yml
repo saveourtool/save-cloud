@@ -8,7 +8,7 @@
 - name: ENUM_VALUE
   enabled: true
   configuration:
-    enumStyle: snakeCase
+    enumStyle: SNAKE_CASE
 - name: KDOC_CONTAINS_DATE_OR_AUTHOR
   enabled: true
   configuration:
