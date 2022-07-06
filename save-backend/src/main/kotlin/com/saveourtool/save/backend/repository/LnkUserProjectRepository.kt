@@ -34,6 +34,12 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
     fun findByUserIdAndProjectId(userId: Long, projectId: Long): LnkUserProject?
 
     /**
+     * @param userId
+     * @return List of [LnkUserProject] where user with [userId] is a member
+     */
+    fun findByUserId(userId: Long): List<LnkUserProject>
+
+    /**
      * Save [LnkUserProject] using only ids and role string.
      *
      * @param userId

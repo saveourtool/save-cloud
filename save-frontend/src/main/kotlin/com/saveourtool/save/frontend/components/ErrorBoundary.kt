@@ -55,7 +55,7 @@ class ErrorBoundary : Component<PropsWithChildren, ErrorBoundaryState>() {
 
     companion object : RStatics<PropsWithChildren, ErrorBoundaryState, ErrorBoundary, Nothing>(ErrorBoundary::class) {
         init {
-            /**
+            /*
              * From [React docs](https://reactjs.org/docs/error-boundaries.html):
              * 'A class component becomes an error boundary if it defines either (or both) of the lifecycle methods static getDerivedStateFromError() or componentDidCatch()'
              */

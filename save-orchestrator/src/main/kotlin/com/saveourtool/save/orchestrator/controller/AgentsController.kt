@@ -29,7 +29,7 @@ import reactor.kotlin.core.publisher.onErrorResume
 import java.io.File
 
 /**
- * Controller used to starts agents with needed information
+ * Controller used to start agents with needed information
  */
 @RestController
 class AgentsController(
