@@ -10,6 +10,12 @@ package com.saveourtool.save.utils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+inline fun Logger.trace(msg: () -> String) {
+    if (this.isTraceEnabled) {
+        trace(msg())
+    }
+}
+
 inline fun Logger.debug(msg: () -> String) {
     if (this.isDebugEnabled) {
         debug(msg())

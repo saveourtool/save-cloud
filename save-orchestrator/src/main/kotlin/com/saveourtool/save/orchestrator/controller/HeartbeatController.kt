@@ -107,9 +107,9 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                 }
                 .zipWhen {
-                    // Check if all agents have completed their jobs; after that we can terminate them.
+                    // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
-                    //  but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash
+                    //  but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
                     if (it is WaitResponse && !isStarting) {
                         agentService.areAllAgentsIdleOrFinished(agentId)
                     } else {
@@ -117,7 +117,6 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                 }
                 .flatMap { (response, shouldStop) ->
-                    // to be more like the previous implementation, we wait for all agents to finish before returning
                     if (shouldStop) {
                         agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
                             .thenReturn(TerminateResponse)
@@ -166,7 +165,7 @@ class HeartbeatController(private val agentService: AgentService,
                     crashedAgents.remove(agentId)
                 }
                 // Update final execution status, perform cleanup etc.
-                agentService.initiateShutdownSequence(agentId)
+                agentService.finalizeExecution(agentId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()

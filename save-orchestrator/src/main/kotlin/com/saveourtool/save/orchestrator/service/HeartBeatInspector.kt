@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 import kotlinx.datetime.Clock
+import reactor.core.publisher.Flux
 
 /**
  * Background inspector, which detect crashed agents
@@ -73,18 +74,18 @@ class HeartBeatInspector(
 
         val areAgentsStopped = dockerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
-            agentService.updateAgentStatusesWithDto(
-                crashedAgents.map { agentId ->
+            Flux.fromIterable(crashedAgents).flatMap { agentId ->
+                agentService.updateAgentStatusesWithDto(
                     AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
-                }
-            )
+                )
+            }.blockLast()
             if (agentsLatestHeartBeatsMap.keys().toList() == crashedAgents.toList()) {
                 logger.warn("All agents are crashed, initialize shutdown sequence. Crashed agents: $crashedAgents")
                 // fixme: should be cleared only for execution
                 val agentId = crashedAgents.first()
                 agentsLatestHeartBeatsMap.clear()
                 crashedAgents.clear()
-                agentService.initiateShutdownSequence(agentId)
+                agentService.finalizeExecution(agentId)
             }
         } else {
             logger.warn("Crashed agents $crashedAgents are not stopped after stop command")

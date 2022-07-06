@@ -20,7 +20,10 @@ import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.trace
 import org.apache.commons.io.FilenameUtils
+import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -30,7 +33,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.util.Loggers
 import java.nio.file.Paths
 import java.time.Duration
 
@@ -134,20 +136,21 @@ class AgentService(
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    internal fun initiateShutdownSequence(agentId: String) {
+    internal fun finalizeExecution(agentId: String) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getAgentsAwaitingStop(agentId)
+        getFinishedOrStoppedAgentsForSameExecution(agentId)
             .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (_, _) ->
                 // need to retry after some time, because for other agents BUSY state might have not been written completely
                 log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
                 Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getAgentsAwaitingStop(agentId)
+                    getFinishedOrStoppedAgentsForSameExecution(agentId)
                 )
             }
             .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
             .flatMap { (executionId, finishedAgentIds) ->
+                log.info { "For execution id=$executionId all agents have completed their lifecycle" }
                 markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
                     .thenReturn(
                         agentRunner.cleanup(executionId)
@@ -243,14 +246,17 @@ class AgentService(
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
+     * If we call this method, then there are no unfinished TestExecutions. So we check other agents' status.
+     *
+     * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
+     * Situations when agent gets stuck with a different status and for whatever reason is unable to update
+     * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
      *
      * @param agentId containerId of an agent
-     * @return Mono with list of agent ids for agents that can be shut down.
+     * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    fun getAgentsAwaitingStop(agentId: String): Mono<Pair<Long, List<String>>> {
-        // If we call this method, then there are no unfinished TestExecutions.
-        // check other agents status
+    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> {
         return webClientBackend
             .get()
             .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
@@ -258,11 +264,9 @@ class AgentService(
             .bodyToMono<AgentStatusesForExecution>()
             .map { (executionId, agentStatuses) ->
                 log.debug("For executionId=$executionId agent statuses are $agentStatuses")
+                // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
                 executionId to if (agentStatuses.areFinishedOrStopped()) {
-                    // We assume, that all agents will eventually have one of these statuses.
-                    // Situations when agent gets stuck with a different status and for whatever reason is unable to update
-                    // it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
-                    log.info("For execution id=$executionId there are idle or finished agents")
+                    log.debug("For execution id=$executionId there are finished or stopped agents")
                     agentStatuses.map { it.containerId }
                 } else {
                     emptyList()
@@ -300,7 +304,7 @@ class AgentService(
             )
         )
             .doOnSuccess {
-                log.trace("Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY")
+                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
             }
             .subscribeOn(scheduler)
             .subscribe()
@@ -410,6 +414,6 @@ class AgentService(
         .bodyToMono<Long>()
 
     companion object {
-        private val log = Loggers.getLogger(AgentService::class.java)
+        private val log = LoggerFactory.getLogger(AgentService::class.java)
     }
 }
