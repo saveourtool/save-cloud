@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * @property name organization
@@ -41,6 +42,15 @@ data class Contest(
         endTime!!,
         description,
     )
+
+    /**
+     * @param contest
+     * @return test suite that has public test as its part
+     */
+    @Suppress("COMPLEX_EXPRESSION")
+    fun getTestSuiteIds() = testSuiteIds?.split(",")
+        ?.first()
+        ?.toLongOrNull()
 
     companion object {
         /**
