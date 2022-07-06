@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * @property name organization
