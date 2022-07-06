@@ -107,7 +107,7 @@ class TestDiscoveringService {
             plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
-                        val additionalFiles = if (plugin !is WarnPlugin) {
+                        val additionalFiles = if (it is FixPlugin.FixTestFiles) {
                             listOf((it as FixPlugin.FixTestFiles).expected.getRelativePath(rootTestConfig))
                         } else {
                             emptyList()
