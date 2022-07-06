@@ -7,6 +7,7 @@ import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.plugin.warn.WarnPlugin
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
@@ -106,7 +107,7 @@ class TestDiscoveringService {
             plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
-                        val additionalFiles = if (plugin is FixPlugin) {
+                        val additionalFiles = if (plugin !is WarnPlugin) {
                             listOf((it as FixPlugin.FixTestFiles).expected.getRelativePath(rootTestConfig))
                         } else {
                             emptyList()
@@ -127,12 +128,7 @@ class TestDiscoveringService {
             log.debug("Discovered the following test: $it")
         }
 
-    /**
-     * @param pathPrefix path to root test directory
-     * @param testPath path to test file
-     * @return list of strings that are present in the file
-     */
-    fun getTestLinesByPath(pathPrefix: String, testPath: String?) = testPath?.let {
+    private fun getTestLinesByPath(pathPrefix: String, testPath: String?) = testPath?.let {
         (pathPrefix.toPath() / it).toFile().readLines()
     }
 

@@ -80,7 +80,6 @@ internal class ContestController(
      */
     @GetMapping("/{contestName}/public-test")
     @PreAuthorize("permitAll()")
-    @Suppress("UnsafeCallOnNullableType")
     fun getPublicTestForContest(
         @PathVariable contestName: String,
     ): Mono<TestFilesContent> {
@@ -88,7 +87,7 @@ internal class ContestController(
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         val testSuite = contestService.getTestSuiteForPublicTest(contest)
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        val test = testService.findTestsByTestSuiteId(testSuite.id!!).firstOrNull()
+        val test = testService.findTestsByTestSuiteId(testSuite.requiredId()).firstOrNull()
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         return TestFilesRequest(test.toDto(), testSuite.testRootPath).let {
             preprocessorWebClient.post()
