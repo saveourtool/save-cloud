@@ -53,7 +53,6 @@ data class Contest(
         ?.toSet()
         ?: emptySet()
 
-
     companion object {
         /**
          * Create a stub for testing.
