@@ -20,7 +20,7 @@ class DownloadedResourcesController(
      * @param testFilesRequest
      * @return [TestFilesContent] filled with test files
      */
-    @PostMapping("/getTest")
+    @PostMapping("/tests/get-content")
     @Suppress("UnsafeCallOnNullableType")
     fun getTest(@RequestBody testFilesRequest: TestFilesRequest): Mono<TestFilesContent> = Mono.fromCallable {
         testDiscoveringService.getPublicTestFiles(testFilesRequest)
