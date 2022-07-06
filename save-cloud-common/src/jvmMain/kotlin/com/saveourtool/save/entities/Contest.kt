@@ -19,8 +19,8 @@ data class Contest(
     var status: ContestStatus,
     var startTime: LocalDateTime?,
     var endTime: LocalDateTime?,
+    var testSuiteIds: String = "",
     var description: String? = null,
-    var testSuiteIds: String? = null,
 ) {
     /**
      * id of contest

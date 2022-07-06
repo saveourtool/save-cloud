@@ -32,7 +32,6 @@ class Test(
 
     var tags: String?,
 
-    @JoinColumn(name = "additional_files")
     var additionalFiles: String,
 ) : BaseEntity() {
     /**
