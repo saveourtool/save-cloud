@@ -47,9 +47,9 @@ data class Contest(
      * @return set of testSuiteIds
      */
     fun getTestSuiteIds() = testSuiteIds?.split(",")
-        ?.map { it.toLongOrNull() }
-        ?.distinct()
-        ?.filterNotNull()
+        ?.mapNotNull {
+            it.toLongOrNull()
+        }
         ?.toSet()
         ?: emptySet()
 
