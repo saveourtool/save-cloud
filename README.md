@@ -8,6 +8,9 @@ and with a test sets for the language that you are developing analyzer/compiler/
 It provides you also a cloud service that can be used to determine the readiness of your tool. SAVE has a committee of software analysis and system programming experts
 that regularly update tests and discuss the best practices for particular programming languages.
 
+## Motivation
+[Motivation of this project](info/SaveMotivation.md)
+
 ## How it looks like from the high-level perspective?
 ![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_shield)
