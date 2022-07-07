@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -229,10 +230,13 @@ class DownloadFilesController(
     fun getExecutionInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {
+        logger.debug("Processing getExecutionInfo : $testExecutionDto")
         val executionId = getExecutionId(testExecutionDto)
         val executionInfoFile = testDataFilesystemRepository.getExecutionInfoFile(executionId).file
         return if (executionInfoFile.exists()) {
-            executionInfoFile.readText()
+            val text = executionInfoFile.readText()
+            logger.debug("Sending $executionInfoFile : $text")
+            text
         } else {
             logger.debug("File ${executionInfoFile.absolutePath} not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")

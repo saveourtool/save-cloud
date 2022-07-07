@@ -194,7 +194,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     val trei = getExecutionInfoFor(te)
                                     if (trei.ok) {
                                         cellProps.row.original.asDynamic().executionInfo =
-                                            trdi.decodeFromJsonString<ExecutionUpdateDto>()
+                                            trei.decodeFromJsonString<ExecutionUpdateDto>()
                                     }
                                 }
                                 cellProps.row.toggleRowExpanded()
