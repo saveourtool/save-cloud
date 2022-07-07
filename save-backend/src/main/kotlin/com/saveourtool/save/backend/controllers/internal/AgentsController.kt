@@ -60,7 +60,7 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     }
 
     /**
-     * @param agentStates list of [AgentStatus]es to update in the DB
+     * @param agentState an [AgentStatus] to update in the DB
      */
     @PostMapping("/updateAgentStatusesWithDto")
     @Transactional

@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.utils.debug
 import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
@@ -73,9 +74,9 @@ class ExecutionService(private val executionRepository: ExecutionRepository,
                 it.endTime = LocalDateTime.now()
                 // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
                 testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map { testExec ->
-                    log.debug(
+                    log.debug {
                         "Test execution id=${testExec.id} has status ${testExec.status} while execution id=${it.id} has status ${it.status}. Will mark it ${TestResultStatus.INTERNAL_ERROR}"
-                    )
+                    }
                     testExec.status = TestResultStatus.INTERNAL_ERROR
                     testExecutionRepository.save(testExec)
                 }

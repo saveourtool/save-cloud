@@ -4,18 +4,18 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
-import com.saveourtool.save.orchestrator.controller.crashedAgents
-
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-
-import java.time.LocalDateTime
-
-import kotlinx.datetime.Clock
 import reactor.core.publisher.Flux
+import java.time.LocalDateTime
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+
+typealias AgentStateWithTimeStamp = Pair<String, Instant>
 
 /**
  * Background inspector, which detect crashed agents
@@ -28,6 +28,9 @@ class HeartBeatInspector(
     private val dockerService: DockerService,
     private val agentService: AgentService,
 ) {
+    private val agentsLatestHeartBeatsMap: ConcurrentMap<String, AgentStateWithTimeStamp> = ConcurrentHashMap()
+    internal val crashedAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
     /**
      * Collect information about the latest heartbeats from agents, in aim to determine crashed one later
      *
@@ -36,6 +39,15 @@ class HeartBeatInspector(
     fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
         agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp
     }
+
+    fun unwatchAgent(agentId: String) {
+        agentsLatestHeartBeatsMap.remove(agentId)
+        crashedAgents.remove(agentId)
+    }
+
+    fun watchCrashedAgent(agentId: String) = crashedAgents.add(agentId)
+
+    fun unwatchCrashedAgent(agentId: String) = crashedAgents.remove(agentId)
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time
@@ -96,6 +108,11 @@ class HeartBeatInspector(
     private fun run() {
         determineCrashedAgents()
         processCrashedAgents()
+    }
+
+    internal fun clear() {
+        agentsLatestHeartBeatsMap.clear()
+        crashedAgents.clear()
     }
 
     companion object {

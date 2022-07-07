@@ -11,6 +11,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.utils.debug
 
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,11 +30,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
-
-internal val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
-internal val crashedAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
-
-typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, Instant>>
 
 /**
  * Controller for heartbeat
@@ -141,7 +137,7 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
         logger.warn("Agent id=$agentId sent $state status, but should be offline in that case!")
-        crashedAgents.add(agentId)
+        heartBeatInspector.watchCrashedAgent(agentId)
     }
 
     private fun ensureGracefulShutdown(agentId: String) {
@@ -158,11 +154,10 @@ class HeartbeatController(private val agentService: AgentService,
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     logger.warn("Agent id=$agentId is not stopped in 60 seconds after ${TerminateResponse::class.simpleName} signal, will add it to crashed list")
-                    crashedAgents.add(agentId)
+                    heartBeatInspector.watchCrashedAgent(agentId)
                 } else {
-                    logger.debug("Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal")
-                    agentsLatestHeartBeatsMap.remove(agentId)
-                    crashedAgents.remove(agentId)
+                    logger.debug { "Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    heartBeatInspector.unwatchAgent(agentId)
                 }
                 // Update final execution status, perform cleanup etc.
                 agentService.finalizeExecution(agentId)

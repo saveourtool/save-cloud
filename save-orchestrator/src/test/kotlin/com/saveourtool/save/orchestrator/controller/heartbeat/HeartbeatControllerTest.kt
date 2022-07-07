@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.controller.heartbeat
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentStatusDto
@@ -8,8 +9,6 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
-import com.saveourtool.save.orchestrator.controller.crashedAgents
 import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -18,24 +17,20 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
-
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.shouldNot
+import kotlinx.datetime.Clock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -53,17 +48,12 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Clock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
@@ -81,6 +71,7 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
+    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
 
     @BeforeEach
     fun webClientSetUp() {
@@ -94,8 +85,7 @@ class HeartbeatControllerTest {
     fun cleanup() {
         mockServer.checkQueues()
         mockServer.cleanup()
-        crashedAgents.clear()
-        agentsLatestHeartBeatsMap.clear()
+        heartBeatInspector.clear()
     }
 
     @Test
@@ -274,7 +264,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents.shouldContainExactly(
+            heartBeatInspector.crashedAgents.shouldContainExactly(
                 setOf("test-2")
             )
         }
@@ -313,7 +303,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents.shouldContainExactly(
+            heartBeatInspector.crashedAgents.shouldContainExactly(
                 setOf("test-2")
             )
         }
@@ -345,7 +335,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
         }
     }
 
