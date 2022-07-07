@@ -7,13 +7,18 @@ import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.TestFilesContent
+import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
 
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
+
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -73,6 +78,10 @@ class TestDiscoveringService {
         .distinct()
         .toList()
 
+    private fun Path.getRelativePath(rootTestConfig: TestConfig) = this.toFile()
+        .relativeTo(rootTestConfig.directory.toFile())
+        .path
+
     /**
      * Discover all tests in the project
      *
@@ -81,7 +90,7 @@ class TestDiscoveringService {
      * @return a list of [TestDto]s
      * @throws PluginException if configs use unknown plugin
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
     fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
@@ -97,16 +106,41 @@ class TestDiscoveringService {
             plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
-                        val testRelativePath = it.test.toFile()
-                            .relativeTo(rootTestConfig.directory.toFile())
-                            .path
-                        TestDto(testRelativePath, plugin::class.simpleName!!, testSuite.id!!, it.test.toFile().toHash(), generalConfig.tags!!)
+                        val additionalFiles = if (it is FixPlugin.FixTestFiles) {
+                            listOf(it.expected.getRelativePath(rootTestConfig))
+                        } else {
+                            emptyList()
+                        }
+                        val testRelativePath = it.test.getRelativePath(rootTestConfig)
+                        TestDto(
+                            testRelativePath,
+                            plugin::class.simpleName!!,
+                            testSuite.id!!,
+                            it.test.toFile().toHash(),
+                            generalConfig.tags!!,
+                            additionalFiles,
+                        )
                     }
             }
         }
         .onEach {
             log.debug("Discovered the following test: $it")
         }
+
+    private fun getTestLinesByPath(pathPrefix: String, testPath: String?) = testPath?.let {
+        (pathPrefix.toPath() / it).toFile().readLines()
+    }
+
+    /**
+     * @param testFilesRequest request for test files
+     * @return [TestFilesContent] of public tests with additional info
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun getPublicTestFiles(testFilesRequest: TestFilesRequest) = TestFilesContent(
+        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.filePath)!!,
+        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.additionalFiles.firstOrNull()),
+        testFilesRequest.test.tags,
+    )
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
 

@@ -19,4 +19,6 @@ interface TestRepository : BaseEntityRepository<Test> {
     ): Optional<Test>
 
     fun findAllByTestSuiteId(testSuiteId: Long): List<Test>
+
+    fun findFirstByTestSuiteId(testSuiteId: Long): Optional<Test>
 }
