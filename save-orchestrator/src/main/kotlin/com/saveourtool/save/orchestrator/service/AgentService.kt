@@ -95,8 +95,7 @@ class AgentService(
         .uri("/updateAgentStatuses")
         .body(BodyInserters.fromValue(agentStates))
         .retrieve()
-        .bodyToMono<Void>()
-        .log(log, Level.INFO, true)
+        .bodyToMono()
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
@@ -184,6 +183,7 @@ class AgentService(
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
             .flatMap { agentStatuses ->
+                // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
                     it == STOPPED_BY_ORCH || it == TERMINATED
                 }) {
@@ -199,23 +199,6 @@ class AgentService(
                 }
             }
     }
-
-    /**
-     * Marks agent states and then execution state as FINISHED
-     *
-     * @param executionId execution that should be updated
-     * @param finishedAgentIds agents that should be updated
-     * @return a bodiless response entity
-     */
-    fun markAgentsAndExecutionAsFinished(executionId: Long, finishedAgentIds: List<String>): Mono<BodilessResponseEntity> =
-            updateAgentStatusesWithDto(
-                finishedAgentIds.map { agentId ->
-                    AgentStatusDto(LocalDateTime.now(), STOPPED_BY_ORCH, agentId)
-                }
-            )
-                .then(
-                    updateExecution(executionId, ExecutionStatus.FINISHED)  // todo: status based on results
-                )
 
     /**
      * Marks the execution to specified state

@@ -59,7 +59,6 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
@@ -68,6 +67,10 @@ class HeartbeatController(private val agentService: AgentService,
             .onErrorResume(WebClientResponseException::class.java) {
                 logger.warn("Couldn't update agent statuses for agent ${heartbeat.agentId}, will skip this heartbeat: ${it.message}")
                 Mono.empty()
+            }
+            .doOnSuccess {
+                // Update heartbeat info only if agent state is updated in the backend
+                heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
             }
             .then(
                 when (heartbeat.state) {
