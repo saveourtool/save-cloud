@@ -24,6 +24,6 @@ external interface ContestResultsMenuProps : Props {
     "AVOID_NULL_CHECKS"
 )
 fun contestResultsMenu(
-) = fc<ContestResultsMenuProps> {
+) = FC<ContestResultsMenuProps> {
     +"Your results will be here"
 }

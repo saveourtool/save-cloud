@@ -39,7 +39,7 @@ fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
     val (results, setResults) = useState<List<ContestResult>>(emptyList())
     useRequest(isDeferred = false) {
         val projectResults = get(
-            url = "$apiUrl/scores/${props.contestName}",
+            url = "$apiUrl/contests/${props.contestName}/scores",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },

@@ -4,51 +4,130 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.test.TestFilesContent
+
 import csstype.ClassName
+import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
+
+import kotlinx.js.jso
+
+private val card = cardComponent(hasBg = true, isPaddingBottomNull = true)
+
+private val publicTestCard = cardComponent(hasBg = true, isBordered = true, isPaddingBottomNull = true)
 
 /**
  * ContestInfoMenu component props
  */
 external interface ContestInfoMenuProps : Props {
     /**
-     * Current contest
+     * Current contest name
      */
-    var contest: ContestDto?
+    var contestName: String?
+}
+
+private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>, language: String? = null) = div {
+    div {
+        className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+        +header
+    }
+    publicTestCard {
+        child(reactMarkdown(jso {
+            this.children = wrapTestLines(lines, language)
+        }))
+    }
 }
 
 /**
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun contestInfoMenu(
-) = fc<ContestInfoMenuProps> { props ->
+) = FC<ContestInfoMenuProps> { props ->
+
+    val (contest, setContest) = useState<ContestDto?>(null)
+    useRequest(isDeferred = false) {
+        val contestDto = get(
+            "$apiUrl/contests/${props.contestName}",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<ContestDto>()
+            }
+        setContest(contestDto)
+    }()
+
+    val (publicTest, setPublicTest) = useState(TestFilesContent(emptyList(), null))
+    useRequest(isDeferred = false) {
+        val publicTestDto = get(
+            "$apiUrl/contests/${props.contestName}/public-test",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<TestFilesContent>()
+            }
+        setPublicTest(publicTestDto)
+    }()
+
     div {
-        attrs.className = ClassName("d-flex justify-content-around")
+        className = ClassName("d-flex justify-content-around mb-3")
         div {
-            attrs.className = ClassName("col-4")
+            className = ClassName("col-5")
             div {
-                attrs.className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Description"
             }
             div {
-                attrs.className = ClassName("text-center")
-                child(cardComponent(hasBg = true) { +(props.contest?.description ?: "") })
+                className = ClassName("text-center")
+                card {
+                    child(reactMarkdown(jso {
+                        this.children = contest?.description ?: "No description provided **yet**"
+                    }))
+                }
             }
         }
         div {
-            attrs.className = ClassName("col-4")
+            className = ClassName("col-5")
             div {
-                attrs.className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Public tests"
             }
             div {
-                attrs.className = ClassName("text-center")
-                child(cardComponent(hasBg = true, isBordered = true) {
-                    +"PUBLIC TESTS WILL BE HERE"
-                })
+                if (publicTest.testLines.isEmpty()) {
+                    div {
+                        className = ClassName("text-center")
+                        +"Public tests are not provided"
+                    }
+                } else {
+                    card {
+                        div {
+                            className = ClassName("ml-2 mr-2")
+                            div {
+                                className = ClassName("mt-3 mb-3")
+                                displayTestLines("Test", publicTest.testLines)
+                            }
+                            publicTest.expectedLines?.let {
+                                div {
+                                    className = ClassName("mt-3 mb-2")
+                                    displayTestLines("Expected", it)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
+
+private fun wrapTestLines(testLines: List<String>, language: String?) = "```${language ?: ""}\n${testLines.joinToString("\n")}\n```"
