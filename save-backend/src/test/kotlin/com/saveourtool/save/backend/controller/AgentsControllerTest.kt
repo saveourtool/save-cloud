@@ -90,9 +90,9 @@ class AgentsControllerTest {
             .uri("/internal/updateAgentStatusWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
+            .bodyValue(
                 AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
-            ))
+            )
             .exchange()
             .expectStatus()
             .isOk
@@ -173,9 +173,7 @@ class AgentsControllerTest {
             .uri("/internal/updateAgentStatusWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                body
-            ))
+            .bodyValue(body)
             .exchange()
             .expectStatus()
             .isOk

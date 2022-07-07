@@ -68,15 +68,13 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @Suppress("AVOID_NULL_CHECKS")
     fun updateAgentStatusesWithDto(@RequestBody agentState: AgentStatusDto) {
         val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
-        if (agentStatus != null) {
-            val latestState = agentStatus.state
-            if (latestState == AgentState.STOPPED_BY_ORCH || latestState == AgentState.TERMINATED) {
-                throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
-            } else if (agentStatus.state == agentState.state) {
-                // updating time
-                agentStatus.endTime = agentState.time
-                agentStatusRepository.save(agentStatus)
-            }
+        val latestState = agentStatus?.state
+        if (latestState == AgentState.STOPPED_BY_ORCH || latestState == AgentState.TERMINATED) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
+        } else if (latestState == agentState.state) {
+            // updating time
+            agentStatus.endTime = agentState.time
+            agentStatusRepository.save(agentStatus)
         } else {
             // insert new agent status
             val agent = getAgentByContainerId(agentState.containerId)
