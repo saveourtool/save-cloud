@@ -20,7 +20,7 @@ private val card = cardComponent(hasBg = true, isPaddingBottomNull = true)
 private val publicTestCard = cardComponent(hasBg = true, isBordered = true, isPaddingBottomNull = true)
 
 /**
- * ContestInfoMenu component props
+ * ContestInfoMenu functional component props
  */
 external interface ContestInfoMenuProps : Props {
     /**
