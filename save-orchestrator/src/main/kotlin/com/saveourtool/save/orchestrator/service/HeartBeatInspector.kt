@@ -4,16 +4,19 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 typealias AgentStateWithTimeStamp = Pair<String, Instant>
 
@@ -29,6 +32,10 @@ class HeartBeatInspector(
     private val agentService: AgentService,
 ) {
     private val agentsLatestHeartBeatsMap: ConcurrentMap<String, AgentStateWithTimeStamp> = ConcurrentHashMap()
+
+    /**
+     * Collection that stores agents that are acting abnormally and will probably be terminated forcefully
+     */
     internal val crashedAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     /**
@@ -40,14 +47,27 @@ class HeartBeatInspector(
         agentsLatestHeartBeatsMap[heartbeat.agentId] = heartbeat.state.name to heartbeat.timestamp
     }
 
+    /**
+     * @param agentId
+     */
     fun unwatchAgent(agentId: String) {
         agentsLatestHeartBeatsMap.remove(agentId)
         crashedAgents.remove(agentId)
     }
 
-    fun watchCrashedAgent(agentId: String) = crashedAgents.add(agentId)
+    /**
+     * @param agentId
+     */
+    fun watchCrashedAgent(agentId: String) {
+        crashedAgents.add(agentId)
+    }
 
-    fun unwatchCrashedAgent(agentId: String) = crashedAgents.remove(agentId)
+    /**
+     * @param agentId
+     */
+    fun unwatchCrashedAgent(agentId: String) {
+        crashedAgents.remove(agentId)
+    }
 
     /**
      * Consider agent as crashed, if it didn't send heartbeats for some time
@@ -110,6 +130,9 @@ class HeartBeatInspector(
         processCrashedAgents()
     }
 
+    /**
+     * Clear all data about agents
+     */
     internal fun clear() {
         agentsLatestHeartBeatsMap.clear()
         crashedAgents.clear()

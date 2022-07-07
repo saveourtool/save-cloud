@@ -37,7 +37,6 @@ import java.nio.file.Paths
 import java.time.Duration
 
 import java.time.LocalDateTime
-import java.util.logging.Level
 
 /**
  * Service for work with agents and backend
@@ -98,13 +97,13 @@ class AgentService(
         .bodyToMono()
 
     /**
-     * @param agentStates list of [AgentStatus]es to update in the DB
+     * @param agentState [AgentStatus] to update in the DB
      * @return as bodiless entity of response
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
             webClientBackend
                 .post()
-                .uri("/updateAgentStatusesWithDto")
+                .uri("/updateAgentStatusWithDto")
                 .body(BodyInserters.fromValue(agentState))
                 .retrieve()
                 .toBodilessEntity()
@@ -239,23 +238,21 @@ class AgentService(
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> {
-        return webClientBackend
-            .get()
-            .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
-            .retrieve()
-            .bodyToMono<AgentStatusesForExecution>()
-            .map { (executionId, agentStatuses) ->
-                log.debug("For executionId=$executionId agent statuses are $agentStatuses")
-                // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
-                executionId to if (agentStatuses.areFinishedOrStopped()) {
-                    log.debug("For execution id=$executionId there are finished or stopped agents")
-                    agentStatuses.map { it.containerId }
-                } else {
-                    emptyList()
-                }
+    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = webClientBackend
+        .get()
+        .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
+        .retrieve()
+        .bodyToMono<AgentStatusesForExecution>()
+        .map { (executionId, agentStatuses) ->
+            log.debug("For executionId=$executionId agent statuses are $agentStatuses")
+            // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
+            executionId to if (agentStatuses.areFinishedOrStopped()) {
+                log.debug("For execution id=$executionId there are finished or stopped agents")
+                agentStatuses.map { it.containerId }
+            } else {
+                emptyList()
             }
-    }
+        }
 
     /**
      * Checks whether all agent under one execution have completed their jobs.

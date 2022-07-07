@@ -24,11 +24,9 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
-import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
 
 /**
@@ -108,7 +106,7 @@ class HeartbeatController(private val agentService: AgentService,
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
-                    //  but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
+                    // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
                     if (it is WaitResponse && !isStarting) {
                         agentService.areAllAgentsIdleOrFinished(agentId)
                     } else {

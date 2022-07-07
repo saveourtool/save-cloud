@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.controller.heartbeat
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentStatusDto
@@ -17,14 +16,13 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSingleElement
 import io.kotest.matchers.shouldNot
-import kotlinx.datetime.Clock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -48,12 +46,17 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.datetime.Clock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
@@ -568,7 +571,7 @@ class HeartbeatControllerTest {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
             mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
-            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

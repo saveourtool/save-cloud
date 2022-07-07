@@ -61,9 +61,11 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
 
     /**
      * @param agentState an [AgentStatus] to update in the DB
+     * @throws ResponseStatusException code 409 if agent has already its final state that shouldn't be updated
      */
-    @PostMapping("/updateAgentStatusesWithDto")
+    @PostMapping("/updateAgentStatusWithDto")
     @Transactional
+    @Suppress("AVOID_NULL_CHECKS")
     fun updateAgentStatusesWithDto(@RequestBody agentState: AgentStatusDto) {
         val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
         if (agentStatus != null) {
