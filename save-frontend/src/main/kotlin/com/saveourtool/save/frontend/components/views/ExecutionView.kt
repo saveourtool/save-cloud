@@ -26,6 +26,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import csstype.TextDecoration
+import csstype.attr
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -274,6 +275,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         }
+
     )
     init {
         state.executionDto = null
@@ -365,6 +367,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(testExecutionsTable) {
+            attrs.status = state.status
+            attrs.testSuite = state.testSuite
             attrs.getData = { page, size ->
                 val status = state.status?.let {
                     "&status=${state.status}"
@@ -384,8 +388,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                )
-                    .unsafeMap {
+                ).unsafeMap {
                         Json.decodeFromString<Array<TestExecutionDto>>(
                             it.text().await()
                         )

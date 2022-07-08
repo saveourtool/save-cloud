@@ -17,6 +17,7 @@ import react.dom.div
 import react.dom.input
 import react.dom.option
 import react.dom.select
+import react.useState
 import react.fc
 
 import kotlinx.html.InputType
@@ -47,8 +48,8 @@ fun testExecutionFiltersRow(
     onChangeStatus: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
 ) = fc<Props> {
-    var status: String = initialValueStatus
-    var testSuite: String = initialValueTestSuite
+    val (testSuite, setTestSuite) = useState(initialValueTestSuite)
+    val (status, setStatus) = useState(initialValueStatus)
     div("container-fluid") {
         div("row justify-content-start") {
             div("col-0 pr-1 align-self-center") {
@@ -71,7 +72,7 @@ fun testExecutionFiltersRow(
                     }
 
                     attrs.onChangeFunction = {
-                        status = (it.target as HTMLSelectElement).value
+                        setStatus((it.target as HTMLSelectElement).value)
                     }
                 }
             }
@@ -84,7 +85,7 @@ fun testExecutionFiltersRow(
                     attrs.defaultValue = initialValueTestSuite
                     attrs.required = false
                     attrs.onChangeFunction = {
-                        testSuite = (it.target as HTMLInputElement).value
+                         setTestSuite((it.target as HTMLInputElement).value)
                     }
                 }
             }

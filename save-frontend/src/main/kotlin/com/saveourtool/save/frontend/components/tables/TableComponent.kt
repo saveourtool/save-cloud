@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.tables
 
+import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.modal.errorModal
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -70,6 +71,17 @@ external interface TableProps<D : Any> : Props {
      * Lambda to update number of pages
      */
     var getPageCount: (suspend (pageSize: Int) -> Int)?
+
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
+
 }
 
 /**
@@ -111,7 +123,6 @@ fun <D : Any> tableComponent(
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
-
     val (data, setData) = useState<Array<out D>>(emptyArray())
     val (pageCount, setPageCount) = useState(1)
     val (pageIndex, setPageIndex) = useState(0)
@@ -146,7 +157,7 @@ fun <D : Any> tableComponent(
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
-        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
+        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount, props.status, props.testSuite)
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
