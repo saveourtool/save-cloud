@@ -130,4 +130,7 @@ fun contestInfoMenu(
     }
 }
 
-private fun wrapTestLines(testLines: List<String>, language: String?) = "```${language ?: ""}\n${testLines.joinToString("\n")}\n```"
+private fun wrapTestLines(testLines: List<String>, language: String?) = """
+    |```${language ?: ""}
+    |${testLines.joinToString("\n")}
+    |```""".trimMargin()
