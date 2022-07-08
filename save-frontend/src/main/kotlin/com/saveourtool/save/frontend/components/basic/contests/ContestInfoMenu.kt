@@ -5,7 +5,6 @@ package com.saveourtool.save.frontend.components.basic.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
-import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
 
@@ -35,7 +34,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
         className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
         +header
     }
-    val reactMarkdownOptions = jso<dynamic> {
+    val reactMarkdownOptions: dynamic = jso {
         this.children = wrapTestLines(lines, language)
     }
     publicTestCard {
