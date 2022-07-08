@@ -18,8 +18,9 @@ import kotlinx.html.js.onClickFunction
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsTokenMenuView : UserSettingsView() {
+    private val tokenCard = cardComponent(isBordered = false, hasBg = true)
     override fun renderMenu(): FC<UserSettingsProps> = fc { props ->
-        child(cardComponent(isBordered = false, hasBg = true) {
+        tokenCard {
             div("d-sm-flex align-items-center justify-content-center mb-4") {
                 h1("h3 mb-0 mt-2 text-gray-800") {
                     +"Personal access tokens"
@@ -47,7 +48,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                     }
                 }
             }
-        })
+        }
     }
 
     @Suppress("MAGIC_NUMBER")

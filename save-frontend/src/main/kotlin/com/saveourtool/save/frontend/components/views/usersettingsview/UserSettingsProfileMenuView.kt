@@ -14,9 +14,10 @@ import kotlinx.html.js.onClickFunction
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsProfileMenuView : UserSettingsView() {
+    private val card = cardComponent(isBordered = false, hasBg = true)
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     override fun renderMenu(): FC<UserSettingsProps> = fc { props ->
-        child(cardComponent(isBordered = false, hasBg = true) {
+        card {
             div("row mt-2 ml-2 mr-2") {
                 div("col-5 mt-2 text-left align-self-center") {
                     +"Company:"
@@ -115,6 +116,6 @@ class UserSettingsProfileMenuView : UserSettingsView() {
                     }
                 }
             }
-        })
+        }
     }
 }
