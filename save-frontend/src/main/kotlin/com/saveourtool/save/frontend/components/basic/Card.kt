@@ -8,13 +8,11 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import csstype.ClassName
+import react.FC
 
 import react.PropsWithChildren
-import react.dom.RDOMBuilder
-import react.dom.div
-import react.fc
-
-import kotlinx.html.DIV
+import react.dom.html.ReactHTML.div
 
 /**
  * [RProps] for card component
@@ -29,23 +27,28 @@ external interface CardProps : PropsWithChildren {
 /**
  * A functional `RComponent` for a card.
  *
- * @param contentBuilder a builder function for card content
- * @param isBordered - adds a border to the card
- * @param hasBg - adds a white background
+ * @param isBordered adds a border to the card
+ * @param hasBg adds a white background
+ * @param isPaddingBottomNull disables bottom padding (pb-0)
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-fun cardComponent(isBordered: Boolean = false, hasBg: Boolean = false, contentBuilder: RDOMBuilder<DIV>.() -> Unit) = fc<CardProps> { props ->
+fun cardComponent(isBordered: Boolean = false, hasBg: Boolean = false, isPaddingBottomNull: Boolean = false) = FC<CardProps> { props ->
     val boarder = if (isBordered) "border-secondary" else ""
     val card = if (hasBg) "card" else ""
-    div("$card card-body mt-0 pt-0 pr-0 pl-0 $boarder") {
-        div("col mr-2 pr-0 pl-0") {
-            div("mb-0 font-weight-bold text-gray-800") {
-                contentBuilder.invoke(this)
+    val pb = if (isPaddingBottomNull) "pb-0" else ""
+    div {
+        className = ClassName("$card card-body mt-0 pt-0 pr-0 pl-0 $pb $boarder")
+        div {
+            className = ClassName("col mr-2 pr-0 pl-0")
+            div {
+                className = ClassName("mb-0 font-weight-bold text-gray-800")
+                props.children?.let { +it }
             }
         }
         if (props.faIcon != undefined) {
-            div("col-auto") {
+            div {
+                className = ClassName("col-auto")
                 fontAwesomeIcon(icon = props.faIcon, classes = "fas fa-2x text-gray-300")
             }
         }

@@ -222,9 +222,16 @@ class SaveAgent(internal val config: AgentConfiguration,
         ?.toLong()
         ?: 0L
 
-    private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
-        readFile(jsonFile).joinToString(separator = "")
-    )
+    private fun readExecutionReportFromFile(jsonFile: String): List<Report> {
+        val jsonFileContent = readFile(jsonFile).joinToString(separator = "")
+        return if (jsonFileContent.isEmpty()) {
+            throw IllegalStateException("Reading results file $jsonFile has returned empty")
+        } else {
+            reportFormat.decodeFromString(
+                jsonFileContent
+            )
+        }
+    }
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
         runCatching {
