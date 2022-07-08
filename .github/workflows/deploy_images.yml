@@ -27,7 +27,7 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
-        if: github.event_name == 'workflow_dispatch'
+      - if: github.event_name == 'workflow_dispatch'
         run: |
           git checkout origin ${{ inputs.branch }}
           git tag v${{ inputs.branch }}
