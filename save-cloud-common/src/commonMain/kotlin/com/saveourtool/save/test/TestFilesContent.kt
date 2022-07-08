@@ -16,6 +16,6 @@ import kotlinx.serialization.Serializable
 data class TestFilesContent(
     val testLines: List<String>,
     val expectedLines: List<String>?,
-    var language: String? = null,
-    var tags: List<String> = emptyList(),
+    val language: String? = null,
+    val tags: List<String> = emptyList(),
 )

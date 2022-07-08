@@ -96,10 +96,10 @@ internal class ContestController(
                 .retrieve()
                 .bodyToMono()
         }.map { testFilesContent ->
-            testFilesContent.apply {
-                language = testSuite.language
-                tags = test.tagsAsList() ?: emptyList()
-            }
+            testFilesContent.copy(
+                language = testSuite.language,
+                tags = test.tagsAsList() ?: emptyList(),
+            )
         }
     }
 }
