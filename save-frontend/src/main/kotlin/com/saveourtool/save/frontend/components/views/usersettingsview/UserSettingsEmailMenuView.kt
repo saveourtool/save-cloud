@@ -14,8 +14,9 @@ import kotlinx.html.js.onClickFunction
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class UserSettingsEmailMenuView : UserSettingsView() {
+    private val emailCard = cardComponent(isBordered = false, hasBg = true)
     override fun renderMenu(): FC<UserSettingsProps> = fc { props ->
-        child(cardComponent(isBordered = false, hasBg = true) {
+        emailCard {
             div("row mt-2 ml-2 mr-2") {
                 div("col-5 text-left align-self-center") {
                     +"User email:"
@@ -47,6 +48,6 @@ class UserSettingsEmailMenuView : UserSettingsView() {
                     }
                 }
             }
-        })
+        }
     }
 }

@@ -81,7 +81,8 @@ kotlin {
             implementation(npm("path-browserify", "^1.0.1"))
             implementation(npm("react-minimal-pie-chart", "^8.2.0"))
             implementation(npm("lodash.debounce", "^4.0.8"))
-
+            implementation(npm("react-markdown", "^8.0.3"))
+            implementation(npm("rehype-highlight", "^5.0.2"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
