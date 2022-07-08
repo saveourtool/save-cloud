@@ -139,3 +139,7 @@ external val faDownload: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faTrash")
 @JsNonModule
 external val faTrash: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faBell")
+@JsNonModule
+external val faBell: FontAwesomeIconModule

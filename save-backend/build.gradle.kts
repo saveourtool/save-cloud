@@ -39,7 +39,9 @@ tasks.withType<Test> {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    runtimeOnly(project(":save-frontend", "distribution"))  // static resources packed as a jar, will be accessed from classpath
+    runtimeOnly(projects.saveFrontend) {
+        targetConfiguration = "distribution"  // static resources packed as a jar, will be accessed from classpath
+    }
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)

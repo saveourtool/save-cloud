@@ -9,9 +9,11 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServerExtension
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.mock
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
@@ -25,11 +27,18 @@ import reactor.core.scheduler.Schedulers
 @TestPropertySource("classpath:application.properties")
 class KubernetesManagerTest {
     private val dockerClient: DockerClient = mock()
-    private val kubernetesManager: KubernetesManager = KubernetesManager(
-        dockerClient,
-        kubernetesClient,
-        CompositeMeterRegistry(),
-    )
+    @Autowired private lateinit var configProperties: ConfigProperties
+    private lateinit var kubernetesManager: KubernetesManager
+
+    @BeforeEach
+    fun setUp() {
+        kubernetesManager = KubernetesManager(
+            dockerClient,
+            kubernetesClient,
+            configProperties,
+            CompositeMeterRegistry(),
+        )
+    }
 
     @Test
     fun `should delete a Job when stop is requested`() {

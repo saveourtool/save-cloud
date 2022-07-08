@@ -47,14 +47,12 @@ data class Heartbeat(
  * A response that indicates that agent should wait
  */
 @Serializable
-@Suppress("CanSealedSubClassBeObject")
 object WaitResponse : HeartbeatResponse()
 
 /**
  * A response that indicates that agent should continue what it is doing
  */
 @Serializable
-@Suppress("CanSealedSubClassBeObject")
 object ContinueResponse : HeartbeatResponse()
 
 /**
@@ -62,3 +60,9 @@ object ContinueResponse : HeartbeatResponse()
  * @property cliArgs command line arguments for SAVE launch
  */
 @Serializable data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
+
+/**
+ * A response that indicates that agent should exit gracefully
+ */
+@Serializable
+object TerminateResponse : HeartbeatResponse()

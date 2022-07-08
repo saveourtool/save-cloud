@@ -84,7 +84,7 @@ services:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.36.1
+    image: prom/prometheus:v2.36.2
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -101,7 +101,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.0.0
+    image: grafana/grafana:9.0.2
     ports:
       - "9100:3000"
     volumes:

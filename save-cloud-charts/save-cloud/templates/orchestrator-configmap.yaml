@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://backend:5800/internal
+    orchestrator.backendUrl=http://backend/internal
     orchestrator.docker.host={{ .Values.orchestrator.dockerHost }}
     orchestrator.docker.runtime=runc
     orchestrator.docker.loggingDriver=json
@@ -15,5 +15,5 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.name }}:{{ .Values.orchestrator.containerPort }}
-    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}:{{ .Values.backend.containerPort }}
+    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.name }}
+    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}

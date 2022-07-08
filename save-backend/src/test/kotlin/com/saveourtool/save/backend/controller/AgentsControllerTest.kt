@@ -127,7 +127,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
     fun `should return latest status by container id`() {
         webTestClient
             .method(HttpMethod.GET)
@@ -138,6 +137,23 @@ class AgentsControllerTest {
             .expectBody<AgentStatusesForExecution>()
             .consumeWith {
                 val statuses = requireNotNull(it.responseBody).agentStatuses
+                Assertions.assertEquals(2, statuses.size)
+                Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
+                Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
+            }
+    }
+
+    @Test
+    fun `should return latest statuses by a list of container id`() {
+        webTestClient
+            .method(HttpMethod.GET)
+            .uri("/internal/agents/statuses?ids=container-1,container-2")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectBody<List<AgentStatusDto>>()
+            .consumeWith {
+                val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)

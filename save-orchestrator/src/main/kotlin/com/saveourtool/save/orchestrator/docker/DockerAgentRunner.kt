@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.docker
 import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.config.DockerSettings
+import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
 
 import com.github.dockerjava.api.DockerClient
@@ -87,10 +87,18 @@ class DockerAgentRunner(
             logger.info("Agent with id=$agentId has been stopped")
             true
         } else {
-            logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
-            false
+            if (state.status != "exited") {
+                logger.warn("Agent with id=$agentId was requested to be stopped, but it actual state=$state")
+            }
+            state.status == "exited"
         }
     }
+
+    override fun isAgentStopped(agentId: String): Boolean = dockerClient.inspectContainerCmd(agentId)
+        .exec()
+        .state
+        .also { logger.debug("Container $agentId has state $it") }
+        .status != "running"
 
     override fun cleanup(executionId: Long) {
         val containersForExecution = dockerClient.listContainersCmd().withNameFilter(listOf("-$executionId-")).exec()

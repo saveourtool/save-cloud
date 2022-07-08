@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
+import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.stereotype.Service
@@ -45,7 +46,7 @@ class TestSuitesService(
                     description = it.description,
                     project = it.project,
                     dateAdded = null,
-                    testRootPath = it.testRootPath,
+                    testRootPath = FilenameUtils.separatorsToUnix(it.testRootPath),
                     testSuiteRepoUrl = it.testSuiteRepoUrl,
                     language = it.language
                 )

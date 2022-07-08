@@ -19,6 +19,9 @@ open class Sdk(val name: String, open val version: String) {
      */
     object Default : Sdk("ubuntu", "latest")
 
+    /**
+     * Fixme: we sometimes rely on this method, so this prevents child classes from being `data class`es
+     */
     override fun toString() = "$name:$version"
 }
 
@@ -52,8 +55,8 @@ fun String.toSdk(): Sdk {
     require(splitSdk.size == 2) { "Cant find correct sdk and version" }
     val (sdkType, sdkVersion) = splitSdk.run { this.first() to this.last() }
     return when (sdkType) {
-        Jdk.NAME -> Jdk(sdkVersion)
-        Python.NAME -> Python(sdkVersion)
+        Jdk.NAME, Jdk("-1").name -> Jdk(sdkVersion)
+        Python.NAME, Python("-1").name -> Python(sdkVersion)
         else -> Sdk.Default
     }
 }

@@ -20,6 +20,7 @@ import platform.posix.exit
 import platform.posix.signal
 
 import kotlinx.cinterop.staticCFunction
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
@@ -37,6 +38,7 @@ internal val json = Json {
             subclass(NewJobResponse::class)
             subclass(ContinueResponse::class)
             subclass(WaitResponse::class)
+            subclass(TerminateResponse::class)
         }
     }
 }
@@ -63,10 +65,15 @@ fun main() {
         }
     }
 
-    val saveAgent = SaveAgent(config, httpClient)
     runBlocking {
-        val mainJob = saveAgent.start(this)
-        mainJob.join()
+        // Launch in a new scope, because we cancel the scope on graceful termination,
+        // and `BlockingCoroutine` shouldn't be cancelled.
+        launch {
+            val saveAgent = SaveAgent(config, httpClient, coroutineScope = this)
+
+            val mainJob = saveAgent.start()
+            mainJob.join()
+        }
     }
     logInfoCustom("Agent is shutting down")
 }

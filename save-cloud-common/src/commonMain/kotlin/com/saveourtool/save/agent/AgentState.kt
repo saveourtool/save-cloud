@@ -51,5 +51,10 @@ enum class AgentState {
      * Agent has been stopped by save-orchestrator, because there is no more work left
      */
     STOPPED_BY_ORCH,
+
+    /**
+     * Agent has gracefully shut down itself
+     */
+    TERMINATED,
     ;
 }
