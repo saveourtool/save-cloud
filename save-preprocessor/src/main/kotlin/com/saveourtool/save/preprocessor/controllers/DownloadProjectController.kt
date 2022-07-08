@@ -241,7 +241,7 @@ class DownloadProjectController(
                         log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
                     }
             }
-                .flatMap { Flux.fromIterable(it) }
+                .flatMapIterable { it }
                 .map { it.toDto() }
                 .collectList()
                 .flatMap {
