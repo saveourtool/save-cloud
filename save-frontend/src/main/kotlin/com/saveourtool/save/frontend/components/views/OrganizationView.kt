@@ -150,7 +150,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
-                    errorMessage = "You cannot delete an organization because there are projects connected to it." +
+                    errorMessage = "You cannot delete an organization because there are projects connected to it. " +
                             "Delete all the projects and try again."
                 }
             } else {
