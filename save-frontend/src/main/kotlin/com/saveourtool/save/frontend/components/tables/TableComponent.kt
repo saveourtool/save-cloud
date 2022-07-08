@@ -81,7 +81,6 @@ external interface TableProps<D : Any> : Props {
      * Name of test suite
      */
     var testSuite: String?
-
 }
 
 /**

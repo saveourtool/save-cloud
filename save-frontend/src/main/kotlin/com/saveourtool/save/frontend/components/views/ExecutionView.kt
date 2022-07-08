@@ -26,7 +26,6 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import csstype.TextDecoration
-import csstype.attr
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -389,7 +388,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     },
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
-                        Json.decodeFromString<Array<TestExecutionDto>>(
+                    Json.decodeFromString<Array<TestExecutionDto>>(
                             it.text().await()
                         )
                     }

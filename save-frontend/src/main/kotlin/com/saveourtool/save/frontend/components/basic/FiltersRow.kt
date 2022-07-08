@@ -17,8 +17,8 @@ import react.dom.div
 import react.dom.input
 import react.dom.option
 import react.dom.select
-import react.useState
 import react.fc
+import react.useState
 
 import kotlinx.html.InputType
 import kotlinx.html.classes
@@ -85,7 +85,7 @@ fun testExecutionFiltersRow(
                     attrs.defaultValue = initialValueTestSuite
                     attrs.required = false
                     attrs.onChangeFunction = {
-                         setTestSuite((it.target as HTMLInputElement).value)
+                        setTestSuite((it.target as HTMLInputElement).value)
                     }
                 }
             }
