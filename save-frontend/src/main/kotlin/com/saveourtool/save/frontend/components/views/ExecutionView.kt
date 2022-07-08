@@ -250,7 +250,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
                 ?: run {
                     val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
-                    val reasonText = trei?.let { it.failReason  } ?: "Debug info not available yet for this test execution"
+                    val reasonText = trei?.failReason ?: "Debug info not available yet for this test execution"
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
