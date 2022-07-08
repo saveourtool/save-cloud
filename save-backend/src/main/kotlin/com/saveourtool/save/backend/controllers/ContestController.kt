@@ -89,12 +89,17 @@ internal class ContestController(
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         val test = testService.findTestsByTestSuiteId(testSuite.requiredId()).firstOrNull()
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        return TestFilesRequest(test.toDto(), testSuite.testRootPath).let {
+        return TestFilesRequest(test.toDto(), testSuite.testRootPath).let<TestFilesRequest, Mono<TestFilesContent>> {
             preprocessorWebClient.post()
                 .uri("/tests/get-content")
                 .bodyValue(it)
                 .retrieve()
                 .bodyToMono()
+        }.map { testFilesContent ->
+            testFilesContent.apply {
+                language = testSuite.language
+                tags = test.tagsAsList() ?: emptyList()
+            }
         }
     }
 }

@@ -117,12 +117,12 @@ fun contestInfoMenu(
                             className = ClassName("ml-2 mr-2")
                             div {
                                 className = ClassName("mt-3 mb-3")
-                                displayTestLines("Test", publicTest.testLines, "kotlin")
+                                displayTestLines("Test", publicTest.testLines, publicTest.language)
                             }
                             publicTest.expectedLines?.let {
                                 div {
                                     className = ClassName("mt-3 mb-2")
-                                    displayTestLines("Expected", it, "kotlin")
+                                    displayTestLines("Expected", it, publicTest.language)
                                 }
                             }
                         }
