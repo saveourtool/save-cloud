@@ -16,7 +16,6 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 
-import kotlinx.coroutines.launch
 import kotlinx.html.js.onClickFunction
 
 /**
@@ -43,11 +42,6 @@ external interface ContestViewProps : Props {
  */
 external interface ContestViewState : State {
     /**
-     * Current contest info
-     */
-    var contestDto: ContestDto?
-
-    /**
      * Current selected menu
      */
     var selectedMenu: ContestMenuBar?
@@ -63,19 +57,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     private val contestResults = contestResultsMenu()
     private val contestParticipants = contestParticipantsMenu()
     init {
-        state.contestDto = null
         state.selectedMenu = ContestMenuBar.INFO
-    }
-
-    override fun componentDidMount() {
-        super.componentDidMount()
-        scope.launch {
-            val contest = getContest(props.currentContestName ?: "")
-            // get your tries
-            setState {
-                contestDto = contest
-            }
-        }
     }
 
     override fun RBuilder.render() {
@@ -108,7 +90,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     private fun RBuilder.renderInfo() {
         child(contestInfo) {
-            attrs.contest = state.contestDto
+            attrs.contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 

@@ -296,55 +296,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
-    private val projectInfoCard = cardComponent(isBordered = true, hasBg = true) {
-        child(projectInfo) {
-            attrs {
-                project = state.project
-                isEditDisabled = state.isEditDisabled
-            }
-        }
-
-        div("ml-3 mt-2 align-items-left justify-content-between") {
-            fontAwesomeIcon(icon = faHistory)
-
-            button(classes = "btn btn-link text-left") {
-                +"Latest Execution"
-                attrs.disabled = state.latestExecutionId == null
-
-                attrs.onClickFunction = {
-                    window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
-                }
-            }
-        }
-        div("ml-3 align-items-left") {
-            fontAwesomeIcon(icon = faCalendarAlt)
-            a(
-                href = "#/${state.project.organization.name}/${state.project.name}/history",
-                classes = "btn btn-link text-left"
-            ) {
-                +"Execution History"
-            }
-        }
-    }
-    private val typeSelection = cardComponent {
-        div("text-left") {
-            testingTypeButton(
-                TestingType.CUSTOM_TESTS,
-                "Evaluate your tool with your own tests from git",
-                "mr-2"
-            )
-            testingTypeButton(
-                TestingType.STANDARD_BENCHMARKS,
-                "Evaluate your tool with standard test suites",
-                "mt-3 mr-2"
-            )
-            testingTypeButton(
-                TestingType.CONTEST_MODE,
-                "Participate in SAVE contests with your tool",
-                "mt-3 mr-2"
-            )
-        }
-    }
+    private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
+    private val typeSelection = cardComponent()
     private val fileUploader = fileUploader(
         onFileSelect = { element ->
             setState {
@@ -631,7 +584,25 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     +"Testing types"
                 }
 
-                child(typeSelection)
+                typeSelection {
+                    div("text-left") {
+                        testingTypeButton(
+                            TestingType.CUSTOM_TESTS,
+                            "Evaluate your tool with your own tests from git",
+                            "mr-2"
+                        )
+                        testingTypeButton(
+                            TestingType.STANDARD_BENCHMARKS,
+                            "Evaluate your tool with standard test suites",
+                            "mt-3 mr-2"
+                        )
+                        testingTypeButton(
+                            TestingType.CONTEST_MODE,
+                            "Participate in SAVE contests with your tool",
+                            "mt-3 mr-2"
+                        )
+                    }
+                }
             }
             // ===================== MIDDLE COLUMN =====================================================================
             div("col-4") {
@@ -694,7 +665,36 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
 
-                child(projectInfoCard)
+                projectInfoCard {
+                    child(projectInfo) {
+                        attrs {
+                            project = state.project
+                            isEditDisabled = state.isEditDisabled
+                        }
+                    }
+
+                    div("ml-3 mt-2 align-items-left justify-content-between") {
+                        fontAwesomeIcon(icon = faHistory)
+
+                        button(classes = "btn btn-link text-left") {
+                            +"Latest Execution"
+                            attrs.disabled = state.latestExecutionId == null
+
+                            attrs.onClickFunction = {
+                                window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                            }
+                        }
+                    }
+                    div("ml-3 align-items-left") {
+                        fontAwesomeIcon(icon = faCalendarAlt)
+                        a(
+                            href = "#/${state.project.organization.name}/${state.project.name}/history",
+                            classes = "btn btn-link text-left"
+                        ) {
+                            +"Execution History"
+                        }
+                    }
+                }
             }
         }
     }
