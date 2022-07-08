@@ -218,7 +218,6 @@ class DownloadProjectController(
     fun uploadStandardTestSuite() = Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
         .doOnSuccess {
             val (user, token) = readGitCredentialsForStandardMode(configProperties.reposTokenFileName)
-            val newTestSuites: MutableList<TestSuiteDto> = mutableListOf()
             Flux.fromIterable(readStandardTestSuitesFile(configProperties.reposFileName)).flatMap { testSuiteRepoInfo ->
                 val testSuiteUrl = testSuiteRepoInfo.gitUrl
                 log.info("Starting clone repository url=$testSuiteUrl for standard test suites")
@@ -242,15 +241,17 @@ class DownloadProjectController(
                         log.error("Error to update test suite with url=$testSuiteUrl, path=${testSuiteRepoInfo.testSuitePaths}")
                     }
             }
+                .flatMap { Flux.fromIterable(it) }
+                .map { it.toDto() }
                 .collectList()
                 .flatMap {
-                    markObsoleteOldStandardTestSuites(newTestSuites)
+                    markObsoleteOldStandardTestSuites(it)
                 }
                 .subscribeOn(scheduler)
                 .subscribe()
         }
 
-    private fun markObsoleteOldStandardTestSuites(newTestSuites: MutableList<TestSuiteDto>) = webClientBackend.get()
+    private fun markObsoleteOldStandardTestSuites(newTestSuites: List<TestSuiteDto>) = webClientBackend.get()
         .uri("/allStandardTestSuites")
         .retrieve()
         .bodyToMono<List<TestSuiteDto>>()
