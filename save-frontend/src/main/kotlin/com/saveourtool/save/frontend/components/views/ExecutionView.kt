@@ -194,7 +194,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     val trei = getExecutionInfoFor(te)
                                     if (trei.ok) {
                                         cellProps.row.original.asDynamic().executionInfo =
-                                            trei.decodeFromJsonString<ExecutionUpdateDto>()
+                                                trei.decodeFromJsonString<ExecutionUpdateDto>()
                                     }
                                 }
                                 cellProps.row.toggleRowExpanded()
@@ -254,7 +254,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     tr {
                         td {
                             attrs.colSpan = "${tableInstance.columns.size}"
-                            + "$reasonText"
+                            +reasonText
                         }
                     }
                 }

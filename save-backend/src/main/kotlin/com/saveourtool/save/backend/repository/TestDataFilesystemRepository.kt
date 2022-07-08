@@ -4,22 +4,21 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.execution.ExecutionUpdateDto
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.execution.ExecutionUpdateDto
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
-import java.io.File
 
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.exists
-import kotlin.io.path.name
 
 /**
  * A repository for storing additional data associated with test results
@@ -64,6 +63,13 @@ class TestDataFilesystemRepository(
     private fun TestResultLocation.toFsResource(executionId: Long) = FileSystemResource(
         getLocation(executionId, this)
     )
+
+    /**
+     * Get location of execution data for given [executionId]
+     *
+     * @param executionId
+     * @return path to file with execution info
+     */
     fun getExecutionInfoFile(executionId: Long) = FileSystemResource(
         root / executionId.toString() / "execution-info.json"
     )
@@ -98,6 +104,9 @@ class TestDataFilesystemRepository(
     private fun sanitizePathName(name: String): String =
             name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
 
+    /**
+     * @param executionInfo
+     */
     fun save(executionInfo: ExecutionUpdateDto) {
         val destination = getExecutionInfoFile(executionInfo.id).file
         if (destination.exists()) {
@@ -123,6 +132,10 @@ class TestDataFilesystemRepository(
         TODO("Not yet implemented")
     }
 
+    /**
+     * @param executionId
+     * @return
+     */
     fun getLocation(executionId: Long): Any {
         TODO("Not yet implemented")
     }

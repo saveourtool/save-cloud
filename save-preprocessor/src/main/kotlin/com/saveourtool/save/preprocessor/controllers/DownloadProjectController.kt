@@ -545,7 +545,7 @@ class DownloadProjectController(
     }
         .collectList()
 
-    private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus, failReason:String? = null) =
+    private fun updateExecutionStatus(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null) =
             webClientBackend.makeRequest(
                 BodyInserters.fromValue(ExecutionUpdateDto(executionId, executionStatus, failReason)),
                 "/updateExecutionByDto"

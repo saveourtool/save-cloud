@@ -202,6 +202,7 @@ class AgentService(
      *
      * @param executionId execution that should be updated
      * @param executionStatus new status for execution
+     * @param failReason to show to user in case of error status
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =

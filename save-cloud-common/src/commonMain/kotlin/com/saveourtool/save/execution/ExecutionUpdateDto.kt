@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 /**
  * @property id
  * @property status
+ * @property failReason
  */
 @Serializable
 data class ExecutionUpdateDto(

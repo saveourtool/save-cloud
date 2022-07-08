@@ -22,7 +22,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -207,9 +206,9 @@ class DownloadFilesController(
         }
     }
 
-    private fun getExecutionId(testExecutionDto: TestExecutionDto): Long  {
-        if( testExecutionDto.executionId != null)
-            return testExecutionDto.executionId!!
+    private fun getExecutionId(testExecutionDto: TestExecutionDto): Long {
+        testExecutionDto.executionId?.let { return it }
+
         val agentContainerId = testExecutionDto.agentContainerId
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
         val execution = agentRepository.findByContainerId(agentContainerId)?.execution

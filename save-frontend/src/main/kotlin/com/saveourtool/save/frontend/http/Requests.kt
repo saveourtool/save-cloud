@@ -26,7 +26,7 @@ suspend fun ComponentWithScope<*, *>.getDebugInfoFor(testExecutionDto: TestExecu
  * @param testExecutionDto
  */
 suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(testExecutionDto: TestExecutionDto) =
-    getExecutionInfoFor(testExecutionDto, this::post)
+        getExecutionInfoFor(testExecutionDto, this::post)
 
 /**
  * @param testExecutionDto
