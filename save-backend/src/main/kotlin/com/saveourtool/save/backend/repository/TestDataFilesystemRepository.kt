@@ -26,7 +26,7 @@ import kotlin.io.path.exists
 @Repository
 class TestDataFilesystemRepository(
     configProperties: ConfigProperties,
-    private val objectMapper: ObjectMapper,
+    private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(TestDataFilesystemRepository::class.java)
 
@@ -84,8 +84,10 @@ class TestDataFilesystemRepository(
     @Suppress("UnsafeCallOnNullableType")
     fun getLocation(executionId: Long, testExecutionDto: TestExecutionDto): Path {
         val path = testExecutionDto.filePath.toPath()
-        val testResultLocation = TestResultLocation(testExecutionDto.testSuiteName!!, testExecutionDto.pluginName,
-            path.parent.toString(), path.name)
+        val testResultLocation = TestResultLocation(
+            testExecutionDto.testSuiteName!!, testExecutionDto.pluginName,
+            path.parent.toString(), path.name
+        )
         return getLocation(executionId, testResultLocation)
     }
 
@@ -111,9 +113,12 @@ class TestDataFilesystemRepository(
         val destination = getExecutionInfoFile(executionInfo.id).file
         if (destination.exists()) {
             val existingExecutionInfo = loadExecutionInfo(destination)
-            save(existingExecutionInfo.copy(
-                failReason = "${existingExecutionInfo.failReason}, ${executionInfo.failReason}"),
-                destination)
+            save(
+                existingExecutionInfo.copy(
+                    failReason = "${existingExecutionInfo.failReason}, ${executionInfo.failReason}"
+                ),
+                destination
+            )
         } else {
             destination.parentFile.mkdirs()
             save(executionInfo, destination)
@@ -128,15 +133,5 @@ class TestDataFilesystemRepository(
         )
     }
 
-    private fun loadExecutionInfo(destination: File): ExecutionUpdateDto {
-        TODO("Not yet implemented")
-    }
-
-    /**
-     * @param executionId
-     * @return
-     */
-    fun getLocation(executionId: Long): Any {
-        TODO("Not yet implemented")
-    }
+    private fun loadExecutionInfo(destination: File): ExecutionUpdateDto = objectMapper.readValue(destination, ExecutionUpdateDto::class.java)
 }

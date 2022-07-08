@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.controller
 
-import com.github.dockerjava.api.exception.DockerClientException
 import com.saveourtool.save.agent.ExecutionLogs
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
@@ -11,6 +10,7 @@ import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 
+import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
@@ -62,7 +62,7 @@ class AgentsController(
                 // todo: pass SDK via request body
                 dockerService.buildBaseImage(execution)
             }
-                .onErrorResume({it is DockerException || it is DockerClientException}) { dex ->
+                .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
                 .map { (baseImageId, agentRunCmd) ->
