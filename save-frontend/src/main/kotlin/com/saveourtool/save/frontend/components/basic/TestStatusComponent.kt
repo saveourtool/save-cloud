@@ -78,3 +78,30 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
         }
     }
 }
+
+/**
+ * A function component that renders info about execution [failReason] into a table [tableInstance]
+ *
+ * @param failReason reason of execution fail
+ * @param tableInstance a table, into which this data is added
+ * @return a function component
+ */
+fun <D : Any> executionStatusComponent(
+    failReason: String,
+    tableInstance: TableInstance<D>
+) = fc<Props> {
+    tr {
+        td {
+            attrs.colSpan = "2"
+            +"Execution fail reason:"
+        }
+        td {
+            attrs.colSpan = "${tableInstance.columns.size - 2}"
+            small {
+                samp {
+                    +failReason
+                }
+            }
+        }
+    }
+}

@@ -107,12 +107,13 @@ private suspend fun getDebugInfoFor(
 @Suppress("TYPE_ALIAS")
 private suspend fun getExecutionInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response) -> Response,
+    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
 ) = post(
     "$apiUrl/files/get-execution-info",
     Headers().apply {
         set("Content-Type", "application/json")
     },
     Json.encodeToString(testExecutionDto),
-    ::noopLoadingHandler
+    ::noopLoadingHandler,
+    ::noopResponseHandler
 )

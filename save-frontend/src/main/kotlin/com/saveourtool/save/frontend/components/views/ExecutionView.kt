@@ -11,11 +11,8 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
-import com.saveourtool.save.frontend.components.basic.executionStatistics
-import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
-import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
-import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
@@ -31,10 +28,7 @@ import csstype.TextDecoration
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
-import react.table.columns
-import react.table.useExpanded
-import react.table.usePagination
-import react.table.useSortBy
+import react.table.*
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -190,12 +184,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 val trdi = getDebugInfoFor(te)
                                 if (trdi.ok) {
                                     cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
-                                } else {
-                                    val trei = getExecutionInfoFor(te)
-                                    if (trei.ok) {
-                                        cellProps.row.original.asDynamic().executionInfo =
-                                                trei.decodeFromJsonString<ExecutionUpdateDto>()
-                                    }
+                                }
+                                val trei = getExecutionInfoFor(te)
+                                if (trei.ok) {
+                                    cellProps.row.original.asDynamic().executionInfo =
+                                            trei.decodeFromJsonString<ExecutionUpdateDto>()
                                 }
                                 cellProps.row.toggleRowExpanded()
                             }
@@ -241,23 +234,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             usePagination,
         ),
         renderExpandedRow = { tableInstance, row ->
-            // todo: placeholder before, render data once it's available
+            val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
+            trei?.failReason?.let {
+                child(executionStatusComponent(it, tableInstance))
+            }
             val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
             trdi?.let {
-                child(testStatusComponent(trdi, tableInstance)) {
-                    // attrs.key = trdi.testResultLocation.toString()
-                }
-            }
-                ?: run {
-                    val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
-                    val reasonText = trei?.failReason ?: "Debug info not available yet for this test execution"
-                    tr {
-                        td {
-                            attrs.colSpan = "${tableInstance.columns.size}"
-                            +reasonText
-                        }
+                child(testStatusComponent(trdi, tableInstance))
+            } ?: trei ?: run {
+                tr {
+                    td {
+                        attrs.colSpan = "${tableInstance.columns.size}"
+                        +"No info available yet for this test execution"
                     }
                 }
+            }
         },
         additionalOptions = {
             this.asDynamic().manualFilters = true
@@ -285,6 +276,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         }
     )
+
     init {
         state.executionDto = null
         state.status = null

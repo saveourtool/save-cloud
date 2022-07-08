@@ -305,7 +305,7 @@ class DownloadProjectController(
                     is InvalidRemoteException,
                     is TransportException,
                     is GitAPIException -> "Error with git API while cloning ${gitDto.url} repository"
-                    else -> "Cloning ${gitDto.url} repository failed"
+                    else -> "Cloning ${gitDto.url} repository failed. Reason: ${exception.message}"
                 }
                 log.error(failReason, exception)
                 updateExecutionStatus(executionRequest.executionId!!, ExecutionStatus.ERROR, failReason).flatMap {
@@ -365,7 +365,7 @@ class DownloadProjectController(
         .toBodilessEntity()
         .then(initializeAgents(this))
         .onErrorResume { ex ->
-            val failReason = "Error during preprocessing"
+            val failReason = "Error during preprocessing. Reason: ${ex.message}"
             log.error(
                 "$failReason, will mark execution.id=$id as failed; error: ",
                 ex

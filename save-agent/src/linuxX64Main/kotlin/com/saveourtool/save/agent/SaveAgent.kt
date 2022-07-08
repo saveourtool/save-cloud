@@ -158,7 +158,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 state.value = AgentState.CLI_FAILED
             } else {
                 handleSuccessfulExit().invokeOnCompletion { cause ->
-                    state.value = if (cause == null) AgentState.FINISHED else AgentState.CLI_FAILED
+                    state.value = if (cause == null) AgentState.FINISHED else AgentState.CRASHED
                 }
             }
             else -> {
