@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
 
@@ -15,7 +16,7 @@ import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
 
-private val card = cardComponent(hasBg = true, isPaddingBottomNull = true)
+private val columnCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
 private val publicTestCard = cardComponent(hasBg = true, isBordered = true, isPaddingBottomNull = true)
 
@@ -34,10 +35,11 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
         className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
         +header
     }
+    val reactMarkdownOptions = jso<dynamic> {
+        this.children = wrapTestLines(lines, language)
+    }
     publicTestCard {
-        child(reactMarkdown(jso {
-            this.children = wrapTestLines(lines, language)
-        }))
+        child(reactMarkdown(reactMarkdownOptions))
     }
 }
 
@@ -89,7 +91,7 @@ fun contestInfoMenu(
             }
             div {
                 className = ClassName("text-center")
-                card {
+                columnCard {
                     child(reactMarkdown(jso {
                         this.children = contest?.description ?: "No description provided **yet**"
                     }))
@@ -109,17 +111,17 @@ fun contestInfoMenu(
                         +"Public tests are not provided"
                     }
                 } else {
-                    card {
+                    columnCard {
                         div {
                             className = ClassName("ml-2 mr-2")
                             div {
                                 className = ClassName("mt-3 mb-3")
-                                displayTestLines("Test", publicTest.testLines)
+                                displayTestLines("Test", publicTest.testLines, "kotlin")
                             }
                             publicTest.expectedLines?.let {
                                 div {
                                     className = ClassName("mt-3 mb-2")
-                                    displayTestLines("Expected", it)
+                                    displayTestLines("Expected", it, "kotlin")
                                 }
                             }
                         }
