@@ -389,9 +389,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
                     Json.decodeFromString<Array<TestExecutionDto>>(
-                            it.text().await()
-                        )
-                    }
+                        it.text().await()
+                    )
+                }
                     .apply {
                         asDynamic().debugInfo = null
                     }
