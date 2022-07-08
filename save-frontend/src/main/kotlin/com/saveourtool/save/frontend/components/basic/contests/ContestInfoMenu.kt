@@ -137,5 +137,3 @@ private fun wrapTestLines(testLines: List<String>, language: String?) = """
     |```${ language ?: "" }
     |${testLines.joinToString("\n")}
     |```""".trimMargin()
-//stackoverflow light
-// intellij light
