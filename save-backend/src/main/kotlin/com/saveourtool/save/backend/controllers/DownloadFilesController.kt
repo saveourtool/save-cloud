@@ -212,11 +212,11 @@ class DownloadFilesController(
         val agentContainerId = testExecutionDto.agentContainerId
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
         val execution = agentRepository.findByContainerId(agentContainerId)?.execution
+        return execution?.id
             ?: throw ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 "Execution for agent $agentContainerId not found"
             )
-        return execution.id!!
     }
 
     /**

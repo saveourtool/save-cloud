@@ -96,7 +96,9 @@ class AgentsController(
         ex: Throwable?
     ): Mono<T> {
         log.error("$failReason for executionId=${execution.id}, will mark it as ERROR", ex)
-        return agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR, failReason).then(Mono.empty())
+        return execution.id?.let {
+            agentService.updateExecution(it, ExecutionStatus.ERROR, failReason).then(Mono.empty())
+        } ?: Mono.empty()
     }
 
     /**
