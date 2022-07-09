@@ -139,7 +139,6 @@ class TestDiscoveringService {
     fun getPublicTestFiles(testFilesRequest: TestFilesRequest) = TestFilesContent(
         getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.filePath)!!,
         getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.additionalFiles.firstOrNull()),
-        testFilesRequest.test.tags,
     )
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
