@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.FileInfo
+import csstype.ClassName
 
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
@@ -23,6 +24,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.ChildrenBuilder
+import react.dom.html.ReactHTML.body
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.samp
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tr
 
 /**
  * @return a nicely formatted string representation of [FileInfo]
@@ -56,7 +66,7 @@ inline fun <reified T> FormData.appendJson(name: String, obj: T) =
  * @param text text to display
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-internal fun RBuilder.multilineText(text: String) {
+internal fun ChildrenBuilder.multilineText(text: String) {
     text.lines().forEach {
         small {
             samp {
@@ -70,8 +80,9 @@ internal fun RBuilder.multilineText(text: String) {
 /**
  * @param text
  */
-internal fun RBuilder.multilineTextWithIndices(text: String) {
-    table("table table-borderless table-hover table-sm") {
+internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
+    table {
+        className = ClassName("table table-borderless table-hover table-sm")
         tbody {
             text.lines().filterNot { it.isEmpty() }.forEachIndexed { i, line ->
                 tr {

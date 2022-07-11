@@ -11,12 +11,18 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 
 import kotlinx.html.js.onClickFunction
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
 
 /**
  * Enum that defines the bar that is chosen
@@ -60,10 +66,11 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         state.selectedMenu = ContestMenuBar.INFO
     }
 
-    override fun RBuilder.render() {
-        div("d-flex justify-content-around") {
+    override fun ChildrenBuilder.render() {
+        div {
+            className = ClassName("d-flex justify-content-around")
             h1 {
-                attrs.text("${props.currentContestName}")
+                +"${props.currentContestName}"
             }
         }
         renderContestMenuBar()
@@ -76,33 +83,37 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    private fun RBuilder.renderResults() {
-        child(contestResults) {
-            attrs.contestName = props.currentContestName ?: "UNDEFINED"
+    private fun ChildrenBuilder.renderResults() {
+        contestResults {
+            contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
-    private fun RBuilder.renderParticipants() {
-        child(contestParticipants) {
-            attrs.contestName = props.currentContestName ?: "UNDEFINED"
+    private fun ChildrenBuilder.renderParticipants() {
+        contestParticipants {
+            contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
-    private fun RBuilder.renderInfo() {
-        child(contestInfo) {
-            attrs.contestName = props.currentContestName ?: "UNDEFINED"
+    private fun ChildrenBuilder.renderInfo() {
+        contestInfo {
+            contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
-    private fun RBuilder.renderContestMenuBar() {
-        div("row align-items-center justify-content-center") {
-            nav("nav nav-tabs mb-4") {
+    private fun ChildrenBuilder.renderContestMenuBar() {
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            nav {
+                className = ClassName("nav nav-tabs mb-4")
                 ContestMenuBar.values().forEachIndexed { i, contestMenu ->
-                    li("nav-item") {
+                    li {
+                        className = ClassName("nav-item")
                         val classVal =
                                 if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
-                        p("nav-link $classVal text-gray-800") {
-                            attrs.onClickFunction = {
+                        p {
+                            className = ClassName("nav-link $classVal text-gray-800")
+                            onClick = {
                                 if (state.selectedMenu != contestMenu) {
                                     setState {
                                         selectedMenu = contestMenu
@@ -116,17 +127,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             }
         }
     }
-
-    private suspend fun ComponentWithScope<*, *>.getContest(contestName: String) = get(
-        "$apiUrl/contests/$contestName",
-        Headers().apply {
-            set("Accept", "application/json")
-        },
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ContestDto>()
-        }
 
     companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext>>(ContestView::class) {
         init {

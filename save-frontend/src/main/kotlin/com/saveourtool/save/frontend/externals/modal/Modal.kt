@@ -25,6 +25,7 @@ private val defaultModalStyle = Styles(
 /**
  * @param handler builder for modal component
  */
+@Deprecated("Use non-legacy code")
 fun RBuilder.modal(
     handler: RHandler<ModalProps>
 ): Unit = child(ReactModal::class) {

@@ -10,21 +10,21 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.externals.modal.modal
+import csstype.ClassName
 
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.Props
-import react.RBuilder
-import react.dom.*
-import react.fc
-import react.useState
 
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.js.onClickFunction
+import react.dom.html.ButtonType
+import react.dom.html.InputType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.HTMLButtonElement
+import react.*
+import react.dom.events.MouseEventHandler
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.input
 
 /**
  * Enum that stores types of confirmation windows for different situations.
@@ -58,7 +58,7 @@ external interface RunSettingGitWindowProps : Props {
     /**
      * Lambda to close window
      */
-    var handlerCancel: (Event) -> Unit
+    var handlerCancel: MouseEventHandler<HTMLButtonElement>
 
     /**
      * Lambda to set new git dto in state
@@ -74,25 +74,28 @@ external interface RunSettingGitWindowProps : Props {
  * @param handler handler to close
  * @return modal
  */
-fun RBuilder.runErrorModal(
+fun ChildrenBuilder.runErrorModal(
     isErrorOpen: Boolean?,
     errorLabel: String,
     errorMessage: String,
     closeButtonLabel: String = "Close",
-    handler: (Event) -> Unit
+    handler: MouseEventHandler<HTMLButtonElement>
 ) = modal {
-    attrs {
-        isOpen = isErrorOpen
-        contentLabel = errorLabel
-    }
-    div("row align-items-center justify-content-center") {
-        h2("h6 text-gray-800") {
+    it.isOpen = isErrorOpen
+    it.contentLabel = errorLabel
+    div {
+        className = ClassName("row align-items-center justify-content-center")
+        h2 {
+            className = ClassName("h6 text-gray-800")
             +(errorMessage)
         }
     }
-    div("d-sm-flex align-items-center justify-content-center mt-4") {
-        button(type = ButtonType.button, classes = "btn btn-primary") {
-            attrs.onClickFunction = handler
+    div {
+        className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-primary")
+            onClick = handler
             +closeButtonLabel
         }
     }
@@ -109,31 +112,36 @@ fun RBuilder.runErrorModal(
  * @return modal
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
-fun RBuilder.runConfirmWindowModal(
+fun ChildrenBuilder.runConfirmWindowModal(
     isConfirmWindowOpen: Boolean?,
     confirmLabel: String,
     confirmMessage: String,
     okButtonLabel: String = "Ok",
     closeButtonLabel: String = "Close",
-    handlerClose: (Event) -> Unit,
-    handler: (Event) -> Unit
+    handlerClose: MouseEventHandler<HTMLButtonElement>,
+    handler: MouseEventHandler<HTMLButtonElement>
 ) = modal {
-    attrs {
-        isOpen = isConfirmWindowOpen
-        contentLabel = confirmLabel
-    }
-    div("row align-items-center justify-content-center") {
-        h2("h6 text-gray-800 mb-2") {
+    it.isOpen = isConfirmWindowOpen
+    it.contentLabel = confirmLabel
+    div {
+        className = ClassName("row align-items-center justify-content-center")
+        h2 {
+            className = ClassName("h6 text-gray-800 mb-2")
             +(confirmMessage)
         }
     }
-    div("d-sm-flex align-items-center justify-content-center mt-4") {
-        button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
-            attrs.onClickFunction = handler
+    div {
+        className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-primary mr-3")
+            onClick = handler
             +okButtonLabel
         }
-        button(type = ButtonType.button, classes = "btn btn-outline-primary") {
-            attrs.onClickFunction = handlerClose
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-outline-primary")
+            onClick = handlerClose
             +closeButtonLabel
         }
     }
@@ -147,7 +155,7 @@ fun RBuilder.runConfirmWindowModal(
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun runSettingGitWindow() = fc<RunSettingGitWindowProps> { props ->
+fun runSettingGitWindow() = FC<RunSettingGitWindowProps> { props ->
     val (fieldsWithGitInfo, setFieldsWithGitInfo) = useState(mutableMapOf<InputTypes, String>())
 
     val updateGit = useRequest(arrayOf(props.project), isDeferred = true) {
@@ -177,67 +185,76 @@ fun runSettingGitWindow() = fc<RunSettingGitWindowProps> { props ->
     }
 
     modal {
-        attrs {
-            isOpen = props.isOpenGitWindow
-        }
+        it.isOpen = props.isOpenGitWindow
 
-        div("row mt-2 ml-2 mr-2") {
-            div("col-5 text-left align-self-center") {
+        div {
+            className = ClassName("row mt-2 ml-2 mr-2")
+            div {
+                className = ClassName("col-5 text-left align-self-center")
                 +"Git Username:"
             }
-            div("col-7 input-group pl-0") {
-                input(type = InputType.text) {
-                    attrs["class"] = "form-control"
-                    attrs {
-                        defaultValue = props.gitDto?.username ?: ""
-                        onChange = {
-                            fieldsWithGitInfo[InputTypes.GIT_USER] = (it.target as HTMLInputElement).value
-                        }
+            div {
+                className = ClassName("col-7 input-group pl-0")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = props.gitDto?.username ?: ""
+                    onChange = {
+                        fieldsWithGitInfo[InputTypes.GIT_USER] = it.target.value
                     }
                 }
             }
         }
-        div("row mt-2 ml-2 mr-2") {
-            div("col-5 text-left align-self-center") {
+        div {
+            className = ClassName("row mt-2 ml-2 mr-2")
+            div {
+                className = ClassName("col-5 text-left align-self-center")
                 +"Git Url:"
             }
-            div("col-7 input-group pl-0") {
-                input(type = InputType.text) {
-                    attrs["class"] = "form-control"
-                    attrs {
-                        defaultValue = props.gitDto?.url ?: ""
-                        onChange = {
-                            fieldsWithGitInfo[InputTypes.GIT_URL] = (it.target as HTMLInputElement).value
-                        }
+            div {
+                className = ClassName("col-7 input-group pl-0")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = props.gitDto?.url ?: ""
+                    onChange = {
+                        fieldsWithGitInfo[InputTypes.GIT_URL] = it.target.value
                     }
                 }
             }
         }
-        div("row mt-2 ml-2 mr-2") {
-            div("col-5 text-left align-self-center") {
+        div {
+            className = ClassName("row mt-2 ml-2 mr-2")
+            div {
+                className = ClassName("col-5 text-left align-self-center")
                 +"Git Token:"
             }
-            div("col-7 input-group pl-0") {
-                input(type = InputType.text) {
-                    attrs["class"] = "form-control"
-                    attrs {
-                        onChange = {
-                            fieldsWithGitInfo[InputTypes.GIT_TOKEN] = (it.target as HTMLInputElement).value
-                        }
+            div {
+                className = ClassName("col-7 input-group pl-0")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    onChange = {
+                        fieldsWithGitInfo[InputTypes.GIT_TOKEN] = it.target.value
                     }
                 }
             }
         }
-        div("d-sm-flex align-items-center justify-content-center mt-4") {
-            button(type = ButtonType.button, classes = "btn btn-primary mr-3") {
-                attrs.onClickFunction = {
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary mr-3")
+                onClick = {
                     setFieldsWithGitInfo(fieldsWithGitInfo)
                     updateGit()
                 }
                 +"Save"
             }
-            button(type = ButtonType.button, classes = "btn btn-outline-primary") {
-                attrs.onClickFunction = props.handlerCancel
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-outline-primary")
+                onClick = props.handlerCancel
                 +"Cancel"
             }
         }

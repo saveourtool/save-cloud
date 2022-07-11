@@ -13,14 +13,18 @@ import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
+import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.table.columns
 
-import kotlinx.html.ButtonType
+import react.dom.html.ButtonType
 import kotlinx.html.hidden
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
 
 /**
  * `Props` retrieved from router
@@ -73,42 +77,50 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
         useServerPaging = false,
         usePageSelection = false,
     )
+
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
         "LongMethod",
     )
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() =
         div {
-            attrs.hidden = (props.currentUserInfo == null)
-            button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
-                a(classes = "text-light", href = "#/creation/") {
-                    +"Add new tested tool"
-                }
-            }
-            button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
-                a(classes = "text-light", href = "#/createOrganization/") {
-                    +"Add new organization"
-                }
+        hidden = (props.currentUserInfo == null)
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-primary mb-2 mr-2")
+            a {
+                className = ClassName("text-light")
+                href = "#/creation/"
+                +"Add new tested tool"
             }
         }
-        child(projectsTable) {
-            attrs.getData = { _, _ ->
-                val response = get(
-                    url = "$apiUrl/projects/not-deleted",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::classLoadingHandler,
-                )
-                if (response.ok) {
-                    response.unsafeMap {
-                        it.decodeFromJsonString<Array<Project>>()
-                    }
-                } else {
-                    emptyArray()
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-primary mb-2")
+            a {
+                className = ClassName("text-light")
+                href = "#/createOrganization/"
+                +"Add new organization"
+            }
+        }
+    }
+    projectsTable {
+        getData = { _, _ ->
+            val response = get(
+                url = "$apiUrl/projects/not-deleted",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                response.unsafeMap {
+                    it.decodeFromJsonString<Array<Project>>()
                 }
+            } else {
+                emptyArray()
             }
         }
     }

@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
+import csstype.ClassName
 
 import csstype.Width
 import csstype.rem
@@ -24,13 +25,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.html.BUTTON
-import kotlinx.html.ButtonType
+import react.dom.html.ButtonType
 import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.role
 import kotlinx.js.jso
+import react.dom.aria.AriaCurrent
+import react.dom.aria.ariaCurrent
+import react.dom.aria.ariaLabel
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.ol
+import react.dom.html.ReactHTML.ul
 
 /**
  * [RProps] of the top bor component
@@ -42,10 +51,12 @@ external interface TopBarProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
+private fun ChildrenBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: ChildrenBuilder.() -> Unit = { }) =
+        button {
+            type = ButtonType.button
+            className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
             fontAwesomeIcon(icon = faIcon) {
-                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+                it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
             }
             +text
             handler(this)
@@ -57,7 +68,7 @@ private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMB
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun topBar() = fc<TopBarProps> { props ->
+fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
@@ -69,17 +80,22 @@ fun topBar() = fc<TopBarProps> { props ->
         }
     }
 
-    nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
-        attrs.id = "navigation-top-bar"
+    nav {
+        className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+        id = "navigation-top-bar"
 
         // Topbar Navbar
-        nav("navbar-nav mr-auto w-100") {
-            attrs["aria-label"] = "breadcrumb"
-            ol("breadcrumb mb-0") {
-                li("breadcrumb-item") {
-                    attrs["aria-current"] = "page"
-                    a(href = "#/") {
-                        attrs.classes = setOf("text-light")
+        nav {
+            className = ClassName("navbar-nav mr-auto w-100")
+            ariaLabel = "breadcrumb"
+            ol {
+                className = ClassName("breadcrumb mb-0")
+                li {
+                    className = ClassName("breadcrumb-item")
+                    ariaCurrent = AriaCurrent.page
+                    a {
+                        href = "#/"
+                        className = ClassName("text-light")
                         +"SAVE"
                     }
                 }
@@ -92,18 +108,20 @@ fun topBar() = fc<TopBarProps> { props ->
 
                             val currentLink = "$acc/$pathPart"
 
-                            li("breadcrumb-item") {
-                                attrs["aria-current"] = "page"
+                            li {
+                                className = ClassName("breadcrumb-item")
+                                ariaCurrent = AriaCurrent.page
                                 if (index == size - 1) {
                                     a {
-                                        attrs.classes = setOf("text-warning")
+                                        className = ClassName("text-warning")
                                         +pathPart
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
                                     val resultingLink = currentLink.removeSuffix("/execution")
-                                    a(resultingLink) {
-                                        attrs.classes = setOf("text-light")
+                                    a {
+                                        href = resultingLink
+                                        className = ClassName("text-light")
                                         +pathPart
                                     }
                                 }
@@ -114,53 +132,65 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
 
-        ul("navbar-nav mx-auto") {
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+        ul {
+            className = ClassName("navbar-nav mx-auto")
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 12.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/awesome-benchmarks"
+                    }
+                    href = "#/awesome-benchmarks"
                     +"Awesome Benchmarks"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 8.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save-cli"
+                    }
+                    href = "https://github.com/saveourtool/save-cli"
                     +"SAVE format"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 9.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save-cloud"
+                    }
+                    href = "https://github.com/saveourtool/save-cloud"
                     +"SAVE on GitHub"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso<CSSProperties> {
                         width = 8.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/projects"
+                    }
+                    href = "#/projects"
                     +"Projects board"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 6.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/contests"
+                    }
+                    href = "#/contests"
                     +"Contests"
                 }
             }
-            li("nav-item") {
+            li {
+                className = ClassName("nav-item")
                 a(classes = "nav-link d-flex align-items-center me-2 active") {
                     attrs["style"] = jso<CSSProperties> {
                         width = 6.rem
@@ -228,6 +258,6 @@ fun topBar() = fc<TopBarProps> { props ->
     logoutModal {
         setIsLogoutModalOpen(false)
     }() {
-        attrs.isOpen = isLogoutModalOpen
+        isOpen = isLogoutModalOpen
     }
 }

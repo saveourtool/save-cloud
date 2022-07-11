@@ -9,10 +9,13 @@ import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
 import com.saveourtool.save.frontend.utils.*
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.div
 import react.dom.h6
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h6
 import react.dom.td
 import react.table.columns
 
@@ -76,7 +79,7 @@ external interface ProjectStatisticMenuProps : Props {
     "AVOID_NULL_CHECKS"
 )
 fun projectStatisticMenu(
-) = fc<ProjectStatisticMenuProps> { props ->
+) = FC<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
     useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
@@ -95,34 +98,40 @@ fun projectStatisticMenu(
         }
     }()
 
-    div("row justify-content-center") {
+    div {
+        className = ClassName("row justify-content-center")
         // ===================== LEFT COLUMN =======================================================================
-        div("col-2 mr-3") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-2 mr-3")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Total number of tests by test suite"
             }
-            div("col-xl col-md-6 mb-4") {
+            div {
+                className = ClassName("col-xl col-md-6 mb-4")
                 val data = latestExecutionStatisticDtos?.map {
                     DataPieChart(it.testSuiteName, it.countTest, randomColor())
                 } ?: emptyList()
                 pieChart(
                     data.toTypedArray()
                 ) {
-                    attrs.animate = true
-                    attrs.segmentsShift = 2
-                    attrs.radius = 47
+                    it.animate = true
+                    it.segmentsShift = 2
+                    it.radius = 47
                 }
             }
         }
         // ===================== RIGHT COLUMN =======================================================================
-        div("col-6") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-6")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Latest execution"
             }
 
             if (props.executionId != null && latestExecutionStatisticDtos?.isNotEmpty() == true) {
                 executionDetailsTable {
-                    attrs.getData = { page, size ->
+                    getData = { page, size ->
                         get(
                             url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}&page=$page&size=$size",
                             headers = Headers().also {
@@ -134,12 +143,15 @@ fun projectStatisticMenu(
                                 it.decodeFromJsonString<Array<TestSuiteExecutionStatisticDto>>()
                             }
                     }
-                    attrs.getPageCount = null
+                    getPageCount = null
                 }
             } else {
-                div("card shadow mb-4") {
-                    div("card-header py-3") {
-                        h6("m-0 font-weight-bold text-primary text-center") {
+                div {
+                    className = ClassName("card shadow mb-4")
+                    div {
+                        className = ClassName("card-header py-3")
+                        h6 {
+                            className = ClassName("m-0 font-weight-bold text-primary text-center")
                             +"No executions yet"
                         }
                     }

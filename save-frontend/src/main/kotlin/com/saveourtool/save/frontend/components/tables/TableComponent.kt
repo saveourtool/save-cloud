@@ -11,10 +11,9 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
+import csstype.ClassName
 
 import org.w3c.fetch.Response
-import react.Props
-import react.RBuilder
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
@@ -25,7 +24,6 @@ import react.dom.tbody
 import react.dom.th
 import react.dom.thead
 import react.dom.tr
-import react.fc
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -35,10 +33,6 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
-import react.useContext
-import react.useEffect
-import react.useMemo
-import react.useState
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -50,6 +44,16 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 import kotlinx.js.jso
+import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.em
+import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 
 /**
  * [Props] of a data table
@@ -105,9 +109,9 @@ fun <D : Any> tableComponent(
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
-    renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-) = fc<TableProps<D>> { props ->
+    renderExpandedRow: (ChildrenBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: ChildrenBuilder.(table: TableInstance<D>) -> Unit = {},
+) = FC<TableProps<D>> { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
@@ -180,18 +184,24 @@ fun <D : Any> tableComponent(
         }
     }
 
-    div("card shadow mb-4") {
-        div("card-header py-3") {
-            h6("m-0 font-weight-bold text-primary text-center") {
+    div {
+        className = ClassName("card shadow mb-4")
+        div {
+            className = ClassName("card-header py-3")
+            h6 {
+                className = ClassName("m-0 font-weight-bold text-primary text-center")
                 +props.tableHeader
             }
         }
-        div("card-body") {
-            div("table-responsive") {
-                table("table table-bordered") {
+        div {
+            className = ClassName("card-body")
+            div {
+                className = ClassName("table-responsive")
+                table {
+                    className = ClassName("table table-bordered")
                     spread(tableInstance.getTableProps())
-                    attrs["width"] = "100%"
-                    attrs["cellSpacing"] = "0"
+                    width = 100.0
+                    cellSpacing = "0"
                     thead {
                         commonHeader(tableInstance)
                         tableInstance.headerGroups.map { headerGroup ->
@@ -199,8 +209,9 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.canSort) columnProps.className.unsafeCast<String?>() else ""
-                                    th(classes = className) {
+                                    val classes = if (column.canSort) columnProps.className.unsafeCast<String?>() else ""
+                                    th {
+                                        classes?.let { className = ClassName(it) }
                                         +column.render("Header")
                                         // fixme: find a way to set `canSort`; now it's always true
                                         if (column.canSort) {
@@ -246,17 +257,21 @@ fun <D : Any> tableComponent(
                 // block with paging controls
 
                 if (data.isEmpty()) {
-                    div("align-items-center justify-content-center mb-4") {
-                        h6("m-0 font-weight-bold text-primary text-center") {
+                    div {
+                        className = ClassName("align-items-center justify-content-center mb-4")
+                        h6 {
+                            className = ClassName("m-0 font-weight-bold text-primary text-center")
                             +"No results found"
                         }
                     }
                 }
 
-                div("wrapper container m-0 p-0") {
+                div {
+                    className = ClassName("wrapper container m-0 p-0")
                     pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
 
-                    div("row ml-1") {
+                    div {
+                        className = ClassName("row ml-1")
                         +"Page "
                         em {
                             +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
@@ -272,7 +287,7 @@ fun <D : Any> tableComponent(
         "Error",
         "Error when fetching data: ${dataAccessException?.message}",
         {
-            attrs.isOpen = isModalOpen
+            isOpen = isModalOpen
         }) {
         setIsModalOpen(false)
     }

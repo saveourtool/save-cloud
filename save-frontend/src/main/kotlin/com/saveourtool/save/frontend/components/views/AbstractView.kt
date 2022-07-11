@@ -6,6 +6,8 @@ import react.Props
 import react.State
 
 import kotlinx.browser.document
+import react.ReactNode
+import react.createElement
 
 /**
  * Abstract view class that should be used in all functional views

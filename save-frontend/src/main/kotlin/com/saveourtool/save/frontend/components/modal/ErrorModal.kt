@@ -6,18 +6,17 @@ package com.saveourtool.save.frontend.components.modal
 
 import com.saveourtool.save.frontend.externals.modal.ModalProps
 import com.saveourtool.save.frontend.externals.modal.modal
+import csstype.ClassName
 
-import react.RBuilder
-import react.RHandler
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.h5
-import react.dom.span
-
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
+import react.dom.html.ButtonType
+import react.ChildrenBuilder
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaHidden
+import react.dom.aria.ariaLabel
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.span
 
 /**
  * @param errorHeader header of the modal window
@@ -26,34 +25,40 @@ import kotlinx.html.role
  * @param closeCallback a callback to call when close button is pushed
  * @return a functional modal component
  */
-fun RBuilder.errorModal(errorHeader: String,
-                        errorText: String,
-                        handler: RHandler<ModalProps>,
-                        closeCallback: () -> Unit,
+fun ChildrenBuilder.errorModal(
+    errorHeader: String,
+    errorText: String,
+    handler: ChildrenBuilder.() -> Unit,
+    closeCallback: () -> Unit,
 ) = modal {
     handler(this)
-    div("modal-dialog") {
-        attrs.role = "document"
-        div("modal-content") {
-            div("modal-header") {
-                h5("modal-title") {
+    div {
+        className = ClassName("modal-dialog")
+        role = AriaRole.document
+        div {
+            className = ClassName("modal-content")
+            div {
+                className = ClassName("modal-header")
+                h5 {
+                    className = ClassName("modal-title")
                     +errorHeader
                 }
-                button(type = ButtonType.button, classes = "close") {
-                    attrs {
-                        set("data-dismiss", "modal")
-                        set("aria-label", "Close")
-                    }
+                button {
+                    type = ButtonType.button
+                    className = ClassName("close")
+                    ariaLabel = "Close"
+                    asDynamic()["data-dismiss"] =  "modal"
                     span {
-                        attrs["aria-hidden"] = "true"
-                        attrs.onClickFunction = { closeCallback() }
+                        ariaHidden = true
+                        onClick = { closeCallback() }
                         +js("String.fromCharCode(215)").unsafeCast<String>()
                     }
                 }
             }
         }
 
-        div("modal-body") {
+        div {
+            className = ClassName("modal-body")
             +errorText
         }
     }

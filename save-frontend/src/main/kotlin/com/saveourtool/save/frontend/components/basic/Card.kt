@@ -15,7 +15,7 @@ import react.PropsWithChildren
 import react.dom.html.ReactHTML.div
 
 /**
- * [RProps] for card component
+ * Props for card component
  */
 external interface CardProps : PropsWithChildren {
     /**

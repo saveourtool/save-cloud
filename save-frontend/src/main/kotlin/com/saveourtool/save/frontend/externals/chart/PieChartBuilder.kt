@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.frontend.externals.chart
 
-import react.RBuilder
-import react.RHandler
+import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconProps
+import react.*
 import kotlin.random.Random
 
 /**
@@ -14,15 +14,15 @@ import kotlin.random.Random
  * @return ReactElement
  */
 @Suppress("MAGIC_NUMBER")
-fun RBuilder.pieChart(
+fun ChildrenBuilder.pieChart(
     data: Array<DataPieChart>,
-    handler: RHandler<PieChartProps> = {},
-) = child(PieChart::class) {
-    attrs.data = data
-    attrs.animate = false
-    attrs.segmentsShift = 0
-    attrs.viewBoxSize = intArrayOf(100, 100)
-    attrs.radius = 50
+    handler: ChildrenBuilder.(props: PieChartProps) -> Unit = {},
+) = PieChart::class.react.create {
+    this.data = data
+    animate = false
+    segmentsShift = 0
+    viewBoxSize = intArrayOf(100, 100)
+    radius = 50
     handler(this)
 }
 
