@@ -21,21 +21,14 @@ jobs:
           gradle-version: wrapper
           arguments: |
             detektAll
+            mergeDetektReports
             --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
-        # Upload reports only if code style checks were failed
-      - name: Copy SARIF reports into a single directory
-        if: ${{ failure() }}
-        run: |
-          mkdir -p build/detekt-sarif-reports
-          i=0
-          find . -path "*/build/reports/detekt/*.sarif" | while read -r f; do echo "$f -> detekt-$i.sarif" && cp $f build/detekt-sarif-reports/detekt-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
       - name: Upload SARIF to Github
-        if: ${{ failure() }}
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: build/detekt-sarif-reports
+          sarif_file: build/detekt-sarif-reports/detekt-merged.sarif
       - name: Upload SARIF artifacts
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
