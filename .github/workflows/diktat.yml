@@ -37,6 +37,7 @@ jobs:
           i=0
           find . -path "*/build/reports/diktat/*.sarif" | while read -r f; do echo "$f -> diktat-$i.sarif" && cp $f build/diktat-sarif-reports/diktat-$i.sarif || echo Cannot copy && echo Copied && i=$((i+1)); done
       - uses: gradle/gradle-build-action@v2
+        if: ${{ always() }}
         with:
           gradle-version: wrapper
           arguments: |
