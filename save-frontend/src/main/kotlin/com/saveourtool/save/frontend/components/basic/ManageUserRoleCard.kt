@@ -281,10 +281,7 @@ fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
                             updatePermissions()
                         }
                         attrs.id = "role-$userIndex"
-                        Role.values()
-                            .filter { it != Role.NONE }
-                            .filter { it != Role.SUPER_ADMIN }
-                            .filter { selfRole == Role.OWNER || it.isLowerThan(selfRole) || userRole == it }
+                        rolesAssignableBy(selfRole)
                             .map {
                                 option {
                                     attrs.value = it.formattedName
@@ -302,3 +299,8 @@ fun manageUserRoleCardComponent() = fc<ManageUserRoleCardProps> { props ->
 }
 
 private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = otherUserInfo.name == selfUserInfo.name
+
+private fun rolesAssignableBy(role: Role) = Role.values()
+    .filter { it != Role.NONE }
+    .filter { it != Role.SUPER_ADMIN }
+    .filter { role == Role.OWNER || it.isLowerThan(role) || role == it }
