@@ -42,15 +42,28 @@ enum class Role(val formattedName: String, val priority: Int) {
     fun asSpringSecurityRole() = "ROLE_$name"
 
     /**
-     * Minimal possible priority
+     * The method compares the priority between two roles
+     *
+     * @param that role to compare
+     * @return comparison result
      */
-}
+    fun isHigherOrEqualThan(that: Role) = this.priority >= that.priority
 
-/**
- * The method compares the priority between two roles
- *
- * @param that role to compare
- * @return comparison result
- */
-@Suppress("EXTENSION_FUNCTION_WITH_CLASS")
-fun Role.moreOrEqualThan(that: Role) = this.priority >= that.priority
+    /**
+     * The method compares the priority between two roles
+     *
+     * @param that role to compare
+     * @return comparison result
+     */
+    fun isLowerThan(that: Role) = this.priority < that.priority
+
+    /**
+     * @return true if current role has `write` permission
+     */
+    fun hasWritePermission() = this.isHigherOrEqualThan(ADMIN)
+
+    /**
+     * @return true if current role has `delete` permission
+     */
+    fun hasDeletePermission() = this.isHigherOrEqualThan(OWNER)
+}

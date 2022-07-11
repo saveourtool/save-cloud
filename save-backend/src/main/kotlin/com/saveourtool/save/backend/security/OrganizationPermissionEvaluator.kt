@@ -25,7 +25,7 @@ class OrganizationPermissionEvaluator {
      * @return whether user described by [authentication] can have [permission] on [organization]
      */
     fun hasPermission(authentication: Authentication?, organization: Organization, permission: Permission): Boolean {
-        authentication ?: return false
+        authentication ?: return permission == Permission.READ
         val userId = (authentication.details as AuthenticationDetails).id
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
@@ -50,14 +50,14 @@ class OrganizationPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.priority >= Role.VIEWER.priority } ?: false
+    @Suppress("FunctionOnlyReturningConstant")
+    private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = true
 
-    private fun hasWriteAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.priority >= Role.ADMIN.priority } ?: false
+    private fun hasWriteAccess(userId: Long?, organizationRole: Role): Boolean = hasDeleteAccess(userId, organizationRole) ||
+            userId?.let { organizationRole == Role.ADMIN } ?: false
 
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
-            userId?.let { organizationRole.priority >= Role.OWNER.priority } ?: false
+            userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
@@ -78,7 +78,7 @@ class OrganizationPermissionEvaluator {
     ): Boolean {
         val selfRole = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
         val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
-        return isOrganizationAdminOrHigher(selfRole) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
+        return selfRole.isHigherOrEqualThan(Role.OWNER) || selfRole.isHigherOrEqualThan(Role.ADMIN) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
 
@@ -95,10 +95,4 @@ class OrganizationPermissionEvaluator {
      * @return true if [selfRole] is higher than [requestedRole], false otherwise
      */
     fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
-
-    /**
-     * @param userRole
-     * @return true if [userRole] is [Role.ADMIN] or higher, false otherwise
-     */
-    fun isOrganizationAdminOrHigher(userRole: Role): Boolean = userRole.priority >= Role.ADMIN.priority
 }

@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Role
 
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
@@ -49,6 +50,14 @@ inline fun <reified T> FormData.appendJson(name: String, obj: T) =
                 BlobPropertyBag("application/json")
             )
         )
+
+/**
+ * @return [Role] if string matches any role, else throws [IllegalStateException]
+ * @throws IllegalStateException if string is not matched with any role
+ */
+fun String.toRole() = Role.values().find {
+    this == it.formattedName || this == it.toString()
+} ?: throw IllegalStateException("Unknown role is passed: $this")
 
 /**
  * Adds this text to RBuilder line by line, separating with `<br>`

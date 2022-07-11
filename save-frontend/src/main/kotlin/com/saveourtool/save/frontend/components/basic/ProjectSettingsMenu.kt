@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.utils.*
@@ -41,6 +42,11 @@ external interface ProjectSettingsMenuProps : Props {
      * Git data for project
      */
     var gitInitDto: GitDto?
+
+    /**
+     * Role of a current user
+     */
+    var selfRole: Role
 }
 
 /**
@@ -222,6 +228,7 @@ fun projectSettingsMenu(
                     }
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.disabled = !props.selfRole.hasDeletePermission()
                             attrs.onClickFunction = {
                                 deleteProjectCallback()
                             }
