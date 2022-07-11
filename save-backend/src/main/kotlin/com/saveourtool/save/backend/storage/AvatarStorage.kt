@@ -18,13 +18,11 @@ class AvatarStorage(configProperties: ConfigProperties) :
     /**
      * @return key is built from path
      */
-    override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey {
-        return AvatarKey(
-            if (pathToContent.parent.parent.name == USERS_DIRECTORY) AvatarType.USER else AvatarType.ORGANIZATION,
-            pathToContent.parent.name,
-            pathToContent.name
-        )
-    }
+    override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey = AvatarKey(
+        if (pathToContent.parent.parent.name == USERS_DIRECTORY) AvatarType.USER else AvatarType.ORGANIZATION,
+        pathToContent.parent.name,
+        pathToContent.name
+    )
 
     /**
      * @return path to content based on key
@@ -39,6 +37,11 @@ class AvatarStorage(configProperties: ConfigProperties) :
     }
 }
 
+/**
+ * @property type
+ * @property imageName
+ * @property filename
+ */
 data class AvatarKey(
     val type: AvatarType,
     val imageName: String,
@@ -46,6 +49,7 @@ data class AvatarKey(
 ) {
     /**
      * Added for backward compatibility
+     *
      * @return relative path to avatar image
      */
     fun getRelativePath(): String = when (type) {
