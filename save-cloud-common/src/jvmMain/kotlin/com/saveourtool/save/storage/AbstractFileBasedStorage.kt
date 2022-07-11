@@ -15,6 +15,8 @@ import kotlin.io.path.*
 
 /**
  * File based implementation of Storage
+ * @param rootDir root directory for storage
+ * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
     private val rootDir: Path
@@ -67,14 +69,14 @@ abstract class AbstractFileBasedStorage<K>(
     /**
      * @param rootDir
      * @param pathToContent
-     * @return
+     * @return [K] object is built by [Path]
      */
     protected abstract fun buildKey(rootDir: Path, pathToContent: Path): K
 
     /**
      * @param rootDir
      * @param key
-     * @return
+     * @return [Path] is built by [K] object
      */
     protected abstract fun buildPathToContent(rootDir: Path, key: K): Path
 
@@ -100,6 +102,10 @@ abstract class AbstractFileBasedStorage<K>(
         const val DEFAULT_PROJECT_LOCATION = "default"
     }
 
+    /**
+     * @param rootDir root directory
+     * @param K type of inner key
+     */
     abstract class WithProjectCoordinates<K>(
         rootDir: Path
     ) : AbstractFileBasedStorage<Storage.WithProjectCoordinates.Key<K>>(rootDir), Storage.WithProjectCoordinates<K> {
@@ -119,11 +125,10 @@ abstract class AbstractFileBasedStorage<K>(
          */
         protected abstract fun buildPathToContentFromProjectPath(projectPath: Path, innerKey: K): Path
 
-        private fun buildPathToProject(rootDir: Path, projectCoordinates: ProjectCoordinates?): Path = rootDir.let {
-            projectCoordinates?.let {
-                it.resolve(projectCoordinates.organizationName).resolve(projectCoordinates.projectName)
-            } ?: buildPathToDefaultProject(it)
-        }
+        private fun buildPathToProject(rootDir: Path, projectCoordinates: ProjectCoordinates?): Path = projectCoordinates
+            ?.let {
+                rootDir.resolve(it.organizationName).resolve(it.projectName)
+            } ?: defaultProjectPath
 
         override fun buildKey(rootDir: Path, pathToContent: Path): Storage.WithProjectCoordinates.Key<K> {
             val (innerKey, projectPath) = buildInnerKeyAndReturnProjectPath(pathToContent)

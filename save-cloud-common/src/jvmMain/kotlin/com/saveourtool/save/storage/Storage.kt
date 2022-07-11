@@ -57,9 +57,9 @@ interface Storage<K> {
          * @param projectCoordinates
          * @return list of keys in storage
          */
-        fun list(projectCoordinates: ProjectCoordinates?): Flux<K> = list().filter { key ->
-            key.projectCoordinates == projectCoordinates
-        }.map { it.key }
+        fun list(projectCoordinates: ProjectCoordinates?): Flux<K> = list()
+            .filter { it.projectCoordinates == projectCoordinates }
+            .map { it.key }
 
         /**
          * @param projectCoordinates
