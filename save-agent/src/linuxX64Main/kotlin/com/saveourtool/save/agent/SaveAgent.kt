@@ -42,6 +42,7 @@ import kotlinx.serialization.modules.subclass
  * @property config
  * @property coroutineScope a [CoroutineScope] to launch other jobs
  */
+@Suppress("AVOID_NULL_CHECKS")
 class SaveAgent(internal val config: AgentConfiguration,
                 private val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
@@ -54,7 +55,7 @@ class SaveAgent(internal val config: AgentConfiguration,
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
-    private var saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
+    private val saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
     private val backgroundContext = newSingleThreadContext("background")
     private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
@@ -156,8 +157,11 @@ class SaveAgent(internal val config: AgentConfiguration,
             0 -> if (executionLogs.cliLogs.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
-                handleSuccessfulExit()
-                state.value = AgentState.FINISHED
+                handleSuccessfulExit().invokeOnCompletion { cause ->
+                    if (cause == null) {
+                        state.value = AgentState.FINISHED
+                    }
+                }
             }
             else -> {
                 logErrorCustom("SAVE has exited abnormally with status ${executionResult.code}")
@@ -167,32 +171,35 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     @Suppress("MagicNumber")
-    private fun runSave(cliArgs: String): ExecutionResult = ProcessBuilder(true, FileSystem.SYSTEM)
-        .exec(
-            config.cliCommand.let {
-                "$it $cliArgs"
-            } + " --report-type json --result-output file --log all",
-            "",
-            config.logFilePath.toPath(),
-            1_000_000L
-        )
+    private fun runSave(cliArgs: String): ExecutionResult {
+        val fullCliCommand = buildString {
+            append(config.cliCommand)
+            append(" $cliArgs")
+            append(" --report-type ${config.save.reportType.name.lowercase()}")
+            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
+            append(" --report-dir ${config.save.reportDir}")
+            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
+            append(" --log ${config.save.logType.name.lowercase()}")
+        }
+        return ProcessBuilder(true, FileSystem.SYSTEM)
+            .exec(
+                fullCliCommand,
+                "",
+                config.logFilePath.toPath(),
+                1_000_000L
+            )
+    }
 
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private fun CoroutineScope.readExecutionResults(jsonFile: String): List<TestExecutionDto> {
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TYPE_ALIAS")
+    private fun readExecutionResults(jsonFile: String): Pair<List<TestResultDebugInfo>, List<TestExecutionDto>> {
         val currentTime = Clock.System.now()
         val reports: List<Report> = readExecutionReportFromFile(jsonFile)
         return reports.flatMap { report ->
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
-                    launch {
-                        logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
-                        sendDataToBackend {
-                            sendReport(debugInfo)
-                        }
-                    }
                     val testResultStatus = tr.status.toTestResultStatus()
-                    TestExecutionDto(
+                    debugInfo to TestExecutionDto(
                         adjustLocation(tr.resources.test.toString()),
                         pluginExecution.plugin,
                         config.resolvedId(),
@@ -207,6 +214,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                 }
             }
         }
+            .unzip()
     }
 
     @Suppress("MAGIC_NUMBER", "MagicNumber")
@@ -216,9 +224,16 @@ class SaveAgent(internal val config: AgentConfiguration,
         ?.toLong()
         ?: 0L
 
-    private fun readExecutionReportFromFile(jsonFile: String) = reportFormat.decodeFromString<List<Report>>(
-        readFile(jsonFile).joinToString(separator = "")
-    )
+    private fun readExecutionReportFromFile(jsonFile: String): List<Report> {
+        val jsonFileContent = readFile(jsonFile).joinToString(separator = "")
+        return if (jsonFileContent.isEmpty()) {
+            throw IllegalStateException("Reading results file $jsonFile has returned empty")
+        } else {
+            reportFormat.decodeFromString(
+                jsonFileContent
+            )
+        }
+    }
 
     private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
         runCatching {
@@ -230,19 +245,28 @@ class SaveAgent(internal val config: AgentConfiguration,
             }
     }
 
-    private fun CoroutineScope.handleSuccessfulExit() {
-        val jsonReport = "save.out.json"
-        val testExecutionDtos = runCatching {
+    private fun CoroutineScope.handleSuccessfulExit(): Job {
+        val jsonReport = "${config.save.reportDir}/save.out.json"
+        val result = runCatching {
             readExecutionResults(jsonReport)
         }
-        if (testExecutionDtos.isFailure) {
-            logErrorCustom("Couldn't read execution results from JSON report, reason: ${testExecutionDtos.exceptionOrNull()?.describe()}" +
-                    "\n${testExecutionDtos.exceptionOrNull()?.stackTraceToString()}"
-            )
-        } else {
-            launch {
+        return launch(backgroundContext) {
+            if (result.isFailure) {
+                val cause = result.exceptionOrNull()
+                logErrorCustom(
+                    "Couldn't read execution results from JSON report, reason: ${cause?.describe()}" +
+                            "\n${cause?.stackTraceToString()}"
+                )
+            } else {
+                val (debugInfos, testExecutionDtos) = result.getOrThrow()
                 sendDataToBackend {
-                    postExecutionData(testExecutionDtos.getOrThrow())
+                    postExecutionData(testExecutionDtos)
+                }
+                debugInfos.forEach { debugInfo ->
+                    logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
+                    sendDataToBackend {
+                        sendReport(debugInfo)
+                    }
                 }
             }
         }

@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.privacySpan
+import com.saveourtool.save.frontend.components.basic.projectScoreCard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -197,6 +198,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         useServerPaging = false,
         usePageSelection = false,
     )
+    private val projectScoreCardComponent = projectScoreCard()
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -546,69 +548,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
-
         div("col-3 mb-4") {
-            div("card border-left-info shadow h-70 py-2") {
-                div("card-body") {
-                    div("row no-gutters align-items-center") {
-                        div("col mr-2") {
-                            renderHeaderOfTopProject(topProject)
-                            renderTopProjectProgressBar(topProject)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun RBuilder.renderTopProjectProgressBar(topProject: Project) {
-        div("row no-gutters align-items-center") {
-            div("col-auto") {
-                div("h5 mb-0 mr-3 font-weight-bold text-gray-800") {
-                    +"${topProject.contestRating}"
-                }
-            }
-            div("col") {
-                div("progress progress-sm mr-2") {
-                    div("progress-bar bg-info") {
-                        attrs["role"] = "progressbar"
-                        attrs["style"] = jso<CSSProperties> {
-                            width = "${topProject.contestRating}%".unsafeCast<Width>()
-                        }
-                        attrs["aria-valuenow"] = "100"
-                        attrs["aria-valuemin"] = "0"
-                        attrs["aria-valuemax"] = "100"
-                    }
-                }
-            }
-        }
-    }
-
-    private fun RBuilder.renderHeaderOfTopProject(topProject: Project) {
-        div("row") {
-            attrs["style"] = jso<CSSProperties> {
-                justifyContent = JustifyContent.center
-                display = Display.flex
-                alignItems = AlignItems.center
-            }
-            div("text-xs font-weight-bold text-info text-uppercase mb-1 ml-2") {
-                attrs["style"] = jso<CSSProperties> {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-
-                +"Rating"
-            }
-            div("col") {
-                h6 {
-                    attrs["style"] = jso<CSSProperties> {
-                        justifyContent = JustifyContent.center
-                        display = Display.flex
-                        alignItems = AlignItems.center
-                    }
-                    +topProject.name
-                }
+            child(projectScoreCardComponent) {
+                attrs.projectName = topProject.name
+                attrs.contestScore = topProject.contestRating.toDouble()
             }
         }
     }

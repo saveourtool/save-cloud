@@ -133,7 +133,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startMysqlDb") {
         dependsOn("generateComposeFile")
         doFirst {
-            println("Running the follwoing command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
+            logger.lifecycle("Running the follwoing command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
         }
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()

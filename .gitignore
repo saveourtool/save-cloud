@@ -7,3 +7,5 @@ build
 out
 .DS_Store
 save-cloud-charts/save-cloud/charts
+*.log
+*.jar

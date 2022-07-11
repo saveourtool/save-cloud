@@ -50,6 +50,16 @@ class HeartBeatInspector(
                 crashedAgents.add(currentAgentId)
             }
         }
+
+        crashedAgents.removeIf { agentId ->
+            dockerService.isAgentStopped(agentId)
+        }
+        agentsLatestHeartBeatsMap.filterKeys { agentId ->
+            dockerService.isAgentStopped(agentId)
+        }.forEach { (agentId, _) ->
+            logger.debug("Agent $agentId is already stopped, will stop watching it")
+            agentsLatestHeartBeatsMap.remove(agentId)
+        }
     }
 
     /**

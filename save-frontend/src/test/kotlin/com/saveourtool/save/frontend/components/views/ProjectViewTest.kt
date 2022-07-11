@@ -118,7 +118,7 @@ class ProjectViewTest {
         return screen.findByText(
             "Project ${testProject.name}",
             waitForOptions = jso {
-                timeout = 5000
+                timeout = 7500
             }
         )
             .then {

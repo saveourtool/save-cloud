@@ -160,6 +160,20 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     attrs {
+                                        path = "/contests/:contestName"
+                                        element = buildElement {
+                                            child(withRouter {_, params ->
+                                                child(ContestView::class) {
+                                                    attrs.currentUserInfo = state.userInfo
+                                                    attrs.currentContestName = params["contestName"]
+                                                }
+                                            })
+                                        }
+                                    }
+                                }
+
+                                Route {
+                                    attrs {
                                         path = "/:user/settings/profile"
                                         element = buildElement {
                                             child(UserSettingsProfileMenuView::class) {
@@ -225,6 +239,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         path = "/projects"
                                         element = buildElement {
                                             child(CollectionView::class) {
+                                                attrs.currentUserInfo = state.userInfo
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Route {
+                                    attrs {
+                                        path = "/contests"
+                                        element = buildElement {
+                                            child(ContestListView::class) {
                                                 attrs.currentUserInfo = state.userInfo
                                             }
                                         }
@@ -310,7 +335,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
-    /** Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
+    /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
     if (window.asDynamic().__karma__) {
         return
     }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
@@ -28,6 +29,7 @@ import java.nio.file.Path
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(TestDiscoveringService::class)
 class TestDiscoveringServiceTest {
+    private val logger = LoggerFactory.getLogger(TestDiscoveringServiceTest::class.java)
     private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
@@ -59,7 +61,7 @@ class TestDiscoveringServiceTest {
             "not-provided"
         )
 
-        println("Discovered test suites: $testSuites")
+        logger.debug("Discovered test suites: $testSuites")
         Assertions.assertTrue(testSuites.isNotEmpty())
         Assertions.assertEquals("Autofix: Smoke Tests", testSuites.first().name)
     }
@@ -91,7 +93,7 @@ class TestDiscoveringServiceTest {
             )
         ).toList()
 
-        println("Discovered the following tests: $testDtos")
+        logger.debug("Discovered the following tests: $testDtos")
         Assertions.assertEquals(16, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
             "Some tests have the same hash/filePath/testSuiteId combination in $testDtos"

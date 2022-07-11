@@ -26,6 +26,7 @@ jobs:
             -Pdiktat.githubActions=true
             -Pdetekt.multiplatform.disabled=true
             --build-cache
+            --continue
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       # Upload reports only if code style checks were failed

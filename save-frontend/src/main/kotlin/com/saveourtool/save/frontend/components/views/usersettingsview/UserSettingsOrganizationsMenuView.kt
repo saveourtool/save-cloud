@@ -10,8 +10,9 @@ import react.fc
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
+    private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
     override fun renderMenu(): FC<UserSettingsProps> = fc { props ->
-        child(cardComponent(isBordered = false, hasBg = true) {
+        organizationListCard {
             div("d-sm-flex align-items-center justify-content-center mb-4 mt-4") {
                 h1("h3 mb-0 mt-2 text-gray-800") {
                     +"Organizations"
@@ -44,6 +45,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     }
                 }
             }
-        })
+        }
     }
 }

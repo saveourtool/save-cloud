@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import java.util.*
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
@@ -56,12 +55,31 @@ class TestSuitesController(
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
 
     /**
+     * @param names list of test suite names
+     * @return response with IDs of standard test suites with name from provided list
+     */
+    @PostMapping("/internal/test-suites/standard/ids-by-name")
+    fun findAllStandardTestSuiteIdsByName(@RequestBody names: List<String>) =
+            ResponseEntity.status(HttpStatus.OK)
+                .body(names.flatMap { name -> testSuitesService.findStandardTestSuitesByName(name) }
+                    .map { it.requiredId() })
+
+    /**
      * @param id id of the test suite
      * @return response with test suite with provided id
      */
     @GetMapping("/internal/testSuite/{id}")
     fun getTestSuiteById(@PathVariable id: Long) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
+
+    /**
+     * @param ids list of test suite ID
+     * @return response with test suites with id from provided list
+     */
+    @PostMapping("/internal/findAllTestSuiteDtoByIds")
+    fun findAllTestSuiteDtoByIds(@RequestBody ids: List<Long>) =
+            ResponseEntity.status(HttpStatus.OK)
+                .body(ids.map { id -> testSuitesService.findTestSuiteById(id).map { it.toDto() } })
 
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.
