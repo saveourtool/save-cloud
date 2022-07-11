@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -189,9 +188,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
                                             if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
-                                                (state.lang == ALL_LANGS || state.lang == benchmark.language)
+                                                    (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {
-                                                ++ matchingBenchmarksCount
+                                                ++matchingBenchmarksCount
                                                 div("media text-muted pb-3") {
                                                     img(classes = "rounded") {
                                                         attrs["data-src"] =
