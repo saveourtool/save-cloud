@@ -190,7 +190,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     val trDebugInfoRequest = getDebugInfoFor(testExecution)
                                     if (trDebugInfoRequest.ok) {
                                         cellProps.row.original.asDynamic().debugInfo =
-                                            trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
+                                                trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
                                     }
                                     cellProps.row.toggleRowExpanded()
                                 }
