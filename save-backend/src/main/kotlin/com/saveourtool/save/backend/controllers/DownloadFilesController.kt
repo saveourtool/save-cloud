@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteArrayResponse
+import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
@@ -24,10 +25,12 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
+import java.nio.ByteBuffer
 
 import kotlin.io.path.*
 
@@ -96,11 +99,11 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteArrayResponse> = Mono.fromCallable {
+    ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            additionalToolsFileSystemRepository.getFile(fileInfo, ProjectCoordinates(organizationName, projectName)).inputStream.readAllBytes()
-        )
+            additionalToolsFileSystemRepository.getFileContent(fileInfo, ProjectCoordinates(organizationName, projectName)
+        ))
     }
         .doOnError(FileNotFoundException::class.java) {
             logger.warn("File $fileInfo is not found", it)

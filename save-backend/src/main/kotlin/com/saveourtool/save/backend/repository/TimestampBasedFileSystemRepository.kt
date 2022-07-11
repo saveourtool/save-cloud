@@ -1,11 +1,11 @@
 package com.saveourtool.save.backend.repository
 
-import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
+import com.saveourtool.save.backend.storage.AvatarKey
+import com.saveourtool.save.backend.storage.AvatarStorage
+import com.saveourtool.save.backend.storage.FileStorage
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.toDataBufferFlux
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResource
@@ -13,62 +13,21 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import java.nio.ByteBuffer
 
-import java.nio.file.FileSystemException
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption.APPEND
-import java.util.stream.Collectors
 import kotlin.io.path.*
 
 /**
  * A repository which gives access to the files in a designated file system location
  */
 @Repository
-class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
+class TimestampBasedFileSystemRepository(
+    private val fileStorage: FileStorage,
+    private val avatarStorage: AvatarStorage,
+) {
     private val logger = LoggerFactory.getLogger(TimestampBasedFileSystemRepository::class.java)
-    private val rootDir = (Paths.get(configProperties.fileStorage.location) / "storage").apply {
-        if (!exists()) {
-            createDirectories()
-        }
-    }
-    private val rootDirImage = (Paths.get(configProperties.fileStorage.location) / "images" / "avatars").apply {
-        if (!exists()) {
-            createDirectories()
-        }
-    }
-
-    private fun getFileResourcesDir(
-        projectCoordinates: ProjectCoordinates,
-    ) = rootDir
-        .resolve(projectCoordinates.organizationName)
-        .resolve(projectCoordinates.projectName)
-
-    private fun getStorageDir(
-        fileInfo: FileInfo,
-        projectCoordinates: ProjectCoordinates,
-    ) = getFileResourcesDir(projectCoordinates)
-        .resolve(fileInfo.uploadedMillis.toString())
-
-    private fun createStorageDir(
-        fileInfo: FileInfo,
-        projectCoordinates: ProjectCoordinates,
-    ) = getStorageDir(fileInfo, projectCoordinates).createDirectory()
-
-    /**
-     * @param projectCoordinates
-     * @return list of files in [rootDir]
-     */
-    fun getFilesList(
-        projectCoordinates: ProjectCoordinates,
-    ): List<Path> =
-            getFileResourcesDir(projectCoordinates)
-                .takeIf { it.exists() }
-                ?.listDirectoryEntries()
-                ?.filter { it.isDirectory() }
-                ?.flatMap { it.listDirectoryEntries() }
-                ?: emptyList()
 
     /**
      * @param projectCoordinates
@@ -76,14 +35,19 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
      */
     fun getFileInfoList(
         projectCoordinates: ProjectCoordinates,
-    ) = getFilesList(projectCoordinates).map {
-        FileInfo(
-            it.name,
-            // assuming here, that we always store files in timestamp-based directories
-            it.parent.name.toLong(),
-            it.fileSize(),
-        )
-    }
+    ): List<FileInfo> = fileStorage.list(projectCoordinates)
+        .flatMap { fileKey ->
+            fileStorage.contentSize(projectCoordinates, fileKey).map {
+                FileInfo(
+                    fileKey.name,
+                    fileKey.uploadedMillis,
+                    it,
+                )
+            }
+        }.collectList()
+        .subscribeOn(Schedulers.immediate())
+        .toFuture()
+        .get()
 
     /**
      * @param projectCoordinates
@@ -93,14 +57,15 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun deleteFileByDirName(
         projectCoordinates: ProjectCoordinates,
         creationTimestamp: String,
-    ) =
-            getFileResourcesDir(projectCoordinates)
-                .resolve(creationTimestamp)
-                .apply {
-                    if (exists()) {
-                        listDirectoryEntries().forEach { it.deleteIfExists() }
-                    }
-                }.deleteIfExists()
+    ): Boolean = fileStorage.list(projectCoordinates)
+        .filter { fileKey -> fileKey.uploadedMillis == creationTimestamp.toLong() }
+        .flatMap { fileStorage.delete(projectCoordinates, it) }
+        .collectList()
+        .subscribeOn(Schedulers.immediate())
+        .toFuture()
+        .get()
+        .singleOrNull()
+        ?: false
 
     /**
      * @param shortFileInfo
@@ -110,17 +75,32 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun getFileInfoByShortInfo(
         shortFileInfo: ShortFileInfo,
         projectCoordinates: ProjectCoordinates,
-    ) = getFileInfoList(projectCoordinates).first { it.name == shortFileInfo.name }.copy(isExecutable = shortFileInfo.isExecutable)
+    ): FileInfo = fileStorage.list(projectCoordinates)
+        .filter { fileKey -> fileKey.name == shortFileInfo.name }
+        .flatMap { fileKey ->
+            fileStorage.contentSize(projectCoordinates, fileKey).map {
+                FileInfo(
+                    name = fileKey.name,
+                    uploadedMillis = fileKey.uploadedMillis,
+                    sizeBytes = it,
+                    isExecutable = shortFileInfo.isExecutable
+                )
+            }
+        }.collectList()
+        .subscribeOn(Schedulers.immediate())
+        .toFuture()
+        .get()
+        .single()
 
     /**
      * @param fileInfo a FileInfo based on which a file should be located
      * @param projectCoordinates
      * @return requested file as a [FileSystemResource]
      */
-    fun getFile(
+    fun getFileContent(
         fileInfo: FileInfo,
         projectCoordinates: ProjectCoordinates
-    ): FileSystemResource = getPath(fileInfo, projectCoordinates).let(::FileSystemResource)
+    ): Flux<ByteBuffer> = fileStorage.download(projectCoordinates, fileInfo.toFileKey())
 
     /**
      * @param file a file to save
@@ -131,13 +111,13 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         file: Path,
         projectCoordinates: ProjectCoordinates,
     ): FileInfo {
-        val destination = getFileResourcesDir(projectCoordinates)
-            .resolve(file.getLastModifiedTime().toMillis().toString())
-            .createDirectories()
-            .resolve(file.name)
-        logger.info("Saving a new file into $destination")
-        file.copyTo(destination, overwrite = false)
-        return FileInfo(file.name, file.getLastModifiedTime().toMillis(), file.fileSize())
+        val fileInfo = FileInfo(file.name, file.getLastModifiedTime().toMillis(), file.fileSize())
+        val fileKey = FileKey(fileInfo)
+        fileStorage.upload(projectCoordinates, fileKey, file.toDataBufferFlux().map { it.asByteBuffer() })
+            .subscribeOn(Schedulers.immediate())
+            .toFuture()
+            .get()
+        return fileInfo
     }
 
     /**
@@ -151,16 +131,17 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
         projectCoordinates: ProjectCoordinates,
     ): Mono<FileInfo> = parts.flatMap { part ->
         val uploadedMillis = System.currentTimeMillis()
-        getFileResourcesDir(projectCoordinates)
-            .resolve(uploadedMillis.toString())
-            .createDirectories()
-            .resolve(part.filename()).run {
-                createFile(this, part)
-                    .collect(Collectors.summingLong { it })
-                    .map {
-                        logger.info("Saved $it bytes into $this")
-                        FileInfo(name, uploadedMillis, it)
-                    }
+        val fileKey = FileKey(
+            part.filename(),
+            uploadedMillis
+        )
+        fileStorage.upload(projectCoordinates, fileKey, part.content().map { it.asByteBuffer() })
+            .map {
+                FileInfo(
+                    fileKey.name,
+                    fileKey.uploadedMillis,
+                    it
+                )
             }
     }
 
@@ -172,70 +153,15 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
      * @throws FileAlreadyExistsException if file with this name already exists
      */
     fun saveImage(partMono: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = partMono.flatMap { part ->
-        val uploadedDir = rootDirImage.resolve(getRelativePath(type, imageName))
-
-        uploadedDir.apply {
-            if (exists()) {
-                listDirectoryEntries().forEach { it.deleteIfExists() }
-            }
-        }.deleteIfExists()
-
-        uploadedDir
-            .createDirectories()
-            .resolve(part.filename()).run {
-                createFile(this, part)
-                    .collect(Collectors.summingLong { it })
-                    .map {
-                        logger.info("Saved $it bytes into $this")
-                        val relativePath = "/${getRelativePath(type, imageName)}/$name"
-                        ImageInfo(relativePath)
-                    }
-            }
-    }
-
-    private fun getRelativePath(type: AvatarType, imageName: String): String =
-            when (type) {
-                AvatarType.ORGANIZATION -> imageName
-                AvatarType.USER -> "users/$imageName"
-            }
-
-    /**
-     * @param path path to file
-     * @param part file part
-     * @return Flux<Long>
-     */
-    fun createFile(path: Path, part: FilePart): Flux<Long> {
-        if (path.notExists()) {
-            logger.info("Saving a new file from parts into $path")
-            path.createFile()
+        val avatarKey = AvatarKey(
+            type,
+            imageName,
+            part.filename()
+        )
+        avatarStorage.upload(avatarKey, part.content().map { it.asByteBuffer() }).map {
+            logger.info("Saved $it bytes of $avatarKey")
+            ImageInfo(avatarKey.getRelativePath())
         }
-        return part.content().map { db ->
-            path.outputStream(APPEND).use { os ->
-                db.asInputStream().use {
-                    it.copyTo(os)
-                }
-            }
-        }
-    }
-
-    /**
-     * Delete a file described by [fileInfo]
-     *
-     * @param fileInfo a [FileInfo] describing a file to be deleted
-     * @param projectCoordinates
-     * @return true if file has been deleted successfully, false otherwise
-     */
-    fun delete(
-        fileInfo: FileInfo,
-        projectCoordinates: ProjectCoordinates,
-    ) = try {
-        Files.walk(getStorageDir(fileInfo, projectCoordinates)).forEach {
-            it.deleteExisting()
-        }
-        true
-    } catch (fe: FileSystemException) {
-        logger.error("Failed to delete file $fileInfo", fe)
-        false
     }
 
     /**
@@ -246,5 +172,5 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
     fun getPath(
         fileInfo: FileInfo,
         projectCoordinates: ProjectCoordinates,
-    ) = getStorageDir(fileInfo, projectCoordinates).resolve(fileInfo.name)
+    ): Path = fileStorage.getPath(projectCoordinates, fileInfo.toFileKey())
 }

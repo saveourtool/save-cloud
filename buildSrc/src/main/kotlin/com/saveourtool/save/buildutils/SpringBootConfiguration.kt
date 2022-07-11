@@ -94,6 +94,13 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
                 "dev,mac"
             }
             environment["SPRING_PROFILES_ACTIVE"] = profiles
+        } else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            val profiles = if (this.path.contains("save-backend")) {
+                "secure,dev,win"
+            } else {
+                "dev,win"
+            }
+            environment["SPRING_PROFILES_ACTIVE"] = profiles
         }
     }
 
