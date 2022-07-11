@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.DetektPlugin
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.named
@@ -18,6 +19,7 @@ import org.gradle.kotlin.dsl.withType
 /**
  * Configure Detekt for a single project
  */
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 fun Project.configureDetekt() {
     apply<DetektPlugin>()
     configure<DetektExtension> {
@@ -30,7 +32,7 @@ fun Project.configureDetekt() {
             output.set(buildDir.resolve("detekt-sarif-reports/detekt-merged.sarif"))
         }
     }
-    val reportMerge = rootProject.tasks.named<ReportMergeTask>("mergeDetektReports") {
+    val reportMerge: TaskProvider<ReportMergeTask> = rootProject.tasks.named<ReportMergeTask>("mergeDetektReports") {
         input.from(
             tasks.withType<Detekt>().map { it.sarifReportFile }
         )
