@@ -21,7 +21,6 @@ jobs:
           gradle-version: wrapper
           arguments: |
             detektAll
-            mergeDetektReports
             --build-cache
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
