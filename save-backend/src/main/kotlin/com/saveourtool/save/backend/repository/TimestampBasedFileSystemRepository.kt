@@ -44,7 +44,8 @@ class TimestampBasedFileSystemRepository(
                     it,
                 )
             }
-        }.collectList()
+        }
+        .collectList()
         .subscribeOn(Schedulers.immediate())
         .toFuture()
         .get()
@@ -86,7 +87,8 @@ class TimestampBasedFileSystemRepository(
                     isExecutable = shortFileInfo.isExecutable
                 )
             }
-        }.collectList()
+        }
+        .collectList()
         .subscribeOn(Schedulers.immediate())
         .toFuture()
         .get()

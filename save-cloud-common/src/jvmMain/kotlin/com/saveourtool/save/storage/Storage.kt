@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 
 /**
  * Base interface for Storage
+ *
  * @param K type of key
  */
 interface Storage<K> {
@@ -48,6 +49,7 @@ interface Storage<K> {
 
     /**
      * Extensions which expects [ProjectCoordinates] as part of key
+     *
      * @param K type of inner key (without [ProjectCoordinates])
      */
     interface WithProjectCoordinates<K> : Storage<WithProjectCoordinates.Key<K>> {
@@ -55,8 +57,8 @@ interface Storage<K> {
          * @param projectCoordinates
          * @return list of keys in storage
          */
-        fun list(projectCoordinates: ProjectCoordinates?): Flux<K> = list().filter {
-                key -> key.projectCoordinates == projectCoordinates
+        fun list(projectCoordinates: ProjectCoordinates?): Flux<K> = list().filter { key ->
+            key.projectCoordinates == projectCoordinates
         }.map { it.key }
 
         /**
@@ -65,10 +67,9 @@ interface Storage<K> {
          * @return true if the key exists, otherwise false
          */
         fun exists(projectCoordinates: ProjectCoordinates?, key: K): Mono<Boolean> =
-            exists(Key(projectCoordinates, key))
+                exists(Key(projectCoordinates, key))
 
         /**
-         *
          * @param projectCoordinates
          * @param key a ket to be checked
          * @return content size in bytes
@@ -82,7 +83,7 @@ interface Storage<K> {
          * @return true if the object deleted, otherwise false
          */
         fun delete(projectCoordinates: ProjectCoordinates?, key: K): Mono<Boolean> =
-            delete(Key(projectCoordinates, key))
+                delete(Key(projectCoordinates, key))
 
         /**
          * @param projectCoordinates
@@ -91,7 +92,7 @@ interface Storage<K> {
          * @return count of written bytes
          */
         fun upload(projectCoordinates: ProjectCoordinates?, key: K, content: Flux<ByteBuffer>): Mono<Long> =
-            upload(Key(projectCoordinates, key), content)
+                upload(Key(projectCoordinates, key), content)
 
         /**
          * @param projectCoordinates
@@ -99,8 +100,12 @@ interface Storage<K> {
          * @return downloaded content
          */
         fun download(projectCoordinates: ProjectCoordinates?, key: K): Flux<ByteBuffer> =
-            download(Key(projectCoordinates, key))
+                download(Key(projectCoordinates, key))
 
+        /**
+         * @property projectCoordinates
+         * @property key
+         */
         class Key<K> internal constructor(
             val projectCoordinates: ProjectCoordinates?,
             val key: K

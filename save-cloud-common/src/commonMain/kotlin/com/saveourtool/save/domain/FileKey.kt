@@ -29,9 +29,7 @@ data class FileKey(
          * @param str
          * @return list of [FileKey]s parsed from provided string
          */
-        fun parseList(str: String): List<FileKey> {
-            return str.split(OBJECT_DELIMITER).map { parse(it) }
-        }
+        fun parseList(str: String): List<FileKey> = str.split(OBJECT_DELIMITER).map { parse(it) }
 
         /**
          * @param str
@@ -52,7 +50,7 @@ fun List<FileKey>.format(): String = this.joinToString(FileKey.OBJECT_DELIMITER)
 /**
  * @return formatted string
  */
-fun FileInfo.format(): String = "${name}${FileKey.FIELD_DELIMITER}${uploadedMillis}"
+fun FileInfo.format(): String = "$name${FileKey.FIELD_DELIMITER}$uploadedMillis"
 
 /**
  * @return [FileKey] created from [FileInfo]
