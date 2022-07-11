@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.repository.LnkContestProjectRepository
 import com.saveourtool.save.entities.*
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import java.awt.print.Pageable
 import java.util.Optional
 
 /**
@@ -47,6 +46,12 @@ class LnkContestProjectService(
      */
     fun getByContestName(contestName: String): List<LnkContestProject> = lnkContestProjectRepository.findByContestName(contestName)
 
+    /**
+     * @param projectName
+     * @param organizationName
+     * @param numberOfContests
+     * @return list of best [numberOfContests] contests of a project
+     */
     fun getBestContestsByProject(
         projectName: String,
         organizationName: String,

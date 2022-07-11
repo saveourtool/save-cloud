@@ -60,6 +60,11 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
      */
     fun findByContestName(contestName: String): List<LnkContestProject>
 
+    /**
+     * @param project
+     * @param page
+     * @return list of best contests of the project
+     */
     fun findByProjectOrderByScoreDesc(project: Project, page: Pageable): Page<LnkContestProject>
 
     /**

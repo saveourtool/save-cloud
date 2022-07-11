@@ -21,9 +21,10 @@ class LnkContestProject(
 
     var score: Float,
 ) : BaseEntity() {
-
     /**
      * Get [ContestResult]s
+     *
+     * @return [ContestResult]
      */
     fun toContestResult() = ContestResult(project.name, project.organization.name, contest.name, score)
 }

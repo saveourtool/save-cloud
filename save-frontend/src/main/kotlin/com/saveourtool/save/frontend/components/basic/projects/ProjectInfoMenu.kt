@@ -2,35 +2,20 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
-import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
-import csstype.ClassName
-import kotlinx.browser.window
-import kotlinx.coroutines.launch
 
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.fetch.Response
+import csstype.ClassName
+import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
-
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import org.w3c.fetch.Headers
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -38,6 +23,12 @@ import react.dom.html.ReactHTML.figure
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+
+import kotlinx.browser.window
+
+private val infoCard = cardComponent(isBordered = true, hasBg = true)
+
+private val contestResultCard = scoreCard()
 
 /**
  * ProjectSettingsMenu component props
@@ -58,10 +49,6 @@ external interface ProjectInfoMenuProps : Props {
      */
     var latestExecutionId: Long?
 }
-
-private val infoCard = cardComponent(isBordered = true, hasBg = true)
-
-private val contestResultCard = scoreCard()
 
 /**
  * @return ReactElement
@@ -86,7 +73,7 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setUsersInProject(users)
-    } ()
+    }()
 
     val (bestResults, setBestResults) = useState(emptyList<ContestResult>())
     useRequest(isDeferred = false) {
@@ -101,7 +88,7 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setBestResults(results)
-    } ()
+    }()
 
     val (project, setProject) = useState(Project.stub(-1))
     useRequest(isDeferred = false) {
@@ -116,7 +103,7 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setProject(projectFromBackend)
-    } ()
+    }()
 
     div {
         className = ClassName("d-flex justify-content-between")
@@ -154,13 +141,13 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 className = ClassName("latest-photos")
                 div {
                     className = ClassName("row")
-                    usersInProject.forEach {
+                    usersInProject.forEach { user ->
                         div {
                             className = ClassName("col-md-4")
                             figure {
                                 img {
                                     className = ClassName("img-fluid")
-                                    src = it.avatar?.let { path ->
+                                    src = user.avatar?.let { path ->
                                         "/api/$v1/avatar$path"
                                     }
                                         ?: run {

@@ -8,7 +8,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.service.LnkContestProjectService
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.v1
 
@@ -66,6 +65,12 @@ class LnkContestProjectController(
             it.toContestResult()
         }
 
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param numberOfContests
+     * @return best [numberOfContests] contests of a project with name [projectName]
+     */
     @GetMapping("/{organizationName}/{projectName}/best")
     @PreAuthorize("permitAll()")
     fun getBestProjectsContests(
