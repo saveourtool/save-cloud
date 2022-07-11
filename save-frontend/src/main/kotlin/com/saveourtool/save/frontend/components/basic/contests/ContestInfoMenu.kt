@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.test.TestFilesContent
 
@@ -36,6 +37,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
     }
     val reactMarkdownOptions: dynamic = jso {
         this.children = wrapTestLines(lines, language)
+        this.rehypePlugins = arrayOf(::rehypeHighlightPlugin)
     }
     publicTestCard {
         child(reactMarkdown(reactMarkdownOptions))
@@ -115,12 +117,12 @@ fun contestInfoMenu(
                             className = ClassName("ml-2 mr-2")
                             div {
                                 className = ClassName("mt-3 mb-3")
-                                displayTestLines("Test", publicTest.testLines, "kotlin")
+                                displayTestLines("Test", publicTest.testLines, publicTest.language)
                             }
                             publicTest.expectedLines?.let {
                                 div {
                                     className = ClassName("mt-3 mb-2")
-                                    displayTestLines("Expected", it, "kotlin")
+                                    displayTestLines("Expected", it, publicTest.language)
                                 }
                             }
                         }
@@ -132,6 +134,6 @@ fun contestInfoMenu(
 }
 
 private fun wrapTestLines(testLines: List<String>, language: String?) = """
-    |```${language ?: ""}
+    |```${ language ?: "" }
     |${testLines.joinToString("\n")}
     |```""".trimMargin()
