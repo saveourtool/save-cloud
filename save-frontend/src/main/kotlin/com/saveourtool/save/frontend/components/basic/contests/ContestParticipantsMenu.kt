@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.frontend.components.basic.projectScoreCard
+import com.saveourtool.save.frontend.components.basic.scoreCard
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
@@ -14,7 +14,7 @@ import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
 
-private val projectScoreCardComponent = projectScoreCard()
+private val projectScoreCardComponent = scoreCard()
 
 /**
  * ContestParticipantsMenu component props
@@ -67,10 +67,10 @@ fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
                     href = "#/${contestResult.organizationName}/${contestResult.projectName}"
                     className = ClassName("stretched-link")
                 }
-                child(projectScoreCardComponent, jso {
-                    projectName = "${contestResult.organizationName}/${contestResult.projectName}"
+                projectScoreCardComponent {
+                    name = "${contestResult.organizationName}/${contestResult.projectName}"
                     contestScore = contestResult.score.toDouble()
-                })
+                }
             }
         }
     }

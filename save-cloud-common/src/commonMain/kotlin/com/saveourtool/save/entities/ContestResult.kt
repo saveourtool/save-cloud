@@ -12,5 +12,6 @@ import kotlinx.serialization.Serializable
 data class ContestResult(
     val projectName: String,
     val organizationName: String,
+    val contestName: String,
     val score: Float,
 )

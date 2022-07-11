@@ -2,6 +2,8 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -57,6 +59,8 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
      * @return list of [LnkContestProject] linked to contest with name [contestName]
      */
     fun findByContestName(contestName: String): List<LnkContestProject>
+
+    fun findByProjectOrderByScoreDesc(project: Project, page: Pageable): Page<LnkContestProject>
 
     /**
      * Save [LnkContestProject] using only ids and contest score.

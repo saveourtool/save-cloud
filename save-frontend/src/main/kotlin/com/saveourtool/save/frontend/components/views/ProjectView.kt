@@ -11,6 +11,9 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
+import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
+import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
@@ -302,6 +305,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
+    private val projectInfoMenu = projectInfoMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
     private val fileUploader = fileUploader(
@@ -369,7 +373,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.RUN
+        state.selectedMenu = ProjectMenuBar.INFO
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
     }
@@ -559,7 +563,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         div("row align-items-center justify-content-center") {
             nav("nav nav-tabs mb-4") {
                 ProjectMenuBar.values()
-                    .filter { it != ProjectMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                    .filter {
+                        (it != ProjectMenuBar.SETTINGS && it != ProjectMenuBar.RUN) || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                    }
                     .forEachIndexed { i, projectMenu ->
                         li("nav-item") {
                             val classVal =
@@ -583,6 +589,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             ProjectMenuBar.RUN -> renderRun()
             ProjectMenuBar.STATISTICS -> renderStatistics()
             ProjectMenuBar.SETTINGS -> renderSettings()
+            ProjectMenuBar.INFO -> renderInfo()
             else -> {
                 // this is a generated else block
             }
@@ -716,6 +723,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun RBuilder.renderStatistics() {
         child(projectStatisticMenu) {
             attrs.executionId = state.latestExecutionId
+        }
+    }
+
+    private fun RBuilder.renderInfo() {
+        projectInfoMenu {
+            attrs.projectName = props.name
+            attrs.organizationName = props.owner
+            attrs.latestExecutionId = state.latestExecutionId
         }
     }
 
