@@ -7,15 +7,14 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
+import csstype.*
 
-import csstype.Height
-import csstype.Width
-import csstype.rem
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -24,6 +23,8 @@ import kotlinx.coroutines.launch
 import kotlinx.html.ButtonType
 import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
+
+const val ALL_LANGS = "all"
 
 /**
  * [RState] of project creation view component
@@ -60,6 +61,8 @@ external interface AwesomeBenchmarksState : State {
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
+        state.selectedMenuBench = BenchmarkCategoryEnum.ALL
+        state.lang = ALL_LANGS
         state.benchmarks = emptyList()
         getBenchmarks()
     }
@@ -169,6 +172,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             }
                                                         }
                                                     }
+                                                    attrs["style"] = jso<CSSProperties> {
+                                                        cursor = "pointer".unsafeCast<Cursor>()
+                                                    }
+
                                                     +value.name
                                                 }
                                             }
@@ -178,11 +185,15 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
                                 div("row mt-3") {
                                     div("col-lg-8") {
-                                        // https://devicon.dev
+                                        var matchingBenchmarksCount = 0
+                                        // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if (state.selectedMenuBench == benchmark.category && benchmark.language == state.lang) {
-                                                div("media text-muted ${if (i != 0) "pt-3" else ""}") {
-                                                    img(classes = "rounded mt-1") {
+                                            if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
+                                                (state.lang == ALL_LANGS || state.lang == benchmark.language)
+                                            ) {
+                                                ++ matchingBenchmarksCount
+                                                div("media text-muted pb-3") {
+                                                    img(classes = "rounded") {
                                                         attrs["data-src"] =
                                                                 "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                                                         attrs["src"] = "img/undraw_code_inspection_bdl7.svg"
@@ -228,27 +239,42 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                 }
                                             }
                                         }
+                                        if (matchingBenchmarksCount == 0) {
+                                            p("media-body font-weight-bold mb-0 small lh-125 text-left") {
+                                                +"No matching data was found - please select different filters"
+                                            }
+                                        }
                                     }
                                     div("col-lg-4") {
                                         ul("list-group") {
                                             val languages = state.benchmarks.map { it.language }
                                             // FixMe: optimize this code (create maps with numbers only once). May be even store this data in DB?
                                             languages.distinct().forEach { language ->
-
                                                 li("list-group-item d-flex justify-content-between align-items-center") {
                                                     attrs.onClickFunction = {
                                                         if (state.lang != language) {
                                                             setState {
                                                                 lang = language
                                                             }
+                                                        } else {
+                                                            setState {
+                                                                lang = ALL_LANGS
+                                                            }
+                                                        }
+                                                    }
+
+                                                    attrs["style"] = jso<CSSProperties> {
+                                                        cursor = "pointer".unsafeCast<Cursor>()
+                                                        if (state.lang == language) {
+                                                            fontWeight = "bold".unsafeCast<FontWeight>()
                                                         }
                                                     }
 
                                                     +language.replace(
-
                                                         "language independent",
                                                         "lang independent"
                                                     )
+
                                                     span("badge badge-primary badge-pill") {
                                                         +state.benchmarks.count { it.language == language }
                                                             .toString()
