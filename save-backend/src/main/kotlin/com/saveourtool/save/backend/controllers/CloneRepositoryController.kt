@@ -37,8 +37,6 @@ import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import java.lang.StringBuilder
-
 /**
  * Controller to save project
  *
@@ -118,11 +116,6 @@ class CloneRepositoryController(
             }
         }
 
-    @Suppress(
-        "UnsafeCallOnNullableType",
-        "TOO_MANY_LINES_IN_LAMBDA",
-        "PARAMETER_NAME_IN_OUTER_LAMBDA",
-    )
     private fun sendToPreprocessor(
         executionRequest: ExecutionRequestBase,
         executionType: ExecutionType,
@@ -132,23 +125,22 @@ class CloneRepositoryController(
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
             projectService.findByNameAndOrganizationName(name, organization.name)
+        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
+
+        val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+        val newExecutionId = newExecution.requiredId()
+        log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            configure(newExecutionId)
         }
-        return project?.let {
-            val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-            val newExecutionId = newExecution.id!!
-            log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
-            val bodyBuilder = MultipartBodyBuilder().apply {
-                configure(newExecutionId)
+        val uri = when (executionType) {
+            ExecutionType.GIT -> "/upload"
+            ExecutionType.STANDARD -> "/uploadBin"
+        }
+        return files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, project.organization.name, project.name)
+            .flatMap {
+                preprocessorWebClient.postMultipart(bodyBuilder, uri)
             }
-            val uri = when (executionType) {
-                ExecutionType.GIT -> "/upload"
-                ExecutionType.STANDARD -> "/uploadBin"
-            }
-            files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, it.organization.name, it.name)
-                .flatMap {
-                    preprocessorWebClient.postMultipart(bodyBuilder, uri)
-                }
-        } ?: Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
     }
 
     private fun saveExecution(
@@ -183,18 +175,16 @@ class CloneRepositoryController(
         organizationName: String,
         projectName: String,
     ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
-        val additionalFiles = StringBuilder("")
         val projectCoordinates = ProjectCoordinates(organizationName, projectName)
         return map {
             val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
-            additionalFiles.append("$path;")
+            execution.appendAdditionalFile(path.toString())
             multipartBodyBuilder.part("fileInfo", it)
             multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))
             .doOnNext {
-                execution.additionalFiles = additionalFiles.toString()
                 executionService.saveExecution(execution)
             }
     }

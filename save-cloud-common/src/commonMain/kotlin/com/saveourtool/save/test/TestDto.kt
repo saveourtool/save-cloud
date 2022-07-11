@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  * @property testSuiteId id of test suite, which this test belongs to
  * @property pluginName name of a plugin which this test belongs to
  * @property tags list of tags of current test
+ * @property additionalFiles
  */
 @Serializable
 data class TestDto(
@@ -20,7 +21,13 @@ data class TestDto(
     val testSuiteId: Long,
     val hash: String,
     val tags: List<String> = emptyList(),
-)
+    val additionalFiles: List<String> = emptyList(),
+) {
+    /**
+     * @return [additionalFiles] as a [String]
+     */
+    fun joinAdditionalFiles() = additionalFiles.joinToString(",")
+}
 
 /**
  * @property tests a list of tests in a batch
@@ -30,4 +37,14 @@ data class TestDto(
 data class TestBatch(
     val tests: List<TestDto>,
     val suitesToArgs: Map<Long, String>,
+)
+
+/**
+ * @property test [TestDto] of a test that is requested
+ * @property testRootPath path to test root
+ */
+@Serializable
+data class TestFilesRequest(
+    val test: TestDto,
+    val testRootPath: String,
 )

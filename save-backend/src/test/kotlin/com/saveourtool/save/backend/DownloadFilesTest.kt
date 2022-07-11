@@ -35,6 +35,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -223,12 +224,13 @@ class DownloadFilesTest {
             .isOk
 
         dataFilesystemRepository.root.toFile().walk().onEnter {
-            println(it.absolutePath)
+            logger.debug(it.absolutePath)
             true
         }
     }
 
     companion object {
+        @JvmStatic private val logger = LoggerFactory.getLogger(DownloadFilesTest::class.java)
         @TempDir internal lateinit var tmpDir: Path
 
         @DynamicPropertySource

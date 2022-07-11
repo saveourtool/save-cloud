@@ -112,7 +112,7 @@ fun testExecutionDetailsView() = fc<Props> {
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
     // fixme: after https://github.com/saveourtool/save-cloud/issues/364 can be passed via history state to avoid requests
-    useRequest(arrayOf(status, testResultDebugInfo, executionId, testResultLocation), isDeferred = false) {
+    useRequest(arrayOf(params), isDeferred = false) {
         val testExecutionDtoResponse = post(
             "$apiUrl/testExecutions?executionId=$executionId&checkDebugInfo=true",
             Headers().apply {
@@ -138,7 +138,5 @@ fun testExecutionDetailsView() = fc<Props> {
     testResultDebugInfo?.let {
         resultsTable(testResultDebugInfo)
     }
-        ?: run {
-            fallback(status)
-        }
+        ?: fallback(status)
 }

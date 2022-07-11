@@ -6,7 +6,13 @@ on:
       - 'master'
     tags:
       - 'v*'
-
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        default: master
+        description: Branch to build images from
+        required: false
 
 jobs:
   deploy_images:
@@ -21,6 +27,10 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
+      - if: github.event_name == 'workflow_dispatch'
+        run: |
+          git checkout origin ${{ inputs.branch }}
+          git tag v${{ inputs.branch }}
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
@@ -36,11 +46,15 @@ jobs:
       - name: Install system packages
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      - name: Retrieve Kotlin version
+        run: |
+          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-1.7.0
+          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
       - run: |
           cd save && git status && git diff
       - uses: gradle/gradle-build-action@v2
