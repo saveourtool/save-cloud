@@ -17,7 +17,6 @@ import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.StatusProps
-import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -28,7 +27,6 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
 import csstype.TextDecoration
-import csstype.attr
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -118,7 +116,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     @Suppress("MAGIC_NUMBER")
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
-        columns = columns<TestExecutionDto> {
+        columns = columns {
             column(id = "index", header = "#") {
                 buildElement {
                     td {

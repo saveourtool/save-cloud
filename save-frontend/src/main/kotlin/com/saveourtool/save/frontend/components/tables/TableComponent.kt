@@ -67,6 +67,9 @@ external interface TableProps<D : Any> : Props {
     var getPageCount: (suspend (pageSize: Int) -> Int)?
 }
 
+/**
+    [Props] of a data table with status and testSuite
+ */
 external interface StatusProps<D : Any> : TableProps<D> {
     /**
      * Test Result Status to filter by
