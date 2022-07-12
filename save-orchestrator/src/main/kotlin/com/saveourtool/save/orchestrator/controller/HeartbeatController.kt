@@ -11,28 +11,23 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.utils.debug
 
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.time.LocalDateTime
-import java.util.concurrent.ConcurrentHashMap
 
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
-import kotlinx.datetime.Instant
 import kotlinx.serialization.json.Json
-
-internal val agentsLatestHeartBeatsMap: AgentStatesWithTimeStamps = ConcurrentHashMap()
-internal val crashedAgents: MutableSet<String> = ConcurrentHashMap.newKeySet()
-
-typealias AgentStatesWithTimeStamps = ConcurrentHashMap<String, Pair<String, Instant>>
 
 /**
  * Controller for heartbeat
@@ -62,14 +57,19 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
 
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
-            listOf(
-                AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
-            )
+            AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
         )
+            .onErrorResume(WebClientResponseException::class.java) {
+                logger.warn("Couldn't update agent statuses for agent ${heartbeat.agentId}, will skip this heartbeat: ${it.message}")
+                Mono.empty()
+            }
+            .doOnSuccess {
+                // Update heartbeat info only if agent state is updated in the backend
+                heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
+            }
             .then(
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
@@ -81,8 +81,8 @@ class HeartbeatController(private val agentService: AgentService,
                         handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
                     }
                     BUSY -> Mono.just(ContinueResponse)
-                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED, STOPPED_BY_ORCH -> Mono.just(WaitResponse)
-                    CRASHED, TERMINATED -> Mono.fromCallable {
+                    BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
+                    CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
                         handleIllegallyOnlineAgent(heartbeat.agentId, heartbeat.state)
                         WaitResponse
                     }
@@ -93,6 +93,9 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
+    /**
+     * @param isStarting whether this is the very first heartbeat - if true, then we don't need to check if this agent needs to be shut down
+     */
     private fun handleVacantAgent(agentId: String, isStarting: Boolean = false): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
                 .doOnSuccess {
@@ -101,8 +104,9 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                 }
                 .zipWhen {
-                    // Check if all agents have completed their jobs; after that we can terminate them.
+                    // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
+                    // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
                     if (it is WaitResponse && !isStarting) {
                         agentService.areAllAgentsIdleOrFinished(agentId)
                     } else {
@@ -110,9 +114,8 @@ class HeartbeatController(private val agentService: AgentService,
                     }
                 }
                 .flatMap { (response, shouldStop) ->
-                    // to be more like the previous implementation, we wait for all agents to finish before returning
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(listOf(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId)))
+                        agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
                             .thenReturn(TerminateResponse)
                             .doOnSuccess {
                                 logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
@@ -135,7 +138,7 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleIllegallyOnlineAgent(agentId: String, state: AgentState) {
         logger.warn("Agent id=$agentId sent $state status, but should be offline in that case!")
-        crashedAgents.add(agentId)
+        heartBeatInspector.watchCrashedAgent(agentId)
     }
 
     private fun ensureGracefulShutdown(agentId: String) {
@@ -152,13 +155,13 @@ class HeartbeatController(private val agentService: AgentService,
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
                     logger.warn("Agent id=$agentId is not stopped in 60 seconds after ${TerminateResponse::class.simpleName} signal, will add it to crashed list")
-                    crashedAgents.add(agentId)
+                    heartBeatInspector.watchCrashedAgent(agentId)
                 } else {
-                    logger.debug("Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal")
-                    agentsLatestHeartBeatsMap.remove(agentId)
-                    crashedAgents.remove(agentId)
+                    logger.debug { "Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal" }
+                    heartBeatInspector.unwatchAgent(agentId)
                 }
-                agentService.initiateShutdownSequence(agentId)
+                // Update final execution status, perform cleanup etc.
+                agentService.finalizeExecution(agentId)
             }
             .subscribeOn(agentService.scheduler)
             .subscribe()

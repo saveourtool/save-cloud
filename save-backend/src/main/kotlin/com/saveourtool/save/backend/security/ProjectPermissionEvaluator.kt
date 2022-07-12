@@ -40,19 +40,17 @@ class ProjectPermissionEvaluator {
             Permission.WRITE -> false
             Permission.DELETE -> false
         }
-
-        val userId = (authentication.details as AuthenticationDetails).id
-        val isOrganizationOwner = project.organization.ownerId == userId
-        val projectRole by lazy { lnkUserProjectService.findRoleByUserIdAndProject(userId, project) }
-
-        if (isOrganizationOwner || authentication.hasRole(Role.SUPER_ADMIN)) {
+        if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
+        val userId = (authentication.details as AuthenticationDetails).id
+        val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
+
         return when (permission) {
-            Permission.READ -> project.public || hasWriteAccess(userId, project, projectRole)
-            Permission.WRITE -> hasWriteAccess(userId, project, projectRole)
-            Permission.DELETE -> project.userId == userId || projectRole == Role.OWNER
+            Permission.READ -> project.public || hasReadAccess(userId, projectRole)
+            Permission.WRITE -> hasWriteAccess(userId, projectRole)
+            Permission.DELETE -> hasDeleteAccess(userId, projectRole)
         }
     }
 
@@ -88,11 +86,15 @@ class ProjectPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    private fun hasWriteAccess(userId: Long?, project: Project, projectRole: Role): Boolean = when {
-        userId == null -> false
-        project.userId == userId -> true
-        else -> projectRole == Role.ADMIN || projectRole == Role.OWNER
-    }
+    private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = hasWriteAccess(userId, projectRole) ||
+            userId?.let { projectRole == Role.VIEWER } ?: false
+
+    private fun hasWriteAccess(userId: Long?, projectRole: Role): Boolean = hasDeleteAccess(userId, projectRole) ||
+            userId?.let { projectRole == Role.ADMIN } ?: false
+
+    private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
+        projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
+    } ?: false
 
     /**
      * @param authentication
