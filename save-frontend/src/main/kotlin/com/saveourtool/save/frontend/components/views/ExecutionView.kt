@@ -130,7 +130,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         }
     )
-
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {

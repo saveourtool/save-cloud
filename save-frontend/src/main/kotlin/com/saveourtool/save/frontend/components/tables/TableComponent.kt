@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
 
 import org.w3c.fetch.Response
+import react.*
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
@@ -43,7 +44,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 import kotlinx.js.jso
-import react.*
 
 /**
  * [Props] of a data table
