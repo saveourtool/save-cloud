@@ -13,8 +13,7 @@ import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
 
 import org.w3c.fetch.Response
-import react.Props
-import react.RBuilder
+import react.*
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
@@ -25,7 +24,6 @@ import react.dom.tbody
 import react.dom.th
 import react.dom.thead
 import react.dom.tr
-import react.fc
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -35,10 +33,6 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
-import react.useContext
-import react.useEffect
-import react.useMemo
-import react.useState
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -84,6 +78,7 @@ external interface TableProps<D : Any> : Props {
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
+ * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -97,7 +92,7 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught"
 )
-fun <D : Any> tableComponent(
+fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
@@ -107,11 +102,11 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-) = fc<TableProps<D>> { props ->
+    getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
+): FC<P> = fc { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
-
     val (data, setData) = useState<Array<out D>>(emptyArray())
     val (pageCount, setPageCount) = useState(1)
     val (pageIndex, setPageIndex) = useState(0)
@@ -150,7 +145,7 @@ fun <D : Any> tableComponent(
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
-    }
+    } + getAdditionalDependencies(props)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -242,8 +237,6 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                // if (tableInstance.pageCount > 1) {
-                // block with paging controls
 
                 if (data.isEmpty()) {
                     div("align-items-center justify-content-center mb-4") {

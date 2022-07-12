@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
 import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -81,10 +82,26 @@ external interface ExecutionState : State {
 }
 
 /**
+ * [Props] of a data table with status and testSuite
+ */
+external interface StatusProps<D : Any> : TableProps<D> {
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
+}
+
+/**
  * A [RComponent] for execution view
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val executionStatistics = executionStatistics("mr-auto")
     private val executionTestsNotFound = executionTestsNotFound()
@@ -114,10 +131,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         }
     )
-
-    @Suppress("MAGIC_NUMBER")
-    private val testExecutionsTable = tableComponent(
-        columns = columns<TestExecutionDto> {
+    private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
+        columns = columns {
             column(id = "index", header = "#") {
                 buildElement {
                     td {
@@ -277,6 +292,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
+        },
+        getAdditionalDependencies = {
+            arrayOf(it.status, it.testSuite)
         }
     )
     init {
@@ -369,6 +387,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(testExecutionsTable) {
+            attrs.status = state.status
+            attrs.testSuite = state.testSuite
             attrs.getData = { page, size ->
                 val status = state.status?.let {
                     "&status=${state.status}"
@@ -388,12 +408,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                )
-                    .unsafeMap {
-                        Json.decodeFromString<Array<TestExecutionDto>>(
-                            it.text().await()
-                        )
-                    }
+                ).unsafeMap {
+                    Json.decodeFromString<Array<TestExecutionDto>>(
+                        it.text().await()
+                    )
+                }
                     .apply {
                         asDynamic().debugInfo = null
                     }
