@@ -10,9 +10,10 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.projectScoreCard
+import com.saveourtool.save.frontend.components.basic.scoreCard
+import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -198,7 +199,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         useServerPaging = false,
         usePageSelection = false,
     )
-    private val projectScoreCardComponent = projectScoreCard()
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -390,24 +390,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div("col-3") {
-                div("latest-photos") {
-                    div("row") {
-                        state.usersInOrganization?.forEach {
-                            div("col-md-4") {
-                                figure {
-                                    img(classes = "img-fluid") {
-                                        attrs["src"] = it.avatar?.let { path ->
-                                            "/api/$v1/avatar$path"
-                                        }
-                                            ?: run {
-                                                "img/user.svg"
-                                            }
-                                        attrs["alt"] = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
+                userBoard {
+                    attrs.users = state.usersInOrganization ?: emptyList()
                 }
             }
         }
@@ -549,8 +533,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div("col-3 mb-4") {
-            child(projectScoreCardComponent) {
-                attrs.projectName = topProject.name
+            scoreCard {
+                attrs.name = topProject.name
                 attrs.contestScore = topProject.contestRating.toDouble()
             }
         }

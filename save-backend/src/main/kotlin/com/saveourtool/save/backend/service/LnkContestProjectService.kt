@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkContestProjectRepository
 import com.saveourtool.save.entities.*
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import java.util.Optional
 
@@ -12,6 +13,7 @@ import java.util.Optional
 class LnkContestProjectService(
     private val lnkContestProjectRepository: LnkContestProjectRepository,
     private val lnkUserProjectService: LnkUserProjectService,
+    private val projectService: ProjectService,
 ) {
     /**
      * @param projectId id of a [Project]
@@ -43,4 +45,19 @@ class LnkContestProjectService(
      * @return list of links contest-project for a contest
      */
     fun getByContestName(contestName: String): List<LnkContestProject> = lnkContestProjectRepository.findByContestName(contestName)
+
+    /**
+     * @param projectName
+     * @param organizationName
+     * @param numberOfContests
+     * @return list of best [numberOfContests] contests of a project
+     */
+    fun getBestContestsByProject(
+        projectName: String,
+        organizationName: String,
+        numberOfContests: Int,
+    ): List<LnkContestProject> = projectService.findByNameAndOrganizationName(projectName, organizationName)
+        ?.let {
+            lnkContestProjectRepository.findByProjectOrderByScoreDesc(it, PageRequest.ofSize(numberOfContests)).content
+        } ?: emptyList()
 }

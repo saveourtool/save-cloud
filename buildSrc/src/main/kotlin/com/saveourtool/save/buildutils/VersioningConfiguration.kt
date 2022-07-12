@@ -31,7 +31,9 @@ val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.prope
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
     apply<GrgitServicePlugin>()
-    val grgitProvider = project.extensions.getByType<GrgitServiceExtension>().service.map { it.grgit }
+    val grgitProvider = project.extensions.getByType<GrgitServiceExtension>()
+        .service
+        .map { it.grgit }
 
     // should be provided in the gradle.properties
     val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
@@ -47,7 +49,8 @@ fun Project.configureVersioning() {
     }
 
     val grgit = grgitProvider.get()
-    val status = grgit.repository.jgit.status().call()
+    val status = grgit.repository.jgit.status()
+        .call()
     if (!status.isClean) {
         logger.warn("git tree is not clean; " +
                 "Untracked files: ${status.untracked}, uncommitted changes: ${status.uncommittedChanges}"

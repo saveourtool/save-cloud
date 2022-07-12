@@ -41,7 +41,8 @@ class TestDiscoveringServiceTest {
         Git.cloneRepository()
             .setURI("https://github.com/saveourtool/save-cli")
             .setDirectory(tmpDir.toFile())
-            .call().use {
+            .call()
+            .use {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
             }
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())

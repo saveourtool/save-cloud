@@ -35,7 +35,7 @@ class KubernetesManager(
         kc.close()
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "MagicNumber")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MagicNumber")
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
@@ -95,7 +95,8 @@ class KubernetesManager(
                 }
             }
         }
-        kc.batch().v1()
+        kc.batch()
+            .v1()
             .jobs()
             .create(job)
         logger.info("Created Job for execution id=$executionId")
@@ -118,7 +119,8 @@ class KubernetesManager(
 
     override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
-        val isDeleted = kc.batch().v1()
+        val isDeleted = kc.batch()
+            .v1()
             .jobs()
             .withName(jobName)
             .delete()
@@ -145,7 +147,9 @@ class KubernetesManager(
 
     override fun cleanup(executionId: Long) {
         logger.debug("Removing a Job for execution id=$executionId")
-        val job = kc.batch().v1().jobs()
+        val job = kc.batch()
+            .v1()
+            .jobs()
             .withName(jobNameForExecution(executionId))
             .get()
         job?.let {

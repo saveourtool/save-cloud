@@ -7,12 +7,15 @@ import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -121,7 +124,7 @@ class TestInitializeControllerTest {
             .expectBody<TestBatch>()
             .consumeWith { entityExchangeResult ->
                 val batch = entityExchangeResult.responseBody!!
-                println(batch)
+                log.debug { batch.toString() }
                 assertTrue(batch.tests.isNotEmpty())
                 assertEquals(10, batch.tests.size)
             }
@@ -136,5 +139,9 @@ class TestInitializeControllerTest {
                 val body = entityExchangeResult.responseBody!!
                 assertTrue(body.tests.size == 3) { "Expected 3 tests, but got ${body.tests} instead" }
             }
+    }
+
+    companion object {
+        private val log: Logger = getLogger<TestInitializeControllerTest>()
     }
 }

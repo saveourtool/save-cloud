@@ -96,7 +96,7 @@ class TestService(
         return synchronized(lock) {
             log.debug("Acquired lock for executionId=$executionId")
             val testExecutions = transactionTemplate.execute {
-                val execution = executionRepository.getById(executionId)
+                val execution = executionRepository.getReferenceById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
             val testDtos = testExecutions.map { it.test.toDto() }
