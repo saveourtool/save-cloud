@@ -1,3 +1,7 @@
+/**
+ * Storage for avatars + key for this storage
+ */
+
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties

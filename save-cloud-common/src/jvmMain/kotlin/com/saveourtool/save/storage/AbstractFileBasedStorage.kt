@@ -15,6 +15,7 @@ import kotlin.io.path.*
 
 /**
  * File based implementation of Storage
+ *
  * @param rootDir root directory for storage
  * @param K type of key
  */
@@ -121,7 +122,7 @@ abstract class AbstractFileBasedStorage<K>(
         /**
          * @param projectPath
          * @param innerKey
-         * @return
+         * @return [Path] to content
          */
         protected abstract fun buildPathToContentFromProjectPath(projectPath: Path, innerKey: K): Path
 
@@ -145,20 +146,20 @@ abstract class AbstractFileBasedStorage<K>(
 
         /**
          * @param pathToContent
-         * @return
+         * @return pair of inner key [K] and [Path] to project
          */
         protected abstract fun buildInnerKeyAndReturnProjectPath(pathToContent: Path): Pair<K, Path>
 
         /**
          * @param rootDir
-         * @return
+         * @return [Path] to default project, when [ProjectCoordinates] is null
          */
         protected open fun buildPathToDefaultProject(rootDir: Path): Path = rootDir.resolve(DEFAULT_PROJECT_LOCATION)
 
         /**
          * @param projectCoordinates
          * @param key
-         * @return
+         * @return [Path] to content on file system
          */
         @Deprecated("avoid usage of this method: applicable only for file based storage")
         fun getPath(projectCoordinates: ProjectCoordinates?, key: K): Path = buildPathToContent(Storage.WithProjectCoordinates.Key(projectCoordinates, key))
