@@ -8,7 +8,8 @@
     <changeSet id="create-db-user" author="petertrr" context="">
         <sql dbms="mysql" endDelimiter=";" splitStatements="true" stripComments="true">
             CREATE USER 'saveu'@'%' IDENTIFIED BY ${user.password};
-            GRANT ALL ON ${schema.name}.* TO 'saveu'@'%';
+            GRANT ALL PRIVILEGES ON ${schema.name}.* TO 'saveu'@'%';
+            FLUSH PRIVILEGES;
         </sql>
     </changeSet>
 
