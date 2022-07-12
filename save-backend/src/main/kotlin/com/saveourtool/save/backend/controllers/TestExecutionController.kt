@@ -81,7 +81,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .runIf({ checkDebugInfo }) {
             map { testExecutionDto ->
                 testExecutionDto.copy(
-                    hasDebugInfo = testDataFilesystemRepository.doesExist(executionId, TestResultLocation.from(testExecutionDto))
+                    hasDebugInfo = testDataFilesystemRepository.doesDebugInfoExist(executionId, TestResultLocation.from(testExecutionDto))
                 )
             }
         }

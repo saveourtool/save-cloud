@@ -25,6 +25,12 @@ class DebugInfoStorage(
 ) :
     AbstractFileBasedStorage<Pair<Long, TestResultLocation>>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
     /**
+     * @param pathToContent
+     * @return true if path endsWith [SUFFIX_FILE_NAME]
+     */
+    override fun isKey(pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
+
+    /**
      * @param rootDir
      * @param pathToContent
      * @return [Pair] of executionId and [TestResultLocation] object is built by [Path]
@@ -38,7 +44,7 @@ class DebugInfoStorage(
         require(folderNames.size == 5) {
             "Invalid path to debugInfo: $pathToContent"
         }
-        val testName = folderNames[0].dropLast(SUFFIX_NAME.length)
+        val testName = folderNames[0].dropLast(SUFFIX_FILE_NAME.length)
         val testLocation = folderNames[1]
         val testSuiteName = folderNames[2]
         val pluginName = folderNames[3]
@@ -57,7 +63,7 @@ class DebugInfoStorage(
     override fun buildPathToContent(rootDir: Path, key: Pair<Long, TestResultLocation>): Path {
         val (executionId, testResultLocation) = key
         return with(testResultLocation) {
-            rootDir / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_NAME"
+            rootDir / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_FILE_NAME"
         }
     }
 
@@ -69,6 +75,6 @@ class DebugInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
-        private const val SUFFIX_NAME = "-debug.json"
+        private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

@@ -66,7 +66,7 @@ interface Storage<K> {
          * @param key a key to be checked
          * @return true if the key exists, otherwise false
          */
-        fun exists(projectCoordinates: ProjectCoordinates?, key: K): Mono<Boolean> =
+        fun doesExist(projectCoordinates: ProjectCoordinates?, key: K): Mono<Boolean> =
                 doesExist(Key(projectCoordinates, key))
 
         /**

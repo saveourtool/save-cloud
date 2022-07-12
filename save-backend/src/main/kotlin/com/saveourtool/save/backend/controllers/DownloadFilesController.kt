@@ -195,11 +195,11 @@ class DownloadFilesController(
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
 
-        return if (!testDataFilesystemRepository.doesExist(executionId, testResultLocation)) {
+        return if (!testDataFilesystemRepository.doesDebugInfoExist(executionId, testResultLocation)) {
             logger.warn("Additional file for $executionId and $testResultLocation not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
-            testDataFilesystemRepository.getContent(executionId, testResultLocation)
+            testDataFilesystemRepository.getDebugInfoContent(executionId, testResultLocation)
         }
     }
 
@@ -228,13 +228,12 @@ class DownloadFilesController(
     ): String {
         logger.debug("Processing getExecutionInfo : $testExecutionDto")
         val executionId = getExecutionId(testExecutionDto)
-        val executionInfoFile = testDataFilesystemRepository.getExecutionInfoFile(executionId).file
-        return if (executionInfoFile.exists()) {
-            val text = executionInfoFile.readText()
-            logger.debug("Sending $executionInfoFile : $text")
+        return if (testDataFilesystemRepository.doesExecutionInfoExist(executionId)) {
+            val text = testDataFilesystemRepository.getExecutionInfoContent(executionId)
+            logger.debug("Sending ExecutionInfo for $executionId : $text")
             text
         } else {
-            logger.debug("File ${executionInfoFile.absolutePath} not found")
+            logger.debug("ExecutionInfo for $executionId not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         }
     }
