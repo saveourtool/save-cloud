@@ -16,7 +16,7 @@ import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
 import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.components.tables.StatusProps
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -68,6 +68,21 @@ external interface ExecutionState : State {
      */
     var executionDto: ExecutionDto?
 
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
+}
+
+/**
+ * [Props] of a data table with status and testSuite
+ */
+external interface StatusProps<D : Any> : TableProps<D> {
     /**
      * Test Result Status to filter by
      */

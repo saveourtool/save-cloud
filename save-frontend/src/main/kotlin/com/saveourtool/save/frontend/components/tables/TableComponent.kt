@@ -68,21 +68,6 @@ external interface TableProps<D : Any> : Props {
 }
 
 /**
-    [Props] of a data table with status and testSuite
- */
-external interface StatusProps<D : Any> : TableProps<D> {
-    /**
-     * Test Result Status to filter by
-     */
-    var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
-}
-
-/**
  * A `RComponent` for a data table
  *
  * @param columns columns as an array of [Column]
