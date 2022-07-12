@@ -24,7 +24,7 @@ val scoreCard = scoreCard()
  */
 external interface ScoreCardProps : Props {
     /**
-     * Name of a current project or contest
+     * Name of a current project or contest (acts as a card header)
      */
     var name: String
 
