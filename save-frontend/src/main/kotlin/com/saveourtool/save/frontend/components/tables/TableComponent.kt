@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.modal.errorModal
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -79,6 +78,7 @@ external interface TableProps<D : Any> : Props {
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
+ * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)

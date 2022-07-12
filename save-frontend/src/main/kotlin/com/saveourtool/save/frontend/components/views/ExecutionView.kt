@@ -131,7 +131,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     )
 
-    @Suppress("MAGIC_NUMBER")
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
