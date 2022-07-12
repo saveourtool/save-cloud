@@ -84,12 +84,15 @@ class DownloadProjectController(
     kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(DownloadProjectController::class.java)
-    private val webClientBackend = WebClient.builder().baseUrl(configProperties.backend)
+    private val webClientBackend = WebClient.builder()
+        .baseUrl(configProperties.backend)
         .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
-    private val webClientOrchestrator = WebClient.builder().baseUrl(configProperties.orchestrator).codecs {
-        it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
-    }
+    private val webClientOrchestrator = WebClient.builder()
+        .baseUrl(configProperties.orchestrator)
+        .codecs {
+            it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
+        }
         .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
     private val scheduler = Schedulers.boundedElastic()

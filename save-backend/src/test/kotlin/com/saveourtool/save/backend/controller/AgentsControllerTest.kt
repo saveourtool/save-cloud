@@ -65,13 +65,11 @@ class AgentsControllerTest {
     fun `should save agent statuses`() {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
-                )
+                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
             ))
             .exchange()
             .expectStatus()
@@ -82,31 +80,25 @@ class AgentsControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         updateAgentStatuses(
-            listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
-            )
+            AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-2")
         )
 
         val firstAgentIdle = getLastIdleForSecondContainer()
 
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                listOf(
-                    AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
-                )
-            ))
+            .bodyValue(
+                AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+            )
             .exchange()
             .expectStatus()
             .isOk
 
         updateAgentStatuses(
-            listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
-            )
+            AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "container-2")
         )
 
         assertTrue(
@@ -175,15 +167,13 @@ class AgentsControllerTest {
         Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
     }
 
-    private fun updateAgentStatuses(body: List<AgentStatusDto>) {
+    private fun updateAgentStatuses(body: AgentStatusDto) {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusesWithDto")
+            .uri("/internal/updateAgentStatusWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                body
-            ))
+            .bodyValue(body)
             .exchange()
             .expectStatus()
             .isOk

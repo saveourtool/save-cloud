@@ -6,14 +6,14 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.moreOrEqualThan
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.projectScoreCard
+import com.saveourtool.save.frontend.components.basic.scoreCard
+import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -122,12 +122,12 @@ external interface OrganizationViewState : State {
     /**
      * Whether editing of organization info is disabled
      */
-    var isEditDisabled: Boolean?
+    var isEditDisabled: Boolean
 
     /**
-     * Role of user is viewer
+     * Highest [Role] of a current user in organization or globally
      */
-    var isRoleViewer: Boolean?
+    var selfRole: Role
 
     /**
      * Users in organization
@@ -138,6 +138,11 @@ external interface OrganizationViewState : State {
      * Label that will be shown on Close button of modal windows
      */
     var closeButtonLabel: String?
+
+    /**
+     * Current state of description input form
+     */
+    var draftOrganizationDescription: String
 }
 
 /**
@@ -150,7 +155,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
-                    errorMessage = "You cannot delete an organization because there are projects connected to it." +
+                    errorMessage = "You cannot delete an organization because there are projects connected to it. " +
                             "Delete all the projects and try again."
                 }
             } else {
@@ -166,7 +171,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         },
         updateNotificationMessage = ::showNotification
     )
-    private var descriptionTmp: String = ""
     private val table = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
@@ -195,7 +199,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         useServerPaging = false,
         usePageSelection = false,
     )
-    private val projectScoreCardComponent = projectScoreCard()
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -204,6 +207,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.selectedMenu = OrganizationMenuBar.INFO
         state.projects = emptyArray()
         state.closeButtonLabel = null
+        state.selfRole = Role.NONE
+        state.draftOrganizationDescription = ""
     }
 
     private fun deleteOrganization() {
@@ -234,14 +239,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
-            val role = getHighestRole(getRoleInOrganization(), props.currentUserInfo?.globalRole)
+            val role = getRoleInOrganization()
             val users = getUsers()
             setState {
                 image = avatar
                 organization = organizationLoaded
+                draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
-                isEditDisabled = role.moreOrEqualThan(Role.ADMIN)
-                isRoleViewer = !role.moreOrEqualThan(Role.ADMIN)
+                isEditDisabled = true
+                selfRole = getHighestRole(role, props.currentUserInfo?.globalRole)
                 usersInOrganization = users
             }
         }
@@ -340,7 +346,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                 }
                                 +"Description"
                             }
-                            if (state.isRoleViewer == false && state.isEditDisabled == true) {
+                            if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
                                 button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -354,10 +360,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("card-body") {
                         textarea {
                             attrs["class"] = "auto_height form-control-plaintext pt-0 pb-0"
-                            if (state.isEditDisabled != false) {
-                                attrs.value = state.organization?.description ?: ""
-                            }
-                            attrs.disabled = state.isRoleViewer == true || (state.isEditDisabled ?: true)
+                            attrs.value = state.draftOrganizationDescription
+                            attrs.disabled = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onChange = { event ->
                                 val tg = event.target as HTMLTextAreaElement
                                 setNewDescription(tg.value)
@@ -367,7 +371,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     div("ml-3 mt-2 align-items-right float-right") {
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
+                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
@@ -376,7 +380,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                         button(type = ButtonType.button, classes = "btn") {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = state.isRoleViewer == true || (state.isEditDisabled ?: true)
+                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
                             attrs.onClick = {
                                 turnEditMode(true)
                             }
@@ -386,24 +390,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div("col-3") {
-                div("latest-photos") {
-                    div("row") {
-                        state.usersInOrganization?.forEach {
-                            div("col-md-4") {
-                                figure {
-                                    img(classes = "img-fluid") {
-                                        attrs["src"] = it.avatar?.let { path ->
-                                            "/api/$v1/avatar$path"
-                                        }
-                                            ?: run {
-                                                "img/user.svg"
-                                            }
-                                        attrs["alt"] = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
+                userBoard {
+                    attrs.users = state.usersInOrganization ?: emptyList()
                 }
             }
         }
@@ -429,12 +417,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun setNewDescription(value: String) {
-        descriptionTmp = value
+        setState {
+            draftOrganizationDescription = value
+        }
     }
 
     private fun onOrganizationSave(newOrganization: Organization) {
         newOrganization.apply {
-            description = descriptionTmp
+            description = state.draftOrganizationDescription
         }
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -459,6 +449,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         child(organizationSettingsMenu) {
             attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+            attrs.selfRole = state.selfRole
         }
     }
 
@@ -490,6 +481,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             it.set("Accept", "application/json")
         },
         loadingHandler = ::classLoadingHandler,
+        responseHandler = ::noopResponseHandler,
     )
         .unsafeMap {
             it.decodeFromJsonString()
@@ -503,7 +495,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
-            it.decodeFromJsonString<List<UserInfo>>()
+            it.decodeFromJsonString()
         }
 
     private fun postImageUpload(element: HTMLInputElement) =
@@ -541,8 +533,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div("col-3 mb-4") {
-            child(projectScoreCardComponent) {
-                attrs.projectName = topProject.name
+            scoreCard {
+                attrs.name = topProject.name
                 attrs.contestScore = topProject.contestRating.toDouble()
             }
         }
@@ -593,22 +585,24 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 nav("nav nav-tabs") {
-                    OrganizationMenuBar.values().forEachIndexed { i, projectMenu ->
-                        li("nav-item") {
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                            p("nav-link $classVal text-gray-800") {
-                                attrs.onClickFunction = {
-                                    if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
+                    OrganizationMenuBar.values()
+                        .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                        .forEachIndexed { i, projectMenu ->
+                            li("nav-item") {
+                                val classVal =
+                                        if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                                p("nav-link $classVal text-gray-800") {
+                                    attrs.onClickFunction = {
+                                        if (state.selectedMenu != projectMenu) {
+                                            setState {
+                                                selectedMenu = projectMenu
+                                            }
                                         }
                                     }
+                                    +projectMenu.name
                                 }
-                                +projectMenu.name
                             }
                         }
-                    }
                 }
             }
 
@@ -619,9 +613,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     alignItems = AlignItems.center
                 }
 
-                button(type = ButtonType.button, classes = "btn btn-primary") {
-                    a(classes = "text-light", href = "#/creation/") {
-                        +"+ New Tool"
+                if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
+                    button(type = ButtonType.button, classes = "btn btn-primary") {
+                        a(classes = "text-light", href = "#/creation/") {
+                            +"+ New Tool"
+                        }
                     }
                 }
             }

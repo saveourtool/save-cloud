@@ -1,9 +1,11 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
@@ -41,6 +43,11 @@ external interface ProjectSettingsMenuProps : Props {
      * Git data for project
      */
     var gitInitDto: GitDto?
+
+    /**
+     * Role of a current user
+     */
+    var selfRole: Role
 }
 
 /**
@@ -222,6 +229,7 @@ fun projectSettingsMenu(
                     }
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.disabled = !props.selfRole.hasDeletePermission()
                             attrs.onClickFunction = {
                                 deleteProjectCallback()
                             }

@@ -31,7 +31,9 @@ val Project.pathToSaveCliVersion get() = "${rootProject.buildDir}/save-cli.prope
 fun Project.configureVersioning() {
     apply<ReckonPlugin>()
     apply<GrgitServicePlugin>()
-    val grgitProvider = project.extensions.getByType<GrgitServiceExtension>().service.map { it.grgit }
+    val grgitProvider = project.extensions.getByType<GrgitServiceExtension>()
+        .service
+        .map { it.grgit }
 
     // should be provided in the gradle.properties
     val isDevelopmentVersion = hasProperty("save.profile") && property("save.profile") == "dev"
@@ -47,7 +49,8 @@ fun Project.configureVersioning() {
     }
 
     val grgit = grgitProvider.get()
-    val status = grgit.repository.jgit.status().call()
+    val status = grgit.repository.jgit.status()
+        .call()
     if (!status.isClean) {
         logger.warn("git tree is not clean; " +
                 "Untracked files: ${status.untracked}, uncommitted changes: ${status.uncommittedChanges}"
@@ -56,11 +59,14 @@ fun Project.configureVersioning() {
 }
 
 /**
- * Docker tags cannot contain `+`, so we change it.
+ * Docker tags cannot contain `+`, so we change it. Also can be specified explicitly.
  *
  * @return correctly formatted version
  */
-fun Project.versionForDockerImages() = version.toString().replace("+", "-")
+fun Project.versionForDockerImages(): String =
+        (project.findProperty("dockerTag") as String? ?: version.toString())
+            .replace("+", "-")
+            .replace("/", "-")
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest

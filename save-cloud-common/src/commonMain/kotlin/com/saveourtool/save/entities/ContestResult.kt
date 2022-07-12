@@ -7,10 +7,12 @@ import kotlinx.serialization.Serializable
  * @property projectName name of a project
  * @property organizationName name of an organization in which given project is
  * @property score that project got in contest
+ * @property contestName
  */
 @Serializable
 data class ContestResult(
     val projectName: String,
     val organizationName: String,
+    val contestName: String,
     val score: Float,
 )

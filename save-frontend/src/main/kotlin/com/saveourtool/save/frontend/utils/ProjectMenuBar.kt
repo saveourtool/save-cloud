@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.utils
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class ProjectMenuBar {
+    INFO,
     RUN,
     STATISTICS,
     SETTINGS,

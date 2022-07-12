@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -24,6 +25,8 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
+import csstype.Color
+import csstype.Cursor
 import csstype.TextDecoration
 import org.w3c.fetch.Headers
 import react.*
@@ -75,10 +78,26 @@ external interface ExecutionState : State {
 }
 
 /**
+ * [Props] of a data table with status and testSuite
+ */
+external interface StatusProps<D : Any> : TableProps<D> {
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
+}
+
+/**
  * A [RComponent] for execution view
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val executionStatistics = executionStatistics("mr-auto")
     private val executionTestsNotFound = executionTestsNotFound()
@@ -108,10 +127,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         }
     )
-
-    @Suppress("MAGIC_NUMBER")
-    private val testExecutionsTable = tableComponent(
-        columns = columns<TestExecutionDto> {
+    private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
+        columns = columns {
             column(id = "index", header = "#") {
                 buildElement {
                     td {
@@ -165,32 +182,34 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
 
-                        attrs["style"] = jso<CSSProperties> {
-                            textDecoration = "underline grey".unsafeCast<TextDecoration>()
-                        }
-
                         val testName = cellProps.value.filePath
-                        val shortTestName = if (testName.length > 35) {
-                            testName.take(15) + " ... " + testName.takeLast(15)
-                        } else {
-                            testName
-                        }
-
+                        val shortTestName = if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                         +shortTestName
 
-                        attrs.onClickFunction = {
-                            scope.launch {
-                                val te = cellProps.value
-                                val trdi = getDebugInfoFor(te)
-                                if (trdi.ok) {
-                                    cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                        // debug info is provided by agent after the execution
+                        // possibly there can be cases when this info is not available
+                        if (cellProps.value.hasDebugInfo == true) {
+                            attrs["style"] = jso<CSSProperties> {
+                                textDecoration = "underline".unsafeCast<TextDecoration>()
+                                color = "blue".unsafeCast<Color>()
+                                cursor = "pointer".unsafeCast<Cursor>()
+                            }
+
+                            attrs.onClickFunction = {
+                                scope.launch {
+                                    val testExecution = cellProps.value
+                                    val trDebugInfoRequest = getDebugInfoFor(testExecution)
+                                    if (trDebugInfoRequest.ok) {
+                                        cellProps.row.original.asDynamic().debugInfo =
+                                                trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
+                                    }
+                                    val trExecutionInfo = getExecutionInfoFor(testExecution)
+                                    if (trExecutionInfo.ok) {
+                                        cellProps.row.original.asDynamic().executionInfo =
+                                                trExecutionInfo.decodeFromJsonString<ExecutionUpdateDto>()
+                                    }
+                                    cellProps.row.toggleRowExpanded()
                                 }
-                                val trei = getExecutionInfoFor(te)
-                                if (trei.ok) {
-                                    cellProps.row.original.asDynamic().executionInfo =
-                                            trei.decodeFromJsonString<ExecutionUpdateDto>()
-                                }
-                                cellProps.row.toggleRowExpanded()
                             }
                         }
                     }
@@ -274,6 +293,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
+        },
+        getAdditionalDependencies = {
+            arrayOf(it.status, it.testSuite)
         }
     )
 
@@ -367,6 +389,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         child(testExecutionsTable) {
+            attrs.status = state.status
+            attrs.testSuite = state.testSuite
             attrs.getData = { page, size ->
                 val status = state.status?.let {
                     "&status=${state.status}"
@@ -386,12 +410,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                )
-                    .unsafeMap {
-                        Json.decodeFromString<Array<TestExecutionDto>>(
-                            it.text().await()
-                        )
-                    }
+                ).unsafeMap {
+                    Json.decodeFromString<Array<TestExecutionDto>>(
+                        it.text().await()
+                    )
+                }
                     .apply {
                         asDynamic().debugInfo = null
                     }
