@@ -35,7 +35,7 @@ class SelectOption {
  * @param onChangeTestSuite handler for input value
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun testExecutionFiltersRow(
     initialValueStatus: String,
     initialValueTestSuite: String,
