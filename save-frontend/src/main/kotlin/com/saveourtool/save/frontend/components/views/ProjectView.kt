@@ -11,6 +11,9 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
+import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
+import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
@@ -21,6 +24,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.getHighestRole
 
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
@@ -202,6 +206,11 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Role of a user that is seeing this view
+     */
+    var selfRole: Role
 }
 
 /**
@@ -296,6 +305,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateNotificationMessage = ::showNotification
     )
     private val projectStatisticMenu = projectStatisticMenu()
+    private val projectInfoMenu = projectInfoMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
     private val fileUploader = fileUploader(
@@ -363,8 +373,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.RUN
+        state.selectedMenu = ProjectMenuBar.INFO
         state.closeButtonLabel = null
+        state.selfRole = Role.NONE
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -390,7 +401,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 this.project = project
             }
-
             val jsonProject = Json.encodeToString(project)
             val headers = Headers().apply {
                 set("Accept", "application/json")
@@ -402,8 +412,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 jsonProject,
                 loadingHandler = ::noopLoadingHandler,
             ).decodeFromJsonString()
+            val currentUserRole: Role = get(
+                "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/users/roles",
+                headers,
+                loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
             setState {
                 gitDto = gitDtoInit
+                selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             }
             when {
                 state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
@@ -546,22 +562,26 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         div("row align-items-center justify-content-center") {
             nav("nav nav-tabs mb-4") {
-                ProjectMenuBar.values().forEachIndexed { i, projectMenu ->
-                    li("nav-item") {
-                        val classVal =
-                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                        p("nav-link $classVal text-gray-800") {
-                            attrs.onClickFunction = {
-                                if (state.selectedMenu != projectMenu) {
-                                    setState {
-                                        selectedMenu = projectMenu
+                ProjectMenuBar.values()
+                    .filterNot {
+                        (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                    }
+                    .forEachIndexed { i, projectMenu ->
+                        li("nav-item") {
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            p("nav-link $classVal text-gray-800") {
+                                attrs.onClickFunction = {
+                                    if (state.selectedMenu != projectMenu) {
+                                        setState {
+                                            selectedMenu = projectMenu
+                                        }
                                     }
                                 }
+                                +projectMenu.name
                             }
-                            +projectMenu.name
                         }
                     }
-                }
             }
         }
 
@@ -569,6 +589,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             ProjectMenuBar.RUN -> renderRun()
             ProjectMenuBar.STATISTICS -> renderStatistics()
             ProjectMenuBar.SETTINGS -> renderSettings()
+            ProjectMenuBar.INFO -> renderInfo()
             else -> {
                 // this is a generated else block
             }
@@ -705,11 +726,20 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    private fun RBuilder.renderInfo() {
+        projectInfoMenu {
+            attrs.projectName = props.name
+            attrs.organizationName = props.owner
+            attrs.latestExecutionId = state.latestExecutionId
+        }
+    }
+
     private fun RBuilder.renderSettings() {
         child(projectSettingsMenu) {
             attrs.project = state.project
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             attrs.gitInitDto = gitDto
+            attrs.selfRole = state.selfRole
         }
     }
 

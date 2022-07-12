@@ -166,12 +166,12 @@ class TimestampBasedFileSystemRepository(configProperties: ConfigProperties) {
 
     /**
      * @param imageName user or organization name
-     * @param part file part
+     * @param partMono file part
      * @param type type of avatar
      * @return Mono with number of bytes saved
      * @throws FileAlreadyExistsException if file with this name already exists
      */
-    fun saveImage(part: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = part.flatMap { part ->
+    fun saveImage(partMono: Mono<FilePart>, imageName: String, type: AvatarType = AvatarType.ORGANIZATION): Mono<ImageInfo> = partMono.flatMap { part ->
         val uploadedDir = rootDirImage.resolve(getRelativePath(type, imageName))
 
         uploadedDir.apply {

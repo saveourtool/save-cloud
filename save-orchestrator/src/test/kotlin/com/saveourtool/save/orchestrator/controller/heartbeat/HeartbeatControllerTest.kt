@@ -8,8 +8,6 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.controller.agentsLatestHeartBeatsMap
-import com.saveourtool.save.orchestrator.controller.crashedAgents
 import com.saveourtool.save.orchestrator.docker.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -28,14 +26,9 @@ import io.kotest.matchers.shouldNot
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -81,6 +74,7 @@ class HeartbeatControllerTest {
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
+    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
 
     @BeforeEach
     fun webClientSetUp() {
@@ -94,8 +88,7 @@ class HeartbeatControllerTest {
     fun cleanup() {
         mockServer.checkQueues()
         mockServer.cleanup()
-        crashedAgents.clear()
-        agentsLatestHeartBeatsMap.clear()
+        heartBeatInspector.clear()
     }
 
     @Test
@@ -108,7 +101,8 @@ class HeartbeatControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(heartBeatBusy)
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -274,7 +268,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents.shouldContainExactly(
+            heartBeatInspector.crashedAgents.shouldContainExactly(
                 setOf("test-2")
             )
         }
@@ -313,7 +307,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents.shouldContainExactly(
+            heartBeatInspector.crashedAgents.shouldContainExactly(
                 setOf("test-2")
             )
         }
@@ -345,7 +339,7 @@ class HeartbeatControllerTest {
             },
             mockAgentStatuses = false,
         ) {
-            crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
+            heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
         }
     }
 
@@ -578,7 +572,7 @@ class HeartbeatControllerTest {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
             mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
-            mockServer.setDefaultResponseForPath("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
+            mockServer.setDefaultResponseForPath("/updateAgentStatusWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
         }

@@ -75,15 +75,16 @@ class ProjectController(
      */
     @GetMapping("/get/organization-name")
     @PreAuthorize("hasRole('VIEWER')")
-    fun getProjectByNameAndOrganizationName(@RequestParam name: String,
-                                            @RequestParam organizationName: String,
-                                            authentication: Authentication,
+    fun getProjectByNameAndOrganizationName(
+        @RequestParam name: String,
+        @RequestParam organizationName: String,
+        authentication: Authentication,
     ): Mono<Project> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationName(name, organizationName)
         }
         return with(projectPermissionEvaluator) {
-            project.filterByPermission(authentication, Permission.WRITE, HttpStatus.FORBIDDEN)
+            project.filterByPermission(authentication, Permission.READ, HttpStatus.FORBIDDEN)
         }
     }
 
@@ -108,7 +109,8 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     fun getNonDeletedProjectsByOrganizationName(@RequestParam organizationName: String,
                                                 authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName).filter { it.status != ProjectStatus.DELETED }
+    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+        .filter { it.status != ProjectStatus.DELETED }
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
@@ -210,7 +212,6 @@ class ProjectController(
     fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, project.name, project.organization.name, Permission.WRITE
     )
-        .filter { projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE) }
         .map { projectFromDb ->
             // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
             projectFromDb.apply {

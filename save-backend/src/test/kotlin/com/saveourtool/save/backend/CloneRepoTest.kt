@@ -73,7 +73,7 @@ class CloneRepoTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val project = projectRepository.findAll().first()
+        val project = projectRepository.findAll().first { it.name == "huaweiName" }
         val gitRepo = GitDto("1")
         val executionRequest = ExecutionRequest(project, gitRepo, executionId = null, sdk = sdk, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {

@@ -45,8 +45,10 @@ fun suitesTable(
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = fc<CheckBoxGridProps> {
     nav("nav nav-tabs mb-4") {
-        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
-            .sortedBy { it }.partition { it != null }
+        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }
+            .distinct()
+            .sortedBy { it }
+            .partition { it != null }
         val languages = languagesWithoutNull.toMutableList()
         if (otherLanguages.isNotEmpty()) {
             languages.add(null)

@@ -1,7 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.organizations
 
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.info.UserInfo
 
 import org.w3c.fetch.Response
@@ -26,6 +28,11 @@ external interface OrganizationSettingsMenuProps : Props {
      * Information about current user
      */
     var currentUserInfo: UserInfo
+
+    /**
+     * [Role] of user that is observing this component
+     */
+    var selfRole: Role
 }
 
 /**
@@ -79,6 +86,7 @@ fun organizationSettingsMenu(
                 div("row d-flex justify-content-center mt-3") {
                     div("col-3 d-sm-flex align-items-center justify-content-center") {
                         button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
+                            attrs.disabled = !props.selfRole.hasDeletePermission()
                             attrs.onClickFunction = {
                                 deleteOrganizationCallback()
                             }
