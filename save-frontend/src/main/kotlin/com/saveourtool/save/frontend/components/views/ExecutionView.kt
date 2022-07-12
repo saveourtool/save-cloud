@@ -34,8 +34,8 @@ import react.dom.*
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
-import react.table.columns
 import react.table.*
+import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await

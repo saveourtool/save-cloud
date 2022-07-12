@@ -31,6 +31,11 @@ import kotlinx.js.jso
 val executionStatistics = executionStatistics()
 
 /**
+ * A component which displays a GIF if tests not found
+ */
+val executionTestsNotFound = executionTestsNotFound()
+
+/**
  * [Props] for execution statistics component
  */
 external interface ExecutionStatisticsProps : Props {
@@ -117,11 +122,6 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         ?.toInt()
         ?.toString()
 }
-
-/**
- * A component which displays a GIF if tests not found
- */
-val executionTestsNotFound = executionTestsNotFound()
 
 /**
  * A component which displays a GIF if tests not found

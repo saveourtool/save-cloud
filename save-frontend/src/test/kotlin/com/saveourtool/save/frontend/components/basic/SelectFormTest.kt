@@ -43,7 +43,7 @@ class SelectFormTest {
     fun selectFormShouldShowOrganizations(): Promise<Unit> {
         render(
             wrapper.create {
-                (selectFormRequired { _, _, _ -> }) {
+                selectFormRequired {
                     form = InputTypes.ORGANIZATION_NAME
                     validInput = true
                     classes = "col-md-6 pl-0 pl-2 pr-2"
@@ -73,7 +73,7 @@ class SelectFormTest {
 
         render(
             wrapper.create {
-                (selectFormRequired { _, _, _ -> }) {
+                selectFormRequired {
                     form = InputTypes.ORGANIZATION_NAME
                     validInput = true
                     classes = "col-md-6 pl-0 pl-2 pr-2"
