@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.v1
@@ -81,12 +82,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
             map { testExecutionDto ->
-                val debugInfoFile = testDataFilesystemRepository.getLocation(
-                    executionId,
-                    testExecutionDto
-                )
                 testExecutionDto.copy(
-                    hasDebugInfo = debugInfoFile.exists()
+                    hasDebugInfo = testDataFilesystemRepository.exists(executionId, TestResultLocation.from(testExecutionDto))
                 )
             }
         }

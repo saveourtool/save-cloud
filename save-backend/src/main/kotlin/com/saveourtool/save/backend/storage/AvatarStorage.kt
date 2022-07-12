@@ -20,7 +20,9 @@ import kotlin.io.path.name
 class AvatarStorage(configProperties: ConfigProperties) :
     AbstractFileBasedStorage<AvatarKey>(Path.of(configProperties.fileStorage.location) / "images" / "avatars") {
     /**
-     * @return key is built from path
+     * @param rootDir
+     * @param pathToContent
+     * @return [AvatarKey] object is built by [Path]
      */
     override fun buildKey(rootDir: Path, pathToContent: Path): AvatarKey = AvatarKey(
         if (pathToContent.parent.parent.name == USERS_DIRECTORY) AvatarType.USER else AvatarType.ORGANIZATION,
@@ -29,7 +31,9 @@ class AvatarStorage(configProperties: ConfigProperties) :
     )
 
     /**
-     * @return path to content based on key
+     * @param rootDir
+     * @param key
+     * @return [Path] is built by [AvatarKey] object
      */
     override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir
         .let { if (key.type == AvatarType.USER) it.resolve(USERS_DIRECTORY) else it }
