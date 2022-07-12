@@ -233,13 +233,6 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-
-        dataFilesystemRepository.root.toFile()
-            .walk()
-            .onEnter {
-                logger.debug(it.absolutePath)
-                true
-            }
     }
 
     companion object {

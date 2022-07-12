@@ -196,15 +196,12 @@ class DownloadFilesController(
     ): String {
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
-        val debugInfoFile = testDataFilesystemRepository.getLocation(
-            executionId,
-            testResultLocation
-        )
-        return if (debugInfoFile.notExists()) {
-            logger.warn("File $debugInfoFile not found")
+
+        return if (!testDataFilesystemRepository.exists(executionId, testResultLocation)) {
+            logger.warn("Additional file for $executionId and $testResultLocation not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
-            debugInfoFile.readText()
+            testDataFilesystemRepository.getContent(executionId, testResultLocation)
         }
     }
 
