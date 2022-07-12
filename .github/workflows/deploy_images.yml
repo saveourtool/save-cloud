@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       GHCR_PWD: ${{ secrets.GITHUB_TOKEN }}
+      ADDITIONAL_GRADLE_OPTS: ''
 
     steps:
       - name: checkout save-cloud
@@ -28,9 +29,11 @@ jobs:
           path: save-cloud
           fetch-depth: 0
       - if: github.event_name == 'workflow_dispatch'
+        working-directory: save-cloud
         run: |
-          git checkout origin ${{ inputs.branch }}
+          git checkout origin/${{ inputs.branch }}
           git tag v${{ inputs.branch }}
+          echo ADDITIONAL_GRADLE_OPTS=-PdockerTag=${{ inputs.branch }} >> $GITHUB_ENV
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
@@ -86,6 +89,7 @@ jobs:
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            ${{ env.ADDITIONAL_GRADLE_OPTS }}
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
