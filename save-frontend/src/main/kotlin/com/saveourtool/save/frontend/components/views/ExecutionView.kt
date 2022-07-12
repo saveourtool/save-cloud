@@ -101,6 +101,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val executionStatistics = executionStatistics("mr-auto")
     private val executionTestsNotFound = executionTestsNotFound()
