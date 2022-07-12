@@ -25,8 +25,6 @@ import kotlinx.browser.window
 
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
 
-private val contestResultCard = scoreCard()
-
 /**
  * ProjectSettingsMenu component props
  */
@@ -119,7 +117,7 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                             href = "#/contests/${it.contestName}"
                             className = ClassName("stretched-link")
                         }
-                        contestResultCard {
+                        scoreCard {
                             name = it.contestName
                             contestScore = it.score.toDouble()
                         }
