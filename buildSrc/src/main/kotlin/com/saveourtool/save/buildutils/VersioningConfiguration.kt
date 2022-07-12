@@ -64,9 +64,9 @@ fun Project.configureVersioning() {
  * @return correctly formatted version
  */
 fun Project.versionForDockerImages(): String =
-    (project.findProperty("dockerTag") as String? ?: version.toString())
-        .replace("+", "-")
-        .replace("/", "-")
+        (project.findProperty("dockerTag") as String? ?: version.toString())
+            .replace("+", "-")
+            .replace("/", "-")
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest
