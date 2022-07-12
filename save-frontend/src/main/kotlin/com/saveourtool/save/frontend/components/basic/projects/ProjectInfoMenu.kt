@@ -26,6 +26,11 @@ import kotlinx.browser.window
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
 
 /**
+ * INFO tab in ProjectView
+ */
+val projectInfoMenu = projectInfoMenu()
+
+/**
  * ProjectSettingsMenu component props
  */
 external interface ProjectInfoMenuProps : Props {
@@ -45,16 +50,13 @@ external interface ProjectInfoMenuProps : Props {
     var latestExecutionId: Long?
 }
 
-/**
- * @return ReactElement
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "MAGIC_NUMBER",
     "ComplexMethod"
 )
-fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
+private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     val (usersInProject, setUsersInProject) = useState(emptyList<UserInfo>())
     useRequest(isDeferred = false) {
         val users: List<UserInfo> = get(

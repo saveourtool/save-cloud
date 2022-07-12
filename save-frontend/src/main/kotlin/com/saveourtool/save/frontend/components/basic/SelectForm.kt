@@ -5,14 +5,23 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.utils.*
 
-import org.w3c.dom.events.Event
+import csstype.ClassName
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.fetch.Headers
+import react.FC
 import react.Props
-import react.dom.*
-import react.fc
+import react.dom.events.ChangeEvent
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
+import react.dom.html.ReactHTML.span
 import react.useState
 
-import kotlinx.html.js.onChangeFunction
+/**
+ * Component with required selection
+ */
+val selectFormRequired = selectFormRequired()
 
 /**
  * SelectFormRequired component props
@@ -37,17 +46,20 @@ external interface SelectFormRequiredProps : Props {
      * select name
      */
     var text: String?
+
+    /**
+     * Callback invoked when form is changed
+     */
+    @Suppress("TYPE_ALIAS")
+    var onChangeFun: (form: InputTypes, organization: ChangeEvent<HTMLSelectElement>, isProject: Boolean) -> Unit
 }
 
-/**
- * @param onChangeFun
- * @return div with an input form
- */
 @Suppress(
     "TOO_MANY_PARAMETERS",
     "TOO_LONG_FUNCTION",
     "LongParameterList",
     "TYPE_ALIAS",
+    "LongMethod",
 )
 fun selectFormRequired(
     onChangeFun: (form: InputTypes, organization: Event, isProject: Boolean) -> Unit

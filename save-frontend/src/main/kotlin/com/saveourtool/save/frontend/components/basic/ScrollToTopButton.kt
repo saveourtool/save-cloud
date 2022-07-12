@@ -22,9 +22,9 @@ import kotlinx.html.js.onClickFunction
 
 /**
  * Renders scroll to top button
- *
- * @return a functional component
  */
+val scrollToTopButton = scrollToTopButton()
+
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun scrollToTopButton() = fc<PropsWithChildren> {
     val (isVisible, setIsVisible) = useState(false)

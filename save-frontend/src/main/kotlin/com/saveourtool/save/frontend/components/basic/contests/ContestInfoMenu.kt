@@ -21,6 +21,11 @@ private val columnCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 private val publicTestCard = cardComponent(hasBg = true, isBordered = true, isPaddingBottomNull = true)
 
 /**
+ * INFO tab in ContestView
+ */
+val contestInfoMenu = contestInfoMenu()
+
+/**
  * ContestInfoMenu functional component props
  */
 external interface ContestInfoMenuProps : Props {
@@ -48,9 +53,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun contestInfoMenu(
-) = FC<ContestInfoMenuProps> { props ->
-
+private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
     val (contest, setContest) = useState<ContestDto?>(null)
     useRequest(isDeferred = false) {
         val contestDto = get(

@@ -10,13 +10,25 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 
+import csstype.ClassName
 import csstype.Width
-import react.CSSProperties
+import react.FC
 import react.Props
-import react.dom.*
-import react.fc
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaValueMax
+import react.dom.aria.ariaValueMin
+import react.dom.aria.ariaValueNow
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.i
+import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
+
+/**
+ * A component which displays statistics about an execution from its props
+ */
+val executionStatistics = executionStatistics()
 
 /**
  * [Props] for execution statistics component
@@ -107,109 +119,174 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
 }
 
 /**
- * A component which displays statistics about an execution from its props
+ * A component which displays a GIF if tests not found
  *
- * @param classes HTML classes for the enclosing div
  * @return a functional react component
  */
+fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
+    val count = props.executionDto?.allTests
+    val status = props.executionDto?.status
+    if (count == 0L && status != ExecutionStatus.PENDING) {
+        div {
+            className = ClassName("d-flex justify-content-center")
+            img {
+                src = "img/sad_cat.gif"
+            }
+        }
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-2")
+            h1 {
+                className = ClassName("h3 mb-0 text-gray-800")
+                +"Tests not found!"
+            }
+        }
+    } else if (count == 0L && status == ExecutionStatus.PENDING) {
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-2")
+            h1 {
+                className = ClassName("h3 mb-0 text-gray-800")
+                +"Execution is starting..."
+            }
+        }
+    }
+}
+
 @Suppress(
     "MAGIC_NUMBER",
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "ComplexMethod"
 )
-fun executionStatistics(classes: String = "") = fc<ExecutionStatisticsProps> { props ->
+private fun executionStatistics(classes: String = "") = FC<ExecutionStatisticsProps> { props ->
     val values = ExecutionStatisticsValues(props.executionDto)
 
-    div("col-xl-3 col-md-6 mb-4") {
-        div("card border-left-info shadow h-100 py-2") {
-            div("card-body") {
-                div("row no-gutters align-items-center") {
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Pass Rate" }
-                        div("row no-gutters align-items-center") {
-                            div("col-auto") {
-                                div("h5 mb-0 mr-3 font-weight-bold text-gray-800") { +"${values.passRate}%" }
+    div {
+        className = ClassName("col-xl-3 col-md-6 mb-4")
+        div {
+            className = ClassName("card border-left-info shadow h-100 py-2")
+            div {
+                className = ClassName("card-body")
+                div {
+                    className = ClassName("row no-gutters align-items-center")
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1")
+                            +"Pass Rate"
+                        }
+                        div {
+                            className = ClassName("row no-gutters align-items-center")
+                            div {
+                                className = ClassName("col-auto")
+                                div {
+                                    className = ClassName("h5 mb-0 mr-3 font-weight-bold text-gray-800")
+                                    +"${values.passRate}%"
+                                }
                             }
-                            div("col") {
-                                div("progress progress-sm mr-2") {
-                                    div("progress-bar bg-info") {
-                                        attrs["role"] = "progressbar"
-                                        attrs["style"] = jso<CSSProperties> {
+                            div {
+                                className = ClassName("col")
+                                div {
+                                    className = ClassName("progress progress-sm mr-2")
+                                    div {
+                                        className = ClassName("progress-bar bg-info")
+                                        role = AriaRole.progressbar
+                                        style = jso {
                                             width = "${values.passRate}%".unsafeCast<Width>()
                                         }
-                                        attrs["aria-valuenow"] = values.passRate
-                                        attrs["aria-valuemin"] = "0"
-                                        attrs["aria-valuemax"] = "100"
+                                        ariaValueMin = 0.0
+                                        ariaValueNow = values.passRate.toDouble()
+                                        ariaValueMax = 100.0
                                     }
                                 }
                             }
                         }
                     }
-                    div("col-auto") {
-                        i("fas fa-clipboard-list fa-2x text-gray-300") {
-                            }
+                    div {
+                        className = ClassName("col-auto")
+                        i {
+                            className = ClassName("fas fa-clipboard-list fa-2x text-gray-300")
+                        }
                     }
                 }
             }
         }
     }
 
-    div("col-xl-4 col-md-6 mb-4") {
-        div("card border-left-${values.style} shadow h-100 py-2") {
-            div("card-body") {
-                div("row no-gutters align-items-center") {
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Tests" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.allTests }
+    div {
+        className = ClassName("col-xl-4 col-md-6 mb-4")
+        div {
+            className = ClassName("card border-left-${values.style} shadow h-100 py-2")
+            div {
+                className = ClassName("card-body")
+                div() {
+                    className = ClassName("row no-gutters align-items-center")
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1")
+                            +"Tests"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.allTests
+                        }
                     }
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Running" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.runningTests }
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1")
+                            +"Running"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.runningTests
+                        }
                     }
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-danger text-uppercase mb-1") { +"Failed" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.failedTests }
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-danger text-uppercase mb-1")
+                            +"Failed"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.failedTests
+                        }
                     }
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-success text-uppercase mb-1") { +"Passed" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.passedTests }
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-success text-uppercase mb-1")
+                            +"Passed"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.passedTests
+                        }
                     }
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Precision" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.precisionRate }
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1")
+                            +"Precision"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.precisionRate
+                        }
                     }
-                    div("col mr-2") {
-                        div("text-xs font-weight-bold text-info text-uppercase mb-1") { +"Recall" }
-                        div("h5 mb-0 font-weight-bold text-gray-800") { +values.recallRate }
+                    div {
+                        className = ClassName("col mr-2")
+                        div {
+                            className = ClassName("text-xs font-weight-bold text-info text-uppercase mb-1")
+                            +"Recall"
+                        }
+                        div {
+                            className = ClassName("h5 mb-0 font-weight-bold text-gray-800")
+                            +values.recallRate
+                        }
                     }
                 }
-            }
-        }
-    }
-}
-
-/**
- * A component which displays a GIF if tests not found
- *
- * @return a functional react component
- */
-fun executionTestsNotFound() = fc<ExecutionStatisticsProps> { props ->
-    val count = props.executionDto?.allTests
-    val status = props.executionDto?.status
-    if (count == 0L && status != ExecutionStatus.PENDING) {
-        div("d-flex justify-content-center") {
-            img(src = "img/sad_cat.gif") {}
-        }
-        div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
-            h1("h3 mb-0 text-gray-800") {
-                +"Tests not found!"
-            }
-        }
-    } else if (count == 0L && status == ExecutionStatus.PENDING) {
-        div("d-sm-flex align-items-center justify-content-center mb-4 mt-2") {
-            h1("h3 mb-0 text-gray-800") {
-                +"Execution is starting..."
             }
         }
     }

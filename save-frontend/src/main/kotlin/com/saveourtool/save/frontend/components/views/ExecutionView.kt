@@ -31,6 +31,9 @@ import csstype.TextDecoration
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
 import react.table.columns
 import react.table.useExpanded
 import react.table.usePagination
@@ -86,7 +89,6 @@ external interface ExecutionState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val executionStatistics = executionStatistics("mr-auto")
     private val executionTestsNotFound = executionTestsNotFound()
     private val testExecutionFiltersRow = testExecutionFiltersRow(
         initialValueStatus = state.status?.name ?: ANY,
@@ -240,14 +242,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             // todo: placeholder before, render data once it's available
             val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
             trdi?.let {
-                child(testStatusComponent(trdi, tableInstance)) {
-                    // attrs.key = trdi.testResultLocation.toString()
-                }
+                testStatusComponent(trdi, tableInstance)
             }
                 ?: run {
                     tr {
                         td {
-                            attrs.colSpan = "${tableInstance.columns.size}"
+                            colSpan = tableInstance.columns.size
                             +"Debug info not available yet for this test execution"
                         }
                     }
@@ -259,8 +259,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    attrs.colSpan = "${tableInstance.columns.size}"
-                    child(testExecutionFiltersRow)
+                    colSpan = tableInstance.columns.size
+                    testExecutionFiltersRow
                 }
             }
         },

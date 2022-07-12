@@ -10,13 +10,17 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.testsuite.TestSuiteDto
 
+import csstype.ClassName
+import react.FC
 import react.PropsWithChildren
-import react.dom.*
-import react.fc
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.sup
 import react.useEffect
-
-import kotlinx.html.InputType
-import kotlinx.html.js.onClickFunction
 
 /**
  * Props for ChecboxGrid component

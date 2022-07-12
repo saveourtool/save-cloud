@@ -13,22 +13,32 @@ import com.saveourtool.save.frontend.utils.ConfirmationType
 import com.saveourtool.save.frontend.utils.toPrettyString
 import com.saveourtool.save.v1
 
+import csstype.ClassName
 import csstype.Width
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
-import react.CSSProperties
-import react.Props
-import react.PropsWithChildren
+import react.*
 import react.dom.*
-import react.fc
-import react.useEffect
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.strong
+import react.dom.html.ReactHTML.ul
 
-import kotlinx.html.InputType
 import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.js.onDoubleClickFunction
 import kotlinx.js.jso
+
+/**
+ * Component used to upload file
+ */
+val fileUploader = fileUploader()
 
 /**
  * Props for file uploader
@@ -78,65 +88,127 @@ external interface UploaderProps : PropsWithChildren {
      * Organization and project names
      */
     var projectCoordinates: ProjectCoordinates?
+
+    /**
+     * Callback invoked when a file is selected from [UploaderProps.availableFiles]
+     */
+    var onFileSelect: (HTMLSelectElement) -> Unit
+
+    /**
+     * Callback invoked when a file is removed from selection by pushing a button
+     */
+    var onFileRemove: (FileInfo) -> Unit
+
+    /**
+     * Callback invoked on `input` change events
+     */
+    var onFileInput: (HTMLInputElement) -> Unit
+
+    /**
+     * Callback invoked when a file is deleted forever
+     */
+    var onFileDelete: (FileInfo) -> Unit
+
+    /**
+     * Callback invoked when file is checked to be executable or vice versa
+     */
+    @Suppress("TYPE_ALIAS")
+    var onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
 }
 
 /**
- * @param onFileInput invoked on `input` change events
- * @param onFileSelect invoked when a file is selected from [UploaderProps.availableFiles]
- * @param onFileRemove invoked when a file is removed from selection by pushing a button
- * @param onExecutableChange when file is checked to be executable or vice versa, this handler is called
- * @param onFileDelete invoked when a file is deleted forever
- * @return a RComponent
+ * A component for file icon that changes depending on executable flag
+ *
+ * @param fileInfo a [FileInfo] to base the icon on
+ * @param onExecutableChange a handler that is invoked when icon is clicked
+ * @return a functional component
  */
+@Suppress("TYPE_ALIAS", "EMPTY_BLOCK_STRUCTURE_ERROR")
+internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = FC<Props> {
+    span {
+        className = ClassName("fa-layers mr-3")
+        title = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
+        asDynamic()["data-toggle"] = "tooltip"
+        asDynamic()["data-placement"] = "top"
+        // if file was not executable, after click it will be; and vice versa
+        onClick = { _ ->
+            // hide previous tooltip, otherwise it gets stuck during re-render
+            val jquery = kotlinext.js.require("jquery")
+            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
+            onExecutableChange(fileInfo, !fileInfo.isExecutable)
+        }
+        onDoubleClick = {}
+        val checked = fileInfo.isExecutable
+        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
+            if (checked) {
+                asDynamic()["color"] = "Green"
+            }
+        }
+        span {
+            className = ClassName("fa-layers-text file-extension fa-inverse pl-2 pt-2 small")
+            onDoubleClick = {}
+            asDynamic()["data-fa-transform"] = "down-3 shrink-12.5"
+            if (checked) {
+                +"exe"
+            } else {
+                +"file"
+            }
+        }
+    }
+}
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun fileUploader(
-    onFileSelect: (HTMLSelectElement) -> Unit,
-    onFileRemove: (FileInfo) -> Unit,
-    onFileInput: (HTMLInputElement) -> Unit,
-    onFileDelete: (FileInfo) -> Unit,
-    onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit,
-) = fc<UploaderProps> { props ->
-    div("mb-3") {
-        div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+private fun fileUploader() = FC<UploaderProps> { props ->
+    div {
+        className = ClassName("mb-3")
+        div {
+            className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
             +props.header
         }
 
         div {
-            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
+            label {
+                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                 +"1. Upload or select the tool (and other resources) for testing:"
             }
 
-            ul(classes = "list-group") {
+            ul {
+                className = ClassName("list-group")
                 props.files.map { fileInfo ->
-                    li(classes = "list-group-item") {
-                        button(classes = "btn") {
+                    li {
+                        className = ClassName("list-group-item")
+                        button {
+                            className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.onClickFunction = {
-                                onFileRemove(fileInfo)
+                            onClick = {
+                                props.onFileRemove(fileInfo)
                             }
                         }
                         a {
-                            button(classes = "btn") {
+                            button {
+                                className = ClassName("btn")
                                 fontAwesomeIcon(icon = faDownload)
                             }
-                            attrs["download"] = fileInfo.name
-                            attrs.href = getHref(fileInfo, props.projectCoordinates)
+                            download = fileInfo.name
+                            href = getHref(fileInfo, props.projectCoordinates)
                         }
-                        button(classes = "btn") {
+                        button {
+                            className = ClassName("btn")
                             fontAwesomeIcon(icon = faTrash)
-                            attrs.onClickFunction = {
-                                onFileDelete(fileInfo)
+                            onClick = {
+                                props.onFileDelete(fileInfo)
                             }
                         }
-                        child(fileIconWithMode(fileInfo, onExecutableChange))
+                        fileIconWithMode(fileInfo, props.onExecutableChange)
                         +fileInfo.toPrettyString()
                     }
                 }
-                li("list-group-item d-flex justify-content-between align-items-center") {
+                li {
+                    className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     val wasSubmitted = props.isSubmitButtonPressed ?: false
                     val form = if (props.files.isEmpty() && wasSubmitted && props.confirmationType == ConfirmationType.NO_BINARY_CONFIRM) {
                         "form-control is-invalid"
@@ -144,48 +216,51 @@ fun fileUploader(
                         "form-control"
                     }
 
-                    select(classes = form) {
-                        attrs.value = "default"
+                    select {
+                        className = ClassName(form)
+                        value = "default"
                         option {
-                            attrs.value = "default"
-                            attrs.disabled = true
+                            value = "default"
+                            disabled = true
                             +"Select a file from existing"
                         }
                         props.availableFiles.sortedByDescending { it.uploadedMillis }.map {
-                            option("list-group-item") {
-                                attrs.value = it.name
+                            option {
+                                className = ClassName("list-group-item")
+                                value = it.name
                                 +it.toPrettyString()
                             }
                         }
-                        attrs.onChangeFunction = {
-                            onFileSelect(it.target as HTMLSelectElement)
+                        onChange = {
+                            props.onFileSelect(it.target)
                         }
                     }
                 }
-                li("list-group-item d-flex justify-content-between align-items-center") {
+                li {
+                    className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     label {
-                        input(type = InputType.file) {
-                            attrs.multiple = true
-                            attrs.hidden = true
-                            attrs {
-                                onChangeFunction = { event ->
-                                    val target = event.target as HTMLInputElement
-                                    onFileInput(target)
-                                }
+                        input {
+                            type = InputType.file
+                            multiple = true
+                            hidden = true
+                            onChange = {
+                                props.onFileInput(it.target)
                             }
                         }
                         fontAwesomeIcon(icon = faUpload)
-                        attrs["data-toggle"] = "tooltip"
-                        attrs["data-placement"] = "top"
-                        attrs["title"] = "Regular files/Executable files/ZIP Archives"
+                        asDynamic()["data-toggle"] = "tooltip"
+                        asDynamic()["data-placement"] = "top"
+                        title = "Regular files/Executable files/ZIP Archives"
                         strong { +"Upload files:" }
                     }
                 }
 
-                div("progress") {
-                    attrs.hidden = !(props.isUploading ?: false)
-                    div("progress-bar progress-bar-striped progress-bar-animated") {
-                        attrs["style"] = jso<CSSProperties> {
+                div {
+                    className = ClassName("progress")
+                    hidden = !(props.isUploading ?: false)
+                    div {
+                        className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
+                        style = jso {
                             width = if (props.suiteByteSize != 0L) {
                                 "${ (100 * props.bytesReceived / props.suiteByteSize) }%"
                             } else {
@@ -204,45 +279,6 @@ fun fileUploader(
         kotlinext.js.require("popper.js")
         kotlinext.js.require("bootstrap")
         jquery("[data-toggle=\"tooltip\"]").tooltip()
-    }
-}
-
-/**
- * A component for file icon that changes depending on executable flag
- *
- * @param fileInfo a [FileInfo] to base the icon on
- * @param onExecutableChange a handler that is invoked when icon is clicked
- * @return a functional component
- */
-@Suppress("TYPE_ALIAS")
-internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = fc<Props> {
-    span("fa-layers mr-3") {
-        attrs["data-toggle"] = "tooltip"
-        attrs["data-placement"] = "top"
-        attrs["title"] = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
-        // if file was not executable, after click it will be; and vice versa
-        attrs.onClickFunction = { _ ->
-            // hide previous tooltip, otherwise it gets stuck during re-render
-            val jquery = kotlinext.js.require("jquery")
-            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
-            onExecutableChange(fileInfo, !fileInfo.isExecutable)
-        }
-        attrs.onDoubleClickFunction = {}
-        val checked = fileInfo.isExecutable
-        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
-            if (checked) {
-                attrs.color = "Green"
-            }
-        }
-        span("fa-layers-text file-extension fa-inverse pl-2 pt-2 small") {
-            attrs.onDoubleClickFunction = {}
-            attrs["data-fa-transform"] = "down-3 shrink-12.5"
-            if (checked) {
-                +"exe"
-            } else {
-                +"file"
-            }
-        }
     }
 }
 
