@@ -85,7 +85,7 @@ fun ChildrenBuilder.errorModal(
     handler(props)
     div {
         className = ClassName("modal-dialog")
-        role = AriaRole.document
+        role = "document".unsafeCast<AriaRole>()
         div {
             className = ClassName("modal-content")
             div {

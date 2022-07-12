@@ -120,10 +120,15 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
 
 /**
  * A component which displays a GIF if tests not found
+ */
+val executionTestsNotFound = executionTestsNotFound()
+
+/**
+ * A component which displays a GIF if tests not found
  *
  * @return a functional react component
  */
-fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
+private fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
     val count = props.executionDto?.allTests
     val status = props.executionDto?.status
     if (count == 0L && status != ExecutionStatus.PENDING) {
@@ -189,7 +194,7 @@ private fun executionStatistics(classes: String = "") = FC<ExecutionStatisticsPr
                                     className = ClassName("progress progress-sm mr-2")
                                     div {
                                         className = ClassName("progress-bar bg-info")
-                                        role = AriaRole.progressbar
+                                        role = "progressbar".unsafeCast<AriaRole>()
                                         style = jso {
                                             width = "${values.passRate}%".unsafeCast<Width>()
                                         }

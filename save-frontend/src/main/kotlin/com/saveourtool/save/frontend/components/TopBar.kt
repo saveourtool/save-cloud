@@ -94,7 +94,7 @@ fun topBar() = FC<TopBarProps> { props ->
                 className = ClassName("breadcrumb mb-0")
                 li {
                     className = ClassName("breadcrumb-item")
-                    ariaCurrent = AriaCurrent.page
+                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
                     a {
                         href = "#/"
                         className = ClassName("text-light")
@@ -112,7 +112,7 @@ fun topBar() = FC<TopBarProps> { props ->
 
                             li {
                                 className = ClassName("breadcrumb-item")
-                                ariaCurrent = AriaCurrent.page
+                                ariaCurrent = "page".unsafeCast<AriaCurrent>()
                                 if (index == size - 1) {
                                     a {
                                         className = ClassName("text-warning")
@@ -216,9 +216,9 @@ fun topBar() = FC<TopBarProps> { props ->
                     href = "#"
                     className = ClassName("nav-link dropdown-toggle")
                     id = "userDropdown"
-                    role = AriaRole.button
+                    role = "button".unsafeCast<AriaRole>()
                     ariaExpanded = false
-                    ariaHasPopup = AriaHasPopup.`true`
+                    ariaHasPopup = true.unsafeCast<AriaHasPopup>()
                     asDynamic()["data-toggle"] = "dropdown"
 
                     div {

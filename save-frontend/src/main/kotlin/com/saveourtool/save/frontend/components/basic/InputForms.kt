@@ -19,7 +19,6 @@ import react.dom.html.ReactHTML.span
 import kotlinx.html.classes
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
-import kotlinx.html.onChange
 
 /**
  * @property str

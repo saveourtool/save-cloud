@@ -98,14 +98,14 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
 fun <D : Any> executionStatusComponent(
     failReason: String,
     tableInstance: TableInstance<D>
-) = fc<Props> {
+) = FC<Props> {
     tr {
         td {
-            attrs.colSpan = "2"
+            colSpan = 2
             +"Execution fail reason:"
         }
         td {
-            attrs.colSpan = "${tableInstance.columns.size - 2}"
+            colSpan = tableInstance.columns.size - 2
             small {
                 samp {
                     +failReason
