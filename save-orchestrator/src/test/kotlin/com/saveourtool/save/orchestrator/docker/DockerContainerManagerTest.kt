@@ -44,9 +44,11 @@ class DockerContainerManagerTest {
             .withTag("latest")
             .exec(PullImageResultCallback())
             .awaitCompletion()
-        baseImageId = dockerClient.listImagesCmd().exec().first {
-            it.repoTags?.contains("ubuntu:latest") == true
-        }
+        baseImageId = dockerClient.listImagesCmd()
+            .exec()
+            .first {
+                it.repoTags?.contains("ubuntu:latest") == true
+            }
             .id
     }
 

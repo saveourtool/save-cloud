@@ -273,11 +273,11 @@ class DockerService(private val configProperties: ConfigProperties,
                     |libcurl4-openssl-dev tzdata
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
                     |RUN rm -rf /var/lib/apt/lists/*
-                """.trimMargin(),
+            """.trimMargin(),
             runOnResourcesCmd = """
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
-                """.trimMargin()
+            """.trimMargin()
         )
         saveAgent.delete()
         saveCli.delete()

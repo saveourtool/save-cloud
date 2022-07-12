@@ -131,20 +131,22 @@ class DownloadFilesController(
         authentication: Authentication,
     ) = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.WRITE
-    ).flatMap {
-        additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName))
-    }.map { fileInfo ->
-        ResponseEntity.status(
-            if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
-        )
-            .body(
-                if (returnShortFileInfo) {
-                    fileInfo.toShortFileInfo()
-                } else {
-                    fileInfo
-                }
+    )
+        .flatMap {
+            additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName))
+        }
+        .map { fileInfo ->
+            ResponseEntity.status(
+                if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
             )
-    }
+                .body(
+                    if (returnShortFileInfo) {
+                        fileInfo.toShortFileInfo()
+                    } else {
+                        fileInfo
+                    }
+                )
+        }
         .onErrorReturn(
             FileAlreadyExistsException::class.java,
             ResponseEntity.status(HttpStatus.CONFLICT).build()

@@ -129,16 +129,20 @@ class ProjectViewTest {
     @Test
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
         renderProjectView()
-        return screen.findByText("SETTINGS").then {
-            userEvent.click(it)
-        }.then { _: Unit ->
-            screen.findByText("Delete project")
-        }
+        return screen.findByText("SETTINGS")
             .then {
                 userEvent.click(it)
-            }.then { _: Unit ->
+            }
+            .then { _: Unit ->
+                screen.findByText("Delete project")
+            }
+            .then {
+                userEvent.click(it)
+            }
+            .then { _: Unit ->
                 screen.findByText("Ok")
-            }.then {
+            }
+            .then {
                 assertNotNull(it, "Should show confirmation window")
             }
     }
