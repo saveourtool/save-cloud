@@ -14,8 +14,6 @@ import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
 
 import org.w3c.fetch.Response
-import react.Props
-import react.RBuilder
 import react.dom.RDOMBuilder
 import react.dom.div
 import react.dom.em
@@ -26,7 +24,6 @@ import react.dom.tbody
 import react.dom.th
 import react.dom.thead
 import react.dom.tr
-import react.fc
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -36,10 +33,6 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
-import react.useContext
-import react.useEffect
-import react.useMemo
-import react.useState
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -51,6 +44,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.html.THEAD
 import kotlinx.js.jso
+import react.*
 
 /**
  * [Props] of a data table
@@ -71,7 +65,9 @@ external interface TableProps<D : Any> : Props {
      * Lambda to update number of pages
      */
     var getPageCount: (suspend (pageSize: Int) -> Int)?
+}
 
+external interface StatusProps<D : Any> : TableProps<D> {
     /**
      * Test Result Status to filter by
      */
@@ -108,7 +104,7 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught"
 )
-fun <D : Any> tableComponent(
+fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
@@ -118,7 +114,8 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-) = fc<TableProps<D>> { props ->
+    getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
+): FC<P> = fc { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
@@ -156,11 +153,11 @@ fun <D : Any> tableComponent(
 
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
-        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount, props.status, props.testSuite)
+        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
-    }
+    } + getAdditionalDependencies(props)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -252,8 +249,6 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                // if (tableInstance.pageCount > 1) {
-                // block with paging controls
 
                 if (data.isEmpty()) {
                     div("align-items-center justify-content-center mb-4") {
