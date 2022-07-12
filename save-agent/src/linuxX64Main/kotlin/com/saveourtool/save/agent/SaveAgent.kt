@@ -178,7 +178,6 @@ class SaveAgent(internal val config: AgentConfiguration,
             append(" --report-type ${config.save.reportType.name.lowercase()}")
             append(" --result-output ${config.save.resultOutput.name.lowercase()}")
             append(" --report-dir ${config.save.reportDir}")
-            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
             append(" --log ${config.save.logType.name.lowercase()}")
         }
         return ProcessBuilder(true, FileSystem.SYSTEM)
