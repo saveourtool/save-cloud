@@ -22,6 +22,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
+import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
@@ -36,9 +37,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
 import react.table.columns
-import react.table.useExpanded
-import react.table.usePagination
-import react.table.useSortBy
+import react.table.*
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -209,6 +208,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                         cellProps.row.original.asDynamic().debugInfo =
                                                 trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
                                     }
+                                    val trExecutionInfo = getExecutionInfoFor(testExecution)
+                                    if (trExecutionInfo.ok) {
+                                        cellProps.row.original.asDynamic().executionInfo =
+                                                trExecutionInfo.decodeFromJsonString<ExecutionUpdateDto>()
+                                    }
                                     cellProps.row.toggleRowExpanded()
                                 }
                             }
@@ -254,19 +258,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             usePagination,
         ),
         renderExpandedRow = { tableInstance, row ->
-            // todo: placeholder before, render data once it's available
+            val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
+            trei?.failReason?.let {
+                child(executionStatusComponent(it, tableInstance))
+            }
             val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
             trdi?.let {
-                testStatusComponent(trdi, tableInstance)
-            }
-                ?: run {
-                    tr {
-                        td {
-                            colSpan = tableInstance.columns.size
-                            +"Debug info not available yet for this test execution"
-                        }
+                child(testStatusComponent(trdi, tableInstance))
+            } ?: trei ?: run {
+                tr {
+                    td {
+                        attrs.colSpan = "${tableInstance.columns.size}"
+                        +"No info available yet for this test execution"
                     }
                 }
+            }
         },
         additionalOptions = {
             this.asDynamic().manualFilters = true
@@ -274,8 +280,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    colSpan = tableInstance.columns.size
-                    testExecutionFiltersRow
+                    attrs.colSpan = "${tableInstance.columns.size}"
+                    child(testExecutionFiltersRow)
                 }
             }
         },
@@ -297,6 +303,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             arrayOf(it.status, it.testSuite)
         }
     )
+
     init {
         state.executionDto = null
         state.status = null

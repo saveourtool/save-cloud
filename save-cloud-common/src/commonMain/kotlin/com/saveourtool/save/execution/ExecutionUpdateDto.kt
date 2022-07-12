@@ -5,9 +5,11 @@ import kotlinx.serialization.Serializable
 /**
  * @property id
  * @property status
+ * @property failReason
  */
 @Serializable
-class ExecutionUpdateDto(
+data class ExecutionUpdateDto(
     val id: Long,
     val status: ExecutionStatus,
+    val failReason: String? = null
 )

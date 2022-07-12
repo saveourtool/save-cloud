@@ -40,6 +40,7 @@ lifecycle:
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
 image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
+imagePullPolicy: Always
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
