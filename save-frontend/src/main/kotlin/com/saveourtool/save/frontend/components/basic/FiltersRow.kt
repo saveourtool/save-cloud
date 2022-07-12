@@ -8,21 +8,15 @@ import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
+import csstype.ClassName
+import react.FC
 import react.Props
-import react.dom.button
-import react.dom.defaultValue
-import react.dom.div
-import react.dom.input
-import react.dom.option
-import react.dom.select
-import react.fc
-
-import kotlinx.html.InputType
-import kotlinx.html.classes
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
 class SelectOption {
@@ -46,52 +40,62 @@ fun testExecutionFiltersRow(
     initialValueTestSuite: String,
     onChangeStatus: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
-) = fc<Props> {
+) = FC<Props> {
     var status: String = initialValueStatus
     var testSuite: String = initialValueTestSuite
-    div("container-fluid") {
-        div("row justify-content-start") {
-            div("col-0 pr-1 align-self-center") {
+    div {
+        className = ClassName("container-fluid")
+        div {
+            className = ClassName("row justify-content-start")
+            div {
+                className = ClassName("col-0 pr-1 align-self-center")
                 fontAwesomeIcon(icon = faFilter)
             }
-            div("col-auto align-self-center") {
+            div {
+                className = ClassName("col-auto align-self-center")
                 +"Status: "
             }
-            div("col-auto") {
-                select("form-control") {
+            div {
+                className = ClassName("col-auto")
+                select {
+                    className = ClassName("form-control")
                     val elements = TestResultStatus.values().map { it.name }.toMutableList()
                     elements.add(0, ANY)
                     elements.forEach { element ->
                         option {
                             if (element == initialValueStatus) {
-                                attrs.selected = true
+                                selected = true
                             }
                             +element
                         }
                     }
 
-                    attrs.onChangeFunction = {
-                        status = (it.target as HTMLSelectElement).value
+                    onChange = {
+                        status = it.target.value
                     }
                 }
             }
-            div("col-auto align-self-center") {
+            div {
+                className = ClassName("col-auto align-self-center")
                 +"Test suite: "
             }
-            div("col-auto") {
-                input(type = InputType.text) {
-                    attrs.classes = setOf("form-control")
-                    attrs.defaultValue = initialValueTestSuite
-                    attrs.required = false
-                    attrs.onChangeFunction = {
-                        testSuite = (it.target as HTMLInputElement).value
+            div {
+                className = ClassName("col-auto")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = initialValueTestSuite
+                    required = false
+                    onChange = {
+                        testSuite = it.target.value
                     }
                 }
             }
-            button(classes = "btn btn-primary") {
+            button {
+                className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 // +"Find"
-                attrs.onClickFunction = {
+                onClick = {
                     onChangeStatus(status)
                     onChangeTestSuite(testSuite)
                 }

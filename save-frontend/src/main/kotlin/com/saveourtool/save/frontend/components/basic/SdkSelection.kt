@@ -89,9 +89,12 @@ private fun sdkSelection() =
                 className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                 +"2. Select the SDK if needed:"
             }
-            div("card align-items-left mb-3 pt-0 pb-0") {
-                div("card-body align-items-left pb-1 pt-3") {
-                    div("row no-gutters align-items-left") {
+            div {
+                className = ClassName("card align-items-left mb-3 pt-0 pb-0")
+                div {
+                    className = ClassName("card-body align-items-left pb-1 pt-3")
+                    div {
+                        className = ClassName("row no-gutters align-items-left")
                         selection(
                             "SDK",
                             props.selectedSdk,
@@ -99,8 +102,9 @@ private fun sdkSelection() =
                             props.onSdkChange,
                         )
                     }
-                    div("row no-gutters align-items-left") {
-                        attrs.classes = setOf("d-inline")
+                    div {
+                        className = ClassName("row no-gutters align-items-left")
+                        className = ClassName("d-inline")
                         selection(
                             "Version",
                             props.selectedSdkVersion,

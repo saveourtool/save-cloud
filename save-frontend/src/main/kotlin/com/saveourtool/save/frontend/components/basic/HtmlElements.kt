@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.Project
 
 import csstype.BorderRadius
+import csstype.ClassName
 import react.CSSProperties
 import react.ChildrenBuilder
 import react.RBuilder

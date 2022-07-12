@@ -11,14 +11,20 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
+import csstype.ClassName
 import okio.Path.Companion.toPath
+import react.FC
 import react.Props
 import react.dom.a
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.samp
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tr
 import react.dom.samp
 import react.dom.small
 import react.dom.td
 import react.dom.tr
-import react.fc
 import react.table.TableInstance
 
 import kotlinx.browser.window
@@ -31,7 +37,7 @@ import kotlinx.browser.window
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
-fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = fc<Props> {
+fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tableInstance: TableInstance<D>) = FC<Props> {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
@@ -44,13 +50,14 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
     val testFilePath = with(testResultDebugInfo.testResultLocation) {
         testLocation.toPath() / testName
     }
-    tr("table-sm") {
+    tr {
+        className = ClassName("table-sm")
         td {
-            attrs.colSpan = "2"
+            colSpan = 2
             +"Executed command"
         }
         td {
-            attrs.colSpan = "${numColumns - 2}"
+            colSpan = numColumns - 2
             small {
                 samp {
                     +(testResultDebugInfo.debugInfo?.execCmd ?: "N/A")
@@ -58,18 +65,20 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
             }
         }
     }
-    tr("table-sm") {
+    tr {
+        className = ClassName("table-sm")
         td {
-            attrs.colSpan = "2"
+            colSpan = 2
             +"Reason ("
-            a(href = "${window.location}/details/$testSuiteName/$pluginName/$testFilePath") {
+            a {
+                href = "${window.location}/details/$testSuiteName/$pluginName/$testFilePath"
                 +"additional info "
                 fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
             }
             +")"
         }
         td {
-            attrs.colSpan = "${numColumns - 2}"
+            colSpan = numColumns - 2
             small {
                 samp {
                     +shortMessage

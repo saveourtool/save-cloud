@@ -61,9 +61,7 @@ external interface SelectFormRequiredProps : Props {
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun selectFormRequired(
-    onChangeFun: (form: InputTypes, organization: Event, isProject: Boolean) -> Unit
-) = fc<SelectFormRequiredProps> { props ->
+private fun selectFormRequired() = FC<SelectFormRequiredProps> { props ->
 
     val (elements, setElements) = useState(listOf<String>())
 
@@ -83,25 +81,32 @@ fun selectFormRequired(
         setElements(organizations.map { it.name })
     }()
 
-    div("${props.classes} mt-1") {
-        label("form-label") {
-            props.form?.let { attrs["htmlFor"] = it.name }
+    div {
+        className = ClassName("${props.classes} mt-1")
+        label {
+            className = ClassName("form-label")
+            props.form?.let {
+                htmlFor = it.name
+            }
             +"${props.text}"
         }
 
-        div("input-group has-validation") {
-            span("input-group-text") {
-                attrs["id"] = "${props.form?.name}Span"
+        div {
+            className = ClassName("input-group has-validation")
+            span {
+                className = ClassName("input-group-text")
+                id = "${props.form?.name}Span"
                 +"*"
             }
 
-            select("form-control") {
-                attrs["id"] = "${props.form?.name}"
-                attrs["required"] = true
+            select {
+                className = ClassName("form-control")
+                id = "${props.form?.name}"
+                required = true
                 if (props.validInput == true) {
-                    attrs["className"] = "form-control"
+                    className = ClassName("form-control")
                 } else {
-                    attrs["className"] = "form-control is-invalid"
+                    className = ClassName("form-control is-invalid")
                 }
 
                 val newElements = elements.toMutableList()
@@ -112,17 +117,19 @@ fun selectFormRequired(
                     }
                 }
 
-                attrs.onChangeFunction = {
-                    onChangeFun(props.form!!, it, true)
+                onChange = {
+                    props.onChangeFun(props.form!!, it, true)
                 }
             }
 
             if (elements.isEmpty()) {
-                div("invalid-feedback d-block") {
+                div {
+                    className = ClassName("invalid-feedback d-block")
                     +"You don't have access to any organizations"
                 }
             } else if (props.validInput == false) {
-                div("invalid-feedback d-block") {
+                div {
+                    className = ClassName("invalid-feedback d-block")
                     +"Please input a valid ${props.form?.str}"
                 }
             }
