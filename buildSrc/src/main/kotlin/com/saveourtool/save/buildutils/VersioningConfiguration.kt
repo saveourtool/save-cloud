@@ -56,11 +56,14 @@ fun Project.configureVersioning() {
 }
 
 /**
- * Docker tags cannot contain `+`, so we change it.
+ * Docker tags cannot contain `+`, so we change it. Also can be specified explicitly.
  *
  * @return correctly formatted version
  */
-fun Project.versionForDockerImages() = version.toString().replace("+", "-")
+fun Project.versionForDockerImages(): String =
+    (project.findProperty("dockerTag") as String? ?: version.toString())
+        .replace("+", "-")
+        .replace("/", "-")
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest
