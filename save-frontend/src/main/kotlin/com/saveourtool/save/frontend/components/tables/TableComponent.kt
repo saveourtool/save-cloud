@@ -99,7 +99,7 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught"
 )
-fun <D : Any> tableComponent(
+fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
@@ -109,7 +109,8 @@ fun <D : Any> tableComponent(
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: ChildrenBuilder.(table: TableInstance<D>) -> Unit = {},
-) = FC<TableProps<D>> { props ->
+    getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
+): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
@@ -152,7 +153,7 @@ fun <D : Any> tableComponent(
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
-    }
+    } + getAdditionalDependencies(props)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -251,8 +252,6 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                // if (tableInstance.pageCount > 1) {
-                // block with paging controls
 
                 if (data.isEmpty()) {
                     div {

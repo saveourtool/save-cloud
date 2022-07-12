@@ -17,6 +17,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.useState
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
 class SelectOption {
@@ -34,15 +35,15 @@ class SelectOption {
  * @param onChangeTestSuite handler for input value
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION")
 fun testExecutionFiltersRow(
     initialValueStatus: String,
     initialValueTestSuite: String,
     onChangeStatus: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
 ) = FC<Props> {
-    var status: String = initialValueStatus
-    var testSuite: String = initialValueTestSuite
+    val (testSuite, setTestSuite) = useState(initialValueTestSuite)
+    val (status, setStatus) = useState(initialValueStatus)
     div {
         className = ClassName("container-fluid")
         div {
@@ -71,7 +72,7 @@ fun testExecutionFiltersRow(
                     }
 
                     onChange = {
-                        status = it.target.value
+                        setStatus(it.target.value)
                     }
                 }
             }
@@ -87,7 +88,7 @@ fun testExecutionFiltersRow(
                     defaultValue = initialValueTestSuite
                     required = false
                     onChange = {
-                        testSuite = it.target.value
+                        setTestSuite(it.target.value)
                     }
                 }
             }
