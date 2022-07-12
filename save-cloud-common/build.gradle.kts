@@ -48,6 +48,7 @@ kotlin {
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
                 implementation(libs.reactor.kotlin.extensions)
+                implementation(libs.spring.boot.starter.webflux)
             }
         }
         val jvmTest by getting {
