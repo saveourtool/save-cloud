@@ -50,7 +50,7 @@ class OrganizationPermissionEvaluator {
 
     private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
-    @Suppress("FunctionOnlyReturningConstant")
+    @Suppress("FunctionOnlyReturningConstant", "UNUSED_PARAMETER")
     private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = true
 
     private fun hasWriteAccess(userId: Long?, organizationRole: Role): Boolean = hasDeleteAccess(userId, organizationRole) ||
