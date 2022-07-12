@@ -55,6 +55,7 @@ class TimestampBasedFileSystemRepository(
      * @param creationTimestamp
      * @return a list of FileInfo's
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun deleteFileByDirName(
         projectCoordinates: ProjectCoordinates,
         creationTimestamp: String,
