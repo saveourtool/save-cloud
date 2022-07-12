@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
@@ -19,8 +18,6 @@ import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.figure
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
@@ -137,28 +134,8 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Members"
             }
-            div {
-                className = ClassName("latest-photos")
-                div {
-                    className = ClassName("row")
-                    usersInProject.forEach { user ->
-                        div {
-                            className = ClassName("col-md-4")
-                            figure {
-                                img {
-                                    className = ClassName("img-fluid")
-                                    src = user.avatar?.let { path ->
-                                        "/api/$v1/avatar$path"
-                                    }
-                                        ?: run {
-                                            "img/user.svg"
-                                        }
-                                    alt = ""
-                                }
-                            }
-                        }
-                    }
-                }
+            userBoard {
+                users = usersInProject
             }
         }
 

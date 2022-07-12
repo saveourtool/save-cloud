@@ -14,8 +14,6 @@ import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
 
-private val projectScoreCardComponent = scoreCard()
-
 /**
  * ContestParticipantsMenu component props
  */
@@ -67,7 +65,7 @@ fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
                     href = "#/${contestResult.organizationName}/${contestResult.projectName}"
                     className = ClassName("stretched-link")
                 }
-                projectScoreCardComponent {
+                scoreCard {
                     name = "${contestResult.organizationName}/${contestResult.projectName}"
                     contestScore = contestResult.score.toDouble()
                 }

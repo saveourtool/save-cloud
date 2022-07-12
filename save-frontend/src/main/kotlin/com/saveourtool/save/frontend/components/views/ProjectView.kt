@@ -563,8 +563,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         div("row align-items-center justify-content-center") {
             nav("nav nav-tabs mb-4") {
                 ProjectMenuBar.values()
-                    .filter {
-                        (it != ProjectMenuBar.SETTINGS && it != ProjectMenuBar.RUN) || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                    .filterNot {
+                        (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
                     .forEachIndexed { i, projectMenu ->
                         li("nav-item") {

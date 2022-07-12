@@ -15,6 +15,11 @@ import react.dom.html.ReactHTML.h6
 import kotlinx.js.jso
 
 /**
+ * ReactElement that represents scorecard
+ */
+val scoreCard = scoreCard()
+
+/**
  * ProjectScoreCardProps component props
  */
 external interface ScoreCardProps : Props {
@@ -35,7 +40,7 @@ external interface ScoreCardProps : Props {
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun scoreCard() = FC<ScoreCardProps> { props ->
+private fun scoreCard() = FC<ScoreCardProps> { props ->
     div {
         className = ClassName("card border-left-info shadow h-70 py-2")
         div {
