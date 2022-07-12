@@ -25,6 +25,12 @@ suspend fun ComponentWithScope<*, *>.getDebugInfoFor(testExecutionDto: TestExecu
 /**
  * @param testExecutionDto
  */
+suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(testExecutionDto: TestExecutionDto) =
+        getExecutionInfoFor(testExecutionDto, this::post)
+
+/**
+ * @param testExecutionDto
+ */
 suspend fun WithRequestStatusContext.getDebugInfoFor(testExecutionDto: TestExecutionDto) =
         getDebugInfoFor(testExecutionDto, this::post)
 
@@ -80,7 +86,7 @@ suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
 @Suppress("TYPE_ALIAS")
 private suspend fun getDebugInfoFor(
     testExecutionDto: TestExecutionDto,
-    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response) -> Response,
+    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
 ) = post(
     "$apiUrl/files/get-debug-info",
     Headers().apply {
@@ -88,4 +94,26 @@ private suspend fun getDebugInfoFor(
     },
     Json.encodeToString(testExecutionDto),
     ::noopLoadingHandler,
+    ::noopResponseHandler
+)
+
+/**
+ * Fetch execution info for test execution
+ *
+ * @param testExecutionDto
+ * @param post
+ * @return Response
+ */
+@Suppress("TYPE_ALIAS")
+private suspend fun getExecutionInfoFor(
+    testExecutionDto: TestExecutionDto,
+    post: suspend (String, Headers, dynamic, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
+) = post(
+    "$apiUrl/files/get-execution-info",
+    Headers().apply {
+        set("Content-Type", "application/json")
+    },
+    Json.encodeToString(testExecutionDto),
+    ::noopLoadingHandler,
+    ::noopResponseHandler
 )
