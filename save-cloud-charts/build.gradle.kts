@@ -1,4 +1,4 @@
-/**
+/*
  * These tasks can either be used as a reference to run Helm commands
  * or can be enhanced as needed to actually subsitute them.
  * Either way, kubectl with configured connection to the cluster is required.

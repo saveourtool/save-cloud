@@ -20,6 +20,8 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockResponse
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -122,7 +125,7 @@ class ExecutionControllerTest {
         val databaseData = executionRepository.findAll()
 
         databaseData.forEach {
-            println(it.status)
+            log.debug { "${it.status}" }
         }
 
         assertTrue(databaseData.any { it.status == executionUpdateDto.status && it.id == executionUpdateDto.id })
@@ -314,6 +317,7 @@ class ExecutionControllerTest {
     }
 
     companion object {
+        private val log: Logger = getLogger<ExecutionControllerTest>()
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterEach

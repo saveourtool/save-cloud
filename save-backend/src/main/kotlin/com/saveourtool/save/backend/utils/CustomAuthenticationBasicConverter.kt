@@ -11,14 +11,14 @@ import reactor.core.publisher.Mono
  * Implementation of [ServerAuthenticationConverter] that embeds user identity source into [UsernamePasswordAuthenticationToken]
  */
 @Component
-class CustomAuthenticationBasicConverter : org.springframework.security.web.server.ServerHttpBasicAuthenticationConverter(),
+class CustomAuthenticationBasicConverter : org.springframework.security.web.server.authentication.ServerHttpBasicAuthenticationConverter(),
 ServerAuthenticationConverter {
     /**
      * Convert exchange, received from gateway into UsernamePasswordAuthenticationToken, specify source identity, laid
      * by gateway into X-Authorization-Source header
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    override fun convert(exchange: ServerWebExchange): Mono<Authentication> = apply(exchange).map { authentication ->
+    override fun convert(exchange: ServerWebExchange): Mono<Authentication> = super.convert(exchange).map { authentication ->
         val name = (authentication as UsernamePasswordAuthenticationToken).principal as String
         val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
         UsernamePasswordAuthenticationToken(

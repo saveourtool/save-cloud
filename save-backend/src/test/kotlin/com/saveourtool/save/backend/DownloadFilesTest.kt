@@ -141,19 +141,24 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
         val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, ProjectCoordinates("Example.com", "The Project"))
 
-        webTestClient.method(HttpMethod.POST).uri("/api/$v1/files/Example.com/The Project/download")
+        webTestClient.method(HttpMethod.POST)
+            .uri("/api/$v1/files/Example.com/The Project/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
-            .expectStatus().isOk
-            .expectBody().consumeWith {
+            .expectStatus()
+            .isOk
+            .expectBody()
+            .consumeWith {
                 Assertions.assertArrayEquals("Lorem ipsum${System.lineSeparator()}".toByteArray(), it.responseBody)
             }
 
-        webTestClient.get().uri("/api/$v1/files/Example.com/The Project/list")
+        webTestClient.get()
+            .uri("/api/$v1/files/Example.com/The Project/list")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBodyList<FileInfo>()
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
@@ -168,8 +173,11 @@ class DownloadFilesTest {
 
     @Test
     fun `should return 404 for non-existent files`() {
-        webTestClient.get().uri("/api/$v1/files/download/invalid-name").exchange()
-            .expectStatus().isNotFound
+        webTestClient.get()
+            .uri("/api/$v1/files/download/invalid-name")
+            .exchange()
+            .expectStatus()
+            .isNotFound
     }
 
     @Test
@@ -190,11 +198,13 @@ class DownloadFilesTest {
         }
             .build()
 
-        webTestClient.post().uri("/api/$v1/files/Huawei/huaweiName/upload")
+        webTestClient.post()
+            .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<ShortFileInfo>()
             .consumeWith {
                 Assertions.assertTrue(
@@ -210,7 +220,8 @@ class DownloadFilesTest {
         whenever(agentRepository.findByContainerId("container-1"))
             .thenReturn(Agent("container-1", execution, "0.0.1"))
 
-        webTestClient.post().uri("/internal/files/debug-info?agentId=container-1")
+        webTestClient.post()
+            .uri("/internal/files/debug-info?agentId=container-1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(
@@ -223,10 +234,12 @@ class DownloadFilesTest {
             .expectStatus()
             .isOk
 
-        dataFilesystemRepository.root.toFile().walk().onEnter {
-            logger.debug(it.absolutePath)
-            true
-        }
+        dataFilesystemRepository.root.toFile()
+            .walk()
+            .onEnter {
+                logger.debug(it.absolutePath)
+                true
+            }
     }
 
     companion object {

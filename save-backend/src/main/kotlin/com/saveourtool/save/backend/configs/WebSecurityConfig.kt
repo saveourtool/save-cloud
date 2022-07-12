@@ -50,12 +50,14 @@ class WebSecurityConfig(
             .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
             .permitAll()
     }
-        .and().run {
+        .and()
+        .run {
             authorizeExchange()
                 .pathMatchers("/**")
                 .authenticated()
         }
-        .and().run {
+        .and()
+        .run {
             // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }
@@ -70,8 +72,10 @@ class WebSecurityConfig(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
-        .logout().disable()
-        .formLogin().disable()
+        .logout()
+        .disable()
+        .formLogin()
+        .disable()
         .build()
 
     fun roleHierarchy(): RoleHierarchy = mapOf(

@@ -101,7 +101,8 @@ class HeartbeatControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(heartBeatBusy)
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test

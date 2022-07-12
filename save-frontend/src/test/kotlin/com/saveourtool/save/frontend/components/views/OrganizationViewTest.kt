@@ -95,16 +95,20 @@ class OrganizationViewTest {
             waitForOptions = jso {
                 timeout = 5000
             },
-        ).then {
-            userEvent.click(it)
-        }.then { _: Unit ->
-            screen.findByText("Delete organization")
-        }
+        )
             .then {
                 userEvent.click(it)
-            }.then { _: Unit ->
+            }
+            .then { _: Unit ->
+                screen.findByText("Delete organization")
+            }
+            .then {
+                userEvent.click(it)
+            }
+            .then { _: Unit ->
                 screen.findByText("Ok")
-            }.then {
+            }
+            .then {
                 assertNotNull(it, "Should show confirmation window")
             }
     }
