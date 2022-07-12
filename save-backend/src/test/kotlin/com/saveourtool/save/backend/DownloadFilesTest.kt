@@ -9,6 +9,9 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.storage.AvatarStorage
+import com.saveourtool.save.backend.storage.DebugInfoStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
@@ -73,6 +76,9 @@ import kotlin.io.path.writeLines
     NoopWebSecurityConfig::class,
     TimestampBasedFileSystemRepository::class,
     TestDataFilesystemRepository::class,
+    FileStorage::class,
+    AvatarStorage::class,
+    DebugInfoStorage::class
 )
 @AutoConfigureWebTestClient
 @EnableConfigurationProperties(ConfigProperties::class)

@@ -33,8 +33,6 @@ import reactor.core.publisher.Mono
 
 import java.math.BigInteger
 
-import kotlin.io.path.exists
-
 /**
  * Controller to work with test execution
  *
@@ -83,7 +81,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .runIf({ checkDebugInfo }) {
             map { testExecutionDto ->
                 testExecutionDto.copy(
-                    hasDebugInfo = testDataFilesystemRepository.exists(executionId, TestResultLocation.from(testExecutionDto))
+                    hasDebugInfo = testDataFilesystemRepository.doesExist(executionId, TestResultLocation.from(testExecutionDto))
                 )
             }
         }
