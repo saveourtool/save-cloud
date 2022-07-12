@@ -76,9 +76,8 @@ class TestDataFilesystemRepository(
      * @param testResultLocation
      * @return true if file with additional data exists, otherwise - false
      */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun exists(executionId: Long, testResultLocation: TestResultLocation): Boolean =
-            debugInfoStorage.exists(Pair(executionId, testResultLocation))
+    fun doesExist(executionId: Long, testResultLocation: TestResultLocation): Boolean =
+            debugInfoStorage.doesExist(Pair(executionId, testResultLocation))
                 .subscribeOn(Schedulers.immediate())
                 .toFuture()
                 .get()

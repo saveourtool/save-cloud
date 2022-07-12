@@ -32,7 +32,7 @@ abstract class AbstractFileBasedStorage<K>(
         .filter { it.isRegularFile() }
         .map { buildKey(rootDir, it) }
 
-    override fun exists(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
+    override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
 
     override fun contentSize(key: K): Mono<Long> = Mono.fromCallable { buildPathToContent(key).fileSize() }
 

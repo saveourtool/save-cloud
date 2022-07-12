@@ -29,8 +29,6 @@ import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
 
-import kotlin.io.path.*
-
 /**
  * A Spring controller for file downloading
  */
@@ -201,7 +199,7 @@ class DownloadFilesController(
         val executionId = execution.id!!
         val testResultLocation = TestResultLocation.from(testExecutionDto)
 
-        return if (!testDataFilesystemRepository.exists(executionId, testResultLocation)) {
+        return if (!testDataFilesystemRepository.doesExist(executionId, testResultLocation)) {
             logger.warn("Additional file for $executionId and $testResultLocation not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
