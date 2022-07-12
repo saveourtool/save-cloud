@@ -15,6 +15,11 @@ import react.dom.html.ReactHTML.div
 import kotlinx.js.jso
 
 /**
+ * PARTICIPANTS tab in ContestView
+ */
+val contestParticipantsMenu = contestParticipantsMenu()
+
+/**
  * ContestParticipantsMenu component props
  */
 external interface ContestParticipantsMenuProps : Props {
@@ -33,7 +38,7 @@ external interface ContestParticipantsMenuProps : Props {
     "MAGIC_NUMBER",
     "AVOID_NULL_CHECKS"
 )
-fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
+private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
     val (results, setResults) = useState<List<ContestResult>>(emptyList())
     useRequest(isDeferred = false) {
         val projectResults = get(

@@ -5,15 +5,22 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.info.UserInfo
+import csstype.ClassName
 
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
 
 private val organizationPermissionManagerCard = manageUserRoleCardComponent()
+
+/**
+ * SETTINGS tab in OrganizationView
+ */
+val organizationSettingsMenu = organizationSettingsMenu()
 
 /**
  * OrganizationSettingsMenu component props
@@ -33,43 +40,51 @@ external interface OrganizationSettingsMenuProps : Props {
      * [Role] of user that is observing this component
      */
     var selfRole: Role
+
+    /**
+     * Callback to delete organization
+     */
+    var deleteOrganizationCallback: () -> Unit
+
+    /**
+     * Callback to show error message
+     */
+    var updateErrorMessage: (Response) -> Unit
+
+    /**
+     * Callback to show notification message
+     */
+    var updateNotificationMessage: (String, String) -> Unit
 }
 
-/**
- * @param deleteOrganizationCallback
- * @param updateErrorMessage
- * @param updateNotificationMessage
- * @return ReactElement
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "MAGIC_NUMBER",
     "ComplexMethod"
 )
-fun organizationSettingsMenu(
-    deleteOrganizationCallback: () -> Unit,
-    updateErrorMessage: (Response) -> Unit,
-    updateNotificationMessage: (String, String) -> Unit,
-) = fc<OrganizationSettingsMenuProps> { props ->
+private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-    div("row justify-content-center mb-2") {
+    div {
+        className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
-        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
             }
-            child(organizationPermissionManagerCard) {
-                attrs.selfUserInfo = props.currentUserInfo
-                attrs.groupPath = organizationPath
-                attrs.groupType = "organization"
-                attrs.wasConfirmationModalShown = wasConfirmationModalShown
-                attrs.updateErrorMessage = updateErrorMessage
-                attrs.getUserGroups = { it.organizations }
-                attrs.showGlobalRoleWarning = {
-                    updateNotificationMessage(
+            organizationPermissionManagerCard {
+                selfUserInfo = props.currentUserInfo
+                groupPath = organizationPath
+                groupType = "organization"
+                this.wasConfirmationModalShown = wasConfirmationModalShown
+                updateErrorMessage = props.updateErrorMessage
+                getUserGroups = { it.organizations }
+                showGlobalRoleWarning = {
+                    props.updateNotificationMessage(
                         "Super admin message",
                         "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
                     )
@@ -78,17 +93,24 @@ fun organizationSettingsMenu(
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
-        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Main settings"
             }
-            div("card card-body mt-0 pt-0 pr-0 pl-0") {
-                div("row d-flex justify-content-center mt-3") {
-                    div("col-3 d-sm-flex align-items-center justify-content-center") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.disabled = !props.selfRole.hasDeletePermission()
-                            attrs.onClickFunction = {
-                                deleteOrganizationCallback()
+            div {
+                className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+                div {
+                    className = ClassName("row d-flex justify-content-center mt-3")
+                    div {
+                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-danger")
+                            disabled = !props.selfRole.hasDeletePermission()
+                            onClick = {
+                                props.deleteOrganizationCallback()
                             }
                             +"Delete organization"
                         }

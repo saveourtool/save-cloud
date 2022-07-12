@@ -229,27 +229,27 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         updateGitUrlFromInputField = { event ->
             event.preventDefault()
             setState {
-                gitUrlFromInputField = (event.target as HTMLInputElement).value
+                gitUrlFromInputField = event.target.value
             }
         },
         updateGitBranchOrCommitInputField = { event ->
             setState {
-                gitBranchOrCommitFromInputField = (event.target as HTMLInputElement).value
+                gitBranchOrCommitFromInputField = event.target.value
             }
         },
         updateTestRootPath = { event ->
             setState {
-                testRootPath = (event.target as HTMLInputElement).value
+                testRootPath = event.target.value
             }
         },
         setExecCmd = {
             setState {
-                execCmd = (it.target as HTMLInputElement).value
+                execCmd = it.target.value
             }
         },
         setBatchSize = {
             setState {
-                batchSizeForAnalyzer = (it.target as HTMLInputElement).value
+                batchSizeForAnalyzer = it.target.value
             }
         },
         setSelectedLanguageForStandardTests = {
@@ -276,72 +276,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         },
     )
-
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private val projectSettingsMenu = projectSettingsMenu(
-        deleteProjectCallback = ::deleteProject,
-        updateProjectSettings = { project ->
-            scope.launch {
-                val response = updateProject(project)
-                if (response.ok) {
-                    setState {
-                        this.project = project
-                    }
-                }
-            }
-        },
-        updateGit = {
-            setState {
-                gitDto = it
-            }
-        },
-        updateErrorMessage = {
-            setState {
-                errorLabel = "Failed to save project info"
-                errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
-                isErrorOpen = true
-            }
-        },
-        updateNotificationMessage = ::showNotification
-    )
-    private val projectStatisticMenu = projectStatisticMenu()
-    private val projectInfoMenu = projectInfoMenu()
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
-    private val fileUploader = fileUploader(
-        onFileSelect = { element ->
-            setState {
-                val availableFile = availableFiles.first { it.name == element.value }
-                files.add(availableFile)
-                bytesReceived += availableFile.sizeBytes
-                suiteByteSize += availableFile.sizeBytes
-                availableFiles.remove(availableFile)
-            }
-        },
-        onFileRemove = {
-            setState {
-                files.remove(it)
-                bytesReceived -= it.sizeBytes
-                suiteByteSize -= it.sizeBytes
-                availableFiles.add(it)
-            }
-        },
-        onFileInput = { postFileUpload(it) },
-        onFileDelete = { postFileDelete(it) },
-        onExecutableChange = { selectedFile, checked ->
-            setState {
-                files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-            }
-        }
-    )
-    private val sdkSelection = sdkSelection({
-        setState {
-            selectedSdk = it.value
-            selectedSdkVersion = selectedSdk.getSdkVersions().first()
-        }
-    }, {
-        setState { selectedSdkVersion = it.value }
-    })
     private lateinit var responseFromDeleteProject: Response
 
     init {
@@ -641,12 +577,43 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     attrs.bytesReceived = state.bytesReceived
                     attrs.isUploading = state.isUploading
                     attrs.projectCoordinates = ProjectCoordinates(props.owner, props.name)
+                    attrs.onFileSelect = { element ->
+                        setState {
+                            val availableFile = availableFiles.first { it.name == element.value }
+                            files.add(availableFile)
+                            bytesReceived += availableFile.sizeBytes
+                            suiteByteSize += availableFile.sizeBytes
+                            availableFiles.remove(availableFile)
+                        }
+                    }
+                    attrs.onFileRemove = {
+                        setState {
+                            files.remove(it)
+                            bytesReceived -= it.sizeBytes
+                            suiteByteSize -= it.sizeBytes
+                            availableFiles.add(it)
+                        }
+                    }
+                    attrs.onFileInput = { postFileUpload(it) }
+                    attrs.onFileDelete = { postFileDelete(it) }
+                    attrs.onExecutableChange = { selectedFile, checked ->
+                        setState {
+                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                        }
+                    }
                 }
 
                 // ======== sdk selection =========
                 child(sdkSelection) {
                     attrs.selectedSdk = state.selectedSdk
                     attrs.selectedSdkVersion = state.selectedSdkVersion
+                    attrs.onSdkChange = {
+                        setState {
+                            selectedSdk = it.value
+                            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+                        }
+                    }
+                    attrs.onVersionChange = { setState { selectedSdkVersion = it.value } }
                 }
 
                 // ======== test resources selection =========
@@ -740,6 +707,30 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             attrs.gitInitDto = gitDto
             attrs.selfRole = state.selfRole
+            attrs.deleteProjectCallback = ::deleteProject
+            attrs.updateProjectSettings = { project ->
+                scope.launch {
+                    val response = updateProject(project)
+                    if (response.ok) {
+                        setState {
+                            this.project = project
+                        }
+                    }
+                }
+            }
+            attrs.updateGit = {
+                setState {
+                    gitDto = it
+                }
+            }
+            attrs.updateErrorMessage = {
+                setState {
+                    errorLabel = "Failed to save project info"
+                    errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                    isErrorOpen = true
+                }
+            }
+            attrs.updateNotificationMessage = ::showNotification
         }
     }
 

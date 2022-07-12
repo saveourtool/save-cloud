@@ -31,7 +31,11 @@ import csstype.TextDecoration
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
 import react.table.*
+import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -99,8 +103,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val executionStatistics = executionStatistics("mr-auto")
-    private val executionTestsNotFound = executionTestsNotFound()
     private val testExecutionFiltersRow = testExecutionFiltersRow(
         initialValueStatus = state.status?.name ?: ANY,
         initialValueTestSuite = state.testSuite ?: "",
@@ -255,15 +257,15 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         renderExpandedRow = { tableInstance, row ->
             val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
             trei?.failReason?.let {
-                child(executionStatusComponent(it, tableInstance))
+                executionStatusComponent(it, tableInstance)
             }
             val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
             trdi?.let {
-                child(testStatusComponent(trdi, tableInstance))
+                testStatusComponent(trdi, tableInstance)
             } ?: trei ?: run {
                 tr {
                     td {
-                        attrs.colSpan = "${tableInstance.columns.size}"
+                        colSpan = tableInstance.columns.size
                         +"No info available yet for this test execution"
                     }
                 }
@@ -275,8 +277,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    attrs.colSpan = "${tableInstance.columns.size}"
-                    child(testExecutionFiltersRow)
+                    colSpan = tableInstance.columns.size
+                    testExecutionFiltersRow
                 }
             }
         },

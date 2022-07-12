@@ -149,28 +149,6 @@ external interface OrganizationViewState : State {
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val organizationSettingsMenu = organizationSettingsMenu(
-        deleteOrganizationCallback = {
-            if (state.projects?.size != 0) {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "You cannot delete an organization because there are projects connected to it. " +
-                            "Delete all the projects and try again."
-                }
-            } else {
-                deleteOrganization()
-            }
-        },
-        updateErrorMessage = {
-            setState {
-                isErrorOpen = true
-                errorLabel = ""
-                errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
-            }
-        },
-        updateNotificationMessage = ::showNotification
-    )
     private val table = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
@@ -450,6 +428,26 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             attrs.selfRole = state.selfRole
+            attrs.deleteOrganizationCallback = {
+                if (state.projects?.size != 0) {
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = ""
+                        errorMessage = "You cannot delete an organization because there are projects connected to it. " +
+                                "Delete all the projects and try again."
+                    }
+                } else {
+                    deleteOrganization()
+                }
+            }
+            attrs.updateErrorMessage = {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+                }
+            }
+            attrs.updateNotificationMessage = ::showNotification
         }
     }
 

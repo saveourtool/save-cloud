@@ -5,9 +5,7 @@
 package com.saveourtool.save.frontend.utils
 
 import history.Location
-import react.Props
-import react.RBuilder
-import react.fc
+import react.*
 import react.router.Params
 import react.router.useLocation
 import react.router.useParams
@@ -20,7 +18,7 @@ import react.router.useParams
  * @return a function component
  */
 @Suppress("TYPE_ALIAS")
-fun <T : Props> withRouter(handler: RBuilder.(Location, Params) -> Unit) = fc<T> {
+fun <T : Props> withRouter(handler: ChildrenBuilder.(Location, Params) -> Unit) = FC<T> {
     val location = useLocation()
     val params = useParams()
     handler(location, params)
