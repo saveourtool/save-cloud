@@ -122,23 +122,6 @@ class ProjectPermissionEvaluatorTest {
         )
     }
 
-    @Test
-    fun `permissions for organization owners`() {
-        mockProject.organization.ownerId = 99
-        userShouldHavePermissions(
-            "super_admin", Role.SUPER_ADMIN, Role.NONE, *Permission.values(), userId = 99
-        )
-        userShouldHavePermissions(
-            "admin", Role.ADMIN, Role.NONE, *Permission.values(), userId = 99
-        )
-        userShouldHavePermissions(
-            "owner", Role.OWNER, Role.NONE, *Permission.values(), userId = 99
-        )
-        userShouldHavePermissions(
-            "viewer", Role.VIEWER, Role.NONE, *Permission.values(), userId = 99
-        )
-    }
-
     private fun userShouldHavePermissions(
         username: String,
         role: Role,

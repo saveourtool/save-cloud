@@ -66,7 +66,8 @@ class WebSecurityConfig(
             it.defaultCodecs().jackson2JsonEncoder(
                 Jackson2JsonEncoder(objectMapper)
             )
-        }.build()
+        }
+        .build()
 
     @Bean
     @Order(1)
@@ -76,43 +77,45 @@ class WebSecurityConfig(
     ): SecurityWebFilterChain = http.securityMatcher(
         // access to actuator is managed separately
         matchAllExcludingActuator()
-    ).authorizeExchange { authorizeExchangeSpec ->
-        // this is default data that is required by FE to operate properly
-        authorizeExchangeSpec.pathMatchers(
-            "/",
-            "/login", "/logout",
-            "/sec/oauth-providers", "/sec/user",
-            "/error",
-        )
-            .permitAll()
-            // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
-            // any authentication data at all.
-            // backend returns 401 for those endpoints that require authentication
-            .pathMatchers("/api/**")
-            .access { authentication, authorizationContext ->
-                AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
-                    authentication, authorizationContext
-                ).map {
-                    if (!it.isGranted) {
-                        // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
-                        // then backend will return 401, if endpoint is protected for anonymous access
-                        val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
-                        AuthorizationDecision(hasAuthorizationHeader)
-                    } else {
-                        it
+    )
+        .authorizeExchange { authorizeExchangeSpec ->
+            // this is default data that is required by FE to operate properly
+            authorizeExchangeSpec.pathMatchers(
+                "/",
+                "/login", "/logout",
+                "/sec/oauth-providers", "/sec/user",
+                "/error",
+            )
+                .permitAll()
+                // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
+                // any authentication data at all.
+                // backend returns 401 for those endpoints that require authentication
+                .pathMatchers("/api/**")
+                .access { authentication, authorizationContext ->
+                    AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
+                        authentication, authorizationContext
+                    ).map {
+                        if (!it.isGranted) {
+                            // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
+                            // then backend will return 401, if endpoint is protected for anonymous access
+                            val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
+                            AuthorizationDecision(hasAuthorizationHeader)
+                        } else {
+                            it
+                        }
                     }
                 }
-            }
-            // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
-            .permitAll()
-    }
+                // resources for frontend
+                .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
+                .permitAll()
+        }
         .run {
             authorizeExchange()
                 .pathMatchers("/**")
                 .authenticated()
         }
-        .and().run {
+        .and()
+        .run {
             // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }

@@ -145,9 +145,10 @@ class PermissionController(
     ) = Mono.justOrEmpty(
         projectService.findByNameAndOrganizationName(projectName, organizationName)
             .let { Optional.ofNullable(it) }
-    ).filter { project: Project ->
-        projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
-    }
+    )
+        .filter { project: Project ->
+            projectPermissionEvaluator.hasPermission(authentication, project, Permission.READ)
+        }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }

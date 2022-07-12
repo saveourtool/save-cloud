@@ -15,13 +15,18 @@ import react.dom.html.ReactHTML.h6
 import kotlinx.js.jso
 
 /**
+ * ReactElement that represents scorecard
+ */
+val scoreCard = scoreCard()
+
+/**
  * ProjectScoreCardProps component props
  */
-external interface ProjectScoreCardProps : Props {
+external interface ScoreCardProps : Props {
     /**
-     * Name of a current project
+     * Name of a current project or contest (acts as a card header)
      */
-    var projectName: String
+    var name: String
 
     /**
      * Score of a project in a contest
@@ -35,7 +40,7 @@ external interface ProjectScoreCardProps : Props {
  * @return ReactElement
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun projectScoreCard() = FC<ProjectScoreCardProps> { props ->
+private fun scoreCard() = FC<ScoreCardProps> { props ->
     div {
         className = ClassName("card border-left-info shadow h-70 py-2")
         div {
@@ -82,7 +87,7 @@ fun projectScoreCard() = FC<ProjectScoreCardProps> { props ->
                                     alignItems = AlignItems.center
                                     alignSelf = AlignSelf.center
                                 }
-                                +props.projectName
+                                +props.name
                             }
                         }
                         div {

@@ -26,6 +26,8 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
+import csstype.Color
+import csstype.Cursor
 import csstype.TextDecoration
 import org.w3c.fetch.Headers
 import react.*
@@ -185,27 +187,29 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
 
-                        attrs["style"] = jso<CSSProperties> {
-                            textDecoration = "underline grey".unsafeCast<TextDecoration>()
-                        }
-
                         val testName = cellProps.value.filePath
-                        val shortTestName = if (testName.length > 35) {
-                            testName.take(15) + " ... " + testName.takeLast(15)
-                        } else {
-                            testName
-                        }
-
+                        val shortTestName = if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                         +shortTestName
 
-                        attrs.onClickFunction = {
-                            scope.launch {
-                                val te = cellProps.value
-                                val trdi = getDebugInfoFor(te)
-                                if (trdi.ok) {
-                                    cellProps.row.original.asDynamic().debugInfo = trdi.decodeFromJsonString<TestResultDebugInfo>()
+                        // debug info is provided by agent after the execution
+                        // possibly there can be cases when this info is not available
+                        if (cellProps.value.hasDebugInfo == true) {
+                            attrs["style"] = jso<CSSProperties> {
+                                textDecoration = "underline".unsafeCast<TextDecoration>()
+                                color = "blue".unsafeCast<Color>()
+                                cursor = "pointer".unsafeCast<Cursor>()
+                            }
+
+                            attrs.onClickFunction = {
+                                scope.launch {
+                                    val testExecution = cellProps.value
+                                    val trDebugInfoRequest = getDebugInfoFor(testExecution)
+                                    if (trDebugInfoRequest.ok) {
+                                        cellProps.row.original.asDynamic().debugInfo =
+                                                trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
+                                    }
+                                    cellProps.row.toggleRowExpanded()
                                 }
-                                cellProps.row.toggleRowExpanded()
                             }
                         }
                     }

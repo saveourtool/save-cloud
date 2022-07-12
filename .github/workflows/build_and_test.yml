@@ -31,11 +31,15 @@ jobs:
       - name: Install system packages
         # libcurl is needed for ktor-client-curl, libc-bin for orchestrator
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev libc-bin
+      - name: Retrieve Kotlin version
+        run: |
+          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-1.7.0
+          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
       # https://gvisor.dev/docs/user_guide/install/
       - name: Install gvisor runsc runtime
         run: |
