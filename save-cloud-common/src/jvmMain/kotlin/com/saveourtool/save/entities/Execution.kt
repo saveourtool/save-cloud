@@ -161,7 +161,7 @@ class Execution(
      *
      * @param fileKeys list of [FileKey]
      */
-    fun formatAndSetAdditionalFile(fileKeys: List<FileKey>) {
+    fun formatAndSetAdditionalFiles(fileKeys: List<FileKey>) {
         additionalFiles = fileKeys.format()
     }
 

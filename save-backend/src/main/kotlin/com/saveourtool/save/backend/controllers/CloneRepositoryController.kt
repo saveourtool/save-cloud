@@ -163,7 +163,7 @@ class CloneRepositoryController(
         .collectList()
         .switchIfEmpty(Mono.just(emptyList()))
         .map {
-            execution.formatAndSetAdditionalFile(it)
+            execution.formatAndSetAdditionalFiles(it)
         }
         .map { executionService.saveExecution(execution) }
 }
