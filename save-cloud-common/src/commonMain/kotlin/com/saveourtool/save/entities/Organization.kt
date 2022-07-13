@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
  */
 @Entity
 @Serializable
-@Suppress("USE_DATA_CLASS")
 data class Organization(
     var name: String,
     @Enumerated(EnumType.STRING)

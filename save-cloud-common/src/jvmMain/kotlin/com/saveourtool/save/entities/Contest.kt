@@ -12,8 +12,7 @@ import com.saveourtool.save.utils.LocalDateTime
  * @property testSuiteIds
  */
 @Entity
-@Suppress("USE_DATA_CLASS")
-data class Contest(
+class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: ContestStatus,
