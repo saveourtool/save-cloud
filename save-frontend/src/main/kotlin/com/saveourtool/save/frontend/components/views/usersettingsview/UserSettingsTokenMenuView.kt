@@ -15,7 +15,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
-import react.setState
 
 import kotlinx.coroutines.launch
 

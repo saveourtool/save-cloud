@@ -15,9 +15,6 @@ import com.saveourtool.save.frontend.utils.spread
 import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.div
-import react.dom.em
-import react.dom.h6
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
 import react.dom.html.ReactHTML.h6
@@ -27,12 +24,6 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.thead
 import react.dom.html.ReactHTML.tr
-import react.dom.span
-import react.dom.table
-import react.dom.tbody
-import react.dom.th
-import react.dom.thead
-import react.dom.tr
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -75,7 +66,7 @@ external interface TableProps<D : Any> : Props {
 }
 
 /**
- * A `RComponent` for a data table
+ * A `Component` for a data table
  *
  * @param columns columns as an array of [Column]
  * @param initialPageSize initial size of table page

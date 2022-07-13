@@ -3,7 +3,7 @@ package com.saveourtool.save.frontend.externals.fontawesome
 import react.PropsWithChildren
 
 /**
- * RProps of [FontAwesomeIcon]
+ * Props of [FontAwesomeIcon]
  */
 external interface FontAwesomeIconProps : PropsWithChildren {
     /**

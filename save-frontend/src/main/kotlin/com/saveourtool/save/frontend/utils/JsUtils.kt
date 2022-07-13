@@ -5,35 +5,8 @@
 package com.saveourtool.save.frontend.utils
 
 import react.ChildrenBuilder
-import react.dom.RDOMBuilder
 
-import kotlinx.html.Tag
 import kotlinx.js.Object
-
-/**
- * Shortcut for
- * ```kotlin
- * child(MyComponent::class) {
- *     spread(props) { key, value ->
- *         attrs[key] = value
- *     }
- * }
- * ```
- *
- * Allows writing `<MyComponent ...props/>` as
- * ```kotlin
- * child(MyComponent::class) {
- *     spread(props)
- * }
- * ```
- *
- * @param jsObject a JS object properties of which will be used
- */
-fun <T : Tag> RDOMBuilder<T>.spread(jsObject: Any) {
-    spread(jsObject) { key, value ->
-        attrs[key] = value
-    }
-}
 
 /**
  * Shortcut for

@@ -15,16 +15,11 @@ import csstype.ClassName
 import okio.Path.Companion.toPath
 import react.FC
 import react.Props
-import react.dom.a
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
-import react.dom.samp
-import react.dom.small
-import react.dom.td
-import react.dom.tr
 import react.table.TableInstance
 
 import kotlinx.browser.window

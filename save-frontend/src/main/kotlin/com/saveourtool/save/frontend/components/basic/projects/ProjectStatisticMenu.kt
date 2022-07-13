@@ -12,32 +12,30 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.div
-import react.dom.h6
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-import react.dom.td
+import react.dom.html.ReactHTML.td
 import react.table.columns
 
 @Suppress("MAGIC_NUMBER")
 private val executionDetailsTable = tableComponent(
     columns = columns<TestSuiteExecutionStatisticDto> {
         column(id = "name", header = "Test suite", { testSuiteName }) {
-            buildElement {
+            Fragment.create {
                 td {
                     +it.value
                 }
             }
         }
         column(id = "tests", header = "Number of tests", { countTest }) {
-            buildElement {
+            Fragment.create {
                 td {
                     +"${it.value}"
                 }
             }
         }
         column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
-            buildElement {
+            Fragment.create {
                 td {
                     +"${it.value}"
                 }
