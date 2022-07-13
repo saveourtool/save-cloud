@@ -30,20 +30,30 @@ class SelectOption {
  * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
  *
  * @param initialValueStatus initial value of `TestResultStatus`
+ * @param initialValueTestName initial value of `test name`
  * @param initialValueTestSuite initial value of `test suite`
+ * @param initialValueTag initial value of `tag`
  * @param onChangeStatus handler for selected value change
- * @param onChangeTestSuite handler for input value
+ * @param onChangeTestSuite handler for input value tes name
+ * @param onChangeTestSuite handler for input value test suite
+ * @param onChangeTestSuite handler for input value tag
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION")
 fun testExecutionFiltersRow(
-    initialValueStatus: String,
-    initialValueTestSuite: String,
+    initialValueStatus: String = "",
+    initialValueTestName: String = "",
+    initialValueTestSuite: String = "",
+    initialValueTag: String = "",
     onChangeStatus: (String) -> Unit,
+    onChangeTestName: (String) -> Unit,
     onChangeTestSuite: (String) -> Unit,
+    onChangeTag: (String) -> Unit
 ) = FC<Props> {
-    val (testSuite, setTestSuite) = useState(initialValueTestSuite)
     val (status, setStatus) = useState(initialValueStatus)
+    val (testName, setTestName) = useState(initialValueTestName)
+    val (testSuite, setTestSuite) = useState(initialValueTestSuite)
+    val (tag, setTag) = useState(initialValueTag)
     div {
         className = ClassName("container-fluid")
         div {
@@ -78,10 +88,26 @@ fun testExecutionFiltersRow(
             }
             div {
                 className = ClassName("col-auto align-self-center")
+                +"File name: "
+            }
+            div {
+                className = ClassName("col-auto1")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = initialValueTestName
+                    required = false
+                    onChange = {
+                        setTestName(it.target.value)
+                    }
+                }
+            }
+            div {
+                className = ClassName("col-auto align-self-center")
                 +"Test suite: "
             }
             div {
-                className = ClassName("col-auto")
+                className = ClassName("col-auto2")
                 input {
                     type = InputType.text
                     className = ClassName("form-control")
@@ -92,13 +118,31 @@ fun testExecutionFiltersRow(
                     }
                 }
             }
+            div {
+                className = ClassName("col-auto align-self-center")
+                +"Tags: "
+            }
+            div {
+                className = ClassName("col-auto3")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = initialValueTag
+                    required = false
+                    onChange = {
+                        setTag(it.target.value)
+                    }
+                }
+            }
             button {
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
-                // +"Find"
                 onClick = {
                     onChangeStatus(status)
+                    onChangeTestName(testName)
                     onChangeTestSuite(testSuite)
+                    onChangeTag(tag)
+                    console.log("Filter Row : ",status, "  ",testName, "  ",testSuite, "  ",tag)
                 }
             }
         }

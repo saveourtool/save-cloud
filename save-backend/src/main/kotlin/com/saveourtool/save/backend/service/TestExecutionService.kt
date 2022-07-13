@@ -60,8 +60,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         page: Int,
         pageSize: Int,
         status: TestResultStatus?,
+        testName: String?,
         testSuite: String?,
-    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite, PageRequest.of(page, pageSize))
+        tag: String?
+    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, PageRequest.of(page, pageSize))//.filter { it.test.filePath.split("/").last().contains(testName ?: "") }
 
     /**
      * Get test executions by [agentContainerId] and [status]

@@ -145,13 +145,11 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
            JOIN TestSuite ts ON t.testSuite = ts.id
            WHERE 1 = 1
             and (:status is null or te.status = :status)
-            and (:name is null or ts.name = :name)
             and e.id = :executionId"""
     )
     fun findByExecutionIdAndStatusAndTestTestSuiteName(
         @Param("executionId") executionId: Long,
         @Param("status") status: TestResultStatus?,
-        @Param("name") name: String?,
         pageable: Pageable
     ): List<TestExecution>
 

@@ -54,7 +54,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param page a zero-based index of page of data
      * @param size size of page
      * @param status
+     * @param testName
      * @param testSuite
+     * @param tag
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
@@ -67,15 +69,19 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam page: Int,
         @RequestParam size: Int,
         @RequestParam(required = false) status: TestResultStatus?,
+        @RequestParam(required = false) testName: String?,
         @RequestParam(required = false) testSuite: String?,
+        @RequestParam(required = false) tag: String?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
+    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
+        .also { println(" baze :  " + status?.name + "  " + testName + "  " + testSuite + "  " + tag) }
+        .filterWhen {
         projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
     }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
+            testExecutionService.getTestExecutions(executionId, page, size, status, testName,testSuite, tag)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

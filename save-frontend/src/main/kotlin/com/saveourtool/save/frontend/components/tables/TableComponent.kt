@@ -11,21 +11,9 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
+import csstype.ClassName
 
 import org.w3c.fetch.Response
-import react.Props
-import react.RBuilder
-import react.dom.RDOMBuilder
-import react.dom.div
-import react.dom.em
-import react.dom.h6
-import react.dom.span
-import react.dom.table
-import react.dom.tbody
-import react.dom.th
-import react.dom.thead
-import react.dom.tr
-import react.fc
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -35,10 +23,6 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
-import react.useContext
-import react.useEffect
-import react.useMemo
-import react.useState
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -48,8 +32,17 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.html.THEAD
 import kotlinx.js.jso
+import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.em
+import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 
 /**
  * [Props] of a data table
@@ -180,6 +173,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
             }
         }
     }
+
 
     div {
         className = ClassName("card shadow mb-4")

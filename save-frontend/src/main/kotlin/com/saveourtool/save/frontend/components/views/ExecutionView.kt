@@ -76,9 +76,19 @@ external interface ExecutionState : State {
     var status: TestResultStatus?
 
     /**
+     * Test Result Status to filter by
+     */
+    var testName: String?
+
+    /**
      * Name of test suite
      */
     var testSuite: String?
+
+    /**
+     * Test Result Status to filter by
+     */
+    var tag: String?
 }
 
 /**
@@ -91,9 +101,19 @@ external interface StatusProps<D : Any> : TableProps<D> {
     var status: TestResultStatus?
 
     /**
+     * Test Result Status to filter by
+     */
+    var testName: String?
+
+    /**
      * Name of test suite
      */
     var testSuite: String?
+
+    /**
+     * Test Result Status to filter by
+     */
+    var tag: String?
 }
 
 /**
@@ -105,7 +125,9 @@ external interface StatusProps<D : Any> : TableProps<D> {
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val testExecutionFiltersRow = testExecutionFiltersRow(
         initialValueStatus = state.status?.name ?: ANY,
+        initialValueTestName = state.testName ?: "",
         initialValueTestSuite = state.testSuite ?: "",
+        initialValueTag = state.tag ?: "",
         onChangeStatus = { value ->
             if (value == "ANY") {
                 setState {
@@ -117,6 +139,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
         },
+        onChangeTestName = { testNameValue ->
+            if (testNameValue == "") {
+                setState {
+                    testName = null
+                }
+            } else {
+                setState {
+                    testName = testNameValue
+                }
+            }
+        },
         onChangeTestSuite = { testSuiteValue ->
             if (testSuiteValue == "") {
                 setState {
@@ -125,6 +158,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             } else {
                 setState {
                     testSuite = testSuiteValue
+                }
+            }
+        },
+        onChangeTag = { tagValue ->
+            if (tagValue == "") {
+                setState {
+                    tag = null
+                }
+            } else {
+                setState {
+                    tag = tagValue
                 }
             }
         }
@@ -179,7 +223,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "Test file path") { cellProps ->
+            column(id = "path", header = "File path") { cellProps ->
                 buildElement {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
@@ -266,7 +310,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 tr {
                     td {
                         colSpan = tableInstance.columns.size
-                        +"No info available yet for this test execution"
+                        + "No info available yet for this test execution"
                     }
                 }
             }
@@ -278,7 +322,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             tr {
                 th {
                     colSpan = tableInstance.columns.size
-                    testExecutionFiltersRow
+                    testExecutionFiltersRow()
                 }
             }
         },
@@ -297,14 +341,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getAdditionalDependencies = {
-            arrayOf(it.status, it.testSuite)
+            arrayOf(it.status, it.testName, it.testSuite, it.tag)
         }
     )
 
     init {
         state.executionDto = null
         state.status = null
+        state.testName = null
         state.testSuite = null
+        state.tag = null
     }
 
     override fun componentDidMount() {
@@ -335,6 +381,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         "LongMethod"
     )
     override fun RBuilder.render() {
+        console.log("Execution View : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
         div {
             div("d-flex") {
                 val statusVal = state.executionDto?.status
@@ -354,7 +401,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
 
-                child(executionStatistics) {
+                executionStatistics {
                     attrs.executionDto = state.executionDto
                 }
 
@@ -390,24 +437,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
-        child(testExecutionsTable) {
+        testExecutionsTable {
             attrs.status = state.status
+            attrs.testName = state.testName
             attrs.testSuite = state.testSuite
+            attrs.tag = state.tag
             attrs.getData = { page, size ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
+                val paramString = setStatusAndNameAndSuiteAndTag()
+                console.log(paramString)
+                console.log("Execution View 1  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
                 get(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
+                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$paramString&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
                     },
@@ -416,40 +456,51 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     Json.decodeFromString<Array<TestExecutionDto>>(
                         it.text().await()
                     )
-                }
-                    .apply {
+                }.apply {
                         asDynamic().debugInfo = null
-                    }
+                }
             }
             attrs.getPageCount = { pageSize ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
+                val paramString = setStatusAndNameAndSuiteAndTag()
+                console.log(paramString)
+                console.log("Execution View 2  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$paramString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                )
-                    .json()
-                    .await()
-                    .unsafeCast<Int>()
+                ).json().await().unsafeCast<Int>()
                 count / pageSize + 1
             }
         }
-        child(executionTestsNotFound) {
+        executionTestsNotFound {
             attrs.executionDto = state.executionDto
         }
+    }
+
+    private fun setStatusAndNameAndSuiteAndTag(): String?{
+        val status1 = state.status?.let {
+            "&status=${state.status}"
+        } ?: run {
+            ""
+        }
+        val testName1 = state.testName?.let {
+            "&testName=${state.testName}"
+        } ?: run {
+            ""
+        }
+        val testSuite1 = state.testSuite?.let {
+            "&testSuite=${state.testSuite}"
+        } ?: run {
+            ""
+        }
+        val tag1 = state.tag?.let {
+            "&tag=${state.tag}"
+        } ?: run {
+            ""
+        }
+        return status1 + testName1 + testSuite1 + tag1
     }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
