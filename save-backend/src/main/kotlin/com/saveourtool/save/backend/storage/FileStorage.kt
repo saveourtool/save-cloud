@@ -50,7 +50,7 @@ class FileStorage(
         val partsCount = generateSequence(pathToContent, Path::getParent)
             .takeWhile { it != rootDir }
             .count()
-        return partsCount == 4 // organization + project + uploadedMills + fileName
+        return partsCount == 4  // organization + project + uploadedMills + fileName
     }
 
     /**
