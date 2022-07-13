@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestResult
-import com.saveourtool.save.frontend.components.basic.projectScoreCard
+import com.saveourtool.save.frontend.components.basic.scoreCard
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
@@ -14,7 +14,10 @@ import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
 
-private val projectScoreCardComponent = projectScoreCard()
+/**
+ * PARTICIPANTS tab in ContestView
+ */
+val contestParticipantsMenu = contestParticipantsMenu()
 
 /**
  * ContestParticipantsMenu component props
@@ -35,7 +38,7 @@ external interface ContestParticipantsMenuProps : Props {
     "MAGIC_NUMBER",
     "AVOID_NULL_CHECKS"
 )
-fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
+private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
     val (results, setResults) = useState<List<ContestResult>>(emptyList())
     useRequest(isDeferred = false) {
         val projectResults = get(
@@ -67,10 +70,10 @@ fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
                     href = "#/${contestResult.organizationName}/${contestResult.projectName}"
                     className = ClassName("stretched-link")
                 }
-                child(projectScoreCardComponent, jso {
-                    projectName = "${contestResult.organizationName}/${contestResult.projectName}"
+                scoreCard {
+                    name = "${contestResult.organizationName}/${contestResult.projectName}"
                     contestScore = contestResult.score.toDouble()
-                })
+                }
             }
         }
     }

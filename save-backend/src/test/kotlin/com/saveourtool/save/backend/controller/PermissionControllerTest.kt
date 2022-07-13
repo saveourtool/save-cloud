@@ -71,7 +71,8 @@ class PermissionControllerTest {
         webTestClient.get()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<Role>()
             .isEqualTo(Role.ADMIN)
         verify(permissionService, times(1)).getRole(any(), any())
@@ -92,7 +93,8 @@ class PermissionControllerTest {
         webTestClient.get()
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
-            .expectStatus().isNotFound
+            .expectStatus()
+            .isNotFound
         verify(permissionService, times(0)).getRole(any(), any())
     }
 
@@ -118,7 +120,8 @@ class PermissionControllerTest {
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
         verify(permissionService, times(1)).setRole(any(), any(), any())
     }
 
@@ -139,7 +142,8 @@ class PermissionControllerTest {
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
-            .expectStatus().isForbidden
+            .expectStatus()
+            .isForbidden
         verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 
@@ -160,7 +164,8 @@ class PermissionControllerTest {
             .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
-            .expectStatus().isNotFound
+            .expectStatus()
+            .isNotFound
         verify(permissionService, times(0)).setRole(any(), any(), any())
     }
 

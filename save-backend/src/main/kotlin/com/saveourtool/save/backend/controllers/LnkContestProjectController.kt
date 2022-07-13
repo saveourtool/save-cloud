@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -61,6 +62,25 @@ class LnkContestProjectController(
         lnkContestProjectService.getByContestName(contestName)
     )
         .map {
-            ContestResult(it.project.name, it.project.organization.name, it.score)
+            it.toContestResult()
+        }
+
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param numberOfContests
+     * @return best [numberOfContests] contests of a project with name [projectName]
+     */
+    @GetMapping("/{organizationName}/{projectName}/best")
+    @PreAuthorize("permitAll()")
+    fun getBestProjectsContests(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(defaultValue = "4") numberOfContests: Int,
+    ): Flux<ContestResult> = Flux.fromIterable(
+        lnkContestProjectService.getBestContestsByProject(projectName, organizationName, numberOfContests)
+    )
+        .map {
+            it.toContestResult()
         }
 }

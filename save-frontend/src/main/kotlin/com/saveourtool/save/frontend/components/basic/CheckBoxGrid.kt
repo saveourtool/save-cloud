@@ -10,16 +10,20 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.testsuite.TestSuiteDto
 
+import csstype.ClassName
+import react.FC
 import react.PropsWithChildren
-import react.dom.*
-import react.fc
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.sup
 import react.useEffect
 
-import kotlinx.html.InputType
-import kotlinx.html.js.onClickFunction
-
 /**
- * Props for ChecboxGrid component
+ * Props for CheckboxGrid component
  */
 external interface CheckBoxGridProps : PropsWithChildren {
     /**
@@ -31,6 +35,16 @@ external interface CheckBoxGridProps : PropsWithChildren {
      * Currently selected elements
      */
     var selectedStandardSuites: MutableList<String>
+
+    /**
+     * A list of [TestSuiteDto]s which should be displayed on the grid
+     */
+    var suites: List<TestSuiteDto>
+
+    /**
+     * Language selected for standard tests
+     */
+    var selectedLanguageForStandardTests: String?
 }
 
 /**
@@ -43,20 +57,24 @@ fun suitesTable(
     suites: List<TestSuiteDto>,
     selectedLanguageForStandardTests: String?,
     setSelectedLanguageForStandardTests: (String) -> Unit,
-) = fc<CheckBoxGridProps> {
-    nav("nav nav-tabs mb-4") {
-        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }.distinct()
-            .sortedBy { it }.partition { it != null }
+) = FC<CheckBoxGridProps> {
+    nav {
+        className = ClassName("nav nav-tabs mb-4")
+        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }
+            .distinct()
+            .sortedBy { it }
+            .partition { it != null }
         val languages = languagesWithoutNull.toMutableList()
         if (otherLanguages.isNotEmpty()) {
             languages.add(null)
         }
         languages.forEachIndexed { index, langStr ->
             val lang = langStr?.trim() ?: "Other"
-            li("nav-item") {
+            li {
+                className = ClassName("nav-item")
                 p {
-                    attrs["class"] = "nav-link"
-                    attrs.onClickFunction = {
+                    className = ClassName("nav-link")
+                    onClick = {
                         setSelectedLanguageForStandardTests(lang)
                     }
 
@@ -65,7 +83,7 @@ fun suitesTable(
                         setSelectedLanguageForStandardTests(lang)
                     }
                     if (languageWasNotSelected || lang == selectedLanguageForStandardTests) {
-                        attrs["class"] = "${attrs["class"]} active font-weight-bold text-gray-800"
+                        className = ClassName("$className active font-weight-bold text-gray-800")
                     }
 
                     +lang
@@ -76,24 +94,27 @@ fun suitesTable(
 }
 
 /**
- * @param suites a list of [TestSuiteDto]s which should be displayed on the grid
- * @param selectedLanguageForStandardTests
- * @return an RComponent
+ * @return a [FC]
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: String?) =
-        fc<CheckBoxGridProps> { props ->
-            div("mt-3") {
-                suites.chunked(props.rowSize)
+fun checkBoxGrid() =
+        FC<CheckBoxGridProps> { props ->
+            div {
+                className = ClassName("mt-3")
+                props.suites.chunked(props.rowSize)
                     .forEach { row ->
-                        div("row g-3") {
+                        div {
+                            className = ClassName("row g-3")
                             row.forEach { suite ->
                                 // display only those tests that are related to the proper language
-                                if ((suite.language?.trim() ?: "Other") == selectedLanguageForStandardTests) {
-                                    div("col-md-6") {
-                                        input(type = InputType.checkBox, classes = "mr-2") {
-                                            attrs.defaultChecked = props.selectedStandardSuites.contains(suite.name)
-                                            attrs.onClickFunction = {
+                                if ((suite.language?.trim() ?: "Other") == props.selectedLanguageForStandardTests) {
+                                    div {
+                                        className = ClassName("col-md-6")
+                                        input {
+                                            type = InputType.checkbox
+                                            className = ClassName("mr-2")
+                                            defaultChecked = props.selectedStandardSuites.contains(suite.name)
+                                            onClick = {
                                                 if (props.selectedStandardSuites.contains(suite.name)) {
                                                     props.selectedStandardSuites.remove(suite.name)
                                                 } else {
@@ -105,15 +126,16 @@ fun checkBoxGrid(suites: List<TestSuiteDto>, selectedLanguageForStandardTests: S
                                         val suiteName = suite.name.replaceFirstChar { it.uppercaseChar() }
                                         +if (suiteName.length > 11) "${suiteName.take(11)}..." else suiteName
 
-                                        sup("tooltip-and-popover ml-1") {
+                                        sup {
+                                            className = ClassName("tooltip-and-popover ml-1")
                                             fontAwesomeIcon(icon = faQuestionCircle)
-                                            attrs["tooltip-placement"] = "top"
-                                            attrs["tooltip-title"] = ""
-                                            attrs["popover-placement"] = "right"
-                                            attrs["popover-title"] = suite.name
-                                            attrs["popover-content"] = suiteDescription(suite)
-                                            attrs["data-trigger"] = "focus"
-                                            attrs["tabindex"] = "0"
+                                            tabIndex = 0
+                                            asDynamic()["tooltip-placement"] = "top"
+                                            asDynamic()["tooltip-title"] = ""
+                                            asDynamic()["popover-placement"] = "right"
+                                            asDynamic()["popover-title"] = suite.name
+                                            asDynamic()["popover-content"] = suiteDescription(suite)
+                                            asDynamic()["data-trigger"] = "focus"
                                         }
                                     }
                                 }

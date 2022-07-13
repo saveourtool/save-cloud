@@ -43,8 +43,6 @@ import kotlinx.html.id
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-private val scrollToTopButton = scrollToTopButton()
-
 internal val topBarComponent = topBar()
 
 private val testExecutionDetailsView = testExecutionDetailsView()
@@ -66,22 +64,22 @@ external interface AppState : State {
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
     private val projectView: FC<Props> = withRouter { _, params ->
-        child(ProjectView::class) {
-            attrs.name = params["name"]!!
-            attrs.owner = params["owner"]!!
-            attrs.currentUserInfo = state.userInfo
+        ProjectView::class.react {
+            name = params["name"]!!
+            owner = params["owner"]!!
+            currentUserInfo = state.userInfo
         }
     }
     private val historyView: FC<Props> = withRouter { _, params ->
-        child(HistoryView::class) {
-            attrs.name = params["name"]!!
-            attrs.organizationName = params["owner"]!!
+        HistoryView::class.react {
+            name = params["name"]!!
+            organizationName = params["owner"]!!
         }
     }
     private val executionView: FC<Props> = withRouter { location, params ->
-        child(ExecutionView::class) {
-            attrs.executionId = params["executionId"]!!
-            attrs.status = URLSearchParams(location.search).get("status")?.let(
+        ExecutionView::class.react {
+            executionId = params["executionId"]!!
+            status = URLSearchParams(location.search).get("status")?.let(
                 TestResultStatus::valueOf
             )
         }
@@ -163,9 +161,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         path = "/contests/:contestName"
                                         element = buildElement {
                                             child(withRouter {_, params ->
-                                                child(ContestView::class) {
-                                                    attrs.currentUserInfo = state.userInfo
-                                                    attrs.currentContestName = params["contestName"]
+                                                ContestView::class.react {
+                                                    currentUserInfo = state.userInfo
+                                                    currentContestName = params["contestName"]
                                                 }
                                             })
                                         }
@@ -261,9 +259,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         path = "/:owner"
                                         element = buildElement {
                                             child(withRouter { _, params ->
-                                                child(OrganizationView::class) {
-                                                    attrs.organizationName = params["owner"]!!
-                                                    attrs.currentUserInfo = state.userInfo
+                                                OrganizationView::class.react {
+                                                    organizationName = params["owner"]!!
+                                                    currentUserInfo = state.userInfo
                                                 }
                                             })
                                         }

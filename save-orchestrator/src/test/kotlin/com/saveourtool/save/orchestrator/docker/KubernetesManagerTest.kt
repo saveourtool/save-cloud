@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 
 import com.github.dockerjava.api.DockerClient
 import io.fabric8.kubernetes.client.KubernetesClient
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.mock
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatus
@@ -52,9 +55,9 @@ class KubernetesManagerTest {
             kubernetesMockServer.takeRequest()
         }
             .subscribeOn(Schedulers.single())
-            .doOnNext {
-                println(it)
-                Assertions.assertNotNull(it)
+            .doOnNext { request ->
+                log.debug { request.toString() }
+                Assertions.assertNotNull(request)
             }
             .subscribe()
 
@@ -64,6 +67,7 @@ class KubernetesManagerTest {
     }
 
     companion object {
+        private val log: Logger = getLogger<KubernetesManagerTest>()
         @JvmStatic internal lateinit var kubernetesClient: KubernetesClient
         @JvmStatic internal lateinit var kubernetesMockServer: KubernetesMockServer
     }

@@ -487,7 +487,7 @@ style:
   ForbiddenMethodCall:
     excludes: ['**/resources/**', '**/src/test/**']
     active: true
-    methods: ['kotlin.io.println', 'kotlin.io.print']
+    methods: ['kotlin.io.println', 'kotlin.io.print', 'react.fc']
   ForbiddenPublicDataClass:
     excludes: ['**/resources/**']
     active: false

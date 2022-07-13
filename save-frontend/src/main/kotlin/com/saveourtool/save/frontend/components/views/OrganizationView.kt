@@ -10,9 +10,10 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.projectScoreCard
+import com.saveourtool.save.frontend.components.basic.scoreCard
+import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -148,28 +149,6 @@ external interface OrganizationViewState : State {
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val organizationSettingsMenu = organizationSettingsMenu(
-        deleteOrganizationCallback = {
-            if (state.projects?.size != 0) {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "You cannot delete an organization because there are projects connected to it. " +
-                            "Delete all the projects and try again."
-                }
-            } else {
-                deleteOrganization()
-            }
-        },
-        updateErrorMessage = {
-            setState {
-                isErrorOpen = true
-                errorLabel = ""
-                errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
-            }
-        },
-        updateNotificationMessage = ::showNotification
-    )
     private val table = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
@@ -198,7 +177,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         useServerPaging = false,
         usePageSelection = false,
     )
-    private val projectScoreCardComponent = projectScoreCard()
     private lateinit var responseFromDeleteOrganization: Response
 
     init {
@@ -390,24 +368,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div("col-3") {
-                div("latest-photos") {
-                    div("row") {
-                        state.usersInOrganization?.forEach {
-                            div("col-md-4") {
-                                figure {
-                                    img(classes = "img-fluid") {
-                                        attrs["src"] = it.avatar?.let { path ->
-                                            "/api/$v1/avatar$path"
-                                        }
-                                            ?: run {
-                                                "img/user.svg"
-                                            }
-                                        attrs["alt"] = ""
-                                    }
-                                }
-                            }
-                        }
-                    }
+                userBoard {
+                    attrs.users = state.usersInOrganization ?: emptyList()
                 }
             }
         }
@@ -466,6 +428,26 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             attrs.organizationName = props.organizationName
             attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             attrs.selfRole = state.selfRole
+            attrs.deleteOrganizationCallback = {
+                if (state.projects?.size != 0) {
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = ""
+                        errorMessage = "You cannot delete an organization because there are projects connected to it. " +
+                                "Delete all the projects and try again."
+                    }
+                } else {
+                    deleteOrganization()
+                }
+            }
+            attrs.updateErrorMessage = {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+                }
+            }
+            attrs.updateNotificationMessage = ::showNotification
         }
     }
 
@@ -549,8 +531,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun RBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div("col-3 mb-4") {
-            child(projectScoreCardComponent) {
-                attrs.projectName = topProject.name
+            scoreCard {
+                attrs.name = topProject.name
                 attrs.contestScore = topProject.contestRating.toDouble()
             }
         }

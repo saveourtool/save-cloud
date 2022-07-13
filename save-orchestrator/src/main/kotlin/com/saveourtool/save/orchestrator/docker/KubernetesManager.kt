@@ -35,7 +35,7 @@ class KubernetesManager(
         kc.close()
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "MagicNumber")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MagicNumber")
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
@@ -74,7 +74,9 @@ class KubernetesManager(
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
-                                runtimeClassName = configProperties.docker.runtime
+                                if (!configProperties.docker.runtime.isNullOrEmpty()) {
+                                    runtimeClassName = configProperties.docker.runtime
+                                }
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
@@ -93,7 +95,8 @@ class KubernetesManager(
                 }
             }
         }
-        kc.batch().v1()
+        kc.batch()
+            .v1()
             .jobs()
             .create(job)
         logger.info("Created Job for execution id=$executionId")
@@ -116,7 +119,8 @@ class KubernetesManager(
 
     override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
-        val isDeleted = kc.batch().v1()
+        val isDeleted = kc.batch()
+            .v1()
             .jobs()
             .withName(jobName)
             .delete()
@@ -143,7 +147,9 @@ class KubernetesManager(
 
     override fun cleanup(executionId: Long) {
         logger.debug("Removing a Job for execution id=$executionId")
-        val job = kc.batch().v1().jobs()
+        val job = kc.batch()
+            .v1()
+            .jobs()
             .withName(jobNameForExecution(executionId))
             .get()
         job?.let {

@@ -20,7 +20,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.dom.*
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import react.Context
 import react.Props
@@ -28,6 +27,7 @@ import react.RBuilder
 import react.RStatics
 import react.State
 import react.dom.*
+import react.dom.events.ChangeEvent
 import react.setState
 
 import kotlinx.browser.window
@@ -112,9 +112,6 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-    private val selectFormRequired = selectFormRequired(
-        onChangeFun = ::changeFields,
-    )
 
     init {
         state.isErrorWithProjectSave = false
@@ -131,7 +128,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
     private fun changeFields(
         fieldName: InputTypes,
-        target: Event,
+        target: ChangeEvent<Element>,
         isProject: Boolean = true,
     ) {
         val tg = target.target
@@ -314,19 +311,20 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             attrs.validInput = state.isValidOrganization!!
                                             attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
                                             attrs.text = "Organization"
+                                            attrs.onChangeFun = ::changeFields
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name", true) {
-                                            changeFields(InputTypes.PROJECT_NAME, it)
+                                            changeFields(InputTypes.PROJECT_NAME, it as ChangeEvent<Element>)
                                         }
                                         inputTextFormOptional(InputTypes.PROJECT_URL, "col-md-6 pr-0 mt-3", "Tested Tool Website") {
-                                            changeFields(InputTypes.PROJECT_URL, it)
+                                            changeFields(InputTypes.PROJECT_URL, it as ChangeEvent<Element>)
                                         }
                                         inputTextFormOptional(
                                             InputTypes.GIT_URL,
                                             "col-md-6 mt-3 pl-0",
                                             "Test Suite Git URL"
                                         ) {
-                                            changeFields(InputTypes.GIT_URL, it, false)
+                                            changeFields(InputTypes.GIT_URL, it as ChangeEvent<Element>, false)
                                         }
 
                                         div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
@@ -358,10 +356,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
 
                                         inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-1", "Git Username") {
-                                            changeFields(InputTypes.GIT_USER, it, false)
+                                            changeFields(InputTypes.GIT_USER, it as ChangeEvent<Element>, false)
                                         }
                                         inputTextFormOptional(InputTypes.GIT_TOKEN, "col-md-6 mt-1 pr-0", "Git Token") {
-                                            changeFields(InputTypes.GIT_TOKEN, it, false)
+                                            changeFields(InputTypes.GIT_TOKEN, it as ChangeEvent<Element>, false)
                                         }
 
                                         div("col-md-12 mt-3 mb-3 pl-2 pr-0 row") {

@@ -5,6 +5,11 @@ package com.saveourtool.save.frontend.components.basic.contests
 import react.*
 
 /**
+ * RESULTS tab in ContestView
+ */
+val contestResultsMenu = contestResultsMenu()
+
+/**
  * ContestResultsMenu component props
  */
 external interface ContestResultsMenuProps : Props {
@@ -14,16 +19,13 @@ external interface ContestResultsMenuProps : Props {
     var contestName: String
 }
 
-/**
- * @return ReactElement
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "MAGIC_NUMBER",
     "AVOID_NULL_CHECKS"
 )
-fun contestResultsMenu(
+private fun contestResultsMenu(
 ) = FC<ContestResultsMenuProps> {
     +"Your results will be here"
 }

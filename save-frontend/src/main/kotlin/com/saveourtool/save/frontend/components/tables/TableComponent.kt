@@ -12,20 +12,27 @@ import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
 
+import csstype.ClassName
 import org.w3c.fetch.Response
-import react.Props
-import react.RBuilder
-import react.dom.RDOMBuilder
+import react.*
 import react.dom.div
 import react.dom.em
 import react.dom.h6
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.em
+import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 import react.dom.span
 import react.dom.table
 import react.dom.tbody
 import react.dom.th
 import react.dom.thead
 import react.dom.tr
-import react.fc
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -35,10 +42,6 @@ import react.table.TableRowProps
 import react.table.usePagination
 import react.table.useSortBy
 import react.table.useTable
-import react.useContext
-import react.useEffect
-import react.useMemo
-import react.useState
 
 import kotlin.js.json
 import kotlinx.coroutines.CancellationException
@@ -48,7 +51,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.html.THEAD
 import kotlinx.js.jso
 
 /**
@@ -84,6 +86,7 @@ external interface TableProps<D : Any> : Props {
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
+ * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -97,7 +100,7 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught"
 )
-fun <D : Any> tableComponent(
+fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
@@ -105,9 +108,10 @@ fun <D : Any> tableComponent(
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
-    renderExpandedRow: (RBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: RDOMBuilder<THEAD>.(table: TableInstance<D>) -> Unit = {},
-) = fc<TableProps<D>> { props ->
+    renderExpandedRow: (ChildrenBuilder.(table: TableInstance<D>, row: Row<D>) -> Unit)? = undefined,
+    commonHeader: ChildrenBuilder.(table: TableInstance<D>) -> Unit = {},
+    getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
+): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
@@ -150,7 +154,7 @@ fun <D : Any> tableComponent(
     } else {
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
-    }
+    } + getAdditionalDependencies(props)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -180,18 +184,24 @@ fun <D : Any> tableComponent(
         }
     }
 
-    div("card shadow mb-4") {
-        div("card-header py-3") {
-            h6("m-0 font-weight-bold text-primary text-center") {
+    div {
+        className = ClassName("card shadow mb-4")
+        div {
+            className = ClassName("card-header py-3")
+            h6 {
+                className = ClassName("m-0 font-weight-bold text-primary text-center")
                 +props.tableHeader
             }
         }
-        div("card-body") {
-            div("table-responsive") {
-                table("table table-bordered") {
+        div {
+            className = ClassName("card-body")
+            div {
+                className = ClassName("table-responsive")
+                table {
+                    className = ClassName("table table-bordered")
                     spread(tableInstance.getTableProps())
-                    attrs["width"] = "100%"
-                    attrs["cellSpacing"] = "0"
+                    width = 100.0
+                    cellSpacing = "0"
                     thead {
                         commonHeader(tableInstance)
                         tableInstance.headerGroups.map { headerGroup ->
@@ -199,8 +209,9 @@ fun <D : Any> tableComponent(
                                 spread(headerGroup.getHeaderGroupProps())
                                 headerGroup.headers.map { column ->
                                     val columnProps = column.getHeaderProps(column.getSortByToggleProps())
-                                    val className = if (column.canSort) columnProps.className.unsafeCast<String?>() else ""
-                                    th(classes = className) {
+                                    val className = if (column.canSort) columnProps.className else ClassName("")
+                                    th {
+                                        this.className = className
                                         +column.render("Header")
                                         // fixme: find a way to set `canSort`; now it's always true
                                         if (column.canSort) {
@@ -242,21 +253,23 @@ fun <D : Any> tableComponent(
                         }
                     }
                 }
-                // if (tableInstance.pageCount > 1) {
-                // block with paging controls
 
                 if (data.isEmpty()) {
-                    div("align-items-center justify-content-center mb-4") {
-                        h6("m-0 font-weight-bold text-primary text-center") {
+                    div {
+                        className = ClassName("align-items-center justify-content-center mb-4")
+                        h6 {
+                            className = ClassName("m-0 font-weight-bold text-primary text-center")
                             +"No results found"
                         }
                     }
                 }
 
-                div("wrapper container m-0 p-0") {
+                div {
+                    className = ClassName("wrapper container m-0 p-0")
                     pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
 
-                    div("row ml-1") {
+                    div {
+                        className = ClassName("row ml-1")
                         +"Page "
                         em {
                             +"${tableInstance.state.pageIndex + 1} of ${tableInstance.pageCount}"
@@ -272,7 +285,7 @@ fun <D : Any> tableComponent(
         "Error",
         "Error when fetching data: ${dataAccessException?.message}",
         {
-            attrs.isOpen = isModalOpen
+            it.isOpen = isModalOpen
         }) {
         setIsModalOpen(false)
     }

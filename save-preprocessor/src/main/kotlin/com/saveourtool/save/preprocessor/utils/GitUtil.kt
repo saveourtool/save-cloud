@@ -53,7 +53,8 @@ fun pullOrCloneProjectWithSpecificBranch(gitDto: GitDto, tmpDir: File, branchOrC
         .setURI(gitDto.url)
         .setCredentialsProvider(userCredentials)
         .setDirectory(tmpDir)
-        .call().also { git ->
+        .call()
+        .also { git ->
             switchBranch(git, gitDto.url, branchOrCommit)
         }
 }

@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.backend.ByteArrayResponse
+import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
@@ -28,8 +28,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
-
-import kotlin.io.path.*
 
 /**
  * A Spring controller for file downloading
@@ -96,11 +94,11 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteArrayResponse> = Mono.fromCallable {
+    ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            additionalToolsFileSystemRepository.getFile(fileInfo, ProjectCoordinates(organizationName, projectName)).inputStream.readAllBytes()
-        )
+            additionalToolsFileSystemRepository.getFileContent(fileInfo, ProjectCoordinates(organizationName, projectName)
+            ))
     }
         .doOnError(FileNotFoundException::class.java) {
             logger.warn("File $fileInfo is not found", it)
@@ -131,20 +129,22 @@ class DownloadFilesController(
         authentication: Authentication,
     ) = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.WRITE
-    ).flatMap {
-        additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName))
-    }.map { fileInfo ->
-        ResponseEntity.status(
-            if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
-        )
-            .body(
-                if (returnShortFileInfo) {
-                    fileInfo.toShortFileInfo()
-                } else {
-                    fileInfo
-                }
+    )
+        .flatMap {
+            additionalToolsFileSystemRepository.saveFile(file, ProjectCoordinates(organizationName, projectName))
+        }
+        .map { fileInfo ->
+            ResponseEntity.status(
+                if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
             )
-    }
+                .body(
+                    if (returnShortFileInfo) {
+                        fileInfo.toShortFileInfo()
+                    } else {
+                        fileInfo
+                    }
+                )
+        }
         .onErrorReturn(
             FileAlreadyExistsException::class.java,
             ResponseEntity.status(HttpStatus.CONFLICT).build()
@@ -192,21 +192,49 @@ class DownloadFilesController(
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): String {
+        val executionId = getExecutionId(testExecutionDto)
+        val testResultLocation = TestResultLocation.from(testExecutionDto)
+
+        return if (!testDataFilesystemRepository.doesDebugInfoExist(executionId, testResultLocation)) {
+            logger.warn("Additional file for $executionId and $testResultLocation not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
+        } else {
+            testDataFilesystemRepository.getDebugInfoContent(executionId, testResultLocation)
+        }
+    }
+
+    private fun getExecutionId(testExecutionDto: TestExecutionDto): Long {
+        testExecutionDto.executionId?.let { return it }
+
         val agentContainerId = testExecutionDto.agentContainerId
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body should contain agentContainerId")
         val execution = agentRepository.findByContainerId(agentContainerId)?.execution
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution for agent $agentContainerId not found")
-        val executionId = execution.id!!
-        val testResultLocation = TestResultLocation.from(testExecutionDto)
-        val debugInfoFile = testDataFilesystemRepository.getLocation(
-            executionId,
-            testResultLocation
-        )
-        return if (debugInfoFile.notExists()) {
-            logger.warn("File $debugInfoFile not found")
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
+        return execution?.id
+            ?: throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Execution for agent $agentContainerId not found"
+            )
+    }
+
+    /**
+     * @param testExecutionDto
+     * @return [Mono] with response
+     * @throws ResponseStatusException if request is invalid or result cannot be returned
+     */
+    @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
+    @PostMapping(path = ["/api/$v1/files/get-execution-info"])
+    fun getExecutionInfo(
+        @RequestBody testExecutionDto: TestExecutionDto,
+    ): String {
+        logger.debug("Processing getExecutionInfo : $testExecutionDto")
+        val executionId = getExecutionId(testExecutionDto)
+        return if (testDataFilesystemRepository.doesExecutionInfoExist(executionId)) {
+            val text = testDataFilesystemRepository.getExecutionInfoContent(executionId)
+            logger.debug("Sending ExecutionInfo for $executionId : $text")
+            text
         } else {
-            debugInfoFile.readText()
+            logger.debug("ExecutionInfo for $executionId not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         }
     }
 

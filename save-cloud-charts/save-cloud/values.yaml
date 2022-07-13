@@ -108,7 +108,8 @@ promtail:
   image:
     tag: 2.5.0
   config:
-    lokiAddress: http://save-cloud-loki:3100/loki/api/v1/push
+    clients:
+      - url: http://save-cloud-loki:3100/loki/api/v1/push
     snippets:
       pipelineStages:
         - docker: {}
