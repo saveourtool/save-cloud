@@ -13,26 +13,25 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
-import react.Props
-import react.RBuilder
-import react.dom.br
-import react.dom.div
-import react.dom.samp
-import react.dom.small
-import react.dom.table
-import react.dom.tbody
-import react.dom.td
-import react.dom.tr
-import react.fc
+import react.*
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.samp
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tr
 import react.router.useParams
-import react.useState
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR")
-private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table("table table-bordered") {
+private fun ChildrenBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = table {
+    className = ClassName("table table-bordered")
     tbody {
         tr {
             td {
@@ -86,7 +85,7 @@ private fun RBuilder.resultsTable(testResultDebugInfo: TestResultDebugInfo) = ta
     }
 }
 
-private fun RBuilder.fallback(status: String) = div {
+private fun ChildrenBuilder.fallback(status: String) = div {
     +status
 }
 
@@ -96,7 +95,7 @@ private fun RBuilder.fallback(status: String) = div {
  * @return a function component
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "TOO_LONG_FUNCTION")
-fun testExecutionDetailsView() = fc<Props> {
+fun testExecutionDetailsView() = FC<Props> {
     val params = useParams()
     val executionId = params["executionId"]!!.toLong()
 

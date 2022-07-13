@@ -18,11 +18,11 @@ import com.saveourtool.save.v1
 import csstype.*
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.*
+import react.dom.events.ChangeEvent
 
 import kotlinx.coroutines.launch
 import kotlinx.html.InputType
@@ -88,9 +88,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
      */
     fun changeFields(
         fieldName: InputTypes,
-        target: Event,
+        target: ChangeEvent<HTMLInputElement>,
     ) {
-        val tg = target.target as HTMLInputElement
+        val tg = target.target
         val value = tg.value
         fieldsMap[fieldName] = value
     }

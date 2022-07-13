@@ -7,11 +7,20 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 
+import csstype.ClassName
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
+import react.ChildrenBuilder
 import react.RBuilder
 import react.dom.br
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.samp
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.tr
 import react.dom.samp
 import react.dom.small
 import react.dom.table
@@ -77,10 +86,48 @@ internal fun RBuilder.multilineText(text: String) {
 }
 
 /**
+ * Adds this text to RBuilder line by line, separating with `<br>`
+ *
+ * @param text text to display
+ */
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+internal fun ChildrenBuilder.multilineText(text: String) {
+    text.lines().forEach {
+        small {
+            samp {
+                +it
+            }
+        }
+        br { }
+    }
+}
+
+/**
  * @param text
  */
 internal fun RBuilder.multilineTextWithIndices(text: String) {
     table("table table-borderless table-hover table-sm") {
+        tbody {
+            text.lines().filterNot { it.isEmpty() }.forEachIndexed { i, line ->
+                tr {
+                    td {
+                        +"${i + 1}"
+                    }
+                    td {
+                        +line
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @param text
+ */
+internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
+    table {
+        className = ClassName("table table-borderless table-hover table-sm")
         tbody {
             text.lines().filterNot { it.isEmpty() }.forEachIndexed { i, line ->
                 tr {

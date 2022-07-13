@@ -20,7 +20,7 @@ import javax.persistence.ManyToOne
  * @property description description of the test suite
  * @property language
  */
-@Suppress("USE_DATA_CLASS", "LongParameterList")
+@Suppress("LongParameterList")
 @Entity
 class TestSuite(
     @Enumerated(EnumType.STRING)

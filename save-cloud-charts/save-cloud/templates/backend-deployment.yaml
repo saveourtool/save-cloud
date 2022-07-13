@@ -56,6 +56,13 @@ spec:
             - ./gradlew
             - -Psave.profile={{ .Values.profile }}
             - liquibaseUpdate
+          # To execute liquibase via gradle-plugin we need to allocate plenty of memory.
+          # Fixme: extract database related logic to a more lightweight Gradle build?
+          resources:
+            requests:
+              memory: 1G
+            limits:
+              memory: 1500M
           env:
             - name: DB_SECRETS_PATH
               value: {{ .Values.backend.dbPasswordFile }}

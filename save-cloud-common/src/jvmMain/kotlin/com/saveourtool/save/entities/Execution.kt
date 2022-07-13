@@ -38,7 +38,7 @@ import javax.persistence.ManyToOne
  * @property execCmd
  * @property batchSizeForAnalyzer
  */
-@Suppress("USE_DATA_CLASS", "LongParameterList")
+@Suppress("LongParameterList")
 @Entity
 class Execution(
 

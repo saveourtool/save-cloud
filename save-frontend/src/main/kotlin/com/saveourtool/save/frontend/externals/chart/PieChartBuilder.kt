@@ -4,8 +4,10 @@
 
 package com.saveourtool.save.frontend.externals.chart
 
+import react.ChildrenBuilder
 import react.RBuilder
 import react.RHandler
+import react.react
 import kotlin.random.Random
 
 /**
@@ -23,6 +25,24 @@ fun RBuilder.pieChart(
     attrs.segmentsShift = 0
     attrs.viewBoxSize = intArrayOf(100, 100)
     attrs.radius = 50
+    handler(this)
+}
+
+/**
+ * @param data dataset for pie chart
+ * @param handler handler to set up a component
+ * @return ReactElement
+ */
+@Suppress("MAGIC_NUMBER")
+fun ChildrenBuilder.pieChart(
+    data: Array<DataPieChart>,
+    handler: ChildrenBuilder.(PieChartProps) -> Unit = {},
+) = PieChart::class.react {
+    this.data = data
+    animate = false
+    segmentsShift = 0
+    viewBoxSize = intArrayOf(100, 100)
+    radius = 50
     handler(this)
 }
 

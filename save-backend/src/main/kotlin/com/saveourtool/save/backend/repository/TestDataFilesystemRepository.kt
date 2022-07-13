@@ -1,42 +1,37 @@
 package com.saveourtool.save.backend.repository
 
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.storage.DebugInfoStorage
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.utils.debug
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import okio.Path.Companion.toPath
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.FileSystemResource
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 
-import java.nio.file.Path
-import java.nio.file.Paths
-
-import kotlin.io.path.createDirectories
-import kotlin.io.path.div
-import kotlin.io.path.exists
-import kotlin.io.path.name
+import java.io.InputStream
+import java.io.SequenceInputStream
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 /**
  * A repository for storing additional data associated with test results
  */
 @Repository
 class TestDataFilesystemRepository(
-    configProperties: ConfigProperties,
-    private val objectMapper: ObjectMapper,
+    private val debugInfoStorage: DebugInfoStorage,
+    private val executionInfoStorage: ExecutionInfoStorage,
+    private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(TestDataFilesystemRepository::class.java)
-
-    /**
-     * Root directory for storing test data
-     */
-    internal val root: Path = (Paths.get(configProperties.fileStorage.location) / "debugInfo").apply {
-        if (!exists()) {
-            createDirectories()
-        }
-    }
 
     /**
      * Store provided [testResultDebugInfo] associated with [executionId]
@@ -49,47 +44,110 @@ class TestDataFilesystemRepository(
         testResultDebugInfo: TestResultDebugInfo,
     ) {
         with(testResultDebugInfo) {
-            val destination = testResultLocation.toFsResource(executionId).file
-            destination.parentFile.mkdirs()
-            log.debug("Writing debug info for $executionId to $destination")
-            objectMapper.writeValue(
-                destination,
-                testResultDebugInfo
-            )
+            log.debug { "Writing debug info for $executionId to $testResultLocation" }
+            debugInfoStorage.upload(Pair(executionId, testResultLocation), testResultDebugInfo.toFluxByteBufferAsJson())
+                .subscribeOn(Schedulers.immediate())
+                .toFuture()
+                .get()
         }
-    }
-
-    private fun TestResultLocation.toFsResource(executionId: Long) = FileSystemResource(
-        getLocation(executionId, this)
-    )
-
-    /**
-     * Get location of additional data for [testExecutionDto]
-     *
-     * @param executionId
-     * @param testExecutionDto
-     * @return path to file with additional data
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun getLocation(executionId: Long, testExecutionDto: TestExecutionDto): Path {
-        val path = testExecutionDto.filePath.toPath()
-        val testResultLocation = TestResultLocation(testExecutionDto.testSuiteName!!, testExecutionDto.pluginName,
-            path.parent.toString(), path.name)
-        return getLocation(executionId, testResultLocation)
     }
 
     /**
      * @param executionId
      * @param testResultLocation
-     * @return path to file with additional data
+     * @return content of additional data for provided [executionId] and [testResultLocation]
      */
-    internal fun getLocation(executionId: Long, testResultLocation: TestResultLocation) = with(testResultLocation) {
-        root / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName-debug.json"
-    }
+    fun getDebugInfoContent(
+        executionId: Long,
+        testResultLocation: TestResultLocation,
+    ): String = debugInfoStorage.download(Pair(executionId, testResultLocation))
+        .collectToString()
+        .subscribeOn(Schedulers.immediate())
+        .toFuture()
+        .get()
 
     /**
-     * remove non valid chars from path to work on windows
+     * @param executionId
+     * @return content of additional data for provided [executionId]
      */
-    private fun sanitizePathName(name: String): String =
-            name.replace("[\\\\/:*?\"<>| ]".toRegex(), "")
+    fun getExecutionInfoContent(
+        executionId: Long,
+    ): String = executionInfoStorage.download(executionId)
+        .collectToString()
+        .subscribeOn(Schedulers.immediate())
+        .toFuture()
+        .get()
+
+    /**
+     * @param executionId
+     * @param testResultLocation
+     * @return true if file with additional data exists, otherwise - false
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun doesDebugInfoExist(executionId: Long, testResultLocation: TestResultLocation): Boolean =
+            debugInfoStorage.doesExist(Pair(executionId, testResultLocation))
+                .subscribeOn(Schedulers.immediate())
+                .toFuture()
+                .get()
+
+    /**
+     * @param executionId
+     * @return true if file with additional data exists, otherwise - false
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun doesExecutionInfoExist(executionId: Long): Boolean =
+            executionInfoStorage.doesExist(executionId)
+                .subscribeOn(Schedulers.immediate())
+                .toFuture()
+                .get()
+
+    /**
+     * @param executionInfo
+     */
+    fun save(executionInfo: ExecutionUpdateDto) {
+        executionInfoStorage.doesExist(executionInfo.id)
+            .flatMap { exists ->
+                if (exists) {
+                    executionInfoStorage.download(executionInfo.id)
+                        .collectToInputStream()
+                        .map {
+                            readExecutionInfo(it)
+                        }
+                        .map {
+                            it.copy(failReason = "${it.failReason}, ${executionInfo.failReason}")
+                        }
+                } else {
+                    Mono.just(executionInfo)
+                }
+            }
+            .flatMap { executionInfoToSafe ->
+                log.debug { "Writing debug info for ${executionInfoToSafe.id} to storage" }
+                executionInfoStorage.upload(executionInfoToSafe.id, executionInfoToSafe.toFluxByteBufferAsJson())
+            }
+            .subscribeOn(Schedulers.immediate())
+            .toFuture()
+            .get()
+    }
+
+    private fun Flux<ByteBuffer>.collectToInputStream(): Mono<InputStream> = this
+        .map {
+            // take simple implementation from Jackson library
+            ByteBufferBackedInputStream(it)
+        }
+        .cast(InputStream::class.java)
+        .reduce { in1, in2 ->
+            SequenceInputStream(in1, in2)
+        }
+
+    private fun Flux<ByteBuffer>.collectToString(): Mono<String> = this
+        .collectToInputStream()
+        .map {
+            IOUtils.toString(it, StandardCharsets.UTF_8)
+        }
+
+    private fun <T> T.toFluxByteBufferAsJson(): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
+        .map { ByteBuffer.wrap(it) }
+        .toFlux()
+
+    private fun readExecutionInfo(inputStream: InputStream): ExecutionUpdateDto = objectMapper.readValue(inputStream, ExecutionUpdateDto::class.java)
 }

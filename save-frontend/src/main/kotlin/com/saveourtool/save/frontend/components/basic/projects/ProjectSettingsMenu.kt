@@ -5,25 +5,35 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.gitWindow
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
+import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
+import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.hr
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
 import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
-private val runSettingGitWindow = runSettingGitWindow()
+/**
+ * SETTINGS tab in ProjectView
+ */
+val projectSettingsMenu = projectSettingsMenu()
 
 /**
  * ProjectSettingsMenu component props
@@ -48,29 +58,41 @@ external interface ProjectSettingsMenuProps : Props {
      * Role of a current user
      */
     var selfRole: Role
+
+    /**
+     * Callback to delete project
+     */
+    var deleteProjectCallback: () -> Unit
+
+    /**
+     * Callback to update project settings
+     */
+    var updateProjectSettings: (Project) -> Unit
+
+    /**
+     * Callback to update git
+     */
+    var updateGit: (GitDto) -> Unit
+
+    /**
+     * Callback to show error message
+     */
+    var updateErrorMessage: (Response) -> Unit
+
+    /**
+     * Callback to show notification message
+     */
+    var updateNotificationMessage: (String, String) -> Unit
 }
 
-/**
- * @param deleteProjectCallback
- * @param updateProjectSettings
- * @param updateErrorMessage
- * @param updateNotificationMessage
- * @param updateGit
- * @return ReactElement
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "MAGIC_NUMBER",
-    "ComplexMethod"
+    "ComplexMethod",
+    "EMPTY_BLOCK_STRUCTURE_ERROR"
 )
-fun projectSettingsMenu(
-    deleteProjectCallback: () -> Unit,
-    updateProjectSettings: (Project) -> Unit,
-    updateGit: (GitDto) -> Unit,
-    updateErrorMessage: (Response) -> Unit,
-    updateNotificationMessage: (String, String) -> Unit,
-) = fc<ProjectSettingsMenuProps> { props ->
+private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
@@ -87,32 +109,35 @@ fun projectSettingsMenu(
 
     val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
 
-    child(runSettingGitWindow) {
-        attrs.isOpenGitWindow = isOpenGitWindow
-        attrs.project = props.project
-        attrs.gitDto = props.gitInitDto
-        attrs.handlerCancel = { setOpenGitWindow(false) }
-        attrs.onGitUpdate = {
-            updateGit(it)
+    gitWindow {
+        this.isOpenGitWindow = isOpenGitWindow
+        project = props.project
+        gitDto = props.gitInitDto
+        handlerCancel = { setOpenGitWindow(false) }
+        onGitUpdate = {
+            props.updateGit(it)
             setOpenGitWindow(false)
         }
     }
 
-    div("row justify-content-center mb-2") {
+    div {
+        className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
-        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
             }
-            child(projectPermissionManagerCard) {
-                attrs.selfUserInfo = props.currentUserInfo
-                attrs.groupPath = projectPath
-                attrs.groupType = "project"
-                attrs.wasConfirmationModalShown = wasConfirmationModalShown
-                attrs.updateErrorMessage = updateErrorMessage
-                attrs.getUserGroups = { it.projects }
-                attrs.showGlobalRoleWarning = {
-                    updateNotificationMessage(
+            projectPermissionManagerCard {
+                selfUserInfo = props.currentUserInfo
+                groupPath = projectPath
+                groupType = "project"
+                this.wasConfirmationModalShown = wasConfirmationModalShown
+                updateErrorMessage = props.updateErrorMessage
+                getUserGroups = { it.projects }
+                showGlobalRoleWarning = {
+                    props.updateNotificationMessage(
                         "Super admin message",
                         "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
                     )
@@ -121,81 +146,100 @@ fun projectSettingsMenu(
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
-        div("col-4 mb-2 pl-0 pr-0 mr-2 ml-2") {
-            div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+        div {
+            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Main settings"
             }
-            div("card card-body mt-0 pt-0 pr-0 pl-0") {
-                div("row mt-2 ml-2 mr-2") {
-                    div("col-5 text-left align-self-center") {
+            div {
+                className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+                div {
+                    className = ClassName("row mt-2 ml-2 mr-2")
+                    div {
+                        className = ClassName("col-5 text-left align-self-center")
                         +"Project email:"
                     }
-                    div("col-7 input-group pl-0") {
-                        input(type = InputType.email) {
-                            attrs["class"] = "form-control"
-                            attrs {
-                                value = draftProject.email ?: ""
-                                placeholder = "email@example.com"
-                                onChange = {
-                                    setDraftProject(draftProject.copy(email = (it.target as HTMLInputElement).value))
-                                }
+                    div {
+                        className = ClassName("col-7 input-group pl-0")
+                        input {
+                            type = InputType.email
+                            className = ClassName("form-control")
+                            value = draftProject.email ?: ""
+                            placeholder = "email@example.com"
+                            onChange = {
+                                setDraftProject(draftProject.copy(email = it.target.value))
                             }
                         }
                     }
                 }
-                div("row mt-2 ml-2 mr-2") {
-                    div("col-5 text-left align-self-center") {
+                div {
+                    className = ClassName("row mt-2 ml-2 mr-2")
+                    div {
+                        className = ClassName("col-5 text-left align-self-center")
                         +"Project visibility:"
                     }
-                    form("col-7 form-group row d-flex justify-content-around") {
-                        div("form-check-inline") {
-                            input(classes = "form-check-input") {
-                                attrs.defaultChecked = draftProject.public
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPublicSwitch"
-                                attrs["value"] = "public"
+                    form {
+                        className = ClassName("col-7 form-group row d-flex justify-content-around")
+                        div {
+                            className = ClassName("form-check-inline")
+                            input {
+                                className = ClassName("form-check-input")
+                                defaultChecked = draftProject.public
+                                name = "projectVisibility"
+                                type = react.dom.html.InputType.radio
+                                id = "isProjectPublicSwitch"
+                                value = "public"
                             }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPublicSwitch"
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "isProjectPublicSwitch"
                                 +"Public"
                             }
                         }
-                        div("form-check-inline") {
-                            input(classes = "form-check-input") {
-                                attrs.defaultChecked = !draftProject.public
-                                attrs["name"] = "projectVisibility"
-                                attrs["type"] = "radio"
-                                attrs["id"] = "isProjectPrivateSwitch"
-                                attrs["value"] = "private"
+                        div {
+                            className = ClassName("form-check-inline")
+                            input {
+                                className = ClassName("form-check-input")
+                                defaultChecked = !draftProject.public
+                                name = "projectVisibility"
+                                type = react.dom.html.InputType.radio
+                                id = "isProjectPrivateSwitch"
+                                value = "private"
                             }
-                            label("form-check-label") {
-                                attrs["htmlFor"] = "isProjectPrivateSwitch"
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "isProjectPrivateSwitch"
                                 +"Private"
                             }
                         }
-                        attrs.onChangeFunction = {
+                        onChange = {
                             setDraftProject(draftProject.copy(public = (it.target as HTMLInputElement).value == "public"))
                         }
                     }
                 }
-                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
-                    div("col-5 text-left") {
+                div {
+                    className = ClassName("row d-flex align-items-center mt-2 mr-2 ml-2")
+                    div {
+                        className = ClassName("col-5 text-left")
                         +"Number of containers:"
                     }
-                    div("col-7 row") {
-                        div("form-switch") {
-                            select("custom-select") {
+                    div {
+                        className = ClassName("col-7 row")
+                        div {
+                            className = ClassName("form-switch")
+                            select {
+                                className = ClassName("custom-select")
                                 // fixme: later we will need to change amount of containers
-                                attrs.disabled = true
-                                attrs.onChangeFunction = {
-                                    setDraftProject(draftProject.copy(numberOfContainers = (it.target as HTMLSelectElement).value.toInt()))
+                                disabled = true
+                                onChange = {
+                                    setDraftProject(draftProject.copy(numberOfContainers = it.target.value.toInt()))
                                 }
-                                attrs.id = "numberOfContainers"
+                                id = "numberOfContainers"
                                 for (i in 1..8) {
                                     option {
-                                        attrs.value = i.toString()
-                                        attrs.selected = i == draftProject.numberOfContainers
+                                        value = i.toString()
+                                        selected = i == draftProject.numberOfContainers
                                         +i.toString()
                                     }
                                 }
@@ -203,13 +247,18 @@ fun projectSettingsMenu(
                         }
                     }
                 }
-                div("row d-flex align-items-center mt-2 mr-2 ml-2") {
-                    div("col-5 text-left") {
+                div {
+                    className = ClassName("row d-flex align-items-center mt-2 mr-2 ml-2")
+                    div {
+                        className = ClassName("col-5 text-left")
                         +"User settings:"
                     }
-                    div("col-7 row") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
-                            attrs.onClickFunction = {
+                    div {
+                        className = ClassName("col-7 row")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
                                 setOpenGitWindow(true)
                             }
                             +"Add git credentials"
@@ -217,21 +266,28 @@ fun projectSettingsMenu(
                     }
                 }
 
-                hr("") {}
-                div("row d-flex justify-content-center") {
-                    div("col-3 d-sm-flex align-items-center justify-content-center") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-primary") {
-                            attrs.onClickFunction = {
-                                updateProjectSettings(draftProject)
+                hr {}
+                div {
+                    className = ClassName("row d-flex justify-content-center")
+                    div {
+                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                props.updateProjectSettings(draftProject)
                             }
                             +"Save changes"
                         }
                     }
-                    div("col-3 d-sm-flex align-items-center justify-content-center") {
-                        button(type = ButtonType.button, classes = "btn btn-sm btn-danger") {
-                            attrs.disabled = !props.selfRole.hasDeletePermission()
-                            attrs.onClickFunction = {
-                                deleteProjectCallback()
+                    div {
+                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-danger")
+                            disabled = !props.selfRole.hasDeletePermission()
+                            onClick = {
+                                props.deleteProjectCallback()
                             }
                             +"Delete project"
                         }

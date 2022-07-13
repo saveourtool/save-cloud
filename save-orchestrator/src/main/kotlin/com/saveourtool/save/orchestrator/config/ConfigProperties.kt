@@ -55,7 +55,7 @@ data class ConfigProperties(
     data class DockerSettings(
         val host: String,
         val loggingDriver: String,
-        val runtime: String = "runc",
+        val runtime: String? = null,
         val registry: String = "docker.io/library",
     )
 

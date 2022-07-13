@@ -110,3 +110,6 @@
   enabled: true
 - name: COMPLEX_EXPRESSION
   enabled: true
+- name: USE_DATA_CLASS
+  ignoreAnnotated:
+    - Entity

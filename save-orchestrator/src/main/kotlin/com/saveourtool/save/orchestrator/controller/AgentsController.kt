@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 
+import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
@@ -24,7 +25,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
-import reactor.kotlin.core.publisher.onErrorResume
 
 import java.io.File
 
@@ -62,16 +62,14 @@ class AgentsController(
                 // todo: pass SDK via request body
                 dockerService.buildBaseImage(execution)
             }
-                .onErrorResume(DockerException::class) { dex ->
-                    log.error("Unable to build image and containers for executionId=${execution.id}, will mark it as ERROR", dex)
-                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
+                .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
+                    reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
                 .map { (baseImageId, agentRunCmd) ->
                     dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    log.error("Unable to create containers for executionId=${execution.id}, will mark it as ERROR", ex)
-                    agentService.updateExecution(execution.id!!, ExecutionStatus.ERROR).then(Mono.empty())
+                    reportExecutionError(execution, "Unable to create docker containers", ex)
                 }
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
@@ -90,6 +88,17 @@ class AgentsController(
                 .subscribeOn(agentService.scheduler)
                 .subscribe()
         }
+    }
+
+    private fun <T> reportExecutionError(
+        execution: Execution,
+        failReason: String,
+        ex: Throwable?
+    ): Mono<T> {
+        log.error("$failReason for executionId=${execution.id}, will mark it as ERROR", ex)
+        return execution.id?.let {
+            agentService.updateExecution(it, ExecutionStatus.ERROR, failReason).then(Mono.empty())
+        } ?: Mono.empty()
     }
 
     /**

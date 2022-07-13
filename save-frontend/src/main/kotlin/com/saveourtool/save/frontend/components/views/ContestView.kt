@@ -53,9 +53,6 @@ external interface ContestViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
-    private val contestInfo = contestInfoMenu()
-    private val contestResults = contestResultsMenu()
-    private val contestParticipants = contestParticipantsMenu()
     init {
         state.selectedMenu = ContestMenuBar.INFO
     }
@@ -77,19 +74,19 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     private fun RBuilder.renderResults() {
-        child(contestResults) {
+        contestResultsMenu {
             attrs.contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
     private fun RBuilder.renderParticipants() {
-        child(contestParticipants) {
+        contestParticipantsMenu {
             attrs.contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
     private fun RBuilder.renderInfo() {
-        child(contestInfo) {
+        contestInfoMenu {
             attrs.contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
