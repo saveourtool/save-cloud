@@ -45,11 +45,12 @@ class FileStorage(
      * @param pathToContent
      * @return true if there is 4 parts between pathToContent and rootDir
      */
+    @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean {
         val partsCount = generateSequence(pathToContent, Path::getParent)
             .takeWhile { it != rootDir }
             .count()
-        return partsCount == 4
+        return partsCount == 4 // organization + project + uploadedMills + fileName
     }
 
     /**
