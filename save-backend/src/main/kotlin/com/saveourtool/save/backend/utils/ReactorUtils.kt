@@ -4,11 +4,14 @@
 
 package com.saveourtool.save.backend.utils
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toFlux
+import java.nio.ByteBuffer
 import java.util.Optional
 
 /**
@@ -40,6 +43,14 @@ inline fun <T> Flux<T>.filterWhenAndInvoke(crossinline onExclude: (T) -> Unit, c
         }
     }
 }
+
+/**
+ * @param objectMapper
+ * @return convert current object to [Flux] of [ByteBuffer] as Json string using [objectMapper]
+ */
+fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
+    .map { ByteBuffer.wrap(it) }
+    .toFlux()
 
 /**
  * @param data

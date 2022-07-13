@@ -1,6 +1,8 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.format
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -84,7 +86,7 @@ class Execution(
 
     var sdk: String,
 
-    var additionalFiles: String?,
+    var additionalFiles: String,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -115,7 +117,6 @@ class Execution(
         matchedChecks,
         expectedChecks,
         unexpectedChecks,
-        parseAndGetAdditionalFiles(),
     )
 
     /**
@@ -142,27 +143,29 @@ class Execution(
     /**
      * Parse and get additionalFiles as List<String>
      *
-     * @return list of additional files
+     * @return list of keys [FileKey] of additional files
      */
-    fun parseAndGetAdditionalFiles(): List<String>? = this.additionalFiles
-        ?.split(ADDITIONAL_FILES_DELIMITER)
-        ?.filter { it.isNotBlank() }
+    fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
 
     /**
      * Appends additional file to existed formatted String
      *
-     * @param additionalFile a new additional file
+     * @param fileKey a new key [FileKey] to additional file
      */
-    fun appendAdditionalFile(additionalFile: String) {
-        additionalFiles = if (!additionalFiles.isNullOrEmpty()) {
-            additionalFiles + ADDITIONAL_FILES_DELIMITER + additionalFile
-        } else {
-            additionalFile
-        }
+    fun appendAdditionalFile(fileKey: FileKey) {
+        additionalFiles += FileKey.OBJECT_DELIMITER + fileKey.format()
+    }
+
+    /**
+     * Format and set provided list of [FileKey]
+     *
+     * @param fileKeys list of [FileKey]
+     */
+    fun formatAndSetAdditionalFile(fileKeys: List<FileKey>) {
+        additionalFiles = fileKeys.format()
     }
 
     companion object {
-        private const val ADDITIONAL_FILES_DELIMITER = ";"
         private const val TEST_SUITE_IDS_DELIMITER = ", "
 
         /**
@@ -191,7 +194,7 @@ class Execution(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = Sdk.Default.toString(),
-            additionalFiles = null,
+            additionalFiles = "",
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,

@@ -13,8 +13,6 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.domain.Jdk
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.toFileInfo
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -54,13 +52,10 @@ import reactor.core.publisher.Mono
 import java.nio.file.Path
 import java.time.Duration
 
-import kotlin.io.path.createFile
-
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(
     WebSecurityConfig::class,
     WebConfig::class,
-    TimestampBasedFileSystemRepository::class,
     FileStorage::class,
     AvatarStorage::class,
     ConvertingAuthenticationManager::class,
@@ -86,7 +81,6 @@ class CloningRepositoryControllerTest {
     ).apply {
         id = 1
     }
-    @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
 
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -137,21 +131,8 @@ class CloningRepositoryControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponseForBin() {
-        val binFile = tmpDir.resolve("binFile").apply {
-            createFile()
-        }
-        val property = tmpDir.resolve("property").apply {
-            createFile()
-        }
-        fileSystemRepository.saveFile(binFile, ProjectCoordinates("Huawei", "huaweiName"))
-        fileSystemRepository.saveFile(property, ProjectCoordinates("Huawei", "huaweiName"))
-
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)
-        val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("execution", request)
-        bodyBuilder.part("file", property.toFileInfo())
-        bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
             "/uploadBin",
@@ -163,8 +144,7 @@ class CloningRepositoryControllerTest {
 
         webTestClient.post()
             .uri("/api/$v1/executionRequestStandardTests")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)

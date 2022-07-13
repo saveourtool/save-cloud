@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
@@ -28,7 +29,7 @@ class ExecutionService(
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
-    private val testDataFilesystemRepository: TestDataFilesystemRepository,
+    private val executionInfoStorage: ExecutionInfoStorage,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -70,7 +71,7 @@ class ExecutionService(
         log.debug("Updating execution $execution")
         executionRepository.findById(execution.id).ifPresentOrElse({
             it.status = execution.status
-            execution.failReason?.let { testDataFilesystemRepository.save(execution) }
+            execution.failReason?.let { executionInfoStorage.upsert(execution) }
             if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
                 // execution is completed, we can update end time
                 it.endTime = LocalDateTime.now()

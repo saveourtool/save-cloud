@@ -2,6 +2,7 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
@@ -23,10 +24,8 @@ import com.saveourtool.save.preprocessor.utils.generateDirectory
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import okio.FileSystem
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.TransportException
@@ -42,7 +41,6 @@ import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
@@ -61,9 +59,6 @@ import reactor.util.function.Tuple2
 
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.time.Duration
 
 import kotlin.io.path.ExperimentalPathApi
@@ -99,40 +94,26 @@ class DownloadProjectController(
 
     /**
      * @param executionRequest Dto of repo information to clone and project info
-     * @param files resources required for execution
-     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
     @Suppress("TOO_LONG_FUNCTION")
     @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun upload(
-        @RequestPart(required = true) executionRequest: ExecutionRequest,
-        @RequestPart("fileInfo", required = false) fileInfos: Flux<FileInfo>,
-        @RequestPart("file", required = false) files: Flux<FilePart>,
+        @RequestBody executionRequest: ExecutionRequest,
     ): Mono<TextResponse> = Mono.just(ResponseEntity(executionResponseBody(executionRequest.executionId), HttpStatus.ACCEPTED))
         .doOnSuccess {
             downLoadRepository(executionRequest)
                 .flatMap { (location, version) ->
                     val testRootPath = executionRequest.testRootPath
                     val testRootAbsolutePath = getResourceLocationForGit(location, testRootPath)
-                    log.info("Downloading additional files into $testRootAbsolutePath")
-                    files.zipWith(fileInfos).download(testRootAbsolutePath)
-                        .switchIfEmpty(
-                            // if no files have been provided, proceed with empty list
-                            Mono.just(emptyList())
-                        )
-                        .doOnNext {
-                            log.info("Downloaded ${it.size} files into $testRootAbsolutePath")
-                        }.flatMap {
-                            initializeTestSuitesAndTests(executionRequest.project, testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
-                                .flatMap { testsSuites ->
-                                    updateExecution(
-                                        executionRequest.project,
-                                        location,
-                                        version,
-                                        testsSuites.map { it.requiredId() }
-                                    )
-                                }
+                    initializeTestSuitesAndTests(executionRequest.project, testRootPath, testRootAbsolutePath, executionRequest.gitDto.url)
+                        .flatMap { testsSuites ->
+                            updateExecution(
+                                executionRequest.project,
+                                location,
+                                version,
+                                testsSuites.map { it.requiredId() }
+                            )
                         }
                 }
                 .flatMap { it.executeTests() }
@@ -142,21 +123,14 @@ class DownloadProjectController(
 
     /**
      * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
-     * @param files resources for execution
-     * @param fileInfos a list of [FileInfo]s associated with [files]
      * @return response entity with text
      */
-    @PostMapping(value = ["/uploadBin"], consumes = ["multipart/form-data"])
+    @PostMapping(value = ["/uploadBin"])
     fun uploadBin(
-        @RequestPart executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        @RequestPart("file", required = true) files: Flux<FilePart>,
-        @RequestPart("fileInfo", required = true) fileInfos: Flux<FileInfo>,
+        @RequestBody executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
     ) = Mono.just(ResponseEntity(executionResponseBody(executionRequestForStandardSuites.executionId), HttpStatus.ACCEPTED))
         .doOnSuccess {
-            files.zipWith(fileInfos).download(File(FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()))
-                .flatMap { files ->
-                    saveBinaryFile(executionRequestForStandardSuites, files)
-                }
+            executeTestFromStandardTestSuites(executionRequestForStandardSuites)
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -178,13 +152,12 @@ class DownloadProjectController(
                 .flatMap { cleanupInOrchestrator(executionRerunRequest.executionId!!) }
                 .flatMap { getExecution(executionRerunRequest.executionId!!) }
                 .map { execution ->
-                    val files = execution.parseAndGetAdditionalFiles()?.map { File(it) } ?: emptyList()
-                    execution to files
+                    val fileKeys = execution.parseAndGetAdditionalFiles()
+                    execution to fileKeys
                 }
-                .zipWhen { (execution, files) -> getResourceLocation(executionRerunRequest, execution.type, files) }
-                .map { (executionAndFiles, testRootAbsolutePath) ->
-                    copyAdditionalFiles(executionAndFiles.second, testRootAbsolutePath)
-                    executionAndFiles.first
+                .zipWhen { (execution, fileKeys) -> getResourceLocation(executionRerunRequest, execution.type, fileKeys) }
+                .map { (executionAndFileKeys, _) ->
+                    executionAndFileKeys.first
                 }
                 .doOnNext {
                     log.info { "Skip initializing tests for execution.id = ${it.id}: it's rerun" }
@@ -193,23 +166,6 @@ class DownloadProjectController(
                 .subscribeOn(scheduler)
                 .subscribe()
         }
-
-    private fun copyAdditionalFiles(files: List<File>, resourcesLocation: File) {
-        files.forEach { file ->
-            log.debug { "Copy additional file $file into ${resourcesLocation.resolve(file.name)}" }
-            Files.copy(
-                Paths.get(file.absolutePath),
-                Paths.get(resourcesLocation.resolve(file.name).absolutePath),
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.COPY_ATTRIBUTES
-            )
-            // FixMe: currently it's quite rough solution, to make all additional files executable
-            // FixMe: https://github.com/saveourtool/save-cloud/issues/442
-            if (!resourcesLocation.resolve(file.name).setExecutable(true)) {
-                log.warn("Failed to mark file ${resourcesLocation.resolve(file.name)} as executable")
-            }
-        }
-    }
 
     /**
      * Controller to download standard test suites
@@ -318,34 +274,28 @@ class DownloadProjectController(
             }
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
-    private fun saveBinaryFile(
+    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
+    private fun executeTestFromStandardTestSuites(
         executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-        files: List<File>,
-    ): Mono<StatusResponse> {
-        // Move files into local storage
-        val tmpDir = generateDirectory(calculateTmpNameForFiles(files), configProperties.repository)
-        files.forEach {
-            log.debug("Move $it into $tmpDir")
-            moveFileWithAttributes(it, tmpDir)
+    ): Mono<StatusResponse> = getExecution(executionRequestForStandardSuites.executionId!!)
+        .flatMap { execution ->
+            // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
+            val version = execution.parseAndGetAdditionalFiles().first().name
+            val execCmd = executionRequestForStandardSuites.execCmd
+            val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
+            getStandardTestSuiteIds(executionRequestForStandardSuites.testSuites)
+                .flatMap { testSuiteIds ->
+                    updateExecution(
+                        executionRequestForStandardSuites.project,
+                        "N/A",
+                        version,
+                        testSuiteIds,
+                        execCmd,
+                        batchSizeForAnalyzer,
+                    )
+                }
+                .flatMap { it.executeTests() }
         }
-        // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
-        val version = files.first().name
-        val execCmd = executionRequestForStandardSuites.execCmd
-        val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
-        return getStandardTestSuiteIds(executionRequestForStandardSuites.testSuites)
-            .flatMap { testSuiteIds ->
-                updateExecution(
-                    executionRequestForStandardSuites.project,
-                    tmpDir.name,
-                    version,
-                    testSuiteIds,
-                    execCmd,
-                    batchSizeForAnalyzer,
-                )
-            }
-            .flatMap { it.executeTests() }
-    }
 
     private fun getStandardTestSuiteIds(testSuiteNames: List<String>): Mono<List<Long>> = webClientBackend.post()
         .uri("/test-suites/standard/ids-by-name")
@@ -381,9 +331,9 @@ class DownloadProjectController(
         .resolve(location)
         .resolve(testRootPath)
 
-    private fun calculateTmpNameForFiles(files: List<File>) = files.map { it.toHash() }.sorted()
+    private fun calculateTmpNameForFileKeys(fileKeys: List<FileKey>) = fileKeys.map { it.format() }.sorted()
 
-    private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, files: List<File>) =
+    private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, fileKeys: List<FileKey>) =
             when (executionType) {
                 ExecutionType.GIT ->
                     Mono.fromCallable {
@@ -394,7 +344,7 @@ class DownloadProjectController(
                     }
                 ExecutionType.STANDARD ->
                     // In standard mode we will calculate location later, according list of additional files
-                    Mono.fromCallable { getTmpDirName(calculateTmpNameForFiles(files), configProperties.repository) }
+                    Mono.fromCallable { getTmpDirName(calculateTmpNameForFileKeys(fileKeys), configProperties.repository) }
             }
 
     private fun getExecution(executionId: Long) = webClientBackend.get()
