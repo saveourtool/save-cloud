@@ -30,7 +30,7 @@ abstract class AbstractFileBasedStorage<K>(
     override fun list(): Flux<K> = Files.walk(rootDir)
         .toFlux()
         .filter { it.isRegularFile() }
-        .filter { isKey(it) }
+        .filter { isKey(rootDir, it) }
         .map { buildKey(rootDir, it) }
 
     override fun doesExist(key: K): Mono<Boolean> = Mono.fromCallable { buildPathToContent(key).exists() }
@@ -69,10 +69,11 @@ abstract class AbstractFileBasedStorage<K>(
     }
 
     /**
+     * @param rootDir
      * @param pathToContent
      * @return true if provided path is key for content of this storage otherwise - false
      */
-    protected open fun isKey(pathToContent: Path): Boolean = true
+    protected open fun isKey(rootDir: Path, pathToContent: Path): Boolean = true
 
     /**
      * @param rootDir
