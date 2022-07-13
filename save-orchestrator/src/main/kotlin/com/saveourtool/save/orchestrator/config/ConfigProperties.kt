@@ -69,6 +69,7 @@ data class ConfigProperties(
         val apiServerUrl: String,
         val serviceAccount: String,
         val namespace: String,
+        val useGvisor: Boolean,
     )
 
     /**

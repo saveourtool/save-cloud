@@ -56,7 +56,7 @@ class DockerService(private val configProperties: ConfigProperties,
                     internal val dockerContainerManager: DockerContainerManager,
                     private val agentRunner: AgentRunner,
 ) {
-    private val executionDir = "/run/save-execution"
+    private val executionDir = "/home/save-agent/save-execution"
 
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)

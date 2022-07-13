@@ -107,6 +107,9 @@ class DockerContainerManager(
         val dockerFileAsText = buildString {
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
+            appendLine("RUN useradd --create-home --shell /bin/sh save-agent")
+            appendLine("USER save-agent")
+            appendLine("WORKDIR /home/save-agent")
             if (resourcesPath != null) {
                 appendLine("COPY resources $resourcesPath")
                 runOnResourcesCmd?.let(::appendLine)

@@ -4,6 +4,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.utils.warn
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -60,6 +61,11 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
+                        if (configProperties.kubernetes?.useGvisor == true) {
+                            nodeSelector = mapOf(
+                                "gvisor" to "enabled"
+                            )
+                        }
                         containers = listOf(
                             Container().apply {
                                 name = "save-agent-pod"
@@ -75,7 +81,10 @@ class KubernetesManager(
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
                                 if (!configProperties.docker.runtime.isNullOrEmpty()) {
-                                    runtimeClassName = configProperties.docker.runtime
+                                    logger.warn {
+                                        "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
+                                                "because custom runtimes are not supported yet"
+                                    }
                                 }
                                 env = listOf(
                                     EnvVar().apply {
