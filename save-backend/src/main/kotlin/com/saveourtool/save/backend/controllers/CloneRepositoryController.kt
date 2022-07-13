@@ -36,6 +36,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.nio.ByteBuffer
 
 /**
  * Controller to save project
@@ -180,7 +181,7 @@ class CloneRepositoryController(
             val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
             execution.appendAdditionalFile(path.toString())
             multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
+            multipartBodyBuilder.asyncPart("file", additionalToolsFileSystemRepository.getFileContent(it, projectCoordinates), ByteBuffer::class.java)
         }
             .collectList()
             .switchIfEmpty(Mono.just(emptyList()))

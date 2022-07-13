@@ -9,6 +9,8 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.storage.AvatarStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.domain.ProjectCoordinates
@@ -59,6 +61,8 @@ import kotlin.io.path.createFile
     WebSecurityConfig::class,
     WebConfig::class,
     TimestampBasedFileSystemRepository::class,
+    FileStorage::class,
+    AvatarStorage::class,
     ConvertingAuthenticationManager::class,
     UserDetailsService::class,
 )

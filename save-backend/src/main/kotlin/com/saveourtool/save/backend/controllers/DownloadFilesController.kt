@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.backend.ByteArrayResponse
+import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
@@ -28,8 +28,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 import java.io.FileNotFoundException
-
-import kotlin.io.path.*
 
 /**
  * A Spring controller for file downloading
@@ -96,11 +94,11 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteArrayResponse> = Mono.fromCallable {
+    ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileInfo.name} to a client")
         ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(
-            additionalToolsFileSystemRepository.getFile(fileInfo, ProjectCoordinates(organizationName, projectName)).inputStream.readAllBytes()
-        )
+            additionalToolsFileSystemRepository.getFileContent(fileInfo, ProjectCoordinates(organizationName, projectName)
+            ))
     }
         .doOnError(FileNotFoundException::class.java) {
             logger.warn("File $fileInfo is not found", it)
@@ -196,15 +194,12 @@ class DownloadFilesController(
     ): String {
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
-        val debugInfoFile = testDataFilesystemRepository.getLocation(
-            executionId,
-            testResultLocation
-        )
-        return if (debugInfoFile.notExists()) {
-            logger.warn("File $debugInfoFile not found")
+
+        return if (!testDataFilesystemRepository.doesDebugInfoExist(executionId, testResultLocation)) {
+            logger.warn("Additional file for $executionId and $testResultLocation not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         } else {
-            debugInfoFile.readText()
+            testDataFilesystemRepository.getDebugInfoContent(executionId, testResultLocation)
         }
     }
 
@@ -233,13 +228,12 @@ class DownloadFilesController(
     ): String {
         logger.debug("Processing getExecutionInfo : $testExecutionDto")
         val executionId = getExecutionId(testExecutionDto)
-        val executionInfoFile = testDataFilesystemRepository.getExecutionInfoFile(executionId).file
-        return if (executionInfoFile.exists()) {
-            val text = executionInfoFile.readText()
-            logger.debug("Sending $executionInfoFile : $text")
+        return if (testDataFilesystemRepository.doesExecutionInfoExist(executionId)) {
+            val text = testDataFilesystemRepository.getExecutionInfoContent(executionId)
+            logger.debug("Sending ExecutionInfo for $executionId : $text")
             text
         } else {
-            logger.debug("File ${executionInfoFile.absolutePath} not found")
+            logger.debug("ExecutionInfo for $executionId not found")
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "File not found")
         }
     }
