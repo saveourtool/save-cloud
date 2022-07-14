@@ -12,12 +12,13 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
-import com.saveourtool.save.domain.Jdk
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockResponse
@@ -48,9 +49,11 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.time.Duration
+import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(
@@ -81,6 +84,7 @@ class CloningRepositoryControllerTest {
     ).apply {
         id = 1
     }
+    @Autowired private lateinit var fileStorage: FileStorage
 
     @Autowired
     lateinit var webTestClient: WebTestClient
@@ -131,8 +135,25 @@ class CloningRepositoryControllerTest {
     @Test
     @WithMockUser(username = "John Doe")
     fun checkNewJobResponseForBin() {
+        val binFile = tmpDir.resolve("binFile").apply {
+            createFile()
+        }
+        val property = tmpDir.resolve("property").apply {
+            createFile()
+        }
+        fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
+            binFile.toFileInfo().toFileKey(),
+            binFile.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
+        fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
+            property.toFileInfo().toFileKey(),
+            property.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
+
         val sdk = Jdk("8")
         val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)
+        val bodyBuilder = MultipartBodyBuilder()
+        bodyBuilder.part("execution", request)
+        bodyBuilder.part("file", property.toFileInfo())
+        bodyBuilder.part("file", binFile.toFileInfo())
 
         mockServerPreprocessor.enqueue(
             "/uploadBin",
@@ -144,7 +165,8 @@ class CloningRepositoryControllerTest {
 
         webTestClient.post()
             .uri("/api/$v1/executionRequestStandardTests")
-            .bodyValue(request)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)

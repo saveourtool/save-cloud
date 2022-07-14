@@ -35,7 +35,7 @@ data class FileKey(
          * @param str
          * @return [FileKey] parsed from provided string
          */
-        fun parse(str: String): FileKey {
+        private fun parse(str: String): FileKey {
             val (name, uploadedMillis) = str.split(FIELD_DELIMITER)
             return FileKey(name, uploadedMillis.toLong())
         }
