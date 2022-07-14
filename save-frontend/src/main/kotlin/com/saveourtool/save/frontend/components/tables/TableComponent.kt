@@ -14,6 +14,16 @@ import com.saveourtool.save.frontend.utils.spread
 import csstype.ClassName
 
 import org.w3c.fetch.Response
+import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.em
+import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.table
+import react.dom.html.ReactHTML.tbody
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.thead
+import react.dom.html.ReactHTML.tr
 import react.table.Column
 import react.table.PluginHook
 import react.table.Row
@@ -33,16 +43,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import react.*
-import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.em
-import react.dom.html.ReactHTML.h6
-import react.dom.html.ReactHTML.span
-import react.dom.html.ReactHTML.table
-import react.dom.html.ReactHTML.tbody
-import react.dom.html.ReactHTML.th
-import react.dom.html.ReactHTML.thead
-import react.dom.html.ReactHTML.tr
 
 /**
  * [Props] of a data table
@@ -66,7 +66,7 @@ external interface TableProps<D : Any> : Props {
 }
 
 /**
- * A `RComponent` for a data table
+ * A `Component` for a data table
  *
  * @param columns columns as an array of [Column]
  * @param initialPageSize initial size of table page
@@ -77,6 +77,7 @@ external interface TableProps<D : Any> : Props {
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
+ * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
 @OptIn(ExperimentalCoroutinesApi::class)

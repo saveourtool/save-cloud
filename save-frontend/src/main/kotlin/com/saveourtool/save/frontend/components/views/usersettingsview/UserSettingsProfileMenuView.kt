@@ -5,7 +5,6 @@ import com.saveourtool.save.frontend.components.basic.cardComponent
 import csstype.ClassName
 
 import react.FC
-import react.dom.*
 
 import react.dom.html.ButtonType
 import react.dom.html.InputType

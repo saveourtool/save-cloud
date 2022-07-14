@@ -19,29 +19,23 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.Background
+import csstype.ClassName
 import org.w3c.fetch.Headers
-import react.Context
-import react.PropsWithChildren
-import react.RBuilder
-import react.RStatics
-import react.State
-import react.buildElement
-import react.dom.a
-import react.dom.button
-import react.dom.div
-import react.dom.td
-import react.setState
+import react.*
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.td
 import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 
 /**
- * [RProps] for tests execution history
+ * [Props] for tests execution history
  */
 external interface HistoryProps : PropsWithChildren {
     /**
@@ -110,83 +104,93 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                         ResultColorAndIcon("text-success", faCheck)
                     }
                 }
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
                             fontAwesomeIcon(result.resIcon, classes = result.resColor)
                         }
                     }
                 }
             }
             column("status", "Status", { status }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
                             +"${cellProps.value}"
                         }
                     }
                 }
             }
             column("startDate", "Start time", { startTime }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
                 }
             }
             column("endDate", "End time", { endTime }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, null)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
                 }
             }
             column("running", "Running", { runningTests }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.RUNNING)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.RUNNING)
                             +"${cellProps.value}"
                         }
                     }
                 }
             }
             column("passed", "Passed", { passedTests }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.PASSED)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.PASSED)
                             +"${cellProps.value}"
                         }
                     }
                 }
             }
             column("failed", "Failed", { failedTests }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.FAILED)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.FAILED)
                             +"${cellProps.value}"
                         }
                     }
                 }
             }
             column("skipped", "Skipped", { skippedTests }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.IGNORED)) {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.IGNORED)
                             +"${cellProps.value}"
                         }
                     }
                 }
             }
             column("checkBox", "") { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        button(type = ButtonType.button, classes = "btn btn-small") {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-small")
                             fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                            attrs.onClickFunction = {
+                            onClick = {
                                 deleteExecution(cellProps.value.id)
                             }
                         }
@@ -214,7 +218,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "ForbiddenComment",
         "LongMethod",
     )
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isConfirmWindowOpen = false } }) {
             deleteExecutionsBuilder()
             setState { isConfirmWindowOpen = false }
@@ -226,16 +230,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         }
         div {
-            button(type = ButtonType.button, classes = "btn btn-danger mb-4") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-danger mb-4")
+                onClick = {
                     deleteExecutions()
                 }
                 +"Delete all executions"
             }
         }
-        child(executionsTable) {
-            attrs.tableHeader = "Executions details"
-            attrs.getData = { _, _ ->
+        executionsTable {
+            tableHeader = "Executions details"
+            getData = { _, _ ->
                 get(
                     url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
                     headers = Headers().also {
@@ -247,7 +253,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                         it.decodeFromJsonString<Array<ExecutionDto>>()
                     }
             }
-            attrs.getPageCount = null
+            getPageCount = null
         }
     }
 

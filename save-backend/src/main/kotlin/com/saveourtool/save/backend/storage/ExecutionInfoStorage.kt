@@ -15,10 +15,11 @@ class ExecutionInfoStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<Long>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
     /**
+     * @param rootDir
      * @param pathToContent
      * @return true if filename is [FILE_NAME]
      */
-    override fun isKey(pathToContent: Path): Boolean = pathToContent.name == FILE_NAME
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name == FILE_NAME
 
     /**
      * @param rootDir

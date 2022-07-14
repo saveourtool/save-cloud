@@ -24,13 +24,11 @@ import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.Background
-import csstype.Color
-import csstype.Cursor
-import csstype.TextDecoration
+import csstype.*
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
@@ -41,13 +39,12 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
- * [RProps] for execution results view
+ * [Props] for execution results view
  */
 external interface ExecutionProps : PropsWithChildren {
     /**
@@ -117,7 +114,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 }
 
 /**
- * A [RComponent] for execution view
+ * A Component for execution view
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
@@ -176,14 +173,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
                     }
                 }
             }
             column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +"${
                             cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
@@ -193,7 +190,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +"${
                             cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
@@ -203,28 +200,28 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "status", header = "Status", { status.name }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +it.value
                     }
                 }
             }
             column(id = "missing", header = "Missing", { unmatched }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value ?: ""}"
                     }
                 }
             }
             column(id = "matched", header = "Matched", { matched }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value ?: ""}"
                     }
                 }
             }
-            column(id = "path", header = "File path") { cellProps ->
-                buildElement {
+            column(id = "path", header = "File name") { cellProps ->
+                Fragment.create {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
 
@@ -235,14 +232,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         // debug info is provided by agent after the execution
                         // possibly there can be cases when this info is not available
                         if (cellProps.value.hasDebugInfo == true) {
-                            attrs["style"] = jso<CSSProperties> {
+                            style = jso {
                                 textDecoration = "underline".unsafeCast<TextDecoration>()
                                 color = "blue".unsafeCast<Color>()
                                 cursor = "pointer".unsafeCast<Cursor>()
                             }
 
-                            attrs.onClickFunction = {
-                                scope.launch {
+                            onClick = {
+                                this@ExecutionView.scope.launch {
                                     val testExecution = cellProps.value
                                     val trDebugInfoRequest = getDebugInfoFor(testExecution)
                                     if (trDebugInfoRequest.ok) {
@@ -262,28 +259,28 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "plugin", header = "Plugin type", { pluginName }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +it.value
                     }
                 }
             }
             column(id = "suiteName", header = "Test suite", { testSuiteName }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value}"
                     }
                 }
             }
             column(id = "tags", header = "Tags") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value.tags}"
                     }
                 }
             }
             column(id = "agentId", header = "Agent ID") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value.agentContainerId}".takeLast(12)
                     }
@@ -380,10 +377,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         "ComplexMethod",
         "LongMethod"
     )
-    override fun RBuilder.render() {
-        console.log("Execution View : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
+    override fun ChildrenBuilder.render() {
         div {
-            div("d-flex") {
+            div {
+                className = ClassName("d-flex")
                 val statusVal = state.executionDto?.status
                 val statusColor = when (statusVal) {
                     ExecutionStatus.ERROR -> "bg-danger"
@@ -392,28 +389,39 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     else -> "bg-secondary"
                 }
 
-                div("col-md-2 mb-4") {
-                    div("card $statusColor text-white h-100 shadow py-2") {
-                        div("card-body") {
+                div {
+                    className = ClassName("col-md-2 mb-4")
+                    div {
+                        className = ClassName("card $statusColor text-white h-100 shadow py-2")
+                        div {
+                            className = ClassName("card-body")
                             +(statusVal?.name ?: "N/A")
-                            div("text-white-50 small") { +"Project version: ${(state.executionDto?.version ?: "N/A")}" }
+                            div {
+                                className = ClassName("text-white-50 small")
+                                +"Project version: ${(state.executionDto?.version ?: "N/A")}"
+                            }
                         }
                     }
                 }
 
                 executionStatistics {
-                    attrs.executionDto = state.executionDto
+                    executionDto = state.executionDto
                 }
 
-                div("col-md-3 mb-4") {
-                    div("card border-left-info shadow h-100 py-2") {
-                        div("card-body") {
-                            div("row no-gutters align-items-center mx-auto") {
-                                a("") {
+                div {
+                    className = ClassName("col-md-3 mb-4")
+                    div {
+                        className = ClassName("card border-left-info shadow h-100 py-2")
+                        div {
+                            className = ClassName("card-body")
+                            div {
+                                className = ClassName("row no-gutters align-items-center mx-auto")
+                                a {
+                                    href = ""
                                     +"Rerun execution"
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-                                    attrs.onClickFunction = { event ->
+                                    onClick = { event ->
                                         scope.launch {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
@@ -438,11 +446,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            attrs.status = state.status
-            attrs.testName = state.testName
-            attrs.testSuite = state.testSuite
-            attrs.tag = state.tag
-            attrs.getData = { page, size ->
+            status = state.status
+            testName = state.testName
+            testSuite = state.testSuite
+            tag = state.tag
+            getData = { page, size ->
                 val paramString = setStatusAndNameAndSuiteAndTag()
                 console.log(paramString)
                 console.log("Execution View 1  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
@@ -460,22 +468,25 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         asDynamic().debugInfo = null
                 }
             }
-            attrs.getPageCount = { pageSize ->
+            getPageCount = { pageSize ->
                 val paramString = setStatusAndNameAndSuiteAndTag()
                 console.log(paramString)
                 console.log("Execution View 2  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$paramString",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                ).json().await().unsafeCast<Int>()
+                )
+                    .json()
+                    .await()
+                    .unsafeCast<Int>()
                 count / pageSize + 1
             }
         }
         executionTestsNotFound {
-            attrs.executionDto = state.executionDto
+            executionDto = state.executionDto
         }
     }
 

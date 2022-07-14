@@ -32,13 +32,49 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.html.hidden
 import kotlinx.js.jso
 
 /**
  * Component used to upload file
  */
 val fileUploader = fileUploader()
+
+/**
+ * A component for file icon that changes depending on executable flag
+ */
+@Suppress("TYPE_ALIAS", "EMPTY_BLOCK_STRUCTURE_ERROR")
+private val fileIconWithMode: FC<FileIconProps> = FC { props ->
+    span {
+        className = ClassName("fa-layers mr-3")
+        title = "Click to mark file ${if (props.fileInfo.isExecutable) "regular" else "executable"}"
+        asDynamic()["data-toggle"] = "tooltip"
+        asDynamic()["data-placement"] = "top"
+        // if file was not executable, after click it will be; and vice versa
+        onClick = { _ ->
+            // hide previous tooltip, otherwise it gets stuck during re-render
+            val jquery = kotlinext.js.require("jquery")
+            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
+            props.onExecutableChange(props.fileInfo, !props.fileInfo.isExecutable)
+        }
+        onDoubleClick = {}
+        val checked = props.fileInfo.isExecutable
+        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
+            if (checked) {
+                asDynamic()["color"] = "Green"
+            }
+        }
+        span {
+            className = ClassName("fa-layers-text file-extension fa-inverse pl-2 pt-2 small")
+            onDoubleClick = {}
+            asDynamic()["data-fa-transform"] = "down-3 shrink-12.5"
+            if (checked) {
+                +"exe"
+            } else {
+                +"file"
+            }
+        }
+    }
+}
 
 /**
  * Props for file uploader
@@ -117,44 +153,19 @@ external interface UploaderProps : PropsWithChildren {
 }
 
 /**
- * A component for file icon that changes depending on executable flag
- *
- * @param fileInfo a [FileInfo] to base the icon on
- * @param onExecutableChange a handler that is invoked when icon is clicked
- * @return a functional component
+ * [Props] for [fileIconWithMode] component
  */
-@Suppress("TYPE_ALIAS", "EMPTY_BLOCK_STRUCTURE_ERROR")
-internal fun fileIconWithMode(fileInfo: FileInfo, onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit) = FC<Props> {
-    span {
-        className = ClassName("fa-layers mr-3")
-        title = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
-        asDynamic()["data-toggle"] = "tooltip"
-        asDynamic()["data-placement"] = "top"
-        // if file was not executable, after click it will be; and vice versa
-        onClick = { _ ->
-            // hide previous tooltip, otherwise it gets stuck during re-render
-            val jquery = kotlinext.js.require("jquery")
-            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
-            onExecutableChange(fileInfo, !fileInfo.isExecutable)
-        }
-        onDoubleClick = {}
-        val checked = fileInfo.isExecutable
-        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
-            if (checked) {
-                asDynamic()["color"] = "Green"
-            }
-        }
-        span {
-            className = ClassName("fa-layers-text file-extension fa-inverse pl-2 pt-2 small")
-            onDoubleClick = {}
-            asDynamic()["data-fa-transform"] = "down-3 shrink-12.5"
-            if (checked) {
-                +"exe"
-            } else {
-                +"file"
-            }
-        }
-    }
+external interface FileIconProps : Props {
+    /**
+     * [FileInfo] to base the icon on
+     */
+    var fileInfo: FileInfo
+
+    /**
+     * a handler that is invoked when icon is clicked
+     */
+    @Suppress("TYPE_ALIAS")
+    var onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
 }
 
 @Suppress(
@@ -203,7 +214,10 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                                 props.onFileDelete(fileInfo)
                             }
                         }
-                        fileIconWithMode(fileInfo, props.onExecutableChange)
+                        fileIconWithMode {
+                            this.fileInfo = fileInfo
+                            this.onExecutableChange = props.onExecutableChange
+                        }
                         +fileInfo.toPrettyString()
                     }
                 }

@@ -11,20 +11,25 @@ import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 
+import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.Props
-import react.RBuilder
-import react.State
+import react.*
 import react.dom.*
-import react.setState
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
-import kotlinx.html.ButtonType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -49,7 +54,7 @@ external interface OrganizationSaveViewState : State {
 }
 
 /**
- * A functional RComponent for organization creation view
+ * A functional Component for organization creation view
  *
  * @return a functional component
  */
@@ -117,8 +122,13 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         return valid
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
-    override fun RBuilder.render() {
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "LongMethod",
+        "MAGIC_NUMBER"
+    )
+    override fun ChildrenBuilder.render() {
         runErrorModal(
             state.isErrorWithOrganizationSave,
             "Error appeared during organization creation",
@@ -127,30 +137,43 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
             setState { isErrorWithOrganizationSave = false }
         }
 
-        main("main-content mt-0 ps") {
-            div("page-header align-items-start min-vh-100") {
-                span("mask bg-gradient-dark opacity-6") {}
-                div("row justify-content-center") {
-                    div("col-sm-4") {
-                        div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
-                            div("p-5 text-center") {
-                                h1("h4 text-gray-900 mb-4") {
+        main {
+            className = ClassName("main-content mt-0 ps")
+            div {
+                className = ClassName("page-header align-items-start min-vh-100")
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
+                div {
+                    className = ClassName("row justify-content-center")
+                    div {
+                        className = ClassName("col-sm-4")
+                        div {
+                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            div {
+                                className = ClassName("p-5 text-center")
+                                h1 {
+                                    className = ClassName("h4 text-gray-900 mb-4")
                                     +"Create new organization"
                                 }
-                                img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                                    attrs.src = "img/company.svg"
-                                    attrs.height = "260"
-                                    attrs.width = "260"
+                                img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = "img/company.svg"
+                                    height = 260.0
+                                    width = 260.0
                                 }
-                                form(classes = "needs-validation") {
+                                form {
+                                    className = ClassName("needs-validation")
                                     div {
                                         inputTextFormRequired(InputTypes.ORGANIZATION_NAME, state.isValidOrganizationName!!, "", "Organization name", true) {
-                                            changeFields(InputTypes.ORGANIZATION_NAME, it)
+                                            changeFields(InputTypes.ORGANIZATION_NAME, it as Event)
                                         }
                                     }
-                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
+                                    button {
+                                        type = ButtonType.button
+                                        className = ClassName("btn btn-info mt-4 mr-3")
                                         +"Create organization"
-                                        attrs.onClick = {
+                                        onClick = {
                                             saveOrganization()
                                         }
                                     }

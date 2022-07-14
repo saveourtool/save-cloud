@@ -8,10 +8,6 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.aria.ariaDescribedBy
-import react.dom.button
-import react.dom.div
-import react.dom.em
-import react.dom.form
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
@@ -21,12 +17,7 @@ import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.dom.input
-import react.dom.option
-import react.dom.select
 import react.table.TableInstance
-
-import kotlinx.html.hidden
 
 /**
  * @param tableInstance

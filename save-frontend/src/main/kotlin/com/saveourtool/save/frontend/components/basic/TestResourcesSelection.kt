@@ -109,7 +109,7 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
  * @param setSelectedLanguageForStandardTests
  * @param setExecCmd
  * @param setBatchSize
- * @return an RComponent
+ * @return an Component
  */
 @Suppress(
     "LongMethod",
@@ -124,184 +124,183 @@ fun testResourcesSelection(
     setExecCmd: (ChangeEvent<HTMLInputElement>) -> Unit,
     setBatchSize: (ChangeEvent<HTMLInputElement>) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
-) =
-        FC<TestResourcesProps> { props ->
-            if (props.testingType == TestingType.CONTEST_MODE) {
-                label {
-                    className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0")
-                    +"Stay tuned! Contests will be here soon"
-                }
-            } else {
-                label {
-                    className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0")
-                    +"3. Specify test-resources that will be used for testing:"
-                }
-            }
+) = FC<TestResourcesProps> { props ->
+    if (props.testingType == TestingType.CONTEST_MODE) {
+        label {
+            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0")
+            +"Stay tuned! Contests will be here soon"
+        }
+    } else {
+        label {
+            className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0")
+            +"3. Specify test-resources that will be used for testing:"
+        }
+    }
 
+    div {
+        className = ClassName(cardStyleByTestingType(props, TestingType.CUSTOM_TESTS))
+
+        div {
+            className = ClassName("card-body ")
             div {
-                className = ClassName(cardStyleByTestingType(props, TestingType.CUSTOM_TESTS))
-
+                className = ClassName("input-group-sm mb-3")
                 div {
-                    className = ClassName("card-body ")
-                    div {
-                        className = ClassName("input-group-sm mb-3")
-                        div {
-                            className = ClassName("row")
-                            sup {
-                                className = ClassName("tooltip-and-popover")
-                                tabIndex = 0
-                                fontAwesomeIcon(icon = faQuestionCircle)
-                                asDynamic()["tooltip-placement"] = "top"
-                                asDynamic()["tooltip-title"] = ""
-                                asDynamic()["popover-placement"] = "left"
-                                asDynamic()["popover-title"] =
-                                        "Use the following link to read more about save format:"
-                                asDynamic()["popover-content"] =
-                                        "<a href =\"https://github.com/saveourtool/save-cli/blob/main/README.md\" > SAVE core README </a>"
-                                asDynamic()["data-trigger"] = "focus"
-                            }
-                            h6 {
-                                className = ClassName("d-inline ml-2")
-                                +"Git Url of your test suites (in save format):"
-                            }
-                        }
-                        div {
-                            className = ClassName("input-group-prepend")
-                            input {
-                                type = InputType.text
-                                className =
-                                        if (props.gitUrlFromInputField.isBlank() && props.isSubmitButtonPressed!!) {
-                                            ClassName("form-control is-invalid")
-                                        } else {
-                                            ClassName("form-control")
-                                        }
-                                if (props.gitUrlFromInputField.isNotBlank()) {
-                                    defaultValue = props.gitUrlFromInputField
-                                }
-
-                                placeholder = "https://github.com/my-project"
-                                onChange = {
-                                    updateGitUrlFromInputField(it)
-                                }
-                            }
-                        }
+                    className = ClassName("row")
+                    sup {
+                        className = ClassName("tooltip-and-popover")
+                        tabIndex = 0
+                        fontAwesomeIcon(icon = faQuestionCircle)
+                        asDynamic()["tooltip-placement"] = "top"
+                        asDynamic()["tooltip-title"] = ""
+                        asDynamic()["popover-placement"] = "left"
+                        asDynamic()["popover-title"] =
+                                "Use the following link to read more about save format:"
+                        asDynamic()["popover-content"] =
+                                "<a href =\"https://github.com/saveourtool/save-cli/blob/main/README.md\" > SAVE core README </a>"
+                        asDynamic()["data-trigger"] = "focus"
                     }
-
-                    div {
-                        className = ClassName("input-group-sm")
-                        div {
-                            className = ClassName("row")
-                            sup {
-                                className = ClassName("tooltip-and-popover")
-                                fontAwesomeIcon(icon = faQuestionCircle)
-                                tabIndex = 0
-                                asDynamic()["tooltip-placement"] = "top"
-                                asDynamic()["tooltip-title"] = ""
-                                asDynamic()["popover-placement"] = "left"
-                                asDynamic()["popover-title"] = "Keep in mind the following rules:"
-                                asDynamic()["popover-content"] = "Provide full name of your brach with `origin` prefix: origin/your_branch." +
-                                        " Or in aim to use the concrete commit just provide hash of it."
-                                asDynamic()["data-trigger"] = "focus"
-                            }
-                            h6 {
-                                className = ClassName("d-inline ml-2")
-                                +"Git branch or specific commit in your repository:"
-                            }
-                        }
-                        div {
-                            className = ClassName("input-group-prepend")
-                            input {
-                                type = InputType.text
-                                name = "itemText"
-                                key = "itemText"
-                                className = ClassName("form-control")
-                                if (props.gitBranchOrCommitFromInputField.isNotBlank()) {
-                                    defaultValue = props.gitBranchOrCommitFromInputField
-                                }
-                                placeholder = "leave empty if you would like to use default branch with latest commit"
-                                onChange = {
-                                    updateGitBranchOrCommitInputField(it)
-                                }
-                            }
-                        }
+                    h6 {
+                        className = ClassName("d-inline ml-2")
+                        +"Git Url of your test suites (in save format):"
                     }
-
-                    div {
-                        className = ClassName("input-group-sm mt-3")
-                        div {
-                            className = ClassName("row")
-                            sup {
-                                className = ClassName("tooltip-and-popover")
-                                tabIndex = 0
-                                fontAwesomeIcon(icon = faQuestionCircle)
-                                asDynamic()["tooltip-placement"] = "top"
-                                asDynamic()["tooltip-title"] = ""
-                                asDynamic()["popover-placement"] = "left"
-                                asDynamic()["popover-title"] = "Relative path to the root directory with tests"
-                                asDynamic()["popover-content"] = ProjectView.TEST_ROOT_DIR_HINT
-                                asDynamic()["data-trigger"] = "focus"
-                            }
-                            h6 {
-                                className = ClassName("d-inline ml-2")
-                                +"Relative path (to the root directory) of the test suites in the repo:"
-                            }
-                        }
-                        div {
-                            className = ClassName("input-group-prepend")
-                            input {
-                                type = InputType.text
-                                name = "itemText"
-                                key = "itemText"
-                                className = ClassName("form-control")
-                                value = props.testRootPath
-                                placeholder = "leave empty if tests are in the repository root"
-                                onChange = {
-                                    updateTestRootPath(it)
+                }
+                div {
+                    className = ClassName("input-group-prepend")
+                    input {
+                        type = InputType.text
+                        className =
+                                if (props.gitUrlFromInputField.isBlank() && props.isSubmitButtonPressed!!) {
+                                    ClassName("form-control is-invalid")
+                                } else {
+                                    ClassName("form-control")
                                 }
-                            }
+                        if (props.gitUrlFromInputField.isNotBlank()) {
+                            defaultValue = props.gitUrlFromInputField
+                        }
+
+                        placeholder = "https://github.com/my-project"
+                        onChange = {
+                            updateGitUrlFromInputField(it)
                         }
                     }
                 }
             }
 
             div {
-                className = ClassName(cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS))
+                className = ClassName("input-group-sm")
                 div {
-                    className = ClassName("card-body")
-                    suitesTable(
-                        props.standardTestSuites,
-                        props.selectedLanguageForStandardTests,
-                        setSelectedLanguageForStandardTests
-                    )
+                    className = ClassName("row")
+                    sup {
+                        className = ClassName("tooltip-and-popover")
+                        fontAwesomeIcon(icon = faQuestionCircle)
+                        tabIndex = 0
+                        asDynamic()["tooltip-placement"] = "top"
+                        asDynamic()["tooltip-title"] = ""
+                        asDynamic()["popover-placement"] = "left"
+                        asDynamic()["popover-title"] = "Keep in mind the following rules:"
+                        asDynamic()["popover-content"] = "Provide full name of your brach with `origin` prefix: origin/your_branch." +
+                                " Or in aim to use the concrete commit just provide hash of it."
+                        asDynamic()["data-trigger"] = "focus"
+                    }
+                    h6 {
+                        className = ClassName("d-inline ml-2")
+                        +"Git branch or specific commit in your repository:"
+                    }
+                }
+                div {
+                    className = ClassName("input-group-prepend")
+                    input {
+                        type = InputType.text
+                        name = "itemText"
+                        key = "itemText"
+                        className = ClassName("form-control")
+                        if (props.gitBranchOrCommitFromInputField.isNotBlank()) {
+                            defaultValue = props.gitBranchOrCommitFromInputField
+                        }
+                        placeholder = "leave empty if you would like to use default branch with latest commit"
+                        onChange = {
+                            updateGitBranchOrCommitInputField(it)
+                        }
+                    }
+                }
+            }
 
-                    setAdditionalPropertiesForStandardMode(
-                        props.execCmd,
-                        "Execution command",
-                        "Execution command that will be used to run the tool and tests",
-                        "",
-                        InputType.text,
-                        setExecCmd
-                    )
-                    val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
-                            " To know more about batch size, please visit: https://github.com/saveourtool/save."
-                    setAdditionalPropertiesForStandardMode(
-                        props.batchSizeForAnalyzer,
-                        "",
-                        toolTipTextForBatchSize,
-                        "Batch size (default: 1):",
-                        InputType.number,
-                        setBatchSize
-                    )
-
-                    checkBox {
-                        selectedStandardSuites = props.selectedStandardSuites
-                        rowSize = ProjectView.TEST_SUITE_ROW
-                        suites = props.standardTestSuites
-                        selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
+            div {
+                className = ClassName("input-group-sm mt-3")
+                div {
+                    className = ClassName("row")
+                    sup {
+                        className = ClassName("tooltip-and-popover")
+                        tabIndex = 0
+                        fontAwesomeIcon(icon = faQuestionCircle)
+                        asDynamic()["tooltip-placement"] = "top"
+                        asDynamic()["tooltip-title"] = ""
+                        asDynamic()["popover-placement"] = "left"
+                        asDynamic()["popover-title"] = "Relative path to the root directory with tests"
+                        asDynamic()["popover-content"] = ProjectView.TEST_ROOT_DIR_HINT
+                        asDynamic()["data-trigger"] = "focus"
+                    }
+                    h6 {
+                        className = ClassName("d-inline ml-2")
+                        +"Relative path (to the root directory) of the test suites in the repo:"
+                    }
+                }
+                div {
+                    className = ClassName("input-group-prepend")
+                    input {
+                        type = InputType.text
+                        name = "itemText"
+                        key = "itemText"
+                        className = ClassName("form-control")
+                        value = props.testRootPath
+                        placeholder = "leave empty if tests are in the repository root"
+                        onChange = {
+                            updateTestRootPath(it)
+                        }
                     }
                 }
             }
         }
+    }
+
+    div {
+        className = ClassName(cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS))
+        div {
+            className = ClassName("card-body")
+            suitesTable(
+                props.standardTestSuites,
+                props.selectedLanguageForStandardTests,
+                setSelectedLanguageForStandardTests
+            )
+
+            setAdditionalPropertiesForStandardMode(
+                props.execCmd,
+                "Execution command",
+                "Execution command that will be used to run the tool and tests",
+                "",
+                InputType.text,
+                setExecCmd
+            )
+            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+                    " To know more about batch size, please visit: https://github.com/saveourtool/save."
+            setAdditionalPropertiesForStandardMode(
+                props.batchSizeForAnalyzer,
+                "",
+                toolTipTextForBatchSize,
+                "Batch size (default: 1):",
+                InputType.number,
+                setBatchSize
+            )
+
+            checkBox {
+                selectedStandardSuites = props.selectedStandardSuites
+                rowSize = ProjectView.TEST_SUITE_ROW
+                suites = props.standardTestSuites
+                selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
+            }
+        }
+    }
+}
 
 private fun cardStyleByTestingType(props: TestResourcesProps, testingType: TestingType) =
         if (props.testingType == testingType) "card shadow mb-4 w-100" else "d-none"

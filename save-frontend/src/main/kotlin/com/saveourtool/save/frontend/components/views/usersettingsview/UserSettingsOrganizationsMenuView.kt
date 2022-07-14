@@ -6,7 +6,6 @@ import com.saveourtool.save.v1
 import csstype.ClassName
 
 import react.FC
-import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1

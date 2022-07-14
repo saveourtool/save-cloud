@@ -12,8 +12,6 @@ import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
 import react.ChildrenBuilder
-import react.RBuilder
-import react.dom.br
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
@@ -21,12 +19,6 @@ import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
-import react.dom.samp
-import react.dom.small
-import react.dom.table
-import react.dom.tbody
-import react.dom.td
-import react.dom.tr
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -69,24 +61,7 @@ fun String.toRole() = Role.values().find {
 } ?: throw IllegalStateException("Unknown role is passed: $this")
 
 /**
- * Adds this text to RBuilder line by line, separating with `<br>`
- *
- * @param text text to display
- */
-@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-internal fun RBuilder.multilineText(text: String) {
-    text.lines().forEach {
-        small {
-            samp {
-                +it
-            }
-        }
-        br { }
-    }
-}
-
-/**
- * Adds this text to RBuilder line by line, separating with `<br>`
+ * Adds this text to ChildrenBuilder line by line, separating with `<br>`
  *
  * @param text text to display
  */
@@ -99,26 +74,6 @@ internal fun ChildrenBuilder.multilineText(text: String) {
             }
         }
         br { }
-    }
-}
-
-/**
- * @param text
- */
-internal fun RBuilder.multilineTextWithIndices(text: String) {
-    table("table table-borderless table-hover table-sm") {
-        tbody {
-            text.lines().filterNot { it.isEmpty() }.forEachIndexed { i, line ->
-                tr {
-                    td {
-                        +"${i + 1}"
-                    }
-                    td {
-                        +line
-                    }
-                }
-            }
-        }
     }
 }
 
