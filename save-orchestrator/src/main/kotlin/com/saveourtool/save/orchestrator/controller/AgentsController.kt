@@ -44,6 +44,7 @@ import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
 
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -165,8 +166,8 @@ class AgentsController(
                     .forEach { subPath ->
                         try {
                             Files.setPosixFilePermissions(subPath, allExecute)
-                        } catch (e: RuntimeException) {
-                            log.warn { "Failed to mark file ${subPath.name} as executable" }
+                        } catch (e: IOException) {
+                            log.warn(e) { "Failed to mark file ${subPath.name} as executable" }
                         }
                     }
             }
