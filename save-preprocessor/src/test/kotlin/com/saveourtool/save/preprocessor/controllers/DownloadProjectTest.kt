@@ -1,7 +1,6 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
@@ -10,7 +9,6 @@ import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.RepositoryVolume
-import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
@@ -37,7 +35,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
-import org.springframework.core.io.FileSystemResource
 import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -51,9 +48,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-
-import kotlin.io.path.fileSize
-import kotlin.io.path.isExecutable
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @Import(LocalDateTimeConfig::class)

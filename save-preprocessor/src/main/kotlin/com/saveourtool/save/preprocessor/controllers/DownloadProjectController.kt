@@ -2,7 +2,6 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
@@ -11,7 +10,6 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.StatusResponse
