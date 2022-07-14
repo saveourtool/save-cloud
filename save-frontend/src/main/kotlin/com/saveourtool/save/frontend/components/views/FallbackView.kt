@@ -4,12 +4,13 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import csstype.ClassName
+import react.ChildrenBuilder
 import react.Props
-import react.RBuilder
 import react.State
-import react.dom.a
-import react.dom.div
-import react.dom.p
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 
 import kotlinx.browser.window
@@ -36,28 +37,34 @@ external interface FallbackViewProps : Props {
 }
 
 /**
- * A [RComponent] representing fallback page with 404 error
+ * A Component representing fallback page with 404 error
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class FallbackView : AbstractView<FallbackViewProps, State>(false) {
     @Suppress("ForbiddenComment")
-    override fun RBuilder.render() {
-        div("text-center") {
-            div("error mx-auto") {
-                props.bigText?.let { attrs["data-text"] = it }
+    override fun ChildrenBuilder.render() {
+        div {
+            className = ClassName("text-center")
+            div {
+                className = ClassName("error mx-auto")
+                props.bigText?.let {
+                    asDynamic()["data-text"] = it
+                }
                 +"${props.bigText}"
             }
-            p("lead text-gray-800 mb-5") {
+            p {
+                className = ClassName("lead text-gray-800 mb-5")
                 +"${props.smallText}"
             }
             if (props.withRouterLink == true) {
                 Link {
-                    attrs.to = "/"
+                    to = "/"
                     +"← Back to the main page"
                 }
             } else {
-                a(href = "${window.location.origin}/") {
+                a {
+                    href = "${window.location.origin}/"
                     +"← Back to the main page"
                 }
             }

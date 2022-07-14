@@ -1,14 +1,13 @@
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.utils.CComponent
+import csstype.ClassName
 import generated.SAVE_VERSION
-import react.Props
-import react.RBuilder
-import react.RComponent
-import react.State
-import react.dom.br
-import react.dom.div
-import react.dom.footer
-import react.dom.span
+import react.*
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.footer
+import react.dom.html.ReactHTML.span
 
 /**
  * A web page footer component
@@ -16,11 +15,14 @@ import react.dom.span
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-class Footer : RComponent<Props, State>() {
-    override fun RBuilder.render() {
-        footer("sticky-footer bg-white") {
-            div("container my-auto") {
-                div("copyright text-center my-auto") {
+class Footer : CComponent<Props, State>() {
+    override fun ChildrenBuilder.render() {
+        footer {
+            className = ClassName("sticky-footer bg-white")
+            div {
+                className = ClassName("container my-auto")
+                div {
+                    className = ClassName("copyright text-center my-auto")
                     span {
                         +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
                         br {}

@@ -36,12 +36,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.html.id
-import kotlinx.html.role
 import kotlinx.js.jso
 
 /**
- * [RProps] of the top bor component
+ * [Props] of the top bor component
  */
 external interface TopBarProps : PropsWithChildren {
     /**
