@@ -44,13 +44,13 @@ import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
 
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.createDirectories
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
@@ -163,13 +163,7 @@ class AgentsController(
                 log.info { "Marking files in ${pathToFile.parent} executable..." }
                 Files.walk(pathToFile.parent)
                     .filter { it.isRegularFile() }
-                    .forEach { subPath ->
-                        try {
-                            Files.setPosixFilePermissions(subPath, allExecute)
-                        } catch (e: IOException) {
-                            log.warn(e) { "Failed to mark file ${subPath.name} as executable" }
-                        }
-                    }
+                    .forEach { it.tryMarkAsExecutable() }
             }
             Files.delete(pathToFile)
         }
@@ -196,19 +190,27 @@ class AgentsController(
         .retrieve()
         .bodyToFlux(DataBuffer::class.java)
         .let {
+            this.parent.createDirectories()
             DataBufferUtils.write(it, this.outputStream())
         }
         .map { DataBufferUtils.release(it) }
         .then(
             Mono.fromCallable {
                 // TODO: need to store information about isExecutable in Execution (FileKey)
-                @Suppress("BlockingMethodInNonBlockingContext")
-                Files.setPosixFilePermissions(this, allExecute)
+                this.tryMarkAsExecutable()
                 log.debug {
                     "Downloaded $fileKey to ${this.absolutePathString()}"
                 }
             }
         )
+
+    private fun Path.tryMarkAsExecutable() {
+        try {
+            Files.setPosixFilePermissions(this, allExecute)
+        } catch (ex: UnsupportedOperationException) {
+            log.warn(ex) { "Failed to mark file ${this.name} as executable" }
+        }
+    }
 
     private fun <T> reportExecutionError(
         execution: Execution,
