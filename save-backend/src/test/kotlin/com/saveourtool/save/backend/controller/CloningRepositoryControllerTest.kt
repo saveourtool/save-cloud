@@ -90,6 +90,7 @@ class CloningRepositoryControllerTest {
 
     @MockBean
     lateinit var projectService: ProjectService
+
     @MockBean
     lateinit var executionService: ExecutionService
     @TempDir internal lateinit var tmpDir: Path
