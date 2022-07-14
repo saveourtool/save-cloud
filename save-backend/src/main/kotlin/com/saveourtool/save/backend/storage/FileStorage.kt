@@ -64,7 +64,9 @@ class FileStorage(
      */
     fun findLatestKeyByName(projectCoordinates: ProjectCoordinates, name: String): Mono<FileKey> = list(projectCoordinates)
         .filter { it.name == name }
-        .max(Comparator.comparing { it.uploadedMillis })
+        .reduce { key1, key2 ->
+            if (key1.uploadedMillis > key2.uploadedMillis) key1 else key2
+        }
 
     /**
      * @param projectCoordinates
