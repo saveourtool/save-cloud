@@ -93,7 +93,7 @@ class OrganizationViewTest {
         return screen.findByText(
             "SETTINGS",
             waitForOptions = jso {
-                timeout = 5000
+                timeout = 15000
             },
         )
             .then {

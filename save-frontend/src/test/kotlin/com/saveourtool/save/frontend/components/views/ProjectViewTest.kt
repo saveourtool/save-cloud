@@ -118,7 +118,7 @@ class ProjectViewTest {
         return screen.findByText(
             "Project ${testProject.name}",
             waitForOptions = jso {
-                timeout = 7500
+                timeout = 15000
             }
         )
             .then {
@@ -129,7 +129,12 @@ class ProjectViewTest {
     @Test
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
         renderProjectView()
-        return screen.findByText("SETTINGS")
+        return screen.findByText(
+            "SETTINGS",
+            waitForOptions = jso {
+                timeout = 15000
+            }
+        )
             .then {
                 userEvent.click(it)
             }
