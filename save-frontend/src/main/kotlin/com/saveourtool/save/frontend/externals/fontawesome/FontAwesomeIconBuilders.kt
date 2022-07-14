@@ -7,8 +7,6 @@
 package com.saveourtool.save.frontend.externals.fontawesome
 
 import react.ChildrenBuilder
-import react.RBuilder
-import react.RHandler
 import react.react
 
 import kotlinx.js.jso
@@ -23,22 +21,6 @@ interface FontAwesomeIconModule {
      * Definition of FA icon ([IconDefinition] in terms of `@fortawesome/fontawesome-common-types`)
      */
     val definition: dynamic
-}
-
-/**
- * @param icon icon. Can be an object, string or array.
- * @param classes element's classes
- * @param handler handler to set up a component
- * @return ReactElement
- */
-fun RBuilder.fontAwesomeIcon(
-    icon: FontAwesomeIconModule,
-    classes: String = "",
-    handler: RHandler<FontAwesomeIconProps> = {},
-) = child(FontAwesomeIcon::class) {
-    attrs.icon = icon.definition
-    attrs.className = classes
-    handler(this)
 }
 
 /**

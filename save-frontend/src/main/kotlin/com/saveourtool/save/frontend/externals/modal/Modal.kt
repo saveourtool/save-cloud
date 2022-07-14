@@ -5,8 +5,6 @@
 package com.saveourtool.save.frontend.externals.modal
 
 import react.ChildrenBuilder
-import react.RBuilder
-import react.RHandler
 import react.ReactDsl
 import react.react
 import kotlin.js.json
@@ -21,19 +19,6 @@ private val defaultModalStyle = Styles(
         "overflow" to "hide"
     ).unsafeCast<CssProperties>()
 )
-
-/**
- * @param handler builder for modal component
- */
-fun RBuilder.modal(
-    handler: RHandler<ModalProps>
-): Unit = child(ReactModal::class) {
-    attrs {
-        style = defaultModalStyle
-        shouldCloseOnOverlayClick = true
-    }
-    handler.invoke(this)
-}
 
 /**
  * @param block

@@ -32,7 +32,6 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.html.hidden
 import kotlinx.js.jso
 
 /**

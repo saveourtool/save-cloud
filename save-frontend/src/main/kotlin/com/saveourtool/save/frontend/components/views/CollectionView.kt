@@ -14,13 +14,16 @@ import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.td
 import react.table.columns
-
-import kotlinx.html.ButtonType
-import kotlinx.html.hidden
 
 /**
  * `Props` retrieved from router
@@ -40,29 +43,35 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
     private val projectsTable = tableComponent(
         columns = columns<Project> {
             column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = "#/${cellProps.row.original.organization.name}") { +cellProps.value }
+                        a {
+                            href = "#/${cellProps.row.original.organization.name}"
+                            +cellProps.value
+                        }
                     }
                 }
             }
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        a {
+                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                            +cellProps.value
+                        }
                         privacySpan(cellProps.row.original)
                     }
                 }
             }
             column(id = "passed", header = "Description") {
-                buildElement {
+                Fragment.create {
                     td {
                         +(it.value.description ?: "Description not provided")
                     }
                 }
             }
             column(id = "rating", header = "Contest Rating") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"0"
                     }
@@ -73,28 +82,38 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
         useServerPaging = false,
         usePageSelection = false,
     )
+
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
         "MAGIC_NUMBER",
         "LongMethod",
     )
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         div {
-            attrs.hidden = (props.currentUserInfo == null)
-            button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
-                a(classes = "text-light", href = "#/creation/") {
+            hidden = (props.currentUserInfo == null)
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary mb-2 mr-2")
+                a {
+                    className = ClassName("text-light")
+                    href = "#/creation/"
                     +"Add new tested tool"
                 }
             }
-            button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
-                a(classes = "text-light", href = "#/createOrganization/") {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary mb-2")
+                a {
+                    className = ClassName("text-light")
+                    href = "#/createOrganization/"
                     +"Add new organization"
                 }
             }
         }
-        child(projectsTable) {
-            attrs.getData = { _, _ ->
+
+        projectsTable {
+            getData = { _, _ ->
                 val response = get(
                     url = "$apiUrl/projects/not-deleted",
                     headers = Headers().also {

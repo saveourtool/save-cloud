@@ -6,7 +6,7 @@ import org.w3c.dom.events.Event
 import react.PropsWithChildren
 
 /**
- * RProps of [PieChart]
+ * Props of [PieChart]
  */
 external interface PieChartProps : PropsWithChildren {
     /**
