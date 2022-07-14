@@ -77,8 +77,8 @@ class CloneRepositoryController(
                 ExecutionType.GIT,
                 authentication.username(),
                 fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, newExecutionId ->
-                executionRequest.copy(executionId = newExecutionId)
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId())
             }
         }
 
@@ -105,8 +105,8 @@ class CloneRepositoryController(
                 ExecutionType.STANDARD,
                 authentication.username(),
                 fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, newExecutionId ->
-                executionRequest.copy(executionId = newExecutionId)
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
             }
         }
 
@@ -115,28 +115,28 @@ class CloneRepositoryController(
         executionType: ExecutionType,
         username: String,
         files: Flux<FileInfo>,
-        updateExecutionIdInRequest: (T, Long) -> T
+        updateExecutionInRequest: (T, Execution) -> T
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
             projectService.findByNameAndOrganizationName(name, organization.name)
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
 
-        val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
         log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
         val uri = when (executionType) {
             ExecutionType.GIT -> "/upload"
             ExecutionType.STANDARD -> "/uploadBin"
         }
-        return files.updateExecution(newExecution).flatMap {
+        return files.updateExecution(newExecution).flatMap { savedExecution ->
             preprocessorWebClient.post()
                 .uri(uri)
-                .bodyValue(updateExecutionIdInRequest(executionRequest, newExecution.requiredId()))
+                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
                 .retrieve()
                 .toEntity()
         }
     }
 
-    private fun saveExecution(
+    private fun createNewExecution(
         project: Project,
         username: String,
         type: ExecutionType,
@@ -148,22 +148,22 @@ class CloneRepositoryController(
             this.batchSize = batchSize
             this.sdk = sdk.toString()
             this.type = type
-            id = executionService.saveExecution(this, username)
+            id = executionService.saveExecutionAndReturnId(this, username)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution
     }
 
-    @Suppress("TYPE_ALIAS")
     private fun Flux<FileInfo>.updateExecution(
         execution: Execution,
-    ): Mono<Long> = map {
+    ): Mono<Execution> = map {
         it.toFileKey()
     }
         .collectList()
         .switchIfEmpty(Mono.just(emptyList()))
-        .map {
-            execution.formatAndSetAdditionalFiles(it)
-        }
+        .map { execution.formatAndSetAdditionalFiles(it) }
         .map { executionService.saveExecution(execution) }
+
+    // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
+    private fun Execution.stubVersion() = this.parseAndGetAdditionalFiles().first().name
 }

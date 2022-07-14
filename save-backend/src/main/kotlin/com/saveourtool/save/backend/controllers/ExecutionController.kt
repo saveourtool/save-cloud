@@ -73,7 +73,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return id of created [Execution]
      */
     @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
+    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecutionAndReturnId(execution)
 
     /**
      * @param executionUpdateDto
@@ -310,7 +310,7 @@ class ExecutionController(private val executionService: ExecutionService,
             gitDto = git.copy(hash = execution.version),
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
-            executionId = execution.id
+            executionId = execution.id,
         )
         return preprocessorWebClient.post()
             .uri("/rerunExecution")

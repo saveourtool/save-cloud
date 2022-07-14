@@ -130,7 +130,23 @@ class DownloadProjectController(
         @RequestBody executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
     ) = Mono.just(ResponseEntity(executionResponseBody(executionRequestForStandardSuites.executionId), HttpStatus.ACCEPTED))
         .doOnSuccess {
-            executeTestFromStandardTestSuites(executionRequestForStandardSuites)
+            val version = requireNotNull(executionRequestForStandardSuites.version) {
+                "Version is not provided for execution.id = ${executionRequestForStandardSuites.executionId}"
+            }
+            val execCmd = executionRequestForStandardSuites.execCmd
+            val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
+            getStandardTestSuiteIds(executionRequestForStandardSuites.testSuites)
+                .flatMap { testSuiteIds ->
+                    updateExecution(
+                        executionRequestForStandardSuites.project,
+                        "N/A",
+                        version,
+                        testSuiteIds,
+                        execCmd,
+                        batchSizeForAnalyzer,
+                    )
+                }
+                .flatMap { it.executeTests() }
                 .subscribeOn(scheduler)
                 .subscribe()
         }
@@ -151,14 +167,6 @@ class DownloadProjectController(
             updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
                 .flatMap { cleanupInOrchestrator(executionRerunRequest.executionId!!) }
                 .flatMap { getExecution(executionRerunRequest.executionId!!) }
-                .map { execution ->
-                    val fileKeys = execution.parseAndGetAdditionalFiles()
-                    execution to fileKeys
-                }
-                .zipWhen { (execution, fileKeys) -> getResourceLocation(executionRerunRequest, execution.type, fileKeys) }
-                .map { (executionAndFileKeys, _) ->
-                    executionAndFileKeys.first
-                }
                 .doOnNext {
                     log.info { "Skip initializing tests for execution.id = ${it.id}: it's rerun" }
                 }
@@ -226,17 +234,6 @@ class DownloadProjectController(
             }
         }
 
-    private fun generateLocation(execution: Execution, files: List<File>, executionRequest: ExecutionRequest): String {
-        val seeds = when (execution.type) {
-            ExecutionType.STANDARD ->
-                files.map { it.toHash() }.sorted()
-            ExecutionType.GIT ->
-                listOf(executionRequest.gitDto.url)
-        }
-        return generateDirectory(seeds, configProperties.repository, deleteExisting = false)
-            .relativeTo(File(configProperties.repository)).normalize().path
-    }
-
     private fun downloadRepositoryLocation(gitDto: GitDto): Pair<File, String> {
         val tmpDir = generateDirectory(listOf(gitDto.url), configProperties.repository, deleteExisting = false)
         return tmpDir to tmpDir.relativeTo(File(configProperties.repository)).normalize().path
@@ -274,29 +271,6 @@ class DownloadProjectController(
             }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "UnsafeCallOnNullableType")
-    private fun executeTestFromStandardTestSuites(
-        executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
-    ): Mono<StatusResponse> = getExecution(executionRequestForStandardSuites.executionId!!)
-        .flatMap { execution ->
-            // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
-            val version = execution.parseAndGetAdditionalFiles().first().name
-            val execCmd = executionRequestForStandardSuites.execCmd
-            val batchSizeForAnalyzer = executionRequestForStandardSuites.batchSizeForAnalyzer
-            getStandardTestSuiteIds(executionRequestForStandardSuites.testSuites)
-                .flatMap { testSuiteIds ->
-                    updateExecution(
-                        executionRequestForStandardSuites.project,
-                        "N/A",
-                        version,
-                        testSuiteIds,
-                        execCmd,
-                        batchSizeForAnalyzer,
-                    )
-                }
-                .flatMap { it.executeTests() }
-        }
-
     private fun getStandardTestSuiteIds(testSuiteNames: List<String>): Mono<List<Long>> = webClientBackend.post()
         .uri("/test-suites/standard/ids-by-name")
         .bodyValue(testSuiteNames)
@@ -330,22 +304,6 @@ class DownloadProjectController(
     private fun getResourceLocationForGit(location: String, testRootPath: String) = File(configProperties.repository)
         .resolve(location)
         .resolve(testRootPath)
-
-    private fun calculateTmpNameForFileKeys(fileKeys: List<FileKey>) = fileKeys.map { it.format() }.sorted()
-
-    private fun getResourceLocation(executionRerunRequest: ExecutionRequest, executionType: ExecutionType, fileKeys: List<FileKey>) =
-            when (executionType) {
-                ExecutionType.GIT ->
-                    Mono.fromCallable {
-                        getResourceLocationForGit(
-                            downloadRepositoryLocation(executionRerunRequest.gitDto).second,
-                            executionRerunRequest.testRootPath
-                        )
-                    }
-                ExecutionType.STANDARD ->
-                    // In standard mode we will calculate location later, according list of additional files
-                    Mono.fromCallable { getTmpDirName(calculateTmpNameForFileKeys(fileKeys), configProperties.repository) }
-            }
 
     private fun getExecution(executionId: Long) = webClientBackend.get()
         .uri("${configProperties.backend}/execution?id=$executionId")

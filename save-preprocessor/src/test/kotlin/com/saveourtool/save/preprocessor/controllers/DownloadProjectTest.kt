@@ -203,13 +203,6 @@ class DownloadProjectTest(
     @Suppress("LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
-        File(binFolder).mkdirs()
-        File(propertyPath).createNewFile()
-        File(binFilePath).createNewFile()
-        File(binFilePath).writeText("echo 0")
-
-        val binFile = File(binFilePath)
-        val property = File(propertyPath)
         val project = Project.stub(42)
         val executionId = 98L
         val execution = Execution.stub(project).apply {
@@ -217,14 +210,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId)
-        val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("file", FileSystemResource(property))
-        bodyBuilder.part("fileInfo", FileInfo(property.name, property.lastModified(), property.toPath().fileSize()))
-        bodyBuilder.part("file", FileSystemResource(binFile))
-        bodyBuilder.part("fileInfo", FileInfo(binFile.name, property.lastModified(), property.toPath().fileSize(), true))
-        bodyBuilder.part("file", FileSystemResource(binFile))
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId, "version")
 
         // /test-suites/standard/ids-by-name
         mockServerBackend.enqueue(
@@ -273,8 +259,8 @@ class DownloadProjectTest(
 
         webClient.post()
             .uri("/uploadBin")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -282,11 +268,7 @@ class DownloadProjectTest(
             .isEqualTo(executionResponseBody(executionId))
         Thread.sleep(15_000)
 
-        val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
-        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
-        Assertions.assertTrue(File("${configProperties.repository}/$dirName/${binFile.name}").toPath().isExecutable())
     }
 
     @Test

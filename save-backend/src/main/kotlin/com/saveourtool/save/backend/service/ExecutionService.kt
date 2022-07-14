@@ -46,17 +46,21 @@ class ExecutionService(
      * @param username username of the user that has started the execution
      * @return id of the created [Execution]
      */
-    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
-    fun saveExecution(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
+    fun saveExecutionAndReturnId(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
         this.user = userRepository.findByName(username).orElseThrow()
-    }).id!!
+    }).requiredId()
 
     /**
      * @param execution
      * @return id of the created [Execution]
      */
-    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
-    fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
+    fun saveExecutionAndReturnId(execution: Execution): Long = saveExecution(execution).requiredId()
+
+    /**
+     * @param execution
+     * @return created/updated [Execution]
+     */
+    fun saveExecution(execution: Execution): Execution = executionRepository.save(execution)
 
     /**
      * @param execution
@@ -167,7 +171,7 @@ class ExecutionService(
             expectedChecks = 0
             unexpectedChecks = 0
         }
-        saveExecution(execution)
+        saveExecutionAndReturnId(execution)
     }
 
     /**
