@@ -25,10 +25,11 @@ class DebugInfoStorage(
 ) :
     AbstractFileBasedStorage<Pair<Long, TestResultLocation>>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
     /**
+     * @param rootDir
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
-    override fun isKey(pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
 
     /**
      * @param rootDir
