@@ -18,6 +18,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 import kotlinx.js.jso
 
+@Ignore
 class ProjectViewTest {
     private val testOrganization = Organization(
         "TestOrg",
