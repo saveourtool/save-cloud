@@ -153,7 +153,10 @@ class Execution(
      * @param fileKey a new key [FileKey] to additional file
      */
     fun appendAdditionalFile(fileKey: FileKey) {
-        additionalFiles += FileKey.OBJECT_DELIMITER + fileKey.format()
+        if (additionalFiles.isNotEmpty()) {
+            additionalFiles += FileKey.OBJECT_DELIMITER
+        }
+        additionalFiles += fileKey.format()
     }
 
     /**
