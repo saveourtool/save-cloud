@@ -67,7 +67,6 @@ import kotlin.io.path.createFile
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    MockBean(ExecutionService::class),
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(UserRepository::class),
 )
@@ -91,6 +90,8 @@ class CloningRepositoryControllerTest {
 
     @MockBean
     lateinit var projectService: ProjectService
+    @MockBean
+    lateinit var executionService: ExecutionService
     @TempDir internal lateinit var tmpDir: Path
 
     @BeforeEach
@@ -102,6 +103,9 @@ class CloningRepositoryControllerTest {
 
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), any(), any(), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
+
+        whenever(executionService.saveExecution(any()))
+            .thenAnswer { it.arguments[0] as Execution }
     }
 
     @Test
