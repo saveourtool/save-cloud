@@ -1,7 +1,6 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
@@ -10,7 +9,6 @@ import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.RepositoryVolume
-import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
@@ -37,23 +35,17 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
-import org.springframework.core.io.FileSystemResource
 import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-
-import kotlin.io.path.fileSize
-import kotlin.io.path.isExecutable
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
 @Import(LocalDateTimeConfig::class)
@@ -101,14 +93,9 @@ class DownloadProjectTest(
             MockResponse().setResponseCode(200)
         )
 
-        val multipart = MultipartBodyBuilder().apply {
-            part("executionRequest", request)
-        }
-            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(multipart))
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -180,14 +167,9 @@ class DownloadProjectTest(
         }.onEach {
             logger.info("Request $it")
         }
-        val multipart = MultipartBodyBuilder().apply {
-            part("executionRequest", request)
-        }
-            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(multipart))
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -203,13 +185,6 @@ class DownloadProjectTest(
     @Suppress("LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
-        File(binFolder).mkdirs()
-        File(propertyPath).createNewFile()
-        File(binFilePath).createNewFile()
-        File(binFilePath).writeText("echo 0")
-
-        val binFile = File(binFilePath)
-        val property = File(propertyPath)
         val project = Project.stub(42)
         val executionId = 98L
         val execution = Execution.stub(project).apply {
@@ -217,14 +192,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId)
-        val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("executionRequestForStandardSuites", request)
-        bodyBuilder.part("file", FileSystemResource(property))
-        bodyBuilder.part("fileInfo", FileInfo(property.name, property.lastModified(), property.toPath().fileSize()))
-        bodyBuilder.part("file", FileSystemResource(binFile))
-        bodyBuilder.part("fileInfo", FileInfo(binFile.name, property.lastModified(), property.toPath().fileSize(), true))
-        bodyBuilder.part("file", FileSystemResource(binFile))
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId, "version")
 
         // /test-suites/standard/ids-by-name
         mockServerBackend.enqueue(
@@ -273,8 +241,8 @@ class DownloadProjectTest(
 
         webClient.post()
             .uri("/uploadBin")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -282,11 +250,7 @@ class DownloadProjectTest(
             .isEqualTo(executionResponseBody(executionId))
         Thread.sleep(15_000)
 
-        val dirName = listOf(property, binFile).map { it.toHash() }.sorted().hashCode()
-        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
-        Assertions.assertEquals("echo 0", File("${configProperties.repository}/$dirName/${binFile.name}").readText())
-        Assertions.assertTrue(File("${configProperties.repository}/$dirName/${binFile.name}").toPath().isExecutable())
     }
 
     @Test

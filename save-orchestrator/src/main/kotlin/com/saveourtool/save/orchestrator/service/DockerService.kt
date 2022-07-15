@@ -18,18 +18,14 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
-import com.saveourtool.save.utils.moveFileWithAttributes
 
 import com.github.dockerjava.api.DockerClient
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.exception.ZipException
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
@@ -210,22 +206,6 @@ class DockerService(private val configProperties: ConfigProperties,
         // list is not empty only in standard mode
         val isStandardMode = testSuitesForDocker.isNotEmpty()
 
-        if (isStandardMode) {
-            // copy corresponding standard test suites to resourcesRootPath dir
-            copyTestSuitesToResourcesPath(testSuitesForDocker, testSuitesDir)
-            // move additional files, which were downloaded into the root dit to the execution dir for standard suites
-            execution.parseAndGetAdditionalFiles()?.forEach {
-                val additionalFilePath = resourcesPath.resolve(File(it).name)
-                log.info("Move additional file $additionalFilePath into $testSuitesDir")
-                moveFileWithAttributes(additionalFilePath, testSuitesDir)
-            }
-        }
-
-        // if some additional file is archive, unzip it into proper destination:
-        // for standard mode into STANDARD_TEST_SUITE_DIR
-        // for Git mode into testRootPath
-        unzipArchivesAmongAdditionalFiles(execution, isStandardMode, testSuitesDir, resourcesPath)
-
         val saveCliExecFlags = if (isStandardMode) {
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
@@ -328,57 +308,6 @@ class DockerService(private val configProperties: ConfigProperties,
                 setGroup(lookupService.lookupPrincipalByGroupName(user))
                 setOwner(lookupService.lookupPrincipalByName(user))
             }
-        }
-    }
-
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    private fun unzipArchivesAmongAdditionalFiles(
-        execution: Execution,
-        isStandardMode: Boolean,
-        testSuitesDir: File,
-        resourcesPath: File,
-    ) {
-        // FixMe: for now support only .zip files
-        execution.parseAndGetAdditionalFiles()?.filter { it.endsWith(".zip") }?.forEach { fileName ->
-            val fileLocation = if (isStandardMode) {
-                testSuitesDir
-            } else {
-                val testRootPath = webClientBackend.post()
-                    .uri("/findTestRootPathForExecutionByTestSuites")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue(execution))
-                    .retrieve()
-                    .bodyToMono<List<String>>()
-                    .block()!!
-                    .distinct()
-                    .single()
-                resourcesPath.resolve(testRootPath)
-            }
-
-            val file = fileLocation.resolve(File(fileName).name)
-            val shouldBeExecutable = file.canExecute()
-            log.debug("Unzip ${file.absolutePath} into ${fileLocation.absolutePath}")
-
-            file.unzipInto(fileLocation)
-            if (shouldBeExecutable) {
-                log.info("Marking files in $fileLocation executable...")
-                fileLocation.walkTopDown().forEach { source ->
-                    if (!source.setExecutable(true)) {
-                        log.warn("Failed to mark file ${source.name} as executable")
-                    }
-                }
-            }
-            file.delete()
-        }
-    }
-
-    private fun File.unzipInto(destination: File) {
-        try {
-            val zipFile = ZipFile(this.toString())
-            zipFile.extractAll(destination.toString())
-        } catch (e: ZipException) {
-            log.error("Error occurred during extracting of archive ${this.name}")
-            e.printStackTrace()
         }
     }
 

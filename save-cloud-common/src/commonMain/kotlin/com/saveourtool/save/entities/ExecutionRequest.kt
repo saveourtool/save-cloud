@@ -29,8 +29,8 @@ sealed class ExecutionRequestBase {
  * @property project project
  * @property gitDto data about project's git repository
  * @property testRootPath root path of the test repository where save.properties file and high level save.toml file could be stored
- * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
  * @property sdk
+ * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
  */
 @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable
@@ -49,6 +49,7 @@ data class ExecutionRequest(
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property executionId
+ * @property version
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(
@@ -58,4 +59,5 @@ data class ExecutionRequestForStandardSuites(
     val execCmd: String?,
     val batchSizeForAnalyzer: String?,
     val executionId: Long?,
+    val version: String?,
 ) : ExecutionRequestBase()
