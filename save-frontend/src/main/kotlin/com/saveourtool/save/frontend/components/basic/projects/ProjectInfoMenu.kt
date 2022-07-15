@@ -14,7 +14,6 @@ import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -112,19 +111,20 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
             }
             ul {
                 className = ClassName("list-group")
-                bestResults.forEach {
-                    li {
-                        className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
-                        a {
-                            href = "#/contests/${it.contestName}"
-                            className = ClassName("stretched-link")
-                        }
-                        scoreCard {
-                            name = it.contestName
-                            contestScore = it.score.toDouble()
+                bestResults.filter { it.score != null }
+                    .forEach {
+                        li {
+                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
+                            a {
+                                href = "#/contests/${it.contestName}"
+                                className = ClassName("stretched-link")
+                            }
+                            scoreCard {
+                                name = it.contestName
+                                contestScore = it.score!!
+                            }
                         }
                     }
-                }
             }
         }
 

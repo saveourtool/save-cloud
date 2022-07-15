@@ -37,9 +37,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
@@ -154,9 +152,7 @@ class AgentsController(
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .retrieve()
-            .bodyToMono<List<String>>()
-            .toFlux()
-            .flatMap { Flux.fromIterable(it) }
+            .bodyToFlux<String>()
             .distinct()
             .single()
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
@@ -221,7 +217,7 @@ class AgentsController(
 
     private fun Path.tryMarkAsExecutable() {
         try {
-            Files.setPosixFilePermissions(this, allExecute)
+            Files.setPosixFilePermissions(this, Files.getPosixFilePermissions(this) + allExecute)
         } catch (ex: UnsupportedOperationException) {
             log.warn(ex) { "Failed to mark file ${this.name} as executable" }
         }
