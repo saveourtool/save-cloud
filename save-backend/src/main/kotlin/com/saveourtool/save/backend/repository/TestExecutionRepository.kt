@@ -138,7 +138,6 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      * @param suite is testSuiteName
      * @param tag is tag
      * @param pageable a request for a page
-     * @param fileName
      * @return a list of [TestExecutionDto]s
      */
     @Query(
