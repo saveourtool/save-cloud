@@ -33,7 +33,7 @@
     </rollback>
   </changeSet>
 
-  <changeSet id="lnk_contest_project_remove_unique_constraint" author="sanyavertolet">
+  <changeSet id="lnk_contest_project_drop_score_column" author="sanyavertolet">
     <dropColumn tableName="lnk_contest_project" columnName="score"/>
   </changeSet>
 

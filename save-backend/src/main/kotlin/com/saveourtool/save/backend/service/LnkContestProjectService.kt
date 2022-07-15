@@ -17,7 +17,7 @@ class LnkContestProjectService(
      * @param contestName name of a [Contest]
      * @return list of links contest-project for a contest
      */
-    fun getByContestName(contestName: String): List<LnkContestProject> = lnkContestProjectRepository.findByContestName(contestName)
+    fun getAllByContestName(contestName: String): List<LnkContestProject> = lnkContestProjectRepository.findByContestName(contestName)
 
     /**
      * @param projectName

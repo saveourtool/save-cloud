@@ -25,14 +25,14 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import kotlin.jvm.optionals.getOrNull
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller for processing links between projects and contests with scores
  */
 @RestController
 @RequestMapping("/api/$v1/contests/")
-@OptIn(ExperimentalStdlibApi::class)
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
@@ -50,7 +50,7 @@ class LnkContestProjectController(
     fun getRatingsInContest(
         @PathVariable contestName: String,
         authentication: Authentication,
-    ): Flux<ContestResult> = Flux.fromIterable(lnkContestProjectService.getByContestName(contestName))
+    ): Flux<ContestResult> = Flux.fromIterable(lnkContestProjectService.getAllByContestName(contestName))
         .map {
             it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
         }
@@ -103,15 +103,12 @@ class LnkContestProjectController(
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.fromCallable {
-        projectService.findByNameAndOrganizationName(projectName, organizationName) to contestService.findByName(contestName).getOrNull()
-    }
-        .filter { it.first != null && it.second != null }
+    ): Mono<ResponseEntity<String>> = Mono.zip(
+        Mono.justOrEmpty(projectService.getByNameAndOrganizationName(projectName, organizationName)),
+        Mono.justOrEmpty(contestService.findByName(contestName)),
+    )
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
-        .map { (project, contest) ->
-            project!! to contest!!
         }
         .filter { (project, _) ->
             projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE)

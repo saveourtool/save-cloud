@@ -21,6 +21,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Service for project
@@ -28,6 +29,7 @@ import java.util.Optional
  * @property projectRepository
  */
 @Service
+@OptIn(ExperimentalStdlibApi::class)
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
@@ -70,7 +72,14 @@ class ProjectService(
      * @param name
      * @param organizationName
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
+    fun findByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName).getOrNull()
+
+    /**
+     * @param name
+     * @param organizationName
+     * @return optional of [Project]
+     */
+    fun getByNameAndOrganizationName(name: String, organizationName: String) = projectRepository.findByNameAndOrganizationName(name, organizationName)
 
     /**
      * @param organizationName

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
  * The repository of project entities
@@ -25,7 +26,7 @@ JpaSpecificationExecutor<Project> {
      * @param organizationName
      * @return project by name and owner
      */
-    fun findByNameAndOrganizationName(name: String, organizationName: String): Project?
+    fun findByNameAndOrganizationName(name: String, organizationName: String): Optional<Project>
 
     /**
      * @param organizationName
