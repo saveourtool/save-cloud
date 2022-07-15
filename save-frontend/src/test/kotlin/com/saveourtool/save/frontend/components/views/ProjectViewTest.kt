@@ -112,7 +112,7 @@ class ProjectViewTest {
     @Test
     @Ignore
     fun projectViewShouldRender(): Promise<Unit> {
-        return worker.start().then {
+        return (worker.start() as Promise<*>).then {
             renderProjectView()
         }.then {
             screen.findByText(
@@ -129,7 +129,7 @@ class ProjectViewTest {
 
     @Test
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
-        return worker.start().then {
+        return (worker.start() as Promise<*>).then {
             renderProjectView()
         }.then {
             screen.findByText(
