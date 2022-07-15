@@ -154,9 +154,7 @@ class AgentsController(
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .retrieve()
-            .bodyToMono<List<String>>()
-            .toFlux()
-            .flatMap { Flux.fromIterable(it) }
+            .bodyToFlux<String>()
             .distinct()
             .single()
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
@@ -221,7 +219,7 @@ class AgentsController(
 
     private fun Path.tryMarkAsExecutable() {
         try {
-            Files.setPosixFilePermissions(this, allExecute)
+            Files.setPosixFilePermissions(this, Files.getPosixFilePermissions(this) + allExecute)
         } catch (ex: UnsupportedOperationException) {
             log.warn(ex) { "Failed to mark file ${this.name} as executable" }
         }
