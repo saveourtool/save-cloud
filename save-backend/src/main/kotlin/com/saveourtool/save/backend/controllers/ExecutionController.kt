@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
@@ -59,6 +60,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
+                          private val executionInfoStorage: ExecutionInfoStorage,
                           config: ConfigProperties,
                           jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -73,14 +75,17 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return id of created [Execution]
      */
     @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecution(execution)
+    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecutionAndReturnId(execution)
 
     /**
      * @param executionUpdateDto
+     * @return empty Mono
      */
     @PostMapping("/internal/updateExecutionByDto")
-    fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto) {
-        executionService.updateExecution(executionUpdateDto)
+    fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto): Mono<Unit> = Mono.fromCallable {
+        executionService.updateExecutionStatusById(executionUpdateDto.id, executionUpdateDto.status)
+    }.flatMap {
+        executionInfoStorage.upsertIfRequired(executionUpdateDto)
     }
 
     /**
@@ -310,7 +315,7 @@ class ExecutionController(private val executionService: ExecutionService,
             gitDto = git.copy(hash = execution.version),
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
-            executionId = execution.id
+            executionId = execution.id,
         )
         return preprocessorWebClient.post()
             .uri("/rerunExecution")
