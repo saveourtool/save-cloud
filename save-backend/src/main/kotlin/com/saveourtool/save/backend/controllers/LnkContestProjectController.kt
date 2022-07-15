@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.ContestResult
+import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 
@@ -51,15 +52,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Flux<ContestResult> = Flux.fromIterable(lnkContestProjectService.getAllByContestName(contestName))
-        .map {
-            it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
-        }
-        .filter { (_, score) ->
-            score != null
-        }
-        .map { (lnkContestProject, score) ->
-            lnkContestProject.toContestResult(score)
-        }
+        .getScores()
 
     /**
      * @param organizationName
@@ -77,10 +70,11 @@ class LnkContestProjectController(
         authentication: Authentication,
     ): Flux<ContestResult> = Flux.fromIterable(
         lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, amount)
-    )
-        .map {
-            it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
-        }
+    ).getScores()
+
+    private fun Flux<LnkContestProject>.getScores() = map {
+        it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+    }
         .filter { (_, score) ->
             score != null
         }
