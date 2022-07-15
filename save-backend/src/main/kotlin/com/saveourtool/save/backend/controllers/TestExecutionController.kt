@@ -5,10 +5,10 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
@@ -45,7 +45,7 @@ import java.math.BigInteger
 class TestExecutionController(private val testExecutionService: TestExecutionService,
                               private val executionService: ExecutionService,
                               private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                              private val testDataFilesystemRepository: TestDataFilesystemRepository
+                              private val debugInfoStorage: DebugInfoStorage,
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -79,10 +79,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
-            map { testExecutionDto ->
-                testExecutionDto.copy(
-                    hasDebugInfo = testDataFilesystemRepository.doesDebugInfoExist(executionId, TestResultLocation.from(testExecutionDto))
-                )
+            flatMap { testExecutionDto ->
+                debugInfoStorage.doesExist(Pair(executionId, TestResultLocation.from(testExecutionDto)))
+                    .map { testExecutionDto.copy(hasDebugInfo = it) }
             }
         }
 
