@@ -12,7 +12,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -270,7 +269,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 th {
                     colSpan = tableInstance.columns.size
                     testExecutionFiltersRow {
-                        status =  state.status?.name ?: "ANY"
+                        status = state.status?.name ?: "ANY"
                         fileName = state.testName ?: ""
                         testSuite = state.testSuite ?: ""
                         tag = state.tag ?: ""

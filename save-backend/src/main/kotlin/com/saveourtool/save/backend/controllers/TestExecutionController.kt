@@ -54,8 +54,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param page a zero-based index of page of data
      * @param size size of page
      * @param status
-     * @param testName
-     * @param testSuite
+     * @param testFileName
+     * @param testSuiteName
      * @param tag
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution

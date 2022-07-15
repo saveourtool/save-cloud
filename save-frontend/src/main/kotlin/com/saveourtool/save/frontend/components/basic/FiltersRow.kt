@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 
 import csstype.ClassName
 import react.FC
@@ -21,6 +20,8 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.useState
 
+val testExecutionFiltersRow = testExecutionFiltersRow()
+
 @Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
 class SelectOption {
     companion object {
@@ -28,7 +29,7 @@ class SelectOption {
     }
 }
 
-external interface FiltersRowProps: Props {
+external interface FiltersRowProps : Props {
     /**
      * value status for filters table
      */
@@ -48,7 +49,6 @@ external interface FiltersRowProps: Props {
      * lambda for change file name status
      */
     var onChangeTestName: (String) -> Unit
-
 
     /**
      * value test suite
@@ -71,8 +71,6 @@ external interface FiltersRowProps: Props {
     var onChangeTag: (String) -> Unit
 }
 
-val testExecutionFiltersRow = testExecutionFiltersRow()
-
 /**
  * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
  *
@@ -80,8 +78,7 @@ val testExecutionFiltersRow = testExecutionFiltersRow()
  */
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS")
 private fun testExecutionFiltersRow(
-) = FC<FiltersRowProps> { props->
-    val (status, setStatus) = useState(props.status)
+) = FC<FiltersRowProps> { props -> val (status, setStatus) = useState(props.status)
     val (fileName, setTestName) = useState(props.fileName)
     val (testSuite, setTestSuite) = useState(props.testSuite)
     val (tag, setTag) = useState(props.tag)
