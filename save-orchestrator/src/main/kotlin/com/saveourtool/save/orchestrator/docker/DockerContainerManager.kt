@@ -108,12 +108,13 @@ class DockerContainerManager(
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
             appendLine("RUN useradd --create-home --shell /bin/sh save-agent")
-            appendLine("USER save-agent")
             appendLine("WORKDIR /home/save-agent")
             if (resourcesPath != null) {
                 appendLine("COPY resources $resourcesPath")
                 runOnResourcesCmd?.let(::appendLine)
             }
+            appendLine("RUN chown -R save-agent .")
+            appendLine("USER save-agent")
         }
         log.debug("Using generated Dockerfile {}", dockerFileAsText)
         val dockerFile = createTempFile(dir.toPath()).toFile()
