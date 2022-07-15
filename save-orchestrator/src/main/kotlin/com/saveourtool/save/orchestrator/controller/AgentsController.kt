@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -108,7 +109,7 @@ class AgentsController(
                         .toFlux()
                         .flatMap { fileKey ->
                             val pathToFile = filesLocation.resolve(fileKey.name)
-                            pathToFile.downloadFile(execution, fileKey)
+                            (fileKey to execution).downloadTo(pathToFile)
                                 .map { unzipIfRequired(pathToFile) }
                         }
                         .collectList()
@@ -191,30 +192,31 @@ class AgentsController(
         }
     }
 
-    private fun Path.downloadFile(
-        execution: Execution,
-        fileKey: FileKey,
-    ): Mono<Unit> = webClientBackend.post()
-        .uri("/files/{organizationName}/{projectName}/download", execution.project.organization.name, execution.project.name)
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(fileKey)
-        .accept(MediaType.APPLICATION_OCTET_STREAM)
-        .retrieve()
-        .bodyToFlux(DataBuffer::class.java)
-        .let {
-            this.parent.createDirectories()
-            DataBufferUtils.write(it, this.outputStream())
-        }
-        .map { DataBufferUtils.release(it) }
-        .then(
-            Mono.fromCallable {
-                // TODO: need to store information about isExecutable in Execution (FileKey)
-                this.tryMarkAsExecutable()
-                log.debug {
-                    "Downloaded $fileKey to ${this.absolutePathString()}"
-                }
+    private fun Pair<FileKey, Execution>.downloadTo(
+        pathToFile: Path
+    ): Mono<Unit> = this.let { (fileKey, execution) ->
+        webClientBackend.post()
+            .uri("/files/{organizationName}/{projectName}/download", execution.project.organization.name, execution.project.name)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(fileKey)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .retrieve()
+            .bodyToFlux<DataBuffer>()
+            .let {
+                pathToFile.parent.createDirectories()
+                DataBufferUtils.write(it, pathToFile.outputStream())
             }
-        )
+            .map { DataBufferUtils.release(it) }
+            .then(
+                Mono.fromCallable {
+                    // TODO: need to store information about isExecutable in Execution (FileKey)
+                    pathToFile.tryMarkAsExecutable()
+                    log.debug {
+                        "Downloaded $fileKey to ${pathToFile.absolutePathString()}"
+                    }
+                }
+            )
+    }
 
     private fun Path.tryMarkAsExecutable() {
         try {
