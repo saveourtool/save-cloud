@@ -34,14 +34,12 @@ class SelectOption {
  * @param initialValueTestSuite initial value of `test suite`
  * @param initialValueTag initial value of `tag`
  * @param onChangeStatus handler for selected value change
- * @param onChangeTestSuite handler for input value tes name
+ * @param onChangeTestName handler for input value test name
  * @param onChangeTestSuite handler for input value test suite
- * @param onChangeTestSuite handler for input value tag
- * @param onChangeTestName
- * @param onChangeTag
+ * @param onChangeTag handler for input value tag
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS")
 fun testExecutionFiltersRow(
     initialValueStatus: String = "",
     initialValueTestName: String = "",
