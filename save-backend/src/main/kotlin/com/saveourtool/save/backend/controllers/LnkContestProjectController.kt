@@ -14,6 +14,7 @@ import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 
@@ -98,7 +99,7 @@ class LnkContestProjectController(
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<String>> = Mono.zip(
-        Mono.justOrEmpty(projectService.getByNameAndOrganizationName(projectName, organizationName)),
+        Mono.justOrEmpty<Project>(projectService.findByNameAndOrganizationName(projectName, organizationName)),
         Mono.justOrEmpty(contestService.findByName(contestName)),
     )
         .switchIfEmpty {
