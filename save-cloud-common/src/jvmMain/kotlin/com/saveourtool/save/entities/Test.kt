@@ -12,7 +12,6 @@ import javax.persistence.ManyToOne
  * @property dateAdded
  * @property testSuite
  * @property pluginName name of a plugin which this test belongs to
- * @property tags list of tags of current test
  */
 @Entity
 @Suppress("LongParameterList")

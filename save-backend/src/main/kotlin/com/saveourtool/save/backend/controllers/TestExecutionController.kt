@@ -76,11 +76,11 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         authentication: Authentication,
     ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
         .filterWhen {
-        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-    }
+            projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+        }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testName,testSuite, tag)
+            testExecutionService.getTestExecutions(executionId, page, size, status, testName, testSuite, tag)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

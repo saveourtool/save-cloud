@@ -175,7 +175,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         }
     }
 
-
     div {
         className = ClassName("card shadow mb-4")
         div {

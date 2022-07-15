@@ -51,10 +51,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param page a zero-based index of page of data
      * @param pageSize size of page
      * @param status
+     * @param testName
      * @param testSuite
+     * @param tag
      * @return a list of [TestExecutionDto]s
      */
-    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType", "TOO_MANY_PARAMETERS")
     internal fun getTestExecutions(
         executionId: Long,
         page: Int,
@@ -68,16 +70,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         val testSuiteValue = declareValue(testSuite)
         val tagValue = declareValue(tag)
         return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
-                executionId,
-                status,
-                testNameValue,
-                testSuiteValue,
-                tagValue,
-                PageRequest.of(page, pageSize)
+            executionId,
+            status,
+            testNameValue,
+            testSuiteValue,
+            tagValue,
+            PageRequest.of(page, pageSize)
         )
     }
 
-    private fun declareValue(value: String?) = if (value != null) "%${value}%" else null
+    private fun declareValue(value: String?) = value?.let {
+        "%$value%"
+    }
 
     /**
      * Get test executions by [agentContainerId] and [status]

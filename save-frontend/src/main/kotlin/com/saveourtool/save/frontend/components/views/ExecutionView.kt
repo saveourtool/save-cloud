@@ -307,7 +307,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 tr {
                     td {
                         colSpan = tableInstance.columns.size
-                        + "No info available yet for this test execution"
+                        +"No info available yet for this test execution"
                     }
                 }
             }
@@ -463,7 +463,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         it.text().await()
                     )
                 }.apply {
-                        asDynamic().debugInfo = null
+                    asDynamic().debugInfo = null
                 }
             }
             getPageCount = { pageSize ->
@@ -486,7 +486,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    private fun setStatusAndNameAndSuiteAndTag(): String?{
+    private fun setStatusAndNameAndSuiteAndTag(): String? {
         val status1 = state.status?.let {
             "&status=${state.status}"
         } ?: run {

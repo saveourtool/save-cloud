@@ -37,6 +37,8 @@ class SelectOption {
  * @param onChangeTestSuite handler for input value tes name
  * @param onChangeTestSuite handler for input value test suite
  * @param onChangeTestSuite handler for input value tag
+ * @param onChangeTestName
+ * @param onChangeTag
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION")
@@ -135,7 +137,7 @@ fun testExecutionFiltersRow(
                 }
             }
             button {
-                className = ClassName("btn btn-primary")
+                className = ClassName("btn btn-primary ml-3")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     onChangeStatus(status)

@@ -19,6 +19,7 @@ import javax.persistence.ManyToOne
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description description of the test suite
  * @property language
+ * @property tags
  */
 @Suppress("LongParameterList")
 @Entity
@@ -44,7 +45,6 @@ class TestSuite(
 
     var tags: String? = null,
 ) : BaseEntity() {
-
     /**
      * @return [tags] as a list of strings
      */
