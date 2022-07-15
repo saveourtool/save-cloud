@@ -83,7 +83,7 @@ external interface FiltersRowProps : Props {
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
     val (status, setStatus) = useState(props.status)
-    val (fileName, setTestName) = useState(props.fileName)
+    val (fileName, setFileName) = useState(props.fileName)
     val (testSuite, setTestSuite) = useState(props.testSuite)
     val (tag, setTag) = useState(props.tag)
     div {
@@ -132,10 +132,10 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        defaultValue = props.fileName
+                        value = fileName
                         required = false
                         onChange = {
-                            setTestName(it.target.value)
+                            setFileName(it.target.value)
                         }
                     }
                 }
@@ -151,7 +151,7 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        defaultValue = props.testSuite
+                        value = testSuite
                         required = false
                         onChange = {
                             setTestSuite(it.target.value)
@@ -170,7 +170,7 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        defaultValue = props.tag
+                        value = tag
                         required = false
                         onChange = {
                             setTag(it.target.value)
@@ -194,7 +194,7 @@ private fun testExecutionFiltersRow(
                 onClick = {
                     setStatus("ANY")
                     props.onChangeStatus("ANY")
-                    setTestName("")
+                    setFileName("")
                     props.onChangeTestName("")
                     setTestSuite("")
                     props.onChangeTestSuite("")
