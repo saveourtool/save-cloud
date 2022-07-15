@@ -14,7 +14,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
-    private val worker = setupWorker(
+    private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organization/get/list") { _, res, _ ->
             res { response ->
                 mockMswResponse(
@@ -28,39 +28,34 @@ class SelectFormTest {
         }
     )
 
-    @BeforeTest
-    fun setup(): Promise<*> = worker.start() as Promise<*>
-
-    @AfterTest
-    fun tearDown() {
-        worker.resetHandlers()
-        // todo: stop worker in `afterall`. There doesn't seem to be immediate support for this in kotlin.test for JS.
-        // Possible solution is to use https://kotest.io/docs/framework/lifecycle-hooks.html
-        // worker.stop()
-    }
-
     @Test
     fun selectFormShouldShowOrganizations(): Promise<Unit> {
-        render(
-            wrapper.create {
-                selectFormRequired {
-                    form = InputTypes.ORGANIZATION_NAME
-                    validInput = true
-                    classes = "col-md-6 pl-0 pl-2 pr-2"
-                    text = "Organization"
+        val worker = createWorker()
+        return (worker.start() as Promise<*>).then {
+            render(
+                wrapper.create {
+                    selectFormRequired {
+                        form = InputTypes.ORGANIZATION_NAME
+                        validInput = true
+                        classes = "col-md-6 pl-0 pl-2 pr-2"
+                        text = "Organization"
+                    }
                 }
-            }
-        )
-
-        return screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1").then {
-            val select = it.parentElement as HTMLSelectElement?
-            assertNotNull(select, "`select` element should have been rendered")
-            assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
+            )
         }
+            .then {
+                screen.findByTextAndCast<HTMLOptionElement>("Test Organization 1")
+            }
+            .then {
+                val select = it.parentElement as HTMLSelectElement?
+                assertNotNull(select, "`select` element should have been rendered")
+                assertEquals(4, select.children.length, "Select should contain all organizations and an initial empty value")
+            }
     }
 
     @Test
     fun componentShouldContainWarningIfNoOrganizations(): Promise<*> {
+        val worker = createWorker()
         worker.use(
             rest.get("/api/$v1/organization/get/list") { _, res, _ ->
                 res { response ->
@@ -71,19 +66,23 @@ class SelectFormTest {
             }
         )
 
-        render(
-            wrapper.create {
-                selectFormRequired {
-                    form = InputTypes.ORGANIZATION_NAME
-                    validInput = true
-                    classes = "col-md-6 pl-0 pl-2 pr-2"
-                    text = "Organization"
+        return (worker.start() as Promise<*>).then {
+            render(
+                wrapper.create {
+                    selectFormRequired {
+                        form = InputTypes.ORGANIZATION_NAME
+                        validInput = true
+                        classes = "col-md-6 pl-0 pl-2 pr-2"
+                        text = "Organization"
+                    }
                 }
-            }
-        )
-
-        return screen.findByTextAndCast<HTMLDivElement>("You don't have access to any organizations").then {
-            assertNotNull(it, "Component should display a warning if no organizations are available")
+            )
         }
+            .then {
+                screen.findByTextAndCast<HTMLDivElement>("You don't have access to any organizations")
+            }
+            .then {
+                assertNotNull(it, "Component should display a warning if no organizations are available")
+            }
     }
 }
