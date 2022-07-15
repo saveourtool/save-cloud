@@ -8,11 +8,9 @@ import org.springframework.stereotype.Service
 /**
  * Service of [LnkContestExecution]
  */
-@OptIn(ExperimentalStdlibApi::class)
 @Service
 class LnkContestExecutionService(
     private val lnkContestExecutionRepository: LnkContestExecutionRepository,
-
 ) {
     /**
      * @param project

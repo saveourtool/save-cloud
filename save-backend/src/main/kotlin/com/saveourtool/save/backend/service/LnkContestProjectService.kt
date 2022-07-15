@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service
 @Service
 class LnkContestProjectService(
     private val lnkContestProjectRepository: LnkContestProjectRepository,
-    private val lnkUserProjectService: LnkUserProjectService,
 ) {
     /**
      * @param contestName name of a [Contest]
