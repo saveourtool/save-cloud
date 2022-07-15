@@ -74,6 +74,7 @@ kotlin {
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
             implementation(npm("bootstrap", "^4.6.0"))
+            implementation(npm("react-spinners", "0.13.0"))
             implementation(npm("react", "^18.0.0"))
             implementation(npm("react-dom", "^18.0.0"))
             implementation(npm("react-modal", "^3.0.0"))

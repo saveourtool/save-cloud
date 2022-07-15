@@ -13,10 +13,8 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
+import csstype.*
 
-import csstype.Display
-import csstype.FontSize
-import csstype.FontWeight
 import org.w3c.fetch.Headers
 import react.CSSProperties
 import react.Context
@@ -103,6 +101,9 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     override fun RBuilder.render() {
         main("main-content mt-0 ps") {
             div("page-header align-items-start min-vh-100") {
+                attrs["style"] = jso<CSSProperties> {
+                    background = "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))".unsafeCast<Background>()
+                }
                 span("mask bg-gradient-dark opacity-6") {}
 
                 div("row") {
@@ -130,7 +131,34 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
+
+                div("col mt-5 mx-auto") {
+                    div("row mx-auto") {
+                        h1("mx-auto text-white") {
+                            +"Want to know more?"
+                        }
+                    }
+                    div("row") {
+                            h1("mx-auto") {
+                                fontAwesomeIcon(icon = faAnglesDown)
+                                attrs["style"] = jso<CSSProperties> {
+                                    fontWeight = "bold".unsafeCast<FontWeight>()
+                                    display = Display.inline
+                                    fontSize = "4.5rem".unsafeCast<FontSize>()
+                                }
+                            }
+                    }
+                }
             }
+
+            div("page-header align-items-start min-vh-100") {
+                attrs["style"] = jso<CSSProperties> {
+                    background = "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+                }
+
+                span("mask bg-gradient-dark opacity-6") {}
+            }
+
         }
     }
 

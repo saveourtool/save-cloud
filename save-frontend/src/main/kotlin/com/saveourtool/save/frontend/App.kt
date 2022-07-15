@@ -135,6 +135,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                         }
 
                         div("container-fluid") {
+                            attrs.id = "common-save-container"
                             Routes {
                                 Route {
                                     attrs {
@@ -216,7 +217,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     attrs {
-                                        path = "/creation"
+                                        path = "/create-project"
                                         element = buildElement {
                                             child(CreationView::class) {}
                                         }
@@ -225,7 +226,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     attrs {
-                                        path = "/createOrganization"
+                                        path = "/create-organization"
                                         element = buildElement {
                                             child(CreateOrganizationView::class) {}
                                         }

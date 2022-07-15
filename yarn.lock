@@ -3761,6 +3761,11 @@ react-router@6.3.0:
   dependencies:
     history "^5.2.0"
 
+react-spinners@0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/react-spinners/-/react-spinners-0.13.0.tgz#2807fbd863188a2d04191fe5131f28f53b736de5"
+  integrity sha512-CrSZSTI7hRGztt2tQtAUNLNI+9KvUG9+5KStab4R67ivyp0uR5hBOGrxKcV6sN0BSVwAPijkmlEiqRi0q/ySYg==
+
 react-table@^7.8.0:
   version "7.8.0"
   resolved "https://registry.yarnpkg.com/react-table/-/react-table-7.8.0.tgz#07858c01c1718c09f7f1aed7034fcfd7bda907d2"

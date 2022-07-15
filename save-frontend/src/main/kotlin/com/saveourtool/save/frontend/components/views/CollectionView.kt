@@ -83,12 +83,12 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
         div {
             attrs.hidden = (props.currentUserInfo == null)
             button(type = ButtonType.button, classes = "btn btn-primary mb-2 mr-2") {
-                a(classes = "text-light", href = "#/creation/") {
+                a(classes = "text-light", href = "#/create-project/") {
                     +"Add new tested tool"
                 }
             }
             button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
-                a(classes = "text-light", href = "#/createOrganization/") {
+                a(classes = "text-light", href = "#/create-organization/") {
                     +"Add new organization"
                 }
             }

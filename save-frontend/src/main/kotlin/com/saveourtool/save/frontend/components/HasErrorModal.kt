@@ -2,6 +2,8 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.externals.animations.spinner
+import com.saveourtool.save.frontend.externals.modal.ModalProps
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName
@@ -99,7 +101,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-4")
             div {
-                className = ClassName("spinner-border text-primary spinner-border-lg")
+                spinner()
                 span {
                     className = ClassName("sr-only")
                     +"Loading..."

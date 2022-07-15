@@ -131,7 +131,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
             div("page-header align-items-start min-vh-100") {
                 span("mask bg-gradient-dark opacity-6") {}
                 div("row justify-content-center") {
-                    div("col-sm-4") {
+                    div("col-sm-4 mt-5") {
                         div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
                             div("p-5 text-center") {
                                 h1("h4 text-gray-900 mb-4") {

@@ -613,7 +613,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                 if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
                     button(type = ButtonType.button, classes = "btn btn-primary") {
-                        a(classes = "text-light", href = "#/creation/") {
+                        a(classes = "text-light", href = "#/create-project/") {
                             +"+ New Tool"
                         }
                     }
