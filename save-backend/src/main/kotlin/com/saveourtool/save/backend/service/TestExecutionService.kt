@@ -56,7 +56,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param tag
      * @return a list of [TestExecutionDto]s
      */
-    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType", "TOO_MANY_PARAMETERS", "LongParameterList")
+    @Suppress("LongParameterList", "AVOID_NULL_CHECKS", "UnsafeCallOnNullableType", "TOO_MANY_PARAMETERS")
     internal fun getTestExecutions(
         executionId: Long,
         page: Int,
