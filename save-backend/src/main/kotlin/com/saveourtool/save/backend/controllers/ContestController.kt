@@ -138,7 +138,7 @@ internal class ContestController(
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         val test = testService.findTestsByTestSuiteId(testSuite.requiredId()).firstOrNull()
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        return TestFilesRequest(test.toDto(), testSuite.testRootPath).let<TestFilesRequest, Mono<TestFilesContent>> {
+        return TestFilesRequest(test.toDto(), testSuite.source.testRootPath).let<TestFilesRequest, Mono<TestFilesContent>> {
             preprocessorWebClient.post()
                 .uri("/tests/get-content")
                 .bodyValue(it)

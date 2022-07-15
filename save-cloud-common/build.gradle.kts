@@ -48,6 +48,7 @@ kotlin {
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
                 implementation(libs.reactor.kotlin.extensions)
+                implementation(libs.commons.compress)
             }
         }
         val jvmTest by getting {

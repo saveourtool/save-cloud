@@ -75,7 +75,6 @@ class AgentsControllerTest {
             type = ExecutionType.STANDARD
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
-            resourcesRootPath = "resourcesRootPath"
             id = 42L
         }
         whenever(dockerService.prepareConfiguration(any())).thenReturn(

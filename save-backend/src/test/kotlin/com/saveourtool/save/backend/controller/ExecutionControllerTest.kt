@@ -2,14 +2,14 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
-import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.description
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -73,6 +74,12 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var testSuiteRepository: TestSuiteRepository
+
+    @Autowired
+    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @Autowired
+    lateinit var gitRepository: GitRepository
 
     @Test
     @WithMockUser("John Doe")
@@ -196,7 +203,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdate = ExecutionInitializationDto(execution.project, listOf(1, 2, 3), "testPath", "executionVersion", null, null)
+        val executionUpdate = ExecutionInitializationDto(execution.project, listOf(1, 2, 3), "executionVersion", null, null)
         webClient.post()
             .uri("/internal/updateNewExecution")
             .contentType(MediaType.APPLICATION_JSON)
@@ -208,13 +215,11 @@ class ExecutionControllerTest {
             .consumeWith {
                 val responseBody = requireNotNull(it.responseBody)
                 assertEquals("1, 2, 3", responseBody.testSuiteIds)
-                assertEquals("testPath", responseBody.resourcesRootPath)
                 assertEquals(20, responseBody.batchSize)
                 assertEquals("executionVersion", responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
             it.testSuiteIds == "1, 2, 3" &&
-                    it.resourcesRootPath == "testPath" &&
                     it.batchSize == 20 &&
                     it.version == "executionVersion"
         }
@@ -272,28 +277,66 @@ class ExecutionControllerTest {
                 assertTrue(responseBody.isEmpty())
             }
 
+        val git = gitRepository.save(
+            Git(
+                url = "test",
+                username = null,
+                password = null,
+                organization = project.organization,
+            )
+        )
         val testSuite1 = testSuiteRepository.save(
             TestSuite(
-                type = TestSuiteType.PROJECT,
-                project = project,
+                name = "test1",
+                description = null,
+                source = testSuitesSourceRepository.save(
+                    TestSuitesSource(
+                        organization = project.organization,
+                        name = "test1",
+                        description = null,
+                        git = git,
+                        branch = "main",
+                        testRootPath = "test 1"
+                    )
+                ),
+                version = "1",
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 1",
             )
         )
         val testSuite2 = testSuiteRepository.save(
             TestSuite(
-                type = TestSuiteType.PROJECT,
-                project = project,
+                name = "test2",
+                description = null,
+                source = testSuitesSourceRepository.save(
+                    TestSuitesSource(
+                        organization = project.organization,
+                        name = "test2",
+                        description = null,
+                        git = git,
+                        branch = "main",
+                        testRootPath = "test 2"
+                    )
+                ),
+                version = "1",
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 2",
             )
         )
         val testSuite3 = testSuiteRepository.save(
             TestSuite(
-                type = TestSuiteType.PROJECT,
-                project = project,
+                name = "test3",
+                description = null,
+                source = testSuitesSourceRepository.save(
+                    TestSuitesSource(
+                        organization = project.organization,
+                        name = "test3",
+                        description = null,
+                        git = git,
+                        branch = "main",
+                        testRootPath = "test 3"
+                    )
+                ),
+                version = "1",
                 dateAdded = testLocalDateTime,
-                testRootPath = "test 3",
             )
         )
         val executionTestSuiteIds = Execution.stub(project).apply {

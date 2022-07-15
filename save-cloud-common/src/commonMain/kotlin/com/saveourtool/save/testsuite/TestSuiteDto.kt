@@ -1,27 +1,21 @@
 package com.saveourtool.save.testsuite
 
-import com.saveourtool.save.entities.Project
-
 import kotlinx.serialization.Serializable
 
 /**
- * @property type [TestSuite.type]
- * @property name [TestSuite.name]
- * @property project [TestSuite.project]
- * @property testRootPath [TestSuite.testRootPath]
- * @property testSuiteRepoUrl url of the repo with test suites
- * @property description [TestSuite.description]
- * @property language [TestSuite.language]
- * @property tags [TestSuite.tags]
+ * @property name [com.saveourtool.save.entities.TestSuite.name]
+ * @property description [com.saveourtool.save.entities.TestSuite.description]
+ * @property source [com.saveourtool.save.entities.TestSuite.source]
+ * @property version [com.saveourtool.save.entities.TestSuite.testRootPath]
+ * @property language [com.saveourtool.save.entities.TestSuite.language]
+ * @property tags [com.saveourtool.save.entities.TestSuite.tags]
  */
 @Serializable
 data class TestSuiteDto(
-    val type: TestSuiteType?,
     val name: String,
     val description: String?,
-    val project: Project? = null,
-    val testRootPath: String,
-    val testSuiteRepoUrl: String? = null,
+    val source: TestSuitesSourceDto,
+    val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
 )

@@ -96,15 +96,6 @@ class TestSuitesController(
         }
 
     /**
-     * @param testSuiteDtos suites, which need to be marked as obsolete
-     * @return response entity
-     */
-    @PostMapping("/internal/markObsoleteTestSuites")
-    @Transactional
-    fun markObsoleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
-
-    /**
      * @param testSuiteDtos suites, which need to be deleted
      * @return response entity
      */

@@ -330,7 +330,7 @@ class ExecutionController(private val executionService: ExecutionService,
             }
         }
         ?.map {
-            it.testRootPath
+            it.source.testRootPath
         }
         .orEmpty()
 
@@ -346,7 +346,7 @@ class ExecutionController(private val executionService: ExecutionService,
             }
         }
         ?.mapNotNull {
-            it.testSuiteRepoUrl
+            it.source.git.url
         }
         .orEmpty()
         .distinct()

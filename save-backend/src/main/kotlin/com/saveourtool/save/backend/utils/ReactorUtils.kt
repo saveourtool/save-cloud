@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
+import reactor.util.function.Tuple2
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
@@ -73,7 +74,14 @@ inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): 
  * @param message
  * @return [Mono] containing [data] or [Mono.error] with 404 status otherwise
  */
-fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data)
-    .switchIfEmpty {
-        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, message))
-    }
+fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchToNotFoundIfEmpty {
+    message
+}
+
+/**
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with 404 status otherwise
+ */
+fun <T> Mono<T>.switchToNotFoundIfEmpty(messageCreator: (() -> String?) = { null }) = this.switchIfEmpty {
+    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageCreator()))
+}

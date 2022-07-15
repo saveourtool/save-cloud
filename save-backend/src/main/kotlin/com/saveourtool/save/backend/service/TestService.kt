@@ -38,6 +38,7 @@ class TestService(
     private val agentRepository: AgentRepository,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
+    private val testSuitesService: TestSuitesService,
     transactionManager: PlatformTransactionManager,
 ) {
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
@@ -62,16 +63,12 @@ class TestService(
                 }
                     .orElseGet {
                         log.trace("Test $testDto is not found in the DB, will save it")
-                        // FIXME: TestSuite should be found instead of creating a stub
-                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                            id = testDto.testSuiteId
-                        }
                         Test(
                             testDto.hash,
                             testDto.filePath,
                             testDto.pluginName,
                             LocalDateTime.now(),
-                            testSuiteStub,
+                            testSuitesService.getById(testDto.testSuiteId),
                             additionalFiles = testDto.joinAdditionalFiles(),
                         )
                     }
@@ -101,7 +98,7 @@ class TestService(
             val testDtos = testExecutions.map { it.test.toDto() }
             Mono.fromCallable {
                 val testBatch = TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                    it.id!! to it.testRootPath
+                    it.id!! to it.source.testRootPath
                 })
                 log.debug("Releasing lock for executionId=$executionId")
                 testBatch

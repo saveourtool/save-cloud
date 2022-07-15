@@ -87,7 +87,7 @@ class AgentsController(
         return response.doOnSuccess {
             log.info {
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
-                        "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
+                        "status=${execution.status}]"
             }
             getTestRootPath(execution)
                 .subscribeOn(agentService.scheduler)
@@ -100,11 +100,9 @@ class AgentsController(
                     )
                 )
                 .flatMap { testRootPath ->
-                    val filesLocation = Paths.get(
-                        configProperties.testResources.basePath,
-                        execution.resourcesRootPath!!,
-                        testRootPath
-                    )
+                    // FIXME: need to create a temp folder
+                    val filesLocation =  Files.createTempDirectory(configProperties.testResources.basePath)
+                        .resolve(testRootPath)
                     execution.parseAndGetAdditionalFiles()
                         .toFlux()
                         .flatMap { fileKey ->

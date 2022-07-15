@@ -257,7 +257,7 @@ class DownloadProjectTest(
     fun testStandardTestSuites() {
         val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
             .toList()
-            .flatMap { it.testSuitePaths }
+            .flatMap { it.sources }
             .size
         repeat(requestSize) {
             val project = Project.stub(42)

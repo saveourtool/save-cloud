@@ -2,11 +2,15 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
+import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.scheduling.JobsConfiguration
 import com.saveourtool.save.backend.utils.MySqlExtension
+import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.checkQueues
@@ -56,18 +60,23 @@ class TestSuitesControllerTest {
     @Autowired
     lateinit var projectRepository: ProjectRepository
 
+    @Autowired
+    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @Autowired
+    lateinit var gitRepository: GitRepository
+
     @MockBean
     lateinit var scheduler: Scheduler
 
     @Test
     fun `should accept test suites and return saved test suites`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.getReferenceById(1)
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
 
         saveTestSuites(listOf(testSuite)) {
@@ -76,21 +85,20 @@ class TestSuitesControllerTest {
                     val body = it.responseBody!!
                     assertEquals(listOf(testSuite).size, body.size)
                     assertEquals(testSuite.name, body[0].name)
-                    assertEquals(testSuite.project, body[0].project)
-                    assertEquals(testSuite.type, body[0].type)
+                    assertEquals(testSuite.source, body[0].source)
+                    assertEquals(testSuite.version, body[0].version)
                 }
         }
     }
 
     @Test
     fun `saved test suites should be persisted in the DB`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.getReferenceById(1)
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1"
         )
 
         saveTestSuites(listOf(testSuite)) {
@@ -98,18 +106,17 @@ class TestSuitesControllerTest {
         }
 
         val databaseData = testSuiteRepository.findAll()
-        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+        assertTrue(databaseData.any { it.source.name == testSuite.source.name && it.name == testSuite.name })
     }
 
     @Test
     fun `should save only new test suites`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.getReferenceById(1)
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {
@@ -118,11 +125,10 @@ class TestSuitesControllerTest {
         }
 
         val testSuite2 = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test2",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite, testSuite2)) {
             expectBody<List<TestSuite>>().consumeWith {
@@ -143,20 +149,39 @@ class TestSuitesControllerTest {
     @Test
     @WithMockUser
     fun testAllStandardTestSuites() {
-        val project = projectRepository.findById(1).get()
+        // FIXME: a hardcoded value of url for standard test suites
+        val standardTestSuitesSourceUrl = "https://github.com/saveourtool/save-cli"
+        val organization = projectRepository.getReferenceById(1).organization
+        val git = gitRepository.save(
+            Git(
+                standardTestSuitesSourceUrl,
+                null,
+                null,
+                organization,
+            )
+        )
+        val testSuitesSource = testSuitesSourceRepository.save(
+            TestSuitesSource(
+                organization,
+                "standard test suites source",
+                null,
+                git,
+                "master",
+                "",
+            )
+        )
         val testSuite = TestSuiteDto(
-            TestSuiteType.STANDARD,
             "tester",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {
                 assertEquals(1, it.responseBody!!.size)
             }
         }
-        val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
+        val allStandardTestSuite = testSuiteRepository.findAll().count { it.source.git.url == standardTestSuitesSourceUrl }
         webClient.get()
             .uri("/api/$v1/allStandardTestSuites")
             .exchange()
@@ -171,14 +196,33 @@ class TestSuitesControllerTest {
 
     @Test
     fun testTestSuitesWithSpecificName() {
-        val project = projectRepository.findById(1).get()
+        // FIXME: a hardcoded value of url for standard test suites
+        val standardTestSuitesSourceUrl = "https://github.com/saveourtool/save-cli"
+        val organization = projectRepository.getReferenceById(1).organization
+        val git = gitRepository.save(
+            Git(
+                standardTestSuitesSourceUrl,
+                null,
+                null,
+                organization,
+            )
+        )
+        val testSuitesSource = testSuitesSourceRepository.save(
+            TestSuitesSource(
+                organization,
+                "standard test suites source",
+                null,
+                git,
+                "master",
+                "",
+            )
+        )
         val name = "tester"
         val testSuite = TestSuiteDto(
-            TestSuiteType.STANDARD,
             name,
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1"
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {

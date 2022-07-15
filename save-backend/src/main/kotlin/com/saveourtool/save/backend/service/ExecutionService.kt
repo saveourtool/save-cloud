@@ -119,7 +119,6 @@ class ExecutionService(
                     .flatMap { testRepository.findAllByTestSuiteId(it) }
                     .count()
                     .toLong()
-                execution.resourcesRootPath = FilenameUtils.separatorsToUnix(executionInitializationDto.resourcesRootPath)
                 execution.execCmd = executionInitializationDto.execCmd
                 execution.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
                 executionRepository.save(execution)

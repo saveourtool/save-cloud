@@ -21,4 +21,10 @@ interface GitRepository : BaseEntityRepository<Git> {
      * @return git by [organizationId] and [url]
      */
     fun findByOrganizationAndUrl(organization: Organization, url: String): Git?
+
+    /**
+     * @param url
+     * @return all [Git] entities by [Git.url]
+     */
+    fun findAllByUrl(url: String): List<Git>
 }

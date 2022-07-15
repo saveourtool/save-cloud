@@ -194,10 +194,10 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(execution: Execution): RunConfiguration<PersistentVolumeId> {
-        val originalResourcesPath = File(
-            configProperties.testResources.basePath,
-            execution.resourcesRootPath!!,
-        )
+        // FIXME: tempate directory
+        val originalResourcesPath = Files.createTempDirectory(configProperties.testResources.basePath)
+            .toFile()
+
         val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 

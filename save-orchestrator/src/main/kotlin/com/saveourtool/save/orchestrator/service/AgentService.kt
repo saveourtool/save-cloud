@@ -335,7 +335,8 @@ class AgentService(
             .retrieve()
             .bodyToMono<TestSuite>()
             .map { testSuite ->
-                testSuite.type == TestSuiteType.STANDARD
+                // FIXME: a hardcoded value of url for standard test suites
+                testSuite.source.git.url == "https://github.com/saveourtool/save-cli"
             }
             .flatMap { isStandardMode ->
                 if (isStandardMode) {

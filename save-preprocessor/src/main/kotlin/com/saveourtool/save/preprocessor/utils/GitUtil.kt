@@ -5,10 +5,8 @@
 package com.saveourtool.save.preprocessor.utils
 
 import com.saveourtool.save.entities.GitDto
-import org.eclipse.jgit.api.CreateBranchCommand
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.MergeCommand
-import org.eclipse.jgit.api.ResetCommand
+import com.saveourtool.save.utils.debug
+import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidConfigurationException
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
@@ -21,6 +19,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.lang.IllegalArgumentException
+import java.nio.file.Path
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
@@ -167,6 +166,38 @@ private fun getDefaultBranchName(repoUrl: String): String? {
     return defaultBranch.replace("refs/heads/", "${Constants.DEFAULT_REMOTE_NAME}/")
 }
 
+/**
+ * @param httpUrl
+ * @param password
+ * @param username
+ * @return default branch name
+ * @throws IllegalStateException when failed to detect default branch name
+ */
+fun detectDefaultBranchName(httpUrl: String, username: String?, password: String?): String {
+    return Git.lsRemoteRepository()
+        .setCredentialsProvider(credentialsProvider(username, password))
+        // ls without clone
+        // FIXME: need to extract to a common place
+        .setRemote(httpUrl)
+        .withRethrow {
+            it.callAsMap()[Constants.HEAD]
+        }
+        ?.takeIf { it.isSymbolic }
+        ?.target
+        ?.name
+        ?.also { defaultBranch ->
+            log.debug { "Getting default branch name $defaultBranch for httpUrl $httpUrl" }
+        }
+        ?.replace(Constants.R_HEADS, "${Constants.DEFAULT_REMOTE_NAME}/")
+        ?: throw IllegalStateException("Couldn't detect default branch name for $httpUrl")
+}
+
+/**
+ * @return default branch name
+ * @throws IllegalStateException when failed to detect default branch name
+ */
+fun GitDto.detectDefaultBranchName() = detectDefaultBranchName(url, username, password)
+
 private fun checkout(git: Git, branchOrCommit: String, setCreateBranchFlag: Boolean) {
     git.checkout()
         // We need to call this method anyway, in aim not to have `detached head` state,
@@ -176,4 +207,63 @@ private fun checkout(git: Git, branchOrCommit: String, setCreateBranchFlag: Bool
         .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
         .setStartPoint(branchOrCommit)
         .call()
+}
+
+
+/**
+ * @return latest commit
+ */
+fun GitDto.detectLatestSha1(branch: String): String = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setRemote(url)
+    .withRethrow {
+        it.callAsMap()["${Constants.R_HEADS}$branch"]
+    }
+    ?.objectId
+    ?.name
+    ?: throw IllegalStateException("Couldn't detect hash of ${Constants.HEAD} for $url/$branch")
+
+/**
+ * @param gitDto
+ * @param branch
+ * @param sha1
+ * @param pathToDirectory
+ * @throws IllegalStateException
+ */
+fun cloneToDirectory(gitDto: GitDto, branch: String, sha1: String, pathToDirectory: Path) {
+    Git.cloneRepository()
+        .setCredentialsProvider(gitDto.credentialsProvider())
+        .setURI(gitDto.url)
+        .setDirectory(pathToDirectory.toFile())
+        .setRemote(Constants.DEFAULT_REMOTE_NAME)
+        .setNoCheckout(true)
+        .setNoTags()
+        .setBranch(branch)
+        .setCloneAllBranches(false)
+        .withRethrow { it.call() }
+        .use {
+            it.checkout()
+                .setName(sha1)
+                .call()
+        }
+}
+
+private fun GitDto.credentialsProvider(): CredentialsProvider = credentialsProvider(username, password)
+
+private fun credentialsProvider(username: String?, password: String?): CredentialsProvider =
+    if (username != null && password != null) {
+        UsernamePasswordCredentialsProvider(username, password)
+    } else if (username == null) {
+        // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
+        UsernamePasswordCredentialsProvider(password, "")
+    } else {
+        CredentialsProvider.getDefault()
+    }
+
+private fun <R, T : GitCommand<*>> T.withRethrow(call: (T) -> R): R {
+    try {
+        return call(this)
+    } catch (ex: GitAPIException) {
+        throw IllegalStateException("Error in JGit API", ex)
+    }
 }

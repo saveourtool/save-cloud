@@ -9,6 +9,8 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.utils.countPartsTill
+import com.saveourtool.save.utils.pathNamesTill
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -33,7 +35,8 @@ class DebugInfoStorage(
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
+            pathToContent.name.endsWith(SUFFIX_FILE_NAME) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     /**
      * @param rootDir
@@ -42,18 +45,13 @@ class DebugInfoStorage(
      */
     @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun buildKey(rootDir: Path, pathToContent: Path): Pair<Long, TestResultLocation> {
-        val folderNames = generateSequence(pathToContent, Path::getParent)
-            .takeWhile { it != rootDir }
-            .map { it.name }
-            .toList()
-        require(folderNames.size == 5) {
-            "Invalid path to debugInfo: $pathToContent"
-        }
-        val testName = folderNames[0].dropLast(SUFFIX_FILE_NAME.length)
-        val testLocation = folderNames[1]
-        val testSuiteName = folderNames[2]
-        val pluginName = folderNames[3]
-        val executionId = folderNames[4].toLong()
+        val pathNames = pathToContent.pathNamesTill(rootDir)
+
+        val testName = pathNames[0].dropLast(SUFFIX_FILE_NAME.length)
+        val testLocation = pathNames[1]
+        val testSuiteName = pathNames[2]
+        val pluginName = pathNames[3]
+        val executionId = pathNames[4].toLong()
         return Pair(
             executionId,
             TestResultLocation(testSuiteName, pluginName, testLocation, testName)
@@ -98,5 +96,6 @@ class DebugInfoStorage(
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
         private const val SUFFIX_FILE_NAME = "-debug.json"
+        private const val PATH_PARTS_COUNT = 5
     }
 }

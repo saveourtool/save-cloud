@@ -21,6 +21,14 @@ sealed class ExecutionRequestBase {
      * An SDK for this execution
      */
     abstract val sdk: Sdk
+
+    /**
+     * Execution id of request, it's null on first request
+     */
+    abstract val executionId: Long?
+
+    abstract val execCmd: String?
+    abstract val batchSizeForAnalyzer: String?
 }
 
 /**
@@ -41,7 +49,9 @@ data class ExecutionRequest(
     val branchOrCommit: String?,
     val testRootPath: String,
     override val sdk: Sdk,
-    val executionId: Long?,
+    override val executionId: Long?,
+    override val execCmd: String? = null,
+    override val batchSizeForAnalyzer: String? = null,
 ) : ExecutionRequestBase()
 
 /**
@@ -58,8 +68,8 @@ data class ExecutionRequestForStandardSuites(
     override val project: Project,
     val testSuites: List<String>,
     override val sdk: Sdk,
-    val execCmd: String?,
-    val batchSizeForAnalyzer: String?,
-    val executionId: Long?,
+    override val execCmd: String?,
+    override val batchSizeForAnalyzer: String?,
+    override val executionId: Long?,
     val version: String?,
 ) : ExecutionRequestBase()

@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.countPartsTill
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -48,13 +49,7 @@ class FileStorage(
      * @param pathToContent
      * @return true if there is 4 parts between pathToContent and rootDir
      */
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean {
-        val partsCount = generateSequence(pathToContent, Path::getParent)
-            .takeWhile { it != rootDir }
-            .count()
-        return partsCount == 4  // organization + project + uploadedMills + fileName
-    }
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     /**
      * @param projectCoordinates
@@ -143,5 +138,9 @@ class FileStorage(
                     it
                 )
             }
+    }
+
+    companion object {
+        private const val PATH_PARTS_COUNT = 4 // organization + project + uploadedMills + fileName
     }
 }
