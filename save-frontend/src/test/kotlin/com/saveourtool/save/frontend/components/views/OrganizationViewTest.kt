@@ -33,6 +33,8 @@ class OrganizationViewTest {
         mapOf(testOrganization.name to Role.ADMIN),
         globalRole = Role.SUPER_ADMIN,
     )
+
+    @Suppress("TOO_LONG_FUNCTION")
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organization/${testOrganization.name}/avatar") { _, res, _ ->
             res { response ->

@@ -42,6 +42,8 @@ class ProjectViewTest {
         mapOf(testOrganization.name to Role.VIEWER),
         globalRole = Role.SUPER_ADMIN,
     )
+
+    @Suppress("TOO_LONG_FUNCTION")
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/projects/get/organization-name") { _, res, _ ->
             res { response ->
@@ -106,14 +108,15 @@ class ProjectViewTest {
         val worker = createWorker()
         return (worker.start() as Promise<*>).then {
             renderProjectView()
-        }.then {
-            screen.findByText(
-                "Project ${testProject.name}",
-                waitForOptions = jso {
-                    timeout = 15000
-                }
-            )
         }
+            .then {
+                screen.findByText(
+                    "Project ${testProject.name}",
+                    waitForOptions = jso {
+                        timeout = 15000
+                    }
+                )
+            }
             .then {
                 assertNotNull(it, "Should show project name")
             }
@@ -126,17 +129,16 @@ class ProjectViewTest {
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<*> {
         val worker = createWorker()
         return (worker.start() as Promise<*>).then {
-            console.log("Rendering")
             renderProjectView()
-        }.then {
-            console.log("Looking for text")
-            screen.findByText(
-                "SETTINGS",
-                waitForOptions = jso {
-                    timeout = 15000
-                }
-            )
         }
+            .then {
+                screen.findByText(
+                    "SETTINGS",
+                    waitForOptions = jso {
+                        timeout = 15000
+                    }
+                )
+            }
             .then {
                 userEvent.click(it)
             }
@@ -151,7 +153,8 @@ class ProjectViewTest {
             }
             .then {
                 assertNotNull(it, "Should show confirmation window")
-            }.then {
+            }
+            .then {
                 worker.stop()
             }
     }
