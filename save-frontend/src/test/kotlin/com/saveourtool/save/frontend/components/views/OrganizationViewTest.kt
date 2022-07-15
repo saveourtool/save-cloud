@@ -89,6 +89,7 @@ class OrganizationViewTest {
     }
 
     @Test
+    @Ignore
     fun shouldShowConfirmationWindowWhenDeletingOrganization(): Promise<Unit> {
         renderOrganizationView()
         return screen.findByText(
