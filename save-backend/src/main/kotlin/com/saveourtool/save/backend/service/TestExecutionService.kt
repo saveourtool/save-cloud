@@ -56,25 +56,25 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param tag
      * @return a list of [TestExecutionDto]s
      */
-    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType", "TOO_MANY_PARAMETERS")
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType", "TOO_MANY_PARAMETERS", "LongParameterList")
     internal fun getTestExecutions(
         executionId: Long,
         page: Int,
         pageSize: Int,
         status: TestResultStatus?,
-        testName: String?,
-        testSuite: String?,
+        testFileName: String?,
+        testSuiteName: String?,
         tag: String?
     ): List<TestExecution> {
-        val testNameValue = declareValue(testName)
-        val testSuiteValue = declareValue(testSuite)
-        val tagValue = declareValue(tag)
+        val wrappedFileName = declareValue(testFileName)
+        val wrappedTestSuiteName = declareValue(testSuiteName)
+        val wrappedTagValue = declareValue(tag)
         return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
             executionId,
             status,
-            testNameValue,
-            testSuiteValue,
-            tagValue,
+            wrappedFileName,
+            wrappedTestSuiteName,
+            wrappedTagValue,
             PageRequest.of(page, pageSize)
         )
     }

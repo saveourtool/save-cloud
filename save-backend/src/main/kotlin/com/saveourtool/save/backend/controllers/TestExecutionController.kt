@@ -69,8 +69,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam page: Int,
         @RequestParam size: Int,
         @RequestParam(required = false) status: TestResultStatus?,
-        @RequestParam(required = false) testName: String?,
-        @RequestParam(required = false) testSuite: String?,
+        @RequestParam(required = false) testFileName: String?,
+        @RequestParam(required = false) testSuiteName: String?,
         @RequestParam(required = false) tag: String?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
@@ -80,7 +80,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testName, testSuite, tag)
+            testExecutionService.getTestExecutions(executionId, page, size, status, testFileName, testSuiteName, tag)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

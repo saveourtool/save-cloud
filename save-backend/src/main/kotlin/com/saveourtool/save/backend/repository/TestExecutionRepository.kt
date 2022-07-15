@@ -148,16 +148,16 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
            WHERE 1 = 1
             and (:fileName is null or t.filePath like :fileName)
             and (:tag is null or ts.tags like :tag)
-            and (:suite is null or ts.name like :suite)
+            and (:suite is null or ts.name like :testSuite)
             and (:status is null or te.status = :status)
             and e.id = :executionId"""
     )
-    @Suppress("TOO_MANY_PARAMETERS")
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     fun findByExecutionIdAndStatusAndTestTestSuiteName(
         @Param("executionId") executionId: Long,
         @Param("status") status: TestResultStatus?,
         @Param("fileName") fileName: String?,
-        @Param("suite") suite: String?,
+        @Param("testSuite") suite: String?,
         @Param("tag") tag: String?,
         pageable: Pageable
     ): List<TestExecution>

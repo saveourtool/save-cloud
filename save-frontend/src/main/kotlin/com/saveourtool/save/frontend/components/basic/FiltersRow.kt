@@ -6,7 +6,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
+import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 
 import csstype.ClassName
 import react.FC
@@ -26,122 +28,173 @@ class SelectOption {
     }
 }
 
+external interface FiltersRowProps: Props {
+    /**
+     * value status for filters table
+     */
+    var status: String
+
+    /**
+     * lambda for change status value
+     */
+    var onChangeStatus: (String) -> Unit
+
+    /**
+     * value file name
+     */
+    var fileName: String
+
+    /**
+     * lambda for change file name status
+     */
+    var onChangeTestName: (String) -> Unit
+
+
+    /**
+     * value test suite
+     */
+    var testSuite: String
+
+    /**
+     * lambda for change test suite value
+     */
+    var onChangeTestSuite: (String) -> Unit
+
+    /**
+     * value tag
+     */
+    var tag: String
+
+    /**
+     * lambda for change tag value
+     */
+    var onChangeTag: (String) -> Unit
+}
+
+val testExecutionFiltersRow = testExecutionFiltersRow()
+
 /**
  * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
  *
- * @param initialValueStatus initial value of `TestResultStatus`
- * @param initialValueTestName initial value of `test name`
- * @param initialValueTestSuite initial value of `test suite`
- * @param initialValueTag initial value of `tag`
- * @param onChangeStatus handler for selected value change
- * @param onChangeTestName handler for input value test name
- * @param onChangeTestSuite handler for input value test suite
- * @param onChangeTag handler for input value tag
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS")
-fun testExecutionFiltersRow(
-    initialValueStatus: String = "",
-    initialValueTestName: String = "",
-    initialValueTestSuite: String = "",
-    initialValueTag: String = "",
-    onChangeStatus: (String) -> Unit,
-    onChangeTestName: (String) -> Unit,
-    onChangeTestSuite: (String) -> Unit,
-    onChangeTag: (String) -> Unit
-) = FC<Props> {
-    val (status, setStatus) = useState(initialValueStatus)
-    val (testName, setTestName) = useState(initialValueTestName)
-    val (testSuite, setTestSuite) = useState(initialValueTestSuite)
-    val (tag, setTag) = useState(initialValueTag)
+private fun testExecutionFiltersRow(
+) = FC<FiltersRowProps> { props->
+    val (status, setStatus) = useState(props.status)
+    val (fileName, setTestName) = useState(props.fileName)
+    val (testSuite, setTestSuite) = useState(props.testSuite)
+    val (tag, setTag) = useState(props.tag)
     div {
         className = ClassName("container-fluid")
         div {
-            className = ClassName("row justify-content-start")
+            className = ClassName("row d-flex justify-content-between")
             div {
                 className = ClassName("col-0 pr-1 align-self-center")
                 fontAwesomeIcon(icon = faFilter)
             }
             div {
-                className = ClassName("col-auto align-self-center")
-                +"Status: "
-            }
-            div {
-                className = ClassName("col-auto")
-                select {
-                    className = ClassName("form-control")
-                    val elements = TestResultStatus.values().map { it.name }.toMutableList()
-                    elements.add(0, ANY)
-                    elements.forEach { element ->
-                        option {
-                            if (element == initialValueStatus) {
-                                selected = true
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Status: "
+                }
+                div {
+                    className = ClassName("col-auto")
+                    select {
+                        className = ClassName("form-control")
+                        val elements = TestResultStatus.values().map { it.name }.toMutableList()
+                        elements.add(0, ANY)
+                        elements.forEach { element ->
+                            option {
+                                if (element == props.status) {
+                                    selected = true
+                                }
+                                +element
                             }
-                            +element
+                        }
+
+                        onChange = {
+                            setStatus(it.target.value)
                         }
                     }
-
-                    onChange = {
-                        setStatus(it.target.value)
+                }
+            }
+            div {
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"File name: "
+                }
+                div {
+                    className = ClassName("col-auto")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        defaultValue = props.fileName
+                        required = false
+                        onChange = {
+                            setTestName(it.target.value)
+                        }
                     }
                 }
             }
             div {
-                className = ClassName("col-auto align-self-center")
-                +"File name: "
-            }
-            div {
-                className = ClassName("col-auto1")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    defaultValue = initialValueTestName
-                    required = false
-                    onChange = {
-                        setTestName(it.target.value)
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Test suite: "
+                }
+                div {
+                    className = ClassName("col-auto")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        defaultValue = props.testSuite
+                        required = false
+                        onChange = {
+                            setTestSuite(it.target.value)
+                        }
                     }
                 }
             }
             div {
-                className = ClassName("col-auto align-self-center")
-                +"Test suite: "
-            }
-            div {
-                className = ClassName("col-auto2")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    defaultValue = initialValueTestSuite
-                    required = false
-                    onChange = {
-                        setTestSuite(it.target.value)
-                    }
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Tags: "
                 }
-            }
-            div {
-                className = ClassName("col-auto align-self-center")
-                +"Tags: "
-            }
-            div {
-                className = ClassName("col-auto3")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    defaultValue = initialValueTag
-                    required = false
-                    onChange = {
-                        setTag(it.target.value)
+                div {
+                    className = ClassName("col-auto")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        defaultValue = props.tag
+                        required = false
+                        onChange = {
+                            setTag(it.target.value)
+                        }
                     }
                 }
             }
             button {
-                className = ClassName("btn btn-primary ml-3")
+                className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
-                    onChangeStatus(status)
-                    onChangeTestName(testName)
-                    onChangeTestSuite(testSuite)
-                    onChangeTag(tag)
+                    props.onChangeStatus(status)
+                    props.onChangeTestName(fileName)
+                    props.onChangeTestSuite(testSuite)
+                    props.onChangeTag(tag)
+                }
+            }
+            button {
+                className = ClassName("btn btn-primary")
+                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                onClick = {
+                    props.onChangeStatus("ANY")
+                    props.onChangeTestName("")
+                    props.onChangeTestSuite("")
+                    props.onChangeTag("")
                 }
             }
         }

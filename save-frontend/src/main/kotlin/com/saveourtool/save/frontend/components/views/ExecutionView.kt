@@ -120,56 +120,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val testExecutionFiltersRow = testExecutionFiltersRow(
-        initialValueStatus = state.status?.name ?: ANY,
-        initialValueTestName = state.testName ?: "",
-        initialValueTestSuite = state.testSuite ?: "",
-        initialValueTag = state.tag ?: "",
-        onChangeStatus = { value ->
-            if (value == "ANY") {
-                setState {
-                    status = null
-                }
-            } else {
-                setState {
-                    status = TestResultStatus.valueOf(value)
-                }
-            }
-        },
-        onChangeTestName = { testNameValue ->
-            if (testNameValue == "") {
-                setState {
-                    testName = null
-                }
-            } else {
-                setState {
-                    testName = testNameValue
-                }
-            }
-        },
-        onChangeTestSuite = { testSuiteValue ->
-            if (testSuiteValue == "") {
-                setState {
-                    testSuite = null
-                }
-            } else {
-                setState {
-                    testSuite = testSuiteValue
-                }
-            }
-        },
-        onChangeTag = { tagValue ->
-            if (tagValue == "") {
-                setState {
-                    tag = null
-                }
-            } else {
-                setState {
-                    tag = tagValue
-                }
-            }
-        }
-    )
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -319,7 +269,56 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             tr {
                 th {
                     colSpan = tableInstance.columns.size
-                    testExecutionFiltersRow()
+                    testExecutionFiltersRow {
+                        status =  state.status?.name ?: "ANY"
+                        fileName = state.testName ?: ""
+                        testSuite = state.testSuite ?: ""
+                        tag = state.tag ?: ""
+                        onChangeStatus = { value ->
+                            if (value == "ANY") {
+                                setState {
+                                    status = null
+                                }
+                            } else {
+                                setState {
+                                    status = TestResultStatus.valueOf(value)
+                                }
+                            }
+                        }
+                        onChangeTestName = { testNameValue ->
+                            if (testNameValue.isEmpty()) {
+                                setState {
+                                    testName = null
+                                }
+                            } else {
+                                setState {
+                                    testName = testNameValue
+                                }
+                            }
+                        }
+                        onChangeTestSuite = { testSuiteValue ->
+                            if (testSuiteValue.isEmpty()) {
+                                setState {
+                                    testSuite = null
+                                }
+                            } else {
+                                setState {
+                                    testSuite = testSuiteValue
+                                }
+                            }
+                        }
+                        onChangeTag = { tagValue ->
+                            if (tagValue.isEmpty()) {
+                                setState {
+                                    tag = null
+                                }
+                            } else {
+                                setState {
+                                    tag = tagValue
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
