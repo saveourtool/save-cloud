@@ -101,9 +101,6 @@ class ProjectViewTest {
         },
     )
 
-    @BeforeTest
-    fun setup(): Promise<*> = worker.start() as Promise<*>
-
     @AfterTest
     fun tearDown() {
         worker.resetHandlers()
@@ -115,28 +112,33 @@ class ProjectViewTest {
     @Test
     @Ignore
     fun projectViewShouldRender(): Promise<Unit> {
-        renderProjectView()
-        return screen.findByText(
-            "Project ${testProject.name}",
-            waitForOptions = jso {
-                timeout = 15000
-            }
-        )
+        return worker.start().then {
+            renderProjectView()
+        }.then {
+            screen.findByText(
+                "Project ${testProject.name}",
+                waitForOptions = jso {
+                    timeout = 15000
+                }
+            )
+        }
             .then {
                 assertNotNull(it, "Should show project name")
             }
     }
 
     @Test
-    @Ignore
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
-        renderProjectView()
-        return screen.findByText(
-            "SETTINGS",
-            waitForOptions = jso {
-                timeout = 15000
-            }
-        )
+        return worker.start().then {
+            renderProjectView()
+        }.then {
+            screen.findByText(
+                "SETTINGS",
+                waitForOptions = jso {
+                    timeout = 15000
+                }
+            )
+        }
             .then {
                 userEvent.click(it)
             }
