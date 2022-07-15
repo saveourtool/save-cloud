@@ -51,11 +51,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param page a zero-based index of page of data
      * @param pageSize size of page
      * @param status
-     * @param testName
-     * @param testSuite
-     * @param tag
      * @param testFileName
      * @param testSuiteName
+     * @param tag
      * @return a list of [TestExecutionDto]s
      */
     @Suppress(

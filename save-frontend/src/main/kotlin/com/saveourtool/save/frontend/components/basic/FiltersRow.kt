@@ -29,6 +29,9 @@ class SelectOption {
     }
 }
 
+/**
+ * [Props] for filters value
+ */
 external interface FiltersRowProps : Props {
     /**
      * value status for filters table
@@ -76,9 +79,10 @@ external interface FiltersRowProps : Props {
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS")
+@Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongMethod")
 private fun testExecutionFiltersRow(
-) = FC<FiltersRowProps> { props -> val (status, setStatus) = useState(props.status)
+) = FC<FiltersRowProps> { props ->
+    val (status, setStatus) = useState(props.status)
     val (fileName, setTestName) = useState(props.fileName)
     val (testSuite, setTestSuite) = useState(props.testSuite)
     val (tag, setTag) = useState(props.tag)

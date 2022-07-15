@@ -152,7 +152,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
             and (:status is null or te.status = :status)
             and e.id = :executionId"""
     )
-    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     fun findByExecutionIdAndStatusAndTestTestSuiteName(
         @Param("executionId") executionId: Long,
         @Param("status") status: TestResultStatus?,
