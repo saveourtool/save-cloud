@@ -117,6 +117,7 @@ class TestDiscoveringService {
                             plugin::class.simpleName!!,
                             testSuite.id!!,
                             it.test.toFile().toHash(),
+                            generalConfig.tags!!,
                             additionalFiles,
                         )
                     }

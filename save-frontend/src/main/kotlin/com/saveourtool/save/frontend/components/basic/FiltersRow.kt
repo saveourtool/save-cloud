@@ -192,9 +192,13 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
+                    setStatus("ANY")
                     props.onChangeStatus("ANY")
+                    setTestName("")
                     props.onChangeTestName("")
+                    setTestSuite("")
                     props.onChangeTestSuite("")
+                    setTag("")
                     props.onChangeTag("")
                 }
             }

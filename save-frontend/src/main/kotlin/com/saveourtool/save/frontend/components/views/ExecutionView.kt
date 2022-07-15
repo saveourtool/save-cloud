@@ -491,12 +491,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             ""
         }
         val testName1 = state.testName?.let {
-            "&testName=${state.testName}"
+            "&testFileName=${state.testName}"
         } ?: run {
             ""
         }
         val testSuite1 = state.testSuite?.let {
-            "&testSuite=${state.testSuite}"
+            "&testSuiteName=${state.testSuite}"
         } ?: run {
             ""
         }
