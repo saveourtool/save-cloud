@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.utils.debug
 import org.apache.commons.io.FilenameUtils
 
@@ -28,7 +27,6 @@ class ExecutionService(
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
-    private val testDataFilesystemRepository: TestDataFilesystemRepository,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -45,49 +43,47 @@ class ExecutionService(
      * @param username username of the user that has started the execution
      * @return id of the created [Execution]
      */
-    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
-    fun saveExecution(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
+    fun saveExecutionAndReturnId(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
         this.user = userRepository.findByName(username).orElseThrow()
-    }).id!!
+    }).requiredId()
 
     /**
      * @param execution
      * @return id of the created [Execution]
      */
-    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
-    fun saveExecution(execution: Execution): Long = executionRepository.save(execution).id!!
+    fun saveExecutionAndReturnId(execution: Execution): Long = saveExecution(execution).requiredId()
 
     /**
      * @param execution
+     * @return created/updated [Execution]
+     */
+    fun saveExecution(execution: Execution): Execution = executionRepository.save(execution)
+
+    /**
+     * @param id [Execution.id]
+     * @param newStatus [Execution.status]
      * @throws ResponseStatusException
      */
-    @Suppress(
-        "TOO_MANY_LINES_IN_LAMBDA",
-        "PARAMETER_NAME_IN_OUTER_LAMBDA",
-    )
     @Transactional
-    fun updateExecution(execution: ExecutionUpdateDto) {
-        log.debug("Updating execution $execution")
-        executionRepository.findById(execution.id).ifPresentOrElse({
-            it.status = execution.status
-            execution.failReason?.let { testDataFilesystemRepository.save(execution) }
-            if (it.status == ExecutionStatus.FINISHED || it.status == ExecutionStatus.ERROR) {
-                // execution is completed, we can update end time
-                it.endTime = LocalDateTime.now()
-                // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
-                testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.id).map { testExec ->
-                    log.debug {
-                        "Test execution id=${testExec.id} has status ${testExec.status} while execution id=${it.id} has status ${it.status}. " +
-                                "Will mark it ${TestResultStatus.INTERNAL_ERROR}"
-                    }
-                    testExec.status = TestResultStatus.INTERNAL_ERROR
-                    testExecutionRepository.save(testExec)
-                }
-            }
-            executionRepository.save(it)
-        }) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    fun updateExecutionStatusById(id: Long, newStatus: ExecutionStatus) {
+        log.debug("Updating status to $newStatus on execution id = $id")
+        val execution = executionRepository.findById(id).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND) }.apply {
+            status = newStatus
         }
+        if (execution.status == ExecutionStatus.FINISHED || execution.status == ExecutionStatus.ERROR) {
+            // execution is completed, we can update end time
+            execution.endTime = LocalDateTime.now()
+            // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
+            testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), id).map { testExec ->
+                log.debug {
+                    "Test execution id=${testExec.id} has status ${testExec.status} while execution id=${execution.id} has status ${execution.status}. " +
+                            "Will mark it ${TestResultStatus.INTERNAL_ERROR}"
+                }
+                testExec.status = TestResultStatus.INTERNAL_ERROR
+                testExecutionRepository.save(testExec)
+            }
+        }
+        executionRepository.save(execution)
     }
 
     /**
@@ -166,7 +162,7 @@ class ExecutionService(
             expectedChecks = 0
             unexpectedChecks = 0
         }
-        saveExecution(execution)
+        saveExecutionAndReturnId(execution)
     }
 
     /**
