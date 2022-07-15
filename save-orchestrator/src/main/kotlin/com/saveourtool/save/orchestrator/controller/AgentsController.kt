@@ -157,6 +157,7 @@ class AgentsController(
             .bodyToMono<List<String>>()
             .toFlux()
             .flatMap { Flux.fromIterable(it) }
+            .distinct()
             .single()
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
     }
