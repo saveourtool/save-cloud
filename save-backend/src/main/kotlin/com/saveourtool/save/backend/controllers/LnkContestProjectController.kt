@@ -7,11 +7,13 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ContestService
 import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.ContestResult
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
@@ -34,6 +36,7 @@ import kotlin.jvm.optionals.getOrNull
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val contestService: ContestService,
     private val projectService: ProjectService,
 ) {
@@ -108,7 +111,16 @@ class LnkContestProjectController(
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
         .map { (project, contest) ->
-            lnkContestProjectService.saveLnkContestProject(project!!, contest!!)
+            project!! to contest!!
+        }
+        .filter { (project, _) ->
+            projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+        }
+        .map { (project, contest) ->
+            lnkContestProjectService.saveLnkContestProject(project, contest)
         }
         .map {
             if (it) {
