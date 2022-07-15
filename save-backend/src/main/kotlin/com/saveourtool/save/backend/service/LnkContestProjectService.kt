@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.repository.LnkContestProjectRepository
 import com.saveourtool.save.entities.*
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
-import java.util.Optional
 
 /**
  * Service of [LnkContestProject]
@@ -13,33 +12,7 @@ import java.util.Optional
 class LnkContestProjectService(
     private val lnkContestProjectRepository: LnkContestProjectRepository,
     private val lnkUserProjectService: LnkUserProjectService,
-    private val projectService: ProjectService,
 ) {
-    /**
-     * @param projectId id of a [Project]
-     * @return all contests that project with [projectId] participated
-     */
-    fun getAllContestsByProjectId(projectId: Long) = lnkContestProjectRepository.findByProjectId(projectId)
-
-    /**
-     * @param userId id of a [User]
-     * @return list of links contest-project of projects where user with [userId] is a member
-     */
-    fun getAllContestsByProjectsWithUserId(userId: Long) = lnkUserProjectService.getAllProjectsByUserId(userId)
-        .mapNotNull { it.id }
-        .toSet()
-        .let {
-            lnkContestProjectRepository.findByProjectIdIn(it)
-        }
-
-    /**
-     * @param contestName name of a [Contest]
-     * @param projectName name of a [Project]
-     * @return link between contest with [contestName] and project with [projectName]
-     */
-    fun getByContestNameAndProjectName(contestName: String, projectName: String): Optional<LnkContestProject> =
-            lnkContestProjectRepository.findByContestNameAndProjectName(contestName, projectName)
-
     /**
      * @param contestName name of a [Contest]
      * @return list of links contest-project for a contest
@@ -52,12 +25,26 @@ class LnkContestProjectService(
      * @param numberOfContests
      * @return list of best [numberOfContests] contests of a project
      */
-    fun getBestContestsByProject(
+    fun getByProjectNameAndOrganizationName(
         projectName: String,
         organizationName: String,
         numberOfContests: Int,
-    ): List<LnkContestProject> = projectService.findByNameAndOrganizationName(projectName, organizationName)
-        ?.let {
-            lnkContestProjectRepository.findByProjectOrderByScoreDesc(it, PageRequest.ofSize(numberOfContests)).content
-        } ?: emptyList()
+    ): List<LnkContestProject> = lnkContestProjectRepository.findByProjectNameAndProjectOrganizationName(
+        projectName,
+        organizationName,
+        PageRequest.ofSize(numberOfContests),
+    )
+
+    /**
+     * @param project a [Project]
+     * @param contest a [Contest]
+     * @return true if record is saved, false if is already present
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun saveLnkContestProject(project: Project, contest: Contest): Boolean = if (lnkContestProjectRepository.findByContestAndProject(contest, project).isPresent) {
+        false
+    } else {
+        lnkContestProjectRepository.save(LnkContestProject(project, contest))
+        true
+    }
 }

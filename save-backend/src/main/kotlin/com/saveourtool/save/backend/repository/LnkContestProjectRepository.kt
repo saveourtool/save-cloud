@@ -1,8 +1,8 @@
 package com.saveourtool.save.backend.repository
 
+import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -23,36 +23,23 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
     fun findByProject(project: Project): List<LnkContestProject>
 
     /**
-     * @param projectId
-     * @return List of [LnkContestProject] by [projectId]
+     * @param contest
+     * @param project
+     * @return [LnkContestProject] by [contest] and [project]
      */
-    fun findByProjectId(projectId: Long): List<LnkContestProject>
+    fun findByContestAndProject(contest: Contest, project: Project): Optional<LnkContestProject>
 
     /**
-     * @param contestId
-     * @return List of [LnkContestProject] by [contestId]
-     */
-    fun findByContestId(contestId: Long): List<LnkContestProject>
-
-    /**
-     * @param contestId
-     * @param projectId
-     * @return [LnkContestProject] by [contestId] and [projectId]
-     */
-    fun findByContestIdAndProjectId(contestId: Long, projectId: Long): Optional<LnkContestProject>
-
-    /**
-     * @param projectIds
-     * @return list of [LnkContestProject] in which [Project]s have ids from [projectIds]
-     */
-    fun findByProjectIdIn(projectIds: Set<Long>): List<LnkContestProject>
-
-    /**
-     * @param contestName
      * @param projectName
+     * @param organizationName
+     * @param pageable
      * @return link contest-project for project with name [projectName] and contest with name [contestName]
      */
-    fun findByContestNameAndProjectName(contestName: String, projectName: String): Optional<LnkContestProject>
+    fun findByProjectNameAndProjectOrganizationName(
+        projectName: String,
+        organizationName: String,
+        pageable: Pageable,
+    ): List<LnkContestProject>
 
     /**
      * @param contestName
@@ -61,28 +48,20 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
     fun findByContestName(contestName: String): List<LnkContestProject>
 
     /**
-     * @param project
-     * @param page
-     * @return list of best contests of the project
-     */
-    fun findByProjectOrderByScoreDesc(project: Project, page: Pageable): Page<LnkContestProject>
-
-    /**
      * Save [LnkContestProject] using only ids and contest score.
      *
      * @param contestId
      * @param projectId
-     * @param score
+     * @return saved [LnkContestProject] record
      */
     @Transactional
     @Modifying
     @Query(
-        value = "insert into save_cloud.lnk_contest_project (project_id, contest_id, score) values (:project_id, :contest_id, :score)",
+        value = "insert into save_cloud.lnk_contest_project (project_id, contest_id) values (:project_id, :contest_id)",
         nativeQuery = true,
     )
     fun save(
         @Param("project_id") projectId: Long,
         @Param("contest_id") contestId: Long,
-        @Param("score") score: Float
-    )
+    ): LnkContestProject
 }

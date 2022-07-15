@@ -7,11 +7,15 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.service.ContestService
+import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.LnkContestProjectService
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -19,35 +23,20 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import kotlin.jvm.optionals.getOrNull
 
 /**
- * Controller for processing links between users and their roles in organizations
+ * Controller for processing links between projects and contests with scores
  */
 @RestController
 @RequestMapping("/api/$v1/contests/")
+@OptIn(ExperimentalStdlibApi::class)
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
+    private val lnkContestExecutionService: LnkContestExecutionService,
+    private val contestService: ContestService,
+    private val projectService: ProjectService,
 ) {
-    /**
-     * @param contestName
-     * @param projectName
-     * @param authentication
-     * @return score of a project with [projectName] in contest with [contestName]
-     * @throws ResponseStatusException
-     */
-    @GetMapping("{contestName}/{projectName}/scores")
-    fun getProjectRatingInContest(
-        @PathVariable contestName: String,
-        @PathVariable projectName: String,
-        authentication: Authentication,
-    ): Mono<Float> = Mono.justOrEmpty(
-        lnkContestProjectService.getByContestNameAndProjectName(contestName, projectName)
-    )
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
-        .map { it.score }
-
     /**
      * @param contestName
      * @param authentication
@@ -58,29 +47,74 @@ class LnkContestProjectController(
     fun getRatingsInContest(
         @PathVariable contestName: String,
         authentication: Authentication,
-    ): Flux<ContestResult> = Flux.fromIterable(
-        lnkContestProjectService.getByContestName(contestName)
-    )
+    ): Flux<ContestResult> = Flux.fromIterable(lnkContestProjectService.getByContestName(contestName))
         .map {
-            it.toContestResult()
+            it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+        }
+        .filter { (_, score) ->
+            score != null
+        }
+        .map { (lnkContestProject, score) ->
+            lnkContestProject.toContestResult(score)
         }
 
     /**
      * @param organizationName
      * @param projectName
-     * @param numberOfContests
-     * @return best [numberOfContests] contests of a project with name [projectName]
+     * @param amount
+     * @param authentication
+     * @return best [amount] contests of a project with name [projectName]
      */
     @GetMapping("/{organizationName}/{projectName}/best")
     @PreAuthorize("permitAll()")
-    fun getBestProjectsContests(
+    fun getBestProjectContests(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestParam(defaultValue = "4") numberOfContests: Int,
+        @RequestParam(defaultValue = "4") amount: Int,
+        authentication: Authentication,
     ): Flux<ContestResult> = Flux.fromIterable(
-        lnkContestProjectService.getBestContestsByProject(projectName, organizationName, numberOfContests)
+        lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, amount)
     )
         .map {
-            it.toContestResult()
+            it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+        }
+        .filter { (_, score) ->
+            score != null
+        }
+        .map { (lnkContestProject, score) ->
+            lnkContestProject.toContestResult(score)
+        }
+
+    /**
+     * @param contestName
+     * @param projectName
+     * @param organizationName
+     * @param authentication
+     * @return [String] with response
+     */
+    @GetMapping("/{contestName}/enroll")
+    @PreAuthorize("permitAll()")
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    fun enrollForContest(
+        @PathVariable contestName: String,
+        @RequestParam projectName: String,
+        @RequestParam organizationName: String,
+        authentication: Authentication,
+    ): Mono<ResponseEntity<String>> = Mono.fromCallable {
+        projectService.findByNameAndOrganizationName(projectName, organizationName) to contestService.findByName(contestName).getOrNull()
+    }
+        .filter { it.first != null && it.second != null }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .map { (project, contest) ->
+            lnkContestProjectService.saveLnkContestProject(project!!, contest!!)
+        }
+        .map {
+            if (it) {
+                ResponseEntity.ok("You have successfully enrolled for this contest!")
+            } else {
+                ResponseEntity.ok("You are already enrolled for this contest.")
+            }
         }
 }

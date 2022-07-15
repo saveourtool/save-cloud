@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-contest-execution-1" author="sanyavertolet" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="lnk_contest_execution"/>
+      </not>
+    </preConditions>
+    <createTable tableName="lnk_contest_execution">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="contest_id" type="bigint">
+          <constraints foreignKeyName="fk_lnk_contest_execution_contest" references="contest(id)" nullable="false"/>
+      </column>
+      <column name="execution_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_contest_execution_execution" references="execution(id)" nullable="false"/>
+      </column>
+      <column name="score" type="double" defaultValue="0.0"/>
+    </createTable>
+
+    <addUniqueConstraint tableName="lnk_contest_execution" columnNames="contest_id, execution_id" constraintName="contest_execution_constraint"/>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="lnk_contest_execution"/>
+    </rollback>
+  </changeSet>
+
+</databaseChangeLog>
