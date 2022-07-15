@@ -42,7 +42,7 @@ class ProjectViewTest {
         mapOf(testOrganization.name to Role.VIEWER),
         globalRole = Role.SUPER_ADMIN,
     )
-    private val worker = setupWorker(
+    private fun createWorker() = setupWorker(
         rest.get("$apiUrl/projects/get/organization-name") { _, res, _ ->
             res { response ->
                 mockMswResponse(
@@ -101,18 +101,10 @@ class ProjectViewTest {
         },
     )
 
-    @AfterTest
-    fun tearDown() {
-        worker.resetHandlers()
-        // todo: stop worker in `afterall`. There doesn't seem to be immediate support for this in kotlin.test for JS.
-        // Possible solution is to use https://kotest.io/docs/framework/lifecycle-hooks.html
-        // worker.stop()
-    }
-
     @Test
-    @Ignore
-    fun projectViewShouldRender(): Promise<Unit> {
-        return worker.start().then {
+    fun projectViewShouldRender(): Promise<*> {
+        val worker = createWorker()
+        return (worker.start() as Promise<*>).then {
             renderProjectView()
         }.then {
             screen.findByText(
@@ -125,13 +117,19 @@ class ProjectViewTest {
             .then {
                 assertNotNull(it, "Should show project name")
             }
+            .then {
+                worker.stop()
+            }
     }
 
     @Test
-    fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
-        return worker.start().then {
+    fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<*> {
+        val worker = createWorker()
+        return (worker.start() as Promise<*>).then {
+            console.log("Rendering")
             renderProjectView()
         }.then {
+            console.log("Looking for text")
             screen.findByText(
                 "SETTINGS",
                 waitForOptions = jso {
@@ -153,6 +151,8 @@ class ProjectViewTest {
             }
             .then {
                 assertNotNull(it, "Should show confirmation window")
+            }.then {
+                worker.stop()
             }
     }
 

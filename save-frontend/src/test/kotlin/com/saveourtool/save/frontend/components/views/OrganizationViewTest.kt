@@ -19,7 +19,6 @@ import kotlin.js.Promise
 import kotlin.test.*
 import kotlinx.js.jso
 
-@Ignore
 class OrganizationViewTest {
     private val testOrganization = Organization(
         "TestOrg",
@@ -34,7 +33,7 @@ class OrganizationViewTest {
         mapOf(testOrganization.name to Role.ADMIN),
         globalRole = Role.SUPER_ADMIN,
     )
-    private val worker = setupWorker(
+    private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organization/${testOrganization.name}/avatar") { _, res, _ ->
             res { response ->
                 mockMswResponse(
@@ -77,26 +76,20 @@ class OrganizationViewTest {
         },
     )
 
-    @BeforeTest
-    fun setup(): Promise<*> = worker.start() as Promise<*>
-
-    @AfterTest
-    fun tearDown() {
-        worker.resetHandlers()
-        // todo: stop worker in `afterall`. There doesn't seem to be immediate support for this in kotlin.test for JS.
-        // Possible solution is to use https://kotest.io/docs/framework/lifecycle-hooks.html
-        // worker.stop()
-    }
-
     @Test
-    fun shouldShowConfirmationWindowWhenDeletingOrganization(): Promise<Unit> {
-        renderOrganizationView()
-        return screen.findByText(
-            "SETTINGS",
-            waitForOptions = jso {
-                timeout = 15000
-            },
-        )
+    fun shouldShowConfirmationWindowWhenDeletingOrganization(): Promise<*> {
+        val worker = createWorker()
+        return (worker.start() as Promise<*>).then {
+            renderOrganizationView()
+        }
+            .then {
+                screen.findByText(
+                    "SETTINGS",
+                    waitForOptions = jso {
+                        timeout = 15000
+                    },
+                )
+            }
             .then {
                 userEvent.click(it)
             }
@@ -111,6 +104,9 @@ class OrganizationViewTest {
             }
             .then {
                 assertNotNull(it, "Should show confirmation window")
+            }
+            .then {
+                worker.stop()
             }
     }
 
