@@ -23,19 +23,19 @@ data class FileKey(
 
     companion object {
         const val FIELD_DELIMITER = ":"
-        const val OBJECT_DELIMITER = ","
+        const val OBJECT_DELIMITER = ";"
 
         /**
          * @param str
          * @return list of [FileKey]s parsed from provided string
          */
-        fun parseList(str: String): List<FileKey> = str.split(OBJECT_DELIMITER).map { parse(it) }
+        fun parseList(str: String): List<FileKey> = if (str.isEmpty()) emptyList() else str.split(OBJECT_DELIMITER).map { parse(it) }
 
         /**
          * @param str
          * @return [FileKey] parsed from provided string
          */
-        fun parse(str: String): FileKey {
+        private fun parse(str: String): FileKey {
             val (name, uploadedMillis) = str.split(FIELD_DELIMITER)
             return FileKey(name, uploadedMillis.toLong())
         }

@@ -17,11 +17,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultLocation
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
@@ -29,6 +25,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -59,24 +56,19 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.test.web.reactive.server.expectBodyList
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.nio.file.Paths
-
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempFile
-import kotlin.io.path.name
-import kotlin.io.path.writeLines
+import kotlin.io.path.*
 
 @ActiveProfiles("test")
 @WebFluxTest(controllers = [DownloadFilesController::class])
 @Import(
     WebConfig::class,
     NoopWebSecurityConfig::class,
-    TimestampBasedFileSystemRepository::class,
-    TestDataFilesystemRepository::class,
     FileStorage::class,
     AvatarStorage::class,
     DebugInfoStorage::class,
@@ -116,10 +108,7 @@ class DownloadFilesTest {
     lateinit var webTestClient: WebTestClient
     
     @Autowired
-    private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
-
-    @Autowired
-    private lateinit var dataFilesystemRepository: TestDataFilesystemRepository
+    private lateinit var fileStorage: FileStorage
 
     @Autowired
     private lateinit var configProperties: ConfigProperties
@@ -147,7 +136,13 @@ class DownloadFilesTest {
         val tmpFile = createTempFile("test", "txt")
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
-        val sampleFileInfo = fileSystemRepository.saveFile(tmpFile, ProjectCoordinates("Example.com", "The Project"))
+
+        val sampleFileInfo = tmpFile.toFileInfo()
+        val fileKey = FileKey(sampleFileInfo)
+        fileStorage.upload(ProjectCoordinates("Example.com", "The Project"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+            .subscribeOn(Schedulers.immediate())
+            .toFuture()
+            .get()
 
         webTestClient.method(HttpMethod.POST)
             .uri("/api/$v1/files/Example.com/The Project/download")
@@ -216,7 +211,12 @@ class DownloadFilesTest {
             .expectBody<ShortFileInfo>()
             .consumeWith {
                 Assertions.assertTrue(
-                    fileSystemRepository.getFileInfoByShortInfo(it.responseBody!!, ProjectCoordinates("Huawei", "huaweiName")).sizeBytes > 0
+                    fileStorage.convertToLatestFileInfo(ProjectCoordinates("Huawei", "huaweiName"), Flux.just(it.responseBody!!))
+                        .map(FileInfo::sizeBytes)
+                        .single()
+                        .subscribeOn(Schedulers.immediate())
+                        .toFuture()
+                        .get() > 0
                 )
             }
     }

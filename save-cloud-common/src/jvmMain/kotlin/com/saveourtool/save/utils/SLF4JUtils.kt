@@ -34,6 +34,12 @@ inline fun Logger.warn(msg: () -> String) {
     }
 }
 
+inline fun Logger.warn(exception: Throwable, msg: () -> String) {
+    if (this.isWarnEnabled) {
+        warn(msg(), exception)
+    }
+}
+
 inline fun Logger.error(msg: () -> String) {
     if (this.isErrorEnabled) {
         error(msg())
