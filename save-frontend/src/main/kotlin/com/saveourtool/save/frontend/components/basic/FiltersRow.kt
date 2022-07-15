@@ -36,42 +36,42 @@ external interface FiltersRowProps : Props {
     /**
      * value status for filters table
      */
-    var status: String
+    var status: String?
 
     /**
      * lambda for change status value
      */
-    var onChangeStatus: (String) -> Unit
+    var onChangeStatus: (String?) -> Unit
 
     /**
      * value file name
      */
-    var fileName: String
+    var fileName: String?
 
     /**
      * lambda for change file name status
      */
-    var onChangeTestName: (String) -> Unit
+    var onChangeTestName: (String?) -> Unit
 
     /**
      * value test suite
      */
-    var testSuite: String
+    var testSuite: String?
 
     /**
      * lambda for change test suite value
      */
-    var onChangeTestSuite: (String) -> Unit
+    var onChangeTestSuite: (String?) -> Unit
 
     /**
      * value tag
      */
-    var tag: String
+    var tag: String?
 
     /**
      * lambda for change tag value
      */
-    var onChangeTag: (String) -> Unit
+    var onChangeTag: (String?) -> Unit
 }
 
 /**

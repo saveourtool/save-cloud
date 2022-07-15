@@ -269,12 +269,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 th {
                     colSpan = tableInstance.columns.size
                     testExecutionFiltersRow {
-                        status = state.status?.name ?: "ANY"
-                        fileName = state.testName ?: ""
-                        testSuite = state.testSuite ?: ""
-                        tag = state.tag ?: ""
+                        status = state.status?.name
+                        fileName = state.testName
+                        testSuite = state.testSuite
+                        tag = state.tag
                         onChangeStatus = { value ->
-                            if (value == "ANY") {
+                            if (value == null || value == "ANY") {
                                 setState {
                                     status = null
                                 }
@@ -285,7 +285,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             }
                         }
                         onChangeTestName = { testNameValue ->
-                            if (testNameValue.isEmpty()) {
+                            if (testNameValue?.isEmpty() == true) {
                                 setState {
                                     testName = null
                                 }
@@ -296,7 +296,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             }
                         }
                         onChangeTestSuite = { testSuiteValue ->
-                            if (testSuiteValue.isEmpty()) {
+                            if (testSuiteValue?.isEmpty() == true) {
                                 setState {
                                     testSuite = null
                                 }
@@ -307,7 +307,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                             }
                         }
                         onChangeTag = { tagValue ->
-                            if (tagValue.isEmpty()) {
+                            if (tagValue?.isEmpty() == true) {
                                 setState {
                                     tag = null
                                 }
@@ -485,26 +485,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     }
 
     private fun setStatusAndNameAndSuiteAndTag(): String? {
-        val status1 = state.status?.let {
-            "&status=${state.status}"
-        } ?: run {
-            ""
-        }
-        val testName1 = state.testName?.let {
-            "&testFileName=${state.testName}"
-        } ?: run {
-            ""
-        }
-        val testSuite1 = state.testSuite?.let {
-            "&testSuiteName=${state.testSuite}"
-        } ?: run {
-            ""
-        }
-        val tag1 = state.tag?.let {
-            "&tag=${state.tag}"
-        } ?: run {
-            ""
-        }
+        val status1 = state.status?.let { "&status=${state.status}" } ?: ""
+        val testName1 = state.testName?.let { "&testFileName=${state.testName}" } ?: ""
+        val testSuite1 = state.testSuite?.let { "&testSuiteName=${state.testSuite}" } ?: ""
+        val tag1 = state.tag?.let { "&tag=${state.tag}" } ?: ""
         return status1 + testName1 + testSuite1 + tag1
     }
 
