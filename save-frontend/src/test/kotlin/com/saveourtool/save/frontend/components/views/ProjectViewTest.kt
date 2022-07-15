@@ -113,6 +113,7 @@ class ProjectViewTest {
     }
 
     @Test
+    @Ignore
     fun projectViewShouldRender(): Promise<Unit> {
         renderProjectView()
         return screen.findByText(
