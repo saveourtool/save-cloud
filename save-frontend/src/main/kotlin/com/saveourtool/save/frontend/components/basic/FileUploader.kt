@@ -43,7 +43,7 @@ val fileUploader = fileUploader()
  * A component for file icon that changes depending on executable flag
  */
 @Suppress("TYPE_ALIAS", "EMPTY_BLOCK_STRUCTURE_ERROR")
-private val fileIconWithMode: FC<FileIconProps> = FC { props ->
+internal val fileIconWithMode: FC<FileIconProps> = FC { props ->
     span {
         className = ClassName("fa-layers mr-3")
         title = "Click to mark file ${if (props.fileInfo.isExecutable) "regular" else "executable"}"

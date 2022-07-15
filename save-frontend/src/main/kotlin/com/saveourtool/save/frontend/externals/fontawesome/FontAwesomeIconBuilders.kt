@@ -9,8 +9,6 @@ package com.saveourtool.save.frontend.externals.fontawesome
 import react.ChildrenBuilder
 import react.react
 
-import kotlinx.js.jso
-
 /**
  * A small wrapper for font awesome icons imported from individual modules.
  * See [faUser.d.ts](https://unpkg.com/browse/@fortawesome/free-solid-svg-icons@5.11.2/faUser.d.ts) as an example.
@@ -34,9 +32,8 @@ fun ChildrenBuilder.fontAwesomeIcon(
     icon: FontAwesomeIconModule,
     classes: String = "",
     handler: ChildrenBuilder.(props: FontAwesomeIconProps) -> Unit = {},
-): Unit = child(FontAwesomeIcon::class.react, props = jso {
+): Unit = FontAwesomeIcon::class.react {
     this.icon = icon.definition
     this.className = classes
-    // explicit receiver is required because of `@JsoDsl` which is a `@DslMarker` on `jso` argument
-    this@fontAwesomeIcon.handler(this)
-})
+    this.handler(this)
+}
