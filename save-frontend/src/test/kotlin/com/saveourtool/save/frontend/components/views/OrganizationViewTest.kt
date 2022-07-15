@@ -19,6 +19,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 import kotlinx.js.jso
 
+@Ignore
 class OrganizationViewTest {
     private val testOrganization = Organization(
         "TestOrg",
@@ -93,7 +94,7 @@ class OrganizationViewTest {
         return screen.findByText(
             "SETTINGS",
             waitForOptions = jso {
-                timeout = 5000
+                timeout = 15000
             },
         )
             .then {
