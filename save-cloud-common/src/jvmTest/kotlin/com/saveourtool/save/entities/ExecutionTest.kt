@@ -5,6 +5,7 @@
 
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.FileKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -60,31 +61,33 @@ internal class ExecutionTest {
 
     @Test
     fun parseAndGetAdditionalFiles() {
-        execution.additionalFiles = null
-        assertNull(execution.parseAndGetAdditionalFiles())
+        execution.additionalFiles = ""
+        assertEquals(emptyList(), execution.parseAndGetAdditionalFiles())
 
-        execution.additionalFiles = "file1;file2;file3"
-        assertNotNull(execution.parseAndGetAdditionalFiles()) {
-            assertEquals(listOf("file1", "file2", "file3"), it)
-        }
+        execution.additionalFiles = "file1:1;file2:2;file3:3"
+        assertEquals(
+            listOf(FileKey("file1", 1), FileKey("file2", 2), FileKey("file3", 3)),
+            execution.parseAndGetAdditionalFiles()
+        )
 
-        execution.additionalFiles = "file3;file2;file1"
-        assertNotNull(execution.parseAndGetAdditionalFiles()) {
-            assertEquals(listOf("file3", "file2", "file1"), it)
-        }
+        execution.additionalFiles = "file3:3;file2:2;file1:1"
+        assertEquals(
+            listOf(FileKey("file3", 3), FileKey("file2", 2), FileKey("file1", 1)),
+            execution.parseAndGetAdditionalFiles()
+        )
     }
 
     @Test
     fun appendAdditionalFile() {
-        execution.additionalFiles = null
+        execution.additionalFiles = ""
 
-        execution.appendAdditionalFile("file1")
-        assertEquals("file1", execution.additionalFiles)
+        execution.appendAdditionalFile(FileKey("file1", 1))
+        assertEquals("file1:1", execution.additionalFiles)
 
-        execution.appendAdditionalFile("file3")
-        assertEquals("file1;file3", execution.additionalFiles)
+        execution.appendAdditionalFile(FileKey("file3", 3))
+        assertEquals("file1:1;file3:3", execution.additionalFiles)
 
-        execution.appendAdditionalFile("file2")
-        assertEquals("file1;file3;file2", execution.additionalFiles)
+        execution.appendAdditionalFile(FileKey("file2", 2))
+        assertEquals("file1:1;file3:3;file2:2", execution.additionalFiles)
     }
 }

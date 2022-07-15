@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
  * @property matchedChecks
  * @property expectedChecks
  * @property unexpectedChecks
- * @property additionalFiles
  */
 @Serializable
 @Suppress("LongParameterList")
@@ -38,5 +37,4 @@ data class ExecutionDto(
     val matchedChecks: Long,
     val expectedChecks: Long,
     val unexpectedChecks: Long,
-    val additionalFiles: List<String>?,
 )
