@@ -72,7 +72,6 @@ class TestService(
                             testDto.pluginName,
                             LocalDateTime.now(),
                             testSuiteStub,
-                            testDto.tags.joinToString(";"),
                             additionalFiles = testDto.joinAdditionalFiles(),
                         )
                     }

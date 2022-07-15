@@ -134,7 +134,9 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
      *
      * @param executionId an ID of Execution to group TestExecutions
      * @param status test status
-     * @param name suite name
+     * @param name is named
+     * @param suite is suited
+     * @param tag is tag
      * @param pageable a request for a page
      * @return a list of [TestExecutionDto]s
      */
@@ -144,12 +146,18 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
            JOIN Execution e ON e.id = te.execution
            JOIN TestSuite ts ON t.testSuite = ts.id
            WHERE 1 = 1
+            and (:fileName is null or t.filePath like :fileName)
+            and (:tag is null or ts.tags like :tag)
+            and (:suite is null or ts.name like :suite)
             and (:status is null or te.status = :status)
             and e.id = :executionId"""
     )
     fun findByExecutionIdAndStatusAndTestTestSuiteName(
         @Param("executionId") executionId: Long,
         @Param("status") status: TestResultStatus?,
+        @Param("fileName") fileName: String?,
+        @Param("suite") suite: String?,
+        @Param("tag") tag: String?,
         pageable: Pageable
     ): List<TestExecution>
 

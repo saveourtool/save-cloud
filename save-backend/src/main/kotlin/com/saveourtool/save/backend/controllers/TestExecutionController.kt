@@ -75,7 +75,6 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
     ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
-        .also { println(" baze :  " + status?.name + "  " + testName + "  " + testSuite + "  " + tag) }
         .filterWhen {
         projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
     }

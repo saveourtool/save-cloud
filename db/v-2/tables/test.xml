@@ -13,4 +13,8 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="drop-tags-column" author="argentum" context="dev or prod">
+        <dropColumn tableName="test" columnName="tags" />
+    </changeSet>
+
 </databaseChangeLog>

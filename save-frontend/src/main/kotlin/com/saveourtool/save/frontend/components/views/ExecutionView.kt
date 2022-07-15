@@ -220,7 +220,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "File name") { cellProps ->
+            column(id = "path", header = "File Name") { cellProps ->
                 Fragment.create {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
@@ -452,8 +452,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             tag = state.tag
             getData = { page, size ->
                 val paramString = setStatusAndNameAndSuiteAndTag()
-                console.log(paramString)
-                console.log("Execution View 1  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
                 get(
                     url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$paramString&checkDebugInfo=true",
                     headers = Headers().apply {
@@ -470,10 +468,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
             getPageCount = { pageSize ->
                 val paramString = setStatusAndNameAndSuiteAndTag()
-                console.log(paramString)
-                console.log("Execution View 2  : " + state.status + "  " + state.testName + "  " + state.testSuite + "  " + state.tag)
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$paramString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },

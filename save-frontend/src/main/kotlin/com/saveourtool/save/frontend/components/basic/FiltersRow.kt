@@ -142,7 +142,6 @@ fun testExecutionFiltersRow(
                     onChangeTestName(testName)
                     onChangeTestSuite(testSuite)
                     onChangeTag(tag)
-                    console.log("Filter Row : ",status, "  ",testName, "  ",testSuite, "  ",tag)
                 }
             }
         }

@@ -63,7 +63,21 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testName: String?,
         testSuite: String?,
         tag: String?
-    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, PageRequest.of(page, pageSize))//.filter { it.test.filePath.split("/").last().contains(testName ?: "") }
+    ): List<TestExecution> {
+        val testNameValue = declareValue(testName)
+        val testSuiteValue = declareValue(testSuite)
+        val tagValue = declareValue(tag)
+        return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
+                executionId,
+                status,
+                testNameValue,
+                testSuiteValue,
+                tagValue,
+                PageRequest.of(page, pageSize)
+        )
+    }
+
+    private fun declareValue(value: String?) = if (value != null) "%${value}%" else null
 
     /**
      * Get test executions by [agentContainerId] and [status]

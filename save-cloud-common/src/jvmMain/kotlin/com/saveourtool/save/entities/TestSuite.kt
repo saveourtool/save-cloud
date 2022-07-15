@@ -41,7 +41,15 @@ class TestSuite(
     var testSuiteRepoUrl: String? = null,
 
     var language: String? = null,
+
+    var tags: String? = null,
 ) : BaseEntity() {
+
+    /**
+     * @return [tags] as a list of strings
+     */
+    fun tagsAsList() = tags?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+
     /**
      * @return Dto of testSuite
      */
