@@ -18,7 +18,6 @@ import kotlin.js.Promise
 import kotlin.test.*
 import kotlinx.js.jso
 
-@Ignore
 class ProjectViewTest {
     private val testOrganization = Organization(
         "TestOrg",
@@ -128,6 +127,7 @@ class ProjectViewTest {
     }
 
     @Test
+    @Ignore
     fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<Unit> {
         renderProjectView()
         return screen.findByText(
