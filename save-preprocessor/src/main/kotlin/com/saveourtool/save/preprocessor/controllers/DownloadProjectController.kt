@@ -95,7 +95,7 @@ class DownloadProjectController(
      * @return response entity with text
      */
     @Suppress("TOO_LONG_FUNCTION")
-    @PostMapping("/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/upload")
     fun upload(
         @RequestBody executionRequest: ExecutionRequest,
     ): Mono<TextResponse> = Mono.just(ResponseEntity(executionResponseBody(executionRequest.executionId), HttpStatus.ACCEPTED))

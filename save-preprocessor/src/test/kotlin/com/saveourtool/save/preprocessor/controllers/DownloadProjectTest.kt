@@ -95,14 +95,9 @@ class DownloadProjectTest(
             MockResponse().setResponseCode(200)
         )
 
-        val multipart = MultipartBodyBuilder().apply {
-            part("executionRequest", request)
-        }
-            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(multipart))
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -174,14 +169,9 @@ class DownloadProjectTest(
         }.onEach {
             logger.info("Request $it")
         }
-        val multipart = MultipartBodyBuilder().apply {
-            part("executionRequest", request)
-        }
-            .build()
         webClient.post()
             .uri("/upload")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(multipart))
+            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
