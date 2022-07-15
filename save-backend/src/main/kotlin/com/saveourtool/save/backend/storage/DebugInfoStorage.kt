@@ -1,13 +1,17 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
+import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 
 import java.nio.file.Path
 
@@ -65,6 +69,23 @@ class DebugInfoStorage(
         val (executionId, testResultLocation) = key
         return with(testResultLocation) {
             rootDir / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_FILE_NAME"
+        }
+    }
+
+    /**
+     * Store provided [testResultDebugInfo] associated with [executionId]
+     *
+     * @param executionId
+     * @param testResultDebugInfo
+     * @return count of saved bytes
+     */
+    fun save(
+        executionId: Long,
+        testResultDebugInfo: TestResultDebugInfo,
+    ): Mono<Long> {
+        with(testResultDebugInfo) {
+            log.debug { "Writing debug info for $executionId to $testResultLocation" }
+            return upload(Pair(executionId, testResultLocation), testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
         }
     }
 
