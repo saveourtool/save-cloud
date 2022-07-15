@@ -85,23 +85,35 @@ class AgentsController(
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
-            log.info("Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
-                    "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]")
-            getTestRootPath(execution).flatMap { testRootPath ->
-                val filesLocation = Paths.get(
-                    configProperties.testResources.basePath,
-                    execution.resourcesRootPath!!,
-                    testRootPath
+            log.info(
+                "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
+                        "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
+            )
+            getTestRootPath(execution)
+                .switchIfEmpty(
+                    Mono.error(
+                        ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Failed detect testRootPath for execution.id = ${execution.requiredId()}"
+                        )
+                    )
                 )
-                execution.parseAndGetAdditionalFiles()
-                    .toFlux()
-                    .flatMap { fileKey ->
-                        val pathToFile = filesLocation.resolve(fileKey.name)
-                        pathToFile.downloadFile(execution, fileKey)
-                            .map { unzipIfRequired(pathToFile) }
-                    }
-                    .collectList()
-            }
+                .flatMap { testRootPath ->
+                    val filesLocation = Paths.get(
+                        configProperties.testResources.basePath,
+                        execution.resourcesRootPath!!,
+                        testRootPath
+                    )
+                    execution.parseAndGetAdditionalFiles()
+                        .toFlux()
+                        .flatMap { fileKey ->
+                            val pathToFile = filesLocation.resolve(fileKey.name)
+                            pathToFile.downloadFile(execution, fileKey)
+                                .map { unzipIfRequired(pathToFile) }
+                        }
+                        .collectList()
+                        .switchIfEmpty(Mono.just(emptyList()))
+                }
                 .map {
                     // todo: pass SDK via request body
                     dockerService.buildBaseImage(execution)
