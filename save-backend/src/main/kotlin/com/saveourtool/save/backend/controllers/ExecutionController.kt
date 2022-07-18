@@ -336,7 +336,7 @@ class ExecutionController(private val executionService: ExecutionService,
         ?.map {
             it.testRootPath
         }
-        ?: emptyList()
+        .orEmpty()
 
     /**
      * @param execution
