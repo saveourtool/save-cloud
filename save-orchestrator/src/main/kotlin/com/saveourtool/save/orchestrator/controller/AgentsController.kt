@@ -256,6 +256,7 @@ class AgentsController(
             logDir.mkdirs()
         }
         val logFile = File(logDir.path + File.separator + "$fileName.log")
+        println("\n\n\n-----------------saveAgentsLog logFile.exists()? ${logFile.exists()}")
         if (!logFile.exists()) {
             logFile.createNewFile()
             log.info("Log file for $fileName agent was created")

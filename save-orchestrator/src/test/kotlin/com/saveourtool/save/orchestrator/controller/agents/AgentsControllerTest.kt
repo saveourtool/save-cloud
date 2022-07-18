@@ -144,6 +144,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
         val logFile = File(configProperties.executionLogs + File.separator + "agent.log")
+        println("\n\n\n======================TEST logFile.exists()? ${logFile.exists()}")
         Assertions.assertTrue(logFile.exists())
         Assertions.assertEquals(logFile.readLines(), logs)
     }
@@ -199,13 +200,18 @@ class AgentsControllerTest {
         val fileName = "agent.log"
         val filePath = configProperties.executionLogs + File.separator + "agent.log"
         val file = File(filePath)
+        println("FilePath ${filePath}")
+        println("------------- ${filePath} " + File(filePath).exists())
+        if (!file.exists()) {
+            println("CREATING FILE")
+            file.createNewFile()
+        }
 
         text.forEach {
             file.appendText(it + "\n")
         }
-        //file.createNewFile()
 
-        println("------------- ${filePath}" + File(filePath).exists())
+
         file.readLines().forEach {
             println("line: ${it}")
         }
