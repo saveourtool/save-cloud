@@ -98,7 +98,7 @@ internal class ContestController(
         }.map { testFilesContent ->
             testFilesContent.copy(
                 language = testSuite.language,
-                tags = test.tagsAsList() ?: emptyList(),
+                tags = test.tagsAsList().orEmpty(),
             )
         }
     }

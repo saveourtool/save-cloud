@@ -53,7 +53,7 @@ class Test(
         pluginName,
         testSuite.id!!,
         hash,
-        tagsAsList() ?: emptyList(),
+        tagsAsList().orEmpty(),
         additionalFilesAsList(),
     )
 }

@@ -400,7 +400,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("col-3")
                 userBoard {
-                    users = state.usersInOrganization ?: emptyList()
+                    users = state.usersInOrganization.orEmpty()
                 }
             }
         }
