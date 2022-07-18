@@ -87,7 +87,7 @@ class LnkContestProjectController(
      * @param authentication
      * @return list of user's [Project]s that can participate in contest with name [contestName]
      */
-    @GetMapping("/{contestName}/avaliable")
+    @GetMapping("/{contestName}/eligible-projects")
     fun getAvaliableProjectsForContest(
         @PathVariable contestName: String,
         authentication: Authentication,
@@ -107,7 +107,7 @@ class LnkContestProjectController(
      * @param authentication
      * @return list of active contests' names that project with name [projectName] and from organization with name [organizationName] can participate
      */
-    @GetMapping("/{organizationName}/{projectName}/avaliable")
+    @GetMapping("/{organizationName}/{projectName}/eligible-contests")
     fun getAvaliableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,

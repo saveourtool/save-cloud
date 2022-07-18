@@ -117,10 +117,11 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
     val (organizationName, setOrganizationName) = useState(props.organizationName)
     val (projectName, setProjectName) = useState(props.projectName)
     val (contestName, setContestName) = useState(props.contestName)
-
+    val (isContestSelector, _) = useState(props.contestName == null)
+    require(isContestSelector && props.organizationName != null && props.projectName != null || !isContestSelector && props.contestName != null)
     val (availabilityUrl, _) = useState(contestName?.let {
-        "$apiUrl/contests/$it/avaliable"
-    } ?: "$apiUrl/contests/$organizationName/$projectName/avaliable")
+        "$apiUrl/contests/$it/eligible-projects"
+    } ?: "$apiUrl/contests/$organizationName/$projectName/eligible-contests")
     val (availableOptions, setAvailableOptions) = useState(emptyList<String>())
     useRequest(isDeferred = false) {
         val availableVariants = get(
@@ -137,7 +138,6 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
         setAvailableOptions(availableVariants)
     }()
 
-    val (selectedOption, setSelectedOption) = useState("")
     val enrollRequest = useRequest {
         val responseFromBackend = get(
             "$apiUrl/contests/$contestName/enroll?organizationName=$organizationName&projectName=$projectName",
@@ -147,18 +147,6 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
             .text()
             .await()
         props.onResponseChanged(responseFromBackend)
-    }
-
-    useEffect(selectedOption) {
-        if (selectedOption.isNotBlank()) {
-            val splitResult = selectedOption.split("/")
-            if (splitResult.size == 1) {
-                setContestName(selectedOption)
-            } else if (splitResult.size == 2) {
-                setOrganizationName(splitResult[0])
-                setProjectName(splitResult[1])
-            }
-        }
     }
 
     div {
@@ -178,7 +166,16 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                         +it
                     }
                     onChange = {
-                        setSelectedOption(it.target.value)
+                        val selectedOption = it.target.value
+                        if (selectedOption.isNotBlank()) {
+                            if (isContestSelector) {
+                                setContestName(selectedOption)
+                            } else {
+                                val (newOrganizationName, newProjectName) = selectedOption.split("/")
+                                setOrganizationName(newOrganizationName)
+                                setProjectName(newProjectName)
+                            }
+                        }
                     }
                 }
             }

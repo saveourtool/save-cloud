@@ -104,7 +104,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                                     isProjectSelectorModalOpen = true
                                 }
                             }
-                            +"Participate in ${cellProps.value}"
+                            +"Participate"
                         }
                     }
                 }
