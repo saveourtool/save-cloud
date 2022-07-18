@@ -139,27 +139,23 @@ class WebSecurityConfig(
         .httpBasic { httpBasicSpec ->
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
-                UserDetailsRepositoryReactiveAuthenticationManager(
-                    object : ReactiveUserDetailsService {
-                        // Looking for user in DB by received source and name
-                        override fun findByUsername(username: String): Mono<UserDetails> {
-                            require(username.contains("@")) {
-                                "Provided user information should keep the following form: oauth2Source@username"
-                            }
-                            val user: Mono<StringResponse> = webClient.get()
-                                .uri("/internal/users/$username")
-                                .retrieve()
-                                .onStatus({ it.is4xxClientError }) {
-                                    Mono.error(ResponseStatusException(it.statusCode()))
-                                }
-                                .toEntity()
-
-                            return user.map {
-                                objectMapper.readValue(it.body, UserDetails::class.java)
-                            }
-                        }
+                UserDetailsRepositoryReactiveAuthenticationManager { username ->
+                    // Looking for user in DB by received source and name
+                    require(username.contains("@")) {
+                        "Provided user information should keep the following form: oauth2Source@username"
                     }
-                )
+                    val user: Mono<StringResponse> = webClient.get()
+                        .uri("/internal/users/$username")
+                        .retrieve()
+                        .onStatus({ it.is4xxClientError }) {
+                            Mono.error(ResponseStatusException(it.statusCode()))
+                        }
+                        .toEntity()
+
+                    user.map {
+                        objectMapper.readValue(it.body, UserDetails::class.java)
+                    }
+                }
             )
         }
         .logout {

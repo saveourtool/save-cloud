@@ -105,8 +105,7 @@ class AgentsControllerTest {
             transactionTemplate.execute {
                 agentStatusRepository
                     .findAll()
-                    .filter { it.state == AgentState.IDLE && it.agent.containerId == "container-2" }
-                    .size == 1
+                    .count { it.state == AgentState.IDLE && it.agent.containerId == "container-2" } == 1
             }!!
         )
 
