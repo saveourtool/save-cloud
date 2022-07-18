@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-contest-project-1" author="sanyavertolet" context="dev or prod">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="lnk_contest_project"/>
+      </not>
+    </preConditions>
+    <createTable tableName="lnk_contest_project">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="project_id" type="bigint">
+          <constraints foreignKeyName="fk_lnk_contest_project_project" references="project(id)" nullable="false"/>
+      </column>
+      <column name="contest_id" type="bigint">
+          <constraints foreignKeyName="fk_lnk_contest_project_contest" references="contest(id)" nullable="false"/>
+      </column>
+      <column name="score" type="float" />
+    </createTable>
+
+    <addUniqueConstraint tableName="lnk_contest_project" columnNames="contest_id, project_id" constraintName="contest_project_constraint"/>
+
+    <rollback>
+      <dropTable
+        cascadeConstraints="true"
+        tableName="lnk_contest_project" />
+    </rollback>
+  </changeSet>
+
+  <changeSet id="lnk_contest_project_drop_score_column" author="sanyavertolet">
+    <dropColumn tableName="lnk_contest_project" columnName="score"/>
+  </changeSet>
+
+</databaseChangeLog>

@@ -7,13 +7,13 @@ plugins {
 }
 
 application {
-    mainClass.set("org.cqfn.save.apicli.MainKt")
+    mainClass.set("com.saveourtool.save.apicli.MainKt")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 

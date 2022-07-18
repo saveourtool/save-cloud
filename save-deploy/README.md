@@ -28,12 +28,12 @@ Deployment is performed on server via docker swarm or locally via docker-compose
   * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
   * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above.
     This file is configured to be read from `$HOME/configs`; you can use the one from the repository as an example.
-* [`docker-compose.yaml.template`](../docker-compose.yaml.template) is configured so that all services use Loki for logging
+* [`docker-compose.yaml`](../docker-compose.yaml) is configured so that all services use Loki for logging
   and configuration files from `~/configs`, which are copied from `save-deploy` during gradle build.
 
 ## Override configuration per server
 If you wish to customize services configuration externally (i.e. leaving docker images intact), this is possible via additional properties files.
-In [docker-compose.yaml.template](../docker-compose.yaml.template) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
+In [docker-compose.yaml](../docker-compose.yaml) all services have `/home/saveu/configs/<service name>` directory mounted. If it contains
 `application.properties` file, it will override config from default `application.properties`.
 
 ## Running behind proxy
@@ -72,9 +72,22 @@ Usually not the whole stack is required for development. Application logic is pe
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
 * Run `./gradlew deployLocal -Psave.profile=dev` to start the database and run three microservices (backend, preprocessor and orchestrator) with Docker Compose.
 
-#### Note:
-If a snapshot version of save-cli is required (i.e., the one which is not available on GitHub releases), then it can be
-manually placed in `save-orchestrator/build/resources/main` before build, and it's version should be provided via `-PsaveCliVersion=...` when executing gradle.
+## Local debugging
+You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
+If you run on windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
+To run on windows you need to compile save-agent on wsl and put saveAgentDistroFilepath to %USERPROFILE%\.gradle\gradle.properties <br/>
+For example: <br/> 
+`saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar` <br/>
+If you need to test changes in save-cli also you can compile snapshot version of save-cli on wsl <br/> 
+and set saveCliPath and saveCliVersion in %USERPROFILE%\.gradle\gradle.properties <br/>
+For example:<br/>
+`saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable` <br/> 
+`saveCliVersion=0.4.0-alpha.0.42+78a24a8` <br/>
+the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
+
+#### Note: 
+* This works only if snapshot version of save-core is set in lib.version.toml. 
+* If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
 | port | description                                |
@@ -105,6 +118,6 @@ File `save-deploy/reverse-proxy.conf` should be copied to `/etc/nginx/sites-avai
 
 # Adding a new service
 Sometimes it's necessary to create a new service. These steps are required to seamlessly add it to deployment:
-* Add it to [docker-compose.yaml.template](../docker-compose.yaml.template)
-* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/org/cqfn/save/buildutils/DockerStackConfiguration.kt)
+* Add it to [docker-compose.yaml](../docker-compose.yaml)
+* Add it to task `depoyDockerStack` in [`DockerStackConfiguration.kt`](../buildSrc/src/main/kotlin/com/saveourtool/save/buildutils/DockerStackConfiguration.kt)
   so that config directory is created (if it's another Spring Boot service)

@@ -1,7 +1,4 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-import org.cqfn.save.buildutils.pathToSaveCliVersion
-import org.cqfn.save.buildutils.readSaveCliVersion
+import com.saveourtool.save.buildutils.*
 
 import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -12,11 +9,12 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 plugins {
     kotlin("jvm")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
-    id("org.gradle.test-retry") version "1.3.2"
+    id("org.gradle.test-retry") version "1.4.0"
 }
 
 configureSpringBoot()
 configureJacoco()
+configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -25,20 +23,28 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-// if required, file can be provided manually
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
+    enabled = findProperty("saveAgentDistroFilepath") != null
+    src(KotlinClosure0(function = { findProperty("saveAgentDistroFilepath") ?: "file:\\\\" }))
+    File("$buildDir/agentDistro/").mkdirs()
+    dest("$buildDir/agentDistro")
+    overwrite(false)
+}
+
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn("processResources")
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    dependsOn(downloadSaveAgentDistroTaskProvider)
+
     inputs.file(pathToSaveCliVersion)
 
-    src(KotlinClosure0(function = {
-        val saveCliVersion = readSaveCliVersion()
-        "https://github.com/analysis-dev/save/releases/download/v$saveCliVersion/save-$saveCliVersion-linuxX64.kexe"
-    }))
+    src(KotlinClosure0(function = { getSaveCliPath() }))
     dest("$buildDir/resources/main")
     overwrite(false)
 }
+
 // since we store save-cli in resources directory, a lot of tasks start using it
 // and gradle complains about missing dependency
 tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
@@ -64,8 +70,10 @@ dependencies {
     if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
         logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
                 " Task `:save-agent:linkReleaseExecutableLinuxX64` would fail without correct libcurl.so. If your changes are about " +
-                "save-agent, please test them on Linux or provide a file `save-agent-distribution.jar` built on Linux."
+                "save-agent, please test them on Linux " +
+                "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
+        runtimeOnly(fileTree("$buildDir/agentDistro"))
     } else {
         runtimeOnly(project(":save-agent", "distribution"))
     }
@@ -75,6 +83,9 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.fabric8.kubernetes.client)
+    testImplementation(libs.fabric8.kubernetes.server.mock)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

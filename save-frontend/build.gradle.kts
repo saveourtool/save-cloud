@@ -1,5 +1,9 @@
+import com.saveourtool.save.buildutils.configureSpotless
+
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
@@ -14,9 +18,8 @@ dependencies {
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
-    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-legacy")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
-    implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom-legacy")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
 
@@ -30,15 +33,6 @@ kotlin {
     js(LEGACY) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
-            repositories {
-                mavenCentral()
-                maven("https://oss.sonatype.org/content/repositories/snapshots") {
-                    content {
-                        includeGroup("org.cqfn.save")
-                    }
-                }
-            }
-
             testTask {
                 useKarma {
                     when (properties["save.profile"]) {
@@ -86,11 +80,12 @@ kotlin {
             implementation(npm("path-browserify", "^1.0.1"))
             implementation(npm("react-minimal-pie-chart", "^8.2.0"))
             implementation(npm("lodash.debounce", "^4.0.8"))
-
+            implementation(npm("react-markdown", "^8.0.3"))
+            implementation(npm("rehype-highlight", "^5.0.2"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
-            compileOnly(devNpm("follow-redirects", "^1.14.7"))
+            compileOnly(devNpm("follow-redirects", "^1.14.8"))
         }
         sourceSets["test"].dependencies {
             implementation(kotlin("test-js"))
@@ -113,11 +108,62 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
         webpackDevServer.version = "^4.9.0"
         // override default version from KGP for security reasons
         karma.version = "^6.3.14"
+        mocha.version = "9.2.0"
     }
 }
 // store yarn.lock in the root directory
 rootProject.extensions.configure<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension> {
     lockFileDirectory = rootProject.projectDir
+}
+
+val mswScriptTargetPath = file("${rootProject.buildDir}/js/packages/${rootProject.name}-${project.name}-test/node_modules").absolutePath
+val mswScriptTargetFile = "$mswScriptTargetPath/mockServiceWorker.js"
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
+    dependsOn(":kotlinNodeJsSetup", ":kotlinNpmInstall", "packageJson")
+    inputs.dir(mswScriptTargetPath)
+    outputs.file(mswScriptTargetFile)
+    // cd to directory where the generated package.json is located. This is required for correct operation of npm/npx
+    workingDir("$rootDir/build/js")
+
+    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    val nodeJsEnv = NodeJsRootPlugin.apply(project.rootProject).requireConfigured()
+    val nodeDir = nodeJsEnv.nodeDir
+    val nodeBinDir = nodeJsEnv.nodeBinDir
+    listOf(
+        System.getenv("PATH"),
+        nodeBinDir.absolutePath,
+    )
+        .filterNot { it.isNullOrEmpty() }
+        .joinToString(separator = File.pathSeparator)
+        .let { environment("PATH", it) }
+
+    if (!isWindows) {
+        doFirst {
+            // workaround, because `npx` is a symlink but symlinks are lost when Gradle unpacks archive
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npx-cli.js", "$nodeBinDir/npx")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/npm/bin/npm-cli.js", "$nodeBinDir/npm")
+            }
+            exec {
+                commandLine("ln", "-sf", "$nodeDir/lib/node_modules/corepack/dist/corepack.js", "$nodeBinDir/corepack")
+            }
+        }
+    }
+
+    commandLine(
+        nodeBinDir.resolve(if (isWindows) "npx.cmd" else "npx").canonicalPath,
+        "msw",
+        "init",
+        mswScriptTargetPath,
+        "--no-save",
+    )
+}
+tasks.named<KotlinJsTest>("browserTest").configure {
+    dependsOn(installMwsScriptTaskProvider)
+    inputs.file(mswScriptTargetFile)
 }
 
 // generate kotlin file with project version to include in web page
@@ -177,3 +223,4 @@ artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
 detekt {
     config.setFrom(config.plus(file("detekt.yml")))
 }
+configureSpotless()

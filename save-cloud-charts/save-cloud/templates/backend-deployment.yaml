@@ -22,6 +22,8 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.backend.dbPasswordFile }}
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
@@ -29,6 +31,12 @@ spec:
             - name: database-secret
               mountPath: {{ .Values.backend.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
+          resources:
+            limits:
+              memory: 500M
+            requests:
+              memory: 300M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -36,7 +44,7 @@ spec:
             - clone
             - --single-branch
             - --
-            - https://github.com/analysis-dev/save-cloud.git
+            - https://github.com/saveourtool/save-cloud.git
             - /data
           volumeMounts:
             - mountPath: /data
@@ -48,6 +56,13 @@ spec:
             - ./gradlew
             - -Psave.profile={{ .Values.profile }}
             - liquibaseUpdate
+          # To execute liquibase via gradle-plugin we need to allocate plenty of memory.
+          # Fixme: extract database related logic to a more lightweight Gradle build?
+          resources:
+            requests:
+              memory: 1G
+            limits:
+              memory: 1500M
           env:
             - name: DB_SECRETS_PATH
               value: {{ .Values.backend.dbPasswordFile }}
@@ -56,6 +71,7 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.backend.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage

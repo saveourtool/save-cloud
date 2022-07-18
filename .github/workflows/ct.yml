@@ -14,4 +14,4 @@ jobs:
       - run: |
           docker run --network host --workdir=/data --volume ~/.kube/config:/root/.kube/config:ro --volume $(pwd)/save-cloud-charts:/data \
           quay.io/helmpack/chart-testing:v3.5.1 sh -c \
-          "helm repo add grafana https://grafana.github.io/helm-charts && ct lint --validate-maintainers=false --chart-dirs /data/save-cloud --charts save-cloud"
+          "helm repo add grafana https://grafana.github.io/helm-charts && helm repo add prometheus https://prometheus-community.github.io/helm-charts && ct lint --validate-maintainers=false --chart-dirs /data/save-cloud --charts save-cloud"

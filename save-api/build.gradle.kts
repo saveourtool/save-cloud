@@ -1,4 +1,4 @@
-import org.cqfn.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configurePublishing
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -10,7 +10,7 @@ plugins {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
     }
 }
 
@@ -18,6 +18,10 @@ kotlin {
     jvmToolchain {
         (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
+}
+
+java {
+    withSourcesJar()
 }
 
 dependencies {
@@ -35,7 +39,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "org.cqfn"
+            groupId = "com.saveourtool.save"
             artifactId = "save-cloud-api"
             version = version
             from(components["java"])

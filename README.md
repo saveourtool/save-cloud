@@ -1,15 +1,19 @@
-![Build and test](https://github.com/analysis-dev/save-cloud/workflows/Build%20and%20test/badge.svg)
-[![License](https://img.shields.io/github/license/analysis-dev/save-cloud)](https://github.com/analysis-dev/save-cloud/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/analysis-dev/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/analysis-dev/save-cloud)
+![Build and test](https://github.com/saveourtool/save-cloud/workflows/Build%20and%20test/badge.svg)
+[![License](https://img.shields.io/github/license/saveourtool/save-cloud)](https://github.com/saveourtool/save-cloud/blob/master/LICENSE)
+[![codecov](https://codecov.io/gh/saveourtool/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/saveourtool/save-cloud)
 
 ## What is SAVE?
-[SAVE](https://github.com/analysis-dev/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
+[SAVE](https://github.com/saveourtool/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
 and with a test sets for the language that you are developing analyzer/compiler/or any other dev-tool for. 
 It provides you also a cloud service that can be used to determine the readiness of your tool. SAVE has a committee of software analysis and system programming experts
 that regularly update tests and discuss the best practices for particular programming languages.
 
+## Motivation
+[Motivation of this project](info/SaveMotivation.md)
+
 ## How it looks like from the high-level perspective?
 ![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_shield)
 
 ## What is SAVE Cloud?
 SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to
@@ -24,3 +28,7 @@ To build the project and run all tests, execute `./gradlew build`. For more deta
 
 ## Architecture and design
 <img src="/save.svg" width="1024px"/>
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_large)

@@ -13,6 +13,9 @@
     <include file="lnk-user-project-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-organization-insert.xml" relativeToChangelogFile="true"/>
     <include file="awesome-bench-insert.xml" relativeToChangelogFile="true"/>
+    <include file="contest-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-project-insert.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-execution-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-petertrr" author="petertrr">
         <tagDatabase tag="v2.0-insert"/>

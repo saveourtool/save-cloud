@@ -9,6 +9,7 @@
     <include file="user.xml" relativeToChangelogFile="true"/>
     <include file="organization.xml" relativeToChangelogFile="true"/>
     <include file="project.xml" relativeToChangelogFile="true"/>
+    <include file="git.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="project-privacy.xml" relativeToChangelogFile="true"/>
     <include file="test_suite.xml" relativeToChangelogFile="true"/>
@@ -17,6 +18,10 @@
     <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-organization.xml" relativeToChangelogFile="true"/>
     <include file="awesome-benchmarks.xml" relativeToChangelogFile="true"/>
+    <include file="contest.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-project.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-execution.xml" relativeToChangelogFile="true"/>
+    <include file="test.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

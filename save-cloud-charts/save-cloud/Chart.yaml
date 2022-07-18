@@ -1,8 +1,21 @@
-apiVersion: v1
+apiVersion: v2
 name: save-cloud
 description: Helm chart for SAVE Cloud service
 # todo: separate versioning of charts or aligned with project version?
-version: 0.1.0
+version: 0.2.0
 sources:
-  - https://github.com/analysis-dev/save-cloud
-  - https://github.com/analysis-dev/save-cli
+  - https://github.com/saveourtool/save-cloud
+  - https://github.com/saveourtool/save-cli
+dependencies:
+  - name: grafana
+    version: ^6.0.0
+    repository: https://grafana.github.io/helm-charts
+  - name: prometheus
+    version: ^15.8.2
+    repository: https://prometheus-community.github.io/helm-charts
+  - name: promtail
+    version: ^6.0.0
+    repository: https://grafana.github.io/helm-charts
+  - name: loki
+    version: ^2.0.0
+    repository: https://grafana.github.io/helm-charts

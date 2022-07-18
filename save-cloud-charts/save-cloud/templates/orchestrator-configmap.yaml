@@ -4,15 +4,16 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://backend:5800/internal
-    orchestrator.docker.host=tcp://${HOST_IP}:2375
-    orchestrator.docker.runtime=runc
+    orchestrator.backendUrl=http://backend/internal
+    orchestrator.docker.host={{ .Values.orchestrator.dockerHost }}
+    orchestrator.docker.runtime=
     orchestrator.docker.loggingDriver=json
+
+    orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
+    orchestrator.kubernetes.namespace=${POD_NAMESPACE}
+
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    {{- if .Values.orchestrator.clusterIP }}
-    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.clusterIP }}:{{ .Values.orchestrator.containerPort }}
-    {{- end }}
-    {{- if .Values.backend.clusterIP }}
-    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.clusterIP }}:{{ .Values.backend.containerPort }}
-    {{- end }}
+    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.name }}
+    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}

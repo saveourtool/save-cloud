@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="contest-insert" author="sanyavertolet" context="dev">
+        <loadData tableName="contest" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/contest.csv">
+            <column header="id" name="id" type="bigint"/>
+            <column header="name" name="name" type="varchar(250)"/>
+            <column header="status" name="status" type="varchar(250)" defaultValue="CREATED"/>
+            <column header="start_time" name="start_time" type="timestamp"/>
+            <column header="end_time" name="end_time" type="timestamp"/>
+            <column header="description" name="description" type="varchar(1024)"/>
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>

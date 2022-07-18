@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="lnk-contest-execution-insert" author="sanyavertolet" context="dev">
+        <loadData tableName="lnk_contest_execution" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/lnk-contest-execution.csv">
+            <column header="id" name="id" type="NUMERIC" />
+            <column header="contest_id" name="contest_id" type="NUMERIC" />
+            <column header="execution_id" name="execution_id" type="NUMERIC" />
+            <column header="score" name="score" type="double" />
+        </loadData>
+    </changeSet>
+
+</databaseChangeLog>
