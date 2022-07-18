@@ -11,11 +11,23 @@ import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
 
-import csstype.Width
+import csstype.ClassName
 import csstype.rem
+import org.w3c.dom.HTMLButtonElement
 import react.*
 import react.dom.*
-import react.fc
+import react.dom.aria.*
+import react.dom.html.ButtonHTMLAttributes
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.ol
+import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.ul
 import react.router.useLocation
 import react.useState
 
@@ -24,16 +36,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.html.BUTTON
-import kotlinx.html.ButtonType
-import kotlinx.html.classes
-import kotlinx.html.id
-import kotlinx.html.js.onClickFunction
-import kotlinx.html.role
 import kotlinx.js.jso
 
 /**
- * [RProps] of the top bor component
+ * [Props] of the top bor component
  */
 external interface TopBarProps : PropsWithChildren {
     /**
@@ -42,14 +48,19 @@ external interface TopBarProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMBuilder<BUTTON>.() -> Unit = { }) =
-        button(type = ButtonType.button, classes = "btn btn-no-outline dropdown-item rounded-0 shadow-none") {
-            fontAwesomeIcon(icon = faIcon) {
-                attrs.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-            }
-            +text
-            handler(this)
-        }
+private fun ChildrenBuilder.dropdownEntry(
+    faIcon: dynamic,
+    text: String,
+    handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
+) = button {
+    type = ButtonType.button
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
+    fontAwesomeIcon(icon = faIcon) {
+        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    }
+    +text
+    handler(this)
+}
 
 /**
  * A component for web page top bar
@@ -57,7 +68,7 @@ private fun RBuilder.dropdownEntry(faIcon: dynamic, text: String, handler: RDOMB
  * @return a function component
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun topBar() = fc<TopBarProps> { props ->
+fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
     val scope = CoroutineScope(Dispatchers.Default)
@@ -69,17 +80,22 @@ fun topBar() = fc<TopBarProps> { props ->
         }
     }
 
-    nav("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded") {
-        attrs.id = "navigation-top-bar"
+    nav {
+        className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
+        id = "navigation-top-bar"
 
         // Topbar Navbar
-        nav("navbar-nav mr-auto w-100") {
-            attrs["aria-label"] = "breadcrumb"
-            ol("breadcrumb mb-0") {
-                li("breadcrumb-item") {
-                    attrs["aria-current"] = "page"
-                    a(href = "#/") {
-                        attrs.classes = setOf("text-light")
+        nav {
+            className = ClassName("navbar-nav mr-auto w-100")
+            ariaLabel = "breadcrumb"
+            ol {
+                className = ClassName("breadcrumb mb-0")
+                li {
+                    className = ClassName("breadcrumb-item")
+                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
+                    a {
+                        href = "#/"
+                        className = ClassName("text-light")
                         +"SAVE"
                     }
                 }
@@ -92,18 +108,20 @@ fun topBar() = fc<TopBarProps> { props ->
 
                             val currentLink = "$acc/$pathPart"
 
-                            li("breadcrumb-item") {
-                                attrs["aria-current"] = "page"
+                            li {
+                                className = ClassName("breadcrumb-item")
+                                ariaCurrent = "page".unsafeCast<AriaCurrent>()
                                 if (index == size - 1) {
                                     a {
-                                        attrs.classes = setOf("text-warning")
+                                        className = ClassName("text-warning")
                                         +pathPart
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
                                     val resultingLink = currentLink.removeSuffix("/execution")
-                                    a(resultingLink) {
-                                        attrs.classes = setOf("text-light")
+                                    a {
+                                        href = resultingLink
+                                        className = ClassName("text-light")
                                         +pathPart
                                     }
                                 }
@@ -114,110 +132,131 @@ fun topBar() = fc<TopBarProps> { props ->
             }
         }
 
-        ul("navbar-nav mx-auto") {
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+        ul {
+            className = ClassName("navbar-nav mx-auto")
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 12.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/awesome-benchmarks"
+                    }
+                    href = "#/awesome-benchmarks"
                     +"Awesome Benchmarks"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 8.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save-cli"
+                    }
+                    href = "https://github.com/saveourtool/save-cli"
                     +"SAVE format"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 9.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save-cloud"
+                    }
+                    href = "https://github.com/saveourtool/save-cloud"
                     +"SAVE on GitHub"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 8.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/projects"
+                    }
+                    href = "#/projects"
                     +"Projects board"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 6.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "#/contests"
+                    }
+                    href = "#/contests"
                     +"Contests"
                 }
             }
-            li("nav-item") {
-                a(classes = "nav-link d-flex align-items-center me-2 active") {
-                    attrs["style"] = jso<CSSProperties> {
+            li {
+                className = ClassName("nav-item")
+                a {
+                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    style = jso {
                         width = 6.rem
-                    }.unsafeCast<Width>()
-                    attrs.href = "https://github.com/saveourtool/save-cloud"
+                    }
+                    href = "https://github.com/saveourtool/save-cloud"
                     +"About"
                 }
             }
         }
 
-        ul("navbar-nav ml-auto") {
-            div("topbar-divider d-none d-sm-block") {}
+        ul {
+            className = ClassName("navbar-nav ml-auto")
+            div {
+                className = ClassName("topbar-divider d-none d-sm-block")
+            }
             // Nav Item - User Information
-            li("nav-item dropdown no-arrow") {
-                a("#", classes = "nav-link dropdown-toggle") {
-                    attrs {
-                        id = "userDropdown"
-                        role = "button"
-                        set("data-toggle", "dropdown")
-                        set("aria-haspopup", "true")
-                        set("aria-expanded", "false")
-                    }
+            li {
+                className = ClassName("nav-item dropdown no-arrow")
+                a {
+                    href = "#"
+                    className = ClassName("nav-link dropdown-toggle")
+                    id = "userDropdown"
+                    role = "button".unsafeCast<AriaRole>()
+                    ariaExpanded = false
+                    ariaHasPopup = true.unsafeCast<AriaHasPopup>()
+                    asDynamic()["data-toggle"] = "dropdown"
 
-                    div("row") {
+                    div {
+                        className = ClassName("row")
                         div {
-                            span("mr-2 d-none d-lg-inline text-gray-600") {
+                            span {
+                                className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                                 +(props.userInfo?.name ?: "")
                             }
                             fontAwesomeIcon(icon = faUser) {
-                                attrs.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                                it.className = "fas fa-lg fa-fw mr-2 text-gray-400"
                             }
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
                         if (globalRole.priority >= Role.ADMIN.priority) {
-                            small("text-gray-400 text-justify") {
+                            small {
+                                className = ClassName("text-gray-400 text-justify")
                                 +globalRole.formattedName
                             }
                         }
                     }
                 }
                 // Dropdown - User Information
-                div("dropdown-menu dropdown-menu-right shadow animated--grow-in") {
-                    attrs["aria-labelledby"] = "userDropdown"
+                div {
+                    className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in")
+                    ariaLabelledBy = "userDropdown"
                     props.userInfo?.name?.let { name ->
-                        dropdownEntry(faCog, "Settings") {
-                            attrs.onClickFunction = {
+                        dropdownEntry(faCog, "Settings") { attrs ->
+                            attrs.onClick = {
                                 window.location.href = "#/$name/settings/email"
                             }
                         }
-                        dropdownEntry(faCity, "My organizations") {
-                            attrs.onClickFunction = {
+                        dropdownEntry(faCity, "My organizations") { attrs ->
+                            attrs.onClick = {
                                 window.location.href = "#/$name/settings/organizations"
                             }
                         }
                     }
-                    dropdownEntry(faSignOutAlt, "Log out") {
-                        attrs.onClickFunction = {
+                    dropdownEntry(faSignOutAlt, "Log out") { attrs ->
+                        attrs.onClick = {
                             setIsLogoutModalOpen(true)
                         }
                     }
@@ -228,6 +267,6 @@ fun topBar() = fc<TopBarProps> { props ->
     logoutModal {
         setIsLogoutModalOpen(false)
     }() {
-        attrs.isOpen = isLogoutModalOpen
+        isOpen = isLogoutModalOpen
     }
 }

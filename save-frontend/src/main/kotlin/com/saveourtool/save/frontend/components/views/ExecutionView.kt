@@ -9,44 +9,42 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
-import com.saveourtool.save.frontend.components.basic.executionStatistics
-import com.saveourtool.save.frontend.components.basic.executionTestsNotFound
-import com.saveourtool.save.frontend.components.basic.testExecutionFiltersRow
-import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
+import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.Background
-import csstype.Color
-import csstype.Cursor
-import csstype.TextDecoration
+import csstype.*
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
+import react.table.*
 import react.table.columns
-import react.table.useExpanded
-import react.table.usePagination
-import react.table.useSortBy
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
-import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
- * [RProps] for execution results view
+ * [Props] for execution results view
  */
 external interface ExecutionProps : PropsWithChildren {
     /**
@@ -81,13 +79,27 @@ external interface ExecutionState : State {
 }
 
 /**
- * A [RComponent] for execution view
+ * [Props] of a data table with status and testSuite
+ */
+external interface StatusProps<D : Any> : TableProps<D> {
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?
+}
+
+/**
+ * A Component for execution view
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val executionStatistics = executionStatistics("mr-auto")
-    private val executionTestsNotFound = executionTestsNotFound()
     private val testExecutionFiltersRow = testExecutionFiltersRow(
         initialValueStatus = state.status?.name ?: ANY,
         initialValueTestSuite = state.testSuite ?: "",
@@ -114,19 +126,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         }
     )
-
-    @Suppress("MAGIC_NUMBER")
-    private val testExecutionsTable = tableComponent(
-        columns = columns<TestExecutionDto> {
+    private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
+        columns = columns {
             column(id = "index", header = "#") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
                     }
                 }
             }
             column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +"${
                             cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
@@ -136,7 +146,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +"${
                             cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
@@ -146,28 +156,28 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "status", header = "Status", { status.name }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +it.value
                     }
                 }
             }
             column(id = "missing", header = "Missing", { unmatched }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value ?: ""}"
                     }
                 }
             }
             column(id = "matched", header = "Matched", { matched }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value ?: ""}"
                     }
                 }
             }
             column(id = "path", header = "Test file path") { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
 
@@ -178,19 +188,24 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         // debug info is provided by agent after the execution
                         // possibly there can be cases when this info is not available
                         if (cellProps.value.hasDebugInfo == true) {
-                            attrs["style"] = jso<CSSProperties> {
+                            style = jso {
                                 textDecoration = "underline".unsafeCast<TextDecoration>()
                                 color = "blue".unsafeCast<Color>()
                                 cursor = "pointer".unsafeCast<Cursor>()
                             }
 
-                            attrs.onClickFunction = {
-                                scope.launch {
+                            onClick = {
+                                this@ExecutionView.scope.launch {
                                     val testExecution = cellProps.value
                                     val trDebugInfoRequest = getDebugInfoFor(testExecution)
                                     if (trDebugInfoRequest.ok) {
                                         cellProps.row.original.asDynamic().debugInfo =
                                                 trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
+                                    }
+                                    val trExecutionInfo = getExecutionInfoFor(testExecution)
+                                    if (trExecutionInfo.ok) {
+                                        cellProps.row.original.asDynamic().executionInfo =
+                                                trExecutionInfo.decodeFromJsonString<ExecutionUpdateDto>()
                                     }
                                     cellProps.row.toggleRowExpanded()
                                 }
@@ -200,28 +215,28 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             column(id = "plugin", header = "Plugin type", { pluginName }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +it.value
                     }
                 }
             }
             column(id = "suiteName", header = "Test suite", { testSuiteName }) {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value}"
                     }
                 }
             }
             column(id = "tags", header = "Tags") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value.tags}"
                     }
                 }
             }
             column(id = "agentId", header = "Agent ID") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"${it.value.agentContainerId}".takeLast(12)
                     }
@@ -237,21 +252,21 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             usePagination,
         ),
         renderExpandedRow = { tableInstance, row ->
-            // todo: placeholder before, render data once it's available
+            val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
+            trei?.failReason?.let {
+                executionStatusComponent(it, tableInstance)
+            }
             val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
             trdi?.let {
-                child(testStatusComponent(trdi, tableInstance)) {
-                    // attrs.key = trdi.testResultLocation.toString()
-                }
-            }
-                ?: run {
-                    tr {
-                        td {
-                            attrs.colSpan = "${tableInstance.columns.size}"
-                            +"Debug info not available yet for this test execution"
-                        }
+                testStatusComponent(trdi, tableInstance)
+            } ?: trei ?: run {
+                tr {
+                    td {
+                        colSpan = tableInstance.columns.size
+                        +"No info available yet for this test execution"
                     }
                 }
+            }
         },
         additionalOptions = {
             this.asDynamic().manualFilters = true
@@ -259,8 +274,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         commonHeader = { tableInstance ->
             tr {
                 th {
-                    attrs.colSpan = "${tableInstance.columns.size}"
-                    child(testExecutionFiltersRow)
+                    colSpan = tableInstance.columns.size
+                    testExecutionFiltersRow()
                 }
             }
         },
@@ -277,8 +292,12 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
+        },
+        getAdditionalDependencies = {
+            arrayOf(it.status, it.testSuite)
         }
     )
+
     init {
         state.executionDto = null
         state.status = null
@@ -312,9 +331,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         "ComplexMethod",
         "LongMethod"
     )
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         div {
-            div("d-flex") {
+            div {
+                className = ClassName("d-flex")
                 val statusVal = state.executionDto?.status
                 val statusColor = when (statusVal) {
                     ExecutionStatus.ERROR -> "bg-danger"
@@ -323,28 +343,39 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     else -> "bg-secondary"
                 }
 
-                div("col-md-2 mb-4") {
-                    div("card $statusColor text-white h-100 shadow py-2") {
-                        div("card-body") {
+                div {
+                    className = ClassName("col-md-2 mb-4")
+                    div {
+                        className = ClassName("card $statusColor text-white h-100 shadow py-2")
+                        div {
+                            className = ClassName("card-body")
                             +(statusVal?.name ?: "N/A")
-                            div("text-white-50 small") { +"Project version: ${(state.executionDto?.version ?: "N/A")}" }
+                            div {
+                                className = ClassName("text-white-50 small")
+                                +"Project version: ${(state.executionDto?.version ?: "N/A")}"
+                            }
                         }
                     }
                 }
 
-                child(executionStatistics) {
-                    attrs.executionDto = state.executionDto
+                executionStatistics {
+                    executionDto = state.executionDto
                 }
 
-                div("col-md-3 mb-4") {
-                    div("card border-left-info shadow h-100 py-2") {
-                        div("card-body") {
-                            div("row no-gutters align-items-center mx-auto") {
-                                a("") {
+                div {
+                    className = ClassName("col-md-3 mb-4")
+                    div {
+                        className = ClassName("card border-left-info shadow h-100 py-2")
+                        div {
+                            className = ClassName("card-body")
+                            div {
+                                className = ClassName("row no-gutters align-items-center mx-auto")
+                                a {
+                                    href = ""
                                     +"Rerun execution"
                                     fontAwesomeIcon(icon = faRedo, classes = "ml-2")
                                     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-                                    attrs.onClickFunction = { event ->
+                                    onClick = { event ->
                                         scope.launch {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
@@ -368,8 +399,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
-        child(testExecutionsTable) {
-            attrs.getData = { page, size ->
+        testExecutionsTable {
+            status = state.status
+            testSuite = state.testSuite
+            getData = { page, size ->
                 val status = state.status?.let {
                     "&status=${state.status}"
                 }
@@ -388,17 +421,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
-                )
-                    .unsafeMap {
-                        Json.decodeFromString<Array<TestExecutionDto>>(
-                            it.text().await()
-                        )
-                    }
+                ).unsafeMap {
+                    Json.decodeFromString<Array<TestExecutionDto>>(
+                        it.text().await()
+                    )
+                }
                     .apply {
                         asDynamic().debugInfo = null
                     }
             }
-            attrs.getPageCount = { pageSize ->
+            getPageCount = { pageSize ->
                 val status = state.status?.let {
                     "&status=${state.status}"
                 }
@@ -424,8 +456,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 count / pageSize + 1
             }
         }
-        child(executionTestsNotFound) {
-            attrs.executionDto = state.executionDto
+        executionTestsNotFound {
+            executionDto = state.executionDto
         }
     }
 

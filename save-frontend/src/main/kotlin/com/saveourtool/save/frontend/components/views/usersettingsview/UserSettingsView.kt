@@ -18,16 +18,22 @@ import com.saveourtool.save.v1
 import csstype.*
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
 import react.*
-import react.dom.*
+import react.dom.aria.ariaLabel
+import react.dom.events.ChangeEvent
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.nav
 
 import kotlinx.coroutines.launch
-import kotlinx.html.InputType
-import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -76,6 +82,7 @@ external interface UserSettingsViewState : State {
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
+    private val renderMenu = renderMenu()
 
     init {
         state.isUploading = false
@@ -88,9 +95,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
      */
     fun changeFields(
         fieldName: InputTypes,
-        target: Event,
+        target: ChangeEvent<HTMLInputElement>,
     ) {
-        val tg = target.target as HTMLInputElement
+        val tg = target.target
         val value = tg.value
         fieldsMap[fieldName] = value
     }
@@ -125,49 +132,57 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
      */
     abstract fun renderMenu(): FC<UserSettingsProps>
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    override fun RBuilder.render() {
-        div("row justify-content-center") {
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
+    override fun ChildrenBuilder.render() {
+        div {
+            className = ClassName("row justify-content-center")
             // ===================== LEFT COLUMN =======================================================================
-            div("col-2 mr-3") {
-                div("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary") {
-                    div("col mr-2 pr-0 pl-0") {
-                        attrs["style"] = kotlinx.js.jso<CSSProperties> {
+            div {
+                className = ClassName("col-2 mr-3")
+                div {
+                    className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0 border-secondary")
+                    div {
+                        className = ClassName("col mr-2 pr-0 pl-0")
+                        style = kotlinx.js.jso {
                             background = "#e1e9ed".unsafeCast<Background>()
                         }
-                        div("mb-0 font-weight-bold text-gray-800") {
+                        div {
+                            className = ClassName("mb-0 font-weight-bold text-gray-800")
                             form {
-                                div("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom") {
-                                    div("col-md-4 pl-0 pr-0") {
+                                div {
+                                    className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2 border-bottom")
+                                    div {
+                                        className = ClassName("col-md-4 pl-0 pr-0")
                                         label {
-                                            input(type = InputType.file) {
-                                                attrs.hidden = true
-                                                attrs {
-                                                    onChangeFunction = { event ->
-                                                        val target = event.target as HTMLInputElement
-                                                        postImageUpload(target)
-                                                    }
+                                            input {
+                                                type = InputType.file
+                                                hidden = true
+                                                onChange = {
+                                                    postImageUpload(it.target)
                                                 }
                                             }
-                                            attrs["aria-label"] = "Change avatar owner"
-                                            img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                                                attrs.src = state.image?.path?.let {
+                                            ariaLabel = "Change avatar owner"
+                                            img {
+                                                className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                                src = state.image?.path?.let {
                                                     "/api/$v1/avatar$it"
                                                 }
                                                     ?: run {
                                                         "img/user.svg"
                                                     }
-                                                attrs.height = "60"
-                                                attrs.width = "60"
+                                                height = 60.0
+                                                width = 60.0
                                             }
                                         }
                                     }
-                                    div("col-md-6 pl-0") {
-                                        attrs["style"] = kotlinx.js.jso<CSSProperties> {
-                                            display = "flex".unsafeCast<Display>()
-                                            alignItems = "center".unsafeCast<AlignItems>()
+                                    div {
+                                        className = ClassName("col-md-6 pl-0")
+                                        style = kotlinx.js.jso {
+                                            display = Display.flex
+                                            alignItems = AlignItems.center
                                         }
-                                        h1("h5 mb-0 text-gray-800") {
+                                        h1 {
+                                            className = ClassName("h5 mb-0 text-gray-800")
                                             +"${props.userName}"
                                         }
                                     }
@@ -176,35 +191,49 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                         }
                     }
 
-                    div("col mr-2 pr-0 pl-0") {
+                    div {
+                        className = ClassName("col mr-2 pr-0 pl-0")
                         nav {
-                            div("pl-3 ui vertical menu profile-setting") {
+                            div {
+                                className = ClassName("pl-3 ui vertical menu profile-setting")
                                 form {
-                                    div("item mt-2") {
-                                        div("header") {
+                                    div {
+                                        className = ClassName("item mt-2")
+                                        div {
+                                            className = ClassName("header")
                                             +"Basic Setting"
                                         }
-                                        div("menu") {
-                                            div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/settings/profile") {
+                                        div {
+                                            className = ClassName("menu")
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/settings/profile"
                                                     fontAwesomeIcon(icon = faUser) {
-                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Profile"
                                                 }
                                             }
-                                            div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/settings/email") {
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/settings/email"
                                                     fontAwesomeIcon(icon = faEnvelope) {
-                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Email management"
                                                 }
                                             }
-                                            div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/settings/organizations") {
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/settings/organizations"
                                                     fontAwesomeIcon(icon = faCity) {
-                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Organizations"
                                                 }
@@ -213,15 +242,21 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                     }
                                 }
                                 form {
-                                    div("item mt-2") {
-                                        div("header") {
+                                    div {
+                                        className = ClassName("item mt-2")
+                                        div {
+                                            className = ClassName("header")
                                             +"Security Setting"
                                         }
-                                        div("menu") {
-                                            div("mt-2") {
-                                                a(classes = "item", href = "#/${props.userName}/settings/token") {
+                                        div {
+                                            className = ClassName("menu")
+                                            div {
+                                                className = ClassName("mt-2")
+                                                a {
+                                                    className = ClassName("item")
+                                                    href = "#/${props.userName}/settings/token"
                                                     fontAwesomeIcon(icon = faKey) {
-                                                        attrs.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                                        it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
                                                     +"Personal access tokens"
                                                 }
@@ -236,8 +271,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
 
             // ===================== RIGHT COLUMN =======================================================================
-            div("col-6") {
-                child(renderMenu())
+            div {
+                className = ClassName("col-6")
+                renderMenu {
+                    userName = props.userName
+                }
             }
         }
     }

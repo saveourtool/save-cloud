@@ -4,56 +4,56 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
+import csstype.ClassName
+import react.ChildrenBuilder
 import react.StateSetter
-import react.dom.RDOMBuilder
-import react.dom.attrs
-import react.dom.button
-import react.dom.div
-import react.dom.em
-import react.dom.form
-import react.dom.input
-import react.dom.option
-import react.dom.select
+import react.dom.aria.ariaDescribedBy
+import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.em
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 import react.table.TableInstance
-
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.Tag
-import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 
 /**
  * @param tableInstance
  * @param setPageIndex
  * @return set entries block
  */
-fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div("row mt-3") {
-    div("col-0 pt-1 pr-0") {
+fun <D : Any> ChildrenBuilder.setEntries(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>) = div {
+    className = ClassName("row mt-3")
+    div {
+        className = ClassName("col-0 pt-1 pr-0")
         +"Show "
     }
-    div("col-5 pr-0") {
-        div("input-group-sm input-group") {
-            select(classes = "form-control") {
+    div {
+        className = ClassName("col-5 pr-0")
+        div {
+            className = ClassName("input-group-sm input-group")
+            select {
+                className = ClassName("form-control")
                 listOf("10", "25", "50", "100").forEach {
-                    option("list-group-item") {
+                    option {
+                        className = ClassName("list-group-item")
                         val entries = it
-                        attrs.value = entries
+                        value = entries
                         +entries
                     }
                 }
-                attrs.onChangeFunction = {
-                    val tg = it.target as HTMLSelectElement
-                    val entries = tg.value
+                onChange = {
+                    val entries = it.target.value
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
                     tableInstance.setPageSize(entries.toInt())
                 }
             }
         }
     }
-    div("col-0 pt-1 pl-2") {
+    div {
+        className = ClassName("col-0 pt-1 pl-2")
         +" entries"
     }
 }
@@ -66,92 +66,111 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.setEntries(tableInstance: TableInstance<D>
  * @return paging control block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
+fun <D : Any> ChildrenBuilder.pagingControl(
     tableInstance: TableInstance<D>,
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
     pageCount: Int,
 ) =
-        div("row") {
+        div {
+            className = ClassName("row")
             // First page
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
                 }
-                attrs.disabled = !tableInstance.canPreviousPage
+                disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(171)").unsafeCast<String>()
             }
             // Previous page icon <
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                attrs.disabled = !tableInstance.canPreviousPage
+                disabled = !tableInstance.canPreviousPage
                 +js("String.fromCharCode(8249)").unsafeCast<String>()
             }
             // Previous before previous page
-            button(type = ButtonType.button, classes = "btn btn-link") {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
                 val index = pageIndex - 2
-                attrs.onClickFunction = {
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, index)
                 }
-                attrs.hidden = (index < 0)
+                hidden = (index < 0)
                 em {
                     +"${index + 1}"
                 }
             }
             // Previous page number
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex - 1)
                 }
-                attrs.hidden = !tableInstance.canPreviousPage
+                hidden = !tableInstance.canPreviousPage
                 em {
                     +pageIndex.toString()
                 }
             }
             // Current page number
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.disabled = true
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                disabled = true
                 em {
                     +"${pageIndex + 1}"
                 }
             }
             // Next page number
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                attrs.hidden = !tableInstance.canNextPage
+                hidden = !tableInstance.canNextPage
                 em {
                     +"${pageIndex + 2}"
                 }
             }
             // Next after next page
-            button(type = ButtonType.button, classes = "btn btn-link") {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
                 val index = pageIndex + 2
-                attrs.onClickFunction = {
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, index)
                 }
-                attrs.hidden = (index > pageCount - 1)
+                hidden = (index > pageCount - 1)
                 em {
                     +"${index + 1}"
                 }
             }
             // Next page icon >
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageIndex + 1)
                 }
-                attrs.disabled = !tableInstance.canNextPage
+                disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(8250)").unsafeCast<String>()
             }
             // Last page
-            button(type = ButtonType.button, classes = "btn btn-link") {
-                attrs.onClickFunction = {
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-link")
+                onClick = {
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, pageCount - 1)
                 }
-                attrs.disabled = !tableInstance.canNextPage
+                disabled = !tableInstance.canNextPage
                 +js("String.fromCharCode(187)").unsafeCast<String>()
             }
             // Jump to the concrete page
@@ -167,37 +186,44 @@ fun <T : Tag, D : Any> RDOMBuilder<T>.pagingControl(
  * @return jump to page block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun <T : Tag, D : Any> RDOMBuilder<T>.jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
+fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPageIndex: StateSetter<Int>, pageCount: Int) =
         form {
             var number = 0
-            div("row") {
-                div("col-7 pr-0") {
-                    div("input-group input-group-sm mb-3 mt-3") {
-                        input(type = InputType.text, classes = "form-control") {
-                            attrs["aria-describedby"] = "basic-addon2"
-                            attrs.placeholder = "Jump to the page"
-                            attrs {
-                                onChangeFunction = {
-                                    // TODO: Provide validation of non int types
-                                    val tg = it.target as HTMLInputElement
-                                    number = tg.value.toInt() - 1
-                                    if (number < 0) {
-                                        number = 0
-                                    }
-                                    if (number > pageCount - 1) {
-                                        number = pageCount - 1
-                                    }
+            div {
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-7 pr-0")
+                    div {
+                        className = ClassName("input-group input-group-sm mb-3 mt-3")
+                        input {
+                            type = InputType.text
+                            className = ClassName("form-control")
+                            ariaDescribedBy = "basic-addon2"
+                            placeholder = "Jump to the page"
+                            onChange = {
+                                // TODO: Provide validation of non int types
+                                number = it.target.value.toInt() - 1
+                                if (number < 0) {
+                                    number = 0
+                                }
+                                if (number > pageCount - 1) {
+                                    number = pageCount - 1
                                 }
                             }
                         }
                     }
                 }
 
-                div("col-sm-offset-10 mr-3 justify-content-start") {
-                    div("input-group input-group-sm mb-6") {
-                        div("input-group-append mt-3") {
-                            button(type = ButtonType.submit, classes = "btn btn-outline-secondary") {
-                                attrs.onClickFunction = {
+                div {
+                    className = ClassName("col-sm-offset-10 mr-3 justify-content-start")
+                    div {
+                        className = ClassName("input-group input-group-sm mb-6")
+                        div {
+                            className = ClassName("input-group-append mt-3")
+                            button {
+                                type = ButtonType.submit
+                                className = ClassName("btn btn-outline-secondary")
+                                onClick = {
                                     setPageIndexAndGoToPage(tableInstance, setPageIndex, number)
                                 }
                                 +js("String.fromCharCode(10143)").unsafeCast<String>()

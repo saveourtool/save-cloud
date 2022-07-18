@@ -19,30 +19,38 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
+import csstype.ClassName
 import org.w3c.dom.*
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
-import react.Context
-import react.Props
-import react.RBuilder
-import react.RStatics
-import react.State
+import react.*
 import react.dom.*
-import react.setState
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaDescribedBy
+import react.dom.events.ChangeEvent
+import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.textarea
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
-import kotlinx.html.ButtonType
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [RState] of project creation view component
+ * [State] of project creation view component
  */
 external interface ProjectSaveViewState : State {
     /**
@@ -104,7 +112,7 @@ enum class GitConnectionStatusEnum {
 }
 
 /**
- * A functional RComponent for project creation view
+ * A functional Component for project creation view
  *
  * @return a functional component
  */
@@ -112,9 +120,6 @@ enum class GitConnectionStatusEnum {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-    private val selectFormRequired = selectFormRequired(
-        onChangeFun = ::changeFields,
-    )
 
     init {
         state.isErrorWithProjectSave = false
@@ -131,7 +136,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
     private fun changeFields(
         fieldName: InputTypes,
-        target: Event,
+        target: ChangeEvent<Element>,
         isProject: Boolean = true,
     ) {
         val tg = target.target
@@ -281,7 +286,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         "TOO_LONG_FUNCTION",
         "LongMethod",
     )
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         runErrorModal(
             state.isErrorWithProjectSave,
             "Error appeared during project creation",
@@ -290,30 +295,46 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             setState { isErrorWithProjectSave = false }
         }
 
-        main("main-content mt-0 ps") {
-            div("page-header align-items-start min-vh-100") {
-                span("mask bg-gradient-dark opacity-6") {}
-                div("row justify-content-center") {
-                    div("col-sm-4") {
-                        div("container card o-hidden border-0 shadow-lg my-2 card-body p-0") {
-                            div("p-5 text-center") {
-                                h1("h4 text-gray-900 mb-4") {
+        main {
+            className = ClassName("main-content mt-0 ps")
+            div {
+                className = ClassName("page-header align-items-start min-vh-100")
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
+                div {
+                    className = ClassName("row justify-content-center")
+                    div {
+                        className = ClassName("col-sm-4")
+                        div {
+                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            div {
+                                className = ClassName("p-5 text-center")
+                                h1 {
+                                    className = ClassName("h4 text-gray-900 mb-4")
                                     +"Create new test project"
                                 }
                                 div {
-                                    button(type = ButtonType.button, classes = "btn btn-primary mb-2") {
-                                        a(classes = "text-light", href = "#/createOrganization/") {
+                                    button {
+                                        type = ButtonType.button
+                                        className = ClassName("btn btn-primary mb-2")
+                                        a {
+                                            className = ClassName("text-light")
+                                            href = "#/createOrganization/"
                                             +"Add new organization"
                                         }
                                     }
                                 }
-                                form(classes = "needs-validation") {
-                                    div("row g-3") {
-                                        child(selectFormRequired) {
-                                            attrs.form = InputTypes.ORGANIZATION_NAME
-                                            attrs.validInput = state.isValidOrganization!!
-                                            attrs.classes = "col-md-6 pl-0 pl-2 pr-2"
-                                            attrs.text = "Organization"
+                                form {
+                                    className = ClassName("needs-validation")
+                                    div {
+                                        className = ClassName("row g-3")
+                                        selectFormRequired {
+                                            form = InputTypes.ORGANIZATION_NAME
+                                            validInput = state.isValidOrganization!!
+                                            classes = "col-md-6 pl-0 pl-2 pr-2"
+                                            text = "Organization"
+                                            onChangeFun = ::changeFields
                                         }
                                         inputTextFormRequired(InputTypes.PROJECT_NAME, state.isValidProjectName!!, "col-md-6 pl-2 pr-2", "Tested tool name", true) {
                                             changeFields(InputTypes.PROJECT_NAME, it)
@@ -329,30 +350,32 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             changeFields(InputTypes.GIT_URL, it, false)
                                         }
 
-                                        div("col-md-12 mt-3 mb-3 pl-0 pr-0") {
-                                            label("form-label") {
-                                                attrs.set("for", InputTypes.DESCRIPTION.name)
+                                        div {
+                                            className = ClassName("col-md-12 mt-3 mb-3 pl-0 pr-0")
+                                            label {
+                                                className = ClassName("form-label")
+                                                asDynamic()["for"] = InputTypes.DESCRIPTION.name
                                                 +"Description"
                                             }
-                                            div("input-group has-validation") {
-                                                textarea("form-control") {
-                                                    attrs {
-                                                        onChangeFunction = {
-                                                            val tg = it.target as HTMLTextAreaElement
-                                                            fieldsMap[InputTypes.DESCRIPTION] = tg.value
-                                                        }
+                                            div {
+                                                className = ClassName("input-group has-validation")
+                                                textarea {
+                                                    className = ClassName("form-control")
+                                                    onChange = {
+                                                        fieldsMap[InputTypes.DESCRIPTION] = it.target.value
                                                     }
-                                                    attrs["aria-describedby"] = "${InputTypes.DESCRIPTION.name}Span"
-                                                    attrs["row"] = "2"
-                                                    attrs["id"] = InputTypes.DESCRIPTION.name
-                                                    attrs["required"] = false
-                                                    attrs["class"] = "form-control"
+                                                    ariaDescribedBy = "${InputTypes.DESCRIPTION.name}Span"
+                                                    rows = 2
+                                                    id = InputTypes.DESCRIPTION.name
+                                                    required = false
                                                 }
                                             }
                                         }
 
-                                        div("col-md-12 mt-3 border-top") {
-                                            p("mx-auto mt-2") {
+                                        div {
+                                            className = ClassName("col-md-12 mt-3 border-top")
+                                            p {
+                                                className = ClassName("mx-auto mt-2")
                                                 +"Provide Credentials if your repo with Test Suites is private:"
                                             }
                                         }
@@ -364,45 +387,55 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             changeFields(InputTypes.GIT_TOKEN, it, false)
                                         }
 
-                                        div("col-md-12 mt-3 mb-3 pl-2 pr-0 row") {
-                                            label("text-xs") {
+                                        div {
+                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-0 row")
+                                            label {
+                                                className = ClassName("text-xs")
                                                 fontAwesomeIcon(icon = faQuestionCircle)
-                                                attrs["data-toggle"] = "tooltip"
-                                                attrs["data-placement"] = "top"
-                                                attrs["title"] = "Private projects are visible for user, organization admins and selected users, " +
+                                                asDynamic()["data-toggle"] = "tooltip"
+                                                asDynamic()["data-placement"] = "top"
+                                                title = "Private projects are visible for user, organization admins and selected users, " +
                                                         "while public ones are visible for everyone."
                                             }
-                                            div("col-5 text-left align-self-center") {
+                                            div {
+                                                className = ClassName("col-5 text-left align-self-center")
                                                 +"Project visibility:"
                                             }
-                                            form("col-7 form-group row d-flex justify-content-around") {
-                                                div("form-check-inline") {
-                                                    input(classes = "form-check-input") {
-                                                        attrs.defaultChecked = state.isPublic!!
-                                                        attrs["name"] = "projectVisibility"
-                                                        attrs["type"] = "radio"
-                                                        attrs["id"] = "isProjectPublicSwitch"
-                                                        attrs["value"] = "true"
+                                            form {
+                                                className = ClassName("col-7 form-group row d-flex justify-content-around")
+                                                div {
+                                                    className = ClassName("form-check-inline")
+                                                    input {
+                                                        className = ClassName("form-check-input")
+                                                        defaultChecked = state.isPublic!!
+                                                        name = "projectVisibility"
+                                                        type = InputType.radio
+                                                        id = "isProjectPublicSwitch"
+                                                        value = "true"
                                                     }
-                                                    label("form-check-label") {
-                                                        attrs["htmlFor"] = "isProjectPublicSwitch"
+                                                    label {
+                                                        className = ClassName("form-check-label")
+                                                        htmlFor = "isProjectPublicSwitch"
                                                         +"Public"
                                                     }
                                                 }
-                                                div("form-check-inline") {
-                                                    input(classes = "form-check-input") {
-                                                        attrs.defaultChecked = !state.isPublic!!
-                                                        attrs["name"] = "projectVisibility"
-                                                        attrs["type"] = "radio"
-                                                        attrs["id"] = "isProjectPrivateSwitch"
-                                                        attrs["value"] = "false"
+                                                div {
+                                                    className = ClassName("form-check-inline")
+                                                    input {
+                                                        className = ClassName("form-check-input")
+                                                        defaultChecked = !state.isPublic!!
+                                                        name = "projectVisibility"
+                                                        type = InputType.radio
+                                                        id = "isProjectPrivateSwitch"
+                                                        value = "false"
                                                     }
-                                                    label("form-check-label") {
-                                                        attrs["htmlFor"] = "isProjectPrivateSwitch"
+                                                    label {
+                                                        className = ClassName("form-check-label")
+                                                        htmlFor = "isProjectPrivateSwitch"
                                                         +"Private"
                                                     }
                                                 }
-                                                attrs.onChangeFunction = {
+                                                onChange = {
                                                     setState {
                                                         isPublic = (it.target as HTMLInputElement).value.toBoolean()
                                                     }
@@ -411,15 +444,20 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
                                     }
 
-                                    button(type = ButtonType.button, classes = "btn btn-info mt-4 mr-3") {
+                                    button {
+                                        type = ButtonType.button
+                                        className = ClassName("btn btn-info mt-4 mr-3")
                                         +"Create test project"
-                                        attrs.onClickFunction = { saveProject() }
+                                        onClick = { saveProject() }
                                     }
-                                    button(type = ButtonType.button, classes = "btn btn-success mt-4 ml-3") {
+                                    button {
+                                        type = ButtonType.button
+                                        className = ClassName("btn btn-success mt-4 ml-3")
                                         +"Validate connection"
-                                        attrs.onClickFunction = { validateGitConnection() }
+                                        onClick = { validateGitConnection() }
                                     }
-                                    div("row justify-content-center") {
+                                    div {
+                                        className = ClassName("row justify-content-center")
                                         when (state.gitConnectionCheckingStatus) {
                                             GitConnectionStatusEnum.CHECKED_NOT_OK ->
                                                 createDiv(
@@ -433,8 +471,9 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             GitConnectionStatusEnum.INTERNAL_SERVER_ERROR ->
                                                 createDiv("invalid-feedback d-block", "Internal server error during git validation")
                                             GitConnectionStatusEnum.VALIDATING ->
-                                                div("spinner-border spinner-border-sm mt-3") {
-                                                    attrs["role"] = "status"
+                                                div {
+                                                    className = ClassName("spinner-border spinner-border-sm mt-3")
+                                                    role = "status".unsafeCast<AriaRole>()
                                                 }
                                             else -> {
                                                 // do nothing
@@ -450,8 +489,9 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
-    private fun RBuilder.createDiv(blockName: String, text: String) =
-            div("$blockName mt-2") {
+    private fun ChildrenBuilder.createDiv(blockName: String, text: String) =
+            div {
+                className = ClassName("$blockName mt-2")
                 +text
             }
 

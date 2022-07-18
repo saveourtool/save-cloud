@@ -9,15 +9,16 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.storage.AvatarStorage
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
-import com.saveourtool.save.domain.Jdk
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.toFileInfo
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.toDataBufferFlux
 import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockResponse
@@ -48,24 +49,24 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 import java.nio.file.Path
 import java.time.Duration
-
 import kotlin.io.path.createFile
 
 @WebFluxTest(controllers = [CloneRepositoryController::class])
 @Import(
     WebSecurityConfig::class,
     WebConfig::class,
-    TimestampBasedFileSystemRepository::class,
+    FileStorage::class,
+    AvatarStorage::class,
     ConvertingAuthenticationManager::class,
     UserDetailsService::class,
 )
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @MockBeans(
-    MockBean(ExecutionService::class),
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(UserRepository::class),
 )
@@ -82,13 +83,16 @@ class CloningRepositoryControllerTest {
     ).apply {
         id = 1
     }
-    @Autowired private lateinit var fileSystemRepository: TimestampBasedFileSystemRepository
+    @Autowired private lateinit var fileStorage: FileStorage
 
     @Autowired
     lateinit var webTestClient: WebTestClient
 
     @MockBean
     lateinit var projectService: ProjectService
+
+    @MockBean
+    lateinit var executionService: ExecutionService
     @TempDir internal lateinit var tmpDir: Path
 
     @BeforeEach
@@ -100,6 +104,9 @@ class CloningRepositoryControllerTest {
 
         whenever(projectService.findWithPermissionByNameAndOrganization(any(), eq(testProject.name), any(), any(), anyOrNull(), any()))
             .thenAnswer { Mono.just(testProject) }
+
+        whenever(executionService.saveExecution(any()))
+            .thenAnswer { it.arguments[0] as Execution }
     }
 
     @Test
@@ -139,11 +146,15 @@ class CloningRepositoryControllerTest {
         val property = tmpDir.resolve("property").apply {
             createFile()
         }
-        fileSystemRepository.saveFile(binFile, ProjectCoordinates("Huawei", "huaweiName"))
-        fileSystemRepository.saveFile(property, ProjectCoordinates("Huawei", "huaweiName"))
+        fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
+            binFile.toFileInfo().toFileKey(),
+            binFile.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
+        fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
+            property.toFileInfo().toFileKey(),
+            property.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
 
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null, "version")
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

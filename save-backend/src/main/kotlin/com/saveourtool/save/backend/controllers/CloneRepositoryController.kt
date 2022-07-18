@@ -2,14 +2,11 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.repository.TimestampBasedFileSystemRepository
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.username
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.ShortFileInfo
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.ExecutionRequestBase
@@ -23,15 +20,12 @@ import com.saveourtool.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
@@ -48,7 +42,7 @@ import reactor.core.publisher.Mono
 class CloneRepositoryController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
-    private val additionalToolsFileSystemRepository: TimestampBasedFileSystemRepository,
+    private val fileStorage: FileStorage,
     private val configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -82,9 +76,9 @@ class CloneRepositoryController(
                 executionRequest,
                 ExecutionType.GIT,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
-            ) { newExecutionId ->
-                part("executionRequest", executionRequest.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
+                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId())
             }
         }
 
@@ -110,40 +104,39 @@ class CloneRepositoryController(
                 executionRequestForStandardSuites,
                 ExecutionType.STANDARD,
                 authentication.username(),
-                files.map { additionalToolsFileSystemRepository.getFileInfoByShortInfo(it, projectCoordinates) }
-            ) { newExecutionId ->
-                part("executionRequestForStandardSuites", executionRequestForStandardSuites.copy(executionId = newExecutionId), MediaType.APPLICATION_JSON)
+                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
             }
         }
 
-    private fun sendToPreprocessor(
-        executionRequest: ExecutionRequestBase,
+    private fun <T : ExecutionRequestBase> sendToPreprocessor(
+        executionRequest: T,
         executionType: ExecutionType,
         username: String,
         files: Flux<FileInfo>,
-        configure: MultipartBodyBuilder.(newExecutionId: Long) -> Unit
+        updateExecutionInRequest: (T, Execution) -> T
     ): Mono<StringResponse> {
         val project = with(executionRequest.project) {
             projectService.findByNameAndOrganizationName(name, organization.name)
         } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
 
-        val newExecution = saveExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-        val newExecutionId = newExecution.requiredId()
+        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
         log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            configure(newExecutionId)
-        }
         val uri = when (executionType) {
             ExecutionType.GIT -> "/upload"
             ExecutionType.STANDARD -> "/uploadBin"
         }
-        return files.collectToMultipartAndUpdateExecution(bodyBuilder, newExecution, project.organization.name, project.name)
-            .flatMap {
-                preprocessorWebClient.postMultipart(bodyBuilder, uri)
-            }
+        return files.updateExecution(newExecution).flatMap { savedExecution ->
+            preprocessorWebClient.post()
+                .uri(uri)
+                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
+                .retrieve()
+                .toEntity()
+        }
     }
 
-    private fun saveExecution(
+    private fun createNewExecution(
         project: Project,
         username: String,
         type: ExecutionType,
@@ -155,37 +148,22 @@ class CloneRepositoryController(
             this.batchSize = batchSize
             this.sdk = sdk.toString()
             this.type = type
-            id = executionService.saveExecution(this, username)
+            id = executionService.saveExecutionAndReturnId(this, username)
         }
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution
     }
 
-    private fun WebClient.postMultipart(bodyBuilder: MultipartBodyBuilder, uri: String) = post()
-        .uri(uri)
-        .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-        .retrieve()
-        .toEntity<String>()
-
-    @Suppress("TYPE_ALIAS")
-    private fun Flux<FileInfo>.collectToMultipartAndUpdateExecution(
-        multipartBodyBuilder: MultipartBodyBuilder,
+    private fun Flux<FileInfo>.updateExecution(
         execution: Execution,
-        organizationName: String,
-        projectName: String,
-    ): Mono<List<MultipartBodyBuilder.PartBuilder>> {
-        val projectCoordinates = ProjectCoordinates(organizationName, projectName)
-        return map {
-            val path = additionalToolsFileSystemRepository.getPath(it, projectCoordinates)
-            execution.appendAdditionalFile(path.toString())
-            multipartBodyBuilder.part("fileInfo", it)
-            multipartBodyBuilder.part("file", additionalToolsFileSystemRepository.getFile(it, projectCoordinates))
-        }
-            .collectList()
-            .switchIfEmpty(Mono.just(emptyList()))
-            .doOnNext {
-                executionService.saveExecution(execution)
-            }
+    ): Mono<Execution> = map {
+        it.toFileKey()
     }
+        .collectList()
+        .switchIfEmpty(Mono.just(emptyList()))
+        .map { execution.formatAndSetAdditionalFiles(it) }
+        .map { executionService.saveExecution(execution) }
+
+    // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
+    private fun Execution.stubVersion() = this.parseAndGetAdditionalFiles().first().name
 }

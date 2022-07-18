@@ -7,11 +7,7 @@
 package com.saveourtool.save.frontend.externals.fontawesome
 
 import react.ChildrenBuilder
-import react.RBuilder
-import react.RHandler
 import react.react
-
-import kotlinx.js.jso
 
 /**
  * A small wrapper for font awesome icons imported from individual modules.
@@ -26,22 +22,6 @@ interface FontAwesomeIconModule {
 }
 
 /**
- * @param icon icon. Can be an object, string or array.
- * @param classes element's classes
- * @param handler handler to set up a component
- * @return ReactElement
- */
-fun RBuilder.fontAwesomeIcon(
-    icon: FontAwesomeIconModule,
-    classes: String = "",
-    handler: RHandler<FontAwesomeIconProps> = {},
-) = child(FontAwesomeIcon::class) {
-    attrs.icon = icon.definition
-    attrs.className = classes
-    handler(this)
-}
-
-/**
  * Builder function for new kotlin-react API
  *
  * @param icon
@@ -52,9 +32,8 @@ fun ChildrenBuilder.fontAwesomeIcon(
     icon: FontAwesomeIconModule,
     classes: String = "",
     handler: ChildrenBuilder.(props: FontAwesomeIconProps) -> Unit = {},
-): Unit = child(FontAwesomeIcon::class.react, props = jso {
+): Unit = FontAwesomeIcon::class.react {
     this.icon = icon.definition
     this.className = classes
-    // explicit receiver is required because of `@JsoDsl` which is a `@DslMarker` on `jso` argument
-    this@fontAwesomeIcon.handler(this)
-})
+    this.handler(this)
+}

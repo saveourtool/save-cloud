@@ -5,14 +5,15 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.backend.repository.TestDataFilesystemRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.v1
@@ -32,8 +33,6 @@ import reactor.core.publisher.Mono
 
 import java.math.BigInteger
 
-import kotlin.io.path.exists
-
 /**
  * Controller to work with test execution
  *
@@ -46,7 +45,7 @@ import kotlin.io.path.exists
 class TestExecutionController(private val testExecutionService: TestExecutionService,
                               private val executionService: ExecutionService,
                               private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                              private val testDataFilesystemRepository: TestDataFilesystemRepository
+                              private val debugInfoStorage: DebugInfoStorage,
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -80,14 +79,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
-            map { testExecutionDto ->
-                val debugInfoFile = testDataFilesystemRepository.getLocation(
-                    executionId,
-                    testExecutionDto
-                )
-                testExecutionDto.copy(
-                    hasDebugInfo = debugInfoFile.exists()
-                )
+            flatMap { testExecutionDto ->
+                debugInfoStorage.doesExist(Pair(executionId, TestResultLocation.from(testExecutionDto)))
+                    .map { testExecutionDto.copy(hasDebugInfo = it) }
             }
         }
 

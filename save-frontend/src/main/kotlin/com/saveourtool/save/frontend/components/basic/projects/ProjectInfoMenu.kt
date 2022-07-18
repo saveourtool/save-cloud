@@ -14,7 +14,6 @@ import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -24,6 +23,11 @@ import react.dom.html.ReactHTML.ul
 import kotlinx.browser.window
 
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
+
+/**
+ * INFO tab in ProjectView
+ */
+val projectInfoMenu = projectInfoMenu()
 
 /**
  * ProjectSettingsMenu component props
@@ -45,16 +49,13 @@ external interface ProjectInfoMenuProps : Props {
     var latestExecutionId: Long?
 }
 
-/**
- * @return ReactElement
- */
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "MAGIC_NUMBER",
     "ComplexMethod"
 )
-fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
+private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     val (usersInProject, setUsersInProject) = useState(emptyList<UserInfo>())
     useRequest(isDeferred = false) {
         val users: List<UserInfo> = get(
@@ -110,19 +111,20 @@ fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
             }
             ul {
                 className = ClassName("list-group")
-                bestResults.forEach {
-                    li {
-                        className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
-                        a {
-                            href = "#/contests/${it.contestName}"
-                            className = ClassName("stretched-link")
-                        }
-                        scoreCard {
-                            name = it.contestName
-                            contestScore = it.score.toDouble()
+                bestResults.filter { it.score != null }
+                    .forEach {
+                        li {
+                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
+                            a {
+                                href = "#/contests/${it.contestName}"
+                                className = ClassName("stretched-link")
+                            }
+                            scoreCard {
+                                name = it.contestName
+                                contestScore = it.score!!
+                            }
                         }
                     }
-                }
             }
         }
 

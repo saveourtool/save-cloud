@@ -12,8 +12,7 @@ import com.saveourtool.save.utils.LocalDateTime
  * @property testSuiteIds
  */
 @Entity
-@Suppress("USE_DATA_CLASS")
-data class Contest(
+class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: ContestStatus,
@@ -45,12 +44,11 @@ data class Contest(
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds?.split(",")
-        ?.mapNotNull {
+    fun getTestSuiteIds() = testSuiteIds.split(",")
+        .mapNotNull {
             it.toLongOrNull()
         }
-        ?.toSet()
-        ?: emptySet()
+        .toSet()
 
     companion object {
         /**

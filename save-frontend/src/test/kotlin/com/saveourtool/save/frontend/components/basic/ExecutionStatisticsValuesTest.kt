@@ -38,7 +38,6 @@ class ExecutionStatisticsValuesTest {
             matchedChecks = 15,
             expectedChecks = 25,
             unexpectedChecks = 5,
-            additionalFiles = null
         )
         val executionStatisticsValues = ExecutionStatisticsValues(executionDto)
         assertEquals("info", executionStatisticsValues.style)

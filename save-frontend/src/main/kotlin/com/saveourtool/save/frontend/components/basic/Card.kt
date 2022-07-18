@@ -15,7 +15,7 @@ import react.PropsWithChildren
 import react.dom.html.ReactHTML.div
 
 /**
- * [RProps] for card component
+ * Props for card component
  */
 external interface CardProps : PropsWithChildren {
     /**
@@ -25,7 +25,7 @@ external interface CardProps : PropsWithChildren {
 }
 
 /**
- * A functional `RComponent` for a card.
+ * A functional `Component` for a card.
  *
  * @param isBordered adds a border to the card
  * @param hasBg adds a white background

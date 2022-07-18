@@ -9,15 +9,21 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.getSdkVersions
 import com.saveourtool.save.domain.sdks
 
+import csstype.ClassName
 import org.w3c.dom.HTMLSelectElement
+import react.ChildrenBuilder
+import react.FC
 import react.PropsWithChildren
 import react.dom.*
-import react.fc
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 
-import kotlinx.html.Tag
-import kotlinx.html.classes
-import kotlinx.html.id
-import kotlinx.html.js.onChangeFunction
+/**
+ * Component for sdk selection
+ */
+val sdkSelection = sdkSelection()
 
 /**
  * Props for SdkSelection component
@@ -32,62 +38,76 @@ external interface SdkProps : PropsWithChildren {
      * Version of the selected SDK
      */
     var selectedSdkVersion: String
+
+    /**
+     * Callback invoked when `input` for SDK name is changed
+     */
+    var onSdkChange: (HTMLSelectElement) -> Unit
+
+    /**
+     * Callback invoked when `input` for SDK version is changed
+     */
+    var onVersionChange: (HTMLSelectElement) -> Unit
 }
 
-private fun <T : Tag> RDOMBuilder<T>.selection(
+private fun ChildrenBuilder.selection(
     labelValue: String,
     value: String,
     options: List<String>,
-    onChange: (HTMLSelectElement) -> Unit,
-) = div("input-group mb-3") {
-    div("input-group-prepend") {
-        label("input-group-text") {
+    onChangeFun: (HTMLSelectElement) -> Unit,
+) = div {
+    className = ClassName("input-group mb-3")
+    div {
+        className = ClassName("input-group-prepend")
+        label {
+            className = ClassName("input-group-text")
             +labelValue
         }
     }
-    select("custom-select") {
-        attrs.value = value
-        attrs.onChangeFunction = {
+    select {
+        className = ClassName("custom-select")
+        this.value = value
+        onChange = {
             val target = it.target as HTMLSelectElement
-            onChange(target)
+            onChangeFun(target)
         }
-        attrs.id = labelValue
+        id = labelValue
         options.forEach {
             option {
-                attrs.value = it
+                this.value = it
                 +it
             }
         }
     }
 }
 
-/**
- * @param onSdkChange invoked when `input` for SDK name is changed
- * @param onVersionChange invoked when `input` for SDK version is changed
- * @return a RComponent
- */
-fun sdkSelection(onSdkChange: (HTMLSelectElement) -> Unit, onVersionChange: (HTMLSelectElement) -> Unit) =
-        fc<SdkProps> { props ->
-            label(classes = "control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0") {
+private fun sdkSelection() =
+        FC<SdkProps> { props ->
+            label {
+                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                 +"2. Select the SDK if needed:"
             }
-            div("card align-items-left mb-3 pt-0 pb-0") {
-                div("card-body align-items-left pb-1 pt-3") {
-                    div("row no-gutters align-items-left") {
+            div {
+                className = ClassName("card align-items-left mb-3 pt-0 pb-0")
+                div {
+                    className = ClassName("card-body align-items-left pb-1 pt-3")
+                    div {
+                        className = ClassName("row no-gutters align-items-left")
                         selection(
                             "SDK",
                             props.selectedSdk,
                             sdks,
-                            onSdkChange,
+                            props.onSdkChange,
                         )
                     }
-                    div("row no-gutters align-items-left") {
-                        attrs.classes = setOf("d-inline")
+                    div {
+                        className = ClassName("row no-gutters align-items-left")
+                        className = ClassName("d-inline")
                         selection(
                             "Version",
                             props.selectedSdkVersion,
                             props.selectedSdk.getSdkVersions(),
-                            onVersionChange,
+                            props.onVersionChange,
                         )
                     }
                 }

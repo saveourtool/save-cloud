@@ -74,7 +74,9 @@ class KubernetesManager(
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
                                 // If agent fails, we should handle it manually (update statuses, attempt restart etc)
                                 restartPolicy = "Never"
-                                runtimeClassName = configProperties.docker.runtime
+                                if (!configProperties.docker.runtime.isNullOrEmpty()) {
+                                    runtimeClassName = configProperties.docker.runtime
+                                }
                                 env = listOf(
                                     EnvVar().apply {
                                         name = "POD_NAME"
@@ -108,7 +110,7 @@ class KubernetesManager(
         }
             .take(10)
             .firstOrNull { it.isNotEmpty() }
-            ?: emptyList()
+            .orEmpty()
     }
 
     override fun start(executionId: Long) {

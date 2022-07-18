@@ -2,16 +2,17 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import org.w3c.dom.events.Event
-import react.RBuilder
-import react.dom.attrs
-import react.dom.div
-import react.dom.input
-import react.dom.label
-import react.dom.span
-
-import kotlinx.html.InputType
-import kotlinx.html.js.onChangeFunction
+import csstype.ClassName
+import org.w3c.dom.HTMLInputElement
+import react.ChildrenBuilder
+import react.dom.*
+import react.dom.aria.ariaDescribedBy
+import react.dom.events.ChangeEvent
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.span
 
 /**
  * @property str
@@ -58,47 +59,52 @@ enum class InputTypes(val str: String) {
     "TOO_MANY_PARAMETERS",
     "LongParameterList",
 )
-internal fun RBuilder.inputTextFormRequired(
+internal fun ChildrenBuilder.inputTextFormRequired(
     form: InputTypes,
     validInput: Boolean,
     classes: String,
     text: String,
     isProjectOrOrganizationName: Boolean = false,
-    onChangeFun: (Event) -> Unit
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) =
-        div("$classes mt-1") {
-            label("form-label") {
-                attrs.set("for", form.name)
+        div {
+            className = ClassName("$classes mt-1")
+            label {
+                className = ClassName("form-label")
+                htmlFor = form.name
                 +text
             }
 
-            div("input-group has-validation") {
-                span("input-group-text") {
-                    attrs["id"] = "${form.name}Span"
+            div {
+                className = ClassName("input-group has-validation")
+                span {
+                    className = ClassName("input-group-text")
+                    id = "${form.name}Span"
                     +"*"
                 }
 
-                val type = if (form == InputTypes.PASSWORD) InputType.password else InputType.text
-                input(type = type) {
-                    attrs {
-                        onChangeFunction = onChangeFun
-                    }
-                    attrs["id"] = form.name
-                    attrs["required"] = true
+                val inputType = if (form == InputTypes.PASSWORD) InputType.password else InputType.text
+                input {
+                    type = inputType
+                    onChange = onChangeFun
+                    id = form.name
+                    required = true
                     if (validInput) {
-                        attrs["class"] = "form-control"
+                        className = ClassName("form-control")
                     } else {
-                        attrs["class"] = "form-control is-invalid"
+                        className = ClassName("form-control is-invalid")
                     }
                 }
 
                 if (!validInput) {
                     if (isProjectOrOrganizationName) {
-                        div("invalid-feedback d-block") {
+                        div {
+                            className = ClassName("invalid-feedback d-block")
                             +"Please input a valid ${form.str}. The name can be no longer than 64 characters and can't contain any spaces."
                         }
                     } else {
-                        div("invalid-feedback d-block") {
+                        div {
+                            className = ClassName("invalid-feedback d-block")
                             +"Please input a valid ${form.str}"
                         }
                     }
@@ -113,24 +119,25 @@ internal fun RBuilder.inputTextFormRequired(
  * @param onChangeFun
  * @return div with an input form
  */
-internal fun RBuilder.inputTextFormOptional(
+internal fun ChildrenBuilder.inputTextFormOptional(
     form: InputTypes,
     classes: String,
     text: String,
-    onChangeFun: (Event) -> Unit
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) =
-        div("$classes pl-2 pr-2") {
-            label("form-label") {
-                attrs.set("for", form.name)
+        div {
+            className = ClassName("$classes pl-2 pr-2")
+            label {
+                className = ClassName("form-label")
+                htmlFor = form.name
                 +text
             }
-            input(type = InputType.text) {
-                attrs {
-                    onChangeFunction = onChangeFun
-                }
-                attrs["aria-describedby"] = "${form.name}Span"
-                attrs["id"] = form.name
-                attrs["required"] = false
-                attrs["class"] = "form-control"
+            input {
+                type = InputType.text
+                onChange = onChangeFun
+                ariaDescribedBy = "${form.name}Span"
+                id = form.name
+                required = false
+                className = ClassName("form-control")
             }
         }

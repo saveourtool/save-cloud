@@ -28,6 +28,7 @@ import java.util.Optional
  * @property projectRepository
  */
 @Service
+@OptIn(ExperimentalStdlibApi::class)
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,

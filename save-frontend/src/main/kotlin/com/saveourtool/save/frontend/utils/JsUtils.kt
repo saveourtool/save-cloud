@@ -4,9 +4,8 @@
 
 package com.saveourtool.save.frontend.utils
 
-import react.dom.RDOMBuilder
+import react.ChildrenBuilder
 
-import kotlinx.html.Tag
 import kotlinx.js.Object
 
 /**
@@ -28,9 +27,9 @@ import kotlinx.js.Object
  *
  * @param jsObject a JS object properties of which will be used
  */
-fun <T : Tag> RDOMBuilder<T>.spread(jsObject: Any) {
+fun ChildrenBuilder.spread(jsObject: Any) {
     spread(jsObject) { key, value ->
-        attrs[key] = value
+        asDynamic()[key] = value
     }
 }
 
