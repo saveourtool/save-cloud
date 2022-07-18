@@ -38,6 +38,7 @@ import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -248,14 +249,17 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
-        runCatching {
-            sendLogs(executionLogs)
-        }
-            .exceptionOrNull()
-            ?.let {
-                logErrorCustom("Couldn't send logs, reason: ${it.message}")
+    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String): Job {
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray()
+        return launch {
+            runCatching {
+                sendLogs(byteArray)
             }
+                .exceptionOrNull()
+                ?.let {
+                    logErrorCustom("Couldn't send logs, reason: ${it.message}")
+                }
+        }
     }
 
     private fun CoroutineScope.handleSuccessfulExit(): Job {
@@ -298,7 +302,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                         byteArray,
                         Headers.build {
                             append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                            append(HttpHeaders.ContentDisposition, "filename=${config.id}")
+                            append(HttpHeaders.ContentDisposition, "filename=${config.resolvedId()}")
                         }
                     )
                 }))
