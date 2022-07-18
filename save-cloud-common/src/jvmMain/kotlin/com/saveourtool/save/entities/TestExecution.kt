@@ -68,7 +68,7 @@ class TestExecution(
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
         test.testSuite.name,
-        test.tags?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
+        test.tags?.split(";")?.filter { it.isNotBlank() }.orEmpty(),
         unmatched,
         matched,
         expected,
