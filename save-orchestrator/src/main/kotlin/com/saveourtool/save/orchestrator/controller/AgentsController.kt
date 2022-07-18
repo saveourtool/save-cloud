@@ -248,7 +248,6 @@ class AgentsController(
      */
     @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
-        println("\n\n\n\n\n--------------------------saveAgentsLog")
         val fileName = executionLogs.filename()
         val logDir = File(configProperties.executionLogs)
         if (!logDir.exists()) {
@@ -256,18 +255,18 @@ class AgentsController(
             logDir.mkdirs()
         }
         val logFile = File(logDir.path + File.separator + "$fileName.log")
-        println("\n\n\n-----------------saveAgentsLog logFile.exists()? ${logFile.exists()}")
         if (!logFile.exists()) {
             logFile.createNewFile()
             log.info("Log file for $fileName agent was created")
         }
-        executionLogs.content().map { dtBuffer ->
-            FileOutputStream(logFile, true).use { os ->
-                dtBuffer.asInputStream().use {
-                    it.copyTo(os)
+        executionLogs.content()
+            .map { dtBuffer ->
+                FileOutputStream(logFile, true).use { os ->
+                    dtBuffer.asInputStream().use {
+                        it.copyTo(os)
+                    }
                 }
             }
-        }
             .collectList()
             .subscribe()
 

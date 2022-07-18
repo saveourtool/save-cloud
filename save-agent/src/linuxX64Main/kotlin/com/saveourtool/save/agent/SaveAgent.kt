@@ -83,7 +83,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * Starts save-agent and required jobs in the background and then immediately returns
      *
-     * @param coroutineScope a [CoroutineScope] to launch other jobs
      * @return a descriptor of the main coroutine job
      */
     fun start(): Job {
@@ -161,15 +160,15 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
-        val saveCliLogFile = config.logFilePath
-        val saveCliLogs = readFile(saveCliLogFile)
-        launchLogSendingJob(saveCliLogFile)
+        val saveCliLogFilePath = config.logFilePath
+        val saveCliLogData = readFile(saveCliLogFilePath)
+        launchLogSendingJob(saveCliLogFilePath)
         logDebugCustom("SAVE has completed execution, execution logs:")
-        saveCliLogs.forEach {
+        saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
         }
         when (executionResult.code) {
-            0 -> if (saveCliLogs.isEmpty()) {
+            0 -> if (saveCliLogData.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
                 handleSuccessfulExit().invokeOnCompletion { cause ->
@@ -210,7 +209,6 @@ class SaveAgent(internal val config: AgentConfiguration,
             report.pluginExecutions.flatMap { pluginExecution ->
                 pluginExecution.testResults.map { tr ->
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
-
                     val testResultStatus = tr.status.toTestResultStatus()
                     debugInfo to TestExecutionDto(
                         adjustLocation(tr.resources.test.toString()),
@@ -230,7 +228,6 @@ class SaveAgent(internal val config: AgentConfiguration,
             .unzip()
     }
 
-
     @Suppress("MAGIC_NUMBER", "MagicNumber")
     private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) = this.debugInfo
         ?.countWarnings
@@ -249,8 +246,10 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.launchLogSendingJob(saveCliLogFile: String): Job {
-        val byteArray = FileSystem.SYSTEM.source(saveCliLogFile.toPath()).buffer().readByteArray()
+    private fun CoroutineScope.launchLogSendingJob(saveCliLogFilePath: String): Job {
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
+            .buffer()
+            .readByteArray()
         return launch {
             runCatching {
                 sendLogs(byteArray)

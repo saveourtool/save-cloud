@@ -31,6 +31,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -44,7 +45,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.springframework.http.MediaType
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -144,7 +144,6 @@ class AgentsControllerTest {
             .expectStatus()
             .isOk
         val logFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        println("\n\n\n======================TEST logFile.exists()? ${logFile.exists()}")
         Assertions.assertTrue(logFile.exists())
         Assertions.assertEquals(logFile.readLines(), logs)
     }
@@ -198,12 +197,9 @@ class AgentsControllerTest {
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
         val fileName = "agent.log"
-        val filePath = configProperties.executionLogs + File.separator + "agent.log"
+        val filePath = configProperties.executionLogs + File.separator + fileName
         val file = File(filePath)
-        println("FilePath ${filePath}")
-        println("------------- ${filePath} " + File(filePath).exists())
         if (!file.exists()) {
-            println("CREATING FILE")
             file.createNewFile()
         }
 
@@ -211,17 +207,12 @@ class AgentsControllerTest {
             file.appendText(it + "\n")
         }
 
-
-        file.readLines().forEach {
-            println("line: ${it}")
-        }
-
         val body = MultipartBodyBuilder().apply {
             part(
                 "executionLogs",
                 file.readBytes()
             )
-                .header("Content-Disposition", "form-data; name=executionLogs; filename=${fileName}")
+                .header("Content-Disposition", "form-data; name=executionLogs; filename=$fileName")
         }
             .build()
 
