@@ -166,7 +166,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
         div {
             className = ClassName("mb-2")
             select {
-                className = ClassName("form-control")
+                className = ClassName("custom-select form-control")
                 option {
                     disabled = true
                     selected = true
