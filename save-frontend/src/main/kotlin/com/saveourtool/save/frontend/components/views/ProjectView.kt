@@ -628,6 +628,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     testingType = state.testingType
                     isSubmitButtonPressed = state.isSubmitButtonPressed
                     gitDto = gitDto
+                    projectName = props.name
+                    organizationName = props.owner
+                    onContestEnrollerResponse = {
+                        setState {
+                            isErrorOpen = true
+                            errorMessage = it
+                            errorLabel = "Contest enrollment"
+                        }
+                    }
                     // properties for CUSTOM_TESTS mode
                     testRootPath = state.testRootPath
                     gitUrlFromInputField = state.gitUrlFromInputField

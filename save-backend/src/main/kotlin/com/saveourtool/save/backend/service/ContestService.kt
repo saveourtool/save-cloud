@@ -58,6 +58,21 @@ class ContestService(
     }.content
 
     /**
+     * @param contestIds set of ids of a [Contest]s
+     * @param numberOfRecords amount of records that should be taken from database
+     * @return list of active [Contest]s which ids are not from [contestIds]
+     */
+    fun getAllActiveContestsNotFrom(contestIds: Set<Long>, numberOfRecords: Int): List<Contest> = LocalDateTime.now().let {
+        contestRepository.findByStartTimeBeforeAndEndTimeAfterAndStatusAndIdNotIn(
+            it,
+            it,
+            ContestStatus.CREATED,
+            contestIds,
+            Pageable.ofSize(numberOfRecords),
+        ).content
+    }
+
+    /**
      * @param contest
      * @return test suite that has public test as its part
      */
