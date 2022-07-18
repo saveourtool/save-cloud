@@ -34,6 +34,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         isErrorModalOpen = false,
         errorMessage = "",
         errorLabel = "",
+        status = null,
     ))
     val (loadingState, setLoadingState) = useState(LoadingModalState(
         false,
@@ -46,18 +47,30 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
                 errorMessage = "You are not logged in",
                 errorLabel = "Unauthenticated",
                 confirmationText = "Proceed to login page",
+                status = response?.status,
+            )
+        } else if (response?.status == 404.toShort()) {
+            ErrorModalState(
+                isErrorModalOpen = false,
+                errorMessage = "${response?.status} ${response?.statusText}",
+                errorLabel = response?.status.toString(),
+                status = response?.status,
             )
         } else {
             ErrorModalState(
                 isErrorModalOpen = response != null,
                 errorMessage = "${response?.status} ${response?.statusText}",
                 errorLabel = response?.status.toString(),
+                status = response?.status,
             )
         }
         setModalState(newModalState)
     }
 
     modal { modalProps ->
+        if (modalState.status == 404.toShort()) {
+            window.location.href = "${window.location.origin}/error"
+        }
         modalProps.isOpen = modalState.isErrorModalOpen
         modalProps.contentLabel = modalState.errorLabel
         div {
@@ -132,12 +145,14 @@ data class RequestStatusContext(
  * @property errorMessage
  * @property errorLabel
  * @property confirmationText text that will be displayed on modal dismiss button
+ * @property status
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
     val errorMessage: String,
     val errorLabel: String,
     val confirmationText: String = "Close",
+    val status: Short?,
 )
 
 /**

@@ -161,28 +161,28 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/:user/settings/profile"
+                                    path = "/${state.userInfo?.name}/settings/profile"
                                     element = UserSettingsProfileMenuView::class.react.create {
                                         userName = state.userInfo?.name
                                     }
                                 }
 
                                 Route {
-                                    path = "/:user/settings/email"
+                                    path = "/${state.userInfo?.name}/settings/email"
                                     element = UserSettingsEmailMenuView::class.react.create {
                                         userName = state.userInfo?.name
                                     }
                                 }
 
                                 Route {
-                                    path = "/:user/settings/token"
+                                    path = "/${state.userInfo?.name}/settings/token"
                                     element = UserSettingsTokenMenuView::class.react.create {
                                         userName = state.userInfo?.name
                                     }
                                 }
 
                                 Route {
-                                    path = "/:user/settings/organizations"
+                                    path = "/${state.userInfo?.name}/settings/organizations"
                                     element = UserSettingsOrganizationsMenuView::class.react.create {
                                         userName = state.userInfo?.name
                                     }
