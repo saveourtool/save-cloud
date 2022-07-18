@@ -74,7 +74,7 @@ class ProjectController(
      * @return project by name and organization name
      */
     @GetMapping("/get/organization-name")
-    @PreAuthorize("hasRole('VIEWER')")
+    @PreAuthorize("permitAll()")
     fun getProjectByNameAndOrganizationName(
         @RequestParam name: String,
         @RequestParam organizationName: String,

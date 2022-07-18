@@ -72,7 +72,7 @@ private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props
                 }
                 scoreCard {
                     name = "${contestResult.organizationName}/${contestResult.projectName}"
-                    contestScore = contestResult.score.toDouble()
+                    contestScore = contestResult.score ?: 0.0
                 }
             }
         }

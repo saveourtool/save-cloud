@@ -316,6 +316,9 @@ naming:
     excludes: ['**/resources/**']
     active: true
     ignoreOverridden: true
+  NoNameShadowing:
+    # Different rule (in Diktat) checks that implicit lambda hasn't been shadowed.
+    active: false
   NonBooleanPropertyPrefixedWithIs:
     active: true
   ObjectPropertyNaming:
