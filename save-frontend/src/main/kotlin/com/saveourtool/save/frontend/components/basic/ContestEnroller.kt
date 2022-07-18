@@ -119,13 +119,14 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
     val (contestName, setContestName) = useState(props.contestName)
     val (isContestSelector, _) = useState(props.contestName == null)
     require(isContestSelector && props.organizationName != null && props.projectName != null || !isContestSelector && props.contestName != null)
-    val (availabilityUrl, _) = useState(contestName?.let {
-        "$apiUrl/contests/$it/eligible-projects"
-    } ?: "$apiUrl/contests/$organizationName/$projectName/eligible-contests")
     val (availableOptions, setAvailableOptions) = useState(emptyList<String>())
     useRequest(isDeferred = false) {
         val availableVariants = get(
-            availabilityUrl,
+            if (isContestSelector) {
+                "$apiUrl/contests/$organizationName/$projectName/eligible-contests"
+            } else {
+                "$apiUrl/contests/$contestName/eligible-projects"
+            },
             headers = Headers().also {
                 it.set("Accept", "application/json")
                 it.set("Content-Type", "application/json")
@@ -165,6 +166,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                     option {
                         +it
                     }
+                    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
                     onChange = {
                         val selectedOption = it.target.value
                         if (selectedOption.isNotBlank()) {
