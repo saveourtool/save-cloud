@@ -15,9 +15,9 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.*
-import react.dom.*
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
@@ -44,6 +44,11 @@ external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
     var isSubmitButtonPressed: Boolean?
     var gitDto: GitDto?
+
+    // properties for CONTEST_MODE
+    var projectName: String
+    var organizationName: String
+    var onContestEnrollerResponse: (String) -> Unit
 
     // properties for CUSTOM_TESTS mode
     var gitUrlFromInputField: String
@@ -125,10 +130,19 @@ fun testResourcesSelection(
     setBatchSize: (ChangeEvent<HTMLInputElement>) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = FC<TestResourcesProps> { props ->
+    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
+    showContestEnrollerModal(
+        isContestEnrollerOpen,
+        ProjectNameProps(props.organizationName, props.projectName),
+        { setIsContestEnrollerOpen(false) },
+    ) {
+        setIsContestEnrollerOpen(false)
+        props.onContestEnrollerResponse(it)
+    }
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {
-            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0")
-            +"Stay tuned! Contests will be here soon"
+            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
+            +"3. Enroll for a contest"
         }
     } else {
         label {
@@ -298,6 +312,33 @@ fun testResourcesSelection(
                 suites = props.standardTestSuites
                 selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
             }
+        }
+    }
+
+    div {
+        className = ClassName(cardStyleByTestingType(props, TestingType.CONTEST_MODE))
+        div {
+            className = ClassName("card-body d-flex justify-content-center")
+            button {
+                className = ClassName("d-flex justify-content-center btn btn-primary")
+                +"Enroll for a contest"
+                onClick = {
+                    setIsContestEnrollerOpen(true)
+                }
+            }
+        }
+    }
+    if (props.testingType == TestingType.CONTEST_MODE) {
+        label {
+            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
+            +"4. Run your tool on private tests and see your score"
+        }
+    }
+    div {
+        className = ClassName(cardStyleByTestingType(props, TestingType.CONTEST_MODE))
+        div {
+            className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0")
+            +"Stay turned! Soon you will be able to run your tool in contest mode!"
         }
     }
 }
