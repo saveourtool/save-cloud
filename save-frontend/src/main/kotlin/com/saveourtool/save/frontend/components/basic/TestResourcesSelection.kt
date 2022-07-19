@@ -133,15 +133,11 @@ fun testResourcesSelection(
     val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
     showContestEnrollerModal(
         isContestEnrollerOpen,
-        null,
-        props.organizationName,
-        props.projectName,
-        {
-            setIsContestEnrollerOpen(false)
-            props.onContestEnrollerResponse(it)
-        },
+        ProjectNameProps(props.organizationName, props.projectName),
+        { setIsContestEnrollerOpen(false) },
     ) {
         setIsContestEnrollerOpen(false)
+        props.onContestEnrollerResponse(it)
     }
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {

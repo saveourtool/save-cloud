@@ -27,30 +27,25 @@ import kotlinx.coroutines.await
  */
 val contestEnrollerComponent = contestEnrollerComponent()
 
+sealed class NameProps
+
+data class ProjectNameProps(
+    val organizationName: String,
+    val projectName: String,
+): NameProps()
+
+data class ContestNameProps(
+    val contestName: String,
+): NameProps()
+
 /**
  * [Props] for [contestEnrollerComponent]
  */
 external interface ContestEnrollerProps : Props {
     /**
-     * Name of the organization that the project belongs to
-     *
-     * Either organizationName and projectName or contestName should be set
+     * Either a name of a contest that is preselected for participating or a name of a project that is going to be enrolled for a contest
      */
-    var organizationName: String?
-
-    /**
-     * Name of the project that is planned to be enrolled for a contest
-     *
-     * Either organizationName and projectName or contestName should be set
-     */
-    var projectName: String?
-
-    /**
-     * Name of a contest that the chosen project should be enrolled for
-     *
-     * Either organizationName and projectName or contestName should be set
-     */
-    var contestName: String?
+    var nameProps: NameProps
 
     /**
      * Lambda invoked when got response for enrollment request
@@ -62,27 +57,21 @@ external interface ContestEnrollerProps : Props {
  * Modal that shows [contestEnrollerComponent]
  *
  * @param isModalOpen flag that indicates whether the modal should be shown or not
- * @param selectedContestName name of a current contest (should be null if [selectedProjectName] or [selectedOrganizationName] is not null)
- * @param selectedOrganizationName name of an organization that project is from (should be null if [selectedContestName] is not null)
- * @param selectedProjectName name of a current project (should be null if [selectedContestName] is not null)
+ * @param selectedNameProps name of a current contest or a current project
  * @param onResponse callback invoked when enrollment response is received
  * @param onCloseButtonPressed callback invoked when close button was clicked
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.showContestEnrollerModal(
     isModalOpen: Boolean,
-    selectedContestName: String?,
-    selectedOrganizationName: String?,
-    selectedProjectName: String?,
-    onResponse: (String) -> Unit,
+    selectedNameProps: NameProps,
     onCloseButtonPressed: () -> Unit,
+    onResponse: (String) -> Unit,
 ) {
     modal { props ->
         props.isOpen = isModalOpen
         contestEnrollerComponent {
-            contestName = selectedContestName
-            projectName = selectedProjectName
-            organizationName = selectedOrganizationName
+            nameProps = selectedNameProps
             onResponseChanged = onResponse
         }
         div {
@@ -114,11 +103,23 @@ fun ChildrenBuilder.showContestEnrollerModal(
     "ComplexMethod",
 )
 private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
-    val (organizationName, setOrganizationName) = useState(props.organizationName)
-    val (projectName, setProjectName) = useState(props.projectName)
-    val (contestName, setContestName) = useState(props.contestName)
-    val (isContestSelector, _) = useState(props.contestName == null)
-    require(isContestSelector && props.organizationName != null && props.projectName != null || !isContestSelector && props.contestName != null)
+    val (isContestSelector, _) = useState(props.nameProps is ProjectNameProps)
+    val (organizationName, setOrganizationName) = useState(if (isContestSelector) {
+        (props.nameProps as  ProjectNameProps).organizationName
+    } else {
+        null
+    })
+    val (projectName, setProjectName) = useState(if (isContestSelector) {
+        (props.nameProps as ProjectNameProps).projectName
+    } else {
+        null
+    })
+    val (contestName, setContestName) = useState(if (!isContestSelector) {
+        (props.nameProps as ContestNameProps).contestName
+    } else {
+        null
+    })
+
     val (availableOptions, setAvailableOptions) = useState(emptyList<String>())
     useRequest(isDeferred = false) {
         val availableVariants = get(
@@ -160,7 +161,11 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                     disabled = true
                     selected = true
                     value = null
-                    +(props.contestName?.let { "Choose a project..." } ?: "Choose a contest...")
+                    + if (isContestSelector) {
+                        "Choose a contest..."
+                    } else {
+                        "Choose a project..."
+                    }
                 }
                 availableOptions.forEach {
                     option {

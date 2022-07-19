@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -129,18 +130,14 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
     override fun ChildrenBuilder.render() {
         showContestEnrollerModal(
             state.isProjectSelectorModalOpen,
-            state.selectedContestName,
-            null,
-            null,
-            {
+            ContestNameProps(state.selectedContestName ?: ""),
+            { setState { isProjectSelectorModalOpen = false } }
+        ) {
                 setState {
                     enrollmentResponse = it
                     isConfirmationWindowOpen = true
                     isProjectSelectorModalOpen = false
                 }
-            }
-        ) {
-            setState { isProjectSelectorModalOpen = false }
         }
         runErrorModal(
             state.isConfirmationWindowOpen,
