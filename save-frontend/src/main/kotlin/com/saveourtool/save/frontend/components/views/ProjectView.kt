@@ -558,11 +558,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             "Evaluate your tool with standard test suites",
                             "mt-3 mr-2"
                         )
-                        testingTypeButton(
-                            TestingType.CONTEST_MODE,
-                            "Participate in SAVE contests with your tool",
-                            "mt-3 mr-2"
-                        )
+                        if (state.project.public) {
+                            testingTypeButton(
+                                TestingType.CONTEST_MODE,
+                                "Participate in SAVE contests with your tool",
+                                "mt-3 mr-2"
+                            )
+                        }
                     }
                 }
             }
@@ -628,6 +630,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     testingType = state.testingType
                     isSubmitButtonPressed = state.isSubmitButtonPressed
                     gitDto = gitDto
+                    projectName = props.name
+                    organizationName = props.owner
+                    onContestEnrollerResponse = {
+                        setState {
+                            isErrorOpen = true
+                            errorMessage = it
+                            errorLabel = "Contest enrollment"
+                        }
+                    }
                     // properties for CUSTOM_TESTS mode
                     testRootPath = state.testRootPath
                     gitUrlFromInputField = state.gitUrlFromInputField

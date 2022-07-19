@@ -7,11 +7,8 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.ContestService
-import com.saveourtool.save.backend.service.LnkContestExecutionService
-import com.saveourtool.save.backend.service.LnkContestProjectService
-import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
@@ -38,7 +35,7 @@ import reactor.kotlin.core.util.function.component2
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val lnkUserProjectService: LnkUserProjectService,
     private val contestService: ContestService,
     private val projectService: ProjectService,
 ) {
@@ -85,6 +82,49 @@ class LnkContestProjectController(
 
     /**
      * @param contestName
+     * @param authentication
+     * @return list of user's [Project]s that can participate in contest with name [contestName]
+     */
+    @GetMapping("/{contestName}/eligible-projects")
+    fun getAvaliableProjectsForContest(
+        @PathVariable contestName: String,
+        authentication: Authentication,
+    ): Mono<List<String>> = Mono.fromCallable {
+        lnkUserProjectService.getAllProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
+    }
+        .map { userProjects ->
+            userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
+        }
+        .map { (projects, projectsFromContest) ->
+            projects.minus(projectsFromContest.toSet()).map { "${it.organization.name}/${it.name}" }
+        }
+
+    /**
+     * @param organizationName
+     * @param projectName
+     * @param authentication
+     * @return list of active contests' names that project with name [projectName] and from organization with name [organizationName] can participate
+     */
+    @GetMapping("/{organizationName}/{projectName}/eligible-contests")
+    fun getAvaliableContestsForProject(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Mono<List<String>> = Mono.fromCallable {
+        lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, MAX_AMOUNT)
+            .mapNotNull { it.contest.id }
+    }
+        .map { it.toSet() }
+        .map { contestIds ->
+            if (contestIds.isEmpty()) {
+                contestService.findContestsInProgress(MAX_AMOUNT).map { it.name }
+            } else {
+                contestService.getAllActiveContestsNotFrom(contestIds, MAX_AMOUNT).map { it.name }
+            }
+        }
+
+    /**
+     * @param contestName
      * @param projectName
      * @param organizationName
      * @param authentication
@@ -92,24 +132,31 @@ class LnkContestProjectController(
      */
     @GetMapping("/{contestName}/enroll")
     @PreAuthorize("permitAll()")
-    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun enrollForContest(
         @PathVariable contestName: String,
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<String>> = Mono.zip(
-        Mono.justOrEmpty<Project>(projectService.findByNameAndOrganizationName(projectName, organizationName)),
+        projectService.findWithPermissionByNameAndOrganization(
+            authentication,
+            projectName,
+            organizationName,
+            Permission.WRITE,
+            "No such project found or not enough permission to see the project",
+            HttpStatus.FORBIDDEN,
+        ),
         Mono.justOrEmpty(contestService.findByName(contestName)),
     )
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
         .filter { (project, _) ->
-            projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE)
+            project.public
         }
         .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Private projects cannot be enrolled in the contest"))
         }
         .map { (project, contest) ->
             lnkContestProjectService.saveLnkContestProject(project, contest)
@@ -121,4 +168,8 @@ class LnkContestProjectController(
                 ResponseEntity.ok("You are already enrolled for this contest.")
             }
         }
+
+    companion object {
+        const val MAX_AMOUNT = 512
+    }
 }

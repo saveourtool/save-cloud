@@ -49,4 +49,20 @@ JpaSpecificationExecutor<Contest> {
         status: ContestStatus,
         pageable: Pageable,
     ): Page<Contest>
+
+    /**
+     * @param currentTime
+     * @param currentTimeAgain
+     * @param status
+     * @param contestIds
+     * @param pageable
+     * @return [Page] of active [Contest]s that ids are not in [contestIds]
+     */
+    fun findByStartTimeBeforeAndEndTimeAfterAndStatusAndIdNotIn(
+        currentTime: LocalDateTime,
+        currentTimeAgain: LocalDateTime,
+        status: ContestStatus,
+        contestIds: Set<Long>,
+        pageable: Pageable,
+    ): Page<Contest>
 }
