@@ -37,7 +37,6 @@ class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
     private val lnkUserProjectService: LnkUserProjectService,
-    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val contestService: ContestService,
     private val projectService: ProjectService,
 ) {
