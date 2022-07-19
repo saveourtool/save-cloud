@@ -4,24 +4,25 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.ContestNameProps
+import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
+import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
 /**
- * `Props` retrieved from router
+ * [Props] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ContestListViewProps : Props {
@@ -29,11 +30,36 @@ external interface ContestListViewProps : Props {
 }
 
 /**
+ * [State] of [ContestListView] component
+ */
+external interface ContestListViewState : State {
+    /**
+     * Flag to show project selector modal
+     */
+    var isProjectSelectorModalOpen: Boolean
+
+    /**
+     * Flag th show confirmation modal
+     */
+    var isConfirmationWindowOpen: Boolean
+
+    /**
+     * Name of a contest selected for enrollment
+     */
+    var selectedContestName: String?
+
+    /**
+     * Enrollment response received from backend
+     */
+    var enrollmentResponse: String?
+}
+
+/**
  * A view with collection of contests
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ContestListView : AbstractView<ContestListViewProps, State>(false) {
+class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>(false) {
     @Suppress("MAGIC_NUMBER")
     private val contestsTable = tableComponent(
         columns = columns<ContestDto> {
@@ -68,11 +94,33 @@ class ContestListView : AbstractView<ContestListViewProps, State>(false) {
                     }
                 }
             }
+            column(id = "enroll_button", header = "Registration", { name }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            className = ClassName("btn btn-primary")
+                            onClick = {
+                                setState {
+                                    selectedContestName = cellProps.value
+                                    isProjectSelectorModalOpen = true
+                                }
+                            }
+                            +"Participate"
+                        }
+                    }
+                }
+            }
         },
         initialPageSize = 10,
         useServerPaging = false,
         usePageSelection = false,
     )
+    init {
+        state.selectedContestName = null
+        state.isProjectSelectorModalOpen = false
+        state.enrollmentResponse = null
+        state.isConfirmationWindowOpen = false
+    }
     @Suppress(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "TOO_LONG_FUNCTION",
@@ -80,6 +128,25 @@ class ContestListView : AbstractView<ContestListViewProps, State>(false) {
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
+        showContestEnrollerModal(
+            state.isProjectSelectorModalOpen,
+            ContestNameProps(state.selectedContestName ?: ""),
+            { setState { isProjectSelectorModalOpen = false } }
+        ) {
+            setState {
+                enrollmentResponse = it
+                isConfirmationWindowOpen = true
+                isProjectSelectorModalOpen = false
+            }
+        }
+        runErrorModal(
+            state.isConfirmationWindowOpen,
+            "Contest Registration",
+            state.enrollmentResponse ?: "",
+            "Ok"
+        ) {
+            setState { isConfirmationWindowOpen = false }
+        }
         contestsTable {
             getData = { _, _ ->
                 val response = get(
@@ -101,7 +168,7 @@ class ContestListView : AbstractView<ContestListViewProps, State>(false) {
         }
     }
 
-    companion object : RStatics<ContestListViewProps, State, ContestListView, Context<RequestStatusContext>>(ContestListView::class) {
+    companion object : RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext>>(ContestListView::class) {
         init {
             contextType = requestStatusContext
         }

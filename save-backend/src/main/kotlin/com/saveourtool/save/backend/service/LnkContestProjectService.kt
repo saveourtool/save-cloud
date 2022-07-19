@@ -35,6 +35,17 @@ class LnkContestProjectService(
     )
 
     /**
+     * @param contestName name of a contest
+     * @param projects list of projects
+     * @return list of [Project]s that are participating in contest with name [contestName] and are in list [projects]
+     */
+    fun getProjectsFromListAndContest(contestName: String, projects: List<Project>) = projects.mapNotNull { it.id }
+        .toSet()
+        .let {
+            lnkContestProjectRepository.findByContestNameAndProjectIdIn(contestName, it)
+        }
+
+    /**
      * @param project a [Project]
      * @param contest a [Contest]
      * @return true if record is saved, false if is already present
