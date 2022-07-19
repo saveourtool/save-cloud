@@ -141,7 +141,14 @@ class LnkContestProjectController(
         @RequestParam organizationName: String,
         authentication: Authentication,
     ): Mono<ResponseEntity<String>> = Mono.zip(
-        Mono.justOrEmpty<Project>(projectService.findByNameAndOrganizationName(projectName, organizationName)),
+        projectService.findWithPermissionByNameAndOrganization(
+            authentication,
+            projectName,
+            organizationName,
+            Permission.WRITE,
+            "No such project found or not enough permission for this project",
+            HttpStatus.NOT_FOUND,
+        ),
         Mono.justOrEmpty(contestService.findByName(contestName)),
     )
         .switchIfEmpty {
@@ -151,13 +158,7 @@ class LnkContestProjectController(
             project.public
         }
         .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
-        .filter { (project, _) ->
-            projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE)
-        }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Private projects cannot be enrolled in the contest"))
         }
         .map { (project, contest) ->
             lnkContestProjectService.saveLnkContestProject(project, contest)
