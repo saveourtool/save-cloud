@@ -3,15 +3,12 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestBase
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.permission.Permission
@@ -28,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -44,6 +42,7 @@ class CloneRepositoryController(
     private val executionService: ExecutionService,
     private val fileStorage: FileStorage,
     private val configProperties: ConfigProperties,
+    private val lnkContestProjectService: LnkContestProjectService,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
@@ -102,6 +101,45 @@ class CloneRepositoryController(
             val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
                 executionRequestForStandardSuites,
+                ExecutionType.STANDARD,
+                authentication.username(),
+                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
+            }
+        }
+
+    /**
+     * Endpoint to save project as binary file
+     *
+     * @param executionRequestForStandardSuites information about project
+     * @param files files required for execution
+     * @param authentication [Authentication] representing an authenticated request
+     * @return mono string
+     */
+    @PostMapping(path = ["/$v1/executionRequestContest"], consumes = ["multipart/form-data"])
+    fun executionRequestContest(
+        @RequestPart("execution", required = true) executionRequestForContest: ExecutionRequestForContest,
+        @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = with(executionRequestForContest.project) {
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
+    }
+        .filter {
+            lnkContestProjectService.isProjectRegisteredForContest(executionRequestForContest.project, executionRequestForContest.contestName)
+        }
+        .onErrorMap {
+            with(executionRequestForContest) {
+                ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Project ${project.organization.name}/${project.name} is not registered for a conest ${contestName}"
+                )
+            }
+        }
+        .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+            sendToPreprocessor(
+                executionRequestForContest,
                 ExecutionType.STANDARD,
                 authentication.username(),
                 fileStorage.convertToLatestFileInfo(projectCoordinates, files)

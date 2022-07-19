@@ -51,18 +51,19 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 @RestController
 @Suppress("LongParameterList")
-class ExecutionController(private val executionService: ExecutionService,
-                          private val gitService: GitService,
-                          private val testSuitesService: TestSuitesService,
-                          private val projectService: ProjectService,
-                          private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                          private val testExecutionService: TestExecutionService,
-                          private val agentService: AgentService,
-                          private val agentStatusService: AgentStatusService,
-                          private val organizationService: OrganizationService,
-                          private val executionInfoStorage: ExecutionInfoStorage,
-                          config: ConfigProperties,
-                          jackson2WebClientCustomizer: WebClientCustomizer,
+class ExecutionController(
+    private val executionService: ExecutionService,
+    private val gitService: GitService,
+    private val testSuitesService: TestSuitesService,
+    private val projectService: ProjectService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val testExecutionService: TestExecutionService,
+    private val agentService: AgentService,
+    private val agentStatusService: AgentStatusService,
+    private val organizationService: OrganizationService,
+    private val executionInfoStorage: ExecutionInfoStorage,
+    config: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
     private val preprocessorWebClient = WebClient.builder()

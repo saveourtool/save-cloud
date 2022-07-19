@@ -52,4 +52,6 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
      * @return list of [LnkContestProject] linked to contest with name [contestName]
      */
     fun findByContestName(contestName: String): List<LnkContestProject>
+
+    fun findByContestNameAndProject(contestName: String, project: Project): Optional<LnkContestProject>
 }

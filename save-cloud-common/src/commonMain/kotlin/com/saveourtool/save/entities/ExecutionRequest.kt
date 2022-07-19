@@ -61,3 +61,23 @@ data class ExecutionRequestForStandardSuites(
     val executionId: Long?,
     val version: String?,
 ) : ExecutionRequestBase()
+
+/**
+ * @property project
+ * @property contestName
+ * @property sdk
+ * @property execCmd
+ * @property batchSizeForAnalyzer
+ * @property executionId
+ * @property version
+ */
+@Serializable
+data class ExecutionRequestForContest(
+    override val project: Project,
+    val contestName: String,
+    override val sdk: Sdk,
+    val execCmd: String?,
+    val batchSizeForAnalyzer: String?,
+    val executionId: Long?,
+    val version: String?,
+) : ExecutionRequestBase()

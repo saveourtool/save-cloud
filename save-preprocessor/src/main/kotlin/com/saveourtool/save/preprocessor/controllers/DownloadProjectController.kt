@@ -2,12 +2,6 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -24,6 +18,7 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.entities.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.api.errors.InvalidRemoteException
 import org.eclipse.jgit.api.errors.TransportException
@@ -137,6 +132,41 @@ class DownloadProjectController(
                 .flatMap { testSuiteIds ->
                     updateExecution(
                         executionRequestForStandardSuites.project,
+                        "N/A",
+                        version,
+                        testSuiteIds,
+                        execCmd,
+                        batchSizeForAnalyzer,
+                    )
+                }
+                .flatMap { it.executeTests() }
+                .subscribeOn(scheduler)
+                .subscribe()
+        }
+
+    /**
+     * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
+     * @return response entity with text
+     */
+    @PostMapping(value = ["/uploadBinForContest"])
+    fun uploadBin(
+        @RequestBody executionRequestForContest: ExecutionRequestForContest,
+    ) = Mono.just(
+        ResponseEntity(
+            executionResponseBody(executionRequestForContest.executionId),
+            HttpStatus.ACCEPTED,
+        )
+    )
+        .doOnSuccess {
+            val version = requireNotNull(executionRequestForContest.version) {
+                "Version is not provided for execution.id = ${executionRequestForContest.executionId}"
+            }
+            val execCmd = executionRequestForContest.execCmd
+            val batchSizeForAnalyzer = executionRequestForContest.batchSizeForAnalyzer
+            getContestTestSuiteIds(executionRequestForContest.contestName)
+                .flatMap { testSuiteIds ->
+                    updateExecution(
+                        executionRequestForContest.project,
                         "N/A",
                         version,
                         testSuiteIds,
@@ -272,6 +302,11 @@ class DownloadProjectController(
     private fun getStandardTestSuiteIds(testSuiteNames: List<String>): Mono<List<Long>> = webClientBackend.post()
         .uri("/test-suites/standard/ids-by-name")
         .bodyValue(testSuiteNames)
+        .retrieve()
+        .bodyToMono()
+
+    private fun getContestTestSuiteIds(contestName: String): Mono<List<Long>> = webClientBackend.post()
+        .uri("/test-suites/contest/$contestName")
         .retrieve()
         .bodyToMono()
 

@@ -82,4 +82,15 @@ class ContestService(
         ?.let {
             testSuitesService.findTestSuiteById(it)?.getOrNull()
         }
+
+    /**
+     * @param contest
+     * @return test suite that has public test as its part
+     */
+    @Suppress("COMPLEX_EXPRESSION")
+    fun getTestSuites(contest: Contest) = contest.getTestSuiteIds()
+        .firstOrNull()
+        ?.let {
+            testSuitesService.findTestSuiteById(it)?.getOrNull()
+        }
 }

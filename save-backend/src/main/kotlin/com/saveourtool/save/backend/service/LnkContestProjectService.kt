@@ -18,6 +18,8 @@ class LnkContestProjectService(
      */
     fun getAllByContestName(contestName: String): List<LnkContestProject> = lnkContestProjectRepository.findByContestName(contestName)
 
+    fun isProjectRegisteredForContest(project: Project, contestName: String) = lnkContestProjectRepository.findByContestNameAndProject(contestName, project).isPresent
+
     /**
      * @param projectName
      * @param organizationName

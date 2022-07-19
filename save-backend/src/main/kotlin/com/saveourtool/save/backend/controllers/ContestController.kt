@@ -41,7 +41,7 @@ internal class ContestController(
      * @param contestName
      * @return Organization
      */
-    @GetMapping("/{contestName}")
+    @GetMapping("/api/$v1/contests/{contestName}")
     @PreAuthorize("permitAll()")
     fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = justOrNotFound(contestService.findByName(contestName))
         .map { it.toDto() }
@@ -51,7 +51,7 @@ internal class ContestController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
-    @GetMapping("/active")
+    @GetMapping("/api/$v1/contests/active")
     @PreAuthorize("permitAll()")
     fun getContestsInProgress(
         @RequestParam(defaultValue = "10") pageSize: Int,
@@ -65,7 +65,7 @@ internal class ContestController(
      * @param authentication an [Authentication] representing an authenticated request
      * @return list of organization by owner id
      */
-    @GetMapping("/finished")
+    @GetMapping("/api/$v1/contests/finished")
     @PreAuthorize("permitAll()")
     fun getFinishedContests(
         @RequestParam(defaultValue = "10") pageSize: Int,
@@ -78,7 +78,7 @@ internal class ContestController(
      * @param contestName
      * @return Organization
      */
-    @GetMapping("/{contestName}/public-test")
+    @GetMapping("/api/$v1/contests/{contestName}/public-test")
     @PreAuthorize("permitAll()")
     fun getPublicTestForContest(
         @PathVariable contestName: String,
@@ -102,4 +102,11 @@ internal class ContestController(
             )
         }
     }
+
+    @GetMapping("/internal/test-suites/contest/{contestName}/")
+    fun getTestSuiteIdsForContest(
+        @PathVariable contestName: String,
+    ): Mono<List<Long>> = Mono.justOrEmpty(contestService.findByName(contestName))
+        .map { it.getTestSuiteIds() }
+        .map { it.toList() }
 }
