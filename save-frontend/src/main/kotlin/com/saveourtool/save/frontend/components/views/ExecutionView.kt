@@ -66,6 +66,9 @@ external interface ExecutionState : State {
      */
     var executionDto: ExecutionDto?
 
+    /**
+     * All filters in one value [filters]
+     */
     var filters: Filters
 }
 
@@ -79,41 +82,39 @@ external interface StatusProps<D : Any> : TableProps<D> {
     var status: TestResultStatus?
 
     /**
-     * Test Result Status to filter by
+     * File name to filter by
      */
     var testName: String?
 
     /**
-     * Name of test suite
+     * Test suite to filer by
      */
     var testSuite: String?
 
     /**
-     * Test Result Status to filter by
+     * Tag to filter by
      */
     var tag: String?
 }
 
-
-data class Filters (
-    /**
-     * Test Result Status to filter by
-     */
+/**
+ * Test Result Status to filter by
+ * @property status status to filter by
+ * Test Result Status to filter by
+ * @property fileName file name to filter by
+ * File name to filter by
+ * @property testSuite suite to filter by
+ * Test suite to filer by
+ * @property tag tag to filter by
+ * Tag to filter by
+ */
+data class Filters(
     var status: TestResultStatus?,
 
-    /**
-     * Test Result Status to filter by
-     */
     var fileName: String?,
 
-    /**
-     * Name of test suite
-     */
     var testSuite: String?,
 
-    /**
-     * Test Result Status to filter by
-     */
     var tag: String?,
 )
 
@@ -276,16 +277,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     testExecutionFiltersRow {
                         filters = Filters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
                         onChangeFilters = { filterValue ->
-                            if (filterValue.status == null) {
-                                setState {
-                                    filters.status = null
-                                }
-                            } else {
+                            filterValue.status?.let {
                                 setState {
                                     filters.status = filterValue.status
                                 }
+                            } ?: setState {
+                                filters.status = null
                             }
-                            if (filterValue.fileName?.isEmpty() == true){
+                            if (filterValue.fileName?.isEmpty() == true) {
                                 setState {
                                     filters.fileName = null
                                 }

@@ -34,8 +34,14 @@ class SelectOption {
  * [Props] for filters value
  */
 external interface FiltersRowProps : Props {
-    var filters : Filters
+    /**
+     * All filters in one class property [filters]
+     */
+    var filters: Filters
 
+    /**
+     * lambda to change [filters]
+     */
     var onChangeFilters: (Filters) -> Unit
 }
 
