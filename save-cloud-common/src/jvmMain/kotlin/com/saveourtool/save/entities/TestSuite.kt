@@ -48,7 +48,7 @@ class TestSuite(
     /**
      * @return [tags] as a list of strings
      */
-    fun tagsAsList() = tags?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    fun tagsAsList() = tags?.split(",")?.filter { it.isNotBlank() }.orEmpty()
 
     /**
      * @return Dto of testSuite
