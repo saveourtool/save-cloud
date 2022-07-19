@@ -7,7 +7,6 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.entities.ContestResult
