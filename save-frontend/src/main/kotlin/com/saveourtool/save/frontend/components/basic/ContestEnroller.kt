@@ -27,16 +27,30 @@ import kotlinx.coroutines.await
  */
 val contestEnrollerComponent = contestEnrollerComponent()
 
+/**
+ * Abstract class needed for more convenient parameter pass
+ */
 sealed class NameProps
 
+/**
+ * Data class for project path pass
+ *
+ * @property organizationName name of an organization in which project with [projectName] is in
+ * @property projectName name of a project
+ */
 data class ProjectNameProps(
     val organizationName: String,
     val projectName: String,
-): NameProps()
+) : NameProps()
 
+/**
+ * Data class for contest path pass
+ *
+ * @property contestName name of a contest
+ */
 data class ContestNameProps(
     val contestName: String,
-): NameProps()
+) : NameProps()
 
 /**
  * [Props] for [contestEnrollerComponent]
@@ -105,7 +119,7 @@ fun ChildrenBuilder.showContestEnrollerModal(
 private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
     val (isContestSelector, _) = useState(props.nameProps is ProjectNameProps)
     val (organizationName, setOrganizationName) = useState(if (isContestSelector) {
-        (props.nameProps as  ProjectNameProps).organizationName
+        (props.nameProps as ProjectNameProps).organizationName
     } else {
         null
     })
@@ -161,7 +175,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                     disabled = true
                     selected = true
                     value = null
-                    + if (isContestSelector) {
+                    +if (isContestSelector) {
                         "Choose a contest..."
                     } else {
                         "Choose a project..."

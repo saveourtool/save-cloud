@@ -92,7 +92,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getAllProjectsByUserId((authentication.details as AuthenticationDetails).id)
+        lnkUserProjectService.getAllProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
@@ -144,6 +144,12 @@ class LnkContestProjectController(
         Mono.justOrEmpty<Project>(projectService.findByNameAndOrganizationName(projectName, organizationName)),
         Mono.justOrEmpty(contestService.findByName(contestName)),
     )
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter { (project, _) ->
+            project.public
+        }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }

@@ -133,11 +133,11 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
             ContestNameProps(state.selectedContestName ?: ""),
             { setState { isProjectSelectorModalOpen = false } }
         ) {
-                setState {
-                    enrollmentResponse = it
-                    isConfirmationWindowOpen = true
-                    isProjectSelectorModalOpen = false
-                }
+            setState {
+                enrollmentResponse = it
+                isConfirmationWindowOpen = true
+                isProjectSelectorModalOpen = false
+            }
         }
         runErrorModal(
             state.isConfirmationWindowOpen,
