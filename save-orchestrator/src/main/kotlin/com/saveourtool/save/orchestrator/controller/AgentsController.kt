@@ -248,16 +248,17 @@ class AgentsController(
      */
     @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
-        val fileName = executionLogs.filename()
+        // File name is equals to agent id
+        val agentId = executionLogs.filename()
         val logDir = File(configProperties.executionLogs)
         if (!logDir.exists()) {
             log.info("Folder to store logs from agents was created: ${logDir.name}")
             logDir.mkdirs()
         }
-        val logFile = File(logDir.path + File.separator + "$fileName.log")
+        val logFile = File(logDir.path + File.separator + "$agentId.log")
         if (!logFile.exists()) {
             logFile.createNewFile()
-            log.info("Log file for $fileName agent was created")
+            log.info("Log file for $agentId agent was created")
         }
         executionLogs.content()
             .map { dtBuffer ->
@@ -268,9 +269,10 @@ class AgentsController(
                 }
             }
             .collectList()
+            .doOnSuccess {
+                log.info("Logs of agent with id = $agentId were written")
+            }
             .subscribe()
-
-        log.info("Logs of agent id = $fileName were written")
     }
 
     /**

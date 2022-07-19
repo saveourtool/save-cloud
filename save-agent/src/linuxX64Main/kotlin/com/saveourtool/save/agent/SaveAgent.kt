@@ -28,13 +28,14 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
-
+import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
+import kotlin.text.String
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -161,8 +162,12 @@ class SaveAgent(internal val config: AgentConfiguration,
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val saveCliLogFilePath = config.logFilePath
-        val saveCliLogData = readFile(saveCliLogFilePath)
-        launchLogSendingJob(saveCliLogFilePath)
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
+            .buffer()
+            .readByteArray()
+        val saveCliLogData = String(byteArray).split("\n")
+
+        launchLogSendingJob(byteArray)
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
@@ -246,19 +251,14 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.launchLogSendingJob(saveCliLogFilePath: String): Job {
-        val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
-            .buffer()
-            .readByteArray()
-        return launch {
-            runCatching {
-                sendLogs(byteArray)
-            }
-                .exceptionOrNull()
-                ?.let {
-                    logErrorCustom("Couldn't send logs, reason: ${it.message}")
-                }
+    private fun CoroutineScope.launchLogSendingJob(byteArray: ByteArray): Job = launch {
+        runCatching {
+            sendLogs(byteArray)
         }
+            .exceptionOrNull()
+            ?.let {
+                logErrorCustom("Couldn't send logs, reason: ${it.message}")
+            }
     }
 
     private fun CoroutineScope.handleSuccessfulExit(): Job {
