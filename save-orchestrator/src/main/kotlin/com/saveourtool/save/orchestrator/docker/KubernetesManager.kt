@@ -121,7 +121,7 @@ class KubernetesManager(
         }
             .take(10)
             .firstOrNull { it.isNotEmpty() }
-            ?: emptyList()
+            .orEmpty()
     }
 
     override fun start(executionId: Long) {
