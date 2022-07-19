@@ -145,7 +145,7 @@ class LnkContestProjectController(
             authentication,
             projectName,
             organizationName,
-            Permission.WRITE,
+            Permission.READ,
             "No such project found or not enough permission for this project",
             HttpStatus.NOT_FOUND,
         ),
@@ -153,6 +153,12 @@ class LnkContestProjectController(
     )
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter { (project, _) ->
+            projectPermissionEvaluator.hasPermission(authentication, project, Permission.WRITE)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
         .filter { (project, _) ->
             project.public
