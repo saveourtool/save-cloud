@@ -50,7 +50,7 @@ external interface FiltersRowProps : Props {
  *
  * @return a function component
  */
-@Suppress( "LongMethod")
+@Suppress("LongMethod", "TOO_LONG_FUNCTION")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
     val(filters, setFilters) = useState(props.filters)

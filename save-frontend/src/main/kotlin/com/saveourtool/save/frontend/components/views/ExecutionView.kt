@@ -258,8 +258,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     testExecutionFiltersRow {
                         filters = TestExecutionFilters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
                         onChangeFilters = { filterValue ->
-                            console.log("${filterValue.status}")
-                            if (filterValue.status == null || filterValue.status?.name == "ANY" ){
+                            if (filterValue.status == null || filterValue.status?.name == "ANY") {
                                 setState {
                                     filters.status = null
                                 }
@@ -457,12 +456,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     }
 
     private fun stringValueStatusAndFileNameAndTestSuiteAndTag() = buildString {
-            state.filters.status?.let { append("&status=${state.filters.status}") }
-            state.filters.fileName?.let { append("&testFileName=${state.filters.fileName}") }
-            state.filters.testSuite?.let { append("&testSuiteName=${state.filters.testSuite}") }
-            state.filters.tag?.let { append("&tag=${state.filters.tag}") }
-            console.log(this)
-        }
+        state.filters.status?.let { append("&status=${state.filters.status}") }
+        state.filters.fileName?.let { append("&testFileName=${state.filters.fileName}") }
+        state.filters.testSuite?.let { append("&testSuiteName=${state.filters.testSuite}") }
+        state.filters.tag?.let { append("&tag=${state.filters.tag}") }
+    }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
