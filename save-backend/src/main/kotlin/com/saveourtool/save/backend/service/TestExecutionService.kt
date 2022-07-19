@@ -71,9 +71,9 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         testSuiteName: String?,
         tag: String?
     ): List<TestExecution> {
-        val wrappedFileName = declareValue(testFileName)
-        val wrappedTestSuiteName = declareValue(testSuiteName)
-        val wrappedTagValue = declareValue(tag)
+        val wrappedFileName = wrapValue(testFileName)
+        val wrappedTestSuiteName = wrapValue(testSuiteName)
+        val wrappedTagValue = wrapValue(tag)
         return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
             executionId,
             status,
@@ -84,7 +84,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         )
     }
 
-    private fun declareValue(value: String?) = value?.let {
+    private fun wrapValue(value: String?) = value?.let {
         "%$value%"
     }
 

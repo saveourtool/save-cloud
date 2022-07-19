@@ -69,7 +69,7 @@ external interface ExecutionState : State {
     /**
      * All filters in one value [filters]
      */
-    var filters: Filters
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -77,38 +77,19 @@ external interface ExecutionState : State {
  */
 external interface StatusProps<D : Any> : TableProps<D> {
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
-
-    /**
-     * File name to filter by
-     */
-    var testName: String?
-
-    /**
-     * Test suite to filer by
-     */
-    var testSuite: String?
-
-    /**
-     * Tag to filter by
-     */
-    var tag: String?
+    var filters: TestExecutionFilters
 }
 
 /**
- * Test Result Status to filter by
- * @property status status to filter by
- * Test Result Status to filter by
- * @property fileName file name to filter by
- * File name to filter by
- * @property testSuite suite to filter by
- * Test suite to filer by
- * @property tag tag to filter by
- * Tag to filter by
+ * Aff filters in one property
+ * @property status to filter by [status]
+ * @property fileName to use filter by [fileName]
+ * @property testSuite to use filter by [testSuite]
+ * @property tag to use filter by [tag]
  */
-data class Filters(
+data class TestExecutionFilters(
     var status: TestResultStatus?,
 
     var fileName: String?,
@@ -275,14 +256,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 th {
                     colSpan = tableInstance.columns.size
                     testExecutionFiltersRow {
-                        filters = Filters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
+                        filters = TestExecutionFilters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
                         onChangeFilters = { filterValue ->
-                            filterValue.status?.let {
+                            console.log("${filterValue.status}")
+                            if (filterValue.status == null || filterValue.status?.name == "ANY" ){
+                                setState {
+                                    filters.status = null
+                                }
+                            } else {
                                 setState {
                                     filters.status = filterValue.status
                                 }
-                            } ?: setState {
-                                filters.status = null
                             }
                             if (filterValue.fileName?.isEmpty() == true) {
                                 setState {
@@ -331,13 +315,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getAdditionalDependencies = {
-            arrayOf(it.status, it.testName, it.testSuite, it.tag)
+            arrayOf(it.filters.status, it.filters.fileName, it.filters.testSuite, it.filters.tag)
         }
     )
 
     init {
         state.executionDto = null
-        state.filters = Filters(null, null, null, null)
+        state.filters = TestExecutionFilters(null, null, null, null)
     }
 
     override fun componentDidMount() {
@@ -435,12 +419,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            status = state.filters.status
-            testName = state.filters.fileName
-            testSuite = state.filters.testSuite
-            tag = state.filters.tag
+            filters = TestExecutionFilters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
             getData = { page, size ->
-                val paramString = setStatusAndNameAndSuiteAndTag()
+                val paramString = stringValueStatusAndFileNameAndTestSuiteAndTag()
                 get(
                     url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$paramString&checkDebugInfo=true",
                     headers = Headers().apply {
@@ -456,7 +437,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             getPageCount = { pageSize ->
-                val paramString = setStatusAndNameAndSuiteAndTag()
+                val paramString = stringValueStatusAndFileNameAndTestSuiteAndTag()
                 val count: Int = get(
                     url = "$apiUrl/testExecution/count?executionId=${props.executionId}$paramString",
                     headers = Headers().also {
@@ -475,13 +456,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    private fun setStatusAndNameAndSuiteAndTag(): String? {
-        val status1 = state.filters.status?.let { "&status=${state.filters.status}" } ?: ""
-        val testName1 = state.filters.fileName?.let { "&testFileName=${state.filters.fileName}" } ?: ""
-        val testSuite1 = state.filters.testSuite?.let { "&testSuiteName=${state.filters.testSuite}" } ?: ""
-        val tag1 = state.filters.tag?.let { "&tag=${state.filters.tag}" } ?: ""
-        return status1 + testName1 + testSuite1 + tag1
-    }
+    private fun stringValueStatusAndFileNameAndTestSuiteAndTag() = buildString {
+            state.filters.status?.let { append("&status=${state.filters.status}") }
+            state.filters.fileName?.let { append("&testFileName=${state.filters.fileName}") }
+            state.filters.testSuite?.let { append("&testSuiteName=${state.filters.testSuite}") }
+            state.filters.tag?.let { append("&tag=${state.filters.tag}") }
+            console.log(this)
+        }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {

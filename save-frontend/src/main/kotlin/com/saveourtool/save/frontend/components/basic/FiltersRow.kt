@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
-import com.saveourtool.save.frontend.components.views.Filters
+import com.saveourtool.save.frontend.components.views.TestExecutionFilters
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -37,12 +37,12 @@ external interface FiltersRowProps : Props {
     /**
      * All filters in one class property [filters]
      */
-    var filters: Filters
+    var filters: TestExecutionFilters
 
     /**
      * lambda to change [filters]
      */
-    var onChangeFilters: (Filters) -> Unit
+    var onChangeFilters: (TestExecutionFilters) -> Unit
 }
 
 /**
@@ -50,7 +50,7 @@ external interface FiltersRowProps : Props {
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongMethod")
+@Suppress( "LongMethod")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
     val(filters, setFilters) = useState(props.filters)
@@ -82,9 +82,12 @@ private fun testExecutionFiltersRow(
                                 +element
                             }
                         }
-
                         onChange = {
-                            setFilters(filters.copy(status = TestResultStatus.valueOf(it.target.value)))
+                            if (it.target.value == "ANY") {
+                                setFilters(filters.copy(status = null))
+                            } else {
+                                setFilters(filters.copy(status = TestResultStatus.valueOf(it.target.value)))
+                            }
                         }
                     }
                 }
@@ -150,7 +153,7 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
-                    props.onChangeFilters(Filters(filters.status, filters.fileName, filters.testSuite, filters.tag))
+                    props.onChangeFilters(filters.copy(status = filters.status, fileName = filters.fileName, testSuite = filters.testSuite, tag = filters.tag))
                 }
             }
             button {
@@ -158,7 +161,7 @@ private fun testExecutionFiltersRow(
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
                     setFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
-                    props.onChangeFilters(Filters(null, "", "", ""))
+                    props.onChangeFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
                 }
             }
         }
