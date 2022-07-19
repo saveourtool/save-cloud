@@ -90,6 +90,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             currentUserInfo = state.userInfo
         }
     }
+    private val fallbackNode = FallbackView::class.react.create {
+        bigText = "404"
+        smallText = "Page not found"
+        withRouterLink = false
+    }
 
     init {
         state.userInfo = null
@@ -162,30 +167,38 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${state.userInfo?.name}/settings/profile"
-                                    element = UserSettingsProfileMenuView::class.react.create {
-                                        userName = state.userInfo?.name
-                                    }
+                                    element = state.userInfo?.name?.let {
+                                        UserSettingsProfileMenuView::class.react.create {
+                                            userName = it
+                                        }
+                                    } ?: fallbackNode
                                 }
 
                                 Route {
                                     path = "/${state.userInfo?.name}/settings/email"
-                                    element = UserSettingsEmailMenuView::class.react.create {
-                                        userName = state.userInfo?.name
-                                    }
+                                    element = state.userInfo?.name?.let {
+                                        UserSettingsEmailMenuView::class.react.create {
+                                            userName = it
+                                        }
+                                    } ?: fallbackNode
                                 }
 
                                 Route {
                                     path = "/${state.userInfo?.name}/settings/token"
-                                    element = UserSettingsTokenMenuView::class.react.create {
-                                        userName = state.userInfo?.name
-                                    }
+                                    element = state.userInfo?.name?.let {
+                                        UserSettingsTokenMenuView::class.react.create {
+                                            userName = it
+                                        }
+                                    } ?: fallbackNode
                                 }
 
                                 Route {
                                     path = "/${state.userInfo?.name}/settings/organizations"
-                                    element = UserSettingsOrganizationsMenuView::class.react.create {
-                                        userName = state.userInfo?.name
-                                    }
+                                    element = state.userInfo?.name?.let {
+                                        UserSettingsOrganizationsMenuView::class.react.create {
+                                            userName = it
+                                        }
+                                    } ?: fallbackNode
                                 }
 
                                 Route {
