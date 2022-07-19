@@ -2,9 +2,9 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
+import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.utils.warn
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -66,6 +66,8 @@ class KubernetesManager(
                                 "gvisor" to "enabled"
                             )
                         }
+                        // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
+                        nodeName = System.getenv("NODE_NAME")
                         containers = listOf(
                             Container().apply {
                                 name = "save-agent-pod"
