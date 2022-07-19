@@ -66,25 +66,7 @@ external interface ExecutionState : State {
      */
     var executionDto: ExecutionDto?
 
-    /**
-     * Test Result Status to filter by
-     */
-    var status: TestResultStatus?
-
-    /**
-     * Test Result Status to filter by
-     */
-    var testName: String?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
-
-    /**
-     * Test Result Status to filter by
-     */
-    var tag: String?
+    var filters: Filters
 }
 
 /**
@@ -111,6 +93,29 @@ external interface StatusProps<D : Any> : TableProps<D> {
      */
     var tag: String?
 }
+
+
+data class Filters (
+    /**
+     * Test Result Status to filter by
+     */
+    var status: TestResultStatus?,
+
+    /**
+     * Test Result Status to filter by
+     */
+    var fileName: String?,
+
+    /**
+     * Name of test suite
+     */
+    var testSuite: String?,
+
+    /**
+     * Test Result Status to filter by
+     */
+    var tag: String?,
+)
 
 /**
  * A Component for execution view
@@ -269,51 +274,42 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 th {
                     colSpan = tableInstance.columns.size
                     testExecutionFiltersRow {
-                        status = state.status?.name
-                        fileName = state.testName
-                        testSuite = state.testSuite
-                        tag = state.tag
-                        onChangeStatus = { value ->
-                            if (value == null || value == "ANY") {
+                        filters = Filters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
+                        onChangeFilters = { filterValue ->
+                            if (filterValue.status == null) {
                                 setState {
-                                    status = null
+                                    filters.status = null
                                 }
                             } else {
                                 setState {
-                                    status = TestResultStatus.valueOf(value)
+                                    filters.status = filterValue.status
                                 }
                             }
-                        }
-                        onChangeTestName = { testNameValue ->
-                            if (testNameValue?.isEmpty() == true) {
+                            if (filterValue.fileName?.isEmpty() == true){
                                 setState {
-                                    testName = null
+                                    filters.fileName = null
                                 }
                             } else {
                                 setState {
-                                    testName = testNameValue
+                                    filters.fileName = filterValue.fileName
                                 }
                             }
-                        }
-                        onChangeTestSuite = { testSuiteValue ->
-                            if (testSuiteValue?.isEmpty() == true) {
+                            if (filterValue.testSuite?.isEmpty() == true) {
                                 setState {
-                                    testSuite = null
+                                    filters.testSuite = null
                                 }
                             } else {
                                 setState {
-                                    testSuite = testSuiteValue
+                                    filters.testSuite = filterValue.testSuite
                                 }
                             }
-                        }
-                        onChangeTag = { tagValue ->
-                            if (tagValue?.isEmpty() == true) {
+                            if (filterValue.tag?.isEmpty() == true) {
                                 setState {
-                                    tag = null
+                                    filters.tag = null
                                 }
                             } else {
                                 setState {
-                                    tag = tagValue
+                                    filters.tag = filterValue.tag
                                 }
                             }
                         }
@@ -342,10 +338,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.status = null
-        state.testName = null
-        state.testSuite = null
-        state.tag = null
+        state.filters = Filters(null, null, null, null)
     }
 
     override fun componentDidMount() {
@@ -362,7 +355,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                status = props.status
+                filters.status = props.status
             }
         }
     }
@@ -405,7 +398,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 executionStatistics {
                     executionDto = state.executionDto
                 }
-
                 div {
                     className = ClassName("col-md-3 mb-4")
                     div {
@@ -444,10 +436,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            status = state.status
-            testName = state.testName
-            testSuite = state.testSuite
-            tag = state.tag
+            status = state.filters.status
+            testName = state.filters.fileName
+            testSuite = state.filters.testSuite
+            tag = state.filters.tag
             getData = { page, size ->
                 val paramString = setStatusAndNameAndSuiteAndTag()
                 get(
@@ -485,10 +477,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     }
 
     private fun setStatusAndNameAndSuiteAndTag(): String? {
-        val status1 = state.status?.let { "&status=${state.status}" } ?: ""
-        val testName1 = state.testName?.let { "&testFileName=${state.testName}" } ?: ""
-        val testSuite1 = state.testSuite?.let { "&testSuiteName=${state.testSuite}" } ?: ""
-        val tag1 = state.tag?.let { "&tag=${state.tag}" } ?: ""
+        val status1 = state.filters.status?.let { "&status=${state.filters.status}" } ?: ""
+        val testName1 = state.filters.fileName?.let { "&testFileName=${state.filters.fileName}" } ?: ""
+        val testSuite1 = state.filters.testSuite?.let { "&testSuiteName=${state.filters.testSuite}" } ?: ""
+        val tag1 = state.filters.tag?.let { "&tag=${state.filters.tag}" } ?: ""
         return status1 + testName1 + testSuite1 + tag1
     }
 

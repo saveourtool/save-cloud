@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
+import com.saveourtool.save.frontend.components.views.Filters
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -33,45 +34,9 @@ class SelectOption {
  * [Props] for filters value
  */
 external interface FiltersRowProps : Props {
-    /**
-     * value status for filters table
-     */
-    var status: String?
+    var filters : Filters
 
-    /**
-     * lambda for change status value
-     */
-    var onChangeStatus: (String?) -> Unit
-
-    /**
-     * value file name
-     */
-    var fileName: String?
-
-    /**
-     * lambda for change file name status
-     */
-    var onChangeTestName: (String?) -> Unit
-
-    /**
-     * value test suite
-     */
-    var testSuite: String?
-
-    /**
-     * lambda for change test suite value
-     */
-    var onChangeTestSuite: (String?) -> Unit
-
-    /**
-     * value tag
-     */
-    var tag: String?
-
-    /**
-     * lambda for change tag value
-     */
-    var onChangeTag: (String?) -> Unit
+    var onChangeFilters: (Filters) -> Unit
 }
 
 /**
@@ -82,10 +47,7 @@ external interface FiltersRowProps : Props {
 @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_PARAMETERS", "LongMethod")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
-    val (status, setStatus) = useState(props.status)
-    val (fileName, setFileName) = useState(props.fileName)
-    val (testSuite, setTestSuite) = useState(props.testSuite)
-    val (tag, setTag) = useState(props.tag)
+    val(filters, setFilters) = useState(props.filters)
     div {
         className = ClassName("container-fluid")
         div {
@@ -108,7 +70,7 @@ private fun testExecutionFiltersRow(
                         elements.add(0, ANY)
                         elements.forEach { element ->
                             option {
-                                if (element == props.status) {
+                                if (element == props.filters.status?.name) {
                                     selected = true
                                 }
                                 +element
@@ -116,7 +78,7 @@ private fun testExecutionFiltersRow(
                         }
 
                         onChange = {
-                            setStatus(it.target.value)
+                            setFilters(filters.copy(status = TestResultStatus.valueOf(it.target.value)))
                         }
                     }
                 }
@@ -132,10 +94,10 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = fileName
+                        value = filters.fileName
                         required = false
                         onChange = {
-                            setFileName(it.target.value)
+                            setFilters(filters.copy(fileName = it.target.value))
                         }
                     }
                 }
@@ -151,10 +113,10 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = testSuite
+                        value = filters.testSuite
                         required = false
                         onChange = {
-                            setTestSuite(it.target.value)
+                            setFilters(filters.copy(testSuite = it.target.value))
                         }
                     }
                 }
@@ -170,10 +132,10 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = tag
+                        value = filters.tag
                         required = false
                         onChange = {
-                            setTag(it.target.value)
+                            setFilters(filters.copy(tag = it.target.value))
                         }
                     }
                 }
@@ -182,24 +144,15 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
-                    props.onChangeStatus(status)
-                    props.onChangeTestName(fileName)
-                    props.onChangeTestSuite(testSuite)
-                    props.onChangeTag(tag)
+                    props.onChangeFilters(Filters(filters.status, filters.fileName, filters.testSuite, filters.tag))
                 }
             }
             button {
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setStatus("ANY")
-                    props.onChangeStatus("ANY")
-                    setFileName("")
-                    props.onChangeTestName("")
-                    setTestSuite("")
-                    props.onChangeTestSuite("")
-                    setTag("")
-                    props.onChangeTag("")
+                    setFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
+                    props.onChangeFilters(Filters(null, "", "", ""))
                 }
             }
         }
