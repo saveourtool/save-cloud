@@ -134,7 +134,7 @@ class LnkContestProjectController(
      */
     @GetMapping("/{contestName}/enroll")
     @PreAuthorize("permitAll()")
-    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType")
+    @Suppress("TYPE_ALIAS", "UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun enrollForContest(
         @PathVariable contestName: String,
         @RequestParam projectName: String,
