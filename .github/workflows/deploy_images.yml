@@ -79,7 +79,10 @@ jobs:
           gradle-version: wrapper
           build-root-directory: save-cloud
           arguments: |
+            :api-gateway:bootBuildImage
+            :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
+            :save-preprocessor:bootBuildImage
             --stacktrace
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
