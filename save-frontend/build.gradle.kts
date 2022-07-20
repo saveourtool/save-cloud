@@ -108,7 +108,7 @@ rootProject.plugins.withType(NodeJsRootPlugin::class.java) {
         webpackDevServer.version = "^4.9.0"
         // override default version from KGP for security reasons
         karma.version = "^6.3.14"
-        mocha.version = "9.2.0"
+        mocha.version = "^9.2.0"
     }
 }
 // store yarn.lock in the root directory
