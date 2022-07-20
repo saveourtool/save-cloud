@@ -79,10 +79,10 @@ jobs:
           gradle-version: wrapper
           build-root-directory: save-cloud
           arguments: |
-            :api-gateway:bootBuildImage
-            :save-backend:bootBuildImage
+#            :api-gateway:bootBuildImage
+#            :save-backend:bootBuildImage
             :save-orchestrator:bootBuildImage
-            :save-preprocessor:bootBuildImage
+#            :save-preprocessor:bootBuildImage
             --stacktrace
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
@@ -103,3 +103,5 @@ jobs:
           name: gradle-reports
           path: '**/build/reports/'
           retention-days: 1
+      - name: Debug printing
+        run: find save-agent/build
