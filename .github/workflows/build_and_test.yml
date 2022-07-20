@@ -67,6 +67,7 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
+            --info
 
       - name: Upload gradle reports
         if: ${{ always() }}
