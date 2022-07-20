@@ -91,7 +91,7 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
       - name: Upload save-agent-distribution.jar
-        uses: actions/upload-artifacts@v3
+        uses: actions/upload-artifact@v3
         with:
           name: save-agent-distribution
           path: 'save-agent/build/libs/save-agent-*-distribution.jar'
