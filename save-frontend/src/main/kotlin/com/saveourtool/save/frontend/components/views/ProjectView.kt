@@ -342,18 +342,22 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 jsonProject,
                 loadingHandler = ::noopLoadingHandler,
             ).decodeFromJsonString()
+            gitDto = gitDtoInit
             val currentUserRole: Role = get(
                 "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/users/roles",
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
             setState {
-                gitDto = gitDtoInit
                 selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             }
             when {
-                state.gitUrlFromInputField.isBlank() && gitDto?.url != null -> state.gitUrlFromInputField = gitDto?.url ?: ""
-                state.gitBranchOrCommitFromInputField.isBlank() && gitDto?.branch != null -> state.gitBranchOrCommitFromInputField = gitDto?.branch ?: ""
+                state.gitUrlFromInputField.isBlank() -> setState {
+                    gitUrlFromInputField = gitDtoInit.url
+                }
+                state.gitBranchOrCommitFromInputField.isBlank() && gitDtoInit.branch != null -> setState {
+                    gitBranchOrCommitFromInputField = gitDtoInit.branch.orEmpty()
+                }
                 else -> {
                     // this is a generated else block
                 }
@@ -938,32 +942,29 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 latestExecutionId = null
             }
             else -> {
-                val executionDtoFromRequest: Long = response
+                val executionIdFromResponse: Long = response
                     .decodeFromJsonString<ExecutionDto>().id
 
                 setState {
-                    latestExecutionId = executionDtoFromRequest
+                    latestExecutionId = executionIdFromResponse
                 }
+                getTestRootPathFromLatestExecution(executionIdFromResponse)
             }
         }
-
-        getTestRootPathFromLatestExecution()
     }
 
-    private suspend fun getTestRootPathFromLatestExecution() {
-        state.latestExecutionId?.let {
-            val headers = Headers().apply { set("Accept", "application/json") }
-            val response = get(
-                "$apiUrl/getTestRootPathByExecutionId?id=${state.latestExecutionId}",
-                headers,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-            val rootPath = response.text().await()
-            when {
-                response.ok -> setState {
-                    testRootPath = rootPath
-                }
+    private suspend fun getTestRootPathFromLatestExecution(executionId: Long) {
+        val headers = Headers().apply { set("Accept", "application/json") }
+        val response = get(
+            "$apiUrl/getTestRootPathByExecutionId?id=$executionId",
+            headers,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+        val rootPath = response.text().await()
+        when {
+            response.ok -> setState {
+                testRootPath = rootPath
             }
         }
     }
