@@ -18,6 +18,10 @@ jobs:
           # Checkout source branch directly, without merging base into it
           ref: ${{ github.event.pull_request.head.ref }}
 
+      - name: Echo home dir
+        run: |
+          echo "Home directory is $HOME"
+
       - name: Start backend
         uses: gradle/gradle-build-action@v2
         with:
@@ -26,7 +30,9 @@ jobs:
             :save-backend:bootRun
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
+            -Pargs=--backend.fileStorage.location=${HOME}/cnb/files
             -Dspring-boot.run.arguments="--backend.fileStorage.location=${HOME}/cnb/files"
+            -Drun.arguments="--backend.fileStorage.location=${HOME}/cnb/files"
 
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
