@@ -101,11 +101,8 @@ class AgentsController(
                 )
                 .flatMap { testRootPath ->
                     val filesLocation = Paths.get(
-                        // /home/cnb/repositories
                         configProperties.testResources.basePath,
-                        // /hashOfUrl ?
                         execution.resourcesRootPath!!,
-                        // /examples/kotlin-diktat
                         testRootPath
                     )
                     execution.parseAndGetAdditionalFiles()
