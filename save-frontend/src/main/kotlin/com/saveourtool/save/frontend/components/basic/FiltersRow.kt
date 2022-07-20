@@ -3,8 +3,8 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -160,12 +160,8 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setFilters(TestExecutionFilters.EMPTY)
-                    //setFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
-                    console.log("${filters.status} , ${filters.fileName} , ${filters.testSuite} , ${filters.tag}")
-                    props.onChangeFilters(TestExecutionFilters.EMPTY)
-                    //props.onChangeFilters(TestExecutionFilters(status = null, fileName = "", testSuite = "", tag = ""))
-                    console.log("${filters.status} , ${filters.fileName} , ${filters.testSuite} , ${filters.tag}")
+                    setFilters(TestExecutionFilters.empty)
+                    props.onChangeFilters(TestExecutionFilters.empty)
                 }
             }
         }

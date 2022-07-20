@@ -19,6 +19,6 @@ data class TestExecutionFilters(
     var tag: String?,
 ) {
     companion object {
-        val EMPTY = TestExecutionFilters(status = null, fileName = "", testSuite = "", tag = "")
+        val empty = TestExecutionFilters(status = null, fileName = "", testSuite = "", tag = "")
     }
 }

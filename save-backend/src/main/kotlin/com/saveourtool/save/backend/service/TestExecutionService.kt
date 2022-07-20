@@ -51,18 +51,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
-     * @param status
-     * @param testFileName
-     * @param testSuiteName
-     * @param tag
+     * @param filters
      * @return a list of [TestExecutionDto]s
      */
-    @Suppress(
-        "LongParameterList",
-        "AVOID_NULL_CHECKS",
-        "UnsafeCallOnNullableType",
-        "TOO_MANY_PARAMETERS"
-    )
+    @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
     internal fun getTestExecutions(
         executionId: Long,
         page: Int,
