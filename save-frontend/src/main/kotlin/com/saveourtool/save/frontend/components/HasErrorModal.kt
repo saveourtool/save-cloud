@@ -2,7 +2,9 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.topBarComponent
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -34,24 +36,32 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         isErrorModalOpen = false,
         errorMessage = "",
         errorLabel = "",
+        status = null,
     ))
     val (loadingState, setLoadingState) = useState(LoadingModalState(
         false,
     ))
 
     useEffect(response) {
-        val newModalState = if (response?.status == 401.toShort()) {
-            ErrorModalState(
+        val newModalState = when (response?.status) {
+            401.toShort() -> ErrorModalState(
                 isErrorModalOpen = true,
                 errorMessage = "You are not logged in",
                 errorLabel = "Unauthenticated",
                 confirmationText = "Proceed to login page",
+                status = response.status,
             )
-        } else {
-            ErrorModalState(
+            404.toShort() -> ErrorModalState(
+                isErrorModalOpen = false,
+                errorMessage = "${response.status} ${response.statusText}",
+                errorLabel = response.status.toString(),
+                status = response.status,
+            )
+            else -> ErrorModalState(
                 isErrorModalOpen = response != null,
                 errorMessage = "${response?.status} ${response?.statusText}",
                 errorLabel = response?.status.toString(),
+                status = response?.status,
             )
         }
         setModalState(newModalState)
@@ -112,9 +122,28 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         arrayOf(statusContext)
     ) { statusContext }
 
+    val reactNode = if (modalState.status == 404.toShort()) {
+        div.create {
+            className = ClassName("d-flex flex-column")
+            id = "content-wrapper"
+            topBarComponent()
+            div {
+                className = ClassName("container-fluid")
+                FallbackView::class.react {
+                    bigText = "404"
+                    smallText = "Page not found"
+                    withRouterLink = false
+                }
+            }
+            Footer::class.react()
+        }
+    } else {
+        props.children
+    }
+
     requestStatusContext.Provider {
         value = contextPayload
-        +props.children
+        +reactNode
     }
 }
 
@@ -132,12 +161,14 @@ data class RequestStatusContext(
  * @property errorMessage
  * @property errorLabel
  * @property confirmationText text that will be displayed on modal dismiss button
+ * @property status
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
     val errorMessage: String,
     val errorLabel: String,
     val confirmationText: String = "Close",
+    val status: Short?,
 )
 
 /**
