@@ -62,11 +62,11 @@ jobs:
             -x detekt
             -x spotlessCheck
             -x :save-agent:linkDebugExecutableLinuxX64
-            -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             --scan
+            --build-cache
             --info
 
       - name: Upload gradle reports
