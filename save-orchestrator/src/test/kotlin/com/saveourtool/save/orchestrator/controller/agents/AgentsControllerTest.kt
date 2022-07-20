@@ -46,6 +46,9 @@ import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+import java.nio.file.Files
+import java.nio.file.Paths
+
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
 @MockBeans(MockBean(AgentRunner::class))
@@ -200,6 +203,7 @@ class AgentsControllerTest {
         val filePath = configProperties.executionLogs + File.separator + fileName
         val file = File(filePath)
         if (!file.exists()) {
+            Files.createDirectories(Paths.get(configProperties.executionLogs))
             file.createNewFile()
         }
 

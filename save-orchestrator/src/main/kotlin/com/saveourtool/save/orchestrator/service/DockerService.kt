@@ -362,6 +362,8 @@ internal fun imageName(executionId: Long) = "save-execution:$executionId"
  */
 internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
+internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-base-")
+
 /**
  * @param testSuiteDto
  */

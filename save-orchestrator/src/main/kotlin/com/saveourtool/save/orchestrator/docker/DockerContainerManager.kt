@@ -5,6 +5,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
+import com.saveourtool.save.orchestrator.service.isBaseImageName
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.BuildImageResultCallback
@@ -113,8 +114,12 @@ class DockerContainerManager(
                 appendLine("COPY resources $resourcesPath")
                 runOnResourcesCmd?.let(::appendLine)
             }
-            appendLine("RUN chown -R save-agent .")
-            appendLine("USER save-agent")
+            if (isBaseImageName(baseImage)) {
+                // If image is being built from base image for SAVE, then we can assume that it is an image for execution.
+                // Then we can finalize build process by switching to an unprivileged user.
+                appendLine("RUN chown -R save-agent .")
+                appendLine("USER save-agent")
+            }
         }
         log.debug("Using generated Dockerfile {}", dockerFileAsText)
         val dockerFile = createTempFile(dir.toPath()).toFile()
