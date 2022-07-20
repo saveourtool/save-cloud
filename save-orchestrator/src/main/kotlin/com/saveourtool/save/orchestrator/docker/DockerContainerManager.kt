@@ -108,7 +108,7 @@ class DockerContainerManager(
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
             appendLine("RUN useradd --create-home --shell /bin/sh save-agent")
-            appendLine("WORKDIR /home/save-agent")
+            appendLine("WORKDIR /home/save-agent/save-execution")
             if (resourcesPath != null) {
                 appendLine("COPY resources $resourcesPath")
                 runOnResourcesCmd?.let(::appendLine)
