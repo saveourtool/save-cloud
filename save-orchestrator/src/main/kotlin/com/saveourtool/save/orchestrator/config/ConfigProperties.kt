@@ -64,6 +64,7 @@ data class ConfigProperties(
      * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
      * to authenticate orchestrator to the API server
      * @property namespace Kubernetes namespace, into which agents will be deployed.
+     * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
      */
     data class KubernetesSettings(
         val apiServerUrl: String,

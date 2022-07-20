@@ -36,7 +36,12 @@ class KubernetesManager(
         kc.close()
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MagicNumber")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "MagicNumber",
+        "NestedBlockDepth",
+    )
     override fun create(executionId: Long,
                         baseImageId: String,
                         replicas: Int,
