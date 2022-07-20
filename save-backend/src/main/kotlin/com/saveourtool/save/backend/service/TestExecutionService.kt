@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.error
@@ -66,21 +67,18 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         executionId: Long,
         page: Int,
         pageSize: Int,
-        status: TestResultStatus?,
-        testFileName: String?,
-        testSuiteName: String?,
-        tag: String?
+        filters: TestExecutionFilters,
     ): List<TestExecution> {
-        val wrappedFileName = wrapValue(testFileName)
-        val wrappedTestSuiteName = wrapValue(testSuiteName)
-        val wrappedTagValue = wrapValue(tag)
+        val wrappedFileName = wrapValue(filters.fileName)
+        val wrappedTestSuiteName = wrapValue(filters.testSuite)
+        val wrappedTagValue = wrapValue(filters.tag)
         return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
             executionId,
-            status,
+            filters.status,
             wrappedFileName,
             wrappedTestSuiteName,
             wrappedTagValue,
-            PageRequest.of(page, pageSize)
+            PageRequest.of(page, pageSize),
         )
     }
 

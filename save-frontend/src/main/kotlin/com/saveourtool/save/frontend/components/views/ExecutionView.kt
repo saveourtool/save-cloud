@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -81,23 +82,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
      */
     var filters: TestExecutionFilters
 }
-
-/**
- * Aff filters in one property
- * @property status to filter by [status]
- * @property fileName to use filter by [fileName]
- * @property testSuite to use filter by [testSuite]
- * @property tag to use filter by [tag]
- */
-data class TestExecutionFilters(
-    var status: TestResultStatus?,
-
-    var fileName: String?,
-
-    var testSuite: String?,
-
-    var tag: String?,
-)
 
 /**
  * A Component for execution view

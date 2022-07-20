@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
-import com.saveourtool.save.frontend.components.views.TestExecutionFilters
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -153,15 +153,19 @@ private fun testExecutionFiltersRow(
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
-                    props.onChangeFilters(filters.copy(status = filters.status, fileName = filters.fileName, testSuite = filters.testSuite, tag = filters.tag))
+                    props.onChangeFilters(filters)
                 }
             }
             button {
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
-                    setFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
-                    props.onChangeFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
+                    setFilters(TestExecutionFilters.EMPTY)
+                    //setFilters(filters.copy(status = null, fileName = "", testSuite = "", tag = ""))
+                    console.log("${filters.status} , ${filters.fileName} , ${filters.testSuite} , ${filters.tag}")
+                    props.onChangeFilters(TestExecutionFilters.EMPTY)
+                    //props.onChangeFilters(TestExecutionFilters(status = null, fileName = "", testSuite = "", tag = ""))
+                    console.log("${filters.status} , ${filters.fileName} , ${filters.testSuite} , ${filters.tag}")
                 }
             }
         }

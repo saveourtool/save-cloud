@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto
@@ -80,7 +81,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testFileName, testSuiteName, tag)
+            testExecutionService.getTestExecutions(executionId, page, size, TestExecutionFilters(status = status, fileName = testFileName, testSuite = testSuiteName, tag = tag))
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
