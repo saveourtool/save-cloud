@@ -4,64 +4,53 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.externals.modal.modal
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.post
-import com.saveourtool.save.frontend.utils.useRequest
 
 import csstype.ClassName
-import org.w3c.dom.Element
-import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
-import react.dom.events.MouseEventHandler
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
 /**
- * Component that allows to change git settings in ProjectSettingsMenu
+ * Component that allows to change git settings in ManageGitCredentialsCard.kt
  */
 val gitWindow = gitWindow()
 
 /**
  * RunSettingGitWindow component props
  */
-external interface RunSettingGitWindowProps : Props {
+external interface GitWindowProps : Props {
     /**
      * Flag to open window
      */
-    var isOpenGitWindow: Boolean?
+    var isOpen: Boolean
 
     /**
-     * Project
+     * name of organization, assumption that it's checked by previous views and valid here
      */
-    var project: Project?
+    var organizationName: String
 
     /**
-     * Git info for this project
+     * Git credential to update, it's null in case of creating a new one
      */
     var gitDto: GitDto?
 
     /**
-     * Lambda to close window
-     */
-    var handlerCancel: MouseEventHandler<Element>
-
-    /**
-     * Lambda to set new git dto in state
+     * Lambda to upsert git dto
      */
     var onGitUpdate: (GitDto) -> Unit
+
+    /**
+     * Lambda to set state about current modal window to closed
+     */
+    var setClosedState: () -> Unit
 }
 
 @Suppress(
@@ -69,56 +58,12 @@ external interface RunSettingGitWindowProps : Props {
     "TYPE_ALIAS",
     "LongMethod",
 )
-private fun gitWindow() = FC<RunSettingGitWindowProps> { props ->
-    val (fieldsWithGitInfo, setFieldsWithGitInfo) = useState(mutableMapOf<InputTypes, String>())
-
-    val updateGit = useRequest(arrayOf(props.project), isDeferred = true) {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-
-        val git = GitDto(
-            fieldsWithGitInfo[InputTypes.GIT_URL]?.trim() ?: props.gitDto!!.url,
-            fieldsWithGitInfo[InputTypes.GIT_USER]?.trim() ?: props.gitDto?.username,
-            fieldsWithGitInfo[InputTypes.GIT_TOKEN]?.trim() ?: props.gitDto?.password,
-            props.gitDto?.branch,
-            props.gitDto?.hash,
-        )
-
-        val response = post(
-            "$apiUrl/projects/update/git?projectId=${props.project?.id}",
-            headers,
-            Json.encodeToString(git),
-            loadingHandler = ::noopLoadingHandler,
-        )
-
-        if (response.ok) {
-            props.onGitUpdate(git)
-        }
-    }
+private fun gitWindow() = FC<GitWindowProps> { props ->
+    val fieldsWithGitInfo = props.gitDto.toMutableMap()
 
     modal { modalProps ->
-        modalProps.isOpen = props.isOpenGitWindow
+        modalProps.isOpen = props.isOpen
 
-        div {
-            className = ClassName("row mt-2 ml-2 mr-2")
-            div {
-                className = ClassName("col-5 text-left align-self-center")
-                +"Git Username:"
-            }
-            div {
-                className = ClassName("col-7 input-group pl-0")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    defaultValue = props.gitDto?.username ?: ""
-                    onChange = {
-                        fieldsWithGitInfo[InputTypes.GIT_USER] = it.target.value
-                    }
-                }
-            }
-        }
         div {
             className = ClassName("row mt-2 ml-2 mr-2")
             div {
@@ -130,9 +75,29 @@ private fun gitWindow() = FC<RunSettingGitWindowProps> { props ->
                 input {
                     type = InputType.text
                     className = ClassName("form-control")
-                    defaultValue = props.gitDto?.url ?: ""
+                    defaultValue = fieldsWithGitInfo[InputTypes.GIT_URL]
+                    readOnly = props.gitDto != null
+                    required = true
                     onChange = {
                         fieldsWithGitInfo[InputTypes.GIT_URL] = it.target.value
+                    }
+                }
+            }
+        }
+        div {
+            className = ClassName("row mt-2 ml-2 mr-2")
+            div {
+                className = ClassName("col-5 text-left align-self-center")
+                +"Git Username:"
+            }
+            div {
+                className = ClassName("col-7 input-group pl-0")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    defaultValue = fieldsWithGitInfo[InputTypes.GIT_USER]
+                    onChange = {
+                        fieldsWithGitInfo[InputTypes.GIT_USER] = it.target.value
                     }
                 }
             }
@@ -160,17 +125,34 @@ private fun gitWindow() = FC<RunSettingGitWindowProps> { props ->
                 type = ButtonType.button
                 className = ClassName("btn btn-primary mr-3")
                 onClick = {
-                    setFieldsWithGitInfo(fieldsWithGitInfo)
-                    updateGit()
+                    props.setClosedState()
+                    props.onGitUpdate(fieldsWithGitInfo.toGitDto())
                 }
-                +"Save"
+                val buttonName = props.gitDto?.let { "Save" } ?: "Create"
+                +buttonName
             }
             button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
-                onClick = props.handlerCancel
+                onClick = {
+                    props.setClosedState()
+                }
                 +"Cancel"
             }
         }
     }
 }
+
+private fun GitDto?.toMutableMap(): MutableMap<InputTypes, String> = mutableMapOf<InputTypes, String>().also {
+    it[InputTypes.GIT_URL] = this?.url ?: ""
+    it[InputTypes.GIT_USER] = this?.username ?: ""
+    it[InputTypes.GIT_TOKEN] = this?.password ?: ""
+}
+
+private fun MutableMap<InputTypes, String>.toGitDto(): GitDto = GitDto(
+    url = getValue(InputTypes.GIT_URL),
+    username = getValue(InputTypes.GIT_USER),
+    password = getValue(InputTypes.GIT_TOKEN),
+)
+
+

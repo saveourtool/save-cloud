@@ -186,14 +186,12 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
 
-        val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
             "Huawei",
-            gitDto,
         )
         saveProjectAndAssert(
             newProject,
@@ -207,8 +205,6 @@ class ProjectControllerTest {
                     Assertions.assertEquals(it.responseBody!!.url, project.url)
                 }
         }
-
-        Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
     @Test

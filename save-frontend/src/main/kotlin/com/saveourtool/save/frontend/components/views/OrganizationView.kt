@@ -6,14 +6,13 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.scoreCard
-import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -271,10 +270,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu!!) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
+            OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
-            else -> {
-                // this is a generated else block
-            }
         }
     }
 
@@ -457,6 +454,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun ChildrenBuilder.renderTests() {
+        div {
+            className = ClassName("card shadow mb-4 w-100")
+            div {
+                className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
+                +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
+            }
+        }
+    }
+
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
@@ -562,6 +569,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         it.decodeFromJsonString<ImageInfo>()
     }
 
+    private suspend fun getGits(): List<GitDto> = get(
+        url = "$apiUrl/organizations/${props.organizationName}/gits",
+        headers = Headers().also {
+            it.set("Accept", "application/json")
+        },
+        loadingHandler = ::classLoadingHandler,
+    ).unsafeMap {
+        it.decodeFromJsonString()
+    }
+
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div {
@@ -641,7 +658,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                     }
-                                    +projectMenu.name
+                                    +projectMenu.getTitle()
                                 }
                             }
                         }

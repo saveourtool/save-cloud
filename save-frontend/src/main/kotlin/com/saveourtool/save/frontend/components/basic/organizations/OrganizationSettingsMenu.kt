@@ -17,6 +17,8 @@ import react.dom.html.ReactHTML.div
 
 private val organizationPermissionManagerCard = manageUserRoleCardComponent()
 
+private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
+
 /**
  * SETTINGS tab in OrganizationView
  */
@@ -93,6 +95,27 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
+        div {
+            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            div {
+                className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+                +"Git credentials"
+            }
+            organizationGitCredentialsManageCard {
+                selfUserInfo = props.currentUserInfo
+                organizationName = props.organizationName
+                this.wasConfirmationModalShown = wasConfirmationModalShown
+                updateErrorMessage = props.updateErrorMessage
+                getUserGroups = { it.organizations }
+                showGlobalRoleWarning = {
+                    props.updateNotificationMessage(
+                        "Super admin message",
+                        "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+                    )
+                    setWasConfirmationModalShown(true)
+                }
+            }
+        }
         div {
             className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
             div {

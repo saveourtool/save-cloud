@@ -114,26 +114,6 @@ class ProjectController(
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
-     * @param project
-     * @param authentication
-     * @return gitDto
-     */
-    @PostMapping("/git")
-    @Suppress("UnsafeCallOnNullableType")
-    fun getRepositoryDtoByProject(@RequestBody project: Project, authentication: Authentication): Mono<GitDto> = Mono.fromCallable {
-        with(project) {
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-        }
-    }
-        .mapNotNull {
-            gitService.getRepositoryDtoByProject(project)
-        }
-        .cast<GitDto>()
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
-
-    /**
      * @param newProjectDto newProjectDto
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
@@ -156,51 +136,8 @@ class ProjectController(
             return ResponseEntity.badRequest().body(projectStatus.message)
         }
         log.info("Save new project id = $projectId")
-        newProjectDto.gitDto?.let {
-            val saveGit = gitService.saveGit(it, projectId)
-            log.info("Save new git id = ${saveGit.id}")
-        }
         lnkUserProjectService.setRoleByIds(userId, projectId, Role.OWNER)
         return ResponseEntity.ok(projectStatus.message)
-    }
-
-    /**
-     * @param projectId
-     * @param gitDto
-     * @param authentication
-     * @return response
-     */
-    @PostMapping("/update/git")
-    @Suppress(
-        "UnsafeCallOnNullableType",
-        "TYPE_ALIAS",
-    )
-    fun updateGit(
-        @RequestParam projectId: Long,
-        @RequestBody gitDto: GitDto,
-        authentication: Authentication
-    ): Mono<ResponseEntity<String>> {
-        val project = projectService.findById(projectId).get()
-
-        return projectService.findWithPermissionByNameAndOrganization(
-            authentication, project.name, project.organization.name, Permission.WRITE
-        ).map {
-            val git = gitService.findByProjectId(project.id!!)
-
-            git?.let {
-                git.apply {
-                    url = gitDto.url
-                    username = gitDto.username
-                    password = gitDto.password
-                    branch = gitDto.branch
-                }
-                git.let {
-                    val saveGit = gitService.save(it)
-                    log.debug("Update git id = ${saveGit.id}")
-                }
-                ResponseEntity.ok("Git updated successfully")
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).body("Git doesn't exist")
-        }
     }
 
     /**

@@ -268,12 +268,7 @@ class ExecutionController(private val executionService: ExecutionService,
                     Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
                 }
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .map {
-                    it.status.toString()
-                    it.getTestRootPathByTestSuites()
-                        .distinct()
-                        .single()
-                }
+                .map { it.getTestRootPath() }
 
     /**
      * Accepts a request to rerun an existing execution
@@ -296,9 +291,8 @@ class ExecutionController(private val executionService: ExecutionService,
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
         val executionType = execution.type
-        val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
-            "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
-        }
+        val git = gitService.getByOrganizationAndUrl(execution.project.organization, execution.getTestSuiteRepoUrl())
+            .toDto()
         val testRootPath = if (executionType == ExecutionType.GIT) {
             execution.getTestRootPathByTestSuites()
                 .distinct()
@@ -312,7 +306,8 @@ class ExecutionController(private val executionService: ExecutionService,
         executionService.updateExecutionWithUser(execution, authentication.username())
         val executionRequest = ExecutionRequest(
             project = execution.project,
-            gitDto = git.copy(hash = execution.version),
+            gitDto = git,
+            branchOrCommit = execution.version ?: "",
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id,
@@ -337,6 +332,28 @@ class ExecutionController(private val executionService: ExecutionService,
             it.testRootPath
         }
         .orEmpty()
+
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun Execution.getTestRootPath(): String = getTestRootPathByTestSuites()
+        .distinct()
+        .single()
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun Execution.getTestSuiteRepoUrl(): String = this
+        .parseAndGetTestSuiteIds()
+        ?.map { testSuiteId ->
+            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
+                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
+                NoSuchElementException()
+            }
+        }
+        ?.mapNotNull {
+            it.testSuiteRepoUrl
+        }
+        .orEmpty()
+        .distinct()
+        .single()
 
     /**
      * @param execution

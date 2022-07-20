@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Git
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.Organization
 import org.springframework.stereotype.Repository
 
 /**
@@ -10,14 +10,15 @@ import org.springframework.stereotype.Repository
 @Repository
 interface GitRepository : BaseEntityRepository<Git> {
     /**
-     * @param project
-     * @return git by project
+     * @param organizationId
+     * @return list of gits by [organizationId]
      */
-    fun findByProject(project: Project): Git?
+    fun findAllByOrganizationId(organizationId: Long): List<Git>
 
     /**
-     * @param projectId
-     * @return git by project
+     * @param organization
+     * @param url
+     * @return git by [organizationId] and [url]
      */
-    fun findByProjectId(projectId: Long): Git?
+    fun findByOrganizationAndUrl(organization: Organization, url: String): Git?
 }
