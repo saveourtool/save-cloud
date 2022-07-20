@@ -108,17 +108,9 @@ class DockerContainerManager(
         val dockerFileAsText = buildString {
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
-            appendLine("RUN useradd --create-home --shell /bin/sh save-agent")
-            appendLine("WORKDIR /home/save-agent/save-execution")
             if (resourcesPath != null) {
                 appendLine("COPY resources $resourcesPath")
                 runOnResourcesCmd?.let(::appendLine)
-            }
-            if (isBaseImageName(baseImage)) {
-                // If image is being built from base image for SAVE, then we can assume that it is an image for execution.
-                // Then we can finalize build process by switching to an unprivileged user.
-                appendLine("RUN chown -R save-agent .")
-                appendLine("USER save-agent")
             }
         }
         log.debug("Using generated Dockerfile {}", dockerFileAsText)

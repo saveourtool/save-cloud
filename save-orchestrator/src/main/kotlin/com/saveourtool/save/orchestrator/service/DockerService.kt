@@ -243,20 +243,17 @@ class DockerService(private val configProperties: ConfigProperties,
             log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
             buildBaseImage(sdk)
         }
-        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         val imageId = dockerContainerManager.buildImageWithResources(
             baseImage = baseImage,
             imageName = imageName(execution.id!!),
             baseDir = resourcesPath,
             resourcesTargetPath = executionDir,
-            runCmd = """RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
-                    |libcurl4-openssl-dev tzdata
-                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-                    |RUN rm -rf /var/lib/apt/lists/*
-            """.trimMargin(),
+            runCmd = "",
             runOnResourcesCmd = """
                     |RUN chmod +x $executionDir/$SAVE_AGENT_EXECUTABLE_NAME
                     |RUN chmod +x $executionDir/$SAVE_CLI_EXECUTABLE_NAME
+                    |RUN chown -R save-agent .
+                    |USER save-agent
             """.trimMargin()
         )
         saveAgent.delete()
@@ -279,9 +276,7 @@ class DockerService(private val configProperties: ConfigProperties,
         val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
         // fixme: https://github.com/saveourtool/save-cloud/issues/352
         val additionalRunCmd = if (sdk is Python) {
-            """|RUN $aptCmd update
-               |RUN env DEBIAN_FRONTEND="noninteractive" $aptCmd install zip
-               |RUN curl -s "https://get.sdkman.io" | bash
+            """|RUN curl -s "https://get.sdkman.io" | bash
                |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
                |RUN ln -s ${'$'}(which java) /usr/bin/java
             """.trimMargin()
@@ -294,7 +289,14 @@ class DockerService(private val configProperties: ConfigProperties,
             imageName = baseImageName(sdk),
             baseDir = null,
             resourcesTargetPath = null,
-            runCmd = additionalRunCmd
+            runCmd = """|RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
+                    |libcurl4-openssl-dev tzdata
+                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+                    |RUN rm -rf /var/lib/apt/lists/*
+                    |$additionalRunCmd
+                    |RUN useradd --create-home --shell /bin/sh save-agent
+                    |WORKDIR /home/save-agent/save-execution
+            """.trimMargin()
         ).also {
             log.debug("Successfully built base image id=$it")
         }
