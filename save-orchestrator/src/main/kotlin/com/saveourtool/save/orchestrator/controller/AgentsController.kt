@@ -37,6 +37,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
@@ -153,9 +154,8 @@ class AgentsController(
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(execution))
             .retrieve()
-            .bodyToFlux<String>()
-            .distinct()
-            .single()
+            .bodyToMono<List<String>>()
+            .map { it.distinct().single() }
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
     }
 
