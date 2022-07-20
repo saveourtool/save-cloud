@@ -37,6 +37,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
+import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
@@ -100,8 +101,11 @@ class AgentsController(
                 )
                 .flatMap { testRootPath ->
                     val filesLocation = Paths.get(
+                        // /home/cnb/repositories
                         configProperties.testResources.basePath,
+                        // /hashOfUrl ?
                         execution.resourcesRootPath!!,
+                        // /examples/kotlin-diktat
                         testRootPath
                     )
                     execution.parseAndGetAdditionalFiles()
@@ -151,11 +155,12 @@ class AgentsController(
         ExecutionType.GIT -> webClientBackend.post()
             .uri("/findTestRootPathForExecutionByTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
+            .bodyValue(execution)
             .retrieve()
-            .bodyToFlux<String>()
-            .distinct()
-            .single()
+            .bodyToMono<List<String>>()
+            .map {
+                it.single()
+            }
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
     }
 
