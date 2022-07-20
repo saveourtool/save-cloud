@@ -159,7 +159,7 @@ class AgentsController(
             .retrieve()
             .bodyToMono<List<String>>()
             .map {
-                it.single()
+                it.distinct().single()
             }
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
     }
