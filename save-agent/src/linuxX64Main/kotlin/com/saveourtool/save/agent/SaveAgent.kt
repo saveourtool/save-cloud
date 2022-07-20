@@ -22,14 +22,28 @@ import com.saveourtool.save.utils.toTestResultStatus
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
+import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.*
+import kotlin.text.String
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -147,14 +161,19 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Starting SAVE with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
-        val executionLogs = ExecutionLogs(config.resolvedId(), readFile(config.logFilePath))
-        launchLogSendingJob(executionLogs)
+        val saveCliLogFilePath = config.logFilePath
+        val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
+            .buffer()
+            .readByteArray()
+        val saveCliLogData = String(byteArray).split("\n")
+
+        launchLogSendingJob(byteArray)
         logDebugCustom("SAVE has completed execution, execution logs:")
-        executionLogs.cliLogs.forEach {
+        saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
         }
         when (executionResult.code) {
-            0 -> if (executionLogs.cliLogs.isEmpty()) {
+            0 -> if (saveCliLogData.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
                 handleSuccessfulExit().invokeOnCompletion { cause ->
@@ -232,9 +251,9 @@ class SaveAgent(internal val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.launchLogSendingJob(executionLogs: ExecutionLogs) = launch {
+    private fun CoroutineScope.launchLogSendingJob(byteArray: ByteArray): Job = launch {
         runCatching {
-            sendLogs(executionLogs)
+            sendLogs(byteArray)
         }
             .exceptionOrNull()
             ?.let {
@@ -270,13 +289,23 @@ class SaveAgent(internal val config: AgentConfiguration,
     }
 
     /**
-     * @param executionLogs logs of CLI execution progress that will be sent in a message
+     * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
      */
-    private suspend fun sendLogs(executionLogs: ExecutionLogs) = httpClient.post {
-        url("${config.orchestratorUrl}/executionLogs")
-        contentType(ContentType.Application.Json)
-        setBody(executionLogs)
-    }
+    @OptIn(InternalAPI::class)
+    private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
+            httpClient.post {
+                url("${config.orchestratorUrl}/executionLogs")
+                setBody(MultiPartFormDataContent(formData {
+                    append(
+                        "executionLogs",
+                        byteArray,
+                        Headers.build {
+                            append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+                            append(HttpHeaders.ContentDisposition, "filename=${config.resolvedId()}")
+                        }
+                    )
+                }))
+            }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
         url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.resolvedId()}")
