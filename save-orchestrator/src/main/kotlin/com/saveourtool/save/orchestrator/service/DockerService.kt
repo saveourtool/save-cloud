@@ -364,6 +364,10 @@ internal fun imageName(executionId: Long) = "save-execution:$executionId"
  */
 internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
 
+/**
+ * @param imageName
+ * @return whether [imageName] refers to a base image for save execution
+ */
 internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-base-")
 
 /**
