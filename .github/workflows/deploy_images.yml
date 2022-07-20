@@ -101,4 +101,4 @@ jobs:
           path: '**/build/reports/'
           retention-days: 1
       - name: Debug printing
-        run: find save-agent/build
+        run: find .
