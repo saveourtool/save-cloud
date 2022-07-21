@@ -25,7 +25,7 @@ external interface CardProps : PropsWithChildren {
 }
 
 /**
- * A functional `RComponent` for a card.
+ * A functional `Component` for a card.
  *
  * @param isBordered adds a border to the card
  * @param hasBg adds a white background

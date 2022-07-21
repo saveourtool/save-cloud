@@ -12,7 +12,6 @@ import org.w3c.dom.SMOOTH
 import org.w3c.dom.ScrollBehavior
 import org.w3c.dom.ScrollToOptions
 import react.*
-import react.dom.a
 import react.dom.html.ReactHTML.a
 
 import kotlinx.browser.document

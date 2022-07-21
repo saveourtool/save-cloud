@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.externals.animations.ringLoader
-import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName

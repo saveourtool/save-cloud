@@ -26,8 +26,6 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
-import kotlinx.html.id
-
 private val projectPermissionManagerCard = manageUserRoleCardComponent()
 
 /**

@@ -16,6 +16,8 @@ import com.saveourtool.save.info.UserInfo
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.td
 import react.table.columns
 
 /**
@@ -36,28 +38,31 @@ class ContestListView : AbstractView<ContestListViewProps, State>(false) {
     private val contestsTable = tableComponent(
         columns = columns<ContestDto> {
             column(id = "name", header = "Contest Name", { name }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = "#/contests/${cellProps.row.original.name}") { +cellProps.value }
+                        a {
+                            href = "#/contests/${cellProps.row.original.name}"
+                            +cellProps.value
+                        }
                     }
                 }
             }
             column(id = "description", header = "Description", { description }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +(cellProps.value ?: "Description is not provided")
                     }
                 }
             }
             column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +cellProps.value.replace("T", " ")
                     }
                 }
             }
             column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
                         +cellProps.value.replace("T", " ")
                     }
@@ -74,9 +79,9 @@ class ContestListView : AbstractView<ContestListViewProps, State>(false) {
         "MAGIC_NUMBER",
         "LongMethod",
     )
-    override fun RBuilder.render() {
-        child(contestsTable) {
-            attrs.getData = { _, _ ->
+    override fun ChildrenBuilder.render() {
+        contestsTable {
+            getData = { _, _ ->
                 val response = get(
                     url = "$apiUrl/contests/active",
                     headers = Headers().also {

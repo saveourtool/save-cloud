@@ -36,12 +36,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.html.id
-import kotlinx.html.role
 import kotlinx.js.jso
 
 /**
- * [RProps] of the top bor component
+ * [Props] of the top bor component
  */
 external interface TopBarProps : PropsWithChildren {
     /**
@@ -176,7 +174,6 @@ fun topBar() = FC<TopBarProps> { props ->
                 className = ClassName("nav-item")
                 a {
                     val hrefAnchor = "projects"
-
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active ")
                     style = jso {
                         width = 8.rem
@@ -201,7 +198,6 @@ fun topBar() = FC<TopBarProps> { props ->
                 className = ClassName("nav-item")
                 a {
                     val hrefAnchor = "about"
-
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem

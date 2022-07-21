@@ -15,7 +15,7 @@ import react.ReactElement
 import react.State
 
 /**
- * [RProps] of modal component
+ * [Props] of modal component
  */
 external interface ModalProps : PropsWithChildren {
     /**
@@ -147,5 +147,3 @@ external class ReactModal : Component<ModalProps, State> {
         fun setAppElement(appElement: HTMLElement): Unit
     }
 }
-
-

@@ -10,7 +10,6 @@
             <column header="id" name="id" type="NUMERIC" />
             <column header="project_id" name="project_id" type="NUMERIC" />
             <column header="contest_id" name="contest_id" type="NUMERIC" />
-            <column header="score" name="score" type="float" />
         </loadData>
     </changeSet>
 

@@ -26,22 +26,32 @@ import com.saveourtool.save.v1
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLTextAreaElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
-import react.dom.*
+import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.textarea
 import react.table.columns
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.hidden
-import kotlinx.html.js.onChangeFunction
-import kotlinx.html.js.onClickFunction
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -152,22 +162,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private val table = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                buildElement {
+                Fragment.create {
                     td {
-                        a(href = "#/${cellProps.row.original.organization.name}/${cellProps.value}") { +cellProps.value }
+                        a {
+                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                            +cellProps.value
+                        }
                         privacySpan(cellProps.row.original)
                     }
                 }
             }
             column(id = "description", header = "Description") {
-                buildElement {
+                Fragment.create {
                     td {
                         +(it.value.description ?: "Description not provided")
                     }
                 }
             }
             column(id = "rating", header = "Contest Rating") {
-                buildElement {
+                Fragment.create {
                     td {
                         +"0"
                     }
@@ -232,7 +245,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
                 isErrorOpen = false
@@ -271,11 +284,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         "ComplexMethod",
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
-    private fun RBuilder.renderInfo() {
+    private fun ChildrenBuilder.renderInfo() {
         // ================= Title for TOP projects ===============
-        div("row") {
-            div("col-3 ml-auto") {
-                attrs["style"] = jso<CSSProperties> {
+        div {
+            className = ClassName("row")
+            div {
+                className = ClassName("col-3 ml-auto")
+                style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
@@ -285,15 +300,17 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-            div("col-3 mx-auto") {
-                }
+            div {
+                className = ClassName("col-3 mx-auto")
+            }
         }
 
         // ================= Rows for TOP projects ================
         val topProjects = state.projects?.sortedByDescending { it.contestRating }?.take(TOP_PROJECTS_NUMBER)
 
-        div("row") {
-            attrs["style"] = jso<CSSProperties> {
+        div {
+            className = ClassName("row")
+            style = jso {
                 justifyContent = JustifyContent.center
             }
             renderTopProject(topProjects?.getOrNull(0))
@@ -301,65 +318,78 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
         @Suppress("MAGIC_NUMBER")
-        div("row") {
-            attrs["style"] = jso<CSSProperties> {
+        div {
+            className = ClassName("row")
+            style = jso<CSSProperties> {
                 justifyContent = JustifyContent.center
             }
             renderTopProject(topProjects?.getOrNull(2))
             renderTopProject(topProjects?.getOrNull(3))
         }
 
-        div("row") {
-            attrs["style"] = jso<CSSProperties> {
+        div {
+            className = ClassName("row")
+            style = jso {
                 justifyContent = JustifyContent.center
             }
-            div("col-3 mb-4") {
-                div("card shadow mb-4") {
-                    div("card-header py-3") {
-                        div("row") {
-                            h6("m-0 font-weight-bold text-primary") {
-                                attrs["style"] = jso<CSSProperties> {
+            div {
+                className = ClassName("col-3 mb-4")
+                div {
+                    className = ClassName("card shadow mb-4")
+                    div {
+                        className = ClassName("card-header py-3")
+                        div {
+                            className = ClassName("row")
+                            h6 {
+                                className = ClassName("m-0 font-weight-bold text-primary")
+                                style = jso {
                                     display = Display.flex
                                     alignItems = AlignItems.center
                                 }
                                 +"Description"
                             }
                             if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
-                                button(classes = "btn btn-link text-xs text-muted text-left ml-auto") {
+                                button {
+                                    className = ClassName("btn btn-link text-xs text-muted text-left ml-auto")
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
-                                    attrs.onClickFunction = {
+                                    onClick = {
                                         turnEditMode(isOff = false)
                                     }
                                 }
                             }
                         }
                     }
-                    div("card-body") {
+                    div {
+                        className = ClassName("card-body")
                         textarea {
-                            attrs["class"] = "auto_height form-control-plaintext pt-0 pb-0"
-                            attrs.value = state.draftOrganizationDescription
-                            attrs.disabled = !state.selfRole.hasWritePermission() || state.isEditDisabled
-                            attrs.onChange = { event ->
-                                val tg = event.target as HTMLTextAreaElement
-                                setNewDescription(tg.value)
+                            className = ClassName("auto_height form-control-plaintext pt-0 pb-0")
+                            value = state.draftOrganizationDescription
+                            disabled = !state.selfRole.hasWritePermission() || state.isEditDisabled
+                            onChange = {
+                                setNewDescription(it.target.value)
                             }
                         }
                     }
-                    div("ml-3 mt-2 align-items-right float-right") {
-                        button(type = ButtonType.button, classes = "btn") {
+                    div {
+                        className = ClassName("ml-3 mt-2 align-items-right float-right")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn")
                             fontAwesomeIcon(icon = faCheck)
-                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
-                            attrs.onClick = {
+                            hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
+                            onClick = {
                                 state.organization?.let { onOrganizationSave(it) }
                                 turnEditMode(true)
                             }
                         }
 
-                        button(type = ButtonType.button, classes = "btn") {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
-                            attrs.hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
-                            attrs.onClick = {
+                            hidden = !state.selfRole.hasWritePermission() || state.isEditDisabled
+                            onClick = {
                                 turnEditMode(true)
                             }
                         }
@@ -367,28 +397,32 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-            div("col-3") {
+            div {
+                className = ClassName("col-3")
                 userBoard {
-                    attrs.users = state.usersInOrganization ?: emptyList()
+                    users = state.usersInOrganization ?: emptyList()
                 }
             }
         }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    private fun RBuilder.renderTools() {
-        div("row justify-content-center") {
+    private fun ChildrenBuilder.renderTools() {
+        div {
+            className = ClassName("row justify-content-center")
             // ===================== RIGHT COLUMN =======================================================================
-            div("col-6") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+            div {
+                className = ClassName("col-6")
+                div {
+                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Projects"
                 }
 
-                child(table) {
-                    attrs.getData = { _, _ ->
+                table {
+                    getData = { _, _ ->
                         getProjectsFromCache()
                     }
-                    attrs.getPageCount = null
+                    getPageCount = null
                 }
             }
         }
@@ -423,12 +457,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun RBuilder.renderSettings() {
-        child(organizationSettingsMenu) {
-            attrs.organizationName = props.organizationName
-            attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
-            attrs.selfRole = state.selfRole
-            attrs.deleteOrganizationCallback = {
+    private fun ChildrenBuilder.renderSettings() {
+        organizationSettingsMenu {
+            organizationName = props.organizationName
+            currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+            selfRole = state.selfRole
+            deleteOrganizationCallback = {
                 if (state.projects?.size != 0) {
                     setState {
                         isErrorOpen = true
@@ -440,14 +474,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     deleteOrganization()
                 }
             }
-            attrs.updateErrorMessage = {
+            updateErrorMessage = {
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
                     errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
                 }
             }
-            attrs.updateNotificationMessage = ::showNotification
+            updateNotificationMessage = ::showNotification
         }
     }
 
@@ -528,69 +562,79 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         it.decodeFromJsonString<ImageInfo>()
     }
 
-    private fun RBuilder.renderTopProject(topProject: Project?) {
+    private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
-        div("col-3 mb-4") {
+        div {
+            className = ClassName("col-3 mb-4")
             scoreCard {
-                attrs.name = topProject.name
-                attrs.contestScore = topProject.contestRating.toDouble()
+                name = topProject.name
+                contestScore = topProject.contestRating.toDouble()
             }
         }
     }
 
-    @Suppress("LongMethod", "TOO_LONG_FUNCTION")
-    private fun RBuilder.renderOrganizationMenuBar() {
-        div("row") {
-            div("col-3 ml-auto") {
-                attrs["style"] = jso<CSSProperties> {
+    @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
+    private fun ChildrenBuilder.renderOrganizationMenuBar() {
+        div {
+            className = ClassName("row")
+            div {
+                className = ClassName("col-3 ml-auto")
+                style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
                 label {
-                    input(type = InputType.file) {
-                        attrs.hidden = true
-                        attrs {
-                            onChangeFunction = { event ->
-                                val target = event.target as HTMLInputElement
-                                postImageUpload(target)
-                            }
+                    input {
+                        type = InputType.file
+                        hidden = true
+                        onChange = { event ->
+                            postImageUpload(event.target)
                         }
                     }
-                    attrs["aria-label"] = "Change organization's avatar"
-                    img(classes = "avatar avatar-user width-full border color-bg-default rounded-circle") {
-                        attrs.src = state.image?.path?.let {
+                    ariaLabel = "Change organization's avatar"
+                    img {
+                        className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                        src = state.image?.path?.let {
                             "/api/$v1/avatar$it"
                         }
                             ?: run {
                                 "img/company.svg"
                             }
-                        attrs.height = "100"
-                        attrs.width = "100"
+                        height = 100.0
+                        width = 100.0
                     }
                 }
 
-                h1("h3 mb-0 text-gray-800 ml-2") {
+                h1 {
+                    className = ClassName("h3 mb-0 text-gray-800 ml-2")
                     +(state.organization?.name ?: "N/A")
                 }
             }
 
-            div("col-3 mx-0") {
-                attrs["style"] = jso<CSSProperties> {
+            div {
+                className = ClassName("col-3 mx-0")
+                style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
 
-                nav("nav nav-tabs") {
+                nav {
+                    className = ClassName("nav nav-tabs")
                     OrganizationMenuBar.values()
                         .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
                         .forEachIndexed { i, projectMenu ->
-                            li("nav-item") {
-                                val classVal =
-                                        if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                                p("nav-link $classVal text-gray-800") {
-                                    attrs.onClickFunction = {
+                            li {
+                                className = ClassName("nav-item")
+                                val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) {
+                                    " active font-weight-bold"
+                                } else {
+                                    ""
+                                }
+                                p {
+                                    className = ClassName("nav-link $classVal text-gray-800")
+                                    onClick = {
                                         if (state.selectedMenu != projectMenu) {
                                             setState {
                                                 selectedMenu = projectMenu
@@ -604,16 +648,21 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-            div("col-3 mr-auto") {
-                attrs["style"] = jso<CSSProperties> {
+            div {
+                className = ClassName("col-3 mr-auto")
+                style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
                     alignItems = AlignItems.center
                 }
 
                 if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                    button(type = ButtonType.button, classes = "btn btn-primary") {
-                        a(classes = "text-light", href = "#/create-project/") {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-primary")
+                        a {
+                            className = ClassName("text-light")
+                            href = "#/create-project/"
                             +"+ New Tool"
                         }
                     }

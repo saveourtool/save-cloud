@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.animations.Particles
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -16,29 +17,23 @@ import com.saveourtool.save.info.UserInfo
 import csstype.*
 
 import org.w3c.fetch.Headers
-import react.CSSProperties
-import react.Context
-import react.PropsWithChildren
-import react.RBuilder
-import react.RStatics
-import react.State
-import react.dom.a
-import react.dom.div
-import react.dom.form
-import react.dom.h1
-import react.dom.h3
-import react.dom.h4
-import react.dom.main
-import react.dom.p
-import react.dom.span
-import react.setState
+import react.*
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
 /**
- * [RState] of project creation view component
+ * [State] of project creation view component
  */
 external interface IndexViewState : State {
     /**
@@ -98,29 +93,44 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     }
 
     @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
-    override fun RBuilder.render() {
-        main("main-content mt-0 ps") {
-            div("page-header align-items-start min-vh-100") {
-                attrs["style"] = jso<CSSProperties> {
-                    background = "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))".unsafeCast<Background>()
+    override fun ChildrenBuilder.render() {
+        main {
+            className = ClassName("main-content mt-0 ps")
+            div {
+                className = ClassName("page-header align-items-start min-vh-100")
+                Particles::class.react {
+                    id = "tsparticles"
+                    url = "http://localhost:5800/particles.json"
                 }
-                span("mask bg-gradient-dark opacity-6") {}
 
-                div("row") {
+                style = jso {
+                    background =
+                        "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))".unsafeCast<Background>()
+                }
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
+
+                div {
+                    className = ClassName("row")
                     // Marketing information
-                    div("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white") {
+                    div {
+                        className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 text-white")
                         marketingTitle("Software")
                         marketingTitle("Analysis")
                         marketingTitle("Verification &")
                         marketingTitle("Evaluation")
-                        h3("mt-4") {
+                        h3 {
+                            className = ClassName("mt-4")
                             +"Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
                     // Sign-in header
-                    div("col-lg-3 mr-auto ml-5 mt-5 mb-5") {
-                        div("card z-index-0 fadeIn3 fadeInBottom") {
+                    div {
+                        className = ClassName("col-lg-3 mr-auto ml-5 mt-5 mb-5")
+                        div {
+                            className = ClassName("card z-index-0 fadeIn3 fadeInBottom")
                             // if user is not logged in - he needs to input credentials
                             props.userInfo?.let {
                                 welcomeUserView()
@@ -132,67 +142,89 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
 
-                div("col mt-5 mx-auto") {
-                    div("row mx-auto") {
-                        h1("mx-auto text-white") {
+                div {
+                    className = ClassName("animate__animated animate__bounce col mt-5 mx-auto")
+                    div {
+                        className = ClassName("row mx-auto")
+                        h1 {
+                            className = ClassName("mx-auto text-white")
                             +"Want to know more?"
                         }
                     }
-                    div("row") {
-                            h1("mx-auto") {
-                                fontAwesomeIcon(icon = faAnglesDown)
-                                attrs["style"] = jso<CSSProperties> {
-                                    fontWeight = "bold".unsafeCast<FontWeight>()
-                                    display = Display.inline
-                                    fontSize = "4.5rem".unsafeCast<FontSize>()
+
+                    div {
+                        className = ClassName("scroll-down")
+                        div {
+                            div {
+                                className=ClassName("arrow-content")
+                                span {
+                                    +"V"
                                 }
                             }
+                           // <KeyboardArrowDownIcon className ="arrow-down" />
+                        }
                     }
+
                 }
             }
 
-            div("page-header align-items-start min-vh-100") {
-                attrs["style"] = jso<CSSProperties> {
-                    background = "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+            div {
+                className = ClassName("page-header align-items-start min-vh-100")
+                style = jso {
+                    background =
+                        "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
                 }
 
-                span("mask bg-gradient-dark opacity-6") {}
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
             }
-
         }
     }
 
     @Suppress("TOO_LONG_FUNCTION")
-    private fun RBuilder.inputCredentialsView() {
-        div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
-            div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
-                h4("text-white font-weight-bolder text-center mt-2 mb-0") {
+    private fun ChildrenBuilder.inputCredentialsView() {
+        div {
+            className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
+            div {
+                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                h4 {
+                    className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
                     +"Sign in"
                 }
-                div("row") {
+                div {
+                    className = ClassName("row")
                     state.oauthProviders?.map {
-                        oauthLogin(it, when (it.registrationId) {
-                            "github" -> faGithub
-                            "codehub" -> faCopyright
-                            else -> faSignInAlt
-                        })
+                        oauthLogin(
+                            it, when (it.registrationId) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                else -> faSignInAlt
+                            }
+                        )
                     }
                 }
             }
         }
 
-        div("card-body") {
-            form(classes = "needs-validation") {
-                div("mt-4 text-sm text-center") {
-                    p("mb-0") {
+        div {
+            className = ClassName("card-body")
+            form {
+                className = ClassName("needs-validation")
+                div {
+                    className = ClassName("mt-4 text-sm text-center")
+                    p {
+                        className = ClassName("mb-0")
                         +"Don't have an account?"
                     }
 
                     // Fixme: validateDOMNesting(...): <h4> cannot appear as a descendant of <p>.
-                    p("text-sm text-center") {
+                    p {
+                        className = ClassName("text-sm text-center")
                         h4 {
-                            a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                                attrs.href = "#/projects"
+                            a {
+                                className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
+                                href = "#/projects"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -205,12 +237,17 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     }
 
     @Suppress("TOO_LONG_FUNCTION")
-    private fun RBuilder.welcomeUserView() {
-        div("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded") {
-            div("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded") {
-                h4("text-white font-weight-bolder text-center mt-2 mb-0") {
-                    div("row") {
-                        div("col text-center px-1 mb-3") {
+    private fun ChildrenBuilder.welcomeUserView() {
+        div {
+            className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
+            div {
+                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                h4 {
+                    className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
+                    div {
+                        className = ClassName("row")
+                        div {
+                            className = ClassName("col text-center px-1 mb-3")
                             fontAwesomeIcon(icon = faHome)
                         }
                     }
@@ -219,34 +256,40 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             }
         }
 
-        div("card-body") {
-            p("mt-4 text-sm") {
-                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                    attrs.href = "#/projects"
+        div {
+            className = ClassName("card-body")
+            p {
+                className = ClassName("mt-4 text-sm")
+                a {
+                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
+                    href = "#/projects"
                     h4 {
                         fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
                     }
                 }
 
-                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                    attrs.href = "/#/awesome-benchmarks"
+                a {
+                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
+                    href = "/#/awesome-benchmarks"
                     h4 {
                         fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
                         +"Benchmarks Archive"
                     }
                 }
 
-                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                    attrs.href = "/#/${props.userInfo?.name}/settings/email"
+                a {
+                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
+                    href = "/#/${props.userInfo?.name}/settings/email"
                     h4 {
                         fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
                     }
                 }
 
-                a(classes = "text-info text-gradient font-weight-bold ml-2 mr-2") {
-                    attrs.href = "/#/contests"
+                a {
+                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
+                    href = "/#/contests"
                     h4 {
                         fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
                         +"Contests"
@@ -256,36 +299,37 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    private fun RBuilder.marketingTitle(str: String) {
-        div("mb-0 mt-0") {
+    private fun ChildrenBuilder.marketingTitle(str: String) {
+        div {
+            className = ClassName("mb-0 mt-0")
             h1Bold(str[0].toString())
             h1Normal(str.substring(1, str.length))
         }
     }
 
-    private fun RBuilder.h1Bold(str: String) = h1 {
+    private fun ChildrenBuilder.h1Bold(str: String) = h1 {
         +str
-        attrs["style"] = jso<CSSProperties> {
+        style = jso {
             fontWeight = "bold".unsafeCast<FontWeight>()
             display = Display.inline
             fontSize = "4.5rem".unsafeCast<FontSize>()
         }
     }
 
-    private fun RBuilder.h1Normal(str: String) = h1 {
+    private fun ChildrenBuilder.h1Normal(str: String) = h1 {
         +str
-        attrs["style"] = jso<CSSProperties> {
+        style = jso {
             display = Display.inline
         }
     }
 
-    private fun RBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
-        div("col text-center px-1") {
-            a(
-                href = provider.authorizationLink,
-                classes = "btn btn-link px-3 text-white text-lg text-center"
-            ) {
-                attrs["style"] = jso<CSSProperties> {
+    private fun ChildrenBuilder.oauthLogin(provider: OauthProviderInfo, icon: dynamic) {
+        div {
+            className = ClassName("col text-center px-1")
+            a {
+                href = provider.authorizationLink
+                className = ClassName("btn btn-link px-3 text-white text-lg text-center")
+                style = jso {
                     fontSize = "3.2rem".unsafeCast<FontSize>()
                 }
                 fontAwesomeIcon(icon = icon)
@@ -293,7 +337,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
+    companion object :
+        RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
         init {
             contextType = requestStatusContext
         }

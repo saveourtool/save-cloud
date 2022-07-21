@@ -28,14 +28,13 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.dom.onClick
 
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [RProps] for card component
+ * [Props] for card component
  */
 external interface ManageUserRoleCardProps : Props {
     /**
@@ -75,7 +74,7 @@ external interface ManageUserRoleCardProps : Props {
 }
 
 /**
- * A functional `RComponent` for a card that shows users from the group and their permissions.
+ * A functional `Component` for a card that shows users from the group and their permissions.
  *
  * @return a functional component representing a role managing card
  */

@@ -29,7 +29,7 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
                 "bg-dark",
                 "",
                 "mb-3"
-            )
+                )
         }
 
         document.getElementById("content-wrapper")?.setAttribute(

@@ -26,25 +26,22 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
+import csstype.ClassName
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
-import react.Context
-import react.PropsWithChildren
-import react.RBuilder
-import react.RStatics
-import react.State
-import react.dom.a
-import react.dom.button
-import react.dom.div
-import react.dom.h1
-import react.dom.li
-import react.dom.nav
-import react.dom.p
-import react.setState
+import react.*
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.nav
+import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -52,9 +49,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
-import kotlinx.html.ButtonType
-import kotlinx.html.classes
-import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -427,7 +421,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             selectedSdk,
             state.execCmd,
             state.batchSizeForAnalyzer,
-            null
+            null,
+            null,
         )
         formData.appendJson("execution", request)
         state.files.forEach {
@@ -463,7 +458,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
-    override fun RBuilder.render() {
+    override fun ChildrenBuilder.render() {
         // modal windows are initially hidden
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
@@ -489,25 +484,31 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState { isConfirmWindowOpen = false }
         }
         // Page Heading
-        div("d-sm-flex align-items-center justify-content-center mb-4") {
-            h1("h3 mb-0 text-gray-800") {
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
+            h1 {
+                className = ClassName("h3 mb-0 text-gray-800")
                 +" Project ${state.project.name}"
             }
             privacySpan(state.project)
         }
 
-        div("row align-items-center justify-content-center") {
-            nav("nav nav-tabs mb-4") {
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            nav {
+                className = ClassName("nav nav-tabs mb-4")
                 ProjectMenuBar.values()
                     .filterNot {
                         (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
                     .forEachIndexed { i, projectMenu ->
-                        li("nav-item") {
+                        li {
+                            className = ClassName("nav-item")
                             val classVal =
                                     if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
-                            p("nav-link $classVal text-gray-800") {
-                                attrs.onClickFunction = {
+                            p {
+                                className = ClassName("nav-link $classVal text-gray-800")
+                                onClick = {
                                     if (state.selectedMenu != projectMenu) {
                                         setState {
                                             selectedMenu = projectMenu
@@ -533,16 +534,20 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    private fun RBuilder.renderRun() {
-        div("row justify-content-center ml-5") {
+    private fun ChildrenBuilder.renderRun() {
+        div {
+            className = ClassName("row justify-content-center ml-5")
             // ===================== LEFT COLUMN =======================================================================
-            div("col-2 mr-3") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+            div {
+                className = ClassName("col-2 mr-3")
+                div {
+                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Testing types"
                 }
 
                 typeSelection {
-                    div("text-left") {
+                    div {
+                        className = ClassName("text-left")
                         testingTypeButton(
                             TestingType.CUSTOM_TESTS,
                             "Evaluate your tool with your own tests from git",
@@ -562,22 +567,24 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
             // ===================== MIDDLE COLUMN =====================================================================
-            div("col-4") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+            div {
+                className = ClassName("col-4")
+                div {
+                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Test configuration"
                 }
 
                 // ======== file selector =========
-                child(fileUploader) {
-                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                    attrs.files = state.files
-                    attrs.availableFiles = state.availableFiles
-                    attrs.confirmationType = state.confirmationType
-                    attrs.suiteByteSize = state.suiteByteSize
-                    attrs.bytesReceived = state.bytesReceived
-                    attrs.isUploading = state.isUploading
-                    attrs.projectCoordinates = ProjectCoordinates(props.owner, props.name)
-                    attrs.onFileSelect = { element ->
+                fileUploader {
+                    isSubmitButtonPressed = state.isSubmitButtonPressed
+                    files = state.files
+                    availableFiles = state.availableFiles
+                    confirmationType = state.confirmationType
+                    suiteByteSize = state.suiteByteSize
+                    bytesReceived = state.bytesReceived
+                    isUploading = state.isUploading
+                    projectCoordinates = ProjectCoordinates(props.owner, props.name)
+                    onFileSelect = { element ->
                         setState {
                             val availableFile = availableFiles.first { it.name == element.value }
                             files.add(availableFile)
@@ -586,7 +593,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             availableFiles.remove(availableFile)
                         }
                     }
-                    attrs.onFileRemove = {
+                    onFileRemove = {
                         setState {
                             files.remove(it)
                             bytesReceived -= it.sizeBytes
@@ -594,9 +601,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             availableFiles.add(it)
                         }
                     }
-                    attrs.onFileInput = { postFileUpload(it) }
-                    attrs.onFileDelete = { postFileDelete(it) }
-                    attrs.onExecutableChange = { selectedFile, checked ->
+                    onFileInput = { postFileUpload(it) }
+                    onFileDelete = { postFileDelete(it) }
+                    onExecutableChange = { selectedFile, checked ->
                         setState {
                             files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
                         }
@@ -604,81 +611,87 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== sdk selection =========
-                child(sdkSelection) {
-                    attrs.selectedSdk = state.selectedSdk
-                    attrs.selectedSdkVersion = state.selectedSdkVersion
-                    attrs.onSdkChange = {
+                sdkSelection {
+                    selectedSdk = state.selectedSdk
+                    selectedSdkVersion = state.selectedSdkVersion
+                    onSdkChange = {
                         setState {
                             selectedSdk = it.value
                             selectedSdkVersion = selectedSdk.getSdkVersions().first()
                         }
                     }
-                    attrs.onVersionChange = { setState { selectedSdkVersion = it.value } }
+                    onVersionChange = { setState { selectedSdkVersion = it.value } }
                 }
 
                 // ======== test resources selection =========
-                child(testResourcesSelection) {
-                    attrs.testingType = state.testingType
-                    attrs.isSubmitButtonPressed = state.isSubmitButtonPressed
-                    attrs.gitDto = gitDto
+                testResourcesSelection {
+                    testingType = state.testingType
+                    isSubmitButtonPressed = state.isSubmitButtonPressed
+                    gitDto = gitDto
                     // properties for CUSTOM_TESTS mode
-                    attrs.testRootPath = state.testRootPath
-                    attrs.gitUrlFromInputField = state.gitUrlFromInputField
-                    attrs.gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
+                    testRootPath = state.testRootPath
+                    gitUrlFromInputField = state.gitUrlFromInputField
+                    gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
                     // properties for STANDARD_BENCHMARKS mode
-                    attrs.selectedStandardSuites = selectedStandardSuites
-                    attrs.standardTestSuites = standardTestSuites
-                    attrs.selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
-                    attrs.execCmd = state.execCmd
-                    attrs.batchSizeForAnalyzer = state.batchSizeForAnalyzer
+                    selectedStandardSuites = this@ProjectView.selectedStandardSuites
+                    standardTestSuites = this@ProjectView.standardTestSuites
+                    selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    execCmd = state.execCmd
+                    batchSizeForAnalyzer = state.batchSizeForAnalyzer
                 }
 
-                div("d-sm-flex align-items-center justify-content-center") {
-                    button(type = ButtonType.button, classes = "btn btn-primary") {
-                        attrs.onClickFunction = { submitWithValidation() }
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center")
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-primary")
+                        onClick = { submitWithValidation() }
                         +"Test the tool now"
                     }
                 }
             }
             // ===================== RIGHT COLUMN ======================================================================
-            div("col-3 ml-2") {
-                div("text-xs text-center font-weight-bold text-primary text-uppercase mb-3") {
+            div {
+                className = ClassName("col-3 ml-2")
+                div {
+                    className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Information"
-                    button(classes = "btn btn-link text-xs text-muted text-left p-1 ml-2") {
+                    button {
+                        className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
                         +"Edit  "
                         fontAwesomeIcon(icon = faEdit)
-                        attrs.onClickFunction = {
+                        onClick = {
                             turnEditMode(isOff = false)
                         }
                     }
                 }
 
                 projectInfoCard {
-                    child(projectInfo) {
-                        attrs {
-                            project = state.project
-                            isEditDisabled = state.isEditDisabled
-                        }
+                    projectInfo {
+                        project = state.project
+                        isEditDisabled = state.isEditDisabled
                     }
 
-                    div("ml-3 mt-2 align-items-left justify-content-between") {
+                    div {
+                        className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
                         fontAwesomeIcon(icon = faHistory)
 
-                        button(classes = "btn btn-link text-left") {
+                        button {
+                            className = ClassName("btn btn-link text-left")
                             +"Latest Execution"
-                            attrs.disabled = state.latestExecutionId == null
+                            disabled = state.latestExecutionId == null
 
-                            attrs.onClickFunction = {
+                            onClick = {
                                 window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
                             }
                         }
                     }
-                    div("ml-3 align-items-left") {
+                    div {
+                        className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
-                        a(
-                            href = "#/${state.project.organization.name}/${state.project.name}/history",
-                            classes = "btn btn-link text-left"
-                        ) {
+                        a {
+                            href = "#/${state.project.organization.name}/${state.project.name}/history"
+                            className = ClassName("btn btn-link text-left")
                             +"Execution History"
                         }
                     }
@@ -687,28 +700,28 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun RBuilder.renderStatistics() {
-        child(projectStatisticMenu) {
-            attrs.executionId = state.latestExecutionId
+    private fun ChildrenBuilder.renderStatistics() {
+        projectStatisticMenu {
+            executionId = state.latestExecutionId
         }
     }
 
-    private fun RBuilder.renderInfo() {
+    private fun ChildrenBuilder.renderInfo() {
         projectInfoMenu {
-            attrs.projectName = props.name
-            attrs.organizationName = props.owner
-            attrs.latestExecutionId = state.latestExecutionId
+            projectName = props.name
+            organizationName = props.owner
+            latestExecutionId = state.latestExecutionId
         }
     }
 
-    private fun RBuilder.renderSettings() {
-        child(projectSettingsMenu) {
-            attrs.project = state.project
-            attrs.currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
-            attrs.gitInitDto = gitDto
-            attrs.selfRole = state.selfRole
-            attrs.deleteProjectCallback = ::deleteProject
-            attrs.updateProjectSettings = { project ->
+    private fun ChildrenBuilder.renderSettings() {
+        projectSettingsMenu {
+            project = state.project
+            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            gitInitDto = gitDto
+            selfRole = state.selfRole
+            deleteProjectCallback = ::deleteProject
+            updateProjectSettings = { project ->
                 scope.launch {
                     val response = updateProject(project)
                     if (response.ok) {
@@ -718,19 +731,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
             }
-            attrs.updateGit = {
+            updateGit = {
                 setState {
                     gitDto = it
                 }
             }
-            attrs.updateErrorMessage = {
+            updateErrorMessage = {
                 setState {
                     errorLabel = "Failed to save project info"
                     errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
                     isErrorOpen = true
                 }
             }
-            attrs.updateNotificationMessage = ::showNotification
+            updateNotificationMessage = ::showNotification
         }
     }
 
@@ -797,19 +810,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
     }
 
-    private fun RBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
-        div(divClass) {
-            button(type = ButtonType.button) {
-                attrs.classes =
+    private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
+        div {
+            className = ClassName(divClass)
+            button {
+                type = ButtonType.button
+                className =
                         if (state.testingType == selectedTestingType) {
-                            setOf("btn", "btn-primary")
+                            ClassName("btn btn-primary")
                         } else {
-                            setOf(
-                                "btn",
-                                "btn-outline-primary"
-                            )
+                            ClassName("btn btn-outline-primary")
                         }
-                attrs.onClickFunction = {
+                onClick = {
                     setState {
                         testingType = selectedTestingType
                     }

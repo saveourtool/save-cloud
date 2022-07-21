@@ -144,6 +144,4 @@ external val faTrash: FontAwesomeIconModule
 @JsNonModule
 external val faBell: FontAwesomeIconModule
 
-@JsModule("@fortawesome/free-solid-svg-icons/faAngleDown")
-@JsNonModule
-external val faAnglesDown: FontAwesomeIconModule
+
