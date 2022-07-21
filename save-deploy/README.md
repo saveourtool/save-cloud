@@ -86,7 +86,7 @@ For example:<br/>
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
 
 #### Some workarounds:
-If setting `save-agnet`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
+If setting `save-agent`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
 Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be avaliable via TCP.
 Do not forget to use `mac` profile.
 
