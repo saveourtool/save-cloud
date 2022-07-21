@@ -209,6 +209,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                 onClick = {
                     enrollRequest()
                 }
+                disabled = projectName.isNullOrBlank() || organizationName.isNullOrBlank() || contestName.isNullOrBlank()
             }
         }
     }

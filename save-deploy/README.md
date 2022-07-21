@@ -78,12 +78,17 @@ If you run on windows, dependency `save-agent` is omitted because of problems wi
 To run on windows you need to compile save-agent on wsl and put saveAgentDistroFilepath to %USERPROFILE%\.gradle\gradle.properties <br/>
 For example: <br/> 
 `saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar` <br/>
-If you need to test changes in save-cli also you can compile snapshot version of save-cli on wsl <br/> 
+If you need to test changes in save-cli also you can compile snapshot version of save-cli on wsl <br/>
 and set saveCliPath and saveCliVersion in %USERPROFILE%\.gradle\gradle.properties <br/>
 For example:<br/>
 `saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable` <br/> 
 `saveCliVersion=0.4.0-alpha.0.42+78a24a8` <br/>
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>
+
+#### Some workarounds:
+If setting `save-agnet`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
+Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be avaliable via TCP.
+Do not forget to use `mac` profile.
 
 #### Note: 
 * This works only if snapshot version of save-core is set in lib.version.toml. 

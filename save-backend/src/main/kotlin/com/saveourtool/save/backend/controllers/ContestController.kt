@@ -39,7 +39,7 @@ internal class ContestController(
 
     /**
      * @param contestName
-     * @return Organization
+     * @return contest with name [contestName]
      */
     @GetMapping("/{contestName}")
     @PreAuthorize("permitAll()")
@@ -49,7 +49,7 @@ internal class ContestController(
     /**
      * @param pageSize amount of contests that should be taken
      * @param authentication an [Authentication] representing an authenticated request
-     * @return list of organization by owner id
+     * @return list of active contests
      */
     @GetMapping("/active")
     @PreAuthorize("permitAll()")
@@ -63,7 +63,7 @@ internal class ContestController(
     /**
      * @param pageSize amount of contests that should be taken
      * @param authentication an [Authentication] representing an authenticated request
-     * @return list of organization by owner id
+     * @return list of finished contests
      */
     @GetMapping("/finished")
     @PreAuthorize("permitAll()")
@@ -76,7 +76,7 @@ internal class ContestController(
 
     /**
      * @param contestName
-     * @return Organization
+     * @return [TestFilesContent] filled with public test
      */
     @GetMapping("/{contestName}/public-test")
     @PreAuthorize("permitAll()")

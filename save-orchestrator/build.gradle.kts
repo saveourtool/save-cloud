@@ -67,8 +67,8 @@ tasks.withType<Test> {
 dependencies {
     api(projects.saveCloudCommon)
     testImplementation(projects.testUtils)
-    if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
-        logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
+    if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
+        logger.warn("Dependency `save-agent` is omitted on Windows and Mac because of problems with linking in cross-compilation." +
                 " Task `:save-agent:copyAgentDistribution` would fail without correct libcurl.so. If your changes are about " +
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."

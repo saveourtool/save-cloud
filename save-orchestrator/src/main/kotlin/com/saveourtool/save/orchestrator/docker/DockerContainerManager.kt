@@ -66,6 +66,7 @@ class DockerContainerManager(
         val buildImageResultCallback: BuildImageResultCallback = try {
             val buildCmd = dockerClient.buildImageCmd(dockerFile)
                 .withBaseDirectory(tmpDir)
+                .withPlatform("linux/amd64")
                 .withTags(setOf(imageName))
                 .withLabels(mapOf("save-id" to imageName))
                 // this is required to be able to access host, e.g. if proxy running on the host is required during image build process
