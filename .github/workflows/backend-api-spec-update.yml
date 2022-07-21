@@ -22,17 +22,9 @@ jobs:
         run: |
           echo "Home directory is $HOME"
 
-      - name: Start backend
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          arguments: |
-            :save-backend:bootRun
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            -Pargs=--backend.fileStorage.location=${HOME}/cnb/files
-            -Dspring-boot.run.arguments=--backend.fileStorage.location=${HOME}/cnb/files
-            -Drun.arguments=--backend.fileStorage.location=${HOME}/cnb/files
+#-Pargs=--backend.fileStorage.location=${HOME}/cnb/files
+#-Dspring-boot.run.arguments=--backend.fileStorage.location=${HOME}/cnb/files
+#-Drun.arguments=--backend.fileStorage.location=${HOME}/cnb/files
 
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
