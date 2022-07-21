@@ -4,12 +4,12 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
+import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 
 import org.w3c.fetch.Response
 import react.*
-import react.dom.*
 
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
@@ -68,7 +68,7 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
-    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
+    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -85,13 +85,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.organizations }
-                showGlobalRoleWarning = {
-                    props.updateNotificationMessage(
-                        "Super admin message",
-                        "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-                    )
-                    setWasConfirmationModalShown(true)
-                }
+                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -107,13 +101,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.organizations }
-                showGlobalRoleWarning = {
-                    props.updateNotificationMessage(
-                        "Super admin message",
-                        "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
-                    )
-                    setWasConfirmationModalShown(true)
-                }
+                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         div {

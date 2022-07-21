@@ -18,3 +18,19 @@ fun runOnlyOnFirstRender(action: () -> Unit) {
         setFirstRender(false)
     }
 }
+
+/**
+ * @param updateNotificationMessage callback to show notification message
+ * @return current value and callback for showGlobalRoleWarning
+ */
+fun createGlobalRoleWarningCallback(updateNotificationMessage: (String, String) -> Unit): Pair<Boolean, () -> Unit> {
+    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
+    val showGlobalRoleWarning = {
+        updateNotificationMessage(
+            "Super admin message",
+            "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+        )
+        setWasConfirmationModalShown(true)
+    }
+    return wasConfirmationModalShown to showGlobalRoleWarning
+}

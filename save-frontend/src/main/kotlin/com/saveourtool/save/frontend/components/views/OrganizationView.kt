@@ -569,16 +569,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         it.decodeFromJsonString<ImageInfo>()
     }
 
-    private suspend fun getGits(): List<GitDto> = get(
-        url = "$apiUrl/organizations/${props.organizationName}/gits",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
-        loadingHandler = ::classLoadingHandler,
-    ).unsafeMap {
-        it.decodeFromJsonString()
-    }
-
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return
         div {

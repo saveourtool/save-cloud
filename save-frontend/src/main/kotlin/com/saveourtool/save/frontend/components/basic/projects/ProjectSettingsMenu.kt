@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
+import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -91,7 +92,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
-    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
+    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
 
     div {
         className = ClassName("row justify-content-center mb-2")
@@ -109,13 +110,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.projects }
-                showGlobalRoleWarning = {
-                    props.updateNotificationMessage(
-                        "Super admin message",
-                        "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
-                    )
-                    setWasConfirmationModalShown(true)
-                }
+                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
