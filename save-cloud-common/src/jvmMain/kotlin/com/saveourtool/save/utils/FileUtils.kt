@@ -21,7 +21,9 @@ private const val DEFAULT_BUFFER_SIZE = 4096
 fun Path.toDataBufferFlux(): Flux<DataBuffer> = if (exists()) {
     DataBufferUtils.read(this, DefaultDataBufferFactory.sharedInstance, DEFAULT_BUFFER_SIZE)
         .cast(DataBuffer::class.java)
-} else Flux.empty()
+} else {
+    Flux.empty()
+}
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes
