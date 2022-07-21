@@ -11,7 +11,8 @@ import kotlinx.serialization.Serializable
  * @property testRootPath [TestSuite.testRootPath]
  * @property testSuiteRepoUrl url of the repo with test suites
  * @property description [TestSuite.description]
- * @property language
+ * @property language [TestSuite.language]
+ * @property tags [TestSuite.tags]
  */
 @Serializable
 data class TestSuiteDto(
@@ -22,4 +23,5 @@ data class TestSuiteDto(
     val testRootPath: String,
     val testSuiteRepoUrl: String? = null,
     val language: String? = null,
+    val tags: String? = null,
 )

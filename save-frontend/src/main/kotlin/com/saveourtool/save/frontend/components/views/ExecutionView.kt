@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -240,7 +241,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 th {
                     colSpan = tableInstance.columns.size
                     testExecutionFiltersRow {
-                        filters = TestExecutionFilters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
+                        filters = state.filters
                         onChangeFilters = { filterValue ->
                             if (filterValue.status == null || filterValue.status?.name == "ANY") {
                                 setState {
@@ -304,7 +305,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.filters = TestExecutionFilters(null, null, null, null)
+        state.filters = TestExecutionFilters.empty
     }
 
     override fun componentDidMount() {
@@ -321,7 +322,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                filters.status = props.status
+                filters = TestExecutionFilters(status = props.status, fileName = "", testSuite = "", tag = "")
             }
         }
     }
@@ -382,7 +383,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
-                                                undefined,
+                                                body = undefined,
                                                 loadingHandler = ::classLoadingHandler,
                                             )
                                             if (response.ok) {
@@ -402,14 +403,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            filters = TestExecutionFilters(state.filters.status, state.filters.fileName, state.filters.testSuite, state.filters.tag)
+            filters = state.filters
             getData = { page, size ->
-                val paramString = stringValueStatusAndFileNameAndTestSuiteAndTag()
-                get(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$paramString&checkDebugInfo=true",
+                console.log("status = ${filters.status} , fileName = ${filters.fileName} , testSuite = ${filters.testSuite}, tag = ${filters.tag}")
+                post(
+                    url = "$apiUrl/filteredTestExecutions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
+                        set("Content-Type", "application/json")
                     },
+                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
                     Json.decodeFromString<Array<TestExecutionDto>>(
@@ -420,12 +423,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             getPageCount = { pageSize ->
-                val paramString = stringValueStatusAndFileNameAndTestSuiteAndTag()
-                val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$paramString",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
+                val count: Int = post(
+                    url = "$apiUrl/filteredTestExecutions?executionId=${props.executionId}&page=1&size=$pageSize&checkDebugInfo=true",
+                    headers = Headers().apply {
+                        set("Accept", "application/json")
+                        set("Content-Type", "application/json")
                     },
+                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 )
                     .json()
@@ -437,13 +441,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         executionTestsNotFound {
             executionDto = state.executionDto
         }
-    }
-
-    private fun stringValueStatusAndFileNameAndTestSuiteAndTag() = buildString {
-        state.filters.status?.let { append("&status=${state.filters.status}") }
-        state.filters.fileName?.let { append("&testFileName=${state.filters.fileName}") }
-        state.filters.testSuite?.let { append("&testSuiteName=${state.filters.testSuite}") }
-        state.filters.tag?.let { append("&tag=${state.filters.tag}") }
     }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {

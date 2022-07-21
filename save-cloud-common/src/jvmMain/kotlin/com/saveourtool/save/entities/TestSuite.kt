@@ -48,19 +48,20 @@ class TestSuite(
     /**
      * @return [tags] as a list of strings
      */
-    fun tagsAsList() = tags?.split(",")?.filter { it.isNotBlank() }.orEmpty()
+    fun tagsAsList() = tags?.split(",", ";")?.filter { it.isNotBlank() }.orEmpty()
 
     /**
      * @return Dto of testSuite
      */
     fun toDto() =
-            TestSuiteDto(
-                this.type,
-                this.name,
-                this.description,
-                this.project,
-                this.testRootPath,
-                this.testSuiteRepoUrl,
-                this.language,
-            )
+        TestSuiteDto(
+            this.type,
+            this.name,
+            this.description,
+            this.project,
+            this.testRootPath,
+            this.testSuiteRepoUrl,
+            this.language,
+            this.tags,
+        )
 }

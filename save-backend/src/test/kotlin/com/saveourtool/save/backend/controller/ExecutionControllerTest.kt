@@ -110,9 +110,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdateDto = ExecutionUpdateDto(
-            1, ExecutionStatus.FINISHED
-        )
+        val executionUpdateDto = ExecutionUpdateDto(1, ExecutionStatus.FINISHED)
 
         webClient.post()
             .uri("/internal/updateExecutionByDto")

@@ -54,34 +54,30 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
-     * @param status
-     * @param testFileName
-     * @param testSuiteName
-     * @param tag
+     * @param filters
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping("/api/$v1/filteredTestExecutions")
     @RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestParam(required = false) status: TestResultStatus?,
-        @RequestParam(required = false) testFileName: String?,
-        @RequestParam(required = false) testSuiteName: String?,
-        @RequestParam(required = false) tag: String?,
+        @RequestBody(required = false) filters: TestExecutionFilters = TestExecutionFilters.empty,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
     ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
+        //.also { println("status = ${filters.status} , fileName = ${filters.fileName} , testSuite = ${filters.testSuite}, tag = ${filters.tag}") }
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, TestExecutionFilters(status = status, fileName = testFileName, testSuite = testSuiteName, tag = tag))
+            testExecutionService.getTestExecutions(executionId, page, size, //TestExecutionFilters(status = status, fileName = testFileName, testSuite = testSuiteName, tag = tag)
+            filters)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

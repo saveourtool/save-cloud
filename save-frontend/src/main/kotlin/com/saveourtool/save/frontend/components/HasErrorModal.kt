@@ -52,7 +52,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
                 status = response.status,
             )
             404.toShort() -> ErrorModalState(
-                isErrorModalOpen = false,
+                isErrorModalOpen = true,
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,
@@ -143,7 +143,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
 
     requestStatusContext.Provider {
         value = contextPayload
-        +reactNode
+        +props.children
     }
 }
 
