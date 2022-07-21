@@ -8,6 +8,8 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.info
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
@@ -114,7 +116,7 @@ class TestSuitesService(
                 testSuiteDto.testRootPath,
                 testSuiteDto.testSuiteRepoUrl,
             )
-            log.info("Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete")
+            log.info { "Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete" }
             testSuite.type = TestSuiteType.OBSOLETE_STANDARD
             testSuiteRepository.save(testSuite)
         }
@@ -142,11 +144,11 @@ class TestSuitesService(
                 // Executions could be absent
                 testExecutionRepository.findByTestId(testId!!).ifPresent { testExecution ->
                     // Delete test executions
-                    log.debug("Delete test execution with id ${testExecution.id}")
+                    log.debug { "Delete test execution with id ${testExecution.id}" }
                     testExecutionRepository.deleteById(testExecution.id!!)
                 }
                 // Delete tests
-                log.debug("Delete test with id $testId")
+                log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
             log.info("Delete test suite ${testSuiteDto.name} with id $testSuiteId")
