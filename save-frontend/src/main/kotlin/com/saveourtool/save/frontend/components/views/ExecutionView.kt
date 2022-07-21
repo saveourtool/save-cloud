@@ -91,7 +91,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    //val(filters, setFilters) = react.useState(props.filters)
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -306,7 +305,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.filters = TestExecutionFilters(null, null,null,null)
+        state.filters = TestExecutionFilters(null, null, null, null)
     }
 
     override fun componentDidMount() {
