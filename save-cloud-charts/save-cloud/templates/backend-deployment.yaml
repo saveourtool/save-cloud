@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: backend
+  strategy:
+    # Because of shared volume with multi-attach problem
+    type: Recreate
   template:
     metadata:
       labels:
