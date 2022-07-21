@@ -305,7 +305,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.filters = TestExecutionFilters.empty
+        state.filters = TestExecutionFilters(null, null, null, null)
     }
 
     override fun componentDidMount() {
@@ -322,7 +322,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                filters = TestExecutionFilters(status = props.status, fileName = "", testSuite = "", tag = "")
+                filters.status = props.status
             }
         }
     }
