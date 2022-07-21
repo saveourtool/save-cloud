@@ -662,7 +662,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         className = ClassName("btn btn-primary")
                         a {
                             className = ClassName("text-light")
-                            href = "#/creation/"
+                            href = "#/create-project/"
                             +"+ New Tool"
                         }
                     }

@@ -18,14 +18,18 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
             Style(
                 "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))",
                 "",
-                "transparent"
+                "transparent",
+                "px-0",
+                ""
             )
         } else {
             Style(
                 "bg-light",
                 "bg-dark",
-                "bg-dark"
-            )
+                "bg-dark",
+                "",
+                "mb-3"
+                )
         }
 
         document.getElementById("content-wrapper")?.setAttribute(
@@ -36,12 +40,19 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
         val topBar = document.getElementById("navigation-top-bar")
         topBar?.setAttribute(
             "class",
-            "navbar navbar-expand ${style.topBarBgColor} navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
+            "navbar navbar-expand ${style.topBarBgColor} navbar-dark topbar ${style.marginBottomForTopBar} " +
+                    "static-top shadow mr-1 ml-1 rounded"
         )
 
         topBar?.setAttribute(
             "style",
             "background: ${style.topBarTransparency}"
+        )
+
+        val container = document.getElementById("common-save-container")
+        container?.setAttribute(
+            "class",
+            "container-fluid ${style.boarderForContainer}"
         )
     }
 
@@ -54,5 +65,7 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
         val globalBackground: String,
         val topBarBgColor: String,
         val topBarTransparency: String,
+        val boarderForContainer: String,
+        val marginBottomForTopBar: String,
     )
 }

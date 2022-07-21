@@ -305,7 +305,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 div {
                     className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("col-sm-4")
+                        className = ClassName("col-sm-4 mt-5")
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
@@ -320,7 +320,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         className = ClassName("btn btn-primary mb-2")
                                         a {
                                             className = ClassName("text-light")
-                                            href = "#/createOrganization/"
+                                            href = "#/create-organization/"
                                             +"Add new organization"
                                         }
                                     }

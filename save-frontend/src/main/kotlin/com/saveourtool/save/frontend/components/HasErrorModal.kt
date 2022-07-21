@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.externals.animations.ringLoader
 import com.saveourtool.save.frontend.externals.modal.modal
 
 import csstype.ClassName
@@ -14,6 +15,7 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
+import kotlinx.js.jso
 
 /**
  * Context to store data about current request such as errors and isLoading flag.
@@ -99,7 +101,12 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-4")
             div {
-                className = ClassName("spinner-border text-primary spinner-border-lg")
+                val ringLoaderOptions: dynamic = jso {
+                    this.size = 70
+                    this.loading = true
+                    this.color = "#3a00c2"
+                }
+                child(ringLoader(ringLoaderOptions))
                 span {
                     className = ClassName("sr-only")
                     +"Loading..."

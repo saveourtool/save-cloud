@@ -97,7 +97,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2 mr-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/creation/"
+                    href = "#/create-project/"
                     +"Add new tested tool"
                 }
             }
@@ -106,7 +106,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/createOrganization/"
+                    href = "#/create-organization/"
                     +"Add new organization"
                 }
             }

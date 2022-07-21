@@ -142,6 +142,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                         div {
                             className = ClassName("container-fluid")
+                            id = "common-save-container"
                             Routes {
                                 Route {
                                     path = "/"
@@ -189,12 +190,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/creation"
+                                    path = "/create-project"
                                     element = CreationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/createOrganization"
+                                    path = "/create-organization"
                                     element = CreateOrganizationView::class.react.create()
                                 }
 
