@@ -405,7 +405,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         testExecutionsTable {
             filters = state.filters
             getData = { page, size ->
-                console.log("status = ${filters.status} , fileName = ${filters.fileName} , testSuite = ${filters.testSuite}, tag = ${filters.tag}")
                 post(
                     url = "$apiUrl/filteredTestExecutions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
                     headers = Headers().apply {

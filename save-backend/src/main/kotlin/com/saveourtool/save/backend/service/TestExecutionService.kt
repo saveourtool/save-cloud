@@ -71,7 +71,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             wrappedTestSuiteName,
             wrappedTagValue,
             PageRequest.of(page, pageSize),
-        ) //.also { it.forEach { elem-> println("${elem.id} , ${elem.status} , ${elem.startTime} , ${elem.endTime} , ${elem.test} , ${elem.agent} , ${elem.execution}") } }
+        )  // .also { it.forEach { elem-> println("${elem.id} , ${elem.status} , ${elem.startTime} , ${elem.endTime} , ${elem.test} , ${elem.agent} , ${elem.execution}") } }
     }
 
     private fun wrapValue(value: String?) = value?.let {

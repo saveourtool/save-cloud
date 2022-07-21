@@ -70,14 +70,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
     ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
-        //.also { println("status = ${filters.status} , fileName = ${filters.fileName} , testSuite = ${filters.testSuite}, tag = ${filters.tag}") }
+        // .also { println("status = ${filters.status} , fileName = ${filters.fileName} , testSuite = ${filters.testSuite}, tag = ${filters.tag}") }
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
         }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, //TestExecutionFilters(status = status, fileName = testFileName, testSuite = testSuiteName, tag = tag)
-            filters)
+            testExecutionService.getTestExecutions(executionId, page, size,  // TestExecutionFilters(status = status, fileName = testFileName, testSuite = testSuiteName, tag = tag)
+                filters)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

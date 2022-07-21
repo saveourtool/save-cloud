@@ -54,14 +54,14 @@ class TestSuite(
      * @return Dto of testSuite
      */
     fun toDto() =
-        TestSuiteDto(
-            this.type,
-            this.name,
-            this.description,
-            this.project,
-            this.testRootPath,
-            this.testSuiteRepoUrl,
-            this.language,
-            this.tags,
-        )
+            TestSuiteDto(
+                this.type,
+                this.name,
+                this.description,
+                this.project,
+                this.testRootPath,
+                this.testSuiteRepoUrl,
+                this.language,
+                this.tags,
+            )
 }
