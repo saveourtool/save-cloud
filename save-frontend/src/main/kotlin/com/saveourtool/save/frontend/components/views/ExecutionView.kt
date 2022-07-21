@@ -91,6 +91,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+    //val(filters, setFilters) = react.useState(props.filters)
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -245,38 +246,38 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         onChangeFilters = { filterValue ->
                             if (filterValue.status == null || filterValue.status?.name == "ANY") {
                                 setState {
-                                    filters.status = null
+                                    filters = filters.copy(status = null)
                                 }
                             } else {
                                 setState {
-                                    filters.status = filterValue.status
+                                    filters = filters.copy(status = filterValue.status)
                                 }
                             }
                             if (filterValue.fileName?.isEmpty() == true) {
                                 setState {
-                                    filters.fileName = null
+                                    filters = filters.copy(fileName = null)
                                 }
                             } else {
                                 setState {
-                                    filters.fileName = filterValue.fileName
+                                    filters = filters.copy(fileName = filterValue.fileName)
                                 }
                             }
                             if (filterValue.testSuite?.isEmpty() == true) {
                                 setState {
-                                    filters.testSuite = null
+                                    filters = filters.copy(testSuite = null)
                                 }
                             } else {
                                 setState {
-                                    filters.testSuite = filterValue.testSuite
+                                    filters = filters.copy(testSuite = filterValue.testSuite)
                                 }
                             }
                             if (filterValue.tag?.isEmpty() == true) {
                                 setState {
-                                    filters.tag = null
+                                    filters = filters.copy(tag = null)
                                 }
                             } else {
                                 setState {
-                                    filters.tag = filterValue.tag
+                                    filters = filters.copy(tag = filterValue.tag)
                                 }
                             }
                         }
@@ -299,7 +300,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getAdditionalDependencies = {
-            arrayOf(it.filters.status, it.filters.fileName, it.filters.testSuite, it.filters.tag)
+            arrayOf(it.filters)
         }
     )
 
@@ -322,7 +323,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                filters.status = props.status
+                filters = filters.copy(status = props.status)
             }
         }
     }

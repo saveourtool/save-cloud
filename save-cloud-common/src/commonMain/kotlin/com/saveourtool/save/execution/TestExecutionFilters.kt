@@ -12,13 +12,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class TestExecutionFilters(
-    var status: TestResultStatus?,
+    val status: TestResultStatus?,
 
-    var fileName: String?,
+    val fileName: String?,
 
-    var testSuite: String?,
+    val testSuite: String?,
 
-    var tag: String?,
+    val tag: String?,
 ) {
     companion object {
         val empty = TestExecutionFilters(status = null, fileName = "", testSuite = "", tag = "")

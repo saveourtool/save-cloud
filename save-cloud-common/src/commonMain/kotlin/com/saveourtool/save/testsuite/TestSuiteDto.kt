@@ -23,5 +23,5 @@ data class TestSuiteDto(
     val testRootPath: String,
     val testSuiteRepoUrl: String? = null,
     val language: String? = null,
-    val tags: String? = null,
+    val tags: List<String>? = null,
 )

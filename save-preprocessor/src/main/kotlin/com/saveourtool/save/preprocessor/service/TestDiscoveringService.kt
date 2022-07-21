@@ -73,6 +73,7 @@ class TestDiscoveringService {
                 testRootPath,
                 testSuiteRepoUrl,
                 config.language,
+                config.tags
             )
         }
         .distinct()

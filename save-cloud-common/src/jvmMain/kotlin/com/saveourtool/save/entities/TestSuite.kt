@@ -62,6 +62,6 @@ class TestSuite(
                 this.testRootPath,
                 this.testSuiteRepoUrl,
                 this.language,
-                this.tags,
+                this.tagsAsList(),
             )
 }
