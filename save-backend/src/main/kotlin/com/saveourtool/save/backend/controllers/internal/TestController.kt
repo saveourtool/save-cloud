@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.Test
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.trace
 
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
@@ -31,7 +32,8 @@ class TestController(
      */
     @PostMapping("/initializeTests")
     fun initializeTests(@RequestBody testDtos: List<TestDto>) {
-        log.debug { "Received the following tests for initialization: $testDtos" }
+        log.debug { "Received ${testDtos.size} tests for initialization" }
+        log.trace { "Received the following tests for initialization: $testDtos" }
         meterRegistry.timer("save.backend.saveTests").record {
             testService.saveTests(testDtos)
         }

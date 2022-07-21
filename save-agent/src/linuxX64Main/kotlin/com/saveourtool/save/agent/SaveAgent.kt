@@ -158,7 +158,8 @@ class SaveAgent(internal val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        logInfoCustom("Starting SAVE with provided args $cliArgs")
+        val pwd = FileSystem.SYSTEM.canonicalize(".".toPath())
+        logInfoCustom("Starting SAVE in $pwd with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val saveCliLogFilePath = config.logFilePath

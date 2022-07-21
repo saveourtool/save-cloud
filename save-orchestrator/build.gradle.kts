@@ -69,7 +69,7 @@ dependencies {
     testImplementation(projects.testUtils)
     if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) {
         logger.warn("Dependency `save-agent` is omitted on Windows because of problems with linking in cross-compilation." +
-                " Task `:save-agent:linkReleaseExecutableLinuxX64` would fail without correct libcurl.so. If your changes are about " +
+                " Task `:save-agent:copyAgentDistribution` would fail without correct libcurl.so. If your changes are about " +
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )

@@ -251,6 +251,9 @@ class DownloadProjectController(
         .retrieve()
         .bodyToMono<List<TestSuiteDto>>()
         .map { existingSuites ->
+            if (newTestSuites.isEmpty()) {
+                log.warn("No new test suites have been provided, will mark all standard test suites as obsolete")
+            }
             existingSuites.filter { it !in newTestSuites }
         }
         .flatMap { obsoleteSuites ->
@@ -419,7 +422,7 @@ class DownloadProjectController(
         .toFlux()
         .buffer(TESTS_BUFFER_SIZE)
         .doOnNext {
-            log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+            log.debug { "Processing chunk of tests [${it.first()} ... ${it.last()}]" }
         }
         .flatMap { testDtos ->
             webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {
