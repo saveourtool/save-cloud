@@ -22,12 +22,6 @@ openApi {
     bootRun.jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
 }
 
-kotlin {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-    }
-}
-
 configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
