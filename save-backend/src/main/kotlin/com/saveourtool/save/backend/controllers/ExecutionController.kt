@@ -333,7 +333,6 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .orEmpty()
 
-
     @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPath(): String = getTestRootPathByTestSuites()
         .distinct()

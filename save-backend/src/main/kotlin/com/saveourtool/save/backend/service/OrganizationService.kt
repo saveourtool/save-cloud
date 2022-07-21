@@ -62,8 +62,8 @@ class OrganizationService(
      * @return organization by name
      * @throws NoSuchElementException
      */
-    fun getByName(organizationName: String) = findByName(organizationName)
-        ?: throw NoSuchElementException("There is no organization with name $organizationName.")
+    fun getByName(name: String) = findByName(name)
+        ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
      * @param organization

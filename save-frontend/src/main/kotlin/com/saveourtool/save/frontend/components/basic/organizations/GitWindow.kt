@@ -21,7 +21,7 @@ import react.dom.html.ReactHTML.input
 /**
  * Component that allows to change git settings in ManageGitCredentialsCard.kt
  */
-val gitWindow = gitWindow()
+val gitWindow = createGitWindow()
 
 /**
  * RunSettingGitWindow component props
@@ -53,12 +53,24 @@ external interface GitWindowProps : Props {
     var setClosedState: () -> Unit
 }
 
+private fun GitDto?.toMutableMap(): MutableMap<InputTypes, String> = mutableMapOf<InputTypes, String>().also {
+    it[InputTypes.GIT_URL] = this?.url ?: ""
+    it[InputTypes.GIT_USER] = this?.username ?: ""
+    it[InputTypes.GIT_TOKEN] = this?.password ?: ""
+}
+
+private fun MutableMap<InputTypes, String>.toGitDto(): GitDto = GitDto(
+    url = getValue(InputTypes.GIT_URL),
+    username = getValue(InputTypes.GIT_USER),
+    password = getValue(InputTypes.GIT_TOKEN),
+)
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
     "LongMethod",
 )
-private fun gitWindow() = FC<GitWindowProps> { props ->
+private fun createGitWindow() = FC<GitWindowProps> { props ->
     val fieldsWithGitInfo = props.gitDto.toMutableMap()
 
     modal { modalProps ->
@@ -142,17 +154,3 @@ private fun gitWindow() = FC<GitWindowProps> { props ->
         }
     }
 }
-
-private fun GitDto?.toMutableMap(): MutableMap<InputTypes, String> = mutableMapOf<InputTypes, String>().also {
-    it[InputTypes.GIT_URL] = this?.url ?: ""
-    it[InputTypes.GIT_USER] = this?.username ?: ""
-    it[InputTypes.GIT_TOKEN] = this?.password ?: ""
-}
-
-private fun MutableMap<InputTypes, String>.toGitDto(): GitDto = GitDto(
-    url = getValue(InputTypes.GIT_URL),
-    username = getValue(InputTypes.GIT_USER),
-    password = getValue(InputTypes.GIT_TOKEN),
-)
-
-

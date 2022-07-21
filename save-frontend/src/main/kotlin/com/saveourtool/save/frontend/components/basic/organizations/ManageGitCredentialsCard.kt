@@ -1,3 +1,9 @@
+/**
+ * This file contains function to create ManageGitCredentialsCard
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
@@ -6,20 +12,33 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
+
 import csstype.ClassName
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.FC
 import react.Props
+import react.StateSetter
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.useState
 
-external interface ManageGitCredentialsCardProps: Props {
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+private val headers = Headers().apply {
+    set("Accept", "application/json")
+    set("Content-Type", "application/json")
+}
+
+typealias RequestWithDependency<R> = Triple<R, StateSetter<R>, () -> Unit>
+
+/**
+ * Props for ManageGitCredentialsCard
+ */
+external interface ManageGitCredentialsCardProps : Props {
     /**
      * Information about user who is seeing the view
      */
@@ -51,14 +70,16 @@ external interface ManageGitCredentialsCardProps: Props {
     var showGlobalRoleWarning: () -> Unit
 }
 
+/**
+ * @return ManageGitCredentialsCard
+ */
+@Suppress("TOO_LONG_FUNCTION")
 fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { props ->
     val (selfRole, setSelfRole) = useState(Role.NONE)
     useRequest(isDeferred = false) {
         val role = get(
             "$apiUrl/organizations/${props.organizationName}/users/roles",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = headers,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -71,59 +92,13 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }()
 
-    val (gitCredentials, setGitCredentials) = useState(emptyList<GitDto>())
-    val fetchGitCredentials = useRequest {
-        get(
-            "$apiUrl/organizations/${props.organizationName}/list-git",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
-            loadingHandler = ::loadingHandler,
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<List<GitDto>>()
-            }.let {
-                setGitCredentials(it)
-            }
-    }
+    val (gitCredentials, _, fetchGitCredentialsRequest) = prepareFetchGitCredentials(props.organizationName)
 
-    val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto?>(null)
-    val upsertGitCredential = useRequest(dependencies = arrayOf(gitCredentialToUpsert)) {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
-        val response = post(
-            "$apiUrl/organizations/${props.organizationName}/upsert-git",
-            headers = headers,
-            body = Json.encodeToString(requireNotNull(gitCredentialToUpsert)),
-            loadingHandler = ::loadingHandler,
-        )
-        if (!response.ok) {
-            props.updateErrorMessage(response)
-        } else {
-            fetchGitCredentials()
-        }
-    }
+    val (gitCredentialToUpsert, setGitCredentialToUpsert, upsertGitCredentialRequest) =
+            prepareUpsertGitCredential(props.organizationName, props.updateErrorMessage, fetchGitCredentialsRequest)
 
-    val (gitCredentialToDelete, setGitCredentialToDelete) = useState(GitDto("https://github.com/"))
-    val deleteGitCredential = useRequest(dependencies = arrayOf(gitCredentialToDelete)) {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
-        val response = delete(
-            url = "$apiUrl/organizations/${props.organizationName}/delete-git?url=${gitCredentialToDelete.url}",
-            headers = headers,
-            body = undefined,
-            loadingHandler = ::loadingHandler,
-        )
-        if (!response.ok) {
-            props.updateErrorMessage(response)
-        } else {
-            fetchGitCredentials()
-        }
-    }
+    val (gitCredentialToDelete, setGitCredentialToDelete, deleteGitCredentialRequest) =
+            prepareDeleteGitCredential(props.organizationName, props.updateErrorMessage, fetchGitCredentialsRequest)
 
     val (isGitWindowOpened, setGitWindowOpened) = useState(false)
     gitWindow {
@@ -132,7 +107,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         gitDto = gitCredentialToUpsert
         onGitUpdate = {
             setGitCredentialToUpsert(it)
-            upsertGitCredential()
+            upsertGitCredentialRequest()
         }
         setClosedState = {
             setGitWindowOpened(false)
@@ -148,7 +123,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         closeButtonLabel = "Cancel",
         handlerClose = { setConfirmDeleteGitCredentialWindowOpened(false) }) {
         // delete and close
-        deleteGitCredential()
+        deleteGitCredentialRequest()
         setConfirmDeleteGitCredentialWindowOpened(false)
     }
 
@@ -202,6 +177,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 }
             }
         }
+        @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
         hr {}
         div {
             className = ClassName("row d-flex justify-content-center")
@@ -220,9 +196,73 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         }
     }
 
-    val (isFirstRender, setFirstRender) = useState(true)
-    if (isFirstRender) {
-        fetchGitCredentials()
-        setFirstRender(false)
+    runOnlyOnFirstRender {
+        fetchGitCredentialsRequest()
     }
+}
+
+@Suppress("TYPE_ALIAS")
+private fun prepareFetchGitCredentials(organizationName: String): RequestWithDependency<List<GitDto>> {
+    val (gitCredentials, setGitCredentials) = useState(emptyList<GitDto>())
+    val fetchGitCredentialsRequest = useRequest {
+        get(
+            "$apiUrl/organizations/$organizationName/list-git",
+            headers = headers,
+            loadingHandler = ::loadingHandler,
+        )
+            .unsafeMap {
+                it.decodeFromJsonString<List<GitDto>>()
+            }.let {
+                setGitCredentials(it)
+            }
+    }
+    return Triple(gitCredentials, setGitCredentials, fetchGitCredentialsRequest)
+}
+
+private fun prepareUpsertGitCredential(
+    organizationName: String,
+    updateErrorMessage: (Response) -> Unit,
+    fetchGitCredentialsRequest: () -> Unit
+): RequestWithDependency<GitDto?> {
+    val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto?>(null)
+    val upsertGitCredentialRequest = useRequest(dependencies = arrayOf(gitCredentialToUpsert)) {
+        val headers = Headers().apply {
+            set("Accept", "application/json")
+            set("Content-Type", "application/json")
+        }
+        val response = post(
+            "$apiUrl/organizations/$organizationName/upsert-git",
+            headers = headers,
+            body = Json.encodeToString(requireNotNull(gitCredentialToUpsert)),
+            loadingHandler = ::loadingHandler,
+        )
+        if (!response.ok) {
+            updateErrorMessage(response)
+        } else {
+            fetchGitCredentialsRequest()
+        }
+    }
+    return Triple(gitCredentialToUpsert, setGitCredentialToUpsert, upsertGitCredentialRequest)
+}
+
+private fun prepareDeleteGitCredential(
+    organizationName: String,
+    updateErrorMessage: (Response) -> Unit,
+    fetchGitCredentialsRequest: () -> Unit
+): RequestWithDependency<GitDto> {
+    val (gitCredentialToDelete, setGitCredentialToDelete) = useState(GitDto("N/A"))
+    val deleteGitCredentialRequest = useRequest(dependencies = arrayOf(gitCredentialToDelete)) {
+        val response = delete(
+            url = "$apiUrl/organizations/$organizationName/delete-git?url=${gitCredentialToDelete.url}",
+            headers = headers,
+            body = undefined,
+            loadingHandler = ::loadingHandler,
+        )
+        if (!response.ok) {
+            updateErrorMessage(response)
+        } else {
+            fetchGitCredentialsRequest()
+        }
+    }
+    return Triple(gitCredentialToDelete, setGitCredentialToDelete, deleteGitCredentialRequest)
 }

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service
  */
 @Service
 class GitService(private val gitRepository: GitRepository) {
-
     /**
      * @param organization
      * @return list of gits by organization if exists
@@ -20,6 +19,7 @@ class GitService(private val gitRepository: GitRepository) {
 
     /**
      * @param organization
+     * @param url
      * @return list of gits by organization if exists
      */
     fun getByOrganizationAndUrl(organization: Organization, url: String): Git = gitRepository.findByOrganizationAndUrl(organization, url)
@@ -31,14 +31,14 @@ class GitService(private val gitRepository: GitRepository) {
      * @return saved or updated git
      */
     fun upsert(organization: Organization, gitDto: GitDto): Git =
-        Git(
-            url = gitDto.url,
-            username = gitDto.username,
-            password = gitDto.password,
-            organization = organization,
-        ).also {
-            it.id = gitRepository.findByOrganizationAndUrl(organization, gitDto.url)?.id
-        }.let { gitRepository.save(it) }
+            Git(
+                url = gitDto.url,
+                username = gitDto.username,
+                password = gitDto.password,
+                organization = organization,
+            ).also {
+                it.id = gitRepository.findByOrganizationAndUrl(organization, gitDto.url)?.id
+            }.let { gitRepository.save(it) }
 
     /**
      * @param organization

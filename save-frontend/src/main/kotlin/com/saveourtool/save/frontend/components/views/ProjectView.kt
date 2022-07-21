@@ -374,9 +374,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.CUSTOM_TESTS -> {
-                submitExecutionRequestWithCustomTests()
-            }
+            TestingType.CUSTOM_TESTS -> submitExecutionRequestWithCustomTests()
             else -> {
                 if (selectedStandardSuites.isEmpty()) {
                     setState {

@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
-import javax.persistence.OneToOne
 
 /**
  * Data class with repository information
