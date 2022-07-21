@@ -40,6 +40,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -200,6 +202,7 @@ class AgentsControllerTest {
         val filePath = configProperties.executionLogs + File.separator + fileName
         val file = File(filePath)
         if (!file.exists()) {
+            Files.createDirectories(Paths.get(configProperties.executionLogs))
             file.createNewFile()
         }
 

@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
@@ -152,10 +151,12 @@ class AgentsController(
         ExecutionType.GIT -> webClientBackend.post()
             .uri("/findTestRootPathForExecutionByTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
+            .bodyValue(execution)
             .retrieve()
             .bodyToMono<List<String>>()
-            .map { it.distinct().single() }
+            .map {
+                it.distinct().single()
+            }
         else -> throw NotImplementedError("Not supported executionType ${execution.type}")
     }
 
