@@ -16,7 +16,7 @@ openApi {
     apiDocsUrl.set("http://localhost:5800/internal/v3/api-docs/latest")
     outputDir.set(file("$rootDir"))
     outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
-    waitTimeInSeconds.set(60)
+    waitTimeInSeconds.set(100)
 }
 
 configureSpringBoot(true)
