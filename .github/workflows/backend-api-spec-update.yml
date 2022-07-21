@@ -22,6 +22,11 @@ jobs:
         run: |
           echo "Home directory is $HOME"
 
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
       - name: Echo java version
         run: |
           java --version
