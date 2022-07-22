@@ -6,7 +6,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
