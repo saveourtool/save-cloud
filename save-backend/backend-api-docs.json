@@ -6,16 +6,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000",
+      "url": "http://localhost:5800",
       "description": "Generated server url"
-    }
-  ],
-  "tags": [
-    {
-      "name": "api"
-    },
-    {
-      "name": "permissions"
     }
   ],
   "paths": {
@@ -32,6 +24,46 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userName}/save/token": {
+      "post": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "saveUserToken",
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -57,7 +89,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -65,7 +104,7 @@
     "/api/v1/testExecutions": {
       "get": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutions",
         "parameters": [
@@ -120,11 +159,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "checkDebugInfo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -136,11 +190,16 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutionByLocation",
         "parameters": [
@@ -152,6 +211,12 @@
               "type": "integer",
               "format": "int64"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -165,8 +230,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -175,7 +240,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/submitExecutionRequest": {
@@ -199,7 +269,7 @@
                   "file": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/components/schemas/FileInfo"
+                      "$ref": "#/components/schemas/ShortFileInfo"
                     }
                   }
                 }
@@ -252,67 +322,7 @@
         }
       }
     },
-    "/api/v1/projects/update": {
-      "post": {
-        "tags": [
-          "project-controller"
-        ],
-        "operationId": "updateProject",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Project"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/projects/save": {
-      "post": {
-        "tags": [
-          "project-controller"
-        ],
-        "operationId": "saveProject",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewProjectDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/projects/roles/{organizationName}/{projectName}": {
+    "/api/v1/projects/{organizationName}/{projectName}/users/roles": {
       "get": {
         "tags": [
           "permissions",
@@ -321,11 +331,6 @@
         "description": "Get role for a user on a particular project. Returns self role if no userName is set.",
         "operationId": "getRole",
         "parameters": [
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true
-          },
           {
             "name": "organizationName",
             "in": "path",
@@ -349,6 +354,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
@@ -419,11 +430,6 @@
         "operationId": "setRole",
         "parameters": [
           {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true
-          },
-          {
             "name": "organizationName",
             "in": "path",
             "required": true,
@@ -438,6 +444,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -451,8 +463,8 @@
           "required": true
         },
         "responses": {
-          "404": {
-            "description": "Requested user or project doesn\u0027t exist",
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
             "content": {
               "*/*": {
                 "schema": {
@@ -461,8 +473,8 @@
               }
             }
           },
-          "403": {
-            "description": "User doesn\u0027t have permissions to manage this organization members",
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist",
             "content": {
               "*/*": {
                 "schema": {
@@ -499,6 +511,107 @@
         ]
       }
     },
+    "/api/v1/projects/update": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "updateProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/update/git": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "updateGit",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/save": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "saveProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/projects/git": {
       "post": {
         "tags": [
@@ -522,6 +635,135 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/GitDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users/roles": {
+      "get": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "getRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched user\u0027s role",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "setRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members"
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist"
+          },
+          "200": {
+            "description": "Permission added"
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/update": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "updateOrganization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -577,7 +819,7 @@
           {
             "name": "type",
             "in": "query",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "enum": [
@@ -619,12 +861,39 @@
         }
       }
     },
-    "/api/v1/files/upload": {
+    "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "tags": [
           "download-files-controller"
         ],
         "operationId": "upload",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnShortFileInfo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -649,7 +918,153 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileInfo"
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/download": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "download",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/get-execution-info": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "getExecutionInfo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestExecutionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -679,7 +1094,41 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -709,7 +1158,7 @@
                   "file": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/components/schemas/FileInfo"
+                      "$ref": "#/components/schemas/ShortFileInfo"
                     }
                   }
                 }
@@ -917,10 +1366,37 @@
         }
       }
     },
+    "/api/v1/users/global-role": {
+      "get": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "getSelfGlobalRole",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/testLatestExecutions": {
       "get": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutionsByStatus",
         "parameters": [
@@ -967,11 +1443,17 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -983,13 +1465,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/testExecution/count": {
       "get": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutionsCount",
         "parameters": [
@@ -1026,11 +1513,17 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1040,7 +1533,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/": {
@@ -1084,6 +1582,55 @@
           {
             "name": "projectName",
             "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/users/not-from": {
+      "get": {
+        "tags": [
+          "lnk-user-project-controller"
+        ],
+        "operationId": "getAllUsersNotFromProjectWithNamesStartingWith",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prefix",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "string"
@@ -1201,28 +1748,19 @@
         }
       }
     },
-    "/api/v1/projects/get/organization-id": {
+    "/api/v1/projects/get/not-deleted-projects-by-organization": {
       "get": {
         "tags": [
           "project-controller"
         ],
-        "operationId": "getProjectByNameAndOrganizationId",
+        "operationId": "getNonDeletedProjectsByOrganizationName",
         "parameters": [
           {
-            "name": "name",
+            "name": "organizationName",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "organizationId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
             }
           }
         ],
@@ -1232,7 +1770,10 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
                 }
               }
             }
@@ -1255,6 +1796,103 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users": {
+      "get": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "getAllUsersByOrganizationName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users/not-from": {
+      "get": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "getAllUsersNotFromOrganizationWithNamesStartingWith",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/by-user/not-deleted": {
+      "get": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "getOrganizationWithRoles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
                   }
                 }
               }
@@ -1362,12 +2000,11 @@
             }
           },
           {
-            "name": "organizationId",
+            "name": "organizationName",
             "in": "query",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
             }
           }
         ],
@@ -1385,12 +2022,61 @@
         }
       }
     },
-    "/api/v1/files/list": {
+    "/api/v1/getTestRootPathByExecutionId": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getTestRootPathByExecutionId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/list": {
       "get": {
         "tags": [
           "download-files-controller"
         ],
         "operationId": "list",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1400,40 +2086,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/FileInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/files/download": {
-      "get": {
-        "tags": [
-          "download-files-controller"
-        ],
-        "operationId": "download",
-        "parameters": [
-          {
-            "name": "fileInfo",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/FileInfo"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "byte"
                   }
                 }
               }
@@ -1514,6 +2166,340 @@
         }
       }
     },
+    "/api/v1/contests/{organizationName}/{projectName}/eligible-contests": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getAvaliableContestsForProject",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{organizationName}/{projectName}/best": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getBestProjectContests",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 4
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}": {
+      "get": {
+        "tags": [
+          "contest-controller"
+        ],
+        "operationId": "getContestByName",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/scores": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getRatingsInContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/public-test": {
+      "get": {
+        "tags": [
+          "contest-controller"
+        ],
+        "operationId": "getPublicTestForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/enroll": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "enrollForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/eligible-projects": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getAvaliableProjectsForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/finished": {
+      "get": {
+        "tags": [
+          "contest-controller"
+        ],
+        "operationId": "getFinishedContests",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/active": {
+      "get": {
+        "tags": [
+          "contest-controller"
+        ],
+        "operationId": "getContestsInProgress",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/check-git-connectivity-adaptor": {
       "get": {
         "tags": [
@@ -1582,6 +2568,246 @@
           }
         }
       }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
+      "delete": {
+        "tags": [
+          "permissions",
+          "api"
+        ],
+        "description": "Removes user\u0027s role on a particular project",
+        "operationId": "removeRole",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Permission removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/delete": {
+      "delete": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "deleteProject",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users/roles/{userName}": {
+      "delete": {
+        "tags": [
+          "lnk-user-organization-controller"
+        ],
+        "operationId": "removeRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members"
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist"
+          },
+          "200": {
+            "description": "Permission removed"
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/delete": {
+      "delete": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "deleteOrganization",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
+      "delete": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creationTimestamp",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1592,6 +2818,7 @@
       "UserInfo": {
         "required": [
           "name",
+          "organizations",
           "projects"
         ],
         "type": "object",
@@ -1603,6 +2830,19 @@
             "type": "string"
           },
           "projects": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          },
+          "organizations": {
             "type": "object",
             "additionalProperties": {
               "type": "string",
@@ -1635,6 +2875,16 @@
           },
           "twitter": {
             "type": "string"
+          },
+          "globalRole": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "NONE",
+              "OWNER",
+              "SUPER_ADMIN",
+              "VIEWER"
+            ]
           }
         }
       },
@@ -1708,13 +2958,28 @@
               "type": "string"
             }
           },
-          "missingWarnings": {
+          "unmatched": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
-          "matchedWarnings": {
+          "matched": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
+          },
+          "expected": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpected": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasDebugInfo": {
+            "type": "boolean"
+          },
+          "executionId": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -1770,12 +3035,20 @@
       },
       "Organization": {
         "required": [
-          "name"
+          "name",
+          "status"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
           },
           "ownerId": {
             "type": "integer",
@@ -1786,6 +3059,9 @@
             "format": "date-time"
           },
           "avatar": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "id": {
@@ -1863,46 +3139,18 @@
           }
         }
       },
-      "FileInfo": {
+      "ShortFileInfo": {
         "required": [
           "isExecutable",
-          "name",
-          "sizeBytes",
-          "uploadedMillis"
+          "name"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "sizeBytes": {
-            "type": "integer",
-            "format": "int64"
-          },
           "isExecutable": {
             "type": "boolean"
-          }
-        }
-      },
-      "NewProjectDto": {
-        "required": [
-          "organizationName",
-          "project"
-        ],
-        "type": "object",
-        "properties": {
-          "project": {
-            "$ref": "#/components/schemas/Project"
-          },
-          "organizationName": {
-            "type": "string"
-          },
-          "gitDto": {
-            "$ref": "#/components/schemas/GitDto"
           }
         }
       },
@@ -1928,6 +3176,24 @@
           }
         }
       },
+      "NewProjectDto": {
+        "required": [
+          "organizationName",
+          "project"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "gitDto": {
+            "$ref": "#/components/schemas/GitDto"
+          }
+        }
+      },
       "ImageInfo": {
         "type": "object",
         "properties": {
@@ -1936,18 +3202,43 @@
           }
         }
       },
+      "FileInfo": {
+        "required": [
+          "isExecutable",
+          "name",
+          "sizeBytes",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isExecutable": {
+            "type": "boolean"
+          }
+        }
+      },
       "ExecutionRequestForStandardSuites": {
         "required": [
           "project",
           "sdk",
-          "testsSuites"
+          "testSuites"
         ],
         "type": "object",
         "properties": {
           "project": {
             "$ref": "#/components/schemas/Project"
           },
-          "testsSuites": {
+          "testSuites": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1961,12 +3252,23 @@
           },
           "batchSizeForAnalyzer": {
             "type": "string"
+          },
+          "executionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "version": {
+            "type": "string"
           }
         }
       },
       "Execution": {
         "required": [
+          "additionalFiles",
+          "allTests",
+          "expectedChecks",
           "failedTests",
+          "matchedChecks",
           "passedTests",
           "project",
           "runningTests",
@@ -1974,7 +3276,9 @@
           "skippedTests",
           "startTime",
           "status",
-          "type"
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
         ],
         "type": "object",
         "properties": {
@@ -2018,6 +3322,10 @@
           "version": {
             "type": "string"
           },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
           "runningTests": {
             "type": "integer",
             "format": "int64"
@@ -2031,6 +3339,22 @@
             "format": "int64"
           },
           "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
             "type": "integer",
             "format": "int64"
           },
@@ -2169,16 +3493,49 @@
           }
         }
       },
+      "OrganizationInfo": {
+        "required": [
+          "name",
+          "userRoles"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "userRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          },
+          "avatar": {
+            "type": "string"
+          }
+        }
+      },
       "ExecutionDto": {
         "required": [
+          "allTests",
+          "expectedChecks",
           "failedTests",
           "id",
+          "matchedChecks",
           "passedTests",
           "runningTests",
           "skippedTests",
           "startTime",
           "status",
-          "type"
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
         ],
         "type": "object",
         "properties": {
@@ -2213,6 +3570,10 @@
             "type": "integer",
             "format": "int64"
           },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
           "runningTests": {
             "type": "integer",
             "format": "int64"
@@ -2229,7 +3590,94 @@
             "type": "integer",
             "format": "int64"
           },
-          "additionalFiles": {
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ContestResult": {
+        "required": [
+          "contestName",
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "projectName": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "contestName": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ContestDto": {
+        "required": [
+          "endTime",
+          "name",
+          "startTime"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "TestFilesContent": {
+        "required": [
+          "tags",
+          "testLines"
+        ],
+        "type": "object",
+        "properties": {
+          "testLines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expectedLines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"
