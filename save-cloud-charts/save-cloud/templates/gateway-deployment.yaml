@@ -23,8 +23,7 @@ spec:
             - name: OAUTH_CONFIG_PATH
               value: /home/cnb/secrets/oauth
             - name: JAVA_TOOL_OPTIONS
-              value: -XX:ReservedCodeCacheSize=48M
-          {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
+              value: -XX:ReservedCodeCacheSize=48M -Dreactor.netty.http.server.accessLogEnabled=true
           resources:
             limits:
               memory: 400M
