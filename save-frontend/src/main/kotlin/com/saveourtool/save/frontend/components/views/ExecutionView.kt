@@ -406,7 +406,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             filters = state.filters
             getData = { page, size ->
                 post(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
+                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
                         set("Content-Type", "application/json")
@@ -423,7 +423,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
             getPageCount = { pageSize ->
                 val count: Int = post(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=1&size=$pageSize&checkDebugInfo=true",
+                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=1&size=$pageSize&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
                         set("Content-Type", "application/json")
