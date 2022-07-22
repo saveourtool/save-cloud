@@ -47,10 +47,11 @@ import kotlin.io.path.ExperimentalPathApi
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
-class DockerService(private val configProperties: ConfigProperties,
-                    private val dockerClient: DockerClient,
-                    internal val dockerContainerManager: DockerContainerManager,
-                    private val agentRunner: AgentRunner,
+class DockerService(
+    private val configProperties: ConfigProperties,
+    private val dockerClient: DockerClient,
+    internal val dockerContainerManager: DockerContainerManager,
+    private val agentRunner: AgentRunner,
 ) {
     private val executionDir = "/home/save-agent/save-execution"
 
@@ -86,9 +87,10 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param agentRunCmd
      * @return list of IDs of created containers
      */
-    fun createContainers(executionId: Long,
-                         baseImageId: String,
-                         agentRunCmd: String,
+    fun createContainers(
+        executionId: Long,
+        baseImageId: String,
+        agentRunCmd: String,
     ) = agentRunner.create(
         executionId = executionId,
         baseImageId = baseImageId,
