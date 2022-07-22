@@ -93,7 +93,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping(path = ["/api/$v1/testExecutions"])
+    @GetMapping(path = ["/api/$v1/testLatestExecutions"])
     @RequiresAuthorizationSourceHeader
     @Suppress("TYPE_ALIAS", "MagicNumber")
     fun getTestExecutionsByStatus(
