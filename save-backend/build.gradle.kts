@@ -18,7 +18,7 @@ openApi {
     outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
     waitTimeInSeconds.set(120)
 
-    val bootRun = rootProject.tasks.named("bootRun") as org.springframework.boot.gradle.tasks.run.BootRun
+    val bootRun = tasks.named("bootRun") as org.springframework.boot.gradle.tasks.run.BootRun
     bootRun.jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
 }
 
