@@ -113,7 +113,7 @@ fun testExecutionDetailsView() = FC<Props> {
     // fixme: after https://github.com/saveourtool/save-cloud/issues/364 can be passed via history state to avoid requests
     useRequest(arrayOf(params), isDeferred = false) {
         val testExecutionDtoResponse = post(
-            "$apiUrl/testExecutions?executionId=$executionId&checkDebugInfo=true",
+            "$apiUrl/testExecution?executionId=$executionId&checkDebugInfo=true",
             Headers().apply {
                 set("Content-Type", "application/json")
             },

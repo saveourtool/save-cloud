@@ -59,7 +59,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
-    @PostMapping("/api/$v1/test-executions")
+    @PostMapping("/api/$v1/testExecutions")
     @RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
@@ -136,7 +136,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping(path = ["/api/$v1/testExecution"])
     @RequiresAuthorizationSourceHeader
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
