@@ -11,7 +11,6 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
