@@ -111,29 +111,6 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "Tester", roles = ["VIEWER"])
-    fun `check git from project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-
-        val project = projectRepository.findById(1).get()
-        webClient
-            .post()
-            .uri("/api/$v1/projects/git")
-            .body(BodyInserters.fromValue(project))
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<GitDto>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals("github", it.responseBody!!.url)
-            }
-    }
-
-    @Test
     @WithUserDetails(value = "admin")
     fun `delete project with owner permission`() {
         mutateMockedUser {
