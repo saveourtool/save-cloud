@@ -101,102 +101,7 @@
         }
       }
     },
-    "/api/v1/testExecutions": {
-      "get": {
-        "tags": [
-          "test-executions"
-        ],
-        "operationId": "getTestExecutions",
-        "parameters": [
-          {
-            "name": "executionId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "FAILED",
-                "IGNORED",
-                "INTERNAL_ERROR",
-                "PASSED",
-                "READY_FOR_TESTING",
-                "RUNNING",
-                "TEST_ERROR"
-              ]
-            }
-          },
-          {
-            "name": "testSuite",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "checkDebugInfo",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestExecutionDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      },
+    "/api/v1/test-execution": {
       "post": {
         "tags": [
           "test-executions"
@@ -236,6 +141,87 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/TestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-executions": {
+      "post": {
+        "tags": [
+          "test-executions"
+        ],
+        "operationId": "getTestExecutions",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "checkDebugInfo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestExecutionFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestExecutionDto"
+                  }
                 }
               }
             }
@@ -2983,6 +2969,32 @@
           }
         }
       },
+      "TestExecutionFilters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "FAILED",
+              "IGNORED",
+              "INTERNAL_ERROR",
+              "PASSED",
+              "READY_FOR_TESTING",
+              "RUNNING",
+              "TEST_ERROR"
+            ]
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "testSuite": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        }
+      },
       "ExecutionRequest": {
         "required": [
           "gitDto",
@@ -3456,6 +3468,12 @@
           },
           "language": {
             "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
