@@ -103,7 +103,7 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filters.fileName
+                        value = filters.fileName ?: ""
                         required = false
                         onChange = {
                             setFilters(filters.copy(fileName = it.target.value))
@@ -122,7 +122,7 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filters.testSuite
+                        value = filters.testSuite ?: ""
                         required = false
                         onChange = {
                             setFilters(filters.copy(testSuite = it.target.value))
@@ -141,7 +141,7 @@ private fun testExecutionFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filters.tag
+                        value = filters.tag ?: ""
                         required = false
                         onChange = {
                             setFilters(filters.copy(tag = it.target.value))

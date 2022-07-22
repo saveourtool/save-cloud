@@ -305,7 +305,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     init {
         state.executionDto = null
-        state.filters = TestExecutionFilters(null, null, null, null)
+        state.filters = TestExecutionFilters.empty
     }
 
     override fun componentDidMount() {
