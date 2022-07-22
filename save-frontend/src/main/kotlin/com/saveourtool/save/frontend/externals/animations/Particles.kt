@@ -6,7 +6,7 @@ package com.saveourtool.save.frontend.externals.animations
 
 import react.*
 
-@JsName("Particles")
+@JsName("default")
 external class Particles : Component<ParticlesProps, State> {
     override fun render(): ReactElement<ParticlesProps>?
 }

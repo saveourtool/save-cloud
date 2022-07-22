@@ -47,7 +47,7 @@ private fun userBoard() = FC<UserBoardProps> { props ->
                     className = ClassName("col-md-4")
                     figure {
                         img {
-                            className = ClassName("img-fluid")
+                            className = ClassName("img-fluid px-sm-3")
                             src = user.avatar?.let { path ->
                                 "/api/$v1/avatar$path"
                             }

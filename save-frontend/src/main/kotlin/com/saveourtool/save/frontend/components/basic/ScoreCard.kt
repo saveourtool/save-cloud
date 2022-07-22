@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
+import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.*
 import react.FC
 import react.Props
@@ -13,6 +16,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 
 import kotlinx.js.jso
+import react.dom.html.ReactHTML
 
 /**
  * ReactElement that represents scorecard
@@ -32,6 +36,11 @@ external interface ScoreCardProps : Props {
      * Score of a project in a contest
      */
     var contestScore: Double
+
+    /**
+     * Url to the project
+     */
+    var url: String?
 }
 
 /**
@@ -87,7 +96,16 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                     alignItems = AlignItems.center
                                     alignSelf = AlignSelf.center
                                 }
-                                +props.name
+
+                                props.url?.let {
+                                    ReactHTML.a {
+                                        href = props.url
+                                        +props.name
+                                    }
+
+                                } ?: run {
+                                    +props.name
+                                }
                             }
                         }
                         div {

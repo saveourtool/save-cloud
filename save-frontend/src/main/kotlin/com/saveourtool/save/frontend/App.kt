@@ -92,7 +92,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     }
 
     init {
-        state.userInfo = null
+        state.userInfo
+        getUser()
     }
 
     private fun getUser() {
@@ -122,10 +123,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 }
             }
         }
-    }
-
-    override fun componentDidMount() {
-        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
