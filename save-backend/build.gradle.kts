@@ -4,6 +4,7 @@ import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
@@ -18,8 +19,9 @@ openApi {
     outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
     waitTimeInSeconds.set(120)
 
-    val bootRun = tasks.named("bootRun") as org.springframework.boot.gradle.tasks.run.BootRun
-    bootRun.jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+    tasks.named<BootRun>("bootRun") {
+        jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+    }
 }
 
 configureSpringBoot(true)
