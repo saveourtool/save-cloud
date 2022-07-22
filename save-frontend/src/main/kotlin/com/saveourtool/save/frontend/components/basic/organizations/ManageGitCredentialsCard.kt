@@ -73,7 +73,7 @@ external interface ManageGitCredentialsCardProps : Props {
 /**
  * @return ManageGitCredentialsCard
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { props ->
     val (selfRole, setSelfRole) = useState(Role.NONE)
     useRequest(isDeferred = false) {

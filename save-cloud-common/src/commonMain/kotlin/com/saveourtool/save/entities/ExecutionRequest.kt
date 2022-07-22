@@ -38,7 +38,7 @@ sealed class ExecutionRequestBase {
 data class ExecutionRequest(
     override val project: Project,
     val gitDto: GitDto,
-    val branchOrCommit: String,
+    val branchOrCommit: String?,
     val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,

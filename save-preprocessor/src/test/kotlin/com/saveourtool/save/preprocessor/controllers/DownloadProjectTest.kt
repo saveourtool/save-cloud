@@ -86,7 +86,7 @@ class DownloadProjectTest(
         val execution = Execution.stub(project).apply {
             id = 97L
         }
-        val request = ExecutionRequest(project, wrongRepo, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
+        val request = ExecutionRequest(project, wrongRepo, branchOrCommit = null, sdk = Sdk.Default, executionId = execution.id, testRootPath = ".")
         // /updateExecutionByDto
         mockServerBackend.enqueue(
             "/updateExecutionByDto",
@@ -116,7 +116,7 @@ class DownloadProjectTest(
             id = executionId
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
-        val request = ExecutionRequest(project, validRepo, "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, validRepo, null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /saveTestSuites
         mockServerBackend.enqueue(
             "/saveTestSuites",
@@ -345,7 +345,7 @@ class DownloadProjectTest(
         val execution = Execution.stub(project).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -412,7 +412,7 @@ class DownloadProjectTest(
             id = 98L
             status = ExecutionStatus.PENDING
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), "examples/kotlin-diktat/", Sdk.Default, execution.id)
+        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))

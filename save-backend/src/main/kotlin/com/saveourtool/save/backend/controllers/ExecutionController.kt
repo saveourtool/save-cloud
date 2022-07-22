@@ -307,7 +307,8 @@ class ExecutionController(private val executionService: ExecutionService,
         val executionRequest = ExecutionRequest(
             project = execution.project,
             gitDto = git,
-            branchOrCommit = execution.version ?: "",
+            // TODO: rerun is incorrect for execution which was run from branch initially
+            branchOrCommit = execution.version,
             testRootPath = testRootPath,
             sdk = execution.sdk.toSdk(),
             executionId = execution.id,
