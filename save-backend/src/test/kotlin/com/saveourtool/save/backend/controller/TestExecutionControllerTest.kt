@@ -79,7 +79,7 @@ class TestExecutionControllerTest {
         }
 
         webClient.get()
-            .uri("/api/$v1/testExecutions?executionId=1&page=0&size=20")
+            .uri("/api/$v1/test-executions?executionId=1&page=0&size=20")
             .exchange()
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {
