@@ -9,7 +9,9 @@ package com.saveourtool.save.frontend.components
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.v1
 
 import csstype.ClassName
 import csstype.rem
@@ -22,6 +24,7 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
@@ -226,7 +229,15 @@ fun topBar() = FC<TopBarProps> { props ->
                                 className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                                 +(props.userInfo?.name ?: "")
                             }
-                            fontAwesomeIcon(icon = faUser) {
+                            props.userInfo?.avatar?.let {
+                                img {
+                                    className =
+                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle fas fa-lg fa-fw mr-2")
+                                    src = "/api/$v1/avatar$it"
+                                    height = 26.0
+                                    width = 26.0
+                                }
+                            } ?: fontAwesomeIcon(icon = faUser) {
                                 it.className = "fas fa-lg fa-fw mr-2 text-gray-400"
                             }
                         }

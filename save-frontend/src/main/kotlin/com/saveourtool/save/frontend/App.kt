@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.*
@@ -97,9 +98,10 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     }
 
     init {
-        state.userInfo = null
+        getUser()
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun getUser() {
         scope.launch {
             val userInfoNew: UserInfo? = get(
@@ -121,16 +123,23 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
+
+            val avatarNew: ImageInfo? = userInfoNew?.name?.let { name ->
+                get(
+                    "$apiUrl/users/$name/avatar",
+                    Headers(),
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                    .unsafeMap {
+                        it.decodeFromJsonString<ImageInfo>()
+                    }
+            }
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew.copy(globalRole = globalRole)
+                    userInfo = userInfoNew.copy(globalRole = globalRole, avatar = avatarNew?.path)
                 }
             }
         }
-    }
-
-    override fun componentDidMount() {
-        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")

@@ -8,6 +8,9 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.AvatarType
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.name
@@ -31,14 +34,27 @@ class AvatarStorage(configProperties: ConfigProperties) :
     )
 
     /**
+     * @param key
+     * @param content
+     * @return `Mono` with file size
+     */
+    fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> {
+        list()
+            .filter { it.imageName == key.folderUserName }
+            .singleOrEmpty()
+            .flatMap { delete(it) }
+        return upload(key, content)
+    }
+
+    /**
      * @param rootDir
      * @param key
      * @return [Path] is built by [AvatarKey] object
      */
     override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir
         .let { if (key.type == AvatarType.USER) it.resolve(USERS_DIRECTORY) else it }
+        .resolve(key.folderUserName)
         .resolve(key.imageName)
-        .resolve(key.filename)
 
     companion object {
         const val USERS_DIRECTORY = "users"
@@ -47,13 +63,13 @@ class AvatarStorage(configProperties: ConfigProperties) :
 
 /**
  * @property type
+ * @property folderUserName
  * @property imageName
- * @property filename
  */
 data class AvatarKey(
     val type: AvatarType,
+    val folderUserName: String,
     val imageName: String,
-    val filename: String,
 ) {
     /**
      * Added for backward compatibility
@@ -61,7 +77,7 @@ data class AvatarKey(
      * @return relative path to avatar image
      */
     fun getRelativePath(): String = when (type) {
-        AvatarType.ORGANIZATION -> "/$imageName/$filename"
-        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$imageName/$filename"
+        AvatarType.ORGANIZATION -> "/$folderUserName/$imageName"
+        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$folderUserName/$imageName"
     }
 }
