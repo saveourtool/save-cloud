@@ -26,6 +26,11 @@ import kotlinx.serialization.json.Json
 
 val apiUrl = "${window.location.origin}/api/$v1"
 
+val jsonHeaders = Headers().apply {
+    set("Accept", "application/json")
+    set("Content-Type", "application/json")
+}
+
 /**
  * Interface for objects that have access to [requestStatusContext]
  */

@@ -334,14 +334,11 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .orEmpty()
 
-    @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPath(): String = getTestRootPathByTestSuites()
         .distinct()
         .single()
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun Execution.getTestSuiteRepoUrl(): String = this
-        .parseAndGetTestSuiteIds()
+    private fun Execution.getTestSuiteRepoUrl(): String = parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
             testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
                 log.error("Can't find test suite with id=$testSuiteId for executionId=$id")

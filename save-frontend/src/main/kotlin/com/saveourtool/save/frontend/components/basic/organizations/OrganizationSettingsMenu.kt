@@ -100,7 +100,6 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 organizationName = props.organizationName
                 this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
-                getUserGroups = { it.organizations }
                 this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }

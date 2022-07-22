@@ -28,11 +28,6 @@ import react.useState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val headers = Headers().apply {
-    set("Accept", "application/json")
-    set("Content-Type", "application/json")
-}
-
 typealias RequestWithDependency<R> = Triple<R, StateSetter<R>, () -> Unit>
 
 /**
@@ -60,11 +55,6 @@ external interface ManageGitCredentialsCardProps : Props {
     var updateErrorMessage: (Response) -> Unit
 
     /**
-     * Lambda to get users from project/organization
-     */
-    var getUserGroups: (UserInfo) -> Map<String, Role>
-
-    /**
      * Lambda to show warning if current user is super admin
      */
     var showGlobalRoleWarning: () -> Unit
@@ -79,7 +69,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
     useRequest(isDeferred = false) {
         val role = get(
             "$apiUrl/organizations/${props.organizationName}/users/roles",
-            headers = headers,
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -207,7 +197,7 @@ private fun prepareFetchGitCredentials(organizationName: String): RequestWithDep
     val fetchGitCredentialsRequest = useRequest {
         get(
             "$apiUrl/organizations/$organizationName/list-git",
-            headers = headers,
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
@@ -254,7 +244,7 @@ private fun prepareDeleteGitCredential(
     val deleteGitCredentialRequest = useRequest(dependencies = arrayOf(gitCredentialToDelete)) {
         val response = delete(
             url = "$apiUrl/organizations/$organizationName/delete-git?url=${gitCredentialToDelete.url}",
-            headers = headers,
+            headers = jsonHeaders,
             body = undefined,
             loadingHandler = ::loadingHandler,
         )

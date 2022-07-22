@@ -224,32 +224,29 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
     private val testResourcesSelection = testResourcesSelection(
-        updateGitUrlFromInputField = { event ->
+        updateGitUrlFromInputField = { selectedGitUrl ->
             setState {
-                availableGitCredentials.find { it.url == event.target.value }
-                    ?.let {
-                        selectedGitCredential = it
-                    }
+                selectedGitCredential = availableGitCredentials.first { it.url == selectedGitUrl }
             }
         },
-        updateGitBranchOrCommitInputField = { event ->
+        updateGitBranchOrCommitInputField = {
             setState {
-                gitBranchOrCommitFromInputField = event.target.value
+                gitBranchOrCommitFromInputField = it
             }
         },
-        updateTestRootPath = { event ->
+        updateTestRootPath = {
             setState {
-                testRootPath = event.target.value
+                testRootPath = it
             }
         },
         setExecCmd = {
             setState {
-                execCmd = it.target.value
+                execCmd = it
             }
         },
         setBatchSize = {
             setState {
-                batchSizeForAnalyzer = it.target.value
+                batchSizeForAnalyzer = it
             }
         },
         setSelectedLanguageForStandardTests = {
