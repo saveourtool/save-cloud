@@ -98,6 +98,10 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     }
 
     init {
+        state.userInfo = null
+    }
+
+    override fun componentDidMount() {
         getUser()
     }
 
