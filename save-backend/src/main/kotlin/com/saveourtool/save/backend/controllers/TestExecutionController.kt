@@ -66,7 +66,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestBody(required = false) filters: TestExecutionFilters = TestExecutionFilters.empty,
+        @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
     ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
@@ -75,7 +75,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, filters)
+            testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {

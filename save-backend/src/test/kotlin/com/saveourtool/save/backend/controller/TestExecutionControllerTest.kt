@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -78,7 +79,7 @@ class TestExecutionControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
-        webClient.get()
+        webClient.post()
             .uri("/api/$v1/test-executions?executionId=1&page=0&size=20")
             .exchange()
             .expectBody<List<TestExecutionDto>>()
