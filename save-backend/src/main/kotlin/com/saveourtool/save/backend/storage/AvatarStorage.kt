@@ -39,11 +39,11 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return `Mono` with file size
      */
     fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> {
-        list()
+        return list()
             .filter { it.folderUserName == key.folderUserName }
             .singleOrEmpty()
-            .flatMap { delete(it) }
-        return upload(key, content)
+            .map { delete(it) }
+            .flatMap { upload(key, content) }
     }
 
     /**
