@@ -11,6 +11,7 @@ import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.json.JsonPlugin
@@ -50,6 +51,8 @@ fun main() {
     )
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
+
+    platform.posix.chmod("save-$SAVE_CORE_VERSION-linuxX64.kexe", 755)
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
