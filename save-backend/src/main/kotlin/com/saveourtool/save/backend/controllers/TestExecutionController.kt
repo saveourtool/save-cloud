@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto
@@ -53,29 +54,28 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
-     * @param status
-     * @param testSuite
+     * @param filters
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping("/api/$v1/test-executions")
     @RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestParam(required = false) status: TestResultStatus?,
-        @RequestParam(required = false) testSuite: String?,
+        @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
-        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-    }
+    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId))
+        .filterWhen {
+            projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+        }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
+            testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
@@ -136,7 +136,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping(path = ["/api/$v1/test-execution"])
     @RequiresAuthorizationSourceHeader
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
