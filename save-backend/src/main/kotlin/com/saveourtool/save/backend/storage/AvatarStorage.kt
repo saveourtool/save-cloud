@@ -40,7 +40,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
      */
     fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> {
         list()
-            .filter { it.imageName == key.folderUserName }
+            .filter { it.folderUserName == key.folderUserName }
             .singleOrEmpty()
             .flatMap { delete(it) }
         return upload(key, content)
