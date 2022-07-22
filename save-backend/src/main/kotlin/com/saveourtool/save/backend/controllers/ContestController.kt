@@ -25,7 +25,6 @@ import kotlin.jvm.optionals.getOrNull
  */
 @RestController
 @OptIn(ExperimentalStdlibApi::class)
-@RequestMapping(path = ["/api/$v1/contests"])
 internal class ContestController(
     private val contestService: ContestService,
     private val testService: TestService,

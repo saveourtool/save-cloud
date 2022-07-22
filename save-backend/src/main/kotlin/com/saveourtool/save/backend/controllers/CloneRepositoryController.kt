@@ -1,7 +1,9 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.ProjectService
@@ -13,13 +15,16 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
+import io.swagger.annotations.Authorization
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
@@ -28,6 +33,7 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 
 /**
  * Controller to save project
@@ -36,6 +42,7 @@ import reactor.core.publisher.Mono
  * @property configProperties configuration properties
  */
 @RestController
+@ApiSwaggerSupport
 @RequestMapping("/api")
 class CloneRepositoryController(
     private val projectService: ProjectService,
@@ -68,7 +75,7 @@ class CloneRepositoryController(
         // Project cannot be taken from executionRequest directly for permission evaluation:
         // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
         projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
+    }.also { println(executionRequest) }
         .flatMap { project ->
             val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
             sendToPreprocessor(
@@ -80,6 +87,74 @@ class CloneRepositoryController(
                 executionRequest.copy(executionId = savedExecution.requiredId())
             }
         }
+
+    /**
+     * Endpoint to save project as binary file
+     *
+     * @param executionRequestForContest information about project
+     * @param files files required for execution
+     * @param authentication [Authentication] representing an authenticated request
+     * @return mono string
+     */
+    @PostMapping(path = ["/$v1/executionRequestContest"])
+    @RequiresAuthorizationSourceHeader
+    fun executionRequestContest(
+//        @RequestPart("execution", required = true) executionRequestForContest: ExecutionRequestForContest,
+//        @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
+        @RequestBody data: Pair<ExecutionRequestForContest, List<ShortFileInfo>>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = with(data.first.project) {
+        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
+    }
+        .filter {
+            lnkContestProjectService.isProjectRegisteredForContest(data.first.project, data.first.contestName)
+        }
+        .onErrorMap {
+            with(data.first) {
+                ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Project ${project.organization.name}/${project.name} is not registered for a conest ${contestName}"
+                )
+            }
+        }
+        .flatMap { project ->
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+            sendToPreprocessor(
+                data.first,
+                ExecutionType.STANDARD,
+                authentication.username(),
+                fileStorage.convertToLatestFileInfo(projectCoordinates, Flux.fromIterable(data.second))
+            ) { executionRequest, savedExecution ->
+                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
+            }
+        }
+
+    private fun <T : ExecutionRequestBase> sendToPreprocessor(
+        executionRequest: T,
+        executionType: ExecutionType,
+        username: String,
+        files: Flux<FileInfo>,
+        updateExecutionInRequest: (T, Execution) -> T
+    ): Mono<StringResponse> {
+        val project = with(executionRequest.project) {
+            projectService.findByNameAndOrganizationName(name, organization.name)
+        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
+
+        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
+        log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
+        val uri = when (executionType) {
+            ExecutionType.GIT -> "/upload"
+            ExecutionType.STANDARD -> "/uploadBin"
+            ExecutionType.CONTEST -> "/uploadBinForContest"
+        }
+        return files.updateExecution(newExecution).flatMap { savedExecution ->
+            preprocessorWebClient.post()
+                .uri(uri)
+                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
+                .retrieve()
+                .toEntity()
+        }
+    }
 
     /**
      * Endpoint to save project as binary file
@@ -108,71 +183,6 @@ class CloneRepositoryController(
                 executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
             }
         }
-
-    /**
-     * Endpoint to save project as binary file
-     *
-     * @param executionRequestForStandardSuites information about project
-     * @param files files required for execution
-     * @param authentication [Authentication] representing an authenticated request
-     * @return mono string
-     */
-    @PostMapping(path = ["/$v1/executionRequestContest"], consumes = ["multipart/form-data"])
-    fun executionRequestContest(
-        @RequestPart("execution", required = true) executionRequestForContest: ExecutionRequestForContest,
-        @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
-        authentication: Authentication,
-    ): Mono<StringResponse> = with(executionRequestForContest.project) {
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
-        .filter {
-            lnkContestProjectService.isProjectRegisteredForContest(executionRequestForContest.project, executionRequestForContest.contestName)
-        }
-        .onErrorMap {
-            with(executionRequestForContest) {
-                ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Project ${project.organization.name}/${project.name} is not registered for a conest ${contestName}"
-                )
-            }
-        }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
-            sendToPreprocessor(
-                executionRequestForContest,
-                ExecutionType.STANDARD,
-                authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
-            }
-        }
-
-    private fun <T : ExecutionRequestBase> sendToPreprocessor(
-        executionRequest: T,
-        executionType: ExecutionType,
-        username: String,
-        files: Flux<FileInfo>,
-        updateExecutionInRequest: (T, Execution) -> T
-    ): Mono<StringResponse> {
-        val project = with(executionRequest.project) {
-            projectService.findByNameAndOrganizationName(name, organization.name)
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
-
-        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-        log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
-        val uri = when (executionType) {
-            ExecutionType.GIT -> "/upload"
-            ExecutionType.STANDARD -> "/uploadBin"
-        }
-        return files.updateExecution(newExecution).flatMap { savedExecution ->
-            preprocessorWebClient.post()
-                .uri(uri)
-                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
-                .retrieve()
-                .toEntity()
-        }
-    }
 
     private fun createNewExecution(
         project: Project,

@@ -16,5 +16,7 @@ enum class ExecutionType {
      * Project by binary file
      */
     STANDARD,
+
+    CONTEST,
     ;
 }

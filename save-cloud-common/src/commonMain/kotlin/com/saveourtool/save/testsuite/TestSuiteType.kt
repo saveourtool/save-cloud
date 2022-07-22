@@ -21,5 +21,10 @@ enum class TestSuiteType {
      * Type Standard
      */
     STANDARD,
+
+    /**
+     * Contest test suite
+     */
+    CONTEST
     ;
 }
