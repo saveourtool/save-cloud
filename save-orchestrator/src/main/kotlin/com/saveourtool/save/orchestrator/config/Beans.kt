@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.config
 
-import com.saveourtool.save.orchestrator.docker.KubernetesManager
+import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -53,7 +53,7 @@ class Beans(private val configProperties: ConfigProperties) {
     /**
      * @return a Kubernetes client that uses properties from [configProperties] for connection
      */
-    @Bean
+    @Bean(destroyMethod = "close")
     @Profile("kubernetes")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
         val kubernetesSettings = requireNotNull(configProperties.kubernetes) {

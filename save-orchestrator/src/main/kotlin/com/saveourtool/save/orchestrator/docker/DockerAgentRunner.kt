@@ -10,8 +10,13 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
 import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.exception.DockerException
+import com.github.dockerjava.api.model.Bind
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.LogConfig
+import com.github.dockerjava.api.model.Volume
+import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.service.DockerService
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -33,7 +38,7 @@ class DockerAgentRunner(
     configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : AgentRunner {
+) : AgentRunner<DockerPvId> {
     private val settings: DockerSettings = configProperties.docker
 
     @Suppress("TYPE_ALIAS")
@@ -42,12 +47,13 @@ class DockerAgentRunner(
     override fun create(
         executionId: Long,
         baseImageId: String,
+        pvId: DockerPvId,
         replicas: Int,
         workingDir: String,
         agentRunCmd: String,
     ): List<String> = (1..replicas).map { number ->
         logger.info("Building container #$number for execution.id=$executionId")
-        createContainerFromImage(baseImageId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+        createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
             logger.info("Built container id=$agentId for execution.id=$executionId")
             agentIdsByExecution
                 .getOrPut(executionId) { mutableListOf() }
@@ -132,6 +138,7 @@ class DockerAgentRunner(
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     private fun createContainerFromImage(baseImageId: String,
+                                         pvId: DockerPvId,
                                          workingDir: String,
                                          runCmd: String,
                                          containerName: String,
@@ -145,6 +152,10 @@ class DockerAgentRunner(
             .withName(containerName)
             .withHostConfig(
                 HostConfig.newHostConfig()
+                    .withBinds(Bind(
+                        // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
+                        pvId.hostPath, Volume(DockerService.executionDir)
+                    ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")

@@ -17,6 +17,7 @@ import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import io.fabric8.kubernetes.client.KubernetesClientException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -63,8 +64,7 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val configProperties: ConfigProperties,
-    @Qualifier("webClientBackend")
-    private val webClientBackend: WebClient,
+    @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -121,8 +121,8 @@ class AgentsController(
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
-                .map { (baseImageId, agentRunCmd) ->
-                    dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd)
+                .map { (baseImageId, agentRunCmd, pvId) ->
+                    dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd, pvId)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create docker containers", ex)
@@ -215,14 +215,6 @@ class AgentsController(
                     }
                 }
             )
-    }
-
-    private fun Path.tryMarkAsExecutable() {
-        try {
-            Files.setPosixFilePermissions(this, Files.getPosixFilePermissions(this) + allExecute)
-        } catch (ex: UnsupportedOperationException) {
-            log.warn(ex) { "Failed to mark file ${this.name} as executable" }
-        }
     }
 
     private fun <T> reportExecutionError(

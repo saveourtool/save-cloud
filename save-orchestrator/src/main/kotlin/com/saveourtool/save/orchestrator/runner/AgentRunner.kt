@@ -1,22 +1,26 @@
-package com.saveourtool.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.runner
+
+import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
 /**
  * Describes operations that should be supported with a specific engine for running save-agents.
  */
-interface AgentRunner {
+interface AgentRunner<PV: PersistentVolumeId> {
     /**
      * Create a [replicas] number of agents for an execution with id [executionId].
      *
      * @param baseImageId an ID of docker image that will be used as a base for agents
+     * @param pvId ID of a persistent volume that should be mounted to the created container
      * @param agentRunCmd a command that should be container's entrypoint (see docker's CMD directive)
      * @param executionId and ID of execution for which agents will run tests
      * @param replicas number of agents acting in parallel
-     * @param workingDir target execution directory
+     * @param workingDir execution directory inside the container
      * @return unique identifier of created instances that can be used to manipulate them later
      */
     fun create(
         executionId: Long,
         baseImageId: String,
+        pvId: PV,
         replicas: Int,
         workingDir: String,
         agentRunCmd: String,
