@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
+import react.ChildrenBuilder
 import react.useState
 
 /**
@@ -11,7 +12,8 @@ import react.useState
  *
  * @param action
  */
-fun runOnlyOnFirstRender(action: () -> Unit) {
+@Suppress("unused")
+fun ChildrenBuilder.runOnlyOnFirstRender(action: () -> Unit) {
     val (isFirstRender, setFirstRender) = useState(true)
     if (isFirstRender) {
         action()

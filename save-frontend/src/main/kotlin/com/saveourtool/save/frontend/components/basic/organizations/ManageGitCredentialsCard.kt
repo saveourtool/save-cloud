@@ -120,9 +120,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
     val canModify = selfRole == Role.SUPER_ADMIN || selfRole == Role.ADMIN
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
-        for (gitCredential in gitCredentials) {
+        gitCredentials.forEachIndexed { index, gitCredential ->
             val url = gitCredential.url
-            val index = gitCredentials.indexOf(gitCredential)
             div {
                 className = ClassName("row mt-2 mr-0 justify-content-between align-items-center")
                 div {
