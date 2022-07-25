@@ -511,15 +511,17 @@
     "/api/v1/projects/{organizationName}/{projectName}/users/roles": {
       "get": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
-        "description": "Get role for a user on a particular project. Returns self role if no userName is set.",
+        "summary": "Get role for a user on a particular project.",
+        "description": "If userName is not present, then will return the role of current user in given project, otherwise will return role of user with name userName in project with name projectName.",
         "operationId": "getRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -528,6 +530,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -536,6 +539,7 @@
           {
             "name": "userName",
             "in": "query",
+            "description": "name of a user that is being requested",
             "required": false,
             "schema": {
               "type": "string"
@@ -609,15 +613,17 @@
       },
       "post": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
+        "summary": "Set role for a user on a particular project",
         "description": "Set role for a user on a particular project",
         "operationId": "setRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -626,9 +632,19 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "setRoleRequest",
+            "in": "path",
+            "description": "setRoleRequest passed through body",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SetRoleRequest"
             }
           },
           {
@@ -638,16 +654,6 @@
             "example": "basic"
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetRoleRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "403": {
             "description": "User doesn\u0027t have permissions to manage this members",
@@ -761,8 +767,7 @@
       "get": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Get user\u0027s role in organization with given name.",
         "description": "If userName is not present, then will return the role of current user in given organization, otherwise will return role of user with name userName in organization with name organizationName.",
@@ -872,8 +877,7 @@
       "post": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Set user\u0027s role in organization with given name.",
         "description": "Set user\u0027s role in organization with given name.",
@@ -2288,8 +2292,7 @@
       "get": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Get list of users that are connected with given organization.",
         "description": "Get list of users that are connected with given organization.",
@@ -2363,8 +2366,7 @@
       "get": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Get all users not from organization with names starting with a given prefix.",
         "description": "Get all users not connected with organization with name organizationName whose names start with the same prefix.",
@@ -2447,8 +2449,7 @@
       "get": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Get all user\u0027s organizations that can create contests.",
         "description": "Get all organizations that can create contests where user is a member.",
@@ -2526,8 +2527,7 @@
       "get": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Get user\u0027s organizations.",
         "description": "Get not deleted organizations where user is a member, and his roles in those organizations.",
@@ -3434,15 +3434,17 @@
     "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
       "delete": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
+        "summary": "Removes user\u0027s role on a particular project",
         "description": "Removes user\u0027s role on a particular project",
         "operationId": "removeRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -3451,6 +3453,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -3459,6 +3462,7 @@
           {
             "name": "userName",
             "in": "path",
+            "description": "username",
             "required": true,
             "schema": {
               "type": "string"
@@ -3562,10 +3566,10 @@
       "delete": {
         "tags": [
           "roles",
-          "organizations",
-          "api"
+          "organizations"
         ],
         "summary": "Remove user\u0027s role in organization with given name.",
+        "description": "Remove user\u0027s role in organization with given name.",
         "operationId": "removeRole_1",
         "parameters": [
           {
