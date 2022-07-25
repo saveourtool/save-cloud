@@ -15,16 +15,14 @@ import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.utils.LoggingContext
+import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import org.apache.commons.io.file.PathUtils
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -262,7 +260,7 @@ class DockerService(
             .first()
         return RunConfiguration(
             imageId = baseImageId,
-            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && $AGENT_RUN_CMD\"",
+            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME\"",
             pvId = pvId,
         )
     }
@@ -369,7 +367,6 @@ class DockerService(
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val AGENT_RUN_CMD = "./$SAVE_AGENT_EXECUTABLE_NAME"
         internal const val EXECUTION_DIR = "/home/save-agent/save-execution"
     }
 }
