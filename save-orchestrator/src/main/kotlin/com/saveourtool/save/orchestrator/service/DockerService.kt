@@ -294,10 +294,9 @@ class DockerService(
             ""
         }
 
-        return dockerContainerManager.buildImageWithResources(
+        return dockerContainerManager.buildImage(
             baseImage = sdk.toString(),
             imageName = baseImageName(sdk),
-            baseDir = null,
             runCmd = """|RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
                     |libcurl4-openssl-dev tzdata
                     |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime

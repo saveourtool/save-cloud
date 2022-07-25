@@ -2,7 +2,6 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.execTimed
 import com.saveourtool.save.orchestrator.getHostIp
 
@@ -47,17 +46,11 @@ class DockerContainerManager(
         "LongParameterList",
         "TOO_MANY_PARAMETERS"
     )
-    internal fun buildImageWithResources(baseImage: String = Sdk.Default.toString(),
-                                         imageName: String,
-                                         baseDir: File?,
-                                         runCmd: String = "RUN /bin/bash",
+    internal fun buildImage(baseImage: String = Sdk.Default.toString(),
+                            imageName: String,
+                            runCmd: String = "RUN /bin/bash",
     ): String {
         val tmpDir = createTempDirectory().toFile()
-        val tmpResourcesDir = tmpDir.absoluteFile.resolve("resources")
-        if (baseDir != null) {
-            log.debug("Copying ${baseDir.absolutePath} into $tmpResourcesDir")
-            copyRecursivelyWithAttributes(baseDir, tmpResourcesDir)
-        }
         val dockerFile = createDockerFile(tmpDir, baseImage, runCmd)
         val hostIp = getHostIp()
         log.debug("Resolved host IP as $hostIp, will add it to the container")
