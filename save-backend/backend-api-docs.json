@@ -1413,8 +1413,7 @@
     "/api/v1/contests/create": {
       "post": {
         "tags": [
-          "contests",
-          "api"
+          "contests"
         ],
         "summary": "Create a new contest.",
         "description": "Create a new contest.",
@@ -2531,7 +2530,7 @@
           "api"
         ],
         "summary": "Get user\u0027s organizations.",
-        "description": "Get not deleted organizations where user is a member and his roles in them.",
+        "description": "Get not deleted organizations where user is a member, and his roles in those organizations.",
         "operationId": "getOrganizationWithRoles",
         "parameters": [
           {
@@ -2866,8 +2865,7 @@
     "/api/v1/contests/{contestName}": {
       "get": {
         "tags": [
-          "contests",
-          "api"
+          "contests"
         ],
         "summary": "Get contest by name.",
         "description": "Get contest by name.",
@@ -2964,8 +2962,7 @@
     "/api/v1/contests/{contestName}/public-test": {
       "get": {
         "tags": [
-          "contests",
-          "api"
+          "contests"
         ],
         "summary": "Get public test for contest with given name.",
         "description": "Get public test for contest with given name.",
@@ -3108,8 +3105,7 @@
     "/api/v1/contests/finished": {
       "get": {
         "tags": [
-          "contests",
-          "api"
+          "contests"
         ],
         "summary": "Get list of contests that has already finished.",
         "description": "Get list of contests that has already finished.",
@@ -3118,7 +3114,7 @@
           {
             "name": "pageSize",
             "in": "query",
-            "description": "number of records that will be returned, default: 10",
+            "description": "amount of contests that should be returned, default: 10",
             "required": false,
             "schema": {
               "type": "integer",
@@ -3171,8 +3167,7 @@
     "/api/v1/contests/active": {
       "get": {
         "tags": [
-          "contests",
-          "api"
+          "contests"
         ],
         "summary": "Get list of contests that are in progress now.",
         "description": "Get list of contests that are in progress now.",
@@ -3181,7 +3176,7 @@
           {
             "name": "pageSize",
             "in": "query",
-            "description": "number of records that will be returned, default: 10",
+            "description": "amount of contests that should be returned, default: 10",
             "required": false,
             "schema": {
               "type": "integer",
@@ -3570,7 +3565,7 @@
           "organizations",
           "api"
         ],
-        "summary": "Set user\u0027s role in organization with given name.",
+        "summary": "Remove user\u0027s role in organization with given name.",
         "operationId": "removeRole_1",
         "parameters": [
           {
@@ -3610,7 +3605,7 @@
             }
           },
           "200": {
-            "description": "Role removed",
+            "description": "Role was successfully removed",
             "content": {
               "*/*": {
                 "schema": {
