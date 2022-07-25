@@ -1,5 +1,7 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
@@ -13,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property status
  * @property description
+ * @property canCreateContests
  */
 @Entity
 @Serializable
@@ -25,6 +28,7 @@ data class Organization(
     var dateCreated: LocalDateTime?,
     var avatar: String? = null,
     var description: String? = null,
+    var canCreateContests: Boolean = false,
 ) {
     /**
      * id of organization
@@ -33,6 +37,16 @@ data class Organization(
     @GeneratedValue
     var id: Long? = null
 
+    /**
+     * @param userRoles map where keys are usernames and values are their roles
+     * @return [OrganizationInfo]
+     */
+    fun toOrganizationInfo(userRoles: Map<String, Role> = emptyMap()) = OrganizationInfo(
+        name,
+        userRoles,
+        avatar
+    )
+    
     /**
      * @return [id] as not null with validating
      * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
@@ -56,6 +70,8 @@ data class Organization(
             ownerId = -1,
             dateCreated = null,
             avatar = null,
+            description = null,
+            canCreateContests = false,
         ).apply {
             this.id = id
         }

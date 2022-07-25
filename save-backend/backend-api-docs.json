@@ -511,15 +511,17 @@
     "/api/v1/projects/{organizationName}/{projectName}/users/roles": {
       "get": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
-        "description": "Get role for a user on a particular project. Returns self role if no userName is set.",
+        "summary": "Get role for a user on a particular project.",
+        "description": "If userName is not present, then will return the role of current user in given project, otherwise will return role of user with name userName in project with name projectName.",
         "operationId": "getRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -528,6 +530,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -536,6 +539,7 @@
           {
             "name": "userName",
             "in": "query",
+            "description": "name of a user that is being requested",
             "required": false,
             "schema": {
               "type": "string"
@@ -609,15 +613,17 @@
       },
       "post": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
+        "summary": "Set role for a user on a particular project",
         "description": "Set role for a user on a particular project",
         "operationId": "setRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -626,9 +632,19 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "setRoleRequest",
+            "in": "path",
+            "description": "setRoleRequest passed through body",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SetRoleRequest"
             }
           },
           {
@@ -638,16 +654,6 @@
             "example": "basic"
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetRoleRequest"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "403": {
             "description": "User doesn\u0027t have permissions to manage this members",
@@ -760,13 +766,17 @@
     "/api/v1/organizations/{organizationName}/users/roles": {
       "get": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Get user\u0027s role in organization with given name.",
+        "description": "If userName is not present, then will return the role of current user in given organization, otherwise will return role of user with name userName in organization with name organizationName.",
         "operationId": "getRole_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -775,15 +785,39 @@
           {
             "name": "userName",
             "in": "query",
+            "description": "name of a user",
             "required": false,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "You are not allowed to see requested user\u0027s role.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
           "200": {
-            "description": "Successfully fetched user\u0027s role",
+            "description": "Successfully fetched user\u0027s role.",
             "content": {
               "*/*": {
                 "schema": {
@@ -815,22 +849,59 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Set user\u0027s role in organization with given name.",
+        "description": "Set user\u0027s role in organization with given name.",
         "operationId": "setRole_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "setRoleRequest",
+            "description": "pair of userName and role that is requested to be set",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -845,15 +916,51 @@
         },
         "responses": {
           "403": {
-            "description": "User doesn\u0027t have permissions to manage this members"
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Requested user or organization doesn\u0027t exist"
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "200": {
-            "description": "Permission added"
+            "description": "Permission added",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/image/upload": {
@@ -1305,6 +1412,96 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/contests/create": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Create a new contest.",
+        "description": "Create a new contest.",
+        "operationId": "createContest",
+        "parameters": [
+          {
+            "name": "contestDto",
+            "description": "contest requested for creation",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Contest was successfully created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Contest with given name is already present.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User cannot create contests with given organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization with given name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/execution": {
@@ -2094,22 +2291,58 @@
     "/api/v1/organizations/{organizationName}/users": {
       "get": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Get list of users that are connected with given organization.",
+        "description": "Get list of users that are connected with given organization.",
         "operationId": "getAllUsersByOrganizationName",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched contest by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2121,19 +2354,28 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/users/not-from": {
       "get": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Get all users not from organization with names starting with a given prefix.",
+        "description": "Get all users not connected with organization with name organizationName whose names start with the same prefix.",
         "operationId": "getAllUsersNotFromOrganizationWithNamesStartingWith",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -2142,15 +2384,48 @@
           {
             "name": "prefix",
             "in": "query",
+            "description": "prefix of username",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of users",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2162,18 +2437,138 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/can-create-contests": {
+      "get": {
+        "tags": [
+          "roles",
+          "organizations"
+        ],
+        "summary": "Get all user\u0027s organizations that can create contests.",
+        "description": "Get all organizations that can create contests where user is a member.",
+        "operationId": "getAllUsersOrganizationsThatCanCreateContests",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Role removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/by-user/not-deleted": {
       "get": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Get user\u0027s organizations.",
+        "description": "Get not deleted organizations where user is a member, and his roles in those organizations.",
         "operationId": "getOrganizationWithRoles",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "responses": {
+          "404": {
+            "description": "Could not find user with this id.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched organization infos.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2185,7 +2580,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/latestExecution": {
@@ -2465,22 +2865,51 @@
     "/api/v1/contests/{contestName}": {
       "get": {
         "tags": [
-          "contest-controller"
+          "contests"
         ],
+        "summary": "Get contest by name.",
+        "description": "Get contest by name.",
         "operationId": "getContestByName",
         "parameters": [
           {
             "name": "contestName",
             "in": "path",
+            "description": "name of a contest",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched contest by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2489,7 +2918,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{contestName}/scores": {
@@ -2528,22 +2962,51 @@
     "/api/v1/contests/{contestName}/public-test": {
       "get": {
         "tags": [
-          "contest-controller"
+          "contests"
         ],
+        "summary": "Get public test for contest with given name.",
+        "description": "Get public test for contest with given name.",
         "operationId": "getPublicTestForContest",
         "parameters": [
           {
             "name": "contestName",
             "in": "path",
+            "description": "name of a contest",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Either contest with such name was not found or tests are not provided.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2552,7 +3015,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{contestName}/enroll": {
@@ -2637,24 +3105,46 @@
     "/api/v1/contests/finished": {
       "get": {
         "tags": [
-          "contest-controller"
+          "contests"
         ],
+        "summary": "Get list of contests that has already finished.",
+        "description": "Get list of contests that has already finished.",
         "operationId": "getFinishedContests",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
+            "description": "amount of contests that should be returned, default: 10",
             "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
               "default": 10
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of finished contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2666,30 +3156,57 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/active": {
       "get": {
         "tags": [
-          "contest-controller"
+          "contests"
         ],
+        "summary": "Get list of contests that are in progress now.",
+        "description": "Get list of contests that are in progress now.",
         "operationId": "getContestsInProgress",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
+            "description": "amount of contests that should be returned, default: 10",
             "required": false,
             "schema": {
               "type": "integer",
               "format": "int32",
               "default": 10
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of active contests.",
             "content": {
               "*/*": {
                 "schema": {
@@ -2701,7 +3218,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/check-git-connectivity-adaptor": {
@@ -2912,15 +3434,17 @@
     "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
       "delete": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
+        "summary": "Removes user\u0027s role on a particular project",
         "description": "Removes user\u0027s role on a particular project",
         "operationId": "removeRole",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -2929,6 +3453,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -2937,6 +3462,7 @@
           {
             "name": "userName",
             "in": "path",
+            "description": "username",
             "required": true,
             "schema": {
               "type": "string"
@@ -3039,13 +3565,17 @@
     "/api/v1/organizations/{organizationName}/users/roles/{userName}": {
       "delete": {
         "tags": [
-          "lnk-user-organization-controller"
+          "roles",
+          "organizations"
         ],
+        "summary": "Remove user\u0027s role in organization with given name.",
+        "description": "Remove user\u0027s role in organization with given name.",
         "operationId": "removeRole_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3054,23 +3584,66 @@
           {
             "name": "userName",
             "in": "path",
+            "description": "name of user whose role is requested to be removed",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "403": {
-            "description": "User doesn\u0027t have permissions to manage this members"
-          },
-          "404": {
-            "description": "Requested user or organization doesn\u0027t exist"
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "200": {
-            "description": "Permission removed"
+            "description": "Role was successfully removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
@@ -3144,6 +3717,7 @@
       },
       "Organization": {
         "required": [
+          "canCreateContests",
           "name",
           "status"
         ],
@@ -3172,6 +3746,9 @@
           },
           "description": {
             "type": "string"
+          },
+          "canCreateContests": {
+            "type": "boolean"
           },
           "id": {
             "type": "integer",
@@ -3507,7 +4084,8 @@
               "VIEWER"
             ]
           }
-        }
+        },
+        "description": "pair of userName and role that is requested to be set"
       },
       "NewProjectDto": {
         "required": [
@@ -3591,6 +4169,35 @@
             "type": "string"
           }
         }
+      },
+      "ContestDto": {
+        "required": [
+          "endTime",
+          "name",
+          "organizationName",
+          "startTime"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          }
+        },
+        "description": "contest requested for creation"
       },
       "Execution": {
         "required": [
@@ -3964,30 +4571,6 @@
           "score": {
             "type": "number",
             "format": "double"
-          }
-        }
-      },
-      "ContestDto": {
-        "required": [
-          "endTime",
-          "name",
-          "startTime"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "startTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "description": {
-            "type": "string"
           }
         }
       },
