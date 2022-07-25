@@ -39,7 +39,9 @@ import kotlin.jvm.optionals.getOrNull
  * Controller for working with contests.
  */
 @ApiSwaggerSupport
-@Tags(Tag(name = "api"), Tag(name = "contests"))
+@Tags(
+    Tag(name = "contests"),
+)
 @RestController
 @OptIn(ExperimentalStdlibApi::class)
 @RequestMapping(path = ["/api/$v1/contests"])
@@ -56,10 +58,6 @@ internal class ContestController(
         .baseUrl(configProperties.preprocessorUrl)
         .build()
 
-    /**
-     * @param contestName
-     * @return contest with name [contestName]
-     */
     @GetMapping("/{contestName}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -76,11 +74,6 @@ internal class ContestController(
     fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = justOrNotFound(contestService.findByName(contestName))
         .map { it.toDto() }
 
-    /**
-     * @param pageSize amount of contests that should be taken
-     * @param authentication an [Authentication] representing an authenticated request
-     * @return list of active contests
-     */
     @GetMapping("/active")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -90,7 +83,7 @@ internal class ContestController(
         description = "Get list of contests that are in progress now.",
     )
     @Parameters(
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "number of records that will be returned, default: 10", required = false)
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false)
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of active contests.")
     fun getContestsInProgress(
@@ -100,11 +93,6 @@ internal class ContestController(
         contestService.findContestsInProgress(pageSize)
     ).map { it.toDto() }
 
-    /**
-     * @param pageSize amount of contests that should be taken
-     * @param authentication an [Authentication] representing an authenticated request
-     * @return list of finished contests
-     */
     @GetMapping("/finished")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -114,7 +102,7 @@ internal class ContestController(
         description = "Get list of contests that has already finished.",
     )
     @Parameters(
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "number of records that will be returned, default: 10", required = false)
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false)
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of finished contests.")
     fun getFinishedContests(
@@ -124,10 +112,6 @@ internal class ContestController(
         contestService.findFinishedContests(pageSize)
     ).map { it.toDto() }
 
-    /**
-     * @param contestName
-     * @return [TestFilesContent] filled with public test
-     */
     @GetMapping("/{contestName}/public-test")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -163,11 +147,6 @@ internal class ContestController(
         }
     }
 
-    /**
-     * @param contestDto requested contest
-     * @param authentication
-     * @return [String] with response
-     */
     @PostMapping("/create")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

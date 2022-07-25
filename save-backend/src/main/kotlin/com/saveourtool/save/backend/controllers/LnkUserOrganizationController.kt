@@ -64,11 +64,6 @@ class LnkUserOrganizationController(
 ) {
     private val logger = LoggerFactory.getLogger(LnkUserOrganizationController::class.java)
 
-    /**
-     * @param organizationName
-     * @param authentication
-     * @return list of users with their roles, connected to the organization with [organizationName]
-     */
     @GetMapping("{organizationName}/users")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -102,12 +97,6 @@ class LnkUserOrganizationController(
             }
         }
 
-    /**
-     * @param organizationName
-     * @param userName
-     * @param authentication
-     * @return role of user with [userName] in organization with [organizationName]
-     */
     @GetMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -161,14 +150,6 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getRole(user, organization)
         }
 
-    /**
-     * Set role in [organizationName] according to [setRoleRequest]
-     *
-     * @param organizationName
-     * @param setRoleRequest
-     * @param authentication
-     * @return string with response
-     */
     @PostMapping("{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -225,26 +206,18 @@ class LnkUserOrganizationController(
             )
         }
 
-    /**
-     * Remove user named [userName] from organization with name [organizationName]
-     *
-     * @param organizationName
-     * @param userName
-     * @param authentication
-     * @return string with response
-     */
     @DeleteMapping("{organizationName}/users/roles/{userName}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "DELETE",
-        summary = "Set user's role in organization with given name.",
+        summary = "Remove user's role in organization with given name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "userName", `in` = ParameterIn.PATH, description = "name of user whose role is requested to be removed", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Role removed")
+    @ApiResponse(responseCode = "200", description = "Role was successfully removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
     @Suppress("ThrowsCount", "TYPE_ALIAS")
@@ -286,13 +259,6 @@ class LnkUserOrganizationController(
             ResponseEntity.ok("Successfully removed role of user ${user.name} in organization ${organization.name}")
         }
 
-    /**
-     * @param organizationName
-     * @param prefix
-     * @param authentication
-     * @return list of users, not connected to the organization
-     * @throws ResponseStatusException
-     */
     @GetMapping("{organizationName}/users/not-from")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -332,10 +298,6 @@ class LnkUserOrganizationController(
         return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
     }
 
-    /**
-     * @param authentication
-     * @return list of organizations that can create contests where current user has owner role
-     */
     @GetMapping("/can-create-contests")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -353,19 +315,13 @@ class LnkUserOrganizationController(
         lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
     )
 
-    /**
-     * Get not deleted organizations that are connected with current user.
-     *
-     * @param authentication
-     * @return Map where key is organization name, value is a pair of avatar and role.
-     */
     @GetMapping("/by-user/not-deleted")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get user's organizations.",
-        description = "Get not deleted organizations where user is a member and his roles in them."
+        description = "Get not deleted organizations where user is a member, and his roles in those organizations."
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
