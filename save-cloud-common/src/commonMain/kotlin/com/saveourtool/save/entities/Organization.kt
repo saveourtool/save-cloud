@@ -46,6 +46,14 @@ data class Organization(
         userRoles,
         avatar
     )
+    
+    /**
+     * @return [id] as not null with validating
+     * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
+     */
+    fun requiredId(): Long = requireNotNull(id) {
+        "Entity is not saved yet: $this"
+    }
 
     companion object {
         /**

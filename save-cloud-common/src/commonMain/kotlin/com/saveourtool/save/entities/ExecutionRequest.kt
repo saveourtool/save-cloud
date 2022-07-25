@@ -28,6 +28,7 @@ sealed class ExecutionRequestBase {
  *
  * @property project project
  * @property gitDto data about project's git repository
+ * @property branchOrCommit
  * @property testRootPath root path of the test repository where save.properties file and high level save.toml file could be stored
  * @property sdk
  * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
@@ -37,6 +38,7 @@ sealed class ExecutionRequestBase {
 data class ExecutionRequest(
     override val project: Project,
     val gitDto: GitDto,
+    val branchOrCommit: String?,
     val testRootPath: String,
     override val sdk: Sdk,
     val executionId: Long?,
