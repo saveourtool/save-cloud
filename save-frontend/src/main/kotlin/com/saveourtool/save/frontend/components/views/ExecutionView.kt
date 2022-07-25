@@ -10,9 +10,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -68,14 +69,9 @@ external interface ExecutionState : State {
     var executionDto: ExecutionDto?
 
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -83,14 +79,9 @@ external interface ExecutionState : State {
  */
 external interface StatusProps<D : Any> : TableProps<D> {
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -100,32 +91,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val testExecutionFiltersRow = testExecutionFiltersRow(
-        initialValueStatus = state.status?.name ?: ANY,
-        initialValueTestSuite = state.testSuite ?: "",
-        onChangeStatus = { value ->
-            if (value == "ANY") {
-                setState {
-                    status = null
-                }
-            } else {
-                setState {
-                    status = TestResultStatus.valueOf(value)
-                }
-            }
-        },
-        onChangeTestSuite = { testSuiteValue ->
-            if (testSuiteValue == "") {
-                setState {
-                    testSuite = null
-                }
-            } else {
-                setState {
-                    testSuite = testSuiteValue
-                }
-            }
-        }
-    )
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -176,7 +141,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "Test file path") { cellProps ->
+            column(id = "path", header = "File Name") { cellProps ->
                 Fragment.create {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
@@ -275,7 +240,47 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             tr {
                 th {
                     colSpan = tableInstance.columns.size
-                    testExecutionFiltersRow()
+                    testExecutionFiltersRow {
+                        filters = state.filters
+                        onChangeFilters = { filterValue ->
+                            if (filterValue.status == null || filterValue.status?.name == "ANY") {
+                                setState {
+                                    filters = filters.copy(status = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(status = filterValue.status)
+                                }
+                            }
+                            if (filterValue.fileName?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(fileName = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(fileName = filterValue.fileName)
+                                }
+                            }
+                            if (filterValue.testSuite?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(testSuite = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(testSuite = filterValue.testSuite)
+                                }
+                            }
+                            if (filterValue.tag?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(tag = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(tag = filterValue.tag)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -294,14 +299,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getAdditionalDependencies = {
-            arrayOf(it.status, it.testSuite)
+            arrayOf(it.filters)
         }
     )
 
     init {
         state.executionDto = null
-        state.status = null
-        state.testSuite = null
+        state.filters = TestExecutionFilters.empty
     }
 
     override fun componentDidMount() {
@@ -318,7 +322,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                status = props.status
+                filters = filters.copy(status = props.status)
             }
         }
     }
@@ -361,7 +365,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 executionStatistics {
                     executionDto = state.executionDto
                 }
-
                 div {
                     className = ClassName("col-md-3 mb-4")
                     div {
@@ -380,7 +383,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
-                                                undefined,
+                                                body = undefined,
                                                 loadingHandler = ::classLoadingHandler,
                                             )
                                             if (response.ok) {
@@ -400,54 +403,32 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            status = state.status
-            testSuite = state.testSuite
+            filters = state.filters
             getData = { page, size ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
-                get(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
+                post(
+                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
+                        set("Content-Type", "application/json")
                     },
+                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
                     Json.decodeFromString<Array<TestExecutionDto>>(
                         it.text().await()
                     )
+                }.apply {
+                    asDynamic().debugInfo = null
                 }
-                    .apply {
-                        asDynamic().debugInfo = null
-                    }
             }
             getPageCount = { pageSize ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
+                val count: Int = post(
+                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=1&size=$pageSize&checkDebugInfo=true",
+                    headers = Headers().apply {
+                        set("Accept", "application/json")
+                        set("Content-Type", "application/json")
                     },
+                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 )
                     .json()

@@ -68,7 +68,7 @@ class TestExecution(
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
         test.testSuite.name,
-        tagsList(),
+        test.testSuite.tagsAsList(),
         unmatched,
         matched,
         expected,
@@ -76,9 +76,4 @@ class TestExecution(
         null,
         execution.id,
     )
-
-    private fun tagsList() = test.tags
-        ?.split(";")
-        ?.filter { it.isNotBlank() }
-        .orEmpty()
 }
