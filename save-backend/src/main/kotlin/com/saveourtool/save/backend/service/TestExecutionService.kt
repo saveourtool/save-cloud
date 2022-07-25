@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.error
@@ -50,8 +51,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param pageSize size of page
-     * @param status
-     * @param testSuite
+     * @param filters
      * @return a list of [TestExecutionDto]s
      */
     @Suppress("AVOID_NULL_CHECKS", "UnsafeCallOnNullableType")
@@ -59,9 +59,24 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         executionId: Long,
         page: Int,
         pageSize: Int,
-        status: TestResultStatus?,
-        testSuite: String?,
-    ) = testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(executionId, status, testSuite, PageRequest.of(page, pageSize))
+        filters: TestExecutionFilters,
+    ): List<TestExecution> {
+        val wrappedFileName = wrapValue(filters.fileName)
+        val wrappedTestSuiteName = wrapValue(filters.testSuite)
+        val wrappedTagValue = wrapValue(filters.tag)
+        return testExecutionRepository.findByExecutionIdAndStatusAndTestTestSuiteName(
+            executionId,
+            filters.status,
+            wrappedFileName,
+            wrappedTestSuiteName,
+            wrappedTagValue,
+            PageRequest.of(page, pageSize),
+        )
+    }
+
+    private fun wrapValue(value: String?) = value?.let {
+        "%$value%"
+    }
 
     /**
      * Get test executions by [agentContainerId] and [status]

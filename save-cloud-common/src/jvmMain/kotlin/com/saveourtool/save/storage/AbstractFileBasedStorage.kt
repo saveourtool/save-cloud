@@ -53,7 +53,7 @@ abstract class AbstractFileBasedStorage<K>(
         return Mono.fromCallable {
             contentPath.parent.createDirectoriesIfRequired()
             contentPath.createFile()
-        }.flatMap {
+        }.flatMap { _ ->
             content.map { byteBuffer ->
                 contentPath.outputStream(StandardOpenOption.APPEND).use { os ->
                     Channels.newChannel(os).use { it.write(byteBuffer) }

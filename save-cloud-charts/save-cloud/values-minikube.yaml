@@ -10,6 +10,7 @@ gateway:
     management.endpoints.web.exposure.include=*
     gateway.knownActuatorConsumers=172.0.0.0/8
 orchestrator:
+  profile: dev,kubernetes,minikube
   dockerHost: tcp://${HOST_IP}:2376
 mysql:
   external: false

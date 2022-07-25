@@ -10,10 +10,8 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.scoreCard
-import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -271,10 +269,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu!!) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
+            OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
-            else -> {
-                // this is a generated else block
-            }
         }
     }
 
@@ -400,7 +396,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("col-3")
                 userBoard {
-                    users = state.usersInOrganization ?: emptyList()
+                    users = state.usersInOrganization.orEmpty()
                 }
             }
         }
@@ -452,6 +448,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     organization = newOrganization
                 }
+            }
+        }
+    }
+
+    private fun ChildrenBuilder.renderTests() {
+        div {
+            className = ClassName("card shadow mb-4 w-100")
+            div {
+                className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
+                +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
             }
         }
     }
@@ -641,7 +647,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                     }
-                                    +projectMenu.name
+                                    +projectMenu.getTitle()
                                 }
                             }
                         }

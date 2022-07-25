@@ -22,9 +22,11 @@ jobs:
           arguments: |
             detektAll
             --build-cache
+            --continue
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Upload SARIF to Github
+        if: ${{ always() }}
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: build/detekt-sarif-reports/detekt-merged.sarif

@@ -14,7 +14,6 @@ import org.w3c.dom.HTMLSelectElement
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren
-import react.dom.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
@@ -68,7 +67,7 @@ private fun ChildrenBuilder.selection(
         className = ClassName("custom-select")
         this.value = value
         onChange = {
-            val target = it.target as HTMLSelectElement
+            val target = it.target
             onChangeFun(target)
         }
         id = labelValue

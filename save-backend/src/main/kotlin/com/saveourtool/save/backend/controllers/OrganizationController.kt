@@ -2,12 +2,14 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.v1
 import org.slf4j.LoggerFactory
@@ -26,11 +28,12 @@ import java.time.LocalDateTime
  * Controller for working with organizations.
  */
 @RestController
-@RequestMapping(path = ["/api/$v1/organization"])
+@RequestMapping(path = ["/api/$v1/organization", "/api/$v1/organizations"])
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
+    private val gitService: GitService,
 ) {
     /**
      * @param organizationName
@@ -122,6 +125,62 @@ internal class OrganizationController(
         .map {
             organizationService.deleteOrganization(it)
             ResponseEntity.ok("Organization deleted")
+        }
+        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return list of [GitDto] associated with [organizationName]
+     */
+    @GetMapping("/{organizationName}/list-git")
+    fun listGit(
+        @PathVariable organizationName: String,
+        authentication: Authentication
+    ): Flux<GitDto> = Mono
+        .just(organizationName)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.VIEWER) }
+        .map { organizationService.getByName(it) }
+        .flatMapIterable { gitService.getAllByOrganization(it) }
+        .map { it.toDto() }
+
+    /**
+     * @param organizationName
+     * @param gitDto
+     * @param authentication
+     * @return result of operation
+     */
+    @PostMapping("/{organizationName}/upsert-git")
+    fun upsertGit(
+        @PathVariable organizationName: String,
+        @RequestBody gitDto: GitDto,
+        authentication: Authentication
+    ): Mono<StringResponse> = Mono
+        .just(organizationName)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.OWNER) }
+        .map { organizationService.getByName(it) }
+        .map {
+            gitService.upsert(it, gitDto)
+            ResponseEntity.ok("Git credential saved")
+        }
+        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
+    /**
+     * @param organizationName
+     * @param url
+     * @param authentication
+     * @return result of operation
+     */
+    @DeleteMapping("/{organizationName}/delete-git")
+    fun deleteGit(@PathVariable organizationName: String,
+                  @RequestParam url: String,
+                  authentication: Authentication
+    ): Mono<StringResponse> = Mono.just(organizationName)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.OWNER) }
+        .map { organizationService.getByName(it) }
+        .map {
+            gitService.delete(it, url)
+            ResponseEntity.ok("Git credential deleted")
         }
         .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 

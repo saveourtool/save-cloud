@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.controller.agents
 
-import com.saveourtool.save.agent.ExecutionLogs
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
@@ -32,6 +31,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -40,6 +40,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
@@ -196,11 +198,32 @@ class AgentsControllerTest {
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
-        val executionLogs = ExecutionLogs("agent", text)
+        val fileName = "agent.log"
+        val filePath = configProperties.executionLogs + File.separator + fileName
+        val file = File(filePath)
+        if (!file.exists()) {
+            Files.createDirectories(Paths.get(configProperties.executionLogs))
+            file.createNewFile()
+        }
+
+        text.forEach {
+            file.appendText(it + "\n")
+        }
+
+        val body = MultipartBodyBuilder().apply {
+            part(
+                "executionLogs",
+                file.readBytes()
+            )
+                .header("Content-Disposition", "form-data; name=executionLogs; filename=$fileName")
+        }
+            .build()
+
         return webClient
             .post()
             .uri("/executionLogs")
-            .body(BodyInserters.fromValue(executionLogs))
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(body))
             .exchange()
     }
 

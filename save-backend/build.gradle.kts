@@ -4,17 +4,24 @@ import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
     // this plugin will generate generateOpenApiDocs task
-    // running this task, it will writes the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
+    // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
 }
 
 openApi {
     apiDocsUrl.set("http://localhost:5800/internal/v3/api-docs/latest")
-    outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
+    outputDir.set(file(projectDir))
+    outputFileName.set("backend-api-docs.json")
+    waitTimeInSeconds.set(120)
+
+    tasks.named<BootRun>("bootRun") {
+        jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+    }
 }
 
 configureSpringBoot(true)

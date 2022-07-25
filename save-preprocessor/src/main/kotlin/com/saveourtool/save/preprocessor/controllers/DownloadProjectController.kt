@@ -221,6 +221,9 @@ class DownloadProjectController(
         .retrieve()
         .bodyToMono<List<TestSuiteDto>>()
         .map { existingSuites ->
+            if (newTestSuites.isEmpty()) {
+                log.warn("No new test suites have been provided, will mark all standard test suites as obsolete")
+            }
             existingSuites.filter { it !in newTestSuites }
         }
         .flatMap { obsoleteSuites ->
@@ -247,7 +250,7 @@ class DownloadProjectController(
         val gitDto = executionRequest.gitDto
         val (tmpDir, location) = downloadRepositoryLocation(gitDto)
         return Mono.fromCallable {
-            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = executionRequest.branchOrCommit)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")
@@ -384,7 +387,7 @@ class DownloadProjectController(
         .toFlux()
         .buffer(TESTS_BUFFER_SIZE)
         .doOnNext {
-            log.debug { "Processing chuck of tests [${it.first()} ... ${it.last()}]" }
+            log.debug { "Processing chunk of tests [${it.first()} ... ${it.last()}]" }
         }
         .flatMap { testDtos ->
             webClientBackend.makeRequest(BodyInserters.fromValue(testDtos), "/initializeTests") {

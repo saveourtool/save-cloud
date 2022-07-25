@@ -6,16 +6,8 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5000",
+      "url": "http://localhost:5800",
       "description": "Generated server url"
-    }
-  ],
-  "tags": [
-    {
-      "name": "api"
-    },
-    {
-      "name": "permissions"
     }
   ],
   "paths": {
@@ -32,6 +24,246 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/upsert-git": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "upsertGit",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/upsert-git": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "upsertGit_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/update": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "updateOrganization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/update": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "updateOrganization_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/save": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "saveOrganization",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/save": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "saveOrganization_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Organization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{userName}/save/token": {
+      "post": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "saveUserToken",
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -57,15 +289,74 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/v1/testExecutions": {
-      "get": {
+    "/api/v1/test-execution": {
+      "post": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
+        ],
+        "operationId": "getTestExecutionByLocation",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestResultLocation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-executions": {
+      "post": {
+        "tags": [
+          "test-executions"
         ],
         "operationId": "getTestExecutions",
         "parameters": [
@@ -97,34 +388,33 @@
             }
           },
           {
-            "name": "status",
+            "name": "checkDebugInfo",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "enum": [
-                "FAILED",
-                "IGNORED",
-                "INTERNAL_ERROR",
-                "PASSED",
-                "READY_FOR_TESTING",
-                "RUNNING",
-                "TEST_ERROR"
-              ]
+              "type": "boolean",
+              "default": false
             }
           },
           {
-            "name": "testSuite",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestExecutionFilters"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -136,46 +426,12 @@
               }
             }
           }
-        }
-      },
-      "post": {
-        "tags": [
-          "test-execution-controller"
-        ],
-        "operationId": "getTestExecutionByLocation",
-        "parameters": [
-          {
-            "name": "executionId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TestResultLocation"
-              }
-            }
-          },
-          "required": true
         },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestExecutionDto"
-                }
-              }
-            }
+        "security": [
+          {
+            "basic": []
           }
-        }
+        ]
       }
     },
     "/api/v1/submitExecutionRequest": {
@@ -199,7 +455,7 @@
                   "file": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/components/schemas/FileInfo"
+                      "$ref": "#/components/schemas/ShortFileInfo"
                     }
                   }
                 }
@@ -252,83 +508,20 @@
         }
       }
     },
-    "/api/v1/projects/update": {
-      "post": {
-        "tags": [
-          "project-controller"
-        ],
-        "operationId": "updateProject",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Project"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/projects/save": {
-      "post": {
-        "tags": [
-          "project-controller"
-        ],
-        "operationId": "saveProject",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewProjectDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/projects/roles/{organizationName}/{projectName}": {
+    "/api/v1/projects/{organizationName}/{projectName}/users/roles": {
       "get": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
-        "description": "Get role for a user on a particular project. Returns self role if no userName is set.",
+        "summary": "Get role for a user on a particular project.",
+        "description": "If userName is not present, then will return the role of current user in given project, otherwise will return role of user with name userName in project with name projectName.",
         "operationId": "getRole",
         "parameters": [
           {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true
-          },
-          {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -337,6 +530,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -345,10 +539,17 @@
           {
             "name": "userName",
             "in": "query",
+            "description": "name of a user that is being requested",
             "required": false,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
@@ -412,20 +613,17 @@
       },
       "post": {
         "tags": [
-          "permissions",
-          "api"
+          "projects",
+          "roles"
         ],
+        "summary": "Set role for a user on a particular project",
         "description": "Set role for a user on a particular project",
         "operationId": "setRole",
         "parameters": [
           {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true
-          },
-          {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization in which given project is in",
             "required": true,
             "schema": {
               "type": "string"
@@ -434,25 +632,31 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetRoleRequest"
-              }
+          },
+          {
+            "name": "setRoleRequest",
+            "in": "path",
+            "description": "setRoleRequest passed through body",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/SetRoleRequest"
             }
           },
-          "required": true
-        },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "responses": {
-          "404": {
-            "description": "Requested user or project doesn\u0027t exist",
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
             "content": {
               "*/*": {
                 "schema": {
@@ -461,8 +665,8 @@
               }
             }
           },
-          "403": {
-            "description": "User doesn\u0027t have permissions to manage this organization members",
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist",
             "content": {
               "*/*": {
                 "schema": {
@@ -499,47 +703,17 @@
         ]
       }
     },
-    "/api/v1/projects/git": {
+    "/api/v1/projects/update": {
       "post": {
         "tags": [
           "project-controller"
         ],
-        "operationId": "getRepositoryDtoByProject",
+        "operationId": "updateProject",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Project"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/GitDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/organization/save": {
-      "post": {
-        "tags": [
-          "organization-controller"
-        ],
-        "operationId": "saveOrganization",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Organization"
               }
             }
           },
@@ -557,6 +731,236 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/projects/save": {
+      "post": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "saveProject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users/roles": {
+      "get": {
+        "tags": [
+          "roles",
+          "organizations"
+        ],
+        "summary": "Get user\u0027s role in organization with given name.",
+        "description": "If userName is not present, then will return the role of current user in given organization, otherwise will return role of user with name userName in organization with name organizationName.",
+        "operationId": "getRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "query",
+            "description": "name of a user",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "You are not allowed to see requested user\u0027s role.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched user\u0027s role.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "roles",
+          "organizations"
+        ],
+        "summary": "Set user\u0027s role in organization with given name.",
+        "description": "Set user\u0027s role in organization with given name.",
+        "operationId": "setRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "setRoleRequest",
+            "description": "pair of userName and role that is requested to be set",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Permission added",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/image/upload": {
@@ -577,7 +981,7 @@
           {
             "name": "type",
             "in": "query",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string",
               "enum": [
@@ -619,12 +1023,39 @@
         }
       }
     },
-    "/api/v1/files/upload": {
+    "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "tags": [
           "download-files-controller"
         ],
         "operationId": "upload",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnShortFileInfo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -649,7 +1080,153 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileInfo"
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/download": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "download",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileInfo"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/get-execution-info": {
+      "post": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "getExecutionInfo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestExecutionDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -679,7 +1256,41 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -709,7 +1320,7 @@
                   "file": {
                     "type": "array",
                     "items": {
-                      "$ref": "#/components/schemas/FileInfo"
+                      "$ref": "#/components/schemas/ShortFileInfo"
                     }
                   }
                 }
@@ -803,6 +1414,96 @@
         }
       }
     },
+    "/api/v1/contests/create": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Create a new contest.",
+        "description": "Create a new contest.",
+        "operationId": "createContest",
+        "parameters": [
+          {
+            "name": "contestDto",
+            "description": "contest requested for creation",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Contest was successfully created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Contest with given name is already present.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User cannot create contests with given organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization with given name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "tags": [
@@ -857,6 +1558,238 @@
         }
       }
     },
+    "/api/v1/organizations/{organizationName}/list-git": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "listGit",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/list-git": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "listGit_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/avatar": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "avatar",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/avatar": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "avatar_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationByName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationByName_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/get/list": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationsByOwnerId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/get/list": {
+      "get": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "getOrganizationsByOwnerId_1",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/users/{userName}": {
       "get": {
         "tags": [
@@ -892,7 +1825,7 @@
         "tags": [
           "users-details-controller"
         ],
-        "operationId": "avatar",
+        "operationId": "avatar_2",
         "parameters": [
           {
             "name": "userName",
@@ -917,10 +1850,37 @@
         }
       }
     },
+    "/api/v1/users/global-role": {
+      "get": {
+        "tags": [
+          "users-details-controller"
+        ],
+        "operationId": "getSelfGlobalRole",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "ADMIN",
+                    "NONE",
+                    "OWNER",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/testLatestExecutions": {
       "get": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutionsByStatus",
         "parameters": [
@@ -967,11 +1927,17 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -983,13 +1949,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/testExecution/count": {
       "get": {
         "tags": [
-          "test-execution-controller"
+          "test-executions"
         ],
         "operationId": "getTestExecutionsCount",
         "parameters": [
@@ -1026,11 +1997,17 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1040,7 +2017,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/": {
@@ -1084,6 +2066,55 @@
           {
             "name": "projectName",
             "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/users/not-from": {
+      "get": {
+        "tags": [
+          "lnk-user-project-controller"
+        ],
+        "operationId": "getAllUsersNotFromProjectWithNamesStartingWith",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "prefix",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "string"
@@ -1201,28 +2232,19 @@
         }
       }
     },
-    "/api/v1/projects/get/organization-id": {
+    "/api/v1/projects/get/not-deleted-projects-by-organization": {
       "get": {
         "tags": [
           "project-controller"
         ],
-        "operationId": "getProjectByNameAndOrganizationId",
+        "operationId": "getNonDeletedProjectsByOrganizationName",
         "parameters": [
           {
-            "name": "name",
+            "name": "organizationName",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "organizationId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
             }
           }
         ],
@@ -1232,7 +2254,10 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Project"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
                 }
               }
             }
@@ -1263,75 +2288,222 @@
         }
       }
     },
-    "/api/v1/organization/{organizationName}": {
+    "/api/v1/organizations/{organizationName}/users": {
       "get": {
         "tags": [
-          "organization-controller"
+          "roles",
+          "organizations"
         ],
-        "operationId": "getOrganizationByName",
+        "summary": "Get list of users that are connected with given organization.",
+        "description": "Get list of users that are connected with given organization.",
+        "operationId": "getAllUsersByOrganizationName",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "404": {
+            "description": "Contest with such name was not found.",
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/Organization"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched contest by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
-    "/api/v1/organization/{organizationName}/avatar": {
+    "/api/v1/organizations/{organizationName}/users/not-from": {
       "get": {
         "tags": [
-          "organization-controller"
+          "roles",
+          "organizations"
         ],
-        "operationId": "avatar_1",
+        "summary": "Get all users not from organization with names starting with a given prefix.",
+        "description": "Get all users not connected with organization with name organizationName whose names start with the same prefix.",
+        "operationId": "getAllUsersNotFromOrganizationWithNamesStartingWith",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "prefix",
+            "in": "query",
+            "description": "prefix of username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of users",
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ImageInfo"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
                 }
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
-    "/api/v1/organization/get/list": {
+    "/api/v1/organizations/can-create-contests": {
       "get": {
         "tags": [
-          "organization-controller"
+          "roles",
+          "organizations"
         ],
-        "operationId": "getOrganizationsByOwnerId",
+        "summary": "Get all user\u0027s organizations that can create contests.",
+        "description": "Get all organizations that can create contests where user is a member.",
+        "operationId": "getAllUsersOrganizationsThatCanCreateContests",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Role removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1343,7 +2515,77 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/by-user/not-deleted": {
+      "get": {
+        "tags": [
+          "roles",
+          "organizations"
+        ],
+        "summary": "Get user\u0027s organizations.",
+        "description": "Get not deleted organizations where user is a member, and his roles in those organizations.",
+        "operationId": "getOrganizationWithRoles",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Could not find user with this id.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched organization infos.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrganizationInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/latestExecution": {
@@ -1362,12 +2604,11 @@
             }
           },
           {
-            "name": "organizationId",
+            "name": "organizationName",
             "in": "query",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
             }
           }
         ],
@@ -1385,12 +2626,61 @@
         }
       }
     },
-    "/api/v1/files/list": {
+    "/api/v1/getTestRootPathByExecutionId": {
+      "get": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getTestRootPathByExecutionId",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/list": {
       "get": {
         "tags": [
           "download-files-controller"
         ],
         "operationId": "list",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1400,40 +2690,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/FileInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/files/download": {
-      "get": {
-        "tags": [
-          "download-files-controller"
-        ],
-        "operationId": "download",
-        "parameters": [
-          {
-            "name": "fileInfo",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/FileInfo"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "byte"
                   }
                 }
               }
@@ -1514,6 +2770,462 @@
         }
       }
     },
+    "/api/v1/contests/{organizationName}/{projectName}/eligible-contests": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getAvaliableContestsForProject",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{organizationName}/{projectName}/best": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getBestProjectContests",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 4
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get contest by name.",
+        "description": "Get contest by name.",
+        "operationId": "getContestByName",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched contest by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContestDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/{contestName}/scores": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getRatingsInContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/public-test": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get public test for contest with given name.",
+        "description": "Get public test for contest with given name.",
+        "operationId": "getPublicTestForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Either contest with such name was not found or tests are not provided.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/{contestName}/enroll": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "enrollForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/{contestName}/eligible-projects": {
+      "get": {
+        "tags": [
+          "lnk-contest-project-controller"
+        ],
+        "operationId": "getAvaliableProjectsForContest",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contests/finished": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get list of contests that has already finished.",
+        "description": "Get list of contests that has already finished.",
+        "operationId": "getFinishedContests",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "amount of contests that should be returned, default: 10",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched list of finished contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/active": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get list of contests that are in progress now.",
+        "description": "Get list of contests that are in progress now.",
+        "operationId": "getContestsInProgress",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "amount of contests that should be returned, default: 10",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched list of active contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/check-git-connectivity-adaptor": {
       "get": {
         "tags": [
@@ -1582,6 +3294,403 @@
           }
         }
       }
+    },
+    "/api/v1/organization/{organizationName}/delete-git": {
+      "delete": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "deleteGit",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/delete-git": {
+      "delete": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "deleteGit_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/delete": {
+      "delete": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "deleteOrganization",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/delete": {
+      "delete": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "deleteOrganization_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
+      "delete": {
+        "tags": [
+          "projects",
+          "roles"
+        ],
+        "summary": "Removes user\u0027s role on a particular project",
+        "description": "Removes user\u0027s role on a particular project",
+        "operationId": "removeRole",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization in which given project is in",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "name of a project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "path",
+            "description": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or project doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Permission removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/projects/{organizationName}/{projectName}/delete": {
+      "delete": {
+        "tags": [
+          "project-controller"
+        ],
+        "operationId": "deleteProject",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/users/roles/{userName}": {
+      "delete": {
+        "tags": [
+          "roles",
+          "organizations"
+        ],
+        "summary": "Remove user\u0027s role in organization with given name.",
+        "description": "Remove user\u0027s role in organization with given name.",
+        "operationId": "removeRole_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userName",
+            "in": "path",
+            "description": "name of user whose role is requested to be removed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "User doesn\u0027t have permissions to manage this members",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Role was successfully removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested user or organization doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
+      "delete": {
+        "tags": [
+          "download-files-controller"
+        ],
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creationTimestamp",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1589,9 +3698,68 @@
       "Unit": {
         "type": "object"
       },
+      "GitDto": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Organization": {
+        "required": [
+          "canCreateContests",
+          "name",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "canCreateContests": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "UserInfo": {
         "required": [
           "name",
+          "organizations",
           "projects"
         ],
         "type": "object",
@@ -1603,6 +3771,19 @@
             "type": "string"
           },
           "projects": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          },
+          "organizations": {
             "type": "object",
             "additionalProperties": {
               "type": "string",
@@ -1635,6 +3816,16 @@
           },
           "twitter": {
             "type": "string"
+          },
+          "globalRole": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "NONE",
+              "OWNER",
+              "SUPER_ADMIN",
+              "VIEWER"
+            ]
           }
         }
       },
@@ -1708,13 +3899,54 @@
               "type": "string"
             }
           },
-          "missingWarnings": {
+          "unmatched": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
-          "matchedWarnings": {
+          "matched": {
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
+          },
+          "expected": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpected": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hasDebugInfo": {
+            "type": "boolean"
+          },
+          "executionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TestExecutionFilters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "FAILED",
+              "IGNORED",
+              "INTERNAL_ERROR",
+              "PASSED",
+              "READY_FOR_TESTING",
+              "RUNNING",
+              "TEST_ERROR"
+            ]
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "testSuite": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
           }
         }
       },
@@ -1733,6 +3965,9 @@
           "gitDto": {
             "$ref": "#/components/schemas/GitDto"
           },
+          "branchOrCommit": {
+            "type": "string"
+          },
           "testRootPath": {
             "type": "string"
           },
@@ -1740,55 +3975,6 @@
             "$ref": "#/components/schemas/Sdk"
           },
           "executionId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "GitDto": {
-        "required": [
-          "url"
-        ],
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "branch": {
-            "type": "string"
-          },
-          "hash": {
-            "type": "string"
-          }
-        }
-      },
-      "Organization": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "ownerId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "dateCreated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "avatar": {
-            "type": "string"
-          },
-          "id": {
             "type": "integer",
             "format": "int64"
           }
@@ -1863,6 +4049,67 @@
           }
         }
       },
+      "ShortFileInfo": {
+        "required": [
+          "isExecutable",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isExecutable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SetRoleRequest": {
+        "required": [
+          "role",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "NONE",
+              "OWNER",
+              "SUPER_ADMIN",
+              "VIEWER"
+            ]
+          }
+        },
+        "description": "pair of userName and role that is requested to be set"
+      },
+      "NewProjectDto": {
+        "required": [
+          "organizationName",
+          "project"
+        ],
+        "type": "object",
+        "properties": {
+          "project": {
+            "$ref": "#/components/schemas/Project"
+          },
+          "organizationName": {
+            "type": "string"
+          }
+        }
+      },
+      "ImageInfo": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        }
+      },
       "FileInfo": {
         "required": [
           "isExecutable",
@@ -1888,66 +4135,18 @@
           }
         }
       },
-      "NewProjectDto": {
-        "required": [
-          "organizationName",
-          "project"
-        ],
-        "type": "object",
-        "properties": {
-          "project": {
-            "$ref": "#/components/schemas/Project"
-          },
-          "organizationName": {
-            "type": "string"
-          },
-          "gitDto": {
-            "$ref": "#/components/schemas/GitDto"
-          }
-        }
-      },
-      "SetRoleRequest": {
-        "required": [
-          "role",
-          "userName"
-        ],
-        "type": "object",
-        "properties": {
-          "userName": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "ADMIN",
-              "NONE",
-              "OWNER",
-              "SUPER_ADMIN",
-              "VIEWER"
-            ]
-          }
-        }
-      },
-      "ImageInfo": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string"
-          }
-        }
-      },
       "ExecutionRequestForStandardSuites": {
         "required": [
           "project",
           "sdk",
-          "testsSuites"
+          "testSuites"
         ],
         "type": "object",
         "properties": {
           "project": {
             "$ref": "#/components/schemas/Project"
           },
-          "testsSuites": {
+          "testSuites": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1961,12 +4160,52 @@
           },
           "batchSizeForAnalyzer": {
             "type": "string"
+          },
+          "executionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "version": {
+            "type": "string"
           }
         }
       },
+      "ContestDto": {
+        "required": [
+          "endTime",
+          "name",
+          "organizationName",
+          "startTime"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          }
+        },
+        "description": "contest requested for creation"
+      },
       "Execution": {
         "required": [
+          "additionalFiles",
+          "allTests",
+          "expectedChecks",
           "failedTests",
+          "matchedChecks",
           "passedTests",
           "project",
           "runningTests",
@@ -1974,7 +4213,9 @@
           "skippedTests",
           "startTime",
           "status",
-          "type"
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
         ],
         "type": "object",
         "properties": {
@@ -2018,6 +4259,10 @@
           "version": {
             "type": "string"
           },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
           "runningTests": {
             "type": "integer",
             "format": "int64"
@@ -2031,6 +4276,22 @@
             "format": "int64"
           },
           "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
             "type": "integer",
             "format": "int64"
           },
@@ -2132,6 +4393,12 @@
           },
           "language": {
             "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -2169,16 +4436,49 @@
           }
         }
       },
+      "OrganizationInfo": {
+        "required": [
+          "name",
+          "userRoles"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "userRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
+          },
+          "avatar": {
+            "type": "string"
+          }
+        }
+      },
       "ExecutionDto": {
         "required": [
+          "allTests",
+          "expectedChecks",
           "failedTests",
           "id",
+          "matchedChecks",
           "passedTests",
           "runningTests",
           "skippedTests",
           "startTime",
           "status",
-          "type"
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
         ],
         "type": "object",
         "properties": {
@@ -2213,6 +4513,10 @@
             "type": "integer",
             "format": "int64"
           },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
           "runningTests": {
             "type": "integer",
             "format": "int64"
@@ -2229,7 +4533,70 @@
             "type": "integer",
             "format": "int64"
           },
-          "additionalFiles": {
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ContestResult": {
+        "required": [
+          "contestName",
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "projectName": {
+            "type": "string"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "contestName": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TestFilesContent": {
+        "required": [
+          "tags",
+          "testLines"
+        ],
+        "type": "object",
+        "properties": {
+          "testLines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expectedLines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "tags": {
             "type": "array",
             "items": {
               "type": "string"

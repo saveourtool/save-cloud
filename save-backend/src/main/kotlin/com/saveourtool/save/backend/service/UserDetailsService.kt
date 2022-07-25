@@ -52,7 +52,7 @@ class UserDetailsService(
         if (!user.isPresent) {
             val sourceMsg = source?.let {
                 " and source=$source"
-            } ?: ""
+            }.orEmpty()
             logger.warn("Couldn't find user with name=$username$sourceMsg in DB!")
         }
         user.isPresent
@@ -67,7 +67,7 @@ class UserDetailsService(
     @Suppress("UnsafeCallOnNullableType")
     private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
         username = this.name!!,
-        password = this.password ?: "",
+        password = this.password.orEmpty(),
         authorities = this.role,
         identitySource = this.source,
         id = this.id!!,

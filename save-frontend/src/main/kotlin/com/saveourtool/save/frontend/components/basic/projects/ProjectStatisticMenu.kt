@@ -110,7 +110,7 @@ private fun projectStatisticMenu() = FC<ProjectStatisticMenuProps> { props ->
                 className = ClassName("col-xl col-md-6 mb-4")
                 val data = latestExecutionStatisticDtos?.map {
                     DataPieChart(it.testSuiteName, it.countTest, randomColor())
-                } ?: emptyList()
+                }.orEmpty()
                 pieChart(
                     data.toTypedArray()
                 ) {

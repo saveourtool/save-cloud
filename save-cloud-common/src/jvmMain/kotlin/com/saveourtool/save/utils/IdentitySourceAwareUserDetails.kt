@@ -20,5 +20,5 @@ class IdentitySourceAwareUserDetails(
     authorities?.split(',')
         ?.filter { it.isNotBlank() }
         ?.map { SimpleGrantedAuthority(it) }
-        ?: emptyList()
+        .orEmpty()
 )

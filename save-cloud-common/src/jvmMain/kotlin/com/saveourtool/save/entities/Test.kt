@@ -12,7 +12,6 @@ import javax.persistence.ManyToOne
  * @property dateAdded
  * @property testSuite
  * @property pluginName name of a plugin which this test belongs to
- * @property tags list of tags of current test
  */
 @Entity
 @Suppress("LongParameterList")
@@ -30,15 +29,8 @@ class Test(
     @JoinColumn(name = "test_suite_id")
     var testSuite: TestSuite,
 
-    var tags: String?,
-
     var additionalFiles: String,
 ) : BaseEntity() {
-    /**
-     * @return [tags] as a list of strings
-     */
-    fun tagsAsList() = tags?.split(";")?.filter { it.isNotBlank() }
-
     /**
      * @return [additionalFiles] as a list of strings
      */
@@ -53,7 +45,6 @@ class Test(
         pluginName,
         testSuite.id!!,
         hash,
-        tagsAsList() ?: emptyList(),
         additionalFilesAsList(),
     )
 }

@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property description info about contest
  * @property startTime start time of a contest
  * @property endTime end time of a contest
+ * @property organizationName
  */
 @Serializable
 data class ContestDto(
@@ -20,4 +21,5 @@ data class ContestDto(
     @Contextual
     val endTime: LocalDateTime,
     val description: String?,
+    val organizationName: String,
 )
