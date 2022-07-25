@@ -53,4 +53,9 @@
     </addColumn>
   </changeSet>
 
+  <changeSet id="organization-6" author="sanyavertolet" context="dev or prod">
+    <addColumn tableName="organization">
+      <column name="can_create_contests" type="boolean" defaultValue="0"/>
+    </addColumn>
+  </changeSet>
 </databaseChangeLog>

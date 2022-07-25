@@ -8,16 +8,21 @@ import com.saveourtool.save.utils.LocalDateTime
  * @property status
  * @property startTime the time contest starts
  * @property endTime the time contest ends
+ * @property organization organization that created this contest
  * @property description
  * @property testSuiteIds
  */
 @Entity
+@Suppress("LongParameterList")
 class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: ContestStatus,
     var startTime: LocalDateTime?,
     var endTime: LocalDateTime?,
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    var organization: Organization,
     var testSuiteIds: String = "",
     var description: String? = null,
 ) {
@@ -39,6 +44,7 @@ class Contest(
         startTime!!,
         endTime!!,
         description,
+        organization.name,
     )
 
     /**
@@ -66,8 +72,31 @@ class Contest(
             status = status,
             startTime = null,
             endTime = null,
+            organization = Organization.stub(1)
         ).apply {
             this.id = id
         }
+
+        /**
+         * Create [Contest] from [ContestDto]
+         *
+         * @param organization that created contest
+         * @param testSuiteIds list of test suite ids
+         * @param status [ContestStatus]
+         * @return [Contest] entity
+         */
+        fun ContestDto.toContest(
+            organization: Organization,
+            testSuiteIds: List<Long> = emptyList(),
+            status: ContestStatus = ContestStatus.CREATED,
+        ) = Contest(
+            name,
+            status,
+            startTime,
+            endTime,
+            organization,
+            testSuiteIds.joinToString(","),
+            description,
+        )
     }
 }

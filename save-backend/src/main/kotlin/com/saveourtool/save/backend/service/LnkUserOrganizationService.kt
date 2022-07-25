@@ -138,6 +138,14 @@ class LnkUserOrganizationService(
         ?: Role.NONE
 
     /**
+     * @param userId
+     * @param organizationName
+     * @return role for user in organization by user ID and organization name
+     */
+    fun findByAuthenticationAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserIdAndOrganizationName(userId, organizationName)
+
+    /**
      * @param authentication
      * @param organization
      * @return the highest of two roles: the one in [organization] and global one.
@@ -160,7 +168,21 @@ class LnkUserOrganizationService(
         val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
-    
+
+    /**
+     * @param userId
+     * @param requestedRole role that user with id [userId] should have in organization
+     * @return list of organizations that can create contests
+     */
+    fun getSuperOrganizationsWithRole(userId: Long, requestedRole: Role = Role.OWNER): List<Organization> = Role.values()
+        .filter {
+            it.isHigherOrEqualThan(requestedRole)
+        }
+        .let {
+            lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
+        }
+        .mapNotNull { it.organization }
+
     /**
      * @param user
      * @return [Organization]s that are connected to the [user]
