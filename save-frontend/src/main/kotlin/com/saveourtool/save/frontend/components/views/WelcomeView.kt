@@ -109,7 +109,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div {
                     Particles::class.react {
                         id = "tsparticles"
-                        url = "http://localhost:5800/particles.json"
+                        // where to get this property from? any constant?
+                        url = "http://saveourtool.com/particles.json"
                     }
 
                     className = ClassName("row")
