@@ -15,6 +15,7 @@ import com.saveourtool.save.testutils.enqueue
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
+import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -48,6 +49,7 @@ import kotlin.io.path.pathString
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
+    DockerPersistentVolumeService::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
@@ -64,8 +66,8 @@ class DockerServiceTest {
             resourcesRootPath = "foo"
             id = 42L
         }
-        val (baseImageId, agentRunCmd) = dockerService.buildBaseImage(testExecution)
-        testContainerId = dockerService.createContainers(testExecution.id!!, baseImageId, agentRunCmd).single()
+        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testExecution)
+        testContainerId = dockerService.createContainers(testExecution.id!!, baseImageId, agentRunCmd, pvId).single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend

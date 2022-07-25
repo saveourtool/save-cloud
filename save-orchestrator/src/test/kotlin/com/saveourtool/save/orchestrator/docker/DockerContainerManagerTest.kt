@@ -50,6 +50,7 @@ class DockerContainerManagerTest {
                 it.repoTags?.contains("ubuntu:latest") == true
             }
             .id
+        dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
 
     @Test
@@ -62,6 +63,7 @@ class DockerContainerManagerTest {
             replicas = 1,
             workingDir = "/",
             agentRunCmd = "./script.sh",
+            pvId = DockerPvId("test-volume")
         ).single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
@@ -83,10 +85,8 @@ class DockerContainerManagerTest {
     @Test
     @Suppress("UnsafeCallOnNullableType")
     fun `should build an image with provided resources`() {
-        val resourcesDir = createTempDirectory()
-        repeat(5) { createTempFile(resourcesDir) }
-        testImageId = dockerContainerManager.buildImageWithResources(
-            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesTargetPath = "/app/resources"
+        testImageId = dockerContainerManager.buildImage(
+            imageName = "test:test"
         )
         val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
@@ -100,5 +100,6 @@ class DockerContainerManagerTest {
         if (::testImageId.isInitialized) {
             dockerClient.removeImageCmd(testImageId).exec()
         }
+        dockerClient.removeVolumeCmd("test-volume").exec()
     }
 }

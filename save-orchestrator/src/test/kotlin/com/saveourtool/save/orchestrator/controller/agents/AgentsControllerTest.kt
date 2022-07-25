@@ -7,6 +7,7 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
+import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -76,8 +77,10 @@ class AgentsControllerTest {
             resourcesRootPath = "resourcesRootPath"
             id = 42L
         }
-        whenever(dockerService.buildBaseImage(any<Execution>())).thenReturn("test-image-id" to "test-exec-cmd")
-        whenever(dockerService.createContainers(any(), any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.prepareConfiguration(any<Execution>())).thenReturn(
+            DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
+        )
+        whenever(dockerService.createContainers(any(), any(), any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         // /addAgents
         mockServer.enqueue(
             "/addAgents.*",
@@ -102,8 +105,8 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).buildBaseImage(any<Execution>())
-        verify(dockerService).createContainers(any(), any(), any())
+        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).createContainers(any(), any(), any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 
