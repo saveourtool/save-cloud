@@ -19,7 +19,6 @@ import csstype.None
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.*
-import react.dom.*
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
@@ -202,10 +201,8 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }()
 
-    val (isFirstRender, setIsFirstRender) = useState(true)
-    if (isFirstRender) {
+    runOnlyOnFirstRender {
         getUsersFromGroup()
-        setIsFirstRender(false)
     }
 
     div {

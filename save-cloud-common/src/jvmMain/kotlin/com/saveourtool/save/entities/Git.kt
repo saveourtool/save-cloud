@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
-import javax.persistence.OneToOne
 
 /**
  * Data class with repository information
@@ -11,19 +10,17 @@ import javax.persistence.OneToOne
  * @property url url of repo
  * @property username username to credential
  * @property password password to credential
- * @property branch branch to clone
- * @property project
+ * @property organization
  */
 @Entity
 class Git(
     var url: String,
     var username: String? = null,
     var password: String? = null,
-    var branch: String? = null,
 
-    @OneToOne
-    @JoinColumn(name = "project_id")
-    var project: Project,
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    var organization: Organization,
 ) : BaseEntity() {
     /**
      * @return git dto
@@ -32,6 +29,5 @@ class Git(
         url = url,
         username = username,
         password = password,
-        branch = branch,
     )
 }

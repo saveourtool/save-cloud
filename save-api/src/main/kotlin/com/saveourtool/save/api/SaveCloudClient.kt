@@ -116,8 +116,6 @@ class SaveCloudClient(
             url = evaluatedToolProperties.gitUrl,
             username = evaluatedToolProperties.gitUserName,
             password = evaluatedToolProperties.gitPassword,
-            branch = evaluatedToolProperties.branch,
-            hash = evaluatedToolProperties.commitHash
         )
 
         // executionId will be calculated at the server side
@@ -126,6 +124,7 @@ class SaveCloudClient(
         return ExecutionRequest(
             project = project,
             gitDto = gitDto,
+            branchOrCommit = evaluatedToolProperties.branch ?: evaluatedToolProperties.commitHash,
             testRootPath = evaluatedToolProperties.testRootPath,
             sdk = evaluatedToolProperties.sdk.toSdk(),
             executionId = executionId,
