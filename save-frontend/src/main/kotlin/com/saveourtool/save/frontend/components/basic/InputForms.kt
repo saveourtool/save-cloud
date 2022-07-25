@@ -36,6 +36,7 @@ enum class InputTypes(val str: String) {
     ORGANIZATION_NAME("organization name"),
 
     // ==== user setting view
+    USER_NAME("user name"),
     USER_EMAIL("user email"),
     COMPANY("company"),
     LOCATION("location"),

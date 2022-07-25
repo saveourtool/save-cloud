@@ -202,6 +202,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/registration"
+                                    element = RegistrationView::class.react.create()
+                                }
+
+                                Route {
                                     path = "/creation"
                                     element = CreationView::class.react.create()
                                 }
