@@ -250,7 +250,7 @@ class DownloadProjectController(
         val gitDto = executionRequest.gitDto
         val (tmpDir, location) = downloadRepositoryLocation(gitDto)
         return Mono.fromCallable {
-            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = gitDto.branch ?: gitDto.hash)?.use { git ->
+            pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, branchOrCommit = executionRequest.branchOrCommit)?.use { git ->
                 val version = git.log().call().first()
                     .name
                 log.info("Cloned repository ${gitDto.url}, head is at $version")

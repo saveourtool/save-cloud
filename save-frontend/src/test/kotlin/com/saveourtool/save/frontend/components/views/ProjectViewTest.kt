@@ -53,14 +53,6 @@ class ProjectViewTest {
                 )
             }
         },
-        rest.post("$apiUrl/projects/git") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    GitDto("")
-                )
-            }
-        },
         rest.get("$apiUrl/projects/${testOrganization.name}/${testProject.name}/users/roles") { _, res, _ ->
             res { response ->
                 mockMswResponse(
