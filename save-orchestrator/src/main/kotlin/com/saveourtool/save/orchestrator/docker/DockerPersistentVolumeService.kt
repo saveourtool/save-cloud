@@ -9,6 +9,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.Mount
 import com.github.dockerjava.api.model.MountType
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -65,6 +66,7 @@ class DockerPersistentVolumeService(
             .exec()
         val dataCopyingContainerId = createContainerResponse.id
 
+        logger.info("Starting container $dataCopyingContainerId to copy files from $resources into volume ${createVolumeResponse.name}")
         dockerClient.startContainerCmd(dataCopyingContainerId)
             .exec()
         waitForCompletionWithTimeout(dataCopyingContainerId)
@@ -89,13 +91,15 @@ class DockerPersistentVolumeService(
         val checkInterval = 10.seconds
         Flux.interval(checkInterval.toJavaDuration())
             .take((copyingTimeout / checkInterval).toLong())
-            .takeUntil {
-                val inspectContainerResponse = dockerClient.inspectContainerCmd(containerId).exec()
-                inspectContainerResponse.state.status == "running"
-            }
-            .blockLast()
+            .map { dockerClient.inspectContainerCmd(containerId).exec() }
+            .filter { it.state.status != "running" }
+            .blockFirst()
             .let { tick ->
                 requireNotNull(tick) { "Container $containerId still running after $copyingTimeout" }
             }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(DockerPersistentVolumeService::class.java)
     }
 }
