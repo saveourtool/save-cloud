@@ -85,7 +85,7 @@ class ContestService(
 
     /**
      * @param newContest
-     * @return true if contest was saved, else otherwise
+     * @return true if contest was saved, false otherwise
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun createContestIfNotPresent(newContest: Contest): Boolean =
