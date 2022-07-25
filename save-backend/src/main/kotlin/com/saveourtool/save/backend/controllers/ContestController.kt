@@ -201,15 +201,16 @@ internal class ContestController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
-        .map {
+        .filter {
             contestService.createContestIfNotPresent(contestDto.toContest(it))
         }
-        .filter { it }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(
                 HttpStatus.CONFLICT,
                 "Contest with name ${contestDto.name} is already present",
             ))
         }
-        .map { ResponseEntity.ok("Contest has been successfully created!") }
+        .map {
+            ResponseEntity.ok("Contest has been successfully created!")
+        }
 }
