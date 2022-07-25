@@ -125,8 +125,8 @@ class AgentsController(
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
                 .publishOn(agentService.scheduler)
-                .map { (baseImageId, agentRunCmd, pvId) ->
-                    dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd, pvId)
+                .map { configuration ->
+                    dockerService.createContainers(execution.id!!, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create docker containers", ex)

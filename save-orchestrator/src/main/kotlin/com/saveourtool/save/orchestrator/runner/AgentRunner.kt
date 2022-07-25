@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.runner
 
+import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
 /**
@@ -19,11 +20,9 @@ interface AgentRunner {
      */
     fun create(
         executionId: Long,
-        baseImageId: String,
-        pvId: PersistentVolumeId,
+        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
         replicas: Int,
         workingDir: String,
-        agentRunCmd: String,
     ): List<String>
 
     /**

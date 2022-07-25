@@ -61,8 +61,10 @@ class DockerPersistentVolumeService(
         val dataCopyingContainerId = createContainerResponse.id
         dockerClient.startContainerCmd(dataCopyingContainerId)
             .exec()
-        Flux.interval(10.seconds.toJavaDuration())
-            .take(20)
+        val copyingTimeout = 200.seconds
+        val checkInterval = 10.seconds
+        Flux.interval(checkInterval.toJavaDuration())
+            .take((copyingTimeout / checkInterval).toLong())
             .takeWhile {
                 val inspectContainerResponse = dockerClient.inspectContainerCmd(dataCopyingContainerId).exec()
                 inspectContainerResponse.state.status == "running"

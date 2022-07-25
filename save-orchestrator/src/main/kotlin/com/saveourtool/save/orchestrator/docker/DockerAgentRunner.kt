@@ -44,12 +44,11 @@ class DockerAgentRunner(
 
     override fun create(
         executionId: Long,
-        baseImageId: String,
-        pvId: PersistentVolumeId,
+        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
         replicas: Int,
         workingDir: String,
-        agentRunCmd: String,
     ): List<String> {
+        val (baseImageId, agentRunCmd, pvId) = configuration
         require(pvId is DockerPvId)
         return (1..replicas).map { number ->
             logger.info("Building container #$number for execution.id=$executionId")
@@ -149,6 +148,7 @@ class DockerAgentRunner(
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
+            // load environment variables required by save-agent and then run it
             .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
             .withName(containerName)
             .withUser("save-agent")

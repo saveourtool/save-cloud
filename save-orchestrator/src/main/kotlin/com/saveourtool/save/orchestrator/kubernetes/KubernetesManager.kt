@@ -7,6 +7,7 @@ import com.saveourtool.save.utils.warn
 import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -37,12 +38,11 @@ class KubernetesManager(
         "NestedBlockDepth",
     )
     override fun create(executionId: Long,
-                        baseImageId: String,
-                        pvId: PersistentVolumeId,
+                        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
                         replicas: Int,
                         workingDir: String,
-                        agentRunCmd: String,
     ): List<String> {
+        val (baseImageId, agentRunCmd, pvId) = configuration
         require(pvId is KubernetesPvId)
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)

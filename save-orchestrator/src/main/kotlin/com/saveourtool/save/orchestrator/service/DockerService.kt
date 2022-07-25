@@ -88,21 +88,15 @@ class DockerService(
      * creates containers with agents
      *
      * @param executionId
-     * @param baseImageId
-     * @param agentRunCmd
      * @return list of IDs of created containers
      */
     fun createContainers(
         executionId: Long,
-        baseImageId: String,
-        agentRunCmd: String,
-                         pvId: PersistentVolumeId,
+        configuration: RunConfiguration<PersistentVolumeId>,
     ) = agentRunner.create(
         executionId = executionId,
-        baseImageId = baseImageId,
-        pvId = pvId,
+        configuration = configuration,
         replicas = configProperties.agentsCount,
-        agentRunCmd = agentRunCmd,
         workingDir = executionDir,
     )
 

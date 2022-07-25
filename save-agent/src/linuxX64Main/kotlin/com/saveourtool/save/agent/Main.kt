@@ -52,7 +52,10 @@ fun main() {
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
-    platform.posix.chmod("save-$SAVE_CORE_VERSION-linuxX64.kexe", 755)
+    platform.posix.chmod(
+        "save-$SAVE_CORE_VERSION-linuxX64.kexe",
+        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
+    )
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
