@@ -22,6 +22,7 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -98,7 +99,7 @@ class DockerService(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
-        workingDir = executionDir,
+        workingDir = EXECUTION_DIR,
     )
 
     /**
@@ -366,13 +367,10 @@ class DockerService(
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
-        private val loggingContext = object : LoggingContext {
-            override val logger: Logger
-                get() = log
-        }
+        private val loggingContext = LoggingContextImpl(log)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
         private const val AGENT_RUN_CMD = "./$SAVE_AGENT_EXECUTABLE_NAME"
-        internal const val executionDir = "/home/save-agent/save-execution"
+        internal const val EXECUTION_DIR = "/home/save-agent/save-execution"
     }
 }
 

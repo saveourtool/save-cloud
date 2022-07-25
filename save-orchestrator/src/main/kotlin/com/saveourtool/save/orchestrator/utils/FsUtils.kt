@@ -8,6 +8,9 @@ import kotlin.io.path.name
 
 internal val allExecute = setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)
 
+/**
+ * Try to add executable permissions for file denoted by [this]
+ */
 context(LoggingContext)
 internal fun Path.tryMarkAsExecutable() {
     try {

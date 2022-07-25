@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource
 import io.fabric8.kubernetes.api.model.PersistentVolume
@@ -37,9 +36,3 @@ class KubernetesPersistentVolumeService(
     }
 }
 
-/**
- * @property id ID of the Kubernetes PV
- */
-data class KubernetesPvId(
-    val id: String
-) : PersistentVolumeId

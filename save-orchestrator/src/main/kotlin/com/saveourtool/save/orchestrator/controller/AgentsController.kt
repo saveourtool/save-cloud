@@ -19,6 +19,7 @@ import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import io.fabric8.kubernetes.client.KubernetesClientException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -290,9 +291,6 @@ class AgentsController(
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
-        private val loggingContext = object : LoggingContext {
-            override val logger: Logger
-                get() = log
-        }
+        private val loggingContext = LoggingContextImpl(log)
     }
 }

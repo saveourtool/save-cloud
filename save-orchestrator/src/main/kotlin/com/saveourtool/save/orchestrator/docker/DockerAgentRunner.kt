@@ -156,7 +156,7 @@ class DockerAgentRunner(
                 HostConfig.newHostConfig()
                     .withBinds(Bind(
                         // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
-                        pvId.volumeName, Volume(DockerService.executionDir)
+                        pvId.volumeName, Volume(DockerService.EXECUTION_DIR)
                     ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname

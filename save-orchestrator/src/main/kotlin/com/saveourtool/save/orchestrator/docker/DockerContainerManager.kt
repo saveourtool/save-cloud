@@ -31,12 +31,9 @@ class DockerContainerManager(
      * Creates a docker image with provided [resources]
      *
      * @param baseImage base docker image from which this image will be built
-     * @param baseDir a context dir for Dockerfile
-     * @param resourcesTargetPath target path to additional resources. Resources from [baseDir] will be copied into this directory inside the container.
      * @param imageName name which will be assigned to the image
      * @param runCmd `RUN` directives to be added to Dockerfile *before* resources from `baseDir` are copied (so that resources-agnostic command
      * results can be cached in docker layers).
-     * @param runOnResourcesCmd `RUN` directives to be added to Dockerfile *after* resources from `baseDir` are copied.
      * @return id of the created docker image
      * @throws DockerException
      */
@@ -89,6 +86,11 @@ class DockerContainerManager(
         .exec()
         .filter { it.labels?.get("save-id") == saveId }
 
+    /**
+     * @param dir a context dir for Dockerfile
+     * @param baseImage image for `FROM` directive
+     * @param runCmd the rest of the Dockerfile
+     */
     private fun createDockerFile(
         dir: File,
         baseImage: String,
