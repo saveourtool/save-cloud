@@ -13,7 +13,6 @@ import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
@@ -51,7 +50,6 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.attribute.PosixFilePermission
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -121,7 +119,7 @@ class AgentsController(
                 .publishOn(agentService.scheduler)
                 .map {
                     // todo: pass SDK via request body
-                    dockerService.buildBaseImage(execution)
+                    dockerService.prepareConfiguration(execution)
                 }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)

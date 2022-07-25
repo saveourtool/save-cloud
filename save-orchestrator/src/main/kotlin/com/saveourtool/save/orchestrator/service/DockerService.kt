@@ -76,9 +76,9 @@ class DockerService(
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun buildBaseImage(execution: Execution): BuildResult<PersistentVolumeId> {
+    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
         log.info("Building base image for execution.id=${execution.id}")
-        val buildResult = buildBaseImageForExecution(execution)
+        val buildResult = prepareImageAndVolumeForExecution(execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("Using base image [id=${buildResult.imageId}] for execution.id=${execution.id}")
         return buildResult
@@ -201,7 +201,7 @@ class DockerService(
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun buildBaseImageForExecution(execution: Execution): BuildResult<PersistentVolumeId> {
+    private fun prepareImageAndVolumeForExecution(execution: Execution): RunConfiguration<PersistentVolumeId> {
         val originalResourcesPath = File(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
@@ -264,7 +264,7 @@ class DockerService(
                 listOf(buildBaseImage(sdk))
             }
             .first()
-        return BuildResult(
+        return RunConfiguration(
             imageId = baseImageId,
             runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && $agentRunCmd\"",
             pvId = pvId,
@@ -356,7 +356,7 @@ class DockerService(
         }
     }
 
-    data class BuildResult<PV : PersistentVolumeId>(
+    data class RunConfiguration<PV : PersistentVolumeId>(
         val imageId: String,
         val runCmd: String,
         val pvId: PV,
