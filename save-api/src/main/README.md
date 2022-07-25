@@ -3,16 +3,16 @@
 Current module provides the library for usage of Save Cloud API.
 
 Module contain few main interfaces: Set of http requests in `RequestUtils.kt`, which contain the required
-requests for tool evaluation in Save Cloud, and client, `SaveCloudClient.kt`,
+requests for tool evaluation in Save Cloud system, and client, `SaveCloudClient.kt`,
 which combined in itself completed interface for execution submission. Basically, the only client
 is necessary for usage of Save Cloud API. It requires just a tiny configuration for running the process of execution submission.
 
 The four main characteristics for client are necessary for execution:
 
 * **Configuration for web client** \
-  Basically it's just the Save Cloud backend address and port. (`PropertiesConfiguration.kt`)
+  Basically it's just the Save Cloud backend address and port. (`WebClientProperties`)
 * **Configuration for evaluated tool** \
-  Current configuration should contain information about evaluated tool. (`PropertiesConfiguration.kt`)
+  Current configuration should contain information about evaluated tool. (`EvaluatedToolProperties`)
 
 * **Authorization data** \
   Credentials for authorization in Save Cloud system (`Authorization.kt`)
