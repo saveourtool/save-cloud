@@ -203,12 +203,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 organization = Organization("stub", OrganizationStatus.CREATED, null, date)
             ),
             fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim(),
-            GitDto(
-                fieldsMap[InputTypes.GIT_URL]?.trim() ?: "",
-                fieldsMap[InputTypes.GIT_USER]?.trim(),
-                fieldsMap[InputTypes.GIT_TOKEN]?.trim(),
-                fieldsMap[InputTypes.GIT_BRANCH]?.trim()
-            ),
         )
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -379,7 +373,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 +"Provide Credentials if your repo with Test Suites is private:"
                                             }
                                         }
-
+                                        // FIXME: need to move to organization window
                                         inputTextFormOptional(InputTypes.GIT_USER, "col-md-6 mt-1", "Git Username") {
                                             changeFields(InputTypes.GIT_USER, it, false)
                                         }

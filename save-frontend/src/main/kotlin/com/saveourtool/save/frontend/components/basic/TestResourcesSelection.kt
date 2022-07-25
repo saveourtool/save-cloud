@@ -13,15 +13,15 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
 import react.*
-import react.dom.events.ChangeEvent
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
+import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.sup
 
 private val checkBox = checkBoxGrid()
@@ -51,7 +51,8 @@ external interface TestResourcesProps : PropsWithChildren {
     var onContestEnrollerResponse: (String) -> Unit
 
     // properties for CUSTOM_TESTS mode
-    var gitUrlFromInputField: String
+    var availableGitCredentials: List<GitDto>
+    var selectedGitCredential: GitDto
     var gitBranchOrCommitFromInputField: String
     var execCmd: String
     var batchSizeForAnalyzer: String
@@ -70,7 +71,7 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
     tooltipText: String,
     labelText: String,
     inputType: InputType,
-    onChangeFunc: (ChangeEvent<HTMLInputElement>) -> Unit
+    onChangeFunc: (String) -> Unit
 ) = div {
     className = ClassName("input-group mb-3")
     if (labelText.isNotEmpty()) {
@@ -102,7 +103,7 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
         this.value = value
         this.placeholder = placeholder
         onChange = {
-            onChangeFunc(it)
+            onChangeFunc(it.target.value)
         }
     }
 }
@@ -123,11 +124,11 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
     "LongParameterList",
 )
 fun testResourcesSelection(
-    updateGitUrlFromInputField: (ChangeEvent<HTMLInputElement>) -> Unit,
-    updateGitBranchOrCommitInputField: (ChangeEvent<HTMLInputElement>) -> Unit,
-    updateTestRootPath: (ChangeEvent<HTMLInputElement>) -> Unit,
-    setExecCmd: (ChangeEvent<HTMLInputElement>) -> Unit,
-    setBatchSize: (ChangeEvent<HTMLInputElement>) -> Unit,
+    updateGitUrlFromInputField: (String) -> Unit,
+    updateGitBranchOrCommitInputField: (String) -> Unit,
+    updateTestRootPath: (String) -> Unit,
+    setExecCmd: (String) -> Unit,
+    setBatchSize: (String) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
 ) = FC<TestResourcesProps> { props ->
     val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
@@ -180,21 +181,18 @@ fun testResourcesSelection(
                 }
                 div {
                     className = ClassName("input-group-prepend")
-                    input {
-                        type = InputType.text
-                        className =
-                                if (props.gitUrlFromInputField.isBlank() && props.isSubmitButtonPressed!!) {
-                                    ClassName("form-control is-invalid")
-                                } else {
-                                    ClassName("form-control")
-                                }
-                        if (props.gitUrlFromInputField.isNotBlank()) {
-                            defaultValue = props.gitUrlFromInputField
-                        }
 
-                        placeholder = "https://github.com/my-project"
+                    select {
+                        className = ClassName("form-control")
+                        props.availableGitCredentials.forEach {
+                            option {
+                                +it.url
+                            }
+                        }
+                        required = true
+                        value = props.selectedGitCredential.url
                         onChange = {
-                            updateGitUrlFromInputField(it)
+                            updateGitUrlFromInputField(it.target.value)
                         }
                     }
                 }
@@ -233,7 +231,7 @@ fun testResourcesSelection(
                         }
                         placeholder = "leave empty if you would like to use default branch with latest commit"
                         onChange = {
-                            updateGitBranchOrCommitInputField(it)
+                            updateGitBranchOrCommitInputField(it.target.value)
                         }
                     }
                 }
@@ -269,7 +267,7 @@ fun testResourcesSelection(
                         value = props.testRootPath
                         placeholder = "leave empty if tests are in the repository root"
                         onChange = {
-                            updateTestRootPath(it)
+                            updateTestRootPath(it.target.value)
                         }
                     }
                 }

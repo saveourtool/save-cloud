@@ -98,5 +98,18 @@
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
         </insert>
+
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="11" />
+            <column name="name" value="test" />
+            <column name="type" value="STANDARD" />
+            <column name="project_id" value="2" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="test_root_path" value=""/>
+            <column name="description" value="description"/>
+            <column name="test_suite_repo_url" value="https://github.com/saveourtool/save-cloud"/>
+            <column name="language" value="Java"/>
+            <column name="tags" value="NPE,security"/>
+        </insert>
     </changeSet>
         </databaseChangeLog>
