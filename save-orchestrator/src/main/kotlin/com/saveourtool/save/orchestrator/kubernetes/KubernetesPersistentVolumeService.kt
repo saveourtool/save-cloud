@@ -12,6 +12,9 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
 import kotlin.io.path.createTempDirectory
 
+/**
+ * Implementation of [PersistentVolumeService] that creates Persistent Volumes in Kubernetes
+ */
 @Profile("kubernetes")
 @Component
 class KubernetesPersistentVolumeService(

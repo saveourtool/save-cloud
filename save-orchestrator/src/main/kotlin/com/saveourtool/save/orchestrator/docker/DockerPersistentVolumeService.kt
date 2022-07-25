@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
 
 import com.github.dockerjava.api.DockerClient
@@ -28,6 +29,7 @@ class DockerPersistentVolumeService(
     private val dockerClient: DockerClient,
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
+    @Suppress("TOO_LONG_FUNCTION")
     override fun createFromResources(resources: Collection<Path>): DockerPvId {
         if (resources.size > 1) {
             TODO("Not yet implemented")
@@ -37,6 +39,7 @@ class DockerPersistentVolumeService(
             .withName("save-execution-vol-${UUID.randomUUID()}")
             .exec()
         blockingPullImage("alpine", "latest")
+
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
                 HostConfig()
@@ -49,13 +52,14 @@ class DockerPersistentVolumeService(
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)
-                                .withTarget("/home/save-agent/save-execution")
+                                .withTarget(DockerService.EXECUTION_DIR)
                         )
                     )
             )
             .withCmd(
                 "sh", "-c",
-                "cp -R /home/save-agent/tmp/* /home/save-agent/save-execution && chown -R 1100:1100 /home/save-agent/save-execution" +
+                "cp -R /home/save-agent/tmp/* ${DockerService.EXECUTION_DIR}" +
+                        " && chown -R 1100:1100 ${DockerService.EXECUTION_DIR}" +
                         " && echo Successfully copied"
             )
             .exec()
@@ -79,6 +83,7 @@ class DockerPersistentVolumeService(
         .exec(PullImageResultCallback())
         .awaitCompletion()
 
+    @Suppress("MAGIC_NUMBER")
     private fun waitForCompletionWithTimeout(containerId: String) {
         val copyingTimeout = 200.seconds
         val checkInterval = 10.seconds
@@ -89,8 +94,8 @@ class DockerPersistentVolumeService(
                 inspectContainerResponse.state.status == "running"
             }
             .blockLast()
-            .let {
-                requireNotNull(it) { "Container $containerId still running after $copyingTimeout" }
+            .let { tick ->
+                requireNotNull(tick) { "Container $containerId still running after $copyingTimeout" }
             }
     }
 }

@@ -16,9 +16,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.json.JsonPlugin
 import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
-import platform.posix.SIGTERM
-import platform.posix.exit
-import platform.posix.signal
+import platform.posix.*
 
 import kotlinx.cinterop.staticCFunction
 import kotlinx.coroutines.launch

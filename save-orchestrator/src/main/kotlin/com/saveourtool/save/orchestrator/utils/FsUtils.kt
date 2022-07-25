@@ -1,3 +1,7 @@
+/**
+ * Methods to work with file system
+ */
+
 package com.saveourtool.save.orchestrator.utils
 
 import com.saveourtool.save.utils.warn

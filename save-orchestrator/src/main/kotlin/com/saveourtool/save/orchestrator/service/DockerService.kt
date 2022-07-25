@@ -357,17 +357,17 @@ class DockerService(
      * @property runCmd command that should be run as container's entrypoint
      * @property pvId ID of a persistent volume that should be attached to a container
      */
-    data class RunConfiguration<PV : PersistentVolumeId>(
+    data class RunConfiguration<I : PersistentVolumeId>(
         val imageId: String,
         val runCmd: String,
-        val pvId: PV,
+        val pvId: I,
     )
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
-        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
         internal const val EXECUTION_DIR = "/home/save-agent/save-execution"
+        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }
 
