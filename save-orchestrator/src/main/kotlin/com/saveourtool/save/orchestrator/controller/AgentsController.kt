@@ -88,10 +88,10 @@ class AgentsController(
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
-            log.info(
+            log.info {
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                         "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
-            )
+            }
             getTestRootPath(execution)
                 .subscribeOn(agentService.scheduler)
                 .switchIfEmpty(

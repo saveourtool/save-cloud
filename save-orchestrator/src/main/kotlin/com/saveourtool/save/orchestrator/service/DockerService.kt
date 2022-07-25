@@ -54,10 +54,11 @@ import kotlin.io.path.writeText
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
-class DockerService(private val configProperties: ConfigProperties,
-                    private val dockerClient: DockerClient,
-                    internal val dockerContainerManager: DockerContainerManager,
-                    private val agentRunner: AgentRunner,
+class DockerService(
+    private val configProperties: ConfigProperties,
+    private val dockerClient: DockerClient,
+    internal val dockerContainerManager: DockerContainerManager,
+    private val agentRunner: AgentRunner,
                     private val persistentVolumeService: PersistentVolumeService,
 ) {
     @Suppress("NonBooleanPropertyPrefixedWithIs")
@@ -91,9 +92,10 @@ class DockerService(private val configProperties: ConfigProperties,
      * @param agentRunCmd
      * @return list of IDs of created containers
      */
-    fun createContainers(executionId: Long,
-                         baseImageId: String,
-                         agentRunCmd: String,
+    fun createContainers(
+        executionId: Long,
+        baseImageId: String,
+        agentRunCmd: String,
                          pvId: PersistentVolumeId,
     ) = agentRunner.create(
         executionId = executionId,
