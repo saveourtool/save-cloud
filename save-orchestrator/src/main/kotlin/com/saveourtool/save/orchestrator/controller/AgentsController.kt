@@ -10,15 +10,15 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
+import com.saveourtool.save.orchestrator.utils.LoggingContext
+import com.saveourtool.save.orchestrator.utils.allExecute
+import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.orchestrator.utils.LoggingContext
-import com.saveourtool.save.orchestrator.utils.allExecute
-import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import io.fabric8.kubernetes.client.KubernetesClientException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -212,7 +212,7 @@ class AgentsController(
             .then(
                 Mono.fromCallable {
                     // TODO: need to store information about isExecutable in Execution (FileKey)
-                    with (loggingContext) { pathToFile.tryMarkAsExecutable() }
+                    with(loggingContext) { pathToFile.tryMarkAsExecutable() }
                     log.debug {
                         "Downloaded $fileKey to ${pathToFile.absolutePathString()}"
                     }

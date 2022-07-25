@@ -6,6 +6,8 @@ import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.name
 
+internal val allExecute = setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)
+
 context(LoggingContext)
 internal fun Path.tryMarkAsExecutable() {
     try {
@@ -14,5 +16,3 @@ internal fun Path.tryMarkAsExecutable() {
         logger.warn(ex) { "Failed to mark file ${this.name} as executable" }
     }
 }
-
-internal val allExecute = setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)

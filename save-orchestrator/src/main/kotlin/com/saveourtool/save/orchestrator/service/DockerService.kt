@@ -11,17 +11,17 @@ import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
+import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.utils.LoggingContext
+import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.orchestrator.utils.LoggingContext
-import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -59,7 +59,7 @@ class DockerService(
     private val dockerClient: DockerClient,
     internal val dockerContainerManager: DockerContainerManager,
     private val agentRunner: AgentRunner,
-                    private val persistentVolumeService: PersistentVolumeService,
+    private val persistentVolumeService: PersistentVolumeService,
 ) {
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
@@ -237,7 +237,7 @@ class DockerService(
             // todo: set it to `save-agent` (by ID returned from Docker build?)
             changeOwnerRecursively(resourcesForExecution, "cnb")
 
-            with (loggingContext) {
+            with(loggingContext) {
                 resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME).tryMarkAsExecutable()
                 resourcesForExecution.resolve(SAVE_CLI_EXECUTABLE_NAME).tryMarkAsExecutable()
             }
@@ -260,7 +260,7 @@ class DockerService(
             .first()
         return RunConfiguration(
             imageId = baseImageId,
-            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && $agentRunCmd\"",
+            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && $AGENT_RUN_CMD\"",
             pvId = pvId,
         )
     }
@@ -363,7 +363,7 @@ class DockerService(
                 get() = log
         }
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private const val agentRunCmd = "./$SAVE_AGENT_EXECUTABLE_NAME"
+        private const val AGENT_RUN_CMD = "./$SAVE_AGENT_EXECUTABLE_NAME"
         internal const val executionDir = "/home/save-agent/save-execution"
     }
 }

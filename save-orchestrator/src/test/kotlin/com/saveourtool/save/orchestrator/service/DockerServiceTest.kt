@@ -6,6 +6,7 @@ import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
+import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -15,7 +16,6 @@ import com.saveourtool.save.testutils.enqueue
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
-import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -67,7 +67,10 @@ class DockerServiceTest {
             id = 42L
         }
         val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testExecution)
-        testContainerId = dockerService.createContainers(testExecution.id!!, baseImageId, agentRunCmd, pvId).single()
+        testContainerId = dockerService.createContainers(
+            testExecution.id!!,
+            DockerService.RunConfiguration(baseImageId, agentRunCmd, pvId)
+        ).single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend
