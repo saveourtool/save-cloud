@@ -37,6 +37,9 @@ class KubernetesPersistentVolumeService(
     }
 }
 
+/**
+ * @property id ID of the Kubernetes PV
+ */
 data class KubernetesPvId(
     val id: String
 ) : PersistentVolumeId

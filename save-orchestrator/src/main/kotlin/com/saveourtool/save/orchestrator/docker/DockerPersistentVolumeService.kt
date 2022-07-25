@@ -80,6 +80,9 @@ class DockerPersistentVolumeService(
     }
 }
 
+/**
+ * @property volumeName name of the Docker volume
+ */
 data class DockerPvId(
     val volumeName: String,
 ) : PersistentVolumeId

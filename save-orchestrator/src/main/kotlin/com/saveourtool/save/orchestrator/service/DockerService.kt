@@ -88,6 +88,7 @@ class DockerService(
      * creates containers with agents
      *
      * @param executionId
+     * @param configuration configuration for containers to be created
      * @return list of IDs of created containers
      */
     fun createContainers(
@@ -350,6 +351,13 @@ class DockerService(
         }
     }
 
+    /**
+     * Information required to start containers with save-agent
+     *
+     * @property imageId ID of an image which should be used for a container
+     * @property runCmd command that should be run as container's entrypoint
+     * @property pvId ID of a persistent volume that should be attached to a container
+     */
     data class RunConfiguration<PV : PersistentVolumeId>(
         val imageId: String,
         val runCmd: String,
