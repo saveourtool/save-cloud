@@ -37,14 +37,13 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String) =
-            organizationRepository.findByName(organizationName)
-                ?.apply {
-                    status = OrganizationStatus.DELETED
-                }
-                ?.let {
-                    organizationRepository.save(it)
-                } ?: throw NoSuchElementException("There is no organization with name $organizationName.")
+    fun deleteOrganization(organizationName: String) = getByName(organizationName)
+        .apply {
+            status = OrganizationStatus.DELETED
+        }
+        .let {
+            organizationRepository.save(it)
+        }
 
     /**
      * @param organizationId
@@ -57,6 +56,14 @@ class OrganizationService(
      * @return organization by name
      */
     fun findByName(name: String) = organizationRepository.findByName(name)
+
+    /**
+     * @param name
+     * @return organization by name
+     * @throws NoSuchElementException
+     */
+    fun getByName(name: String) = findByName(name)
+        ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
      * @param organization
