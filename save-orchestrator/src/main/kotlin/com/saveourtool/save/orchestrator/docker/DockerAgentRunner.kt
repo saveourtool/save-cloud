@@ -145,11 +145,12 @@ class DockerAgentRunner(
     ): String {
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
+        val envFileTargetPath = "/home/save-agent/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
             // load environment variables required by save-agent and then run it
-            .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
+            .withCmd("bash", "-c", "env \$(cat $envFileTargetPath | xargs) $runCmd")
             .withName(containerName)
             .withUser("save-agent")
             .withHostConfig(
@@ -186,7 +187,7 @@ class DockerAgentRunner(
         }
         copyResourcesIntoContainer(
             containerId,
-            workingDir,
+            envFileTargetPath.substringBeforeLast("/"),
             listOf(envFile.toFile())
         )
 
