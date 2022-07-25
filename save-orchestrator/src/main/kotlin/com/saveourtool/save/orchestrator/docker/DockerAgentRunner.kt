@@ -10,10 +10,7 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
 import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.exception.DockerException
-import com.github.dockerjava.api.model.Bind
-import com.github.dockerjava.api.model.HostConfig
-import com.github.dockerjava.api.model.LogConfig
-import com.github.dockerjava.api.model.Volume
+import com.github.dockerjava.api.model.*
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.service.DockerService
@@ -154,6 +151,7 @@ class DockerAgentRunner(
             .withWorkingDir(workingDir)
             .withCmd("bash", "-c", "env \$(cat .env | xargs) $runCmd")
             .withName(containerName)
+            .withUser("save-agent")
             .withHostConfig(
                 HostConfig.newHostConfig()
                     .withBinds(Bind(

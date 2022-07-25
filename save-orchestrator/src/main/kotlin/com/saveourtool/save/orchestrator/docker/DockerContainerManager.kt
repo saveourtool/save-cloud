@@ -103,7 +103,6 @@ class DockerContainerManager(
         val dockerFileAsText = buildString {
             appendLine("FROM ${configProperties.docker.registry}/$baseImage")
             appendLine(runCmd)
-            appendLine("USER save-agent")
         }
         log.debug("Using generated Dockerfile {}", dockerFileAsText)
         val dockerFile = createTempFile(dir.toPath()).toFile()

@@ -79,8 +79,7 @@ class DockerService(private val configProperties: ConfigProperties,
         log.info("Building base image for execution.id=${execution.id}")
         val buildResult = buildBaseImageForExecution(execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("Built base image [id=$imageId] for execution.id=${execution.id}")
-
+        log.info("Using base image [id=${buildResult.imageId}] for execution.id=${execution.id}")
         return buildResult
     }
 
@@ -256,18 +255,15 @@ class DockerService(private val configProperties: ConfigProperties,
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
-        dockerContainerManager.findImages(saveId = baseImage).ifEmpty {
-            log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
-            buildBaseImage(sdk)
-        }
-        val imageId = dockerContainerManager.buildImageWithResources(
-            baseImage = baseImage,
-            imageName = imageName(execution.id!!),
-            baseDir = resourcesForExecution.toFile(),
-            runCmd = "USER save-agent",
-        )
+        val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
+            .map { it.id }
+            .ifEmpty {
+                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
+                listOf(buildBaseImage(sdk))
+            }
+            .first()
         return BuildResult(
-            imageId = imageId,
+            imageId = baseImageId,
             runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && $agentRunCmd\"",
             pvId = pvId,
         )

@@ -1,9 +1,11 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.Mount
 import com.github.dockerjava.api.model.MountType
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
 import org.springframework.context.annotation.Profile
@@ -19,6 +21,7 @@ import kotlin.time.toJavaDuration
 @Profile("!kubernetes")
 class DockerPersistentVolumeService(
     private val dockerClient: DockerClient,
+    private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
     override fun createFromResources(resources: Collection<Path>): DockerPvId {
         if (resources.size > 1) {
@@ -28,6 +31,11 @@ class DockerPersistentVolumeService(
         val createVolumeResponse = dockerClient.createVolumeCmd()
             .withName("save-execution-vol-${UUID.randomUUID()}")
             .exec()
+        dockerClient.pullImageCmd("alpine")
+            .withRegistry(configProperties.docker.registry)
+            .withTag("latest")
+            .exec(PullImageResultCallback())
+            .awaitCompletion()
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
                 HostConfig()
