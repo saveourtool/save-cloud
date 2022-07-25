@@ -51,7 +51,6 @@ import java.util.*
  */
 @ApiSwaggerSupport
 @Tags(
-    Tag(name = "api"),
     Tag(name = "roles"),
     Tag(name = "organizations"),
 )
@@ -73,7 +72,7 @@ class LnkUserOrganizationController(
         description = "Get list of users that are connected with given organization.",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true)
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched contest by it's name.")
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
@@ -108,7 +107,7 @@ class LnkUserOrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "name of a user", required = false)
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "name of a user", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched user's role.")
     @ApiResponse(responseCode = "403", description = "You are not allowed to see requested user's role.")
@@ -160,7 +159,7 @@ class LnkUserOrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "setRoleRequest", `in` = ParameterIn.DEFAULT, description = "pair of userName and role that is requested to be set", required = true)
+        Parameter(name = "setRoleRequest", `in` = ParameterIn.DEFAULT, description = "pair of userName and role that is requested to be set", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
@@ -212,6 +211,7 @@ class LnkUserOrganizationController(
     @Operation(
         method = "DELETE",
         summary = "Remove user's role in organization with given name.",
+        description = "Remove user's role in organization with given name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
@@ -265,7 +265,7 @@ class LnkUserOrganizationController(
     @Operation(
         method = "GET",
         summary = "Get all users not from organization with names starting with a given prefix.",
-        description = "Get all users not connected with organization with name organizationName whose names start with the same prefix."
+        description = "Get all users not connected with organization with name organizationName whose names start with the same prefix.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
@@ -304,7 +304,7 @@ class LnkUserOrganizationController(
     @Operation(
         method = "GET",
         summary = "Get all user's organizations that can create contests.",
-        description = "Get all organizations that can create contests where user is a member."
+        description = "Get all organizations that can create contests where user is a member.",
     )
     @ApiResponse(responseCode = "200", description = "Role removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
@@ -321,7 +321,7 @@ class LnkUserOrganizationController(
     @Operation(
         method = "GET",
         summary = "Get user's organizations.",
-        description = "Get not deleted organizations where user is a member, and his roles in those organizations."
+        description = "Get not deleted organizations where user is a member, and his roles in those organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
     @ApiResponse(responseCode = "404", description = "Could not find user with this id.")

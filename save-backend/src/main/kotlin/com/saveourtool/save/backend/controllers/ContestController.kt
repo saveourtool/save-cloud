@@ -64,10 +64,10 @@ internal class ContestController(
     @Operation(
         method = "GET",
         summary = "Get contest by name.",
-        description = "Get contest by name."
+        description = "Get contest by name.",
     )
     @Parameters(
-        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true)
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched contest by it's name.")
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
@@ -83,7 +83,7 @@ internal class ContestController(
         description = "Get list of contests that are in progress now.",
     )
     @Parameters(
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false)
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of active contests.")
     fun getContestsInProgress(
@@ -102,7 +102,7 @@ internal class ContestController(
         description = "Get list of contests that has already finished.",
     )
     @Parameters(
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false)
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of contests that should be returned, default: 10", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of finished contests.")
     fun getFinishedContests(
@@ -121,7 +121,7 @@ internal class ContestController(
         description = "Get public test for contest with given name.",
     )
     @Parameters(
-        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true)
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
     @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided.")
@@ -156,7 +156,7 @@ internal class ContestController(
         description = "Create a new contest.",
     )
     @Parameters(
-        Parameter(name = "contestDto", `in` = ParameterIn.DEFAULT, description = "contest requested for creation", required = true)
+        Parameter(name = "contestDto", `in` = ParameterIn.DEFAULT, description = "contest requested for creation", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Contest was successfully created.")
     @ApiResponse(responseCode = "404", description = "Organization with given name was not found.")
