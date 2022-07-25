@@ -59,7 +59,7 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
+            compileOnly(devNpm("autoprefixer", "^10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
@@ -75,12 +75,13 @@ kotlin {
             implementation(npm("@material-ui/core", "^4.12.4"))
             implementation(npm("@material-ui/lab", "^4.0.0-alpha.61"))
             implementation(npm("animate.css", "^4.1.1"))
-            implementation(npm("react-animation-on-scroll", "^5.1.0"))
+            implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0", generateExternals = true))
-            implementation(npm("react-tsparticles", "2.1.3"))
+            implementation(npm("react-tsparticles", "1.42.1"))
             implementation(npm("tsparticles", "2.1.3"))
             implementation(npm("jquery", "3.6.0"))
-            implementation(npm("animate.css", "4.1.1"))
+            // can be very useful for CSS animation:
+            // implementation(npm("animate.css", "4.1.1"))
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))

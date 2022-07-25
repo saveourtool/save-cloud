@@ -14,7 +14,5 @@ external class Particles : Component<ParticlesProps, State> {
 @JsName("IParticlesProps")
 external interface ParticlesProps : PropsWithChildren {
     var id: String
-    var width: String
-    var height: String
     var url: String
 }

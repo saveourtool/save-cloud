@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.animations.Particles
+import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -98,20 +98,20 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("main-content mt-0 ps")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
-                Particles::class.react {
-                    id = "tsparticles"
-                    url = "http://localhost:5800/particles.json"
-                }
-
                 style = jso {
                     background =
-                        "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))".unsafeCast<Background>()
+                        "-webkit-linear-gradient(270deg, (0,20,73), rgb(0,0,0))".unsafeCast<Background>()
                 }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
                 }
 
                 div {
+                    Particles::class.react {
+                        id = "tsparticles"
+                        url = "http://localhost:5800/particles.json"
+                    }
+
                     className = ClassName("row")
                     // Marketing information
                     div {
@@ -141,35 +141,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
-
-                div {
-                    className = ClassName("animate__animated animate__bounce col mt-5 mx-auto")
-                    div {
-                        className = ClassName("row mx-auto")
-                        h1 {
-                            className = ClassName("mx-auto text-white")
-                            +"Want to know more?"
-                        }
-                    }
-
-                    div {
-                        className = ClassName("scroll-down")
-                        div {
-                            div {
-                                className=ClassName("arrow-content")
-                                span {
-                                    +"V"
-                                }
-                            }
-                           // <KeyboardArrowDownIcon className ="arrow-down" />
-                        }
-                    }
-
-                }
             }
 
             div {
-                className = ClassName("page-header align-items-start min-vh-100")
+                className = ClassName("min-vh-100")
                 style = jso {
                     background =
                         "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
@@ -178,6 +153,24 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
                 }
+
+                div {
+                    className = ClassName("align-items-center justify-content-center")
+                    scrollContainer {
+                        scrollPage {
+                            animator {
+                                animation = Fade
+                                span {
+                                    style = jso {
+                                        fontSize = "40px".unsafeCast<FontSize>()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
             }
         }
     }
