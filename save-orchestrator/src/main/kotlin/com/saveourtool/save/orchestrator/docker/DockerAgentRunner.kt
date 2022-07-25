@@ -17,6 +17,7 @@ import com.github.dockerjava.api.model.Volume
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -38,7 +39,7 @@ class DockerAgentRunner(
     configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
-) : AgentRunner<DockerPvId> {
+) : AgentRunner {
     private val settings: DockerSettings = configProperties.docker
 
     @Suppress("TYPE_ALIAS")
@@ -47,17 +48,20 @@ class DockerAgentRunner(
     override fun create(
         executionId: Long,
         baseImageId: String,
-        pvId: DockerPvId,
+        pvId: PersistentVolumeId,
         replicas: Int,
         workingDir: String,
         agentRunCmd: String,
-    ): List<String> = (1..replicas).map { number ->
-        logger.info("Building container #$number for execution.id=$executionId")
-        createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
-            logger.info("Built container id=$agentId for execution.id=$executionId")
-            agentIdsByExecution
-                .getOrPut(executionId) { mutableListOf() }
-                .add(agentId)
+    ): List<String> {
+        require(pvId is DockerPvId)
+        return (1..replicas).map { number ->
+            logger.info("Building container #$number for execution.id=$executionId")
+            createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+                logger.info("Built container id=$agentId for execution.id=$executionId")
+                agentIdsByExecution
+                    .getOrPut(executionId) { mutableListOf() }
+                    .add(agentId)
+            }
         }
     }
 
@@ -154,7 +158,7 @@ class DockerAgentRunner(
                 HostConfig.newHostConfig()
                     .withBinds(Bind(
                         // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
-                        pvId.hostPath, Volume(DockerService.executionDir)
+                        pvId.volumeName, Volume(DockerService.executionDir)
                     ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname

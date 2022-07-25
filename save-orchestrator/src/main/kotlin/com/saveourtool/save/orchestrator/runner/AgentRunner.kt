@@ -5,7 +5,7 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 /**
  * Describes operations that should be supported with a specific engine for running save-agents.
  */
-interface AgentRunner<PV: PersistentVolumeId> {
+interface AgentRunner {
     /**
      * Create a [replicas] number of agents for an execution with id [executionId].
      *
@@ -20,7 +20,7 @@ interface AgentRunner<PV: PersistentVolumeId> {
     fun create(
         executionId: Long,
         baseImageId: String,
-        pvId: PV,
+        pvId: PersistentVolumeId,
         replicas: Int,
         workingDir: String,
         agentRunCmd: String,

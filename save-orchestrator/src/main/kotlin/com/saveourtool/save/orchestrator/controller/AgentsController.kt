@@ -17,10 +17,13 @@ import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.utils.LoggingContext
+import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import io.fabric8.kubernetes.client.KubernetesClientException
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
@@ -90,6 +93,7 @@ class AgentsController(
                         "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
             )
             getTestRootPath(execution)
+                .subscribeOn(agentService.scheduler)
                 .switchIfEmpty(
                     Mono.error(
                         ResponseStatusException(
@@ -114,6 +118,7 @@ class AgentsController(
                         .collectList()
                         .switchIfEmpty(Mono.just(emptyList()))
                 }
+                .publishOn(agentService.scheduler)
                 .map {
                     // todo: pass SDK via request body
                     dockerService.buildBaseImage(execution)
@@ -121,6 +126,7 @@ class AgentsController(
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
+                .publishOn(agentService.scheduler)
                 .map { (baseImageId, agentRunCmd, pvId) ->
                     dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd, pvId)
                 }
@@ -141,7 +147,6 @@ class AgentsController(
                             dockerService.startContainersAndUpdateExecution(execution, agentIds)
                         }
                 }
-                .subscribeOn(agentService.scheduler)
                 .subscribe()
         }
     }
@@ -175,7 +180,7 @@ class AgentsController(
                 log.info { "Marking files in ${pathToFile.parent} executable..." }
                 Files.walk(pathToFile.parent)
                     .filter { it.isRegularFile() }
-                    .forEach { it.tryMarkAsExecutable() }
+                    .forEach { with(loggingContext) { it.tryMarkAsExecutable() } }
             }
             Files.delete(pathToFile)
         }
@@ -209,7 +214,7 @@ class AgentsController(
             .then(
                 Mono.fromCallable {
                     // TODO: need to store information about isExecutable in Execution (FileKey)
-                    pathToFile.tryMarkAsExecutable()
+                    with (loggingContext) { pathToFile.tryMarkAsExecutable() }
                     log.debug {
                         "Downloaded $fileKey to ${pathToFile.absolutePathString()}"
                     }
@@ -287,6 +292,9 @@ class AgentsController(
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
-        private val allExecute = setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)
+        private val loggingContext = object : LoggingContext {
+            override val logger: Logger
+                get() = log
+        }
     }
 }

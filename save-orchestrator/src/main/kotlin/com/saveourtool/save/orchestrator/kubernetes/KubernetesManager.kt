@@ -7,6 +7,7 @@ import com.saveourtool.save.utils.warn
 import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -28,7 +29,7 @@ class KubernetesManager(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
-) : AgentRunner<KubernetesPvId> {
+) : AgentRunner {
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
@@ -37,11 +38,12 @@ class KubernetesManager(
     )
     override fun create(executionId: Long,
                         baseImageId: String,
-                        pvId: KubernetesPvId,
+                        pvId: PersistentVolumeId,
                         replicas: Int,
                         workingDir: String,
                         agentRunCmd: String,
     ): List<String> {
+        require(pvId is KubernetesPvId)
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
