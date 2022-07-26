@@ -76,10 +76,10 @@ class DockerService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
-        log.info("Building base image for execution.id=${execution.id}")
+        log.info("Preparing image and volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("Using base image [id=${buildResult.imageId}] for execution.id=${execution.id}")
+        log.info("For execution.id=${execution.id} using base image [id=${buildResult.imageId}] and PV [id=${buildResult.pvId}]")
         return buildResult
     }
 
