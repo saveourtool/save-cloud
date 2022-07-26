@@ -7,6 +7,8 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
@@ -49,7 +51,7 @@ class DockerAgentRunner(
         workingDir: String,
     ): List<String> {
         val (baseImageId, agentRunCmd, pvId) = configuration
-        require(pvId is DockerPvId)
+        require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
         return (1..replicas).map { number ->
             logger.info("Building container #$number for execution.id=$executionId")
             createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
@@ -145,7 +147,7 @@ class DockerAgentRunner(
     ): String {
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
-        val envFileTargetPath = "/home/save-agent/.env"
+        val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
@@ -157,7 +159,7 @@ class DockerAgentRunner(
                 HostConfig.newHostConfig()
                     .withBinds(Bind(
                         // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
-                        pvId.volumeName, Volume(DockerService.EXECUTION_DIR)
+                        pvId.volumeName, Volume(EXECUTION_DIR)
                     ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname

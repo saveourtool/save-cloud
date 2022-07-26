@@ -15,6 +15,7 @@ import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -297,7 +298,7 @@ class DockerService(
                     |RUN rm -rf /var/lib/apt/lists/*
                     |$additionalRunCmd
                     |RUN groupadd --gid 1100 save-agent && useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent
-                    |WORKDIR /home/save-agent/save-execution
+                    |WORKDIR $EXECUTION_DIR
             """.trimMargin()
         ).also {
             log.debug("Successfully built base image id=$it")
@@ -366,7 +367,6 @@ class DockerService(
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
-        internal const val EXECUTION_DIR = "/home/save-agent/save-execution"
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

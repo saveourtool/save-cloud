@@ -41,7 +41,7 @@ class KubernetesManager(
                         workingDir: String,
     ): List<String> {
         val (baseImageId, agentRunCmd, pvId) = configuration
-        require(pvId is KubernetesPvId)
+        require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")

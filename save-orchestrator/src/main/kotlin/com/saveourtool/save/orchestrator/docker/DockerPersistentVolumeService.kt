@@ -1,7 +1,8 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
 
 import com.github.dockerjava.api.DockerClient
@@ -49,18 +50,18 @@ class DockerPersistentVolumeService(
                             Mount()
                                 .withType(MountType.BIND)
                                 .withSource(resources.single().absolutePathString())
-                                .withTarget("/home/save-agent/tmp"),
+                                .withTarget("$SAVE_AGENT_USER_HOME/tmp"),
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)
-                                .withTarget(DockerService.EXECUTION_DIR)
+                                .withTarget(EXECUTION_DIR)
                         )
                     )
             )
             .withCmd(
                 "sh", "-c",
-                "cp -R /home/save-agent/tmp/* ${DockerService.EXECUTION_DIR}" +
-                        " && chown -R 1100:1100 ${DockerService.EXECUTION_DIR}" +
+                "cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                        " && chown -R 1100:1100 $EXECUTION_DIR" +
                         " && echo Successfully copied"
             )
             .exec()
