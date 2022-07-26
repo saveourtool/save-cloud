@@ -7,9 +7,7 @@
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
-import com.saveourtool.save.frontend.SETTINGS_EMAIL
-import com.saveourtool.save.frontend.SETTINGS_ORGANIZATIONS
+import com.saveourtool.save.frontend.*
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
@@ -176,7 +174,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = "projects"
+                    val hrefAnchor = PROJECTS
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active ")
                     style = jso {
                         width = 8.rem
@@ -188,7 +186,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = "contests"
+                    val hrefAnchor = CONTESTS
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem
