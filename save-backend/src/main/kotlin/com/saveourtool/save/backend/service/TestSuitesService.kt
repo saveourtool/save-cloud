@@ -50,7 +50,8 @@ class TestSuitesService(
                     dateAdded = null,
                     testRootPath = FilenameUtils.separatorsToUnix(it.testRootPath),
                     testSuiteRepoUrl = it.testSuiteRepoUrl,
-                    language = it.language
+                    language = it.language,
+                    tags = it.tags?.let(TestSuite::tagsFromList),
                 )
             }
             .map { testSuite ->
