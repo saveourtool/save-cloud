@@ -1414,6 +1414,86 @@
         }
       }
     },
+    "/api/v1/contests/update": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Update contest.",
+        "description": "Change contest settings.",
+        "operationId": "updateContest",
+        "parameters": [
+          {
+            "name": "contestRequest",
+            "description": "name of an organization",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Not enough permission to edit current contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either organization or contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/create": {
       "post": {
         "tags": [
@@ -3164,6 +3244,90 @@
         ]
       }
     },
+    "/api/v1/contests/by-organization": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get contests connected with given organization.",
+        "description": "Get contests connected with given organization.",
+        "operationId": "getOrganizationContests",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "query",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "amount of records that will be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Either contest with such name was not found or tests are not provided.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/active": {
       "get": {
         "tags": [
@@ -4626,6 +4790,7 @@
             "type": "string",
             "enum": [
               "AI",
+              "ALL",
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
