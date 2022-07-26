@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway
+  annotations:
+    prometheus.io/port: {{ .Values.gateway.managementPort | quote }}
   labels:
     {{- include "common.labels" (merge (dict "service" .Values.gateway) .) | nindent 4 }}
 spec:
