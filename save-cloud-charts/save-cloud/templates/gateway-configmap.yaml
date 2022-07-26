@@ -6,7 +6,8 @@ data:
   application.properties: |
     gateway.backend.url=http://backend
     server.shutdown=graceful
-    management.endpoints.web.exposure.exclude=*
+    management.endpoints.web.exposure.include=*
+    management.server.port=5301
     {{ if .Values.gateway.applicationProperties }}
     {{- .Values.gateway.applicationProperties | nindent 4 }}
     {{ end }}
