@@ -20,6 +20,16 @@ import kotlinx.browser.window
 import kotlinx.js.jso
 
 /**
+ * Loader animation
+ */
+val ringLoader = ringLoader(jso {
+    this.size = 70
+    this.loading = true
+    this.color = "#3a00c2"
+})
+
+
+/**
  * Context to store data about current request such as errors and isLoading flag.
  */
 @Suppress("TYPE_ALIAS")
@@ -111,12 +121,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-4")
             div {
-                val ringLoaderOptions: dynamic = jso {
-                    this.size = 70
-                    this.loading = true
-                    this.color = "#3a00c2"
-                }
-                child(ringLoader(ringLoaderOptions))
+                child(ringLoader)
                 span {
                     className = ClassName("sr-only")
                     +"Loading..."

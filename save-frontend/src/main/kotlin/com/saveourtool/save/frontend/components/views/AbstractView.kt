@@ -56,7 +56,7 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
         val container = document.getElementById("common-save-container")
         container?.setAttribute(
             "class",
-            "container-fluid ${style.boarderForContainer}"
+            "container-fluid ${style.borderForContainer}"
         )
     }
 
@@ -64,14 +64,14 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
      * @property globalBackground
      * @property topBarBgColor
      * @property topBarTransparency
-     * @property boarderForContainer
+     * @property borderForContainer
      * @property marginBottomForTopBar
      */
     private data class Style(
         val globalBackground: String,
         val topBarBgColor: String,
         val topBarTransparency: String,
-        val boarderForContainer: String,
+        val borderForContainer: String,
         val marginBottomForTopBar: String,
     )
 }
