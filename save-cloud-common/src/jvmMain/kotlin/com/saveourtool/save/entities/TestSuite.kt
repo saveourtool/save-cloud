@@ -64,4 +64,8 @@ class TestSuite(
                 this.language,
                 this.tagsAsList(),
             )
+
+    companion object {
+        fun tagsFromList(tags: List<String>) = tags.joinToString(separator = ",")
+    }
 }
