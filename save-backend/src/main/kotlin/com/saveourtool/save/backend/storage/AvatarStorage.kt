@@ -42,7 +42,8 @@ class AvatarStorage(configProperties: ConfigProperties) :
         return list()
             .filter { it.folderUserName == key.folderUserName }
             .singleOrEmpty()
-            .map { delete(it) }
+            .flatMap { delete(it) }
+            .switchIfEmpty(Mono.just(true))
             .flatMap { upload(key, content) }
     }
 
