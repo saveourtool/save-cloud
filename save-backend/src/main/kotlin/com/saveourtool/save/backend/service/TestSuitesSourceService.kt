@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.orNotFound
-import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]

@@ -64,11 +64,6 @@ class PreprocessorToBackendBridge(
                 .toBodilessEntity()
         }
 
-    fun getGitInfo(id: Long): Mono<GitDto> = webClientBackend.get()
-        .uri("/git?id={id}", id)
-        .retrieve()
-        .bodyToMono()
-
     fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
         webClientBackend.get()
             .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/{version}/contains",

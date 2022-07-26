@@ -98,9 +98,7 @@ class DownloadProjectController(
                     ?.replaceFirst("origin/", "")
                     ?: executionRequest.gitDto.detectDefaultBranchName(),
                 { true },
-                executionRequest.project,
-                null,
-                null
+                executionRequest,
             )
                 .subscribeOn(scheduler)
                 .subscribe()
@@ -123,9 +121,7 @@ class DownloadProjectController(
                         testRootPath,
                         standardTestSuitesRepo.branch,
                         { it.name in executionRequestForStandardSuites.testSuites },
-                        executionRequestForStandardSuites.project,
-                        executionRequestForStandardSuites.execCmd,
-                        executionRequestForStandardSuites.batchSizeForAnalyzer
+                        executionRequestForStandardSuites,
                     )
                 }
                 .subscribeOn(scheduler)
@@ -138,9 +134,7 @@ class DownloadProjectController(
         testRootPath: String,
         branch: String,
         testSuiteFilter: (TestSuite) -> Boolean,
-        project: Project,
-        execCmd: String?,
-        batchSizeForAnalyzer: String?,
+        requestBase: ExecutionRequestBase,
     ): Mono<StatusResponse> = preprocessorToBackendBridge.getTestSuitesSource(
         organizationName,
         gitUrl,
@@ -160,11 +154,11 @@ class DownloadProjectController(
                     .collectList()
                     .flatMap { testSuiteIds ->
                         updateExecution(
-                            project,
+                            requestBase.project,
                             version,
                             testSuiteIds,
-                            execCmd,
-                            batchSizeForAnalyzer,
+                            requestBase.execCmd,
+                            requestBase.batchSizeForAnalyzer,
                         )
                     }
                     .flatMap { it.executeTests() }

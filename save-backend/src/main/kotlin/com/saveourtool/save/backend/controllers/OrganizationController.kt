@@ -6,26 +6,22 @@ import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
+import com.saveourtool.save.backend.utils.forbiddenIfEmpty
+import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.v1
-import kotlinx.serialization.Contextual
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
 
 /**
@@ -47,7 +43,7 @@ internal class OrganizationController(
     @PreAuthorize("permitAll()")
     fun getOrganizationByName(@PathVariable organizationName: String) = Mono.fromCallable {
         organizationService.findByName(organizationName)
-    }.switchToNotFoundIfEmpty {
+    }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
     }
 
@@ -119,17 +115,12 @@ internal class OrganizationController(
         .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.OWNER) }
         .map { organizationService.getByName(it) }
         .map { originalOrganization ->
-            organizationService.updateOrganization(originalOrganization.apply {
-                name = organization.name
-                status = organization.status
-                ownerId = organization.ownerId
-                dateCreated = organization.dateCreated
-                avatar = organization.avatar
-                description = organization.description
+            organizationService.updateOrganization(organization.apply {
+                id = originalOrganization.requiredId()
             })
             ResponseEntity.ok("Organization updated")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+        .forbiddenIfEmpty()
 
     /**
      * @param organizationName
@@ -143,7 +134,7 @@ internal class OrganizationController(
             organizationService.deleteOrganization(it)
             ResponseEntity.ok("Organization deleted")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+        .forbiddenIfEmpty()
 
     /**
      * @param organizationName
@@ -180,7 +171,7 @@ internal class OrganizationController(
             gitService.upsert(it, gitDto)
             ResponseEntity.ok("Git credential saved")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+        .forbiddenIfEmpty()
 
     /**
      * @param organizationName
@@ -199,14 +190,7 @@ internal class OrganizationController(
             gitService.delete(it, url)
             ResponseEntity.ok("Git credential deleted")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
-
-    @GetMapping("/internal/organization/{name}")
-    fun getByNameAsMono(@PathVariable name: String): Mono<Organization> = organizationService.findByName(name)
-        .toMono()
-        .switchToNotFoundIfEmpty {
-            "Organization not found by name $name"
-        }
+        .forbiddenIfEmpty()
 
     companion object {
         @JvmStatic

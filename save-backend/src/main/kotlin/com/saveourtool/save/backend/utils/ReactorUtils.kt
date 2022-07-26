@@ -7,6 +7,7 @@ package com.saveourtool.save.backend.utils
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -69,18 +70,29 @@ inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): 
     .map { objectMapper.readValue(it, T::class.java) }
 
 /**
+ * @param status
  * @param messageCreator
  * @return original [Mono] or [Mono.error] with 404 status otherwise
  */
-fun <T> Mono<T>.switchToNotFoundIfEmpty(messageCreator: (() -> String?) = { null }) = this.switchIfEmpty {
-    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageCreator()))
+fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCreator: (() -> String?) = { null }) = switchIfEmpty {
+    Mono.error(ResponseStatusException(status, messageCreator()))
 }
 
+/**
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with 404 status otherwise
+ */
+fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null }) = switchIfEmptyToResponseException(HttpStatus.NOT_FOUND, messageCreator)
+
+/**
+ * @return [Mono] with original value or with [ResponseEntity] with [HttpStatus.FORBIDDEN]
+ */
+fun <T> Mono<ResponseEntity<T>>.forbiddenIfEmpty() = defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 /**
  * @param data
  * @param message
  * @return [Mono] containing [data] or [Mono.error] with 404 status otherwise
  */
-fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchToNotFoundIfEmpty {
+fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchIfEmptyToNotFound {
     message
 }

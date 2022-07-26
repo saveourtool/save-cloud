@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
+import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -42,7 +42,7 @@ class TestSuitesSourceController(
             .flatMap { organizationService.findByName(it).toMono() }
             .flatMap { organization ->
                 testSuitesSourceService.findByName(organization, name).toMono()
-                    .switchToNotFoundIfEmpty {
+                    .switchIfEmptyToNotFound {
                         "TestSuitesSource not found by name $name for organization ${organization.name}"
                     }
             }

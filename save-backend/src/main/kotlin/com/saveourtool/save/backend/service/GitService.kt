@@ -1,16 +1,12 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.GitRepository
-import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 
 /**
  * Service of git
