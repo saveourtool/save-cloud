@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.frontend.CONTESTS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
@@ -67,7 +68,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                 Fragment.create {
                     td {
                         a {
-                            href = "#/contests/${cellProps.row.original.name}"
+                            href = "#/$CONTESTS/${cellProps.row.original.name}"
                             +cellProps.value
                         }
                     }

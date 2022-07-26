@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  */
 enum class BenchmarkCategoryEnum {
     AI,
+    ALL,
     AUDIT,
     CODING_STANDARD,
     PERFORMANCE,
