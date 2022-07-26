@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.*
@@ -15,6 +14,7 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
+import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
@@ -105,17 +105,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         getUser()
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "NULLABLE_PROPERTY_TYPE")
     private fun getUser() {
         scope.launch {
-            val userInfoNew: UserInfo? = get(
+            val userName: String? = get(
                 "${window.location.origin}/sec/user",
                 Headers().also { it.set("Accept", "application/json") },
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+                if (!ok || responseText == "null") null else responseText
             }
 
             val globalRole: Role? = get(
@@ -128,19 +128,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
 
-            val avatarNew: ImageInfo? = userInfoNew?.name?.let { name ->
-                get(
-                    "$apiUrl/users/$name/avatar",
-                    Headers(),
-                    loadingHandler = ::noopLoadingHandler,
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<ImageInfo>()
-                    }
-            }
+            val user: UserInfo? = userName
+                ?.let { getUser(it) }
+
+            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew.copy(globalRole = globalRole, avatar = avatarNew?.path)
+                    userInfo = userInfoNew
                 }
             }
         }
