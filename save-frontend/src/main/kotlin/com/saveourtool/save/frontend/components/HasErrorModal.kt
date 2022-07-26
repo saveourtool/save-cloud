@@ -2,10 +2,7 @@
 
 package com.saveourtool.save.frontend.components
 
-import com.saveourtool.save.frontend.components.views.FallbackView
-import com.saveourtool.save.frontend.externals.animations.ringLoader
 import com.saveourtool.save.frontend.externals.modal.modal
-import com.saveourtool.save.frontend.topBarComponent
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -17,7 +14,6 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
-import kotlinx.js.jso
 
 /**
  * Context to store data about current request such as errors and isLoading flag.

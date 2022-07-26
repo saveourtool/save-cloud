@@ -2,9 +2,6 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
-import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.*
 import react.FC
 import react.Props
@@ -12,11 +9,11 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 
 import kotlinx.js.jso
-import react.dom.html.ReactHTML
 
 /**
  * ReactElement that represents scorecard
@@ -102,7 +99,6 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                         href = props.url
                                         +props.name
                                     }
-
                                 } ?: run {
                                     +props.name
                                 }

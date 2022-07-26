@@ -5,6 +5,10 @@
 package com.saveourtool.save.frontend.components.views.usersettingsview
 
 import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.frontend.SETTINGS_EMAIL
+import com.saveourtool.save.frontend.SETTINGS_ORGANIZATIONS
+import com.saveourtool.save.frontend.SETTINGS_PROFILE
+import com.saveourtool.save.frontend.SETTINGS_TOKEN
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -209,7 +213,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/profile"
+                                                    href = "#/${props.userName}/$SETTINGS_PROFILE"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -220,7 +224,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/email"
+                                                    href = "#/${props.userName}/$SETTINGS_EMAIL"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -231,7 +235,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/organizations"
+                                                    href = "#/${props.userName}/$SETTINGS_ORGANIZATIONS"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -254,7 +258,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/token"
+                                                    href = "#/${props.userName}/$SETTINGS_TOKEN"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }

@@ -1,7 +1,6 @@
 @file:JsModule("react-tsparticles")
 @file:JsNonModule
 
-
 package com.saveourtool.save.frontend.externals.animations
 
 import react.*

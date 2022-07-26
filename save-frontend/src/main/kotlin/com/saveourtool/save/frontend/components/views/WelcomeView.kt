@@ -6,6 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
+import com.saveourtool.save.frontend.CONTESTS
+import com.saveourtool.save.frontend.PROJECTS
+import com.saveourtool.save.frontend.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.animations.*
@@ -100,7 +104,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("page-header align-items-start min-vh-100")
                 style = jso {
                     background =
-                        "-webkit-linear-gradient(270deg, (0,20,73), rgb(0,0,0))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, (0,20,73), rgb(0,0,0))".unsafeCast<Background>()
                 }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
@@ -148,7 +152,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("min-vh-100")
                 style = jso {
                     background =
-                        "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
                 }
 
                 span {
@@ -170,8 +174,6 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
-
-
             }
         }
     }
@@ -218,7 +220,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         h4 {
                             a {
                                 className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                                href = "#/projects"
+                                href = "#/$PROJECTS"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -256,7 +258,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("mt-4 text-sm")
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "#/projects"
+                    href = "#/$PROJECTS"
                     h4 {
                         fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
@@ -265,7 +267,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/awesome-benchmarks"
+                    href = "/#/$AWESOME_BENCHMARKS"
                     h4 {
                         fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
                         +"Benchmarks Archive"
@@ -274,7 +276,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${props.userInfo?.name}/settings/email"
+                    href = "/#/${props.userInfo?.name}/$SETTINGS_EMAIL"
                     h4 {
                         fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
@@ -283,7 +285,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/contests"
+                    href = "/#/$CONTESTS"
                     h4 {
                         fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
                         +"Contests"

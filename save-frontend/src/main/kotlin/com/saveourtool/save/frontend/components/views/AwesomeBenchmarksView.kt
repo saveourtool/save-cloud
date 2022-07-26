@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -263,7 +264,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
                                             if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
-                                                (state.lang == ALL_LANGS || state.lang == benchmark.language)
+                                                    (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {
                                                 ++matchingBenchmarksCount
                                                 div {
@@ -292,7 +293,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             // FixMe: links should be limited with the length of the div
                                                             benchmark.tags.split(",").map { " #$it " }.forEach {
                                                                 a {
-                                                                    className = ClassName("/#/awesome-benchmarks")
+                                                                    className = ClassName("/#/$AWESOME_BENCHMARKS")
                                                                     +it
                                                                 }
                                                             }
@@ -442,7 +443,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         +""" Go to the"""
                                         a {
                                             className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
-                                            +""" awesome-benchmarks """
+                                            +""" $AWESOME_BENCHMARKS """
                                         }
                                         +"""repository"""
                                     }
@@ -492,7 +493,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
         scope.launch {
             val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/awesome-benchmarks",
+                "$apiUrl/$AWESOME_BENCHMARKS",
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()

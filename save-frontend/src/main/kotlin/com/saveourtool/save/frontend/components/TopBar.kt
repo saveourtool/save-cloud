@@ -7,6 +7,9 @@
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
+import com.saveourtool.save.frontend.SETTINGS_EMAIL
+import com.saveourtool.save.frontend.SETTINGS_ORGANIZATIONS
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
@@ -139,7 +142,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = "awesome-benchmarks"
+                    val hrefAnchor = AWESOME_BENCHMARKS
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 12.rem
@@ -252,12 +255,12 @@ fun topBar() = FC<TopBarProps> { props ->
                     props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/settings/email"
+                                window.location.href = "#/$name/$SETTINGS_EMAIL"
                             }
                         }
                         dropdownEntry(faCity, "My organizations") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/settings/organizations"
+                                window.location.href = "#/$name/$SETTINGS_ORGANIZATIONS"
                             }
                         }
                     }
@@ -278,4 +281,4 @@ fun topBar() = FC<TopBarProps> { props ->
 }
 
 private fun textColor(hrefAnchor: String, location: history.Location) =
-    if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
+        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"

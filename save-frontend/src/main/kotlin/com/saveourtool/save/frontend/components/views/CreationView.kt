@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.CREATE_ORGANIZATION
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.InputTypes
@@ -314,7 +315,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         className = ClassName("btn btn-primary mb-2")
                                         a {
                                             className = ClassName("text-light")
-                                            href = "#/create-organization/"
+                                            href = "#/$CREATE_ORGANIZATION/"
                                             +"Add new organization"
                                         }
                                     }

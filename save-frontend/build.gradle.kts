@@ -22,6 +22,8 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
@@ -59,7 +61,7 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", "^10.4.5"))
+            compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
