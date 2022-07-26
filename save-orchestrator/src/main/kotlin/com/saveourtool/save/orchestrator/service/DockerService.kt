@@ -38,6 +38,11 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
@@ -68,14 +73,15 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
+     * @param dockerImageLocation location to base image
      * @param execution [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
+    fun prepareConfiguration(dockerImageLocation: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
         log.info("Preparing image and volume for execution.id=${execution.id}")
-        val buildResult = prepareImageAndVolumeForExecution(execution)
+        val buildResult = prepareImageAndVolumeForExecution(dockerImageLocation, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("For execution.id=${execution.id} using base image [id=${buildResult.imageId}] and PV [id=${buildResult.pvId}]")
         return buildResult
@@ -193,10 +199,8 @@ class DockerService(
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun prepareImageAndVolumeForExecution(execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // FIXME: need to create a temp folder
-        val originalResourcesPath = Files.createTempDirectory(configProperties.testResources.basePath)
-            .toFile()
+    private fun prepareImageAndVolumeForExecution(dockerImageLocation: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+        val originalResourcesPath = dockerImageLocation.toFile()
 
         val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
@@ -205,18 +209,17 @@ class DockerService(
         val testSuitesForDocker = collectStandardTestSuitesForDocker(execution)
         val testSuitesDir = resourcesForExecution.resolve(STANDARD_TEST_SUITE_DIR)
 
-        // list is not empty only in standard mode
-        val isStandardMode = testSuitesForDocker.isNotEmpty()
-
-        val saveCliExecFlags = if (isStandardMode) {
-            // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-            val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
-
-            testSuitesDir.resolve("save.toml").apply { createFile() }.writeText(configData)
-            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
-        } else {
-            ""
-        }
+        val saveCliExecFlags = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
+            ?.let { configData ->
+                // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
+                testSuitesDir.resolve(STANDARD_TEST_SUITE_DIR)
+                    .resolve("save.toml")
+                    .apply { createFile() }
+                    .writeText(configData)
+                // collect standard test suites for docker image, which were selected by user, if any
+                " $STANDARD_TEST_SUITE_DIR --include-suites \"${collectStandardTestSuitesForDocker(execution).joinToString(",") { it.name }}\""
+            }
+            ?: ""
 
         // include save-agent into the image
         PathUtils.copyFile(
@@ -315,25 +318,6 @@ class DockerService(
                 .retrieve()
                 .bodyToMono<List<TestSuiteDto>>()
                 .block()!!
-        }
-    }
-
-    @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
-    private fun copyTestSuitesToResourcesPath(testSuitesForDocker: List<TestSuiteDto>, destination: File) {
-        FileSystemUtils.deleteRecursively(destination)
-        // TODO: https://github.com/saveourtool/save-cloud/issues/321
-        log.info("Copying suites ${testSuitesForDocker.map { it.name }} into $destination")
-        testSuitesForDocker.forEach {
-            val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
-                // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
-                .resolve(File("${listOf(it.source.gitDto.url).hashCode()}")
-                    .resolve(it.source.testRootPath)
-                )
-            val currentSuiteDestination = destination.resolve(getLocationInStandardDirForTestSuite(it))
-            if (!currentSuiteDestination.exists()) {
-                log.debug("Copying suite ${it.name} from $standardTestSuiteAbsolutePath into $currentSuiteDestination/...")
-                copyRecursivelyWithAttributes(standardTestSuiteAbsolutePath, currentSuiteDestination)
-            }
         }
     }
 

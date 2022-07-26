@@ -101,9 +101,8 @@ class AgentsController(
                     )
                 )
                 .flatMap { testRootPath ->
-                    // FIXME: need to create a temp folder
-                    val filesLocation = Files.createTempDirectory(configProperties.testResources.basePath)
-                        .resolve(testRootPath)
+                    val dockerImageLocation = createTempDirectory()
+                    val filesLocation = dockerImageLocation.resolve(testRootPath)
                     execution.parseAndGetAdditionalFiles()
                         .toFlux()
                         .flatMap { fileKey ->
@@ -113,11 +112,14 @@ class AgentsController(
                         }
                         .collectList()
                         .switchIfEmpty(Mono.just(emptyList()))
+                        .map {
+                            dockerImageLocation
+                        }
                 }
                 .publishOn(agentService.scheduler)
                 .map {
                     // todo: pass SDK via request body
-                    dockerService.prepareConfiguration(execution)
+                    dockerService.prepareConfiguration(it, execution)
                 }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
@@ -147,8 +149,19 @@ class AgentsController(
         }
     }
 
+    private fun createTempDirectory(): Path = Files.createTempDirectory(
+        Paths.get(configProperties.testResources.basePath),
+        "image"
+    )
+
     private fun getTestRootPath(execution: Execution): Mono<String> = when (execution.type) {
-        ExecutionType.STANDARD -> Mono.just(STANDARD_TEST_SUITE_DIR)
+        ExecutionType.STANDARD -> Mono.just(with(execution) {
+            if (execCmd.isNullOrBlank() && batchSizeForAnalyzer.isNullOrBlank()) {
+                ""
+            } else {
+                STANDARD_TEST_SUITE_DIR
+            }
+        })
         ExecutionType.GIT -> webClientBackend.post()
             .uri("/findTestRootPathForExecutionByTestSuites")
             .contentType(MediaType.APPLICATION_JSON)
