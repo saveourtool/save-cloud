@@ -45,20 +45,20 @@ class TestSuitesSourceController(
     fun findAsDtoByName(
         @PathVariable organizationName: String,
         @PathVariable name: String
-    ): Mono<TestSuitesSourceDto> =
-            Mono.just(organizationName)
-                .flatMap {
-                    organizationService.findByName(it).toMono()
-                }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    "Organization not found by name $name"
-                }
-                .flatMap { organization ->
-                    testSuitesSourceService.findByName(organization, name).toMono()
-                }.switchIfEmptyToNotFound {
-                    "TestSuitesSource not found by name $name for organization $organizationName"
-                }
-                .map { it.toDto() }
+    ): Mono<TestSuitesSourceDto> = Mono.just(organizationName)
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Organization not found by name $name"
+        }
+        .flatMap { organization ->
+            testSuitesSourceService.findByName(organization, name).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "TestSuitesSource not found by name $name for organization $organizationName"
+        }
+        .map { it.toDto() }
 
     /**
      * Upload snapshot of [TestSuitesSource] with [version]

@@ -10,10 +10,10 @@ import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.TestSuitesRepo
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.*
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.ClassPathResource
@@ -198,6 +198,7 @@ class DownloadProjectController(
                     if (max.creationTime > next.creationTime) max else next
                 }
                 .map { it.version }
+
     /**
      * Accept execution rerun request
      *
@@ -378,11 +379,11 @@ class DownloadProjectController(
  * @return map repository to paths to test configs
  */
 fun readStandardTestSuitesFile(name: String, objectMapper: ObjectMapper) =
-    ClassPathResource(name)
-        .file
-        .let {
-            objectMapper.readValue(it, TestSuitesRepo::class.java)!!
-        }
+        ClassPathResource(name)
+            .file
+            .let {
+                objectMapper.readValue(it, TestSuitesRepo::class.java)!!
+            }
 
 /**
  * @param executionId
