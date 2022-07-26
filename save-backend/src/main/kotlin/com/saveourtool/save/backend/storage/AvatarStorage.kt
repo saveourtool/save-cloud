@@ -39,7 +39,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
      * @return `Mono` with file size
      */
     fun upsert(key: AvatarKey, content: Flux<ByteBuffer>): Mono<Long> = list()
-        .filter { it.folderUserName == key.folderUserName }
+        .filter { it.folderName == key.folderName }
         .singleOrEmpty()
         .flatMap { delete(it) }
         .switchIfEmpty(Mono.just(true))
@@ -52,7 +52,7 @@ class AvatarStorage(configProperties: ConfigProperties) :
      */
     override fun buildPathToContent(rootDir: Path, key: AvatarKey): Path = rootDir
         .let { if (key.type == AvatarType.USER) it.resolve(USERS_DIRECTORY) else it }
-        .resolve(key.folderUserName)
+        .resolve(key.folderName)
         .resolve(key.imageName)
 
     companion object {
@@ -62,12 +62,12 @@ class AvatarStorage(configProperties: ConfigProperties) :
 
 /**
  * @property type
- * @property folderUserName
+ * @property folderName
  * @property imageName
  */
 data class AvatarKey(
     val type: AvatarType,
-    val folderUserName: String,
+    val folderName: String,
     val imageName: String,
 ) {
     /**
@@ -76,7 +76,7 @@ data class AvatarKey(
      * @return relative path to avatar image
      */
     fun getRelativePath(): String = when (type) {
-        AvatarType.ORGANIZATION -> "/$folderUserName/$imageName"
-        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$folderUserName/$imageName"
+        AvatarType.ORGANIZATION -> "/$folderName/$imageName"
+        AvatarType.USER -> "/${AvatarStorage.USERS_DIRECTORY}/$folderName/$imageName"
     }
 }
