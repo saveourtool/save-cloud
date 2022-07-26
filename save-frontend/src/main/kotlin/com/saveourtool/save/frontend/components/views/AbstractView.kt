@@ -37,6 +37,10 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
             "background: ${style.globalBackground}"
         )
 
+        configureTopBar(style)
+    }
+
+    private fun configureTopBar(style: Style) {
         val topBar = document.getElementById("navigation-top-bar")
         topBar?.setAttribute(
             "class",

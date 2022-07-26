@@ -1,3 +1,8 @@
+/**
+ * Very impressive and beautiful library with animation for scrolling:
+ * https://github.com/1000ship/react-scroll-motion
+ */
+
 @file:JsModule("react-scroll-motion")
 @file:JsNonModule
 
@@ -16,13 +21,13 @@ external val scrollPage: FC<ScrollPageProps>
 external val animator: FC<AnimatorProps>
 
 @JsName("Fade")
-external val Fade: Animation
+external val fade: Animation
 
 @JsName("Move")
-external val Move: Animation
+external val move: Animation
 
 @JsName("Sticky")
-external val Sticky: Animation
+external val sticky: Animation
 
 @JsName("ScrollContainerProps")
 external interface ScrollContainerProps : PropsWithChildren {
@@ -46,7 +51,7 @@ external interface Animation
 
 /**
  * @param animations
- * @return
+ * @return batched and merged animation from the list of several animations
  */
 @JsName("batch")
 external fun batch(vararg animations: Animation): Animation

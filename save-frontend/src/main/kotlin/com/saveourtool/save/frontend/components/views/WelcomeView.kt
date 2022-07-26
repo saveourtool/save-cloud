@@ -164,7 +164,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     scrollContainer {
                         scrollPage {
                             animator {
-                                animation = Fade
+                                animation = fade
                                 span {
                                     style = jso {
                                         fontSize = "40px".unsafeCast<FontSize>()
