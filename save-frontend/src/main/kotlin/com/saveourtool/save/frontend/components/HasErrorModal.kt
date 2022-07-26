@@ -22,12 +22,12 @@ import kotlinx.js.jso
 /**
  * Loader animation
  */
+@Suppress("MAGIC_NUMBER")
 val ringLoader = ringLoader(jso {
     this.size = 70
     this.loading = true
     this.color = "#3a00c2"
 })
-
 
 /**
  * Context to store data about current request such as errors and isLoading flag.
