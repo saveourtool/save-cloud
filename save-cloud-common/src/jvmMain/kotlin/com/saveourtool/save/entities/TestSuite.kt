@@ -64,4 +64,14 @@ class TestSuite(
                 this.language,
                 this.tagsAsList(),
             )
+
+    companion object {
+        /**
+         * Concatenates [tags] using same format as [TestSuite.tagsAsList]
+         *
+         * @param tags list of tags
+         * @return representation of [tags] as a single string understood by [TestSuite.tagsAsList]
+         */
+        fun tagsFromList(tags: List<String>) = tags.joinToString(separator = ",")
+    }
 }
