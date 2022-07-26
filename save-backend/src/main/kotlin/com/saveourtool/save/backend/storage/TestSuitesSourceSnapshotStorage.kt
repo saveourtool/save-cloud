@@ -1,26 +1,14 @@
 package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage.Companion.formatCreationTime
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.TAR_EXTENSION
 import com.saveourtool.save.utils.countPartsTill
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.extra.math.max
-import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlin.io.path.div
-import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
 
 /**
@@ -43,13 +31,19 @@ class TestSuitesSourceSnapshotStorage(
                 pathToContent.parent.parent.parent.name,
                 pathToContent.parent.parent.name,
                 pathToContent.name.dropLast(TAR_EXTENSION.length),
-                pathToContent.parent.name.parseCreationTime()
+                pathToContent.parent.name.toLong()
             )
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName / creationTime.formatCreationTime() / "$version$TAR_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName / getCreationTimeInMills().toString() / "$version$TAR_EXTENSION"
     }
 
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return true if storage contains snapshot with provided values, otherwise -- false
+     */
     fun doesContain(
         organizationName: String,
         testSuitesSourceName: String,
@@ -58,7 +52,7 @@ class TestSuitesSourceSnapshotStorage(
         .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName && it.version == version }
         .singleOrEmpty()
         .map { true }
-        .switchIfEmpty(Mono.just(false))
+        .defaultIfEmpty(false)
 
     fun latestVersion(
         organizationName: String,
@@ -72,15 +66,5 @@ class TestSuitesSourceSnapshotStorage(
 
     companion object {
         private const val PATH_PARTS_COUNT = 4 // organizationName + testSuitesSourceName + creationTime + version.tar
-        private val creationTimeZoneId = ZoneOffset.UTC
-
-        private fun String.parseCreationTime() = this.toLong()
-            .let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it), creationTimeZoneId) }
-            .toKotlinLocalDateTime()
-
-        private fun kotlinx.datetime.LocalDateTime.formatCreationTime() = toJavaLocalDateTime()
-            .toInstant(creationTimeZoneId)
-            .toEpochMilli()
-            .toString()
     }
 }

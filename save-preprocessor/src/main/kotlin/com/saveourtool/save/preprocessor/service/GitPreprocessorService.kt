@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
 import kotlin.io.path.deleteExisting
 
 /**
@@ -45,23 +46,23 @@ class GitPreprocessorService(
         gitDto: GitDto,
         branch: String,
         sha1: String,
-        repositoryProcessor: (Path) -> Mono<T>,
+        repositoryProcessor: (Path, Instant) -> Mono<T>,
     ): Mono<T> {
-        val cloneAction: () -> Path = {
+        val cloneAction: () -> Pair<Path, Instant> = {
             val tmpDir = createTempDirectoryForRepository()
-            try {
+            val creationTime = try {
                 gitDto.cloneToDirectory(branch, sha1, tmpDir)
             } catch (ex: IllegalStateException) {
                 // clean up in case of exception
                 FileSystemUtils.deleteRecursively(tmpDir)
                 throw ex
             }
-            tmpDir
+            tmpDir to creationTime
         }
         return Mono.using(
             cloneAction,
-            { repositoryProcessor(it) },
-            FileSystemUtils::deleteRecursively
+            { (directory, creationTime) -> repositoryProcessor(directory, creationTime) },
+            { (directory, _) -> FileSystemUtils.deleteRecursively(directory) },
         )
     }
 

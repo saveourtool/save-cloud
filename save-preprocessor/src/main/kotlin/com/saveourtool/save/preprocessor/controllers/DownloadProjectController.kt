@@ -36,6 +36,9 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.netty.http.client.HttpClientRequest
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
 
 import java.time.Duration
 
@@ -52,7 +55,6 @@ typealias Status = Mono<ResponseEntity<HttpStatus>>
 @RestController
 class DownloadProjectController(
     private val configProperties: ConfigProperties,
-    private val testDiscoveringService: TestDiscoveringService,
     private val objectMapper: ObjectMapper,
     kotlinSerializationWebClientCustomizer: WebClientCustomizer,
     private val testSuitesPreprocessorController: TestSuitesPreprocessorController,
@@ -89,15 +91,21 @@ class DownloadProjectController(
         @RequestBody executionRequest: ExecutionRequest,
     ): Mono<TextResponse> = executionResponseAsMono(executionRequest)
         .doOnSuccess {
-            upload(
+            val (branch, version) = with(executionRequest.branchOrCommit) {
+                if (isNullOrBlank()) {
+                    null to null
+                } else if (startsWith("origin/")) {
+                    replaceFirst("origin/", "") to null
+                } else {
+                    null to this
+                }
+            }
+            fetchAndTriggerTests(
                 executionRequest.project.organization.name,
                 executionRequest.gitDto.url,
                 executionRequest.testRootPath,
-                executionRequest.branchOrCommit
-                    ?.takeIf { it.startsWith("origin/") }
-                    ?.replaceFirst("origin/", "")
-                    ?: executionRequest.gitDto.detectDefaultBranchName(),
-                { true },
+                branch ?: executionRequest.gitDto.detectDefaultBranchName(),
+                version,
                 executionRequest,
             )
                 .subscribeOn(scheduler)
@@ -115,12 +123,12 @@ class DownloadProjectController(
         .doOnSuccess {
             Flux.fromIterable(standardTestSuitesRepo.testRootPaths)
                 .flatMap { testRootPath ->
-                    upload(
+                    fetchAndTriggerTests(
                         standardTestSuitesRepo.organizationName,
                         standardTestSuitesRepo.url,
                         testRootPath,
                         standardTestSuitesRepo.branch,
-                        { it.name in executionRequestForStandardSuites.testSuites },
+                        null,
                         executionRequestForStandardSuites,
                     )
                 }
@@ -128,42 +136,97 @@ class DownloadProjectController(
                 .subscribe()
         }
 
-    private fun upload(
+
+    private fun fetchAndTriggerTests(
         organizationName: String,
         gitUrl: String,
         testRootPath: String,
         branch: String,
-        testSuiteFilter: (TestSuite) -> Boolean,
+        version: String?,
         requestBase: ExecutionRequestBase,
-    ): Mono<StatusResponse> = preprocessorToBackendBridge.getTestSuitesSource(
-        organizationName,
-        gitUrl,
-        testRootPath,
-        branch
-    ).flatMap { testSuitesSource ->
-        preprocessorToBackendBridge.getTestSuitesLatestVersion(organizationName, testSuitesSource.name)
-            .flatMap { version ->
-                preprocessorToBackendBridge.getTestSuites(
-                    organizationName,
-                    testSuitesSource.name,
-                    version
-                )
-                    .flatMapMany { Flux.fromIterable(it) }
-                    .filter(testSuiteFilter)
-                    .map { it.requiredId() }
-                    .collectList()
-                    .flatMap { testSuiteIds ->
-                        updateExecution(
-                            requestBase.project,
-                            version,
-                            testSuiteIds,
-                            requestBase.execCmd,
-                            requestBase.batchSizeForAnalyzer,
-                        )
-                    }
-                    .flatMap { it.executeTests() }
+    ): Mono<StatusResponse> {
+        // search or create new test suites source by content
+        val testSuitesSourceMono = preprocessorToBackendBridge.getTestSuitesSource(
+            organizationName,
+            gitUrl,
+            testRootPath,
+            branch
+        )
+        val testSuitesSourceWithVersion = version
+            ?.let { testSuitesSourceMono.fetchSpecificTestSuites(it) }
+            ?: testSuitesSourceMono.fetchLatestTestSuites()
+        return testSuitesSourceWithVersion.flatMap { (testSuitesSource, version) ->
+            triggerTests(testSuitesSource, version, requestBase)
+        }
+    }
+
+    private fun Mono<TestSuitesSource>.fetchLatestTestSuites() = this
+        // fetch new test suites if required
+        .flatMap { testSuitesSource ->
+            testSuitesPreprocessorController.fetch(testSuitesSource.toDto())
+                .map { testSuitesSource }
+        }
+        // take latest version from backend
+        .zipWhen { preprocessorToBackendBridge.getTestSuitesLatestVersion(it.organization.name, it.name) }
+
+    private fun Mono<TestSuitesSource>.fetchSpecificTestSuites(providedVersion: String) = this
+        // fetch new test suites if required
+        .flatMap { testSuitesSource ->
+            testSuitesPreprocessorController.fetch(testSuitesSource.toDto(), providedVersion)
+                .map { testSuitesSource }
+        }
+        .zipWith(Mono.just(providedVersion))
+
+    private fun fetchAndTriggerSpecificTests(
+        organizationName: String,
+        gitUrl: String,
+        testRootPath: String,
+        branch: String,
+        providedVersion: String,
+        requestBase: ExecutionRequestBase,
+    ): Mono<StatusResponse> {
+        // search or create new test suites source by content
+        val testSuitesSourceMono = preprocessorToBackendBridge.getTestSuitesSource(
+            organizationName,
+            gitUrl,
+            testRootPath,
+            branch
+        )
+        return testSuitesSourceMono
+            // fetch new test suites if required
+            .flatMap { testSuitesSource ->
+                testSuitesPreprocessorController.fetch(testSuitesSource.toDto(), providedVersion)
+                    .map { testSuitesSource }
+            }
+            .flatMap { testSuitesSource ->
+                triggerTests(testSuitesSource, providedVersion, requestBase)
             }
     }
+
+    private fun triggerTests(
+        testSuitesSource: TestSuitesSource,
+        version: String,
+        requestBase: ExecutionRequestBase,
+    ) = preprocessorToBackendBridge.getTestSuites(
+        testSuitesSource.organization.name,
+        testSuitesSource.name,
+        version
+    )
+        .flatMapMany { Flux.fromIterable(it) }
+        .filter(requestBase.getTestSuiteFilter())
+        .collectList()
+        .flatMap { testSuites ->
+            updateExecution(
+                requestBase.project,
+                testSuites.map { it.version }
+                    .distinct()
+                    .single(),
+                testSuites.map { it.requiredId() },
+                requestBase.execCmd,
+                requestBase.batchSizeForAnalyzer,
+            )
+        }
+        .flatMap { it.executeTests() }
 
     /**
      * Accept execution rerun request
@@ -180,7 +243,7 @@ class DownloadProjectController(
         .doOnSuccess {
             updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
                 .flatMap { cleanupInOrchestrator(executionRerunRequest.executionId!!) }
-                .flatMap { getExecution(executionRerunRequest.executionId!!) }
+                .flatMap { preprocessorToBackendBridge.getExecution(executionRerunRequest.executionId!!) }
                 .doOnNext {
                     log.info { "Skip initializing tests for execution.id = ${it.id}: it's rerun" }
                 }
@@ -209,13 +272,10 @@ class DownloadProjectController(
                     testSuitesSourceAsMono
                         .map { it.toDto() }
                         .flatMap { testSuitesSourceDto ->
-                            testSuitesPreprocessorController.pullLatestTestSuites(testSuitesSourceDto)
+                            testSuitesPreprocessorController.fetch(testSuitesSourceDto)
                         }.doOnError {
                             log.error("Error to update test suite with url=${standardTestSuitesRepo.url}, path=${testRootPath}")
                         }
-                }
-                .doOnNext {
-                    log.info("Loaded: $it")
                 }
                 .subscribeOn(scheduler)
                 .subscribe()
@@ -244,11 +304,6 @@ class DownloadProjectController(
             )
             updateExecutionStatus(id!!, ExecutionStatus.ERROR, failReason)
         }
-
-    private fun getExecution(executionId: Long) = webClientBackend.get()
-        .uri("${configProperties.backend}/execution?id=$executionId")
-        .retrieve()
-        .bodyToMono<Execution>()
 
     @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
@@ -328,6 +383,15 @@ class DownloadProjectController(
                 .doOnSubscribe {
                     log.info("Making request to set execution status for id=$executionId to $executionStatus")
                 }
+
+    private fun ExecutionRequestBase.getTestSuiteFilter(): (TestSuite) -> Boolean = when (this) {
+        is ExecutionRequest -> {
+            { true }
+        }
+        is ExecutionRequestForStandardSuites -> {
+            { it.name in this.testSuites }
+        }
+    }
 }
 
 /**

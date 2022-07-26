@@ -9,10 +9,13 @@ import com.saveourtool.save.utils.debug
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import java.time.Instant
+import java.time.LocalDateTime
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
@@ -54,25 +57,30 @@ fun GitDto.detectLatestSha1(branch: String): String = Git.lsRemoteRepository()
  * @param branch
  * @param sha1
  * @param pathToDirectory
+ * @return commit timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path) {
-    Git.cloneRepository()
-        .setCredentialsProvider(credentialsProvider())
-        .setURI(url)
-        .setDirectory(pathToDirectory.toFile())
-        .setRemote(Constants.DEFAULT_REMOTE_NAME)
-        .setNoCheckout(true)
-        .setNoTags()
-        .setBranch(branch)
-        .setCloneAllBranches(false)
-        .withRethrow { it.call() }
-        .use {
-            it.checkout()
-                .setName(sha1)
-                .call()
-        }
-}
+fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path): Instant = Git.cloneRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setURI(url)
+    .setDirectory(pathToDirectory.toFile())
+    .setRemote(Constants.DEFAULT_REMOTE_NAME)
+    .setNoCheckout(true)
+    .setNoTags()
+    .setBranch(branch)
+    .setCloneAllBranches(false)
+    .withRethrow { it.call() }
+    .use { git ->
+        git.checkout()
+            .setName(sha1)
+            .withRethrow { it.call() }
+        git.reflog()
+            .setRef(sha1)
+            .withRethrow { it.call() }
+            .first()
+            .who
+            .whenAsInstant
+    }
 
 private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != null && password != null) {
     UsernamePasswordCredentialsProvider(username, password)

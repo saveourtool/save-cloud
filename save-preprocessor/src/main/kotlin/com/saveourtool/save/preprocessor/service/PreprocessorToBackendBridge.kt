@@ -1,9 +1,6 @@
 package com.saveourtool.save.preprocessor.service
 
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.test.TestDto
@@ -19,6 +16,10 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
@@ -36,10 +37,12 @@ class PreprocessorToBackendBridge(
     fun saveTestsSuiteSourceSnapshot(
         testSuitesSource: TestSuitesSourceDto,
         version: String,
+        creationTime: Instant,
         content: Flux<ByteBuffer>
     ): Mono<Unit> = webClientBackend.post()
-            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/{version}/upload",
-                testSuitesSource.organization.name, testSuitesSource.name, version)
+            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
+                testSuitesSource.organization.name, testSuitesSource.name,
+                version, creationTime.toEpochMilli())
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .bodyValue(content)
             .retrieve()
@@ -64,9 +67,14 @@ class PreprocessorToBackendBridge(
                 .toBodilessEntity()
         }
 
+    /**
+     * @param testSuitesSource
+     * @param version
+     * @return true if backend knows [version], otherwise -- false
+     */
     fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
         webClientBackend.get()
-            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/{version}/contains",
+            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains?version={version}",
                 testSuitesSource.organization.name, testSuitesSource.name, version)
             .retrieve()
             .bodyToMono()
@@ -93,6 +101,13 @@ class PreprocessorToBackendBridge(
         .retrieve()
         .bodyToMono()
 
+    /**
+     * @param organizationName
+     * @param gitUrl
+     * @param testRootPath
+     * @param branch
+     * @return created of existed [TestSuitesSource]
+     */
     fun getTestSuitesSource(
         organizationName: String,
         gitUrl: String,
@@ -128,6 +143,15 @@ class PreprocessorToBackendBridge(
             "/organization/{organizationName}",
             organizationName
         )
+        .retrieve()
+        .bodyToMono()
+
+    /**
+     * @param executionId
+     * @return [Execution] found by provided values
+     */
+    fun getExecution(executionId: Long): Mono<Execution> = webClientBackend.get()
+        .uri("/execution?id={id}", executionId)
         .retrieve()
         .bodyToMono()
 

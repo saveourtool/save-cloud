@@ -27,6 +27,9 @@ import java.time.ZoneOffset
 
 typealias TestSuiteList = List<TestSuite>
 
+/**
+ * Controller for [TestSuitesSource]
+ */
 @RestController
 @RequestMapping("/internal/test-suites-source")
 class TestSuitesSourceController(
@@ -36,8 +39,16 @@ class TestSuitesSourceController(
     private val organizationService: OrganizationService,
     private val gitService: GitService,
 ) {
+    /**
+     * @param organizationName
+     * @param name
+     * @return [TestSuitesSourceDto] found by provided values or not found exception
+     */
     @GetMapping("/{organizationName}/{name}")
-    fun findAsDtoByName(@PathVariable organizationName: String, @PathVariable name: String): Mono<TestSuitesSourceDto> =
+    fun findAsDtoByName(
+        @PathVariable organizationName: String,
+        @PathVariable name: String
+    ): Mono<TestSuitesSourceDto> =
         Mono.just(organizationName)
             .flatMap { organizationService.findByName(it).toMono() }
             .flatMap { organization ->
@@ -48,7 +59,16 @@ class TestSuitesSourceController(
             }
             .map { it.toDto() }
 
-
+    /**
+     * Upload snapshot of [TestSuitesSource] with [version]
+     *
+     * @param organizationName
+     * @param name
+     * @param version
+     * @param creationTime
+     * @param content
+     * @return empty response
+     */
     @PostMapping("/{organizationName}/{name}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadSnapshot(
         @PathVariable organizationName: String,
@@ -58,7 +78,7 @@ class TestSuitesSourceController(
         @RequestPart content: Flux<ByteBuffer>
     ): Mono<Unit> {
         return findAsDtoByName(organizationName, name)
-            .map { TestSuitesSourceSnapshotKey(it, version, LocalDateTime.ofInstant(Instant.ofEpochMilli(creationTime), ZoneOffset.UTC).toKotlinLocalDateTime()) }
+            .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
             .flatMap { key ->
                 testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
                     log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
@@ -66,7 +86,12 @@ class TestSuitesSourceController(
             }
     }
 
-
+    /**
+     * @param organizationName
+     * @param name
+     * @param version
+     * @return true if storage contains [version] of [TestSuitesSource] identified by provided values
+     */
     @GetMapping("/{organizationName}/{name}/contains")
     fun containsSnapshot(
         @PathVariable organizationName: String,
@@ -74,14 +99,25 @@ class TestSuitesSourceController(
         @RequestParam version: String,
     ): Mono<Boolean> = testSuitesSourceSnapshotStorage.doesContain(organizationName, name, version)
 
+    /**
+     * @param organizationName
+     * @param name
+     * @return latest version of [TestSuitesSource] identified by provided values
+     */
     @GetMapping("/{organizationName}/{name}/latest")
     fun getLatestVersion(
         @PathVariable organizationName: String,
         @PathVariable name: String,
     ): Mono<String> = testSuitesSourceSnapshotStorage.latestVersion(organizationName, name)
 
+    /**
+     * @param organizationName
+     * @param gitUrl
+     * @param testRootPath
+     * @param branch
+     * @return existed [TestSuitesSource] found by provided values or a new one
+     */
     @PostMapping("/{organizationName}/get-or-create")
-    @Transactional
     fun getOrCreate(
         @PathVariable organizationName: String,
         @RequestParam gitUrl: String,

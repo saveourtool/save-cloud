@@ -1,6 +1,6 @@
 package com.saveourtool.save.testsuite
 
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,10 +16,38 @@ data class TestSuitesSourceSnapshotKey(
     val version: String,
     val creationTime: LocalDateTime,
 ) {
-    constructor(testSuitesSourceDto: TestSuitesSourceDto, version: String, creationTime: LocalDateTime) : this(
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @param creationTimeInMills
+     */
+    constructor(organizationName: String, testSuitesSourceName: String, version: String, creationTimeInMills: Long) : this(
+        organizationName,
+        testSuitesSourceName,
+        version,
+        Instant.fromEpochMilliseconds(creationTimeInMills).toLocalDateTime(creationTimeZoneId),
+    )
+
+    /**
+     * @param testSuitesSourceDto
+     * @param version
+     * @param creationTimeInMills
+     */
+    constructor(testSuitesSourceDto: TestSuitesSourceDto, version: String, creationTimeInMills: Long) : this(
         testSuitesSourceDto.organization.name,
         testSuitesSourceDto.name,
         version,
-        creationTime,
+        creationTimeInMills,
     )
+
+    /**
+     * @return [TestSuitesSourceSnapshotKey.creationTime] as milliseconds from epoch
+     */
+    fun getCreationTimeInMills(): Long = creationTime.toInstant(TimeZone.UTC)
+        .toEpochMilliseconds()
+
+    companion object {
+        private val creationTimeZoneId = TimeZone.UTC
+    }
 }
