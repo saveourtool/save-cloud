@@ -54,6 +54,11 @@ class TestSuitesSourceSnapshotStorage(
         .map { true }
         .defaultIfEmpty(false)
 
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @return
+     */
     fun latestVersion(
         organizationName: String,
         testSuitesSourceName: String,
@@ -65,6 +70,6 @@ class TestSuitesSourceSnapshotStorage(
         .map { it.version }
 
     companion object {
-        private const val PATH_PARTS_COUNT = 4 // organizationName + testSuitesSourceName + creationTime + version.tar
+        private const val PATH_PARTS_COUNT = 4  // organizationName + testSuitesSourceName + creationTime + version.tar
     }
 }

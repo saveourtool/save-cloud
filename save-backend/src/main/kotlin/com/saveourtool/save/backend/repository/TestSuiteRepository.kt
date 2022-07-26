@@ -32,7 +32,6 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
         version: String
     ): List<TestSuite>
 
-
     /**
      * @param source source of the test suite
      * @return matched test suites

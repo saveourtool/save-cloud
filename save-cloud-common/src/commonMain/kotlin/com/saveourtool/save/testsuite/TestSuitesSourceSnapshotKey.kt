@@ -8,6 +8,10 @@ import kotlinx.serialization.Serializable
  * @param testSuitesSourceName
  * @param version
  * @param creationTime
+ * @property organizationName
+ * @property testSuitesSourceName
+ * @property version
+ * @property creationTime
  */
 @Serializable
 data class TestSuitesSourceSnapshotKey(
@@ -22,7 +26,12 @@ data class TestSuitesSourceSnapshotKey(
      * @param version
      * @param creationTimeInMills
      */
-    constructor(organizationName: String, testSuitesSourceName: String, version: String, creationTimeInMills: Long) : this(
+    constructor(
+        organizationName: String,
+        testSuitesSourceName: String,
+        version: String,
+        creationTimeInMills: Long
+    ) : this(
         organizationName,
         testSuitesSourceName,
         version,

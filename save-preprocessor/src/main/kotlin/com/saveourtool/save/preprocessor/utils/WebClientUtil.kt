@@ -48,6 +48,9 @@ fun <M> WebClient.makePost(
         )
     }
 
+/**
+ * @return
+ */
 fun WebClient.ResponseSpec.validateStatus(): WebClient.ResponseSpec = this
     .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->
         log.error("Error when making request: ${clientResponse.statusCode()}")

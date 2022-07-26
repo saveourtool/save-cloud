@@ -14,4 +14,3 @@ import org.springframework.web.server.ResponseStatusException
  */
 fun <T> T?.orNotFound(messageCreator: (() -> String?) = { null }): T =
         this ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, messageCreator())
-

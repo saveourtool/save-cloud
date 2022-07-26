@@ -33,16 +33,14 @@ class TestSuitesPreprocessorController(
     @PostMapping("/fetch")
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-    ): Mono<Unit> {
-        return detectLatestVersion(testSuitesSourceDto)
-            .filterWhen { preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
-            .flatMap { version ->
-                fetchTestSuitesFromGit(testSuitesSourceDto, version)
-                    .map {
-                        log.info { "Loaded: $it" }
-                    }
-            }
-    }
+    ): Mono<Unit> = detectLatestVersion(testSuitesSourceDto)
+        .filterWhen { preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
+        .flatMap { version ->
+            fetchTestSuitesFromGit(testSuitesSourceDto, version)
+                .map {
+                    log.info { "Loaded: $it" }
+                }
+        }
 
     /**
      * Fetch new tests suites from provided source with specific version
@@ -77,22 +75,20 @@ class TestSuitesPreprocessorController(
     private fun fetchTestSuitesFromGit(
         testSuitesSourceDto: TestSuitesSourceDto,
         sha1: String,
-    ): Mono<List<TestSuite>> {
-        return gitPreprocessorService.cloneAndProcessDirectory(
-            testSuitesSourceDto.gitDto,
-            testSuitesSourceDto.branch,
-            sha1
-        ) { repositoryDirectory, creationTime ->
-            testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-                repositoryPath = repositoryDirectory,
-                testSuitesSourceDto = testSuitesSourceDto,
-                version = sha1
-            ).flatMap { testSuites ->
-                log.info { "Loaded: $testSuites" }
-                val content = gitPreprocessorService.archiveToTar(repositoryDirectory)
-                preprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testSuitesSourceDto, sha1, creationTime, content)
-                    .map { testSuites }
-            }
+    ): Mono<List<TestSuite>> = gitPreprocessorService.cloneAndProcessDirectory(
+        testSuitesSourceDto.gitDto,
+        testSuitesSourceDto.branch,
+        sha1
+    ) { repositoryDirectory, creationTime ->
+        testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+            repositoryPath = repositoryDirectory,
+            testSuitesSourceDto = testSuitesSourceDto,
+            version = sha1
+        ).flatMap { testSuites ->
+            log.info { "Loaded: $testSuites" }
+            val content = gitPreprocessorService.archiveToTar(repositoryDirectory)
+            preprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testSuitesSourceDto, sha1, creationTime, content)
+                .map { testSuites }
         }
     }
 

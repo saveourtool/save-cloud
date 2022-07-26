@@ -1,5 +1,6 @@
 package com.saveourtool.save.preprocessor.controllers
 
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -7,13 +8,11 @@ import com.saveourtool.save.preprocessor.StatusResponse
 import com.saveourtool.save.preprocessor.TextResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.TestSuitesRepo
-import com.saveourtool.save.preprocessor.service.TestDiscoveringService
+import com.saveourtool.save.preprocessor.service.PreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.utils.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.preprocessor.service.PreprocessorToBackendBridge
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.core.io.ClassPathResource
@@ -35,10 +34,9 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.netty.http.client.HttpClientRequest
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-
+import reactor.netty.http.client.HttpClientRequest
 
 import java.time.Duration
 
@@ -135,7 +133,6 @@ class DownloadProjectController(
                 .subscribeOn(scheduler)
                 .subscribe()
         }
-
 
     private fun fetchAndTriggerTests(
         organizationName: String,
@@ -274,7 +271,7 @@ class DownloadProjectController(
                         .flatMap { testSuitesSourceDto ->
                             testSuitesPreprocessorController.fetch(testSuitesSourceDto)
                         }.doOnError {
-                            log.error("Error to update test suite with url=${standardTestSuitesRepo.url}, path=${testRootPath}")
+                            log.error("Error to update test suite with url=${standardTestSuitesRepo.url}, path=$testRootPath")
                         }
                 }
                 .subscribeOn(scheduler)
@@ -385,12 +382,8 @@ class DownloadProjectController(
                 }
 
     private fun ExecutionRequestBase.getTestSuiteFilter(): (TestSuite) -> Boolean = when (this) {
-        is ExecutionRequest -> {
-            { true }
-        }
-        is ExecutionRequestForStandardSuites -> {
-            { it.name in this.testSuites }
-        }
+        is ExecutionRequest -> { true }
+        is ExecutionRequestForStandardSuites -> { it.name in this.testSuites }
     }
 }
 

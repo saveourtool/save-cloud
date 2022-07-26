@@ -17,9 +17,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
@@ -34,26 +31,41 @@ class PreprocessorToBackendBridge(
         .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
 
+    /**
+     * @param testSuitesSource
+     * @param version
+     * @param creationTime
+     * @param content
+     * @return
+     */
     fun saveTestsSuiteSourceSnapshot(
         testSuitesSource: TestSuitesSourceDto,
         version: String,
         creationTime: Instant,
         content: Flux<ByteBuffer>
     ): Mono<Unit> = webClientBackend.post()
-            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
-                testSuitesSource.organizationName, testSuitesSource.name,
-                version, creationTime.toEpochMilli())
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .bodyValue(content)
-            .retrieve()
-            .bodyToMono()
+        .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
+            testSuitesSource.organizationName, testSuitesSource.name,
+            version, creationTime.toEpochMilli())
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .bodyValue(content)
+        .retrieve()
+        .bodyToMono()
 
+    /**
+     * @param testSuiteDtos
+     * @return
+     */
     fun saveTestSuites(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> = webClientBackend.post()
         .uri("/test-suites/save")
         .bodyValue(testSuiteDtos)
         .retrieve()
         .bodyToMono()
 
+    /**
+     * @param tests
+     * @return
+     */
     fun saveTests(tests: Flux<TestDto>): Flux<EmptyResponse> = tests
         .buffer(TESTS_BUFFER_SIZE)
         .doOnNext {
@@ -73,11 +85,11 @@ class PreprocessorToBackendBridge(
      * @return true if backend knows [version], otherwise -- false
      */
     fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
-        webClientBackend.get()
-            .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains?version={version}",
-                testSuitesSource.organizationName, testSuitesSource.name, version)
-            .retrieve()
-            .bodyToMono()
+            webClientBackend.get()
+                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains?version={version}",
+                    testSuitesSource.organizationName, testSuitesSource.name, version)
+                .retrieve()
+                .bodyToMono()
 
     /**
      * @param organizationName
@@ -116,6 +128,11 @@ class PreprocessorToBackendBridge(
         .retrieve()
         .bodyToMono()
 
+    /**
+     * @param organizationName
+     * @param name
+     * @return
+     */
     fun getTestSuitesLatestVersion(
         organizationName: String,
         name: String,
@@ -128,6 +145,10 @@ class PreprocessorToBackendBridge(
         .retrieve()
         .bodyToMono()
 
+    /**
+     * @param organizationName
+     * @return
+     */
     fun getOrganization(
         organizationName: String,
     ): Mono<Organization> = webClientBackend.get()

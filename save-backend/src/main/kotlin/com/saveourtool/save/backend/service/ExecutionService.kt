@@ -7,7 +7,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.utils.debug
-import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus

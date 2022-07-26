@@ -9,13 +9,11 @@ import com.saveourtool.save.utils.debug
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
-import java.time.LocalDateTime
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
@@ -41,6 +39,7 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
     ?: throw IllegalStateException("Couldn't detect default branch name for $url")
 
 /**
+ * @param branch
  * @return latest commit
  */
 fun GitDto.detectLatestSha1(branch: String): String = Git.lsRemoteRepository()
@@ -84,12 +83,10 @@ fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path)
 
 private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != null && password != null) {
     UsernamePasswordCredentialsProvider(username, password)
-} else if (username == null) {
-    // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
-    UsernamePasswordCredentialsProvider(password, "")
-} else {
+} else username?.let {
     CredentialsProvider.getDefault()
-}
+} ?: // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
+UsernamePasswordCredentialsProvider(password, "")
 
 private fun <R, T : GitCommand<*>> T.withRethrow(call: (T) -> R): R {
     try {

@@ -2,6 +2,7 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
@@ -14,7 +15,6 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.entities.*
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -26,6 +26,7 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -54,7 +55,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Test
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
@@ -68,12 +68,6 @@ import org.junit.jupiter.api.Test
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
 class HeartbeatControllerTest {
-    @Autowired lateinit var webClient: WebTestClient
-    @Autowired private lateinit var agentService: AgentService
-    @MockBean private lateinit var dockerService: DockerService
-    @Autowired private lateinit var objectMapper: ObjectMapper
-    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
-
     private val organization = Organization.stub(0)
     private val git = Git("N/A", organization = organization)
         .apply { id = 0 }
@@ -85,6 +79,11 @@ class HeartbeatControllerTest {
         "",
         ""
     ).apply { id = 0 }
+    @Autowired lateinit var webClient: WebTestClient
+    @Autowired private lateinit var agentService: AgentService
+    @MockBean private lateinit var dockerService: DockerService
+    @Autowired private lateinit var objectMapper: ObjectMapper
+    @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
 
     @BeforeEach
     fun webClientSetUp() {

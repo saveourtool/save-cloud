@@ -88,6 +88,7 @@ fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
  * @return [Mono] with original value or with [ResponseEntity] with [HttpStatus.FORBIDDEN]
  */
 fun <T> Mono<ResponseEntity<T>>.forbiddenIfEmpty() = defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
 /**
  * @param data
  * @param message

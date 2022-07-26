@@ -1,7 +1,6 @@
 package com.saveourtool.save.testsuite
 
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Organization
 import kotlinx.serialization.Serializable
 
 /**
@@ -11,6 +10,12 @@ import kotlinx.serialization.Serializable
  * @param gitDto
  * @param branch
  * @param testRootPath
+ * @property organizationName
+ * @property name
+ * @property description
+ * @property gitDto
+ * @property branch
+ * @property testRootPath
  */
 @Serializable
 data class TestSuitesSourceDto(

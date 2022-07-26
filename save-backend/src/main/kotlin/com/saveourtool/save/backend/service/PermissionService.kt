@@ -11,7 +11,6 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.util.function.Tuple2
-import java.util.Optional
 
 /**
  * Service for managing user permissions

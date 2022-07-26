@@ -145,6 +145,7 @@ class TestSuitesControllerTest {
             .spec()
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
     @WithMockUser
     fun testAllStandardTestSuites() {
@@ -193,6 +194,7 @@ class TestSuitesControllerTest {
             }
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
     fun testTestSuitesWithSpecificName() {
         // FIXME: a hardcoded value of url for standard test suites

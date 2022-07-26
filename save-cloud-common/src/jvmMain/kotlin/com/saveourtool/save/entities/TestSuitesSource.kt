@@ -12,6 +12,12 @@ import javax.persistence.ManyToOne
  * @param git git credentials for this test suites source
  * @param branch branch which is used for this test suites source
  * @param testRootPath relative path to tests in source
+ * @property organization
+ * @property name
+ * @property description
+ * @property git
+ * @property branch
+ * @property testRootPath
  */
 @Entity
 class TestSuitesSource(

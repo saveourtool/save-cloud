@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.getLogger
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -61,7 +60,6 @@ class TestSuitesSourceService(
      */
     fun getByName(organization: Organization, name: String) = findByName(organization, name)
         ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuitesSource (name=$name in organization=${organization.name}) not found")
-
 
     /**
      * @param organization

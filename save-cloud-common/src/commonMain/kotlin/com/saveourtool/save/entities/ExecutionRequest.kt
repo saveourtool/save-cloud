@@ -47,6 +47,8 @@ sealed class ExecutionRequestBase {
  * @property testRootPath root path of the test repository where save.properties file and high level save.toml file could be stored
  * @property sdk
  * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
+ * @property execCmd
+ * @property batchSizeForAnalyzer
  */
 @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable

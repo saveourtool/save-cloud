@@ -41,6 +41,7 @@ class GitPreprocessorService(
      * @param sha1
      * @param repositoryProcessor
      * @return result of [repositoryProcessor]
+     * @throws IllegalStateException
      */
     fun <T> cloneAndProcessDirectory(
         gitDto: GitDto,
@@ -69,6 +70,7 @@ class GitPreprocessorService(
     /**
      * @param pathToRepository
      * @return archived git repository, file will be deleted after release Flux
+     * @throws IOException
      */
     fun archiveToTar(
         pathToRepository: Path

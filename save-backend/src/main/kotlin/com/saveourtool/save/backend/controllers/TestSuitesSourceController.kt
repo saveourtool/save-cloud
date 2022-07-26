@@ -12,18 +12,13 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
-import kotlinx.datetime.toKotlinLocalDateTime
 import org.slf4j.Logger
 import org.springframework.http.MediaType
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.nio.ByteBuffer
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 typealias TestSuiteList = List<TestSuite>
 
@@ -49,15 +44,15 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
         @PathVariable name: String
     ): Mono<TestSuitesSourceDto> =
-        Mono.just(organizationName)
-            .flatMap { organizationService.findByName(it).toMono() }
-            .flatMap { organization ->
-                testSuitesSourceService.findByName(organization, name).toMono()
-                    .switchIfEmptyToNotFound {
-                        "TestSuitesSource not found by name $name for organization ${organization.name}"
-                    }
-            }
-            .map { it.toDto() }
+            Mono.just(organizationName)
+                .flatMap { organizationService.findByName(it).toMono() }
+                .flatMap { organization ->
+                    testSuitesSourceService.findByName(organization, name).toMono()
+                        .switchIfEmptyToNotFound {
+                            "TestSuitesSource not found by name $name for organization ${organization.name}"
+                        }
+                }
+                .map { it.toDto() }
 
     /**
      * Upload snapshot of [TestSuitesSource] with [version]
@@ -76,15 +71,13 @@ class TestSuitesSourceController(
         @RequestParam version: String,
         @RequestParam creationTime: Long,
         @RequestPart content: Flux<ByteBuffer>
-    ): Mono<Unit> {
-        return findAsDtoByName(organizationName, name)
-            .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
-            .flatMap { key ->
-                testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
-                    log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
-                }
+    ): Mono<Unit> = findAsDtoByName(organizationName, name)
+        .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
+        .flatMap { key ->
+            testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
+                log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
             }
-    }
+        }
 
     /**
      * @param organizationName
