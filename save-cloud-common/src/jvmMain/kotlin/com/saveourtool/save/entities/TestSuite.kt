@@ -66,6 +66,11 @@ class TestSuite(
             )
 
     companion object {
+        /**
+         * Concatenates [tags] using same format as [TestSuite.tagsAsList]
+         *
+         * @param tags list of tags
+         */
         fun tagsFromList(tags: List<String>) = tags.joinToString(separator = ",")
     }
 }
