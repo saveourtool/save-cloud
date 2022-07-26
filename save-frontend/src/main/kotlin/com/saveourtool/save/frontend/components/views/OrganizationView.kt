@@ -11,6 +11,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -271,6 +272,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             OrganizationMenuBar.TOOLS -> renderTools()
             OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
+            OrganizationMenuBar.CONTESTS -> renderContests()
         }
     }
 
@@ -463,6 +465,22 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun ChildrenBuilder.renderContests() {
+        organizationContestsMenu {
+            organizationName = props.organizationName
+            currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+            selfRole = state.selfRole
+            updateErrorMessage = {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
+                }
+            }
+            updateNotificationMessage = ::showNotification
+        }
+    }
+
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
@@ -582,7 +600,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
         div {
-            className = ClassName("row")
+            className = ClassName("row d-flex justify-content-between")
             div {
                 className = ClassName("col-3 ml-auto")
                 style = jso {
@@ -619,7 +637,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mx-0")
+                className = ClassName("col-auto mx-0")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
@@ -629,7 +647,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 nav {
                     className = ClassName("nav nav-tabs")
                     OrganizationMenuBar.values()
-                        .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                        .filter {
+                            it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                        }
+                        .filter {
+                            it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
+                        }
                         .forEachIndexed { i, projectMenu ->
                             li {
                                 className = ClassName("nav-item")
@@ -655,7 +678,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mr-auto")
+                className = ClassName("col-2 mr-auto")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
