@@ -16,7 +16,7 @@ config.devServer = Object.assign(
           bypass: (req, res) => {
             if (req.url.endsWith("/sec/user")) {
               return res.send(
-                // mocked UserInfo object
+                // mocked userName
                 "admin"
               );
             } else if (req.url.endsWith("/sec/oauth-providers")) {
