@@ -83,6 +83,17 @@ class OrganizationPermissionEvaluator {
     }
 
     /**
+     * @param organization
+     * @param authentication
+     */
+    fun canCreateContests(
+        organization: Organization,
+        authentication: Authentication?,
+    ): Boolean = authentication?.let {
+        organization.canCreateContests && hasGlobalRoleOrOrganizationRole(it, organization.name, contestCreatorMinimalRole)
+    } ?: false
+
+    /**
      * @param selfRole
      * @param otherRole
      * @return true if user with [selfRole] has more permissions than user with [otherRole], false otherwise.
@@ -95,4 +106,7 @@ class OrganizationPermissionEvaluator {
      * @return true if [selfRole] is higher than [requestedRole], false otherwise
      */
     fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
+    companion object {
+        val contestCreatorMinimalRole = Role.ADMIN
+    }
 }

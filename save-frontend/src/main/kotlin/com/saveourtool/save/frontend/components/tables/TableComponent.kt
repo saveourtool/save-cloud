@@ -11,8 +11,8 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
-
 import csstype.ClassName
+
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
@@ -38,7 +38,6 @@ import kotlin.js.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -80,7 +79,6 @@ external interface TableProps<D : Any> : Props {
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
@@ -106,7 +104,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
-
     val (data, setData) = useState<Array<out D>>(emptyArray())
     val (pageCount, setPageCount) = useState(1)
     val (pageIndex, setPageIndex) = useState(0)
@@ -267,8 +264,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         }
                     }
                 }
-
-                // }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.repository
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization
 import com.saveourtool.save.entities.Organization
 import org.springframework.data.jpa.repository.Modifying
@@ -32,6 +33,14 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
      * @return [LnkUserOrganization] if user is connected to [organization] and `null` otherwise
      */
     fun findByUserIdAndOrganization(userId: Long, organization: Organization): LnkUserOrganization?
+
+    /**
+     * @param userId
+     * @param canCreateContests flag that indicates if organization can create contests
+     * @param roles list of roles that are required for user
+     * @return list of [LnkUserOrganization] where user has role from [roles] and [Organization] can create contests
+     */
+    fun findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId: Long, canCreateContests: Boolean, roles: List<Role>): List<LnkUserOrganization>
 
     /**
      * @param userId

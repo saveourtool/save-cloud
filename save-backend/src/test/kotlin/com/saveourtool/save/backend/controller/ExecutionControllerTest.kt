@@ -110,9 +110,7 @@ class ExecutionControllerTest {
             .expectStatus()
             .isOk
 
-        val executionUpdateDto = ExecutionUpdateDto(
-            1, ExecutionStatus.FINISHED
-        )
+        val executionUpdateDto = ExecutionUpdateDto(1, ExecutionStatus.FINISHED)
 
         webClient.post()
             .uri("/internal/updateExecutionByDto")
@@ -224,7 +222,7 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser("John Doe")
     fun `should send request to preprocessor to rerun execution`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
@@ -244,7 +242,7 @@ class ExecutionControllerTest {
         }
 
         webClient.post()
-            .uri("/api/$v1/rerunExecution?id=2")
+            .uri("/api/$v1/rerunExecution?id=5")
             .exchange()
             .expectStatus()
             .isOk

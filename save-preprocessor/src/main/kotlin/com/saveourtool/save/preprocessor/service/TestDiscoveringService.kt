@@ -73,6 +73,7 @@ class TestDiscoveringService {
                 testRootPath,
                 testSuiteRepoUrl,
                 config.language,
+                config.tags
             )
         }
         .distinct()
@@ -117,7 +118,6 @@ class TestDiscoveringService {
                             plugin::class.simpleName!!,
                             testSuite.id!!,
                             it.test.toFile().toHash(),
-                            generalConfig.tags!!,
                             additionalFiles,
                         )
                     }

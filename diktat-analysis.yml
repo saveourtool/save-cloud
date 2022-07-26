@@ -113,3 +113,13 @@
 - name: USE_DATA_CLASS
   ignoreAnnotated:
     - Entity
+- name: MISSING_KDOC_CLASS_ELEMENTS
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter
+- name: MISSING_KDOC_ON_FUNCTION
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter

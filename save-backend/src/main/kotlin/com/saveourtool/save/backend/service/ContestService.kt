@@ -82,4 +82,17 @@ class ContestService(
         ?.let {
             testSuitesService.findTestSuiteById(it)?.getOrNull()
         }
+
+    /**
+     * @param newContest
+     * @return true if contest was saved, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun createContestIfNotPresent(newContest: Contest): Boolean =
+            if (contestRepository.findByName(newContest.name).isEmpty) {
+                contestRepository.save(newContest)
+                true
+            } else {
+                false
+            }
 }

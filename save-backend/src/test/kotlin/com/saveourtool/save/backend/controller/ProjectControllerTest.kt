@@ -111,29 +111,6 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "Tester", roles = ["VIEWER"])
-    fun `check git from project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-
-        val project = projectRepository.findById(1).get()
-        webClient
-            .post()
-            .uri("/api/$v1/projects/git")
-            .body(BodyInserters.fromValue(project))
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<GitDto>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals("github", it.responseBody!!.url)
-            }
-    }
-
-    @Test
     @WithUserDetails(value = "admin")
     fun `delete project with owner permission`() {
         mutateMockedUser {
@@ -186,14 +163,12 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
 
-        val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         val newProject = NewProjectDto(
             project,
             "Huawei",
-            gitDto,
         )
         saveProjectAndAssert(
             newProject,
@@ -207,8 +182,6 @@ class ProjectControllerTest {
                     Assertions.assertEquals(it.responseBody!!.url, project.url)
                 }
         }
-
-        Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
     @Test
