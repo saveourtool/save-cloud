@@ -42,4 +42,13 @@
       </column>
     </addColumn>
   </changeSet>
+
+  <changeSet id="add-organization_id-column" author="sanyavertolet">
+    <addColumn tableName="contest">
+      <column name="organization_id" type="bigint">
+        <constraints foreignKeyName="fk_contest_organization" references="organization(id)" nullable="false"/>
+      </column>
+    </addColumn>
+
+  </changeSet>
 </databaseChangeLog>

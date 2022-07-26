@@ -40,7 +40,9 @@ import java.math.BigInteger
  * @param testExecutionService service for test execution
  */
 @ApiSwaggerSupport
-@Tags(Tag(name = "test-executions"))
+@Tags(
+    Tag(name = "test-executions"),
+)
 @RestController
 @Transactional
 class TestExecutionController(private val testExecutionService: TestExecutionService,

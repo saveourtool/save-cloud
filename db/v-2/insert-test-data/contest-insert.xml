@@ -13,6 +13,7 @@
             <column header="start_time" name="start_time" type="timestamp"/>
             <column header="end_time" name="end_time" type="timestamp"/>
             <column header="description" name="description" type="varchar(1024)"/>
+            <column header="organization_id" name="organization_id" type="bigint"/>
         </loadData>
     </changeSet>
 
