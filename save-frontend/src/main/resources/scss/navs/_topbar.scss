@@ -1,5 +1,6 @@
 // Topbar
 .topbar {
+  z-index: 1;
   height: $topbar-base-height;
   #sidebarToggleTop {
     height: 2.5rem;

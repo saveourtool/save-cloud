@@ -16,15 +16,19 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
     override fun componentDidMount() {
         val style = if (hasBg) {
             Style(
-                "-webkit-linear-gradient(270deg, rgb(84, 83, 97), rgb(25, 34, 99), rgb(102 103 171))",
+                "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
                 "",
-                "transparent"
+                "transparent",
+                "px-0",
+                ""
             )
         } else {
             Style(
                 "bg-light",
                 "bg-dark",
-                "bg-dark"
+                "bg-dark",
+                "",
+                "mb-3"
             )
         }
 
@@ -33,15 +37,26 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
             "background: ${style.globalBackground}"
         )
 
+        configureTopBar(style)
+    }
+
+    private fun configureTopBar(style: Style) {
         val topBar = document.getElementById("navigation-top-bar")
         topBar?.setAttribute(
             "class",
-            "navbar navbar-expand ${style.topBarBgColor} navbar-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded"
+            "navbar navbar-expand ${style.topBarBgColor} navbar-dark topbar ${style.marginBottomForTopBar} " +
+                    "static-top shadow mr-1 ml-1 rounded"
         )
 
         topBar?.setAttribute(
             "style",
             "background: ${style.topBarTransparency}"
+        )
+
+        val container = document.getElementById("common-save-container")
+        container?.setAttribute(
+            "class",
+            "container-fluid ${style.borderForContainer}"
         )
     }
 
@@ -49,10 +64,14 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
      * @property globalBackground
      * @property topBarBgColor
      * @property topBarTransparency
+     * @property borderForContainer
+     * @property marginBottomForTopBar
      */
     private data class Style(
         val globalBackground: String,
         val topBarBgColor: String,
         val topBarTransparency: String,
+        val borderForContainer: String,
+        val marginBottomForTopBar: String,
     )
 }

@@ -3,6 +3,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.CREATE_ORGANIZATION
+import com.saveourtool.save.frontend.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -97,7 +99,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2 mr-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/creation/"
+                    href = "#/$CREATE_PROJECT/"
                     +"Add new tested tool"
                 }
             }
@@ -106,7 +108,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/createOrganization/"
+                    href = "#/$CREATE_ORGANIZATION/"
                     +"Add new organization"
                 }
             }
