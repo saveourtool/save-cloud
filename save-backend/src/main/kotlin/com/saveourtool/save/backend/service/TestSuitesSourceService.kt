@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.getLogger
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -59,14 +60,16 @@ class TestSuitesSourceService(
      * @throws ResponseStatusException entity not found
      */
     fun getByName(organization: Organization, name: String) = findByName(organization, name)
-        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuitesSource (name=$name in organization=${organization.name}) not found")
+        .orNotFound {
+            "TestSuitesSource (name=$name in organization=${organization.name}) not found"
+        }
 
     /**
      * @param organization
      * @param git
      * @param testRootPath
      * @param branch
-     * @return existed [TestSuitesSource] with provided values or crate a new one as auto-generated entity
+     * @return existed [TestSuitesSourceDto] with provided values or created a new one as auto-generated entity
      */
     @Transactional
     fun getOrCreate(
@@ -74,7 +77,7 @@ class TestSuitesSourceService(
         git: Git,
         testRootPath: String,
         branch: String,
-    ): TestSuitesSource = testSuitesSourceRepository.findByOrganizationAndGitAndBranchAndTestRootPath(
+    ) = testSuitesSourceRepository.findByOrganizationAndGitAndBranchAndTestRootPath(
         organization,
         git,
         branch,

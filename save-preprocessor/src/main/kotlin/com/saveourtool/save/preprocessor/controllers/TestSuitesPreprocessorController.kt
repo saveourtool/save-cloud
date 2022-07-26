@@ -2,7 +2,7 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
-import com.saveourtool.save.preprocessor.service.PreprocessorToBackendBridge
+import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.detectLatestSha1
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono
 class TestSuitesPreprocessorController(
     private val gitPreprocessorService: GitPreprocessorService,
     private val testDiscoveringService: TestDiscoveringService,
-    private val preprocessorToBackendBridge: PreprocessorToBackendBridge,
+    private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
 ) {
     /**
      * @param testSuitesSourceDto source from which test suites need to be loaded
@@ -34,7 +34,7 @@ class TestSuitesPreprocessorController(
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
     ): Mono<Unit> = detectLatestVersion(testSuitesSourceDto)
-        .filterWhen { preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
+        .filterWhen { testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
         .flatMap { version ->
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
@@ -53,7 +53,7 @@ class TestSuitesPreprocessorController(
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam version: String,
-    ): Mono<Unit> = preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
+    ): Mono<Unit> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
         .filter(false::equals)
         .flatMap {
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
@@ -87,7 +87,7 @@ class TestSuitesPreprocessorController(
         ).flatMap { testSuites ->
             log.info { "Loaded: $testSuites" }
             val content = gitPreprocessorService.archiveToTar(repositoryDirectory)
-            preprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testSuitesSourceDto, sha1, creationTime, content)
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testSuitesSourceDto, sha1, creationTime, content)
                 .map { testSuites }
         }
     }

@@ -5,7 +5,6 @@ import com.saveourtool.save.core.files.ConfigDetector
 import com.saveourtool.save.core.plugin.GeneralConfig
 import com.saveourtool.save.core.utils.buildActivePlugins
 import com.saveourtool.save.core.utils.processInPlace
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.EmptyResponse
@@ -33,7 +32,7 @@ import kotlin.io.path.absolutePathString
  */
 @Service
 class TestDiscoveringService(
-    private val preprocessorToBackendBridge: PreprocessorToBackendBridge,
+    private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
 ) {
     /**
      * @param repositoryPath
@@ -80,12 +79,9 @@ class TestDiscoveringService(
             }
 
     /**
-     * Discover all test suites in the project
+     * Discover all test suites in the test suites source
      *
-     * @param project a [Project] corresponding to analyzed data. If it null - standard test suites
-     * @param testRootPath path to the test repository root where save.properties and high level save.toml can be stored
      * @param rootTestConfig root config of SAVE configs hierarchy
-     * @param testSuiteRepoUrl url of the repo with test suites
      * @param source
      * @param version
      * @return a list of [TestSuiteDto]s
@@ -212,12 +208,12 @@ class TestDiscoveringService(
     /**
      * Save test suites via backend
      */
-    private fun List<TestSuiteDto>.save(): Mono<List<TestSuite>> = preprocessorToBackendBridge.saveTestSuites(this)
+    private fun List<TestSuiteDto>.save(): Mono<List<TestSuite>> = testsPreprocessorToBackendBridge.saveTestSuites(this)
 
     /**
      * Save tests via backend
      */
-    private fun Flux<TestDto>.save(): Flux<EmptyResponse> = preprocessorToBackendBridge.saveTests(this)
+    private fun Flux<TestDto>.save(): Flux<EmptyResponse> = testsPreprocessorToBackendBridge.saveTests(this)
 
     companion object {
         private val log = LoggerFactory.getLogger(TestDiscoveringService::class.java)

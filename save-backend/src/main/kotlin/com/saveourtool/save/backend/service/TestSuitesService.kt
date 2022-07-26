@@ -44,7 +44,7 @@ class TestSuitesService(
                 TestSuite(
                     name = it.name,
                     description = it.description,
-                    source = testSuitesSourceService.getByName(it.source.organization, it.source.name),
+                    source = testSuitesSourceService.getByName(it.source.organizationName, it.source.name),
                     version = it.version,
                     dateAdded = null,
                     language = it.language,
@@ -76,14 +76,6 @@ class TestSuitesService(
      */
     fun getStandardTestSuites() = testSuitesSourceService.findStandardTestSuitesSource()
         ?.let { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource).map { it.toDto() } }
-        .orEmpty()
-
-    /**
-     * @param name name of the test suite
-     * @return all standard test suites with specific name
-     */
-    fun findStandardTestSuitesByName(name: String) = testSuitesSourceService.findStandardTestSuitesSource()
-        ?.let { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource).filter { it.name == name } }
         .orEmpty()
 
     /**
@@ -144,7 +136,7 @@ class TestSuitesService(
         dto: TestSuiteDto,
     ): Long = testSuiteRepository.findByNameAndSourceAndVersion(
         dto.name,
-        testSuitesSourceService.getByName(dto.source.organization, dto.source.name),
+        testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
         dto.version
     )
         ?.requiredId()

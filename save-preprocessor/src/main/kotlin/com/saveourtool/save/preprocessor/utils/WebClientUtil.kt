@@ -49,7 +49,7 @@ fun <M> WebClient.makePost(
     }
 
 /**
- * @return
+ * @return [WebClient.ResponseSpec] with status checking
  */
 fun WebClient.ResponseSpec.validateStatus(): WebClient.ResponseSpec = this
     .onStatus({status -> status != HttpStatus.OK }) { clientResponse ->

@@ -18,6 +18,8 @@ import java.nio.file.Paths
 import java.time.Instant
 import kotlin.io.path.deleteExisting
 
+typealias GitRepositoryProcessor<T> = (Path, Instant) -> Mono<T>
+
 /**
  * Additional service for Git based [com.saveourtool.save.entities.TestSuitesSource]s
  */
@@ -47,7 +49,7 @@ class GitPreprocessorService(
         gitDto: GitDto,
         branch: String,
         sha1: String,
-        repositoryProcessor: (Path, Instant) -> Mono<T>,
+        repositoryProcessor: GitRepositoryProcessor<T>,
     ): Mono<T> {
         val cloneAction: () -> Pair<Path, Instant> = {
             val tmpDir = createTempDirectoryForRepository()

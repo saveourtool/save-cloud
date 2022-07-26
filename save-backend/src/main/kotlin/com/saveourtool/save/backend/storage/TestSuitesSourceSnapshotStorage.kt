@@ -5,11 +5,12 @@ import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.TAR_EXTENSION
 import com.saveourtool.save.utils.countPartsTill
+import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.name
 
 /**
  * Storage for snapshots of [com.saveourtool.save.entities.TestSuitesSource]
@@ -26,13 +27,16 @@ class TestSuitesSourceSnapshotStorage(
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
             pathToContent.endsWith(TAR_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
-    override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey =
-            TestSuitesSourceSnapshotKey(
-                pathToContent.parent.parent.parent.name,
-                pathToContent.parent.parent.name,
-                pathToContent.name.dropLast(TAR_EXTENSION.length),
-                pathToContent.parent.name.toLong()
-            )
+    @Suppress("MAGIC_NUMBER")
+    override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
+        val pathNames = pathToContent.pathNamesTill(rootDir)
+        return TestSuitesSourceSnapshotKey(
+            pathNames[3],
+            pathNames[2],
+            pathNames[0].dropLast(TAR_EXTENSION.length),
+            pathNames[1].toLong()
+        )
+    }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
         return rootDir / organizationName / testSuitesSourceName / getCreationTimeInMills().toString() / "$version$TAR_EXTENSION"
@@ -57,7 +61,18 @@ class TestSuitesSourceSnapshotStorage(
     /**
      * @param organizationName
      * @param testSuitesSourceName
-     * @return
+     * @return list of [TestSuitesSourceSnapshotKey] found by provided values
+     */
+    fun list(
+        organizationName: String,
+        testSuitesSourceName: String,
+    ): Flux<TestSuitesSourceSnapshotKey> = list()
+        .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName }
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @return max version of existed snapshots
      */
     fun latestVersion(
         organizationName: String,

@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.backend.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
@@ -13,6 +14,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import org.slf4j.Logger
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -45,12 +47,16 @@ class TestSuitesSourceController(
         @PathVariable name: String
     ): Mono<TestSuitesSourceDto> =
             Mono.just(organizationName)
-                .flatMap { organizationService.findByName(it).toMono() }
+                .flatMap {
+                    organizationService.findByName(it).toMono()
+                }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Organization not found by name $name"
+                }
                 .flatMap { organization ->
                     testSuitesSourceService.findByName(organization, name).toMono()
-                        .switchIfEmptyToNotFound {
-                            "TestSuitesSource not found by name $name for organization ${organization.name}"
-                        }
+                }.switchIfEmptyToNotFound {
+                    "TestSuitesSource not found by name $name for organization $organizationName"
                 }
                 .map { it.toDto() }
 
@@ -85,7 +91,7 @@ class TestSuitesSourceController(
      * @param version
      * @return true if storage contains [version] of [TestSuitesSource] identified by provided values
      */
-    @GetMapping("/{organizationName}/{name}/contains")
+    @GetMapping("/{organizationName}/{name}/contains-snapshot")
     fun containsSnapshot(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -95,20 +101,20 @@ class TestSuitesSourceController(
     /**
      * @param organizationName
      * @param name
-     * @return latest version of [TestSuitesSource] identified by provided values
+     * @return list of [TestSuitesSourceSnapshotKey] are found by [organizationName] and [name]
      */
-    @GetMapping("/{organizationName}/{name}/latest")
-    fun getLatestVersion(
+    @GetMapping("/{organizationName}/{name}/list-snapshot")
+    fun listSnapshotVersions(
         @PathVariable organizationName: String,
         @PathVariable name: String,
-    ): Mono<String> = testSuitesSourceSnapshotStorage.latestVersion(organizationName, name)
+    ): Flux<TestSuitesSourceSnapshotKey> = testSuitesSourceSnapshotStorage.list(organizationName, name)
 
     /**
      * @param organizationName
      * @param gitUrl
      * @param testRootPath
      * @param branch
-     * @return existed [TestSuitesSource] found by provided values or a new one
+     * @return existed [TestSuitesSourceDto] is found by provided values or a new one
      */
     @PostMapping("/{organizationName}/get-or-create")
     fun getOrCreate(
@@ -116,7 +122,7 @@ class TestSuitesSourceController(
         @RequestParam gitUrl: String,
         @RequestParam testRootPath: String,
         @RequestParam branch: String,
-    ): Mono<TestSuitesSource> = Mono.just(organizationName)
+    ): Mono<TestSuitesSourceDto> = Mono.just(organizationName)
         .flatMap { organizationService.findByName(it).toMono() }
         .map { organization ->
             organization to gitService.getByOrganizationAndUrl(organization, gitUrl)
@@ -124,6 +130,7 @@ class TestSuitesSourceController(
         .map { (organization, git) ->
             testSuitesSourceService.getOrCreate(organization, git, testRootPath, branch)
         }
+        .map { it.toDto() }
 
     /**
      * @param organizationName
@@ -131,11 +138,11 @@ class TestSuitesSourceController(
      * @param version
      * @return list of test suites from snapshot with [version] of [TestSuitesSource] found by [organizationName] and [name]
      */
-    @GetMapping("/{organizationName}/{name}/{version}/get-test-suites")
+    @GetMapping("/{organizationName}/{name}/get-test-suites?version={version}")
     fun getTestSuites(
         @PathVariable organizationName: String,
         @PathVariable name: String,
-        @PathVariable version: String,
+        @RequestParam version: String,
     ): Mono<TestSuiteList> = Mono.fromCallable {
         testSuitesService.getBySourceAndVersion(
             testSuitesSourceService.getByName(organizationName, name),

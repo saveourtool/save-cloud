@@ -6,12 +6,14 @@ import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.debug
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -22,7 +24,7 @@ import java.time.Instant
  * A bridge from preprocesor to backend (rest api wrapper)
  */
 @Service
-class PreprocessorToBackendBridge(
+class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
     kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
@@ -36,7 +38,7 @@ class PreprocessorToBackendBridge(
      * @param version
      * @param creationTime
      * @param content
-     * @return
+     * @return empty response
      */
     fun saveTestsSuiteSourceSnapshot(
         testSuitesSource: TestSuitesSourceDto,
@@ -53,8 +55,72 @@ class PreprocessorToBackendBridge(
         .bodyToMono()
 
     /**
+     * @param testSuitesSource
+     * @param version
+     * @return true if backend knows [version], otherwise -- false
+     */
+    fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
+            webClientBackend.get()
+                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
+                    testSuitesSource.organizationName, testSuitesSource.name, version)
+                .retrieve()
+                .bodyToMono()
+
+    /**
+     * @param testSuitesSource
+     * @return list of [TestSuitesSourceSnapshotKey] related to [testSuitesSource]
+     */
+    fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Flux<TestSuitesSourceSnapshotKey> =
+            webClientBackend.get()
+                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/list-snapshot",
+                    testSuitesSource.organizationName, testSuitesSource.name)
+                .retrieve()
+                .bodyToFlux()
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return list of [TestSuite]
+     */
+    fun getTestSuites(
+        organizationName: String,
+        testSuitesSourceName: String,
+        version: String
+    ) = webClientBackend.get()
+        .uri(
+            "/test-suites-source/{organizationName}/{testSuitesSourceName}/get-test-suites?version={version}",
+            organizationName, testSuitesSourceName, version
+        )
+        .retrieve()
+        .bodyToMono<List<TestSuite>>()
+
+    /**
+     * @param organizationName
+     * @param gitUrl
+     * @param testRootPath
+     * @param branch
+     * @return created of existed [TestSuitesSourceDto]
+     */
+    fun getOrCreateTestSuitesSource(
+        organizationName: String,
+        gitUrl: String,
+        testRootPath: String,
+        branch: String
+    ): Mono<TestSuitesSourceDto> = webClientBackend.post()
+        .uri(
+            "/test-suites-source/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
+            organizationName,
+            gitUrl,
+            testRootPath,
+            branch
+        )
+        .retrieve()
+        .bodyToMono()
+
+    /**
      * @param testSuiteDtos
-     * @return
+     * @return list of saved [TestSuite]
      */
     fun saveTestSuites(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> = webClientBackend.post()
         .uri("/test-suites/save")
@@ -64,7 +130,7 @@ class PreprocessorToBackendBridge(
 
     /**
      * @param tests
-     * @return
+     * @return empty response
      */
     fun saveTests(tests: Flux<TestDto>): Flux<EmptyResponse> = tests
         .buffer(TESTS_BUFFER_SIZE)
@@ -79,97 +145,8 @@ class PreprocessorToBackendBridge(
                 .toBodilessEntity()
         }
 
-    /**
-     * @param testSuitesSource
-     * @param version
-     * @return true if backend knows [version], otherwise -- false
-     */
-    fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
-            webClientBackend.get()
-                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains?version={version}",
-                    testSuitesSource.organizationName, testSuitesSource.name, version)
-                .retrieve()
-                .bodyToMono()
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @return list of [TestSuite]
-     */
-    fun getTestSuites(organizationName: String, testSuitesSourceName: String, version: String) = webClientBackend.get()
-        .uri(
-            "/test-suites-source/{organizationName}/{testSuitesSourceName}/{version}/get-test-suites",
-            organizationName, testSuitesSourceName, version
-        )
-        .retrieve()
-        .bodyToMono<List<TestSuite>>()
-
-    /**
-     * @param organizationName
-     * @param gitUrl
-     * @param testRootPath
-     * @param branch
-     * @return created of existed [TestSuitesSource]
-     */
-    fun getTestSuitesSource(
-        organizationName: String,
-        gitUrl: String,
-        testRootPath: String,
-        branch: String
-    ): Mono<TestSuitesSource> = webClientBackend.post()
-        .uri(
-            "/test-suites-source/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
-            organizationName,
-            gitUrl,
-            testRootPath,
-            branch
-        )
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param organizationName
-     * @param name
-     * @return
-     */
-    fun getTestSuitesLatestVersion(
-        organizationName: String,
-        name: String,
-    ): Mono<String> = webClientBackend.post()
-        .uri(
-            "/test-suites-source/{organizationName}/{name}/latest",
-            organizationName,
-            name,
-        )
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param organizationName
-     * @return
-     */
-    fun getOrganization(
-        organizationName: String,
-    ): Mono<Organization> = webClientBackend.get()
-        .uri(
-            "/organization/{organizationName}",
-            organizationName
-        )
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param executionId
-     * @return [Execution] found by provided values
-     */
-    fun getExecution(executionId: Long): Mono<Execution> = webClientBackend.get()
-        .uri("/execution?id={id}", executionId)
-        .retrieve()
-        .bodyToMono()
-
     companion object {
-        private val log = LoggerFactory.getLogger(PreprocessorToBackendBridge::class.java)
+        private val log = LoggerFactory.getLogger(TestsPreprocessorToBackendBridge::class.java)
 
         // default Webflux in-memory buffer is 256 KiB
         private const val TESTS_BUFFER_SIZE = 128

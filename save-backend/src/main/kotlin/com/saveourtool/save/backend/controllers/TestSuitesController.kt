@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
@@ -45,24 +44,6 @@ class TestSuitesController(
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
     fun getAllStandardTestSuites(): ResponseListTestSuites =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
-
-    /**
-     * @param name name of the test suite
-     * @return response with list of test suite with specific name
-     */
-    @GetMapping("/internal/standardTestSuitesWithName")
-    fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
-
-    /**
-     * @param names list of test suite names
-     * @return response with IDs of standard test suites with name from provided list
-     */
-    @PostMapping("/internal/test-suites/standard/ids-by-name")
-    fun findAllStandardTestSuiteIdsByName(@RequestBody names: List<String>) =
-            ResponseEntity.status(HttpStatus.OK)
-                .body(names.flatMap { name -> testSuitesService.findStandardTestSuitesByName(name) }
-                    .map { it.requiredId() })
 
     /**
      * @param id id of the test suite
