@@ -14,7 +14,6 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.info
 import okio.FileSystem
@@ -36,7 +35,6 @@ import kotlin.io.path.absolutePathString
 class TestDiscoveringService(
     private val preprocessorToBackendBridge: PreprocessorToBackendBridge,
 ) {
-
     /**
      * @param repositoryPath
      * @param testSuitesSourceDto

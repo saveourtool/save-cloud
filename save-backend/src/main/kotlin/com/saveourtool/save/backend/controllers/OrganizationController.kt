@@ -6,12 +6,15 @@ import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.v1
+import kotlinx.serialization.Contextual
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
 
 /**
@@ -43,8 +47,8 @@ internal class OrganizationController(
     @PreAuthorize("permitAll()")
     fun getOrganizationByName(@PathVariable organizationName: String) = Mono.fromCallable {
         organizationService.findByName(organizationName)
-    }.switchIfEmpty {
-        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+    }.switchToNotFoundIfEmpty {
+        "Organization not found by name $organizationName"
     }
 
     /**
@@ -99,17 +103,30 @@ internal class OrganizationController(
     }
 
     /**
+     * @param organizationName name of organization to update
      * @param organization updateOrganization
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
     @PostMapping("/{organizationName}/update")
     @Suppress("UnsafeCallOnNullableType")
-    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> = Mono
-        .just(organization)
-        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER) }
-        .map {
-            organizationService.updateOrganization(organization)
+    fun updateOrganization(
+        @PathVariable organizationName: String,
+        @RequestBody organization: Organization,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono
+        .just(organizationName)
+        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it, Role.OWNER) }
+        .map { organizationService.getByName(it) }
+        .map { originalOrganization ->
+            organizationService.updateOrganization(originalOrganization.apply {
+                name = organization.name
+                status = organization.status
+                ownerId = organization.ownerId
+                dateCreated = organization.dateCreated
+                avatar = organization.avatar
+                description = organization.description
+            })
             ResponseEntity.ok("Organization updated")
         }
         .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
@@ -183,6 +200,13 @@ internal class OrganizationController(
             ResponseEntity.ok("Git credential deleted")
         }
         .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
+    @GetMapping("/internal/organization/{name}")
+    fun getByNameAsMono(@PathVariable name: String): Mono<Organization> = organizationService.findByName(name)
+        .toMono()
+        .switchToNotFoundIfEmpty {
+            "Organization not found by name $name"
+        }
 
     companion object {
         @JvmStatic

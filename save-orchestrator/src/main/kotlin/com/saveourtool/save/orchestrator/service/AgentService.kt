@@ -19,7 +19,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.trace
 import org.apache.commons.io.FilenameUtils

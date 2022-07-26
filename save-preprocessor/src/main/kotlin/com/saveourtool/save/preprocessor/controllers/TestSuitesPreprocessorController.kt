@@ -48,14 +48,14 @@ class TestSuitesPreprocessorController(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam version: String,
     ): Mono<List<TestSuite>> =
-        preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
-            .flatMap { contains ->
-                if (contains) {
-                    getTestSuites(testSuitesSourceDto, version)
-                } else {
-                    fetchTestSuites(testSuitesSourceDto, version)
+            preprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
+                .flatMap { contains ->
+                    if (contains) {
+                        getTestSuites(testSuitesSourceDto, version)
+                    } else {
+                        fetchTestSuites(testSuitesSourceDto, version)
+                    }
                 }
-            }
 
     /**
      * @param testSuitesSourceDto source of test suites

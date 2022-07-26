@@ -56,12 +56,11 @@ class GitService(private val gitRepository: GitRepository) {
         gitRepository.delete(getByOrganizationAndUrl(organization, url))
     }
 
-    @GetMapping("/internal/git")
-    fun getById(@RequestParam id: Long): Mono<GitDto> = Mono.justOrEmpty<Git>(gitRepository.findByIdOrNull(id))
-        .map { it.toDto() }
-        .switchToNotFoundIfEmpty {
-            "Git entity not found by id $id"
-        }
+    /**
+     * @param id
+     * @return [GitDto] found by provided values or null
+     */
+    fun findById(id: Long): GitDto? = gitRepository.findByIdOrNull(id)?.toDto()
 
     /**
      * @param url

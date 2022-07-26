@@ -4,6 +4,14 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import kotlinx.serialization.Serializable
 
+/**
+ * @param organization
+ * @param name
+ * @param description
+ * @param gitDto
+ * @param branch
+ * @param testRootPath
+ */
 @Serializable
 data class TestSuitesSourceDto(
     val organization: Organization,
@@ -13,21 +21,6 @@ data class TestSuitesSourceDto(
     val branch: String,
     val testRootPath: String,
 ) {
-    constructor(
-        organization: Organization,
-        description: String?,
-        gitDto: GitDto,
-        branch: String,
-        testRootPath: String,
-    ) : this(
-        organization = organization,
-        name = defaultTestSuitesSourceName(gitDto.url, branch, testRootPath),
-        description = description,
-        gitDto = gitDto,
-        branch = branch,
-        testRootPath = testRootPath,
-    )
-
     companion object {
         /**
          * @return default name fot [com.saveourtool.save.entities.TestSuitesSource]

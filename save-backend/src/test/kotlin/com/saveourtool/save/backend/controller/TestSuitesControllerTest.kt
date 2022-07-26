@@ -12,7 +12,6 @@ import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer

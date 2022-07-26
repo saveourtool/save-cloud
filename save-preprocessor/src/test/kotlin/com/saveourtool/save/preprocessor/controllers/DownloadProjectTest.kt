@@ -11,7 +11,6 @@ import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.utils.RepositoryVolume
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -116,6 +115,8 @@ class DownloadProjectTest(
             id = executionId
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
+        val git = Git(url = validRepo.url, organization = project.organization)
+        val testSuitesSource = TestSuitesSource(project.organization, "test", null, git, "main", "examples/kotlin-diktat/")
         val request = ExecutionRequest(project, validRepo, null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /saveTestSuites
         mockServerBackend.enqueue(
@@ -125,7 +126,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/saveourtool/save-cli.git").apply {
+                        TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                             id = 42L
                         }
                     )
@@ -255,10 +256,11 @@ class DownloadProjectTest(
 
     @Test
     fun testStandardTestSuites() {
-        val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
-            .toList()
-            .flatMap { it.sources }
-            .size
+        // FIXME: hardcoded standard tests count
+        val organization = Organization.stub(42)
+        val git = Git(url = "https://github.com/saveourtool/save-cli", organization = organization)
+        val testSuitesSource = TestSuitesSource(organization, "test", null, git, "main", "examples/kotlin-diktat/")
+        val requestSize = 2
         repeat(requestSize) {
             val project = Project.stub(42)
 
@@ -283,7 +285,7 @@ class DownloadProjectTest(
                     .setBody(
                         objectMapper.writeValueAsString(
                             listOf(
-                                TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
+                                TestSuite("", null, testSuitesSource, "1", LocalDateTime.now(), "save.properties")
                             )
                         )
                     ),
@@ -306,7 +308,7 @@ class DownloadProjectTest(
                 .setHeader("Content-Type", "application/json")
                 .setBody(objectMapper.writeValueAsString(
                     listOf(
-                        TestSuiteDto(TestSuiteType.STANDARD, "stub", null, null, "save.properties", "stub")
+                        TestSuiteDto("stub", null, testSuitesSource.toDto(), "1", "save.properties")
                     )
                 ))
         )

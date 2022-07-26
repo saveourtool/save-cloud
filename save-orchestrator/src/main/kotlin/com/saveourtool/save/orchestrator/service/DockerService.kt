@@ -194,7 +194,7 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // FIXME: tempate directory
+        // FIXME: need to create a temp folder
         val originalResourcesPath = Files.createTempDirectory(configProperties.testResources.basePath)
             .toFile()
 
@@ -326,8 +326,8 @@ class DockerService(
         testSuitesForDocker.forEach {
             val standardTestSuiteAbsolutePath = File(configProperties.testResources.basePath)
                 // tmp directories names for standard test suites constructs just by hashCode of listOf(repoUrl); reuse this logic
-                .resolve(File("${listOf(it.testSuiteRepoUrl!!).hashCode()}")
-                    .resolve(it.testRootPath)
+                .resolve(File("${listOf(it.source.gitDto.url).hashCode()}")
+                    .resolve(it.source.testRootPath)
                 )
             val currentSuiteDestination = destination.resolve(getLocationInStandardDirForTestSuite(it))
             if (!currentSuiteDestination.exists()) {
@@ -377,4 +377,4 @@ internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-bas
  * @param testSuiteDto
  */
 internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.testSuiteRepoUrl.hashCode()}_${testSuiteDto.testRootPath.hashCode()}"
+        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.source.gitDto.url.hashCode()}_${testSuiteDto.source.testRootPath.hashCode()}"

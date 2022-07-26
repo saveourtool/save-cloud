@@ -28,7 +28,6 @@ class TestSuitesSource(
     var branch: String,
     var testRootPath: String,
 ) : BaseEntity() {
-
     /**
      * @return entity as dto [TestSuitesSourceDto]
      */

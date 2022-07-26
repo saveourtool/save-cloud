@@ -33,6 +33,23 @@ fun Path.toDataBufferFlux(): Flux<DataBuffer> = if (exists()) {
 fun Path.toByteBufferFlux(): Flux<ByteBuffer> = this.toDataBufferFlux().map { it.asByteBuffer() }
 
 /**
+ * @param stop
+ * @return count of parts (folders + current file) till [stop]
+ */
+fun Path.countPartsTill(stop: Path): Int = generateSequence(this, Path::getParent)
+    .takeWhile { it != stop }
+    .count()
+
+/**
+ * @param stop
+ * @return list of name of paths (folders + current file) till [stop]
+ */
+fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::getParent)
+    .takeWhile { it != stop }
+    .map { it.name }
+    .toList()
+
+/**
  * Move [source] into [destinationDir], while also copying original file attributes
  *
  * @param source source file
@@ -47,21 +64,3 @@ fun moveFileWithAttributes(source: File, destinationDir: File) {
     Files.copy(source.toPath(), destinationDir.resolve(source.name).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES)
     Files.delete(source.toPath())
 }
-
-/**
- * @param stop
- * @return list of name of paths (folders + current file) till [stop]
- */
-
-fun Path.pathNamesTill(stop: Path): List<String> = generateSequence(this, Path::getParent)
-    .takeWhile { it != stop }
-    .map { it.name }
-    .toList()
-
-/**
- * @param stop
- * @return count of parts (folders + current file) till [stop]
- */
-fun Path.countPartsTill(stop: Path): Int = generateSequence(this, Path::getParent)
-    .takeWhile { it != stop }
-    .count()

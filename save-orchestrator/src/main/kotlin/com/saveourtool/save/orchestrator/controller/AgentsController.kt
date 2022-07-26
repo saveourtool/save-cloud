@@ -49,6 +49,7 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.attribute.PosixFilePermission
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -101,7 +102,7 @@ class AgentsController(
                 )
                 .flatMap { testRootPath ->
                     // FIXME: need to create a temp folder
-                    val filesLocation =  Files.createTempDirectory(configProperties.testResources.basePath)
+                    val filesLocation = Files.createTempDirectory(configProperties.testResources.basePath)
                         .resolve(testRootPath)
                     execution.parseAndGetAdditionalFiles()
                         .toFlux()

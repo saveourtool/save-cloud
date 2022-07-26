@@ -5,12 +5,12 @@ import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.pathNamesTill
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.utils.countPartsTill
-import com.saveourtool.save.utils.pathNamesTill
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -95,7 +95,7 @@ class DebugInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
-        private const val SUFFIX_FILE_NAME = "-debug.json"
         private const val PATH_PARTS_COUNT = 5
+        private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

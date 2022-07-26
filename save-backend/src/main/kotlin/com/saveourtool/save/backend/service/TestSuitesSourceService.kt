@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
@@ -37,16 +38,21 @@ class TestSuitesSourceService(
             testSuitesSourceRepository.findByOrganizationIdAndName(organization.requiredId(), name)
 
     /**
+     * @param organizationName [TestSuitesSource.organization]
+     * @param name [TestSuitesSource.name]
+     * @return entity of [TestSuitesSource] or null
+     */
+    fun findByName(organizationName: String, name: String) =
+            testSuitesSourceRepository.findByOrganizationIdAndName(organizationService.getByName(organizationName).requiredId(), name)
+
+    /**
      * @param organizationName [Organization.name] from [TestSuitesSource.organization]
      * @param name [TestSuitesSource.name]
      * @return entity of [TestSuitesSource] or error
      */
-
-    fun getByName(organizationName: String, name: String): Mono<TestSuitesSource> = organizationService.getByNameAsMono(organizationName)
-        .flatMap { organization ->
-            Mono.justOrEmpty(findByName(organization, name)).switchToNotFoundIfEmpty {
-                "TestSuitesSource not found by name $name in $organizationName"
-            }
+    fun getByName(organizationName: String, name: String): TestSuitesSource = findByName(organizationName, name)
+        .orNotFound {
+            "TestSuitesSource not found by name $name in $organizationName"
         }
 
     /**
@@ -58,13 +64,6 @@ class TestSuitesSourceService(
     fun getByName(organization: Organization, name: String) = findByName(organization, name)
         ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuitesSource (name=$name in organization=${organization.name}) not found")
 
-
-    /**
-     * @param dto entity as dto [TestSuitesSourceDto]
-     * @return entity of [TestSuitesSource]
-     * @throws ResponseStatusException entity not found
-     */
-    fun getByDto(dto: TestSuitesSourceDto) = getByName(dto.organization, dto.name)
 
     /**
      * @param organization

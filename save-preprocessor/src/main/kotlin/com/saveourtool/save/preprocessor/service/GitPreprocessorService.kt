@@ -50,7 +50,7 @@ class GitPreprocessorService(
         val cloneAction: () -> Path = {
             val tmpDir = createTempDirectoryForRepository()
             try {
-                cloneToDirectory(gitDto, branch, sha1, tmpDir)
+                gitDto.cloneToDirectory(branch, sha1, tmpDir)
             } catch (ex: IllegalStateException) {
                 // clean up in case of exception
                 FileSystemUtils.deleteRecursively(tmpDir)
@@ -67,6 +67,7 @@ class GitPreprocessorService(
 
     /**
      * @param pathToRepository
+     * @return archived git repository, file will be deleted after release Flux
      */
     fun archiveToTar(
         pathToRepository: Path

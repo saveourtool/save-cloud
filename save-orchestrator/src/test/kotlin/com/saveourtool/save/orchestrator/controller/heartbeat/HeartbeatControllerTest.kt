@@ -2,9 +2,6 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
@@ -14,10 +11,10 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.entities.*
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -57,6 +54,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Clock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.Test
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
@@ -75,6 +73,18 @@ class HeartbeatControllerTest {
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
+
+    private val organization = Organization.stub(0)
+    private val git = Git("N/A", organization = organization)
+        .apply { id = 0 }
+    private val testSuitesSource = TestSuitesSource(
+        organization,
+        "",
+        null,
+        git,
+        "",
+        ""
+    ).apply { id = 0 }
 
     @BeforeEach
     fun webClientSetUp() {
@@ -116,7 +126,7 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
-        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+        val testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
             id = 0
         }
 
@@ -168,7 +178,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -224,7 +234,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -263,7 +273,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -302,7 +312,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -334,7 +344,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,

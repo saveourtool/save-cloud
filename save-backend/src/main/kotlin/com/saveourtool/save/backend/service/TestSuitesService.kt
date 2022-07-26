@@ -3,22 +3,16 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.info
-import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 /**
@@ -50,7 +44,7 @@ class TestSuitesService(
                 TestSuite(
                     name = it.name,
                     description = it.description,
-                    source = testSuitesSourceService.getByDto(it.source),
+                    source = testSuitesSourceService.getByName(it.source.organization, it.source.name),
                     version = it.version,
                     dateAdded = null,
                     language = it.language,
@@ -78,21 +72,11 @@ class TestSuitesService(
     }
 
     /**
-     * @param dto entity as DTO
-     * @return entity is found by provided values
-     */
-    fun getByDto(dto: TestSuiteDto): TestSuite = testSuiteRepository.findByNameAndSourceAndVersion(
-        dto.name,
-        testSuitesSourceService.getByDto(dto.source),
-        dto.version
-    ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found")
-
-    /**
      * @return all standard test suites
      */
     fun getStandardTestSuites() = testSuitesSourceService.findStandardTestSuitesSource()
         ?.let { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource).map { it.toDto() } }
-        ?: emptyList()
+        .orEmpty()
 
     /**
      * @param name name of the test suite
@@ -100,7 +84,7 @@ class TestSuitesService(
      */
     fun findStandardTestSuitesByName(name: String) = testSuitesSourceService.findStandardTestSuitesSource()
         ?.let { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource).filter { it.name == name } }
-        ?: emptyList()
+        .orEmpty()
 
     /**
      * @param id
@@ -113,15 +97,18 @@ class TestSuitesService(
      * @return test suite with [id]
      * @throws ResponseStatusException if [TestSuite] is not found by [id]
      */
-    fun getById(id: Long) = testSuiteRepository.findByIdOrNull(id) ?:
-        throw ResponseStatusException(HttpStatus.NOT_FOUND, "TestSuite (id=$id) not found")
+    fun getById(id: Long) = testSuiteRepository.findByIdOrNull(id)
+        .orNotFound { "TestSuite (id=$id) not found" }
 
-    @GetMapping("/internal/test-suites-source/{organizationName}/{name}/{version}/get-test-suites")
-    fun findBySourceAndVersion(
-        @PathVariable organizationName: String,
-        @PathVariable name: String,
-        @PathVariable version: String,
-    ) = testSuitesSourceService.getByName(organizationName, name).map { testSuiteRepository.findAllBySourceAndVersion(it, version) }
+    /**
+     * @param source source of the test suite
+     * @param version version of snapshot of source
+     * @return matched test suites
+     */
+    fun getBySourceAndVersion(
+        source: TestSuitesSource,
+        version: String
+    ): List<TestSuite> = testSuiteRepository.findAllBySourceAndVersion(source, version)
 
     /**
      * Delete testSuites and related tests & test executions from DB
@@ -132,7 +119,7 @@ class TestSuitesService(
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
             // Get test suite id by testSuiteDto
-            val testSuiteId = getByDto(testSuiteDto).requiredId()
+            val testSuiteId = getSavedIdByDto(testSuiteDto)
 
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
@@ -153,8 +140,15 @@ class TestSuitesService(
         }
     }
 
-
-
+    private fun getSavedIdByDto(
+        dto: TestSuiteDto,
+    ): Long = testSuiteRepository.findByNameAndSourceAndVersion(
+        dto.name,
+        testSuitesSourceService.getByName(dto.source.organization, dto.source.name),
+        dto.version
+    )
+        ?.requiredId()
+        .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)

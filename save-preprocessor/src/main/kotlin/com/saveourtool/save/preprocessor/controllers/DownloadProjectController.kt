@@ -71,7 +71,6 @@ class DownloadProjectController(
         .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
     private val scheduler = Schedulers.boundedElastic()
-
     private val standardTestSuitesRepo: TestSuitesRepo by lazy {
         ClassPathResource(configProperties.reposFileName)
             .file
@@ -89,23 +88,23 @@ class DownloadProjectController(
     fun upload(
         @RequestBody executionRequest: ExecutionRequest,
     ): Mono<TextResponse> = executionResponseAsMono(executionRequest)
-            .doOnSuccess {
-                upload(
-                    executionRequest.project.organization.name,
-                    executionRequest.gitDto.url,
-                    executionRequest.testRootPath,
-                    executionRequest.branchOrCommit
-                        ?.takeIf { it.startsWith("origin/") }
-                        ?.replaceFirst("origin/", "")
-                        ?: executionRequest.gitDto.detectDefaultBranchName(),
-                    { true },
-                    executionRequest.project,
-                    null,
-                    null
-                )
-                    .subscribeOn(scheduler)
-                    .subscribe()
-            }
+        .doOnSuccess {
+            upload(
+                executionRequest.project.organization.name,
+                executionRequest.gitDto.url,
+                executionRequest.testRootPath,
+                executionRequest.branchOrCommit
+                    ?.takeIf { it.startsWith("origin/") }
+                    ?.replaceFirst("origin/", "")
+                    ?: executionRequest.gitDto.detectDefaultBranchName(),
+                { true },
+                executionRequest.project,
+                null,
+                null
+            )
+                .subscribeOn(scheduler)
+                .subscribe()
+        }
 
     /**
      * @param executionRequestForStandardSuites Dto of binary file, test suites names and project info
@@ -136,7 +135,7 @@ class DownloadProjectController(
     private fun upload(
         organizationName: String,
         gitUrl: String,
-        subDirectory: String,
+        testRootPath: String,
         branch: String,
         testSuiteFilter: (TestSuite) -> Boolean,
         project: Project,
@@ -145,7 +144,7 @@ class DownloadProjectController(
     ): Mono<StatusResponse> = preprocessorToBackendBridge.getTestSuitesSource(
         organizationName,
         gitUrl,
-        subDirectory,
+        testRootPath,
         branch
     ).flatMap { testSuitesSource ->
         preprocessorToBackendBridge.getTestSuitesLatestVersion(organizationName, testSuitesSource.name)
@@ -346,5 +345,3 @@ fun executionResponseBody(executionId: Long?): String = "Clone pending, executio
 
 private fun executionResponseAsMono(executionRequest: ExecutionRequestBase) =
         Mono.just(ResponseEntity(executionResponseBody(executionRequest.executionId), HttpStatus.ACCEPTED))
-
-

@@ -1,16 +1,10 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.OrganizationRepository
-import com.saveourtool.save.backend.utils.switchToNotFoundIfEmpty
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * Service for organization
@@ -18,7 +12,6 @@ import reactor.kotlin.core.publisher.toMono
  * @property organizationRepository
  */
 @Service
-@RestController
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
 ) {
@@ -63,12 +56,6 @@ class OrganizationService(
      * @return organization by name
      */
     fun findByName(name: String) = organizationRepository.findByName(name)
-
-    @GetMapping("/internal/organization/{name}")
-    fun getByNameAsMono(@PathVariable name: String): Mono<Organization> = findByName(name).toMono()
-        .switchToNotFoundIfEmpty {
-            "Organization not found by name $name"
-        }
 
     /**
      * @param name
