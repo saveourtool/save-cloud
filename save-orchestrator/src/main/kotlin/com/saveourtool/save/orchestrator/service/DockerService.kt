@@ -305,21 +305,16 @@ class DockerService(
         }
     }
 
-    private fun collectStandardTestSuitesForDocker(execution: Execution): List<TestSuiteDto> = when (execution.type) {
-        ExecutionType.GIT -> emptyList()
-        ExecutionType.STANDARD -> {
-            val testSuiteIds = execution.parseAndGetTestSuiteIds() ?: throw ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "Execution (id=${execution.id}) doesn't contain testSuiteIds"
-            )
+    private fun collectStandardTestSuitesForDocker(execution: Execution): List<TestSuiteDto> = execution
+        .parseAndGetTestSuiteIds()
+        ?.let {
             webClientBackend.post()
                 .uri("/findAllTestSuiteDtoByIds")
-                .bodyValue(testSuiteIds)
+                .bodyValue(it)
                 .retrieve()
                 .bodyToMono<List<TestSuiteDto>>()
                 .block()!!
-        }
-    }
+        } ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=${execution.id}) doesn't contain testSuiteIds")
 
     /**
      * Information required to start containers with save-agent

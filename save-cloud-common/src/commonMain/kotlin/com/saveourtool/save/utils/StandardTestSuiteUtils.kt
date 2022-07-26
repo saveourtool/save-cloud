@@ -12,4 +12,5 @@ const val STANDARD_TEST_SUITE_DIR = "standard-test-suites"
  * we will also mark them with such prefix, in aim to correctly match test execution results with data from DB,
  * which didn't know about our actions with creation of additional dirs
  */
+// FIXME: not clear where this prefix is added
 const val PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE = "STANDARD_"
