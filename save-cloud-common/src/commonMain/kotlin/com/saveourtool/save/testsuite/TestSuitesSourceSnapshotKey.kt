@@ -35,7 +35,7 @@ data class TestSuitesSourceSnapshotKey(
      * @param creationTimeInMills
      */
     constructor(testSuitesSourceDto: TestSuitesSourceDto, version: String, creationTimeInMills: Long) : this(
-        testSuitesSourceDto.organization.name,
+        testSuitesSourceDto.organizationName,
         testSuitesSourceDto.name,
         version,
         creationTimeInMills,

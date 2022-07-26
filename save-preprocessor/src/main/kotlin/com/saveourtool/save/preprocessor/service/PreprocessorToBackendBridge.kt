@@ -41,7 +41,7 @@ class PreprocessorToBackendBridge(
         content: Flux<ByteBuffer>
     ): Mono<Unit> = webClientBackend.post()
             .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
-                testSuitesSource.organization.name, testSuitesSource.name,
+                testSuitesSource.organizationName, testSuitesSource.name,
                 version, creationTime.toEpochMilli())
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .bodyValue(content)
@@ -75,10 +75,16 @@ class PreprocessorToBackendBridge(
     fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
         webClientBackend.get()
             .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains?version={version}",
-                testSuitesSource.organization.name, testSuitesSource.name, version)
+                testSuitesSource.organizationName, testSuitesSource.name, version)
             .retrieve()
             .bodyToMono()
 
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return list of [TestSuite]
+     */
     fun getTestSuites(organizationName: String, testSuitesSourceName: String, version: String) = webClientBackend.get()
         .uri(
             "/test-suites-source/{organizationName}/{testSuitesSourceName}/{version}/get-test-suites",
@@ -86,20 +92,6 @@ class PreprocessorToBackendBridge(
         )
         .retrieve()
         .bodyToMono<List<TestSuite>>()
-
-    fun getTestSuites(testSuitesSource: TestSuitesSourceDto, version: String) = getTestSuites(testSuitesSource.organization.name, testSuitesSource.name, version)
-
-    fun getTestSuitesSource(
-        organizationName: String,
-        name: String
-    ): Mono<TestSuitesSourceDto> = webClientBackend.post()
-        .uri(
-            "/test-suites-source/{organizationName}/{name}",
-            organizationName,
-            name
-        )
-        .retrieve()
-        .bodyToMono()
 
     /**
      * @param organizationName

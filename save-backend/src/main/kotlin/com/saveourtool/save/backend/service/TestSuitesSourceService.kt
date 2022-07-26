@@ -91,7 +91,7 @@ class TestSuitesSourceService(
     ) = testSuitesSourceRepository.save(
         TestSuitesSource(
             organization = organization,
-            name = TestSuitesSourceDto.defaultTestSuitesSourceName(git.url, branch, testRootPath),
+            name = defaultTestSuitesSourceName(git.url, branch, testRootPath),
             description = "auto created test suites source by git coordinates",
             git = git,
             branch = branch,
@@ -112,5 +112,21 @@ class TestSuitesSourceService(
 
         // FIXME: a hardcoded value of url for standard test suites
         private const val STANDARD_TEST_SUITE_URL = "https://github.com/saveourtool/save-cli"
+
+        /**
+         * @return default name fot [com.saveourtool.save.entities.TestSuitesSource]
+         */
+        private fun defaultTestSuitesSourceName(
+            url: String,
+            branch: String,
+            subDirectory: String
+        ): String = buildString {
+            append(url)
+            append("/tree/")
+            append(branch)
+            if (subDirectory.isNotBlank()) {
+                append("/$subDirectory")
+            }
+        }
     }
 }

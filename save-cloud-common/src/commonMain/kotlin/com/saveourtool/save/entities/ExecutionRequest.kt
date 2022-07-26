@@ -27,7 +27,14 @@ sealed class ExecutionRequestBase {
      */
     abstract val executionId: Long?
 
+    /**
+     * null in [ExecutionRequest]
+     */
     abstract val execCmd: String?
+
+    /**
+     * null in [ExecutionRequest]
+     */
     abstract val batchSizeForAnalyzer: String?
 }
 

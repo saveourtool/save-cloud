@@ -50,7 +50,7 @@ class TestDiscoveringServiceTest {
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
         val organization = Organization.stub(42)
         testSuitesSourceDto = TestSuitesSourceDto(
-            organization,
+            organization.name,
             "Test",
             null,
             GitDto("https://github.com/saveourtool/save-cli"),

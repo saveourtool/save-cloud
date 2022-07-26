@@ -32,7 +32,7 @@ class TestSuitesSource(
      * @return entity as dto [TestSuitesSourceDto]
      */
     fun toDto(): TestSuitesSourceDto = TestSuitesSourceDto(
-        organization = organization,
+        organizationName = organization.name,
         name = name,
         description = description,
         gitDto = git.toDto(),
