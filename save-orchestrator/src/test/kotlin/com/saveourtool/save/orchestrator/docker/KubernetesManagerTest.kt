@@ -5,6 +5,7 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
 import com.github.dockerjava.api.DockerClient
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer
@@ -18,11 +19,12 @@ import org.mockito.kotlin.mock
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.http.HttpStatus
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
+import java.net.HttpURLConnection
 
 @ExtendWith(SpringExtension::class, KubernetesMockServerExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -48,7 +50,7 @@ class KubernetesManagerTest {
         kubernetesMockServer.expect()
             .delete()
             .withPath("/apis/batch/v1/namespaces/test/jobs/save-execution-1")
-            .andReturn(HttpStatus.OK.value(), null)
+            .andReturn(HttpURLConnection.HTTP_OK, JobBuilder().build())
             .once()
 
         val disposable = Mono.fromCallable {

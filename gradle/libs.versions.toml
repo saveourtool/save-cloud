@@ -37,7 +37,7 @@ ktoml = "0.2.13"
 springdoc = "1.6.9"
 kotlinx-cli = "0.3.5"
 spotless = "6.8.0"
-fabric8 = "5.12.2"
+fabric8 = "6.0.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
