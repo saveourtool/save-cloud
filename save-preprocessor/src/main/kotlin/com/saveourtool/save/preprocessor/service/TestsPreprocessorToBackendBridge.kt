@@ -10,14 +10,15 @@ import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.debug
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.nio.ByteBuffer
 import java.time.Instant
 
 /**
@@ -37,20 +38,20 @@ class TestsPreprocessorToBackendBridge(
      * @param testSuitesSource
      * @param version
      * @param creationTime
-     * @param content
+     * @param resourceWithContent
      * @return empty response
      */
     fun saveTestsSuiteSourceSnapshot(
         testSuitesSource: TestSuitesSourceDto,
         version: String,
         creationTime: Instant,
-        content: Flux<ByteBuffer>
+        resourceWithContent: Resource,
     ): Mono<Unit> = webClientBackend.post()
         .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
             testSuitesSource.organizationName, testSuitesSource.name,
             version, creationTime.toEpochMilli())
         .contentType(MediaType.MULTIPART_FORM_DATA)
-        .bodyValue(content)
+        .body(BodyInserters.fromMultipartData("content", resourceWithContent))
         .retrieve()
         .bodyToMono()
 

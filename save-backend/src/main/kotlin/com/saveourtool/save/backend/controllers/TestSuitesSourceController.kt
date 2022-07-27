@@ -16,11 +16,11 @@ import com.saveourtool.save.utils.info
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-import java.nio.ByteBuffer
 
 typealias TestSuiteList = List<TestSuite>
 
@@ -67,7 +67,7 @@ class TestSuitesSourceController(
      * @param name
      * @param version
      * @param creationTime
-     * @param content
+     * @param contentAsMonoPart
      * @return empty response
      */
     @PostMapping("/{organizationName}/{name}/upload-snapshot", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -76,13 +76,17 @@ class TestSuitesSourceController(
         @PathVariable name: String,
         @RequestParam version: String,
         @RequestParam creationTime: Long,
-        @RequestPart content: Flux<ByteBuffer>
+        @RequestPart("content") contentAsMonoPart: Mono<Part>
     ): Mono<Unit> = findAsDtoByName(organizationName, name)
         .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
         .flatMap { key ->
-            testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
-                log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
+            contentAsMonoPart.flatMap { part ->
+                val content = part.content().map { it.asByteBuffer() }
+                testSuitesSourceSnapshotStorage.upload(key, content).map { writtenBytes ->
+                    log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
+                }
             }
+
         }
 
     /**

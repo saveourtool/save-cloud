@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.utils.TAR_EXTENSION
+import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Component
@@ -22,10 +22,10 @@ class TestSuitesSourceSnapshotStorage(
     /**
      * @param rootDir
      * @param pathToContent
-     * @return true if there is 4 parts between pathToContent and rootDir and ends with [TAR_EXTENSION]
+     * @return true if there is 4 parts between pathToContent and rootDir and ends with [ARCHIVE_EXTENSION]
      */
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            pathToContent.endsWith(TAR_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+            pathToContent.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     @Suppress("MAGIC_NUMBER")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
@@ -33,13 +33,13 @@ class TestSuitesSourceSnapshotStorage(
         return TestSuitesSourceSnapshotKey(
             pathNames[3],
             pathNames[2],
-            pathNames[0].dropLast(TAR_EXTENSION.length),
+            pathNames[0].dropLast(ARCHIVE_EXTENSION.length),
             pathNames[1].toLong()
         )
     }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName / getCreationTimeInMills().toString() / "$version$TAR_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName / getCreationTimeInMills().toString() / "$version$ARCHIVE_EXTENSION"
     }
 
     /**

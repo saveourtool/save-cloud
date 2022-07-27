@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 /**
  * @property name [com.saveourtool.save.entities.TestSuite.name]
  * @property description [com.saveourtool.save.entities.TestSuite.description]
- * @property source [com.saveourtool.save.entities.TestSuite.source]
- * @property version [com.saveourtool.save.entities.TestSuite.testRootPath]
+ * @property source [com.saveourtool.save.entities.TestSuitesSource]
+ * @property version snapshot version of [com.saveourtool.save.entities.TestSuitesSource]
  * @property language [com.saveourtool.save.entities.TestSuite.language]
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
  */

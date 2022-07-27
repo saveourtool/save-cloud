@@ -4,43 +4,49 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.utils.cloneToDirectory
 import com.saveourtool.save.utils.*
+import org.eclipse.jgit.util.FileUtils
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
-import org.springframework.util.FileSystemUtils
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.io.IOException
-import java.nio.ByteBuffer
+import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Instant
-import kotlin.io.path.deleteExisting
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.createDirectories
 
 typealias GitRepositoryProcessor<T> = (Path, Instant) -> Mono<T>
+typealias ArchiveProcessor<T> = (Path) -> Mono<T>
 
 /**
  * Additional service for Git based [com.saveourtool.save.entities.TestSuitesSource]s
  */
 @Service
 class GitPreprocessorService(
-    private val configProperties: ConfigProperties,
+    configProperties: ConfigProperties,
 ) {
+    private val workingDir = Paths.get(configProperties.repository, "tmp")
+        .also { it.createDirectories() }
+
     private fun createTempDirectoryForRepository() = Files.createTempDirectory(
-        Paths.get(configProperties.repository), GitPreprocessorService::class.simpleName
+        workingDir,
+        "repository-"
     )
 
     private fun createTempTarFile() = Files.createTempFile(
-        Paths.get(configProperties.repository),
-        GitPreprocessorService::class.simpleName,
-        TAR_EXTENSION
+        workingDir,
+        "archive-",
+        ARCHIVE_EXTENSION
     )
 
     /**
      * @param gitDto
      * @param branch
      * @param sha1
-     * @param repositoryProcessor
+     * @param repositoryProcessor operation on folder should be finished here -- folder will be removed after it
      * @return result of [repositoryProcessor]
      * @throws IllegalStateException
      */
@@ -54,59 +60,59 @@ class GitPreprocessorService(
             val tmpDir = createTempDirectoryForRepository()
             val creationTime = try {
                 gitDto.cloneToDirectory(branch, sha1, tmpDir)
-            } catch (ex: IllegalStateException) {
+            } catch (ex: Exception) {
                 log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
-                // clean up will be handled by Mono.onComplete and Mono.doOnError
-//                FileSystemUtils.deleteRecursively(tmpDir)
+                tmpDir.deleteRecursivelySafely()
                 throw ex
             }
             tmpDir to creationTime
         }
-        return Mono.fromSupplier(cloneAction)
-            .flatMap { (directory, creationTime) -> repositoryProcessor(directory, creationTime)
-                .doAfterTerminate { directory.deleteRecursivelySafely() }
-            }
+        return Mono.usingWhen(
+            Mono.fromSupplier(cloneAction),
+            { (directory, creationTime) -> repositoryProcessor(directory, creationTime)},
+            { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
+        )
     }
 
     /**
      * @param pathToRepository
+     * @param archiveProcessor operation on file should be finished here -- file will be removed after it
      * @return archived git repository, file will be deleted after release Flux
      * @throws IOException
      */
-    fun archiveToTar(
-        pathToRepository: Path
-    ): Flux<ByteBuffer> {
+    fun <T> archiveToTar(
+        pathToRepository: Path,
+        archiveProcessor: ArchiveProcessor<T>
+    ): Mono<T> {
         val archiveAction: () -> Path = {
             val tmpFile = createTempTarFile()
             try {
-                pathToRepository.compressAsTarTo(tmpFile)
-            } catch (ex: IOException) {
+                pathToRepository.compressAsZipTo(tmpFile)
+            } catch (ex: Exception) {
                 log.error(ex) { "Failed to archive git repository $pathToRepository" }
+                tmpFile.deleteRecursivelySafely()
                 throw ex
             }
             tmpFile
         }
-        return Mono.fromSupplier(archiveAction)
-            .flatMapMany { tmpFile ->
-                tmpFile.toByteBufferFlux().doAfterTerminate {
-                    tmpFile.deleteSafely()
-                }
-            }
+        return Mono.usingWhen(
+            Mono.fromSupplier(archiveAction),
+            { tmpFile -> archiveProcessor(tmpFile)},
+            { tmpFile -> tmpFile.deleteRecursivelySafelyAsync() }
+        )
     }
+
+    private fun Path.deleteRecursivelySafelyAsync() = Mono.fromCallable { deleteRecursivelySafely() }
+        .subscribeOn(Schedulers.boundedElastic())
 
     private fun Path.deleteRecursivelySafely() {
         try {
-            FileSystemUtils.deleteRecursively(this)
+            log.info {
+                "Start cleanup of ${absolutePathString()}"
+            }
+            FileUtils.delete(toFile(), FileUtils.RECURSIVE or FileUtils.IGNORE_ERRORS or FileUtils.RETRY)
         } catch (ex: Exception) {
             log.error(ex) { "Skip error during clean-up folder" }
-        }
-    }
-
-    private fun Path.deleteSafely() {
-        try {
-            Files.deleteIfExists(this)
-        } catch (ex: Exception) {
-            log.debug(ex) { "Skip error during clean-up file" }
         }
     }
 

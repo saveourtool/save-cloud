@@ -4,15 +4,15 @@
 
 package com.saveourtool.save.utils
 
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.examples.Archiver
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.utils.IOUtils
-import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.*
 import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
-const val TAR_EXTENSION = ".tar"
+const val ARCHIVE_EXTENSION = ".${ArchiveStreamFactory.ZIP}"
 
 /**
  * Extract path as TAR archive to provided directory
@@ -43,18 +43,6 @@ fun Path.extractTarTo(targetPath: Path) {
  * @param targetPath
  */
 @Suppress("NestedBlockDepth")
-fun Path.compressAsTarTo(targetPath: Path) {
-    targetPath.outputStream().buffered().use { buffOut ->
-        TarArchiveOutputStream(buffOut).use { archiveOut ->
-            Files.walk(this).forEach { path ->
-                val archiveEntry = archiveOut.createArchiveEntry(path, path.relativize(this).toString())
-                archiveOut.putArchiveEntry(archiveEntry)
-                if (Files.isRegularFile(path)) {
-                    path.inputStream().use { IOUtils.copy(it, archiveOut) }
-                }
-                archiveOut.closeArchiveEntry()
-            }
-            archiveOut.finish()
-        }
-    }
+fun Path.compressAsZipTo(targetPath: Path) {
+    Archiver().create(ArchiveStreamFactory.ZIP, targetPath, this)
 }

@@ -18,10 +18,6 @@ openApi {
     outputDir.set(file(projectDir))
     outputFileName.set("backend-api-docs.json")
     waitTimeInSeconds.set(120)
-
-    tasks.named<BootRun>("bootRun") {
-        jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
-    }
 }
 
 configureSpringBoot(true)

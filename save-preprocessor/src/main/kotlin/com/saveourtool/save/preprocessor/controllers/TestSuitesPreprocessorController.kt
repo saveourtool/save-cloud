@@ -8,8 +8,11 @@ import com.saveourtool.save.preprocessor.utils.detectLatestSha1
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.toByteBufferFlux
+import com.saveourtool.save.utils.toDataBufferFlux
 
 import org.slf4j.Logger
+import org.springframework.core.io.FileSystemResource
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -81,15 +84,19 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto.branch,
         sha1
     ) { repositoryDirectory, creationTime ->
-        testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-            repositoryPath = repositoryDirectory,
-            testSuitesSourceDto = testSuitesSourceDto,
-            version = sha1
-        ).flatMap { testSuites ->
-            log.info { "Loaded: $testSuites" }
-            val content = gitPreprocessorService.archiveToTar(repositoryDirectory)
-            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(testSuitesSourceDto, sha1, creationTime, content)
-                .map { testSuites }
+        gitPreprocessorService.archiveToTar(repositoryDirectory) { archive ->
+            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+                testSuitesSourceDto,
+                sha1,
+                creationTime,
+                FileSystemResource(archive)
+            ).flatMap {
+                testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+                    repositoryPath = repositoryDirectory,
+                    testSuitesSourceDto = testSuitesSourceDto,
+                    version = sha1
+                )
+            }
         }
     }
 
