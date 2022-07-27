@@ -1420,7 +1420,7 @@
           "contests"
         ],
         "summary": "Update contest.",
-        "description": "Change contest settings.",
+        "description": "Change existing contest settings.",
         "operationId": "updateContest",
         "parameters": [
           {
