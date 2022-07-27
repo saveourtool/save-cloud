@@ -6,18 +6,20 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
+import com.saveourtool.save.frontend.CONTESTS
+import com.saveourtool.save.frontend.PROJECTS
+import com.saveourtool.save.frontend.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
+import csstype.*
 
-import csstype.ClassName
-import csstype.Display
-import csstype.FontSize
-import csstype.FontWeight
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -100,11 +102,20 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("main-content mt-0 ps")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
+                style = jso {
+                    background =
+                            "-webkit-linear-gradient(270deg, (0,20,73), rgb(0,0,0))".unsafeCast<Background>()
+                }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
                 }
 
                 div {
+                    Particles::class.react {
+                        id = "tsparticles"
+                        url = "${window.location.origin}/particles.json"
+                    }
+
                     className = ClassName("row")
                     // Marketing information
                     div {
@@ -135,6 +146,34 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
             }
+
+            div {
+                className = ClassName("min-vh-100")
+                style = jso {
+                    background =
+                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+                }
+
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
+
+                div {
+                    className = ClassName("align-items-center justify-content-center")
+                    scrollContainer {
+                        scrollPage {
+                            animator {
+                                animation = fade
+                                span {
+                                    style = jso {
+                                        fontSize = "40px".unsafeCast<FontSize>()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -151,11 +190,13 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div {
                     className = ClassName("row")
                     state.oauthProviders?.map {
-                        oauthLogin(it, when (it.registrationId) {
-                            "github" -> faGithub
-                            "codehub" -> faCopyright
-                            else -> faSignInAlt
-                        })
+                        oauthLogin(
+                            it, when (it.registrationId) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                else -> faSignInAlt
+                            }
+                        )
                     }
                 }
             }
@@ -178,7 +219,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         h4 {
                             a {
                                 className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                                href = "#/projects"
+                                href = "#/$PROJECTS"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -216,7 +257,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("mt-4 text-sm")
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "#/projects"
+                    href = "#/$PROJECTS"
                     h4 {
                         fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
@@ -225,7 +266,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/awesome-benchmarks"
+                    href = "/#/$AWESOME_BENCHMARKS"
                     h4 {
                         fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
                         +"Benchmarks Archive"
@@ -234,7 +275,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${props.userInfo?.name}/settings/email"
+                    href = "/#/${props.userInfo?.name}/$SETTINGS_EMAIL"
                     h4 {
                         fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
@@ -243,7 +284,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/contests"
+                    href = "/#/$CONTESTS"
                     h4 {
                         fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
                         +"Contests"
@@ -291,7 +332,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
+    companion object :
+        RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
         init {
             contextType = requestStatusContext
         }
