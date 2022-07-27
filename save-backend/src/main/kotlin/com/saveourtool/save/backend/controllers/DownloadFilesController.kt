@@ -225,9 +225,12 @@ class DownloadFilesController(
     fun getDebugInfo(
         @RequestBody testExecutionDto: TestExecutionDto,
     ): Flux<ByteBuffer> {
+        println("\n\n\nStart get-debug-info")
+
+
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
-
+        println("------------------debugInfoStorage.download")
         return debugInfoStorage.download(Pair(executionId, testResultLocation))
             .switchIfEmpty(
                 Mono.fromCallable {
