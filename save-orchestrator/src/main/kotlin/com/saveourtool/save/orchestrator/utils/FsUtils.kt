@@ -27,14 +27,14 @@ internal fun Path.tryMarkAsExecutable() {
 }
 
 /**
- * Change owner of all files under [directory] to user named [user]
+ * Change owner of all files under [this] to user named [user]
  *
- * @param directory target directory
+ * @receiver target directory
  * @param user name of the new owner
  */
-internal fun changeOwnerRecursively(directory: Path, user: String) {
-    val lookupService = directory.fileSystem.userPrincipalLookupService
-    directory.toFile().walk().forEach { file ->
+internal fun Path.changeOwnerRecursively(user: String) {
+    val lookupService = fileSystem.userPrincipalLookupService
+    toFile().walk().forEach { file ->
         Files.getFileAttributeView(file.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
             setGroup(lookupService.lookupPrincipalByGroupName(user))
             setOwner(lookupService.lookupPrincipalByName(user))

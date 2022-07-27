@@ -233,7 +233,7 @@ class DockerService(
         if (configProperties.adjustResourceOwner) {
             // orchestrator is executed as root (to access docker socket), but files are in a shared volume
             // todo: set it to `save-agent` (by ID returned from Docker build?)
-            changeOwnerRecursively(resourcesForExecution, "cnb")
+            resourcesForExecution.changeOwnerRecursively("cnb")
 
             with(loggingContext) {
                 resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME).tryMarkAsExecutable()
