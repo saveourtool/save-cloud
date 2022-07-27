@@ -3,9 +3,8 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.utils.cloneToDirectory
-import com.saveourtool.save.utils.TAR_EXTENSION
-import com.saveourtool.save.utils.compressAsTarTo
-import com.saveourtool.save.utils.toByteBufferFlux
+import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import org.springframework.util.FileSystemUtils
 import reactor.core.publisher.Flux
@@ -56,17 +55,17 @@ class GitPreprocessorService(
             val creationTime = try {
                 gitDto.cloneToDirectory(branch, sha1, tmpDir)
             } catch (ex: IllegalStateException) {
-                // clean up in case of exception
-                FileSystemUtils.deleteRecursively(tmpDir)
+                log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
+                // clean up will be handled by Mono.onComplete and Mono.doOnError
+//                FileSystemUtils.deleteRecursively(tmpDir)
                 throw ex
             }
             tmpDir to creationTime
         }
-        return Mono.using(
-            cloneAction,
-            { (directory, creationTime) -> repositoryProcessor(directory, creationTime) },
-            { (directory, _) -> FileSystemUtils.deleteRecursively(directory) },
-        )
+        return Mono.fromSupplier(cloneAction)
+            .flatMap { (directory, creationTime) -> repositoryProcessor(directory, creationTime)
+                .doAfterTerminate { directory.deleteRecursivelySafely() }
+            }
     }
 
     /**
@@ -82,15 +81,36 @@ class GitPreprocessorService(
             try {
                 pathToRepository.compressAsTarTo(tmpFile)
             } catch (ex: IOException) {
-                tmpFile.deleteExisting()
+                log.error(ex) { "Failed to archive git repository $pathToRepository" }
                 throw ex
             }
             tmpFile
         }
-        return Flux.using(
-            archiveAction,
-            { it.toByteBufferFlux() },
-            Files::delete
-        )
+        return Mono.fromSupplier(archiveAction)
+            .flatMapMany { tmpFile ->
+                tmpFile.toByteBufferFlux().doAfterTerminate {
+                    tmpFile.deleteSafely()
+                }
+            }
+    }
+
+    private fun Path.deleteRecursivelySafely() {
+        try {
+            FileSystemUtils.deleteRecursively(this)
+        } catch (ex: Exception) {
+            log.error(ex) { "Skip error during clean-up folder" }
+        }
+    }
+
+    private fun Path.deleteSafely() {
+        try {
+            Files.deleteIfExists(this)
+        } catch (ex: Exception) {
+            log.debug(ex) { "Skip error during clean-up file" }
+        }
+    }
+
+    companion object {
+        private val log: Logger = getLogger<GitPreprocessorService>()
     }
 }

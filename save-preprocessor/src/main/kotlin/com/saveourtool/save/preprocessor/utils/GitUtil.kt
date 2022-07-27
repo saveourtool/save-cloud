@@ -9,6 +9,8 @@ import com.saveourtool.save.utils.debug
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.ObjectId
+import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
@@ -26,7 +28,7 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
     // ls without clone
     // FIXME: need to extract to a common place
     .setRemote(url)
-    .withRethrow {
+    .gitCallWithRethrow {
         it.callAsMap()[Constants.HEAD]
     }
     ?.takeIf { it.isSymbolic }
@@ -45,7 +47,7 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
 fun GitDto.detectLatestSha1(branch: String): String = Git.lsRemoteRepository()
     .setCredentialsProvider(credentialsProvider())
     .setRemote(url)
-    .withRethrow {
+    .gitCallWithRethrow {
         it.callAsMap()["${Constants.R_HEADS}$branch"]
     }
     ?.objectId
@@ -68,17 +70,18 @@ fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path)
     .setNoTags()
     .setBranch(branch)
     .setCloneAllBranches(false)
-    .withRethrow { it.call() }
+    .callWithRethrow()
     .use { git ->
         git.checkout()
             .setName(sha1)
-            .withRethrow { it.call() }
-        git.reflog()
-            .setRef(sha1)
-            .withRethrow { it.call() }
-            .first()
-            .who
-            .whenAsInstant
+            .callWithRethrow()
+        withRethrow {
+            RevWalk(git.repository).use {
+                it.parseCommit(ObjectId.fromString(sha1))
+                    .authorIdent
+                    .whenAsInstant
+            }
+        }
     }
 
 private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != null && password != null) {
@@ -90,10 +93,18 @@ private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != 
     UsernamePasswordCredentialsProvider(password, "")
 }
 
-private fun <R, T : GitCommand<*>> T.withRethrow(call: (T) -> R): R {
+private fun <R> withRethrow(action: () -> R): R {
     try {
-        return call(this)
+        return action()
     } catch (ex: GitAPIException) {
         throw IllegalStateException("Error in JGit API", ex)
     }
+}
+
+private fun <R, T : GitCommand<*>> T.gitCallWithRethrow(call: (T) -> R): R = withRethrow {
+    call(this)
+}
+
+private fun <R, T : GitCommand<R>> T.callWithRethrow(): R = withRethrow {
+    this.call()
 }

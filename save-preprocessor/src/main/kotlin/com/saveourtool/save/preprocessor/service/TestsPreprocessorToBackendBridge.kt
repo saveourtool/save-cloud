@@ -123,7 +123,7 @@ class TestsPreprocessorToBackendBridge(
      * @return list of saved [TestSuite]
      */
     fun saveTestSuites(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> = webClientBackend.post()
-        .uri("/test-suites/save")
+        .uri("/saveTestSuites")
         .bodyValue(testSuiteDtos)
         .retrieve()
         .bodyToMono()
@@ -139,7 +139,7 @@ class TestsPreprocessorToBackendBridge(
         }
         .flatMap { chunk ->
             webClientBackend.post()
-                .uri("/tests/save")
+                .uri("/initializeTests")
                 .bodyValue(chunk)
                 .retrieve()
                 .toBodilessEntity()

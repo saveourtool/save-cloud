@@ -34,7 +34,7 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
-        <addUniqueConstraint tableName="test_suite" columnNames="source_id,version"/>
+        <addUniqueConstraint tableName="test_suite" columnNames="name,source_id,version"/>
     </changeSet>
 
 </databaseChangeLog>

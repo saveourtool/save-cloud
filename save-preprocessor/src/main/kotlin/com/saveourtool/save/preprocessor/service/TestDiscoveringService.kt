@@ -46,7 +46,9 @@ class TestDiscoveringService(
         version: String,
     ): Mono<List<TestSuite>> {
         log.info { "Starting to save new test suites for root test config in $repositoryPath" }
-        return Mono.fromCallable { getRootTestConfig(repositoryPath.absolutePathString()) }
+        return Mono.just(repositoryPath)
+            .map { it.resolve(testSuitesSourceDto.testRootPath) }
+            .map { getRootTestConfig(it.absolutePathString()) }
             .zipWhen { rootTestConfig ->
                 log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
                 discoverAndSaveAllTestSuites(
