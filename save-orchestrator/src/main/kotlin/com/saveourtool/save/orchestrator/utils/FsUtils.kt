@@ -32,6 +32,7 @@ internal fun Path.tryMarkAsExecutable() {
  * @receiver target directory
  * @param user name of the new owner
  */
+@Suppress("KDOC_NEWLINES_BEFORE_BASIC_TAGS")  // will be fixed in diktat 1.2.2
 internal fun Path.changeOwnerRecursively(user: String) {
     val lookupService = fileSystem.userPrincipalLookupService
     toFile().walk().forEach { file ->
