@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.animations.ringLoader
+import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
 import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.topBarComponent
 
@@ -116,7 +117,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         }
     }
 
-    modal { modalProps ->
+    modal(loaderModalStyle) { modalProps ->
         modalProps.isOpen = loadingState.isLoadingModalOpen
         div {
             className = ClassName("d-flex justify-content-center mt-4")
