@@ -4626,6 +4626,7 @@
             "type": "string",
             "enum": [
               "AI",
+              "ALL",
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
