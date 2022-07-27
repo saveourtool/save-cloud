@@ -51,6 +51,8 @@ mysql:
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
+  # Name of the database schema that will be used by save-cloud deployment
+  schema: save_cloud
   migrations:
     # Whether database migrations should be executed while deploying the application
     enabled: false
