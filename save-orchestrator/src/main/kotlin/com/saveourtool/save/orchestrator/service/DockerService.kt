@@ -21,6 +21,7 @@ import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
+import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 
 import com.github.dockerjava.api.DockerClient
 import org.apache.commons.io.file.PathUtils
@@ -302,17 +303,6 @@ class DockerService(
             """.trimMargin()
         ).also {
             log.debug("Successfully built base image id=$it")
-        }
-    }
-
-    private fun changeOwnerRecursively(directory: Path, user: String) {
-        // orchestrator is executed as root (to access docker socket), but files are in a shared volume
-        val lookupService = directory.fileSystem.userPrincipalLookupService
-        directory.toFile().walk().forEach { file ->
-            Files.getFileAttributeView(file.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
-                setGroup(lookupService.lookupPrincipalByGroupName(user))
-                setOwner(lookupService.lookupPrincipalByName(user))
-            }
         }
     }
 

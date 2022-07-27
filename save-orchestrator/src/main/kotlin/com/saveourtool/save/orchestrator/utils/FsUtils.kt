@@ -6,7 +6,9 @@ package com.saveourtool.save.orchestrator.utils
 
 import com.saveourtool.save.utils.warn
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.name
 
@@ -21,5 +23,18 @@ internal fun Path.tryMarkAsExecutable() {
         Files.setPosixFilePermissions(this, Files.getPosixFilePermissions(this) + allExecute)
     } catch (ex: UnsupportedOperationException) {
         logger.warn(ex) { "Failed to mark file ${this.name} as executable" }
+    }
+}
+
+/**
+ * Change owner of all files under [directory] to user named [user]
+ */
+internal fun changeOwnerRecursively(directory: Path, user: String) {
+    val lookupService = directory.fileSystem.userPrincipalLookupService
+    directory.toFile().walk().forEach { file ->
+        Files.getFileAttributeView(file.toPath(), PosixFileAttributeView::class.java, LinkOption.NOFOLLOW_LINKS).apply {
+            setGroup(lookupService.lookupPrincipalByGroupName(user))
+            setOwner(lookupService.lookupPrincipalByName(user))
+        }
     }
 }
