@@ -65,4 +65,11 @@ JpaSpecificationExecutor<Contest> {
         contestIds: Set<Long>,
         pageable: Pageable,
     ): Page<Contest>
+
+    /**
+     * @param organizationName
+     * @param pageable
+     * @return [Page] of [Contest]s that belong to organization with name [organizationName]
+     */
+    fun findByOrganizationName(organizationName: String, pageable: Pageable): Page<Contest>
 }

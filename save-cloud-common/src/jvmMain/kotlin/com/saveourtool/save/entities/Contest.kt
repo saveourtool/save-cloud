@@ -87,7 +87,7 @@ class Contest(
          */
         fun ContestDto.toContest(
             organization: Organization,
-            testSuiteIds: List<Long> = emptyList(),
+            testSuiteIds: String = "",
             status: ContestStatus = ContestStatus.CREATED,
         ) = Contest(
             name,
@@ -95,7 +95,7 @@ class Contest(
             startTime,
             endTime,
             organization,
-            testSuiteIds.joinToString(","),
+            testSuiteIds,
             description,
         )
     }
