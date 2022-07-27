@@ -34,7 +34,8 @@ val loaderModalStyle = Styles(
 )
 
 /**
- * @param block
+ * @param injectedStyle css style that you can add to the modal window
+ * @param block invoked properties
  */
 fun ChildrenBuilder.modal(
     injectedStyle: Styles = defaultModalStyle,
