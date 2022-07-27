@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
+import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
@@ -97,23 +98,24 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     }
 
     init {
-        state.userInfo
+        state.userInfo = null
     }
 
     override fun componentDidMount() {
         getUser()
     }
 
+    @Suppress("TOO_LONG_FUNCTION", "NULLABLE_PROPERTY_TYPE")
     private fun getUser() {
         scope.launch {
-            val userInfoNew: UserInfo? = get(
+            val userName: String? = get(
                 "${window.location.origin}/sec/user",
                 Headers().also { it.set("Accept", "application/json") },
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+                if (!ok || responseText == "null") null else responseText
             }
 
             val globalRole: Role? = get(
@@ -125,9 +127,15 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
+
+            val user: UserInfo? = userName
+                ?.let { getUser(it) }
+
+            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew.copy(globalRole = globalRole)
+                    userInfo = userInfoNew
                 }
             }
         }
