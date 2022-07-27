@@ -7,6 +7,7 @@ package com.saveourtool.save.entities.benchmarks
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Suppress("WRONG_DECLARATIONS_ORDER")
 /**
  * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark)
  */
