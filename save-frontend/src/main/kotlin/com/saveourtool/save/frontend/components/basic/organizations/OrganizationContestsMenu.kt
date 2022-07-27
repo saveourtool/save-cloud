@@ -83,11 +83,6 @@ external interface OrganizationContestsMenuProps : Props {
     var organizationName: String
 
     /**
-     * Information about current user
-     */
-    var currentUserInfo: UserInfo
-
-    /**
      * [Role] of user that is observing this component
      */
     var selfRole: Role
@@ -96,11 +91,6 @@ external interface OrganizationContestsMenuProps : Props {
      * Callback to show error message
      */
     var updateErrorMessage: (Response) -> Unit
-
-    /**
-     * Callback to show notification message
-     */
-    var updateNotificationMessage: (String, String) -> Unit
 }
 
 /**

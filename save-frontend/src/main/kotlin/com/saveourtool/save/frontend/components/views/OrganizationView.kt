@@ -468,7 +468,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderContests() {
         organizationContestsMenu {
             organizationName = props.organizationName
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             selfRole = state.selfRole
             updateErrorMessage = {
                 setState {
@@ -477,7 +476,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
                 }
             }
-            updateNotificationMessage = ::showNotification
         }
     }
 

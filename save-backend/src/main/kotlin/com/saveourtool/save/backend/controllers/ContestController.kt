@@ -226,7 +226,7 @@ internal class ContestController(
     @Operation(
         method = "POST",
         summary = "Update contest.",
-        description = "Change contest settings.",
+        description = "Change existing contest settings.",
     )
     @Parameters(
         Parameter(name = "contestRequest", `in` = ParameterIn.DEFAULT, description = "name of an organization", required = true),
