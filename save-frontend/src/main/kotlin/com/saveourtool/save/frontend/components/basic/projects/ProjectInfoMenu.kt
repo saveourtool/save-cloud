@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.CONTESTS
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -116,7 +117,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                         li {
                             className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
                             a {
-                                href = "#/contests/${it.contestName}"
+                                href = "#/$CONTESTS/${it.contestName}"
                                 className = ClassName("stretched-link")
                             }
                             scoreCard {

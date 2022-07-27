@@ -15,10 +15,10 @@ config.devServer = Object.assign(
         {
           bypass: (req, res) => {
             if (req.url.endsWith("/sec/user")) {
-              return res.send({
-                // mocked UserInfo object
-                name: "admin"
-              });
+              return res.send(
+                // mocked userName
+                "admin"
+              );
             } else if (req.url.endsWith("/sec/oauth-providers")) {
               return res.send([])
             }

@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
+import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
@@ -100,16 +101,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         state.userInfo = null
     }
 
+    override fun componentDidMount() {
+        getUser()
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "NULLABLE_PROPERTY_TYPE")
     private fun getUser() {
         scope.launch {
-            val userInfoNew: UserInfo? = get(
+            val userName: String? = get(
                 "${window.location.origin}/sec/user",
                 Headers().also { it.set("Accept", "application/json") },
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+                if (!ok || responseText == "null") null else responseText
             }
 
             val globalRole: Role? = get(
@@ -121,16 +127,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
+
+            val user: UserInfo? = userName
+                ?.let { getUser(it) }
+
+            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew.copy(globalRole = globalRole)
+                    userInfo = userInfoNew
                 }
             }
         }
-    }
-
-    override fun componentDidMount() {
-        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -147,6 +155,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                         div {
                             className = ClassName("container-fluid")
+                            id = "common-save-container"
                             Routes {
                                 Route {
                                     path = "/"
@@ -156,17 +165,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/awesome-benchmarks"
+                                    path = "/$AWESOME_BENCHMARKS"
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/contests/:contestName"
+                                    path = "/$CONTESTS/:contestName"
                                     element = contestView.create()
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/profile"
+                                    path = "/${state.userInfo?.name}/$SETTINGS_PROFILE"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsProfileMenuView::class.react.create {
                                             userName = it
@@ -175,7 +184,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/email"
+                                    path = "/${state.userInfo?.name}/$SETTINGS_EMAIL"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsEmailMenuView::class.react.create {
                                             userName = it
@@ -184,7 +193,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/token"
+                                    path = "/${state.userInfo?.name}/$SETTINGS_TOKEN"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsTokenMenuView::class.react.create {
                                             userName = it
@@ -193,7 +202,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/organizations"
+                                    path = "/${state.userInfo?.name}/$SETTINGS_ORGANIZATIONS"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsOrganizationsMenuView::class.react.create {
                                             userName = it
@@ -202,24 +211,24 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/creation"
+                                    path = "/$CREATE_PROJECT"
                                     element = CreationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/createOrganization"
+                                    path = "/$CREATE_ORGANIZATION"
                                     element = CreateOrganizationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/projects"
+                                    path = "/$PROJECTS"
                                     element = CollectionView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }
                                 }
 
                                 Route {
-                                    path = "/contests"
+                                    path = "/$CONTESTS"
                                     element = ContestListView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }
