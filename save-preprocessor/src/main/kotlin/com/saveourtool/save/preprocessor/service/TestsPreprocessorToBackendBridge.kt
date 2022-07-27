@@ -21,6 +21,8 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
 
+typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
+
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
  */
@@ -71,12 +73,12 @@ class TestsPreprocessorToBackendBridge(
      * @param testSuitesSource
      * @return list of [TestSuitesSourceSnapshotKey] related to [testSuitesSource]
      */
-    fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Flux<TestSuitesSourceSnapshotKey> =
+    fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Mono<TestSuitesSourceSnapshotKeyList> =
             webClientBackend.get()
                 .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/list-snapshot",
                     testSuitesSource.organizationName, testSuitesSource.name)
                 .retrieve()
-                .bodyToFlux()
+                .bodyToMono()
 
     /**
      * @param organizationName

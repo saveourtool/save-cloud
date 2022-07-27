@@ -279,11 +279,12 @@ fun testResourcesSelection(
         className = ClassName(cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS))
         div {
             className = ClassName("card-body")
-            suitesTable(
-                props.standardTestSuites,
-                props.selectedLanguageForStandardTests,
-                setSelectedLanguageForStandardTests
-            )
+            suitesTable {
+                selectedStandardSuites = props.selectedStandardSuites
+                suites = props.standardTestSuites
+                selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
+                this.setSelectedLanguageForStandardTests = setSelectedLanguageForStandardTests
+            }
 
             setAdditionalPropertiesForStandardMode(
                 props.execCmd,

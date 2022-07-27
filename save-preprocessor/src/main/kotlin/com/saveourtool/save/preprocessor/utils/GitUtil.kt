@@ -37,7 +37,7 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
     ?.also { defaultBranch ->
         log.debug { "Getting default branch name $defaultBranch for httpUrl $url" }
     }
-    ?.replace(Constants.R_HEADS, "${Constants.DEFAULT_REMOTE_NAME}/")
+    ?.replace(Constants.R_HEADS, "")
     ?: throw IllegalStateException("Couldn't detect default branch name for $url")
 
 /**

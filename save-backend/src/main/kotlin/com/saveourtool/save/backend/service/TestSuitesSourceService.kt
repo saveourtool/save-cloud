@@ -100,11 +100,11 @@ class TestSuitesSourceService(
     )
 
     /**
-     * @return [TestSuitesSource] for STANDARD tests or null
+     * @return list of [TestSuitesSource] for STANDARD tests or empty
      */
-    fun findStandardTestSuitesSource(): TestSuitesSource? {
-        val git = gitService.findByUrl(STANDARD_TEST_SUITE_URL) ?: return null
-        return testSuitesSourceRepository.findAllByGit(git).firstOrNull()
+    fun findStandardTestSuitesSource(): List<TestSuitesSource> {
+        val git = gitService.findByUrl(STANDARD_TEST_SUITE_URL) ?: return emptyList()
+        return testSuitesSourceRepository.findAllByGit(git)
     }
 
     companion object {

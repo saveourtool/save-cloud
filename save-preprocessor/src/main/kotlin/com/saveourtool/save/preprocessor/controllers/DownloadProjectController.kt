@@ -35,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
@@ -194,10 +195,11 @@ class DownloadProjectController(
 
     private fun TestSuitesSourceDto.getLatestVersion(): Mono<String> =
             testsPreprocessorToBackendBridge.listTestSuitesSourceVersions(this)
-                .reduce { max, next ->
-                    if (max.creationTime > next.creationTime) max else next
+                .flatMap { keys ->
+                    keys.maxByOrNull { it.creationTime }
+                        ?.version
+                        .toMono()
                 }
-                .map { it.version }
 
     /**
      * Accept execution rerun request

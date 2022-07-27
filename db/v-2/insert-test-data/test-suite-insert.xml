@@ -91,4 +91,10 @@
             <column name="version" valueComputed="id"/>
         </insert>
     </changeSet>
+
+    <changeSet id="add-test_suites_source" author="nulls">
+        <update tableName="test_suite">
+            <column name="source_id" value="1" />
+        </update>
+    </changeSet>
 </databaseChangeLog>

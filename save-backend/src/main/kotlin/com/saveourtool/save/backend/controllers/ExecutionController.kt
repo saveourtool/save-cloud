@@ -12,6 +12,8 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.backend.utils.orNotFound
+import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.toSdk
@@ -43,6 +45,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -268,7 +271,12 @@ class ExecutionController(private val executionService: ExecutionService,
                     Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
                 }
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .map { it.getTestRootPath() }
+                .flatMap { it.getTestRootPathByTestSuites()
+                    .distinct()
+                    .singleOrNull()
+                    .toMono()
+                }
+                .switchIfEmptyToNotFound()
 
     /**
      * Accepts a request to rerun an existing execution
@@ -329,14 +337,9 @@ class ExecutionController(private val executionService: ExecutionService,
                 NoSuchElementException()
             }
         }
-        ?.map {
-            it.source.testRootPath
-        }
+        ?.mapNotNull { it.source }
+        ?.map { it.testRootPath }
         .orEmpty()
-
-    private fun Execution.getTestRootPath(): String = getTestRootPathByTestSuites()
-        .distinct()
-        .single()
 
     private fun Execution.getTestSuiteRepoUrl(): String = parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
