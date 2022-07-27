@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.components.basic.contests.showContestCreati
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 import org.w3c.fetch.Headers
 
