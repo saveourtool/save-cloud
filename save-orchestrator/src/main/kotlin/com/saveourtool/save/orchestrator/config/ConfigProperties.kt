@@ -71,6 +71,9 @@ data class ConfigProperties(
         val serviceAccount: String,
         val namespace: String,
         val useGvisor: Boolean,
+        val pvcAnnotations: String,
+        val pvcSize: String,
+        val pvcStorageClass: String,
     )
 
     /**
