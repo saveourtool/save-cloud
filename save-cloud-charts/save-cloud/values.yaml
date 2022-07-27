@@ -139,7 +139,8 @@ promtail:
             - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
-  tag: 2.5.0
+  image:
+    tag: 2.5.0
   persistence:
     enabled: true
   config:

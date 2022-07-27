@@ -7,7 +7,8 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.docker.DockerPvId
+import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
@@ -67,6 +68,7 @@ class AgentsControllerTest {
     }
 
     @Test
+    @Suppress("TOO_LONG_FUNCTION")
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
@@ -76,9 +78,10 @@ class AgentsControllerTest {
             resourcesRootPath = "resourcesRootPath"
             id = 42L
         }
-        whenever(dockerService.buildBaseImage(any<Execution>())).thenReturn("test-image-id" to "test-exec-cmd")
-        whenever(dockerService.createContainers(any(), any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
-        // /addAgents
+        whenever(dockerService.prepareConfiguration(any())).thenReturn(
+            DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
+        )
+        whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         mockServer.enqueue(
             "/addAgents.*",
             MockResponse()
@@ -86,7 +89,6 @@ class AgentsControllerTest {
                 .addHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf<Long>(1, 2)))
         )
-        // /updateAgentStatuses
         mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
@@ -102,8 +104,8 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).buildBaseImage(any<Execution>())
-        verify(dockerService).createContainers(any(), any(), any())
+        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }
 

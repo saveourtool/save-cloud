@@ -2,6 +2,7 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 
 import com.github.dockerjava.api.DockerClient
@@ -20,7 +21,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.createTempFile
 
 @ExtendWith(SpringExtension::class)
@@ -50,6 +50,7 @@ class DockerContainerManagerTest {
                 it.repoTags?.contains("ubuntu:latest") == true
             }
             .id
+        dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
 
     @Test
@@ -58,10 +59,9 @@ class DockerContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = dockerAgentRunner.create(
             executionId = 42,
-            baseImageId = baseImageId,
+            configuration = DockerService.RunConfiguration(baseImageId, "./script.sh", DockerPvId("test-volume")),
             replicas = 1,
             workingDir = "/",
-            agentRunCmd = "./script.sh",
         ).single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
@@ -69,7 +69,7 @@ class DockerContainerManagerTest {
 
         Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertArrayEquals(
-            arrayOf("-c", "env \$(cat .env | xargs) ./script.sh"),
+            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) ./script.sh"),
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
@@ -83,10 +83,8 @@ class DockerContainerManagerTest {
     @Test
     @Suppress("UnsafeCallOnNullableType")
     fun `should build an image with provided resources`() {
-        val resourcesDir = createTempDirectory()
-        repeat(5) { createTempFile(resourcesDir) }
-        testImageId = dockerContainerManager.buildImageWithResources(
-            imageName = "test:test", baseDir = resourcesDir.toFile(), resourcesTargetPath = "/app/resources"
+        testImageId = dockerContainerManager.buildImage(
+            imageName = "test:test"
         )
         val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
         Assertions.assertTrue(inspectImageResponse.size!! > 0)
@@ -100,5 +98,6 @@ class DockerContainerManagerTest {
         if (::testImageId.isInitialized) {
             dockerClient.removeImageCmd(testImageId).exec()
         }
+        dockerClient.removeVolumeCmd("test-volume").exec()
     }
 }
