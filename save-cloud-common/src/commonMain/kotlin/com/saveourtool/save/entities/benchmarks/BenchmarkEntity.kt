@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  * Enum that represents categories that could be used for grouping benchmarks (they should be selected for each benchmark)
  */
 enum class BenchmarkCategoryEnum {
-    AI,
     ALL,
+    AI,
     AUDIT,
     CODING_STANDARD,
     PERFORMANCE,
