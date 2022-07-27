@@ -28,6 +28,9 @@ internal fun Path.tryMarkAsExecutable() {
 
 /**
  * Change owner of all files under [directory] to user named [user]
+ *
+ * @param directory target directory
+ * @param user name of the new owner
  */
 internal fun changeOwnerRecursively(directory: Path, user: String) {
     val lookupService = directory.fileSystem.userPrincipalLookupService
