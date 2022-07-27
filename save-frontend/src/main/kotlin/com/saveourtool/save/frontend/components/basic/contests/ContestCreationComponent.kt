@@ -99,7 +99,7 @@ fun ChildrenBuilder.showContestCreationModal(
     }
 }
 
-private fun String.toLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(LocalDate.parse(this), time)
+private fun String.dateToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(LocalDate.parse(this), time)
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -122,10 +122,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
     val onSaveButtonPressed = useRequest {
         val response = post(
             "$apiUrl/contests/create",
-            Headers().apply {
-                set("Accept", "application/json")
-                set("Content-Type", "application/json")
-            },
+            jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
         )
@@ -174,7 +171,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             "col-6",
                             "Starting time",
                         ) {
-                            setContestDto(contestDto.copy(startTime = it.target.value.toLocalDateTime()))
+                            setContestDto(contestDto.copy(startTime = it.target.value.dateToLocalDateTime()))
                         }
                         inputDateFormRequired(
                             InputTypes.CONTEST_END_TIME,
@@ -182,7 +179,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             "col-6",
                             "Ending time",
                         ) {
-                            setContestDto(contestDto.copy(endTime = it.target.value.toLocalDateTime(LocalTime(23, 59, 59))))
+                            setContestDto(contestDto.copy(endTime = it.target.value.dateToLocalDateTime(LocalTime(23, 59, 59))))
                         }
                     }
                     // ==== Contest description
