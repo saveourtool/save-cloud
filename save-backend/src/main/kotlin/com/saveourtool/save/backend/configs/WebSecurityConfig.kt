@@ -109,7 +109,7 @@ class WebSecurityConfig(
             "/api/$v1/check-git-connectivity-adaptor",
             "/api/$v1/allStandardTestSuites",
             // `OrganizationView` is a public page
-            //fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
+            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
             "/api/$v1/organization/**",
             "/api/$v1/projects/get/projects-by-organization",
             // `ContestListView` and `ContestView` are public pages
