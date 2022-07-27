@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.LocalDateTime
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
