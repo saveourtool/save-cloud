@@ -152,7 +152,6 @@ internal class ContestController(
     }
 
     @GetMapping("/by-organization")
-    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -168,7 +167,6 @@ internal class ContestController(
     fun getOrganizationContests(
         @RequestParam organizationName: String,
         @RequestParam(required = false, defaultValue = "10") pageSize: Int,
-        authentication: Authentication?,
     ): Flux<ContestDto> = Flux.fromIterable(
         contestService.findPageOfContestsByOrganizationName(organizationName, Pageable.ofSize(pageSize))
     )
