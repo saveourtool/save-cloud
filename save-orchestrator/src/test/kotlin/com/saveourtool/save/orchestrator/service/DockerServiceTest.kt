@@ -6,6 +6,7 @@ import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
+import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -48,6 +49,7 @@ import kotlin.io.path.pathString
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
+    DockerPersistentVolumeService::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
@@ -64,8 +66,11 @@ class DockerServiceTest {
             resourcesRootPath = "foo"
             id = 42L
         }
-        val (baseImageId, agentRunCmd) = dockerService.buildBaseImage(testExecution)
-        testContainerId = dockerService.createContainers(testExecution.id!!, baseImageId, agentRunCmd).single()
+        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testExecution)
+        testContainerId = dockerService.createContainers(
+            testExecution.id!!,
+            DockerService.RunConfiguration(baseImageId, agentRunCmd, pvId)
+        ).single()
         logger.debug("Created container $testContainerId")
 
         // start container and query backend
