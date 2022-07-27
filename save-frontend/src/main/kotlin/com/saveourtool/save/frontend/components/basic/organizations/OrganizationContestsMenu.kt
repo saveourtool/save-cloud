@@ -120,11 +120,6 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
     "ComplexMethod"
 )
 private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
-    if (!wasConfirmationModalShown) {
-        showGlobalRoleWarning()
-    }
-
     val (isToUpdateTable, setIsToUpdateTable) = useState(false)
     val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
     showContestCreationModal(

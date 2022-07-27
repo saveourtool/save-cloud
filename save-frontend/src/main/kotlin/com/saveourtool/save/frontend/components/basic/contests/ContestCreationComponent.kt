@@ -89,7 +89,7 @@ fun ChildrenBuilder.showContestCreationModal(
             className = ClassName("d-flex justify-content-center")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-secondary mt-4 mr-3")
+                className = ClassName("btn btn-secondary mt-4")
                 +"Cancel"
                 onClick = {
                     onClose()

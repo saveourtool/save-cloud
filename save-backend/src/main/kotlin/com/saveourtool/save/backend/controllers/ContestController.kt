@@ -251,9 +251,6 @@ internal class ContestController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have enough permissions to edit this contest."))
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find contest with name ${contestRequest.name}"))
-        }
         .map { (organization, contest) ->
             contestService.updateContest(
                 contestRequest.toContest(organization, contest.testSuiteIds, contest.status).apply { id = contest.id }
