@@ -111,12 +111,13 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
 private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
     val (isToUpdateTable, setIsToUpdateTable) = useState(false)
     val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
+    val refreshTable = { setIsToUpdateTable { !it } }
     showContestCreationModal(
         props.organizationName,
         isContestCreationModalOpen,
         {
             setIsContestCreationModalOpen(false)
-            setIsToUpdateTable { !it }
+            refreshTable()
         },
         {
             setIsContestCreationModalOpen(false)
