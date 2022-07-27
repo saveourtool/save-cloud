@@ -9,6 +9,7 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 
@@ -32,6 +33,11 @@ external interface ScoreCardProps : Props {
      * Score of a project in a contest
      */
     var contestScore: Double
+
+    /**
+     * Url to the project
+     */
+    var url: String?
 }
 
 /**
@@ -87,7 +93,15 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                     alignItems = AlignItems.center
                                     alignSelf = AlignSelf.center
                                 }
-                                +props.name
+
+                                props.url?.let {
+                                    ReactHTML.a {
+                                        href = props.url
+                                        +props.name
+                                    }
+                                } ?: run {
+                                    +props.name
+                                }
                             }
                         }
                         div {
