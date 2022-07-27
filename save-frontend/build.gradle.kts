@@ -22,6 +22,8 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
@@ -68,7 +70,14 @@ kotlin {
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("animate.css", "^4.1.1"))
+            implementation(npm("react-scroll-motion", "^0.3.0"))
+            implementation(npm("react-spinners", "0.13.0", generateExternals = true))
+            implementation(npm("react-tsparticles", "1.42.1"))
+            implementation(npm("tsparticles", "2.1.3"))
             implementation(npm("jquery", "3.6.0"))
+            // can be very useful for CSS animation:
+            // implementation(npm("animate.css", "4.1.1"))
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
