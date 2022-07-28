@@ -6,20 +6,24 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
+import com.saveourtool.save.frontend.CONTESTS
+import com.saveourtool.save.frontend.PROJECTS
+import com.saveourtool.save.frontend.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
-import csstype.Display
-import csstype.FontSize
-import csstype.FontWeight
+import csstype.*
+import org.w3c.dom.HTML.a
 import org.w3c.fetch.Headers
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -100,11 +104,20 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("main-content mt-0 ps")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
+                style = jso {
+                    background =
+                            "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
                 }
 
                 div {
+                    Particles::class.react {
+                        id = "tsparticles"
+                        url = "${window.location.origin}/particles.json"
+                    }
+
                     className = ClassName("row")
                     // Marketing information
                     div {
@@ -115,7 +128,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         marketingTitle("Evaluation")
                         h3 {
                             className = ClassName("mt-4")
-                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
+                            +"Advanced cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
@@ -135,6 +148,34 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
             }
+
+            div {
+                className = ClassName("min-vh-100")
+                style = jso {
+                    background =
+                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+                }
+
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
+
+                div {
+                    className = ClassName("align-items-center justify-content-center")
+                    scrollContainer {
+                        scrollPage {
+                            animator {
+                                animation = fade
+                                span {
+                                    style = jso {
+                                        fontSize = "40px".unsafeCast<FontSize>()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -143,7 +184,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         div {
             className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
             div {
-                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
+                style = jso {
+                    backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                }
                 h4 {
                     className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
                     +"Sign in"
@@ -151,11 +195,13 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div {
                     className = ClassName("row")
                     state.oauthProviders?.map {
-                        oauthLogin(it, when (it.registrationId) {
-                            "github" -> faGithub
-                            "codehub" -> faCopyright
-                            else -> faSignInAlt
-                        })
+                        oauthLogin(
+                            it, when (it.registrationId) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                else -> faSignInAlt
+                            }
+                        )
                     }
                 }
             }
@@ -176,9 +222,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     p {
                         className = ClassName("text-sm text-center")
                         h4 {
+                            style = jso {
+                                color = "#3075c0".unsafeCast<Color>()
+                            }
                             a {
-                                className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                                href = "#/projects"
+                                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+                                href = "#/$PROJECTS"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -195,7 +244,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         div {
             className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
             div {
-                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
+                style = jso {
+                    backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                }
                 h4 {
                     className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
                     div {
@@ -205,50 +257,23 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                             fontAwesomeIcon(icon = faHome)
                         }
                     }
-                    +"Welcome ${props.userInfo?.name}!"
+                    +"Welcome, ${props.userInfo?.name}!"
                 }
             }
         }
 
         div {
             className = ClassName("card-body")
-            p {
-                className = ClassName("mt-4 text-sm")
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "#/projects"
-                    h4 {
-                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
-                        +"List of Projects"
-                    }
-                }
+            div {
+                className = ClassName("text-sm")
 
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/awesome-benchmarks"
-                    h4 {
-                        fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
-                        +"Benchmarks Archive"
-                    }
-                }
-
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${props.userInfo?.name}/settings/email"
-                    h4 {
-                        fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
-                        +"User Settings"
-                    }
-                }
-
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/contests"
-                    h4 {
-                        fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
-                        +"Contests"
-                    }
-                }
+                menuTextAndLink("Contests", "/#/$CONTESTS", faBell)
+                hrNoMargin()
+                menuTextAndLink("List of Projects", "#/$PROJECTS", faExternalLinkAlt)
+                hrNoMargin()
+                menuTextAndLink("Benchmarks Archive", "/#/$AWESOME_BENCHMARKS", faFolderOpen)
+                hrNoMargin()
+                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/$SETTINGS_EMAIL", faUser)
             }
         }
     }
@@ -291,7 +316,30 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    companion object : RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
+    private fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) =
+            a {
+                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+                href = link
+                h4 {
+                    style = jso {
+                        color = "#3075c0".unsafeCast<Color>()
+                        marginBottom = "0.0em".unsafeCast<Margin>()
+                    }
+                    fontAwesomeIcon(icon = icon, "ml-2 mr-2")
+                    +text
+                }
+            }
+
+    private fun ChildrenBuilder.hrNoMargin() =
+            ReactHTML.hr {
+                style = jso {
+                    marginTop = "0.0em".unsafeCast<Margin>()
+                    marginBottom = "0.0em".unsafeCast<Margin>()
+                }
+            }
+
+    companion object :
+        RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
         init {
             contextType = requestStatusContext
         }

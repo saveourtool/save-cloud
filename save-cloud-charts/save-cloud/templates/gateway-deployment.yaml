@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway
+  annotations:
+    prometheus.io/port: {{ .Values.gateway.managementPort | quote }}
   labels:
     {{- include "common.labels" (merge (dict "service" .Values.gateway) .) | nindent 4 }}
 spec:
@@ -23,7 +25,7 @@ spec:
             - name: OAUTH_CONFIG_PATH
               value: /home/cnb/secrets/oauth
             - name: JAVA_TOOL_OPTIONS
-              value: -XX:ReservedCodeCacheSize=48M
+              value: -XX:ReservedCodeCacheSize=48M -Dreactor.netty.http.server.accessLogEnabled=true
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
           resources:
             limits:

@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.CREATE_ORGANIZATION
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.InputTypes
@@ -299,7 +300,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                 div {
                     className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("col-sm-4")
+                        className = ClassName("col-sm-4 mt-5")
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
@@ -314,7 +315,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         className = ClassName("btn btn-primary mb-2")
                                         a {
                                             className = ClassName("text-light")
-                                            href = "#/createOrganization/"
+                                            href = "#/$CREATE_ORGANIZATION/"
                                             +"Add new organization"
                                         }
                                     }

@@ -47,7 +47,7 @@ class WebSecurityConfig(
             .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png")
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
             .permitAll()
     }
         .and()
@@ -109,8 +109,17 @@ class WebSecurityConfig(
             "/api/$v1/check-git-connectivity-adaptor",
             "/api/$v1/allStandardTestSuites",
             // `OrganizationView` is a public page
+            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
             "/api/$v1/organization/**",
             "/api/$v1/projects/get/projects-by-organization",
+            // `ContestListView` and `ContestView` are public pages
+            "/api/$v1/contests/*",
+            "/api/$v1/contests/active",
+            "/api/$v1/contests/finished",
+            "/api/$v1/contests/*/public-test",
+            "/api/$v1/contests/*/by-organization",
+            "/api/$v1/contests/*/scores",
+            "/api/$v1/contests/*/*/best",
         )
     }
 }

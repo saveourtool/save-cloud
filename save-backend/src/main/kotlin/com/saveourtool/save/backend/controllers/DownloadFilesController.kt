@@ -192,7 +192,7 @@ class DownloadFilesController(
             part.filename()
         )
         val content = part.content().map { it.asByteBuffer() }
-        avatarStorage.upload(avatarKey, content).map {
+        avatarStorage.upsert(avatarKey, content).map {
             logger.info("Saved $it bytes of $avatarKey")
             ImageInfo(avatarKey.getRelativePath())
         }

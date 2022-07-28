@@ -118,8 +118,12 @@
     - Operation
     - Parameters
     - Parameter
+    - JsName
 - name: MISSING_KDOC_ON_FUNCTION
   ignoreAnnotated:
     - Operation
     - Parameters
     - Parameter
+- name: MISSING_KDOC_TOP_LEVEL
+  ignoreAnnotated:
+    - JsName

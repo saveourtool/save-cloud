@@ -9,8 +9,10 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -157,7 +159,7 @@ external interface OrganizationViewState : State {
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val table = tableComponent(
+    private val tableWithProjects = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                 Fragment.create {
@@ -271,6 +273,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             OrganizationMenuBar.TOOLS -> renderTools()
             OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
+            OrganizationMenuBar.CONTESTS -> renderContests()
         }
     }
 
@@ -316,7 +319,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         @Suppress("MAGIC_NUMBER")
         div {
             className = ClassName("row")
-            style = jso<CSSProperties> {
+            style = jso {
                 justifyContent = JustifyContent.center
             }
             renderTopProject(topProjects?.getOrNull(2))
@@ -406,7 +409,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderTools() {
         div {
             className = ClassName("row justify-content-center")
-            // ===================== RIGHT COLUMN =======================================================================
             div {
                 className = ClassName("col-6")
                 div {
@@ -414,7 +416,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     +"Projects"
                 }
 
-                table {
+                tableWithProjects {
                     getData = { _, _ ->
                         getProjectsFromCache()
                     }
@@ -459,6 +461,20 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             div {
                 className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
                 +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
+            }
+        }
+    }
+
+    private fun ChildrenBuilder.renderContests() {
+        organizationContestsMenu {
+            organizationName = props.organizationName
+            selfRole = state.selfRole
+            updateErrorMessage = {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
+                }
             }
         }
     }
@@ -575,6 +591,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             scoreCard {
                 name = topProject.name
                 contestScore = topProject.contestRating.toDouble()
+                url = "#/${props.organizationName}/${topProject.name}"
             }
         }
     }
@@ -582,7 +599,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
         div {
-            className = ClassName("row")
+            className = ClassName("row d-flex justify-content-between")
             div {
                 className = ClassName("col-3 ml-auto")
                 style = jso {
@@ -619,7 +636,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mx-0")
+                className = ClassName("col-auto mx-0")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
@@ -629,7 +646,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 nav {
                     className = ClassName("nav nav-tabs")
                     OrganizationMenuBar.values()
-                        .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                        .filter {
+                            it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                        }
+                        .filter {
+                            it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
+                        }
                         .forEachIndexed { i, projectMenu ->
                             li {
                                 className = ClassName("nav-item")
@@ -655,7 +677,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mr-auto")
+                className = ClassName("col-2 mr-auto")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
@@ -668,7 +690,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         className = ClassName("btn btn-primary")
                         a {
                             className = ClassName("text-light")
-                            href = "#/creation/"
+                            href = "#/$CREATE_PROJECT/"
                             +"+ New Tool"
                         }
                     }
