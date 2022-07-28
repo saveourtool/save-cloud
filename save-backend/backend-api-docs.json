@@ -176,7 +176,7 @@
         "tags": [
           "organization-controller"
         ],
-        "operationId": "changeCanCreateContests",
+        "operationId": "setAbilityToCreateContest",
         "parameters": [
           {
             "name": "organizationName",
@@ -187,7 +187,7 @@
             }
           },
           {
-            "name": "newCanCreateContests",
+            "name": "isAbleToCreateContests",
             "in": "query",
             "required": true,
             "schema": {
@@ -214,7 +214,7 @@
         "tags": [
           "organization-controller"
         ],
-        "operationId": "changeCanCreateContests_1",
+        "operationId": "setAbilityToCreateContest_1",
         "parameters": [
           {
             "name": "organizationName",
@@ -225,7 +225,7 @@
             }
           },
           {
-            "name": "newCanCreateContests",
+            "name": "isAbleToCreateContests",
             "in": "query",
             "required": true,
             "schema": {
@@ -4859,8 +4859,8 @@
           "category": {
             "type": "string",
             "enum": [
-              "AI",
               "ALL",
+              "AI",
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
