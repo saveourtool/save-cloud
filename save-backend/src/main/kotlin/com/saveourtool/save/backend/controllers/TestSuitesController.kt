@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
 import org.quartz.Scheduler
@@ -59,8 +60,12 @@ class TestSuitesController(
      */
     @PostMapping("/internal/test-suite/names-by-ids")
     fun findAllTestSuiteNamesByIds(@RequestBody ids: List<Long>) = ids
-        .mapNotNull { id ->
-            testSuitesService.findTestSuiteById(id)?.name
+        .map { id ->
+            testSuitesService.findTestSuiteById(id)
+                .orNotFound {
+                    "TestSuite (id=$id) not found"
+                }
+                .name
         }
         .distinct()
         .let {

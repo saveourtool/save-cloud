@@ -8,11 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.reactive.function.BodyExtractors.toMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 import java.io.SequenceInputStream
 import java.nio.ByteBuffer
@@ -95,5 +97,13 @@ fun <T> Mono<ResponseEntity<T>>.forbiddenIfEmpty() = defaultIfEmpty(ResponseEnti
  * @return [Mono] containing [data] or [Mono.error] with 404 status otherwise
  */
 fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchIfEmptyToNotFound {
+    message
+}
+
+/**
+ * @param message
+ * @return [Mono] containing current object or [Mono.error] with 404 status otherwise
+ */
+fun <T : Any> T?.toMonoOrNotFound(message: String? = null) = toMono<T>().switchIfEmptyToNotFound {
     message
 }

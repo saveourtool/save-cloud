@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.toSdk
@@ -104,7 +105,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecution(
         @RequestParam id: Long,
         authentication: Authentication?
-    ): Mono<Execution> = justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
+    ): Mono<Execution> = executionService.findExecution(id).toMonoOrNotFound( "Execution with id=$id is not found")
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
@@ -126,7 +127,8 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(executionService.findExecution(executionId))
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
                 .map { it.toDto() }
 
@@ -266,10 +268,8 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
     @Transactional
     fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-            Mono.justOrEmpty(executionService.findExecution(id))
-                .switchIfEmpty() {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+            executionService.findExecution(id)
+                .toMonoOrNotFound()
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
                 .flatMap { it.getTestRootPathByTestSuites()
                     .distinct()
@@ -290,9 +290,8 @@ class ExecutionController(private val executionService: ExecutionService,
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
-        val execution = executionService.findExecution(id).orElseThrow {
-            IllegalArgumentException("Can't rerun execution $id, because it does not exist")
-        }
+        val execution = executionService.findExecution(id)
+            ?: throw IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         if (!projectPermissionEvaluator.hasPermission(
             authentication, execution.project, Permission.WRITE
         )) {
@@ -368,12 +367,12 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     private fun Flux<Long>.findPresentExecutions(): Flux<Execution> = collectMap({ id -> id }) { id -> executionService.findExecution(id) }
         .flatMapMany { idsToExecutions ->
-            idsToExecutions.filterValues { it.isEmpty }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
+            idsToExecutions.filterValues { it == null }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
                 log.warn("Cannot delete executions with ids=${missingExecutions.keys} because they are missing in the DB")
                 if (missingExecutions.size == idsToExecutions.size) {
                     return@flatMapMany Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "All executions are missing"))
                 }
             }
-            Flux.fromIterable(idsToExecutions.mapValues { it.value.get() }.values)
+            Flux.fromIterable(idsToExecutions.mapValues { it.value }.values)
         }
 }

@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -17,7 +16,7 @@ import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
@@ -38,15 +37,17 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.io.path.*
 
 /**
@@ -78,28 +79,18 @@ class AgentsController(
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
-            val tempDirectory = createTempDirectory()
             log.info {
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
-                        "status=${execution.status}, workDirectory=${tempDirectory}]"
+                        "status=${execution.status}]"
             }
-            Mono.fromCallable { createTempDirectory() }
-                .map { it.resolve(TEST_SUITES_DIR_NAME) }
-                .flatMap { resourcesPath ->
-                    execution.parseAndGetAdditionalFiles()
-                        .toFlux()
-                        .flatMap { fileKey ->
-                            val pathToFile = resourcesPath.resolve(fileKey.name)
-                            (fileKey to execution).downloadTo(pathToFile)
-                                .map { unzipIfRequired(pathToFile) }
-                        }
-                        .collectList()
-                        .switchIfEmpty(Mono.just(emptyList()))
-                        .map { resourcesPath }
-                }
-                .flatMap { resourcesPath ->
+            Mono.fromCallable { createTempDirectory(prefix = "save-execution-${execution.id}") }
+                .flatMap { resourcesForExecution ->
+                    val resourcesPath = resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
                     execution.downloadTestsTo(resourcesPath)
-                        .map { resourcesPath }
+                        .map {
+                            execution.downloadAdditionalFilesTo(resourcesPath)
+                        }
+                        .map { resourcesForExecution }
                 }
                 .publishOn(agentService.scheduler)
                 .map {
@@ -134,31 +125,6 @@ class AgentsController(
         }
     }
 
-    private fun createTempDirectory(): Path = Files.createTempDirectory(
-        Paths.get(configProperties.testResources.basePath),
-        "image"
-    )
-
-    private fun getTestRootPath(execution: Execution): Mono<String> = when (execution.type) {
-        ExecutionType.STANDARD -> Mono.just(with(execution) {
-            if (execCmd.isNullOrBlank() && batchSizeForAnalyzer.isNullOrBlank()) {
-                ""
-            } else {
-                STANDARD_TEST_SUITE_DIR
-            }
-        })
-        ExecutionType.GIT -> webClientBackend.post()
-            .uri("/findTestRootPathForExecutionByTestSuites")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(execution)
-            .retrieve()
-            .bodyToMono<List<String>>()
-            .map {
-                it.distinct().single()
-            }
-        else -> throw NotImplementedError("Not supported executionType ${execution.type}")
-    }
-
     // if some additional file is archive, unzip it into proper destination:
     // for standard mode into STANDARD_TEST_SUITE_DIR
     // for Git mode into testRootPath
@@ -188,6 +154,21 @@ class AgentsController(
         }
     }
 
+    private fun Execution.downloadAdditionalFilesTo(
+        targetDirectory: Path
+    ): Mono<Unit> = parseAndGetAdditionalFiles()
+        .toFlux()
+        .flatMap { fileKey ->
+            val pathToFile = targetDirectory.resolve(fileKey.name)
+            (fileKey to this).downloadTo(pathToFile)
+                .map { unzipIfRequired(pathToFile) }
+        }
+        .collectList()
+        .switchIfEmpty(Mono.just(emptyList()))
+        .map {
+            log.info { "Downloaded all additional files for execution $id to $targetDirectory" }
+        }
+
     private fun Pair<FileKey, Execution>.downloadTo(
         pathToFile: Path
     ): Mono<Unit> = this.let { (fileKey, execution) ->
@@ -216,25 +197,25 @@ class AgentsController(
 
     private fun Execution.downloadTestsTo(
         targetDirectory: Path
-    ): Mono<Unit> {
-        return getTestSuites()
-            .toFlux()
-            .flatMap { it.downloadTestsTo(targetDirectory) }
-            .collectList()
-            .map {
-                log.info {
-                    "Downloaded all tests for execution $id to $targetDirectory"
-                }
-            }
-    }
+    ): Mono<Unit> = getTestSuitesSourceSnapshotKeys()
+        .flatMapMany { Flux.fromIterable(it) }
+        .index()
+        .flatMap { (index, key) ->
+            val testSuiteSourceDir = targetDirectory / "test-suite-source-$index"
+            key.downloadTestsTo(testSuiteSourceDir)
+        }
+        .collectList()
+        .map {
+            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
+        }
 
-    private fun TestSuiteDto.downloadTestsTo(
+    private fun TestSuitesSourceSnapshotKey.downloadTestsTo(
         targetDirectory: Path
     ): Mono<Unit> = webClientBackend.post()
         .uri(
             "/test-suites-source/{organizationName}/{sourceName}/download-snapshot?version={version}",
-            source.organizationName,
-            source.name,
+            organizationName,
+            testSuitesSourceName,
             version,
         )
         .contentType(MediaType.APPLICATION_JSON)
@@ -243,7 +224,7 @@ class AgentsController(
         .bodyToFlux<DataBuffer>()
         .let { content ->
             targetDirectory.createDirectories()
-            val targetFile = targetDirectory.resolve(version + ARCHIVE_EXTENSION)
+            val targetFile = Files.createTempFile(targetDirectory, "archive-", ARCHIVE_EXTENSION)
             targetFile.createFile()
             DataBufferUtils.write(content, targetFile.outputStream())
                 .map { DataBufferUtils.release(it) }
@@ -256,21 +237,15 @@ class AgentsController(
         }
         .map {
             log.debug {
-                "Downloaded tests from test suites source (${source.name} in ${source.organizationName} with version $version) to $targetDirectory"
+                "Downloaded tests from test suites source ($testSuitesSourceName in $organizationName with version $version) to $targetDirectory"
             }
         }
 
-    private fun Execution.getTestSuites(): List<TestSuiteDto> = parseAndGetTestSuiteIds()
-        ?.let {
-            webClientBackend.post()
-                .uri("/test-suite/get-by-ids")
-                .bodyValue(it)
-                .retrieve()
-                .bodyToMono<List<TestSuiteDto>>()
-                .block()!!
-        }.orConflict {
-            "Execution (id=$id) doesn't contain testSuiteIds"
-        }
+    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<List<TestSuitesSourceSnapshotKey>> = webClientBackend.post()
+            .uri("/test-suites-source/list-snapshot-by-execution-id")
+            .bodyValue(this.requiredId())
+            .retrieve()
+            .bodyToMono()
 
     private fun <T> reportExecutionError(
         execution: Execution,

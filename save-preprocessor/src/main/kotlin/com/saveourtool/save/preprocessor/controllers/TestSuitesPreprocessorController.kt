@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import kotlin.io.path.div
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -84,7 +85,8 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto.branch,
         sha1
     ) { repositoryDirectory, creationTime ->
-        gitPreprocessorService.archiveToTar(repositoryDirectory) { archive ->
+        val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
+        gitPreprocessorService.archiveToTar(testRootPath) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSourceDto,
                 sha1,

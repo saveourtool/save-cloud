@@ -2,19 +2,18 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.ResourceResponse
-import com.saveourtool.save.backend.service.GitService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.backend.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.orConflict
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,9 +22,11 @@ import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
 typealias TestSuiteList = List<TestSuite>
+typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
 
 /**
  * Controller for [TestSuitesSource]
@@ -38,6 +39,7 @@ class TestSuitesSourceController(
     private val testSuitesService: TestSuitesService,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
+    private val executionService: ExecutionService,
 ) {
     /**
      * @param organizationName
@@ -181,6 +183,47 @@ class TestSuitesSourceController(
             version
         )
     }
+
+    /**
+     * @param executionId
+     * @return selected [TestSuitesSourceDto] with versions for [com.saveourtool.save.entities.Execution] found by provided values
+     */
+    @GetMapping("/list-snapshot-by-execution-id")
+    fun getByExecutionId(
+        @RequestParam executionId: Long
+    ): Mono<TestSuitesSourceSnapshotKeyList> = executionService.findExecution(executionId)
+        .toMono()
+        .switchIfEmptyToNotFound { "Execution (id=$executionId) not found" }
+        .flatMap { execution ->
+            execution.parseAndGetTestSuiteIds()
+                .toMono()
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Execution (id=$executionId) doesn't contain testSuiteIds"
+                }
+        }
+        .flatMapMany { testSuitesIds ->
+            testSuitesIds.asSequence()
+                .map { testSuiteId ->
+                    testSuitesService.findTestSuiteById(testSuiteId)
+                        .orNotFound { "TestSuite (id=$testSuiteId) not found" }
+                        .toDto()
+                }
+                .map {
+                    Triple(it.source.organizationName, it.source.name, it.version)
+                }
+                .distinct()
+                .toFlux()
+                .flatMap { (organizationName, sourceName, version) ->
+                    testSuitesSourceSnapshotStorage.findKey(organizationName, sourceName, version)
+                        .switchIfEmptyToNotFound {
+                            "Not found snapshot key for test suites source $sourceName in $organizationName with version $version"
+                        }
+                }
+        }
+        .collectList()
+
+
+
 
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()

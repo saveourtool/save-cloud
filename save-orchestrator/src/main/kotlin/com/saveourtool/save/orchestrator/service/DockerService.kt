@@ -22,6 +22,7 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.utils.orConflict
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
@@ -196,23 +197,14 @@ class DockerService(
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun prepareImageAndVolumeForExecution(dockerImageLocation: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        val originalResourcesPath = dockerImageLocation.toFile()
-
-        val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
-        originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
-
-        val saveCliExecFlags = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
-            ?.let { configData ->
-                // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-                resourcesForExecution.resolve(STANDARD_TEST_SUITE_DIR)
-                    .resolve("save.toml")
-                    .apply { createFile() }
-                    .writeText(configData)
-                // collect standard test suites for docker image, which were selected by user, if any
-                " $STANDARD_TEST_SUITE_DIR --include-suites \"${execution.getTestSuiteNames()}\""
-            }
-            ?: ""
+    private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+        // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
+        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
+            .resolve("save.toml")
+            .apply { createFile() }
+            .writeText(createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer))
+        // collect test suite names, which were selected by user
+        val saveCliExecFlags = " $TEST_SUITES_DIR_NAME --include-suites \"${execution.getTestSuiteNames()}\""
 
         // include save-agent into the image
         PathUtils.copyFile(
@@ -346,9 +338,3 @@ internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
  * @return whether [imageName] refers to a base image for save execution
  */
 internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-base-")
-
-/**
- * @param testSuiteDto
- */
-internal fun getLocationInStandardDirForTestSuite(testSuiteDto: TestSuiteDto) =
-        "$PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE${testSuiteDto.source.gitDto.url.hashCode()}_${testSuiteDto.source.testRootPath.hashCode()}"

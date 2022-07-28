@@ -333,45 +333,13 @@ class AgentService(
             .uri("/testSuite/${tests.first().testSuiteId}")
             .retrieve()
             .bodyToMono<TestSuite>()
-            .map { testSuite ->
-                // FIXME: a hardcoded value of url for standard test suites
-                testSuite.source.git.url == "https://github.com/saveourtool/save-cli"
-            }
-            .flatMap { isStandardMode ->
-                if (isStandardMode) {
-                    // in standard mode for each test get proper prefix location, since we created extra directories
-                    // parent location for each test under one test suite is the same, so we can group them as the following
-                    Flux.fromIterable(tests.groupBy { it.testSuiteId }.values).flatMap { testGroup ->
-                        webClientBackend.get()
-                            .uri("/testSuite/${testGroup.first().testSuiteId}")
-                            .retrieve()
-                            .bodyToMono<TestSuite>()
-                            .flatMapIterable { testSuite ->
-                                val locationInStandardDir = getLocationInStandardDirForTestSuite(testSuite.toDto())
-                                testGroup.map { test ->
-                                    val testFilePathInStandardDir =
-                                            Paths.get(locationInStandardDir)
-                                                .resolve(Paths.get(test.filePath))
-                                    FilenameUtils.separatorsToUnix(testFilePathInStandardDir.toString())
-                                }
-                            }
-                    }
-                        .collectList()
-                        .map { isStandardMode to it }
-                } else {
-                    Mono.fromCallable {
-                        isStandardMode to tests.map {
-                            it.filePath
-                        }
-                    }
+            .map {
+                tests.map {
+                    it.filePath
                 }
             }
-            .map { (isStandardMode, testPaths) ->
-                val cliArgs = if (!isStandardMode) {
-                    suitesToArgs.values.first()
-                } else {
-                    ""
-                } + " " + testPaths.joinToString(" ")
+            .map { testPaths ->
+                val cliArgs = suitesToArgs.values.first() + " " + testPaths.joinToString(" ")
                 log.debug("Constructed cli args for SAVE-cli: $cliArgs")
                 cliArgs
             }
