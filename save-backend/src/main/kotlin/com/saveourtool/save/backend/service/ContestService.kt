@@ -80,7 +80,7 @@ class ContestService(
     fun getTestSuiteForPublicTest(contest: Contest) = contest.getTestSuiteIds()
         .firstOrNull()
         ?.let {
-            testSuitesService.findTestSuiteById(it)?.getOrNull()
+            testSuitesService.findTestSuiteById(it)
         }
 
     /**

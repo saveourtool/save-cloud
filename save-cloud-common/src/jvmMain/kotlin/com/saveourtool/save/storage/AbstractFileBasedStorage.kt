@@ -109,7 +109,6 @@ abstract class AbstractFileBasedStorage<K>(
 
     companion object {
         const val DEFAULT_PROJECT_LOCATION = "default"
-        private const val KEY_SUFFIX = ".key"
     }
 
     /**

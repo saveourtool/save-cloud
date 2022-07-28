@@ -13,15 +13,13 @@ import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
+import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.*
 import io.fabric8.kubernetes.client.KubernetesClientException
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.exception.ZipException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
@@ -49,13 +47,7 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.attribute.PosixFilePermission
-
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createDirectories
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.name
-import kotlin.io.path.outputStream
+import kotlin.io.path.*
 
 /**
  * Controller used to start agents with needed information
@@ -86,35 +78,30 @@ class AgentsController(
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
+            val tempDirectory = createTempDirectory()
             log.info {
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
-                        "status=${execution.status}]"
+                        "status=${execution.status}, workDirectory=${tempDirectory}]"
             }
-            getTestRootPath(execution)
-                .subscribeOn(agentService.scheduler)
-                .switchIfEmpty(
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Failed detect testRootPath for execution.id = ${execution.requiredId()}"
-                        )
-                    )
-                )
-                .flatMap { testRootPath ->
-                    val dockerImageLocation = createTempDirectory()
-                    val filesLocation = dockerImageLocation.resolve(testRootPath)
-                    execution.parseAndGetAdditionalFiles()
-                        .toFlux()
-                        .flatMap { fileKey ->
-                            val pathToFile = filesLocation.resolve(fileKey.name)
-                            (fileKey to execution).downloadTo(pathToFile)
-                                .map { unzipIfRequired(pathToFile) }
-                        }
-                        .collectList()
-                        .switchIfEmpty(Mono.just(emptyList()))
-                        .map {
-                            dockerImageLocation
-                        }
+            val resourcePath = tempDirectory.resolve(TEST_SUITES_DIR_NAME)
+            Mono.fromCallable {
+                execution.parseAndGetAdditionalFiles()
+                    .toFlux()
+                    .flatMap { fileKey ->
+                        val pathToFile = resourcePath.resolve(fileKey.name)
+                        (fileKey to execution).downloadTo(pathToFile)
+                            .map { unzipIfRequired(pathToFile) }
+                    }
+                    .collectList()
+                    .switchIfEmpty(Mono.just(emptyList()))
+                    .map {
+                        resourcePath
+                    }
+            }.map {
+                execution.downloadTestsTo(resourcePath)
+            }
+                .map {
+
                 }
                 .publishOn(agentService.scheduler)
                 .map {
@@ -184,7 +171,7 @@ class AgentsController(
         // FixMe: for now support only .zip files
         if (pathToFile.name.endsWith(".zip")) {
             val shouldBeExecutable = Files.getPosixFilePermissions(pathToFile).any { allExecute.contains(it) }
-            pathToFile.unzipHere()
+            pathToFile.extractZipHereSafely()
             if (shouldBeExecutable) {
                 log.info { "Marking files in ${pathToFile.parent} executable..." }
                 Files.walk(pathToFile.parent)
@@ -195,13 +182,11 @@ class AgentsController(
         }
     }
 
-    private fun Path.unzipHere() {
-        log.debug { "Unzip ${this.absolutePathString()} into ${this.parent.absolutePathString()}" }
+    private fun Path.extractZipHereSafely() {
         try {
-            val zipFile = ZipFile(this.toString())
-            zipFile.extractAll(this.parent.toString())
-        } catch (e: ZipException) {
-            log.error("Error occurred during extracting of archive ${this.name}", e)
+            extractZipHere()
+        } catch (e: Exception) {
+            log.error("Error occurred during extracting of archive $name", e)
         }
     }
 
@@ -230,6 +215,64 @@ class AgentsController(
                 }
             )
     }
+
+    private fun Execution.downloadTestsTo(
+        targetDirectory: Path
+    ): Mono<Unit> {
+        return getTestSuites()
+            .toFlux()
+            .flatMap { it.downloadTestsTo(targetDirectory) }
+            .collectList()
+            .map {
+                log.info {
+                    "Downloaded all tests for execution $id to $targetDirectory"
+                }
+            }
+    }
+
+    private fun TestSuiteDto.downloadTestsTo(
+        targetDirectory: Path
+    ): Mono<Unit> = webClientBackend.post()
+        .uri(
+            "/test-suites-source/{organizationName}/{sourceName}/download-snapshot?version={version}",
+            source.organizationName,
+            source.name,
+            version,
+        )
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_OCTET_STREAM)
+        .retrieve()
+        .bodyToFlux<DataBuffer>()
+        .let { content ->
+            targetDirectory.createDirectories()
+            val targetFile = targetDirectory.resolve(version + ARCHIVE_EXTENSION)
+            targetFile.createFile()
+            DataBufferUtils.write(content, targetFile.outputStream())
+                .map { DataBufferUtils.release(it) }
+                .collectList()
+                .map { targetFile }
+        }
+        .map {
+            it.extractZipHere()
+            it.deleteExisting()
+        }
+        .map {
+            log.debug {
+                "Downloaded tests from test suites source (${source.name} in ${source.organizationName} with version $version) to $targetDirectory"
+            }
+        }
+
+    private fun Execution.getTestSuites(): List<TestSuiteDto> = parseAndGetTestSuiteIds()
+        ?.let {
+            webClientBackend.post()
+                .uri("/test-suite/get-by-ids")
+                .bodyValue(it)
+                .retrieve()
+                .bodyToMono<List<TestSuiteDto>>()
+                .block()!!
+        }.orConflict {
+            "Execution (id=$id) doesn't contain testSuiteIds"
+        }
 
     private fun <T> reportExecutionError(
         execution: Execution,

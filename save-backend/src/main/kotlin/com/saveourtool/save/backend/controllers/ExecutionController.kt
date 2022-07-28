@@ -12,7 +12,6 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
-import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
@@ -25,6 +24,7 @@ import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
@@ -332,20 +332,18 @@ class ExecutionController(private val executionService: ExecutionService,
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this
         .parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
+            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
+                "Can't find test suite with id=$testSuiteId for executionId=$id"
             }
         }
-        ?.mapNotNull { it.source }
+        ?.map { it.source }
         ?.map { it.testRootPath }
         .orEmpty()
 
     private fun Execution.getTestSuiteRepoUrl(): String = parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
+            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
+                "Can't find test suite with id=$testSuiteId for executionId=$id"
             }
         }
         ?.mapNotNull {

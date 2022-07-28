@@ -6,43 +6,42 @@ package com.saveourtool.save.utils
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.examples.Archiver
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.utils.IOUtils
-import java.nio.file.*
-import kotlin.io.path.inputStream
-import kotlin.io.path.outputStream
+import org.apache.commons.compress.archivers.examples.Expander
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 const val ARCHIVE_EXTENSION = ".${ArchiveStreamFactory.ZIP}"
 
+private val log: Logger = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
+private val archiver = Archiver()
+private val expander = Expander()
+
 /**
- * Extract path as TAR archive to provided directory
+ * Extract path as ZIP archive to provided directory
  *
  * @param targetPath
  */
-@Suppress("NestedBlockDepth")
-fun Path.extractTarTo(targetPath: Path) {
-    this.inputStream().use { buffIn ->
-        TarArchiveInputStream(buffIn).use { archiveIn ->
-            generateSequence { archiveIn.nextTarEntry }.forEach { archiveEntry ->
-                val extractedPath = targetPath.resolve(archiveEntry.name)
-                if (archiveEntry.isDirectory) {
-                    Files.createDirectories(extractedPath)
-                } else {
-                    extractedPath.outputStream().buffered().use {
-                        IOUtils.copy(archiveIn, it)
-                    }
-                }
-            }
-        }
-    }
+fun Path.extractZipTo(targetPath: Path) {
+    log.debug { "Unzip ${absolutePathString()} into ${targetPath.absolutePathString()}" }
+    expander.expand(ArchiveStreamFactory.ZIP, toFile(), targetPath.toFile())
 }
 
 /**
- * Compress path as TAR archive to provided file
+ * Extract path as ZIP archive to parent
+ */
+fun Path.extractZipHere() {
+    extractZipTo(parent)
+}
+
+/**
+ * Compress path as ZIP archive to provided file
  *
  * @param targetPath
  */
 @Suppress("NestedBlockDepth")
 fun Path.compressAsZipTo(targetPath: Path) {
-    Archiver().create(ArchiveStreamFactory.ZIP, targetPath, this)
+    log.debug { "Zip ${absolutePathString()} into ${targetPath.absolutePathString()}" }
+    archiver.create(ArchiveStreamFactory.ZIP, targetPath, this)
 }

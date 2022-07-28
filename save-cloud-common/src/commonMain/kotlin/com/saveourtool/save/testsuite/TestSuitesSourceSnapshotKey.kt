@@ -8,10 +8,6 @@ import kotlinx.serialization.Serializable
  * @param testSuitesSourceName
  * @param version
  * @param creationTime
- * @property organizationName
- * @property testSuitesSourceName
- * @property version
- * @property creationTime
  */
 @Serializable
 data class TestSuitesSourceSnapshotKey(
@@ -55,6 +51,19 @@ data class TestSuitesSourceSnapshotKey(
      */
     fun getCreationTimeInMills(): Long = creationTime.toInstant(TimeZone.UTC)
         .toEpochMilliseconds()
+
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return true if object contains provided values
+     */
+    fun equalsTo(
+        organizationName: String,
+        testSuitesSourceName: String,
+        version: String,
+    ): Boolean = this.organizationName == organizationName && this.testSuitesSourceName == testSuitesSourceName && this.version == version
 
     companion object {
         private val creationTimeZoneId = TimeZone.UTC

@@ -55,23 +55,27 @@ class TestSuitesController(
 
     /**
      * @param ids list of test suite ID
-     * @return response with test suites with id from provided list
-     */
-    @PostMapping("/internal/findAllTestSuiteDtoByIds")
-    fun findAllTestSuiteDtoByIds(@RequestBody ids: List<Long>) =
-            ResponseEntity.status(HttpStatus.OK)
-                .body(ids.map { id -> testSuitesService.findTestSuiteById(id).map { it.toDto() } })
-
-    /**
-     * @param ids list of test suite ID
      * @return response with names of test suite with id from provided list
      */
     @PostMapping("/internal/test-suite/names-by-ids")
     fun findAllTestSuiteNamesByIds(@RequestBody ids: List<Long>) = ids
-        .map { id ->
-            testSuitesService.findTestSuiteById(id).map { it.name }
+        .mapNotNull { id ->
+            testSuitesService.findTestSuiteById(id)?.name
         }
         .distinct()
+        .let {
+            ResponseEntity.status(HttpStatus.OK).body(it)
+        }
+
+    /**
+     * @param ids list of test suite ID
+     * @return response with test suites with id from provided list
+     */
+    @PostMapping("/internal/test-suite/get-by-ids")
+    fun findAllTestSuitesByIds(@RequestBody ids: List<Long>): ResponseListTestSuites = ids
+        .mapNotNull { id ->
+            testSuitesService.findTestSuiteById(id)?.toDto()
+        }
         .let {
             ResponseEntity.status(HttpStatus.OK).body(it)
         }

@@ -1,5 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.ResourceResponse
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
@@ -16,6 +18,7 @@ import com.saveourtool.save.utils.info
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
@@ -86,8 +89,33 @@ class TestSuitesSourceController(
                     log.info { "Saved ($writtenBytes bytes) snapshot of ${key.testSuitesSourceName} in ${key.organizationName} with version $version" }
                 }
             }
-
         }
+
+    /**
+     * Download snapshot of [TestSuitesSource] with [version]
+     *
+     * @param organizationName
+     * @param name
+     * @param version
+     * @return resource response
+     */
+    @PostMapping("/{organizationName}/{name}/download-snapshot", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadSnapshot(
+        @PathVariable organizationName: String,
+        @PathVariable name: String,
+        @RequestParam version: String,
+    ): Mono<ByteBufferFluxResponse> = testSuitesSourceSnapshotStorage.findKey(organizationName, name, version)
+        .map {
+            ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(testSuitesSourceSnapshotStorage.download(it))
+        }
+        .onErrorReturn(
+            ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .build()
+        )
 
     /**
      * @param organizationName
@@ -142,7 +170,7 @@ class TestSuitesSourceController(
      * @param version
      * @return list of test suites from snapshot with [version] of [TestSuitesSource] found by [organizationName] and [name]
      */
-    @GetMapping("/{organizationName}/{name}/get-test-suites?version={version}")
+    @GetMapping("/{organizationName}/{name}/get-test-suites")
     fun getTestSuites(
         @PathVariable organizationName: String,
         @PathVariable name: String,

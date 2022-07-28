@@ -94,27 +94,23 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  * @return synthetic toml config data
  */
 // FixMe: Use serialization after ktoml upgrades
-fun createSyntheticTomlConfig(execCmd: String?, batchSizeForAnalyzer: String?): String? {
-    if (execCmd.isNullOrBlank() && batchSizeForAnalyzer.isNullOrBlank()) {
-        return null
+fun createSyntheticTomlConfig(execCmd: String?, batchSizeForAnalyzer: String?): String {
+    val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd = \"$execCmd\""
+    val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {
+        ""
     } else {
-        val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd = \"$execCmd\""
-        val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {
-            ""
-        } else {
-            """
-            |[fix]
-            |    batchSize = $batchSizeForAnalyzer
-            |[warn]
-            |    batchSize = $batchSizeForAnalyzer
-            """.trimMargin()
-        }
-        return """
-               |[general]
-               |$exeCmdForTomlConfig
-               |$batchSizeForTomlConfig
-               """.trimMargin()
+        """
+        |[fix]
+        |    batchSize = $batchSizeForAnalyzer
+        |[warn]
+        |    batchSize = $batchSizeForAnalyzer
+        """.trimMargin()
     }
+    return """
+           |[general]
+           |$exeCmdForTomlConfig
+           |$batchSizeForTomlConfig
+           """.trimMargin()
 }
 
 /**

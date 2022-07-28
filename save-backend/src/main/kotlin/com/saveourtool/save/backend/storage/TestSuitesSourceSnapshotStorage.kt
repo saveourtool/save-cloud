@@ -27,7 +27,7 @@ class TestSuitesSourceSnapshotStorage(
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
             pathToContent.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
-    @Suppress("MAGIC_NUMBER")
+    @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
         val pathNames = pathToContent.pathNamesTill(rootDir)
         return TestSuitesSourceSnapshotKey(
@@ -52,11 +52,24 @@ class TestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
-    ): Mono<Boolean> = list()
-        .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName && it.version == version }
-        .singleOrEmpty()
+    ): Mono<Boolean> = findKey(organizationName, testSuitesSourceName, version)
         .map { true }
         .defaultIfEmpty(false)
+
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return key which contains provided values
+     */
+    fun findKey(
+        organizationName: String,
+        testSuitesSourceName: String,
+        version: String,
+    ): Mono<TestSuitesSourceSnapshotKey> = list()
+        .filter { it.equalsTo(organizationName, testSuitesSourceName, version) }
+        .singleOrEmpty()
 
     /**
      * @param organizationName

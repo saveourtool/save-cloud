@@ -3,11 +3,11 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
@@ -74,7 +74,7 @@ class TestSuitesService(
     /**
      * @return all standard test suites
      */
-    fun getStandardTestSuites() = testSuitesSourceService.findStandardTestSuitesSource()
+    fun getStandardTestSuites() = testSuitesSourceService.findStandardTestSuitesSources()
         .flatMap { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource) }
         .map { it.toDto() }
 
@@ -82,7 +82,7 @@ class TestSuitesService(
      * @param id
      * @return test suite with [id]
      */
-    fun findTestSuiteById(id: Long) = testSuiteRepository.findById(id)
+    fun findTestSuiteById(id: Long): TestSuite? = testSuiteRepository.findByIdOrNull(id)
 
     /**
      * @param id

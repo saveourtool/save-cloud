@@ -1,29 +1,23 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.orNotFound
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
  */
 @Service
-@RestController
-@RequestMapping("/internal/test-suites-source")
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
-    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
     private val gitService: GitService,
 ) {
     /**
@@ -50,17 +44,6 @@ class TestSuitesSourceService(
     fun getByName(organizationName: String, name: String): TestSuitesSource = findByName(organizationName, name)
         .orNotFound {
             "TestSuitesSource not found by name $name in $organizationName"
-        }
-
-    /**
-     * @param organization [TestSuitesSource.organization]
-     * @param name [TestSuitesSource.name]
-     * @return entity of [TestSuitesSource]
-     * @throws ResponseStatusException entity not found
-     */
-    fun getByName(organization: Organization, name: String) = findByName(organization, name)
-        .orNotFound {
-            "TestSuitesSource (name=$name in organization=${organization.name}) not found"
         }
 
     /**
@@ -102,7 +85,7 @@ class TestSuitesSourceService(
     /**
      * @return list of [TestSuitesSource] for STANDARD tests or empty
      */
-    fun findStandardTestSuitesSource(): List<TestSuitesSource> {
+    fun findStandardTestSuitesSources(): List<TestSuitesSource> {
         val git = gitService.findByUrl(STANDARD_TEST_SUITE_URL) ?: return emptyList()
         return testSuitesSourceRepository.findAllByGit(git)
     }
