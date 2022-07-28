@@ -160,6 +160,12 @@ internal class OrganizationController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
+        .filter {
+            organizationService.findByName(organization.name) != null
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "There already is an organization with name ${organization.name}"))
+        }
         .map { organizationFromDb ->
             organizationService.updateOrganization(
                 organization.copy(canCreateContests = organizationFromDb.canCreateContests).apply { id = organizationFromDb.id }
