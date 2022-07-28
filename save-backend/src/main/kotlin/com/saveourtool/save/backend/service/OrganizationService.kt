@@ -80,7 +80,7 @@ class OrganizationService(
      * @param organization
      * @return organization
      */
-    fun changeCanCreateContests(organization: Organization): Organization = organizationRepository.save(organization)
+    fun setAbilityToCreateContest(organization: Organization): Organization = organizationRepository.save(organization)
 
     /**
      * @param name

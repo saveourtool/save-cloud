@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
 import java.util.*
 
@@ -78,23 +79,31 @@ internal class OrganizationController(
      */
     @PostMapping("/{organizationName}/manage-contest-permission")
     @Suppress("UnsafeCallOnNullableType")
-    fun changeCanCreateContests(
+    fun setAbilityToCreateContest(
         @PathVariable organizationName: String,
-        @RequestParam newCanCreateContests: Boolean,
+        @RequestParam isAbleToCreateContests: Boolean,
         authentication: Authentication
-    ): Mono<StringResponse> = Mono.justOrEmpty(
-        Optional.ofNullable(
-            organizationService.findByName(organizationName)
-        )
+    ): Mono<StringResponse> = Mono.just(
+        organizationName
     )
+        .flatMap {
+            organizationService.findByName(organizationName).toMono()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
         .filter {
             organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
         }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+        }
         .map { organization ->
-            organizationService.changeCanCreateContests(organization.copy(canCreateContests = newCanCreateContests).apply { id = organization.id })
+            organizationService.setAbilityToCreateContest(
+                organization.copy(canCreateContests = isAbleToCreateContests).apply { id = organization.id }
+            )
             ResponseEntity.ok("Organization updated")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 
     /**
      * @param newOrganization newOrganization
@@ -135,15 +144,27 @@ internal class OrganizationController(
     fun updateOrganization(
         @RequestBody organization: Organization,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organization)
-        .filter {
-            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
+    ): Mono<StringResponse> = Mono.just(
+        organization.name
+    )
+        .flatMap {
+            organizationService.findByName(organization.name).toMono()
         }
-        .map {
-            organizationService.updateOrganization(organization)
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, organization.name, Role.OWNER)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+        }
+        .map { organizationFromDb ->
+            organizationService.updateOrganization(
+                organization.copy(canCreateContests = organizationFromDb.canCreateContests).apply { id = organizationFromDb.id }
+            )
             ResponseEntity.ok("Organization updated")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 
     /**
      * @param organizationName

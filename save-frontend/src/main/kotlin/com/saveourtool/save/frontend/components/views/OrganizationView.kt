@@ -535,7 +535,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         val headers = jsonHeaders
         scope.launch {
             val response = post(
-                "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?newCanCreateContests=${!state.organization!!.canCreateContests}",
+                "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
                 headers,
                 undefined,
                 loadingHandler = ::classLoadingHandler,
