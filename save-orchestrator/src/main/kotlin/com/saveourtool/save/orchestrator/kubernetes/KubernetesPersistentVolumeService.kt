@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
 import kotlin.io.path.createTempDirectory
 
@@ -26,10 +27,8 @@ class KubernetesPersistentVolumeService(
 ) : PersistentVolumeService {
     override fun createFromResources(resources: Collection<Path>): KubernetesPvId {
         requireNotNull(configProperties.kubernetes)
-
-        val tmpDir = createTempDirectory()
-        resources.forEach {
-            it.copyTo(tmpDir.resolve(it))
+        if (resources.size > 1) {
+            TODO("Not yet implemented")
         }
 
         @Language("yaml")
@@ -39,6 +38,7 @@ class KubernetesPersistentVolumeService(
                 |kind: PersistentVolumeClaim
                 |metadata:
                 |  generateName: save-execution-pv
+                |  namespace: ${configProperties.kubernetes.namespace}
                 |${configProperties.kubernetes.pvcAnnotations?.let { pvcAnnotations ->
                 "  annotations:\n" +
                     pvcAnnotations.lines().joinToString { "|    $it\n" }
@@ -53,7 +53,7 @@ class KubernetesPersistentVolumeService(
                 |#  NB: key `volumeName` is not needed here, otherwise provisioner won't attempt to create a PV automatically
                 |#  storageClassName: ${""/*configProperties.kubernetes.pvcStorageClass*/}
                 ${configProperties.kubernetes.pvcStorageSpec.let { pvcStorageSpec ->
-                    pvcStorageSpec.lines().joinToString { "|  $it\n" }
+                    pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
                 }}
             """.trimMargin().also {
                 logger.debug { "Creating PVC from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
@@ -61,7 +61,49 @@ class KubernetesPersistentVolumeService(
         ) as NamespaceableResource<PersistentVolumeClaim>
 
         val persistentVolumeClaim = resource.create()
-        return KubernetesPvId(persistentVolumeClaim.metadata.name)
+
+
+        @Language("yaml")
+        val sourceResourceVolume = kc.resource(
+            """
+                |apiVersion: v1
+                |kind: PersistentVolume
+                |metadata:
+                |  name: save-resources-tmp
+                |  namespace: ${configProperties.kubernetes.namespace}
+                |spec:
+                |  capacity:
+                |    storage: ${configProperties.kubernetes.pvcSize}
+                |  hostPath:
+                |    path: ${resources.single().absolutePathString()}
+            """.trimMargin().also {
+                logger.debug { "Creating PV from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
+            }
+        )
+        sourceResourceVolume.create()
+
+        @Language("yaml")
+        val sourceResource = kc.resource(
+            """
+                |apiVersion: v1
+                |kind: PersistentVolumeClaim
+                |metadata:
+                |  generateName: save-execution-source
+                |  namespace: ${configProperties.kubernetes.namespace}
+                |spec:
+                |  accessModes:
+                |    - ReadWriteMany
+                |  resources:
+                |    requests:
+                |      storage: ${configProperties.kubernetes.pvcSize}
+                |  volumeName: save-resources-tmp
+            """.trimMargin().also {
+                logger.debug { "Creating PVC from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
+            }
+        ) as NamespaceableResource<PersistentVolumeClaim>
+        val sourcePvc = sourceResource.create()
+
+        return KubernetesPvId(persistentVolumeClaim.metadata.name, sourcePvc.metadata.name)
     }
 
     companion object {

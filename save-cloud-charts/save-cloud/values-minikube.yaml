@@ -18,8 +18,8 @@ orchestrator:
     orchestrator.kubernetes.pvcSize=5Gi
     orchestrator.kubernetes.pvcStorageClass=manual
     # todo: check if this works
-    orchestrator.kubernetes.pvcStorageSpec=hostPath:\
-      path: /tmp/save/volumes
+    orchestrator.kubernetes.pvcStorageSpec=hostPath:\n\
+    \  path: /tmp/save/volumes
 mysql:
   external: false
   ip: nil

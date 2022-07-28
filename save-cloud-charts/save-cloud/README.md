@@ -25,6 +25,20 @@ $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud
 
 ## Local deployment
 * Install minikube: https://minikube.sigs.k8s.io/docs/start/
+* Database can be configured with `mysql.migrations.enabled=true` or port 3306 of mysql pod can be forwarded
+  and `liquibaseUpdate` can be executed manually. If needed, don't forget that JDBC URL for liquibase in dev profile
+  is read from `application-dev.properties` value `dev.datasource.url`.
+* Environment should be prepared:
+  ```bash
+  minikube ssh
+  docker@minikube:~$ sudo mkdir -p /tmp/save/repos
+  docker@minikube:~$ sudo chown -R 1000:1000 /tmp/save/repos
+  docker@minikube:~$ sudo mkdir -p /tmp/save/volumes
+  docker@minikube:~$ sudo chown -R 1000:1000 /tmp/save/volumes/
+  docker@minikube:~$ sudo vi /lib/systemd/system/docker.service  # change ExecSTart to allow HTTP connection to Docker daemon
+  docker@minikube:~$ sudo systemctl daemon-reload
+  docker@minikube:~$ sudo systemctl restart docker
+  ```
 * Install Helm chart using `values-minikube.yaml`: 
   ```bash
   $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud --values values-minikube.yaml

@@ -10,6 +10,7 @@ import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.utils.debug
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -69,6 +70,28 @@ class KubernetesManager(
                         }
                         // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
+                        initContainers = listOf(
+                            Container().apply {
+                                name = "save-vol-copier"
+                                image = "alpine:latest"
+                                command = listOf(
+                                    "sh", "-c",
+                                    "cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                                            " && chown -R 1100:1100 $EXECUTION_DIR" +
+                                            " && echo Successfully copied"
+                                )
+                                volumeMounts = listOf(
+                                    VolumeMount().apply {
+                                        name = "save-resources-tmp"
+                                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
+                                    },
+                                    VolumeMount().apply {
+                                        name = "save-execution-pvc"
+                                        mountPath = EXECUTION_DIR
+                                    }
+                                )
+                            }
+                        )
                         containers = listOf(
                             Container().apply {
                                 name = "save-agent-pod"
@@ -115,6 +138,12 @@ class KubernetesManager(
                             }
                         )
                         volumes = listOf(
+                            Volume().apply {
+                                name = "save-resources-tmp"
+                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
+                                    claimName = pvId.sourcePvcName
+                                }
+                            },
                             Volume().apply {
                                 name = "save-execution-pvc"
                                 persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
