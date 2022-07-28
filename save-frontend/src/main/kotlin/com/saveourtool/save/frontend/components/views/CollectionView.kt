@@ -3,8 +3,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.CREATE_ORGANIZATION
-import com.saveourtool.save.frontend.CREATE_PROJECT
+import com.saveourtool.save.CREATE_ORGANIZATION
+import com.saveourtool.save.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -19,7 +19,6 @@ import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button

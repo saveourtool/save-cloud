@@ -9,7 +9,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.CREATE_PROJECT
+import com.saveourtool.save.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu

@@ -7,6 +7,8 @@
 
 package com.saveourtool.save.utils
 
+import kotlinx.datetime.LocalDateTime
+
 expect enum class EnumType {
     /** Persist enumerated type property or field as an integer.  */
     ORDINAL,
@@ -16,4 +18,7 @@ expect enum class EnumType {
     ;
 }
 
-expect class LocalDateTime
+expect class LocalDateTime {
+    fun compareTo(other: LocalDateTime): Int
+
+}

@@ -7,7 +7,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
+import com.saveourtool.save.AWESOME_BENCHMARKS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*

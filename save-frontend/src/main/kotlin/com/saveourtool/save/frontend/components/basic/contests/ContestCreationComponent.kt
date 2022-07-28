@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.isNameValid
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -21,10 +22,10 @@ import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
 import kotlinx.browser.window
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.js.Date
 
 /**
  * Component that allows to create new contests
@@ -98,7 +99,19 @@ fun ChildrenBuilder.showContestCreationModal(
     }
 }
 
-private fun String.dateToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(LocalDate.parse(this), time)
+private fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(LocalDate.parse(this), time)
+
+private fun Date.toLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
+    LocalDate(getFullYear(), getMonth(), getDay()),
+    time,
+)
+
+
+
+private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null
+        || contestDto.startTime == null
+        || !isDateRangeValid(contestDto.startTime, contestDto.endTime)
+        || !isNameValid(contestDto.name)
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -107,12 +120,11 @@ private fun String.dateToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = L
     "AVOID_NULL_CHECKS"
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
-    val stubDateTime = LocalDateTime(1, 1, 1, 1, 1)
     val (contestDto, setContestDto) = useState(
         ContestDto(
             "",
-            stubDateTime,
-            stubDateTime,
+            null,
+            null,
             "",
             props.organizationName,
         )
@@ -144,7 +156,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
-                            true,
+                            isNameValid(contestDto.name),
                             "col-12",
                             "Contest name"
                         ) {
@@ -166,19 +178,19 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2 d-flex justify-content-between")
                         inputDateFormRequired(
                             InputTypes.CONTEST_START_TIME,
-                            true,
+                            isDateRangeValid(contestDto.startTime, contestDto.endTime),
                             "col-6",
                             "Starting time",
                         ) {
-                            setContestDto(contestDto.copy(startTime = it.target.value.dateToLocalDateTime()))
+                            setContestDto(contestDto.copy(startTime = it.target.value.dateStringToLocalDateTime()))
                         }
                         inputDateFormRequired(
                             InputTypes.CONTEST_END_TIME,
-                            true,
+                            isDateRangeValid(contestDto.startTime, contestDto.endTime),
                             "col-6",
                             "Ending time",
                         ) {
-                            setContestDto(contestDto.copy(endTime = it.target.value.dateToLocalDateTime(LocalTime(23, 59, 59))))
+                            setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
                         }
                     }
                     // ==== Contest description
@@ -199,10 +211,9 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 button {
                     type = ButtonType.button
                     className = ClassName("btn btn-primary")
+                    disabled = isButtonDisabled(contestDto)
+                    onClick = { onSaveButtonPressed() }
                     +"Create contest"
-                    onClick = {
-                        onSaveButtonPressed()
-                    }
                 }
             }
         }

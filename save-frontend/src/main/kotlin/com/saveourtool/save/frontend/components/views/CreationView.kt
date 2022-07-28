@@ -8,9 +8,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.CREATE_ORGANIZATION
+import com.saveourtool.save.CREATE_ORGANIZATION
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
 import com.saveourtool.save.frontend.components.basic.inputTextFormRequired

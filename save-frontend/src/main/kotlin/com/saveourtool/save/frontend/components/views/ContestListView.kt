@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.frontend.CONTESTS
+import com.saveourtool.save.CONTESTS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
@@ -16,7 +16,6 @@ import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.td

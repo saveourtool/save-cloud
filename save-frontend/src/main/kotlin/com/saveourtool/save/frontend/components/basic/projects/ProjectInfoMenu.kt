@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.CONTESTS
+import com.saveourtool.save.CONTESTS
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory

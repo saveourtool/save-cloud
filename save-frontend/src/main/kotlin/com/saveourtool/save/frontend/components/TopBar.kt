@@ -6,19 +6,16 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.*
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 
 import csstype.ClassName
 import csstype.rem
 import org.w3c.dom.HTMLButtonElement
 import react.*
-import react.dom.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
 import react.dom.html.ButtonType

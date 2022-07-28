@@ -6,10 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
-import com.saveourtool.save.frontend.CONTESTS
-import com.saveourtool.save.frontend.PROJECTS
-import com.saveourtool.save.frontend.SETTINGS_EMAIL
+import com.saveourtool.save.AWESOME_BENCHMARKS
+import com.saveourtool.save.CONTESTS
+import com.saveourtool.save.PROJECTS
+import com.saveourtool.save.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.animations.*

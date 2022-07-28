@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.*
@@ -17,7 +18,6 @@ import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 
 import csstype.ClassName
 import org.w3c.dom.HTMLElement
@@ -26,7 +26,6 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.dom.render
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter

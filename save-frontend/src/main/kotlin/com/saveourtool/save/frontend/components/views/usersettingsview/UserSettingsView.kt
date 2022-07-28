@@ -5,10 +5,10 @@
 package com.saveourtool.save.frontend.components.views.usersettingsview
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.frontend.SETTINGS_EMAIL
-import com.saveourtool.save.frontend.SETTINGS_ORGANIZATIONS
-import com.saveourtool.save.frontend.SETTINGS_PROFILE
-import com.saveourtool.save.frontend.SETTINGS_TOKEN
+import com.saveourtool.save.SETTINGS_EMAIL
+import com.saveourtool.save.SETTINGS_ORGANIZATIONS
+import com.saveourtool.save.SETTINGS_PROFILE
+import com.saveourtool.save.SETTINGS_TOKEN
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
