@@ -4,6 +4,7 @@ dockerTag: latest  # this should be set explicitly during chart installation
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
+pullPolicy: IfNotPresent
 backend:
   name: backend
   profile: dev,secure,kubernetes
@@ -50,6 +51,7 @@ mysql:
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
+  schema: save_cloud
   migrations:
     # Whether database migrations should be executed while deploying the application
     enabled: false

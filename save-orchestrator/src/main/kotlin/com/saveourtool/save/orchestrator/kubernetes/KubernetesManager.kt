@@ -9,6 +9,8 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.utils.debug
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
@@ -73,14 +75,15 @@ class KubernetesManager(
                                 metadata = ObjectMeta().apply {
                                     labels = mapOf(
                                         "executionId" to executionId.toString(),
-                                        "baseImageId" to baseImageId,
+                                        // Docker image ID doesn't match format of appropriate Kubernetes label
+//                                        "baseImageId" to baseImageId,
                                         // "baseImageName" to baseImageName
-                                        // "io.kompose.service" to
+                                         "io.kompose.service" to "save-agent"
                                     )
                                 }
                                 image = baseImageName
                                 imagePullPolicy = "IfNotPresent"  // so that local images could be used
-                                // If agent fails, we should handle it manually (update statuses, attempt restart etc)
+                                // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
                                 restartPolicy = "Never"
                                 if (!configProperties.docker.runtime.isNullOrEmpty()) {
                                     logger.warn {
@@ -98,23 +101,39 @@ class KubernetesManager(
                                         }
                                     }
                                 )
-                                command = agentRunCmd.split(" ")
+                                command = agentRunCmd.let {
+                                    // `agentRunCmd` looks like `sh -c "rest of the command"`
+                                    it.substringBefore('"').trim().split(" ") + "\"${it.substringAfter('"')}"
+                                }
                                 this.workingDir = workingDir
+                                volumeMounts = listOf(
+                                    VolumeMount().apply {
+                                        name = "save-execution-pvc"
+                                        mountPath = EXECUTION_DIR
+                                    }
+                                )
+                            }
+                        )
+                        volumes = listOf(
+                            Volume().apply {
+                                name = "save-execution-pvc"
+                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
+                                    claimName = pvId.pvcName
+                                }
                             }
                         )
                     }
                 }
             }
         }
-        kc.batch()
-            .v1()
-            .jobs()
-            .create(job)
+        logger.debug { "Attempt to create Job from the following spec: $job" }
+        kc.resource(job)
+            .create()
         logger.info("Created Job for execution id=$executionId")
         // fixme: wait for pods to be created
         return generateSequence<List<String>> {
             Thread.sleep(1_000)
-            kc.pods().withLabel("baseImageId", baseImageId)
+            kc.pods().withLabel("executionId", executionId.toString())
                 .list()
                 .items
                 .map { it.metadata.name }
@@ -125,7 +144,7 @@ class KubernetesManager(
     }
 
     override fun start(executionId: Long) {
-        logger.debug("${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself")
+        logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
     }
 
     override fun stop(executionId: Long) {

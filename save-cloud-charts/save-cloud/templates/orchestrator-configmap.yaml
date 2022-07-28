@@ -17,3 +17,7 @@ data:
     management.endpoints.web.exposure.include=*
     orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.name }}
     orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}
+
+    logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
+
+    {{ .Values.orchestrator.applicationProperties | nindent 4 }}

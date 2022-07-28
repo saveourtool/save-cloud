@@ -252,7 +252,7 @@ class DockerService(
         val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
             .map { it.id }
             .ifEmpty {
-                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
+                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exist, will build it first")
                 listOf(buildBaseImage(sdk))
             }
             .first()

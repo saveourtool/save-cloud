@@ -128,7 +128,7 @@ class AgentsController(
                     dockerService.createContainers(execution.id!!, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    reportExecutionError(execution, "Unable to create docker containers", ex)
+                    reportExecutionError(execution, "Unable to create containers", ex)
                 }
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
