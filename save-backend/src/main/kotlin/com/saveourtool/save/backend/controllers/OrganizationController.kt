@@ -99,7 +99,7 @@ internal class OrganizationController(
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
         .map { organization ->
-            organizationService.setAbilityToCreateContest(
+            organizationService.updateOrganization(
                 organization.copy(canCreateContests = isAbleToCreateContests).apply { id = organization.id }
             )
             ResponseEntity.ok("Organization updated")
@@ -135,26 +135,27 @@ internal class OrganizationController(
     }
 
     /**
-     * @param organization updateOrganization
+     * @param organizationName name of an organization that should be changed
+     * @param organization draft organization that should be saved as an organization with name [organizationName]
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
     @PostMapping("/{organizationName}/update")
-    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
+        @PathVariable organizationName: String,
         @RequestBody organization: Organization,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
-        organization.name
+        organizationName
     )
         .flatMap {
-            organizationService.findByName(organization.name).toMono()
+            organizationService.findByName(it).toMono()
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
         .filter {
-            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, organization.name, Role.OWNER)
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
