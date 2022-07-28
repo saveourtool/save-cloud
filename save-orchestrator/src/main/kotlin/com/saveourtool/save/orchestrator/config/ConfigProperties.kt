@@ -73,7 +73,6 @@ data class ConfigProperties(
         val useGvisor: Boolean,
         val pvcAnnotations: String?,
         val pvcSize: String,
-//        val pvcStorageClass: String,
         val pvcStorageSpec: String,
     )
 
