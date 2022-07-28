@@ -41,9 +41,11 @@ data class ConfigProperties(
 ) {
     /**
      * @property basePath path to the root directory, where all test resources are stored
+     * @property tmpPath path to the directory, where test resources can be copied to when creating volumes with test resources
      */
     data class TestResources(
         val basePath: String,
+        val tmpPath: String,
     )
 
     /**

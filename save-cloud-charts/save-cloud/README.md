@@ -35,6 +35,8 @@ $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud
   docker@minikube:~$ sudo chown -R 1000:1000 /tmp/save/repos
   docker@minikube:~$ sudo mkdir -p /tmp/save/volumes
   docker@minikube:~$ sudo chown -R 1000:1000 /tmp/save/volumes/
+  docker@minikube:~$ sudo mkdir -p /tmp/save/resources
+  docker@minikube:~$ sudo chown -R 1000:1000 /tmp/save/resources/
   docker@minikube:~$ sudo vi /lib/systemd/system/docker.service  # change ExecSTart to allow HTTP connection to Docker daemon
   docker@minikube:~$ sudo systemctl daemon-reload
   docker@minikube:~$ sudo systemctl restart docker

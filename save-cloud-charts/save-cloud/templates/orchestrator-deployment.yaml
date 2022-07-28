@@ -46,6 +46,8 @@ spec:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
               mountPath: /home/cnb
+            - name: tmp-resources-storage
+              mountPath: /tmp/save/resources
             - name: execution-logs-storage
               mountPath: /home/cnb/executionLogs/
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
@@ -59,6 +61,9 @@ spec:
         - name: repos-storage
           hostPath:
             path: /tmp/save/repos
+        - name: tmp-resources-storage
+          hostPath:
+            path: /tmp/save/resources
         - name: execution-logs-storage
           # FixMe: Do we still need logs storage? All logs should be stored in Loki.
           emptyDir: {}

@@ -38,12 +38,10 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
-
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createFile
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.writeText
+import kotlin.io.path.*
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -198,7 +196,9 @@ class DockerService(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
         )
-        val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}-")
+        val baseDirectoryForResources = Paths.get(configProperties.testResources.tmpPath)
+        baseDirectoryForResources.createDirectories()
+        val resourcesForExecution = createTempDirectory(directory = baseDirectoryForResources, prefix = "save-execution-${execution.id}-")
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
         // collect standard test suites for docker image, which were selected by user, if any
