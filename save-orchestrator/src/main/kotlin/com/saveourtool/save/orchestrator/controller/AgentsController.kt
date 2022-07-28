@@ -83,25 +83,23 @@ class AgentsController(
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                         "status=${execution.status}, workDirectory=${tempDirectory}]"
             }
-            val resourcePath = tempDirectory.resolve(TEST_SUITES_DIR_NAME)
-            Mono.fromCallable {
-                execution.parseAndGetAdditionalFiles()
-                    .toFlux()
-                    .flatMap { fileKey ->
-                        val pathToFile = resourcePath.resolve(fileKey.name)
-                        (fileKey to execution).downloadTo(pathToFile)
-                            .map { unzipIfRequired(pathToFile) }
-                    }
-                    .collectList()
-                    .switchIfEmpty(Mono.just(emptyList()))
-                    .map {
-                        resourcePath
-                    }
-            }.map {
-                execution.downloadTestsTo(resourcePath)
-            }
-                .map {
-
+            Mono.fromCallable { createTempDirectory() }
+                .map { it.resolve(TEST_SUITES_DIR_NAME) }
+                .flatMap { resourcesPath ->
+                    execution.parseAndGetAdditionalFiles()
+                        .toFlux()
+                        .flatMap { fileKey ->
+                            val pathToFile = resourcesPath.resolve(fileKey.name)
+                            (fileKey to execution).downloadTo(pathToFile)
+                                .map { unzipIfRequired(pathToFile) }
+                        }
+                        .collectList()
+                        .switchIfEmpty(Mono.just(emptyList()))
+                        .map { resourcesPath }
+                }
+                .flatMap { resourcesPath ->
+                    execution.downloadTestsTo(resourcesPath)
+                        .map { resourcesPath }
                 }
                 .publishOn(agentService.scheduler)
                 .map {
