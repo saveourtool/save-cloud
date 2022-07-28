@@ -114,7 +114,9 @@ class DockerService(
             .toBodilessEntity()
             .subscribe()
         agentRunner.start(execution.id!!)
-        log.info("Successfully started all containers for execution.id=$executionId")
+        log.info("Make request to start containers for execution.id=$executionId")
+        // TODO perform request for new controller in aim to check results
+        // TODO if not started -> mark execution with internal error
     }
 
     /**
