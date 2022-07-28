@@ -35,10 +35,6 @@ class TestSuitesService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
-        println("\n\n\n\nSAVE TEST SUITES:")
-        testSuitesDto.forEach {
-            println(it.name + "\n")
-        }
         val testSuites = testSuitesDto
             .distinctBy {
                 // Same suites may be declared in different directories, we unify them here.
@@ -60,14 +56,12 @@ class TestSuitesService(
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`
                 // NB: that's why `dateAdded` is null in the mapping above
-                println("\n\n\n\n---------------------1")
                 val description = testSuite.description
                 testSuiteRepository
                     .findOne(
                         Example.of(testSuite.apply { this.description = null })
                     )
                     .orElseGet {
-                        println("\n\n\n\n---------------------2")
                         // if testSuite is not present in the DB, we will save it with current timestamp
                         testSuite.apply {
                             dateAdded = LocalDateTime.now()
@@ -75,9 +69,7 @@ class TestSuitesService(
                         }
                     }
             }
-        println("\n\n\n\n---------------------3")
         testSuiteRepository.saveAll(testSuites)
-        println("\n\n\n\n---------------------4")
         return testSuites.toList()
     }
 
