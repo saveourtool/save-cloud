@@ -38,7 +38,7 @@ class KubernetesPersistentVolumeService(
                 |apiVersion: v1
                 |kind: PersistentVolumeClaim
                 |metadata:
-                |  generateName: save-execution-pv
+                |  generateName: save-execution-pv-
                 |  namespace: ${configProperties.kubernetes.namespace}
                 |${configProperties.kubernetes.pvcAnnotations?.let { pvcAnnotations ->
                 "  annotations:\n" +
