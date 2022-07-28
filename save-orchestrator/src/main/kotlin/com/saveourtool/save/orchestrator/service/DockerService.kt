@@ -198,7 +198,7 @@ class DockerService(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
         )
-        val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
+        val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}-")
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
         // collect standard test suites for docker image, which were selected by user, if any

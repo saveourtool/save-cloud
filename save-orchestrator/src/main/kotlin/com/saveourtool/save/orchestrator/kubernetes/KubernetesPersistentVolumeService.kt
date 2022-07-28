@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
@@ -62,16 +63,18 @@ class KubernetesPersistentVolumeService(
 
         val persistentVolumeClaim = resource.create()
 
-
+        val sourceVolumeName = UUID.randomUUID()
         @Language("yaml")
         val sourceResourceVolume = kc.resource(
             """
                 |apiVersion: v1
                 |kind: PersistentVolume
                 |metadata:
-                |  name: save-resources-tmp
+                |  name: $sourceVolumeName
                 |  namespace: ${configProperties.kubernetes.namespace}
                 |spec:
+                |  accessModes:
+                |    - ReadWriteOnce
                 |  capacity:
                 |    storage: ${configProperties.kubernetes.pvcSize}
                 |  hostPath:
@@ -88,15 +91,16 @@ class KubernetesPersistentVolumeService(
                 |apiVersion: v1
                 |kind: PersistentVolumeClaim
                 |metadata:
-                |  generateName: save-execution-source
+                |  generateName: save-execution-source-
                 |  namespace: ${configProperties.kubernetes.namespace}
                 |spec:
                 |  accessModes:
-                |    - ReadWriteMany
+                |    - ReadWriteOnce
+                |  storageClassName: ""  # Empty string matches volume created on the previous step
                 |  resources:
                 |    requests:
                 |      storage: ${configProperties.kubernetes.pvcSize}
-                |  volumeName: save-resources-tmp
+                |  volumeName: $sourceVolumeName
             """.trimMargin().also {
                 logger.debug { "Creating PVC from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
             }
