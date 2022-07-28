@@ -19,17 +19,17 @@ startupProbe:
   # give spring-boot enough time to start
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
   failureThreshold: 10
   periodSeconds: 10
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 readinessProbe:
   httpGet:
     path: /actuator/health/readiness
-    port:  {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 lifecycle:
   preStop:
     exec:

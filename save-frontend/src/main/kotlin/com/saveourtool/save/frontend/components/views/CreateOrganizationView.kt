@@ -34,7 +34,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [RState] of organization creation view component
+ * [State] of organization creation view component
  */
 external interface OrganizationSaveViewState : State {
     /**

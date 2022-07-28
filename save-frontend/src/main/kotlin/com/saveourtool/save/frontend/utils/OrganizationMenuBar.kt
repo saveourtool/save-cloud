@@ -8,6 +8,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
     INFO,
     TOOLS,
     TESTS,
+    CONTESTS,
     SETTINGS,
     ;
 

@@ -84,6 +84,19 @@ class ContestService(
         }
 
     /**
+     * @param organizationName
+     * @param pageable
+     * @return page of contests
+     */
+    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findByOrganizationName(organizationName, pageable)
+
+    /**
+     * @param newContest
+     * @return [Contest]
+     */
+    fun updateContest(newContest: Contest) = contestRepository.save(newContest)
+
+    /**
      * @param newContest
      * @return true if contest was saved, false otherwise
      */
