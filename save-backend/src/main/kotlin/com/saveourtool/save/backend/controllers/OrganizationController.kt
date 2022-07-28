@@ -73,7 +73,7 @@ internal class OrganizationController(
 
     /**
      * @param organizationName name of an organization
-     * @param newCanCreateContests new value of flag Organization.canCreateContests
+     * @param isAbleToCreateContests new value of flag Organization.canCreateContests
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
