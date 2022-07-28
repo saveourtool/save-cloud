@@ -5,11 +5,9 @@ import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.copyRecursivelyWithAttributes
 import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
@@ -24,24 +22,21 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.utils.orConflict
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import org.springframework.web.server.ResponseStatusException
 
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.attribute.PosixFileAttributeView
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -63,6 +58,8 @@ class DockerService(
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
 ) {
+    private val testSuiteDirName = "test-suites"
+
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
@@ -205,19 +202,15 @@ class DockerService(
         val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
-        // collect standard test suites for docker image, which were selected by user, if any
-        val testSuitesForDocker = collectStandardTestSuitesForDocker(execution)
-        val testSuitesDir = resourcesForExecution.resolve(STANDARD_TEST_SUITE_DIR)
-
         val saveCliExecFlags = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
             ?.let { configData ->
                 // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-                testSuitesDir.resolve(STANDARD_TEST_SUITE_DIR)
+                resourcesForExecution.resolve(STANDARD_TEST_SUITE_DIR)
                     .resolve("save.toml")
                     .apply { createFile() }
                     .writeText(configData)
                 // collect standard test suites for docker image, which were selected by user, if any
-                " $STANDARD_TEST_SUITE_DIR --include-suites \"${collectStandardTestSuitesForDocker(execution).joinToString(",") { it.name }}\""
+                " $STANDARD_TEST_SUITE_DIR --include-suites \"${execution.getTestSuiteNames()}\""
             }
             ?: ""
 
@@ -305,16 +298,18 @@ class DockerService(
         }
     }
 
-    private fun collectStandardTestSuitesForDocker(execution: Execution): List<TestSuiteDto> = execution
+    private fun Execution.getTestSuiteNames(): List<String> = this
         .parseAndGetTestSuiteIds()
         ?.let {
             webClientBackend.post()
-                .uri("/findAllTestSuiteDtoByIds")
+                .uri("/test-suite/names-by-ids")
                 .bodyValue(it)
                 .retrieve()
-                .bodyToMono<List<TestSuiteDto>>()
+                .bodyToMono<List<String>>()
                 .block()!!
-        } ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=${execution.id}) doesn't contain testSuiteIds")
+        }.orConflict {
+            "Execution (id=$id) doesn't contain testSuiteIds"
+        }
 
     /**
      * Information required to start containers with save-agent

@@ -24,7 +24,6 @@ import react.useEffect
 
 val suitesTable = prepareSuitesTable()
 
-
 /**
  * Props for CheckboxGrid component
  */

@@ -63,6 +63,20 @@ class TestSuitesController(
                 .body(ids.map { id -> testSuitesService.findTestSuiteById(id).map { it.toDto() } })
 
     /**
+     * @param ids list of test suite ID
+     * @return response with names of test suite with id from provided list
+     */
+    @PostMapping("/internal/test-suite/names-by-ids")
+    fun findAllTestSuiteNamesByIds(@RequestBody ids: List<Long>) = ids
+        .map { id ->
+            testSuitesService.findTestSuiteById(id).map { it.name }
+        }
+        .distinct()
+        .let {
+            ResponseEntity.status(HttpStatus.OK).body(it)
+        }
+
+    /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.
      *
      * @return response entity

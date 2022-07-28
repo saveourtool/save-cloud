@@ -182,13 +182,9 @@ class DownloadProjectController(
         .collectList()
         .flatMap { testSuites ->
             updateExecution(
-                requestBase.project,
-                testSuites.map { it.version }
-                    .distinct()
-                    .single(),
+                requestBase,
+                testSuites.getSingleVersion(),
                 testSuites.map { it.requiredId() },
-                requestBase.execCmd,
-                requestBase.batchSizeForAnalyzer,
             )
         }
         .flatMap { it.executeTests() }
@@ -200,6 +196,29 @@ class DownloadProjectController(
                         ?.version
                         .toMono()
                 }
+
+    // check that all test suites are from same git repo (sources can be different) and have same version (sha1)
+    private fun List<TestSuite>.getSingleVersion(): String = this
+        .also {
+            require(it.isNotEmpty()) {
+                "No TestSuite is selected"
+            }
+        }
+        .associateBy { it.source.git.url }
+        .also {
+            require(it.keys.size == 1) {
+                "Only a single git location is supported, but got: ${it.keys}"
+            }
+        }
+        .values
+        .map { it.version }
+        .distinct()
+        .also {
+            require(it.size == 1) {
+                "Only a single version is supported, but got: $it"
+            }
+        }
+        .single()
 
     /**
      * Accept execution rerun request
@@ -284,16 +303,14 @@ class DownloadProjectController(
 
     @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     private fun updateExecution(
-        project: Project,
+        requestBase: ExecutionRequestBase,
         executionVersion: String,
         testSuiteIds: List<Long>,
-        execCmd: String? = null,
-        batchSizeForAnalyzer: String? = null,
     ): Mono<Execution> {
-        val executionUpdate = ExecutionInitializationDto(project, testSuiteIds, executionVersion, execCmd, batchSizeForAnalyzer)
+        val executionUpdate = ExecutionInitializationDto(requestBase.project, testSuiteIds, executionVersion, requestBase.execCmd, requestBase.batchSizeForAnalyzer)
         return webClientBackend.makeRequest(BodyInserters.fromValue(executionUpdate), "/updateNewExecution") { spec ->
             spec.onStatus({ status -> status != HttpStatus.OK }) { clientResponse ->
-                log.error("Error when making update to execution fro project id = ${project.id} ${clientResponse.statusCode()}")
+                log.error("Error when making update to execution fro project id = ${requestBase.project.id} ${clientResponse.statusCode()}")
                 throw ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Execution not found"

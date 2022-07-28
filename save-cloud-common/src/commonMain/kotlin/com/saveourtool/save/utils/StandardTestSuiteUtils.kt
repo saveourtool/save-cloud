@@ -8,6 +8,11 @@ package com.saveourtool.save.utils
 const val STANDARD_TEST_SUITE_DIR = "standard-test-suites"
 
 /**
+ * Directory in docker image, where all requested test suites will be located for execution
+ */
+const val TEST_SUITE_DIR = "test-suites"
+
+/**
  * Since in standard mode we create additional directories for correct execution,
  * we will also mark them with such prefix, in aim to correctly match test execution results with data from DB,
  * which didn't know about our actions with creation of additional dirs

@@ -349,7 +349,10 @@ class ExecutionController(private val executionService: ExecutionService,
             }
         }
         ?.mapNotNull {
-            it.source.git.url
+            it.source
+        }
+        ?.map {
+            it.git.url
         }
         .orEmpty()
         .distinct()

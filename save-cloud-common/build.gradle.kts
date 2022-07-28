@@ -44,6 +44,7 @@ kotlin {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
+                implementation(libs.spring.web)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
