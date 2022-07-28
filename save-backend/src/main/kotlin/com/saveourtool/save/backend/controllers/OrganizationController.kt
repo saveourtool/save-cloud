@@ -23,6 +23,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Controller for working with organizations.
@@ -70,6 +71,32 @@ internal class OrganizationController(
     }
 
     /**
+     * @param organizationName name of an organization
+     * @param newCanCreateContests new value of flag Organization.canCreateContests
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return response
+     */
+    @PostMapping("/{organizationName}/manage-contest-permission")
+    @Suppress("UnsafeCallOnNullableType")
+    fun changeCanCreateContests(
+        @PathVariable organizationName: String,
+        @RequestParam newCanCreateContests: Boolean,
+        authentication: Authentication
+    ): Mono<StringResponse> = Mono.justOrEmpty(
+        Optional.ofNullable(
+            organizationService.findByName(organizationName)
+        )
+    )
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
+        }
+        .map { organization ->
+            organizationService.changeCanCreateContests(organization.copy(canCreateContests = newCanCreateContests).apply { id = organization.id })
+            ResponseEntity.ok("Organization updated")
+        }
+        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
+
+    /**
      * @param newOrganization newOrganization
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
@@ -105,9 +132,13 @@ internal class OrganizationController(
      */
     @PostMapping("/{organizationName}/update")
     @Suppress("UnsafeCallOnNullableType")
-    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> = Mono
-        .just(organization)
-        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER) }
+    fun updateOrganization(
+        @RequestBody organization: Organization,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.just(organization)
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
+        }
         .map {
             organizationService.updateOrganization(organization)
             ResponseEntity.ok("Organization updated")

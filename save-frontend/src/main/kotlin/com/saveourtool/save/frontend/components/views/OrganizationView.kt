@@ -504,6 +504,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
             updateNotificationMessage = ::showNotification
+            organization = state.organization ?: Organization.stub(-1)
+            onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
 
@@ -528,6 +530,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         .unsafeMap {
             it.decodeFromJsonString()
         }
+
+    private fun onCanCreateContestsChange(canCreateContests: Boolean) {
+        val headers = jsonHeaders
+        scope.launch {
+            val response = post(
+                "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?newCanCreateContests=${!state.organization!!.canCreateContests}",
+                headers,
+                undefined,
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                setState {
+                    organization = organization?.copy(canCreateContests = canCreateContests)
+                }
+            }
+        }
+    }
 
     private suspend fun getRoleInOrganization(): Role = get(
         url = "$apiUrl/organizations/${props.organizationName}/users/roles",

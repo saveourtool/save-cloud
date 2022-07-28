@@ -69,7 +69,18 @@ class OrganizationService(
      * @param organization
      * @return organization
      */
-    fun updateOrganization(organization: Organization): Organization = organizationRepository.save(organization)
+    @Suppress("UnsafeCallOnNullableType")
+    fun updateOrganization(organization: Organization): Organization = organizationRepository.findByName(
+        organization.name
+    )!!.let { organizationFromDb ->
+        organizationRepository.save(organizationFromDb.copy(canCreateContests = organization.canCreateContests).apply { id = organizationFromDb.id })
+    }
+
+    /**
+     * @param organization
+     * @return organization
+     */
+    fun changeCanCreateContests(organization: Organization): Organization = organizationRepository.save(organization)
 
     /**
      * @param name
