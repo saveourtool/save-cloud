@@ -58,7 +58,7 @@ class Contest(
         }
         .toSet()
 
-    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || "$it" == DELIMITER }
+    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || it.toString() == DELIMITER }
 
     private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 
