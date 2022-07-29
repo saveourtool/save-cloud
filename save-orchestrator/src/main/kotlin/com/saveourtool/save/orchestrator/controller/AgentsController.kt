@@ -147,6 +147,7 @@ class AgentsController(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun Path.extractZipHereSafely() {
         try {
             extractZipHere()

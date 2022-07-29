@@ -4,11 +4,15 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
+import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.name
@@ -33,14 +37,14 @@ class TestSuitesSourceSnapshotStorage(
         val pathNames = pathToContent.pathNamesTill(rootDir)
         return TestSuitesSourceSnapshotKey(
             pathNames[3],
-            pathNames[2],
+            pathNames[2].decodeUrl(),
             pathNames[0].dropLast(ARCHIVE_EXTENSION.length),
             pathNames[1].toLong()
         )
     }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName.encodeUrl() / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
     }
 
     /**
@@ -96,6 +100,10 @@ class TestSuitesSourceSnapshotStorage(
             if (max.creationTimeInMills > next.creationTimeInMills) max else next
         }
         .map { it.version }
+
+    private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
+
+    private fun String.decodeUrl(): String = URLDecoder.decode(this, StandardCharsets.UTF_8)
 
     companion object {
         private const val PATH_PARTS_COUNT = 4  // organizationName + testSuitesSourceName + creationTime + version.zip

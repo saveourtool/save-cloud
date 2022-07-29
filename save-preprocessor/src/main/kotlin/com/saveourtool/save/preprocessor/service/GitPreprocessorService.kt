@@ -50,6 +50,7 @@ class GitPreprocessorService(
      * @throws IllegalStateException
      * @throws Exception
      */
+    @Suppress("TooGenericExceptionCaught")
     fun <T> cloneAndProcessDirectory(
         gitDto: GitDto,
         branch: String,
@@ -81,6 +82,7 @@ class GitPreprocessorService(
      * @throws IOException
      * @throws Exception
      */
+    @Suppress("TooGenericExceptionCaught")
     fun <T> archiveToTar(
         pathToRepository: Path,
         archiveProcessor: ArchiveProcessor<T>
@@ -106,6 +108,7 @@ class GitPreprocessorService(
     private fun Path.deleteRecursivelySafelyAsync() = Mono.fromCallable { deleteRecursivelySafely() }
         .subscribeOn(Schedulers.boundedElastic())
 
+    @Suppress("TooGenericExceptionCaught")
     private fun Path.deleteRecursivelySafely() {
         try {
             log.info {

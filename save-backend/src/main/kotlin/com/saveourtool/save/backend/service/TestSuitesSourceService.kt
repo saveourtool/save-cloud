@@ -104,14 +104,12 @@ class TestSuitesSourceService(
             branch: String,
             subDirectory: String
         ): String = buildString {
-            append(url.replace("https?://".toRegex(), ""))
+            append(url)
             append("/tree")
             append("/$branch")
             if (subDirectory.isNotBlank()) {
                 append("/$subDirectory")
             }
         }
-            .replace("/", "_")
-            .replace("\\", "_")
     }
 }

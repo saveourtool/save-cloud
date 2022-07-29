@@ -7,7 +7,7 @@
 
     <include file="user-insert.xml" relativeToChangelogFile="true"/>
     <include file="organization-insert.xml" relativeToChangelogFile="true"/>
-    <include file="test_suites_source-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-suites-source-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
     <include file="project-insert.xml" relativeToChangelogFile="true"/>
     <include file="execution-insert.xml" relativeToChangelogFile="true"/>
