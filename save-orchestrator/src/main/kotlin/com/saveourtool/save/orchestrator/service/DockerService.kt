@@ -118,6 +118,8 @@ class DockerService(
             .subscribe()
         agentRunner.start(execution.id!!)
         log.info("Made request to start containers for execution.id=$executionId")
+        // Check, whether the agents were actually started, if yes, all cases will be covered by themselfs and HeartBeatInspector,
+        // if no, mark execution as failed with internal error here
         val now = Clock.System.now()
         var duration = 0L
         while (duration < AGENTS_START_TIMEOUT && !areAgentsHaveStarted.get()) {
