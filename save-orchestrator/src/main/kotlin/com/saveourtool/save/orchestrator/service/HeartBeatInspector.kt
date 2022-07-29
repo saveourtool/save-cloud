@@ -17,8 +17,13 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 typealias AgentStateWithTimeStamp = Pair<String, Instant>
+
+
+internal var areAgentsHaveStarted = AtomicBoolean(false)
 
 /**
  * Background inspector, which detect crashed agents
