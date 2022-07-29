@@ -76,7 +76,7 @@ Usually not the whole stack is required for development. Application logic is pe
 You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
 If you run on Windows, dependency `save-agent` is omitted because of problems with linking in cross-compilation.<br/>
 To run on Windows you need to compile `save-agent` on WSL and put `saveAgentDistroFilepath` to `%USERPROFILE%\.gradle\gradle.properties` <br/>
-For example: 
+For example:
 
     saveAgentDistroFilepath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cloud\\save-agent\\build\\libs\\save-agent-0.3.0-alpha.0.48+1c1fd41-distribution.jar
 
@@ -84,7 +84,7 @@ If you need to test changes in `save-cli` you can also compile `SNAPSHOT` versio
 and set `saveCliPath` and `saveCliVersion` in `%USERPROFILE%\.gradle\gradle.properties` <br/>
 For example:
 
-    saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable 
+    saveCliPath=file:\\\\\\\\wsl$\\Ubuntu\\home\\username\\projects\\save-cli\\save-cli\\build\\bin\\linuxX64\\releaseExecutable
     saveCliVersion=0.4.0-alpha.0.42+78a24a8
 
 the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe` <br/>

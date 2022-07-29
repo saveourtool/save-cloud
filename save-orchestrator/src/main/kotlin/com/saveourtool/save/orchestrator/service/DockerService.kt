@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Python
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
@@ -24,8 +25,6 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.agent.AgentState
-import kotlinx.datetime.Clock
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +45,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
+import kotlinx.datetime.Clock
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -120,13 +120,12 @@ class DockerService(
         log.info("Made request to start containers for execution.id=$executionId")
         val now = Clock.System.now()
         var duration = 0L
-        while (duration < AGENT_START_TIMEOUT && !areAgentsHaveStarted.get()) {
+        while (duration < agentStartTimeout && !areAgentsHaveStarted.get()) {
             Thread.sleep(10_000L)
             duration = (Clock.System.now() - now).inWholeMilliseconds
         }
-        println("\n\n\n\n========= FINISH " + areAgentsHaveStarted.get())
         if (!areAgentsHaveStarted.get()) {
-            log.error("Internal error: agents ${agentIds} are not started, will mark execution as failed.")
+            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                 "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
             ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
@@ -371,7 +370,7 @@ class DockerService(
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private val AGENT_START_TIMEOUT = 60_000L
+        private val agentStartTimeout = 60_000L
     }
 }
 
