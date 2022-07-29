@@ -4,10 +4,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.debug
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -116,6 +113,16 @@ class TestsPreprocessorToBackendBridge(
             testRootPath,
             branch
         )
+        .retrieve()
+        .bodyToMono()
+
+    /**
+     * Will be removed in phase 3
+     *
+     * @return list of standard test suites sourcers
+     */
+    fun getStandardTestSuitesSources(): Mono<TestSuitesSourceDtoList> = webClientBackend.get()
+        .uri("/test-suites-source/get-standard")
         .retrieve()
         .bodyToMono()
 

@@ -3,6 +3,8 @@ package com.saveourtool.save.testsuite
 import com.saveourtool.save.entities.GitDto
 import kotlinx.serialization.Serializable
 
+typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
+
 /**
  * @param organizationName
  * @param name

@@ -214,6 +214,17 @@ class TestSuitesSourceController(
         }
         .collectList()
 
+    /**
+     * Will be removed in phase 3
+     *
+     * @return list of standard test suites sourcers
+     */
+    @GetMapping("/get-standard")
+    fun getStandardTestSuitesSources(): Mono<TestSuitesSourceDtoList> = Mono.fromCallable {
+        testSuitesSourceService.getStandardTestSuitesSources()
+            .map { it.toDto() }
+    }
+
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()
     }

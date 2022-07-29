@@ -85,16 +85,26 @@ class TestSuitesSourceService(
     /**
      * @return list of [TestSuitesSource] for STANDARD tests or empty
      */
-    fun findStandardTestSuitesSources(): List<TestSuitesSource> {
-        val git = gitService.findByUrl(STANDARD_TEST_SUITE_URL) ?: return emptyList()
-        return testSuitesSourceRepository.findAllByGit(git)
+    @Transactional
+    fun getStandardTestSuitesSources(): List<TestSuitesSource> {
+        // FIXME: a hardcoded values for standard test suites
+        // Will be removed in phase 3
+        val organizationName = "Huawei"
+        val gitUrl = "https://github.com/saveourtool/save-cli"
+        val branch = "main"
+        val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
+        testRootPaths.map { testRootPath ->
+            getOrCreate(
+                organizationName,
+                gitService.getByOrganizationAndUrl(organizationService.getByName(organizationName), gitUrl),
+                branch,
+                testRootPath,
+            )
+        }
     }
 
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()
-
-        // FIXME: a hardcoded value of url for standard test suites
-        private const val STANDARD_TEST_SUITE_URL = "https://github.com/saveourtool/save-cli"
 
         /**
          * @return default name fot [com.saveourtool.save.entities.TestSuitesSource]

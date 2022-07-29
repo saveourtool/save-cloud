@@ -74,7 +74,7 @@ class TestSuitesService(
     /**
      * @return all standard test suites
      */
-    fun getStandardTestSuites() = testSuitesSourceService.findStandardTestSuitesSources()
+    fun getStandardTestSuites() = testSuitesSourceService.getStandardTestSuitesSources()
         .flatMap { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource) }
         .map { it.toDto() }
 

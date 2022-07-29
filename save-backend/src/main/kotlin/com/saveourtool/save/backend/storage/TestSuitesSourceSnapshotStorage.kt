@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
-import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.stereotype.Component

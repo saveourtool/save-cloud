@@ -63,9 +63,16 @@ class TestSuitesPreprocessorController(
         .flatMap {
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
-                    log.info { "Loaded ${it.size} test suites" }
+                    with(testSuitesSourceDto) {
+                        log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
+                    }
                 }
         }
+        .defaultIfEmpty(
+            with(testSuitesSourceDto) {
+                log.debug { "Test suites source $name in $organizationName already contains version $version" }
+            }
+        )
 
     /**
      * Detect latest version of TestSuitesSource

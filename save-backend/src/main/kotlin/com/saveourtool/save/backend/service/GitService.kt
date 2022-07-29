@@ -57,10 +57,4 @@ class GitService(private val gitRepository: GitRepository) {
      * @return [GitDto] found by provided values or null
      */
     fun findById(id: Long): GitDto? = gitRepository.findByIdOrNull(id)?.toDto()
-
-    /**
-     * @param url
-     * @return some git credential with provided [url] or null
-     */
-    fun findByUrl(url: String): Git? = gitRepository.findAllByUrl(url).firstOrNull()
 }

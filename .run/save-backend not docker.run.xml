@@ -5,7 +5,6 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.backend.SaveApplicationKt" />
     <module name="save-cloud.save-backend.main" />
-    <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

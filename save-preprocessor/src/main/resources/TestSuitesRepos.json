@@ -1,6 +1,0 @@
-{
-    "organizationName": "Huawei",
-    "url": "https://github.com/saveourtool/save-cli",
-    "branch": "main",
-    "testRootPaths": [ "examples/kotlin-diktat", "examples/discovery-test" ]
-}
