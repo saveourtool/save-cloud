@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.DELIMITER
 
 import csstype.Background
 import csstype.ClassName
@@ -310,7 +311,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(",")}",
+                        "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(DELIMITER)}",
                         headers,
                         undefined,
                         loadingHandler = ::noopLoadingHandler

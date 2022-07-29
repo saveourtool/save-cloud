@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
+import com.saveourtool.save.utils.DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
@@ -291,7 +292,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                         div {
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
-                                                            benchmark.tags.split(",").map { " #$it " }.forEach {
+                                                            benchmark.tags.split(DELIMITER).map { " #$it " }.forEach {
                                                                 a {
                                                                     className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
                                                                     +it

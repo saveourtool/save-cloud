@@ -14,6 +14,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.utils.DELIMITER
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -134,7 +135,7 @@ class DeleteEntitiesTest {
 
     private fun deleteExecutionsAndAssert(executionIds: List<Long>, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/$v1/execution/delete?executionIds=${executionIds.joinToString(",")}",
+            uri = "/api/$v1/execution/delete?executionIds=${executionIds.joinToString(DELIMITER)}",
             assert = assert
         )
     }

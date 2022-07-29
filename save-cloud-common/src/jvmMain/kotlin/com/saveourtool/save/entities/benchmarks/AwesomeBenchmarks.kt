@@ -2,6 +2,7 @@ package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.entities.BaseEntity
 import com.saveourtool.save.entities.Entity
+import com.saveourtool.save.utils.DELIMITER
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
 
@@ -41,7 +42,7 @@ data class AwesomeBenchmarks(
 fun BenchmarkEntity.toEntity() = AwesomeBenchmarks(
     this.general.name,
     this.general.category,
-    this.general.tags.joinToString(","),
+    this.general.tags.joinToString(DELIMITER),
 
     this.info.language,
     this.info.license,

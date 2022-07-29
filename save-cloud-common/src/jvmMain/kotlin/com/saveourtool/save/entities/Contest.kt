@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.utils.DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isNameValid
@@ -57,7 +58,7 @@ class Contest(
         }
         .toSet()
 
-    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || it == DELIMITER }
+    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || "$it" == DELIMITER }
 
     private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 
@@ -69,8 +70,6 @@ class Contest(
     fun isValid() = isNameValid(name) && isTestSuiteIdsValid() && isDateRangeValid()
 
     companion object {
-        private const val DELIMITER = ','
-
         /**
          * Create a stub for testing.
          *

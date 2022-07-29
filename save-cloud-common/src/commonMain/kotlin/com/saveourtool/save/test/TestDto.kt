@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.test
 
+import com.saveourtool.save.utils.DELIMITER
 import kotlinx.serialization.Serializable
 
 /**
@@ -24,7 +25,7 @@ data class TestDto(
     /**
      * @return [additionalFiles] as a [String]
      */
-    fun joinAdditionalFiles() = additionalFiles.joinToString(",")
+    fun joinAdditionalFiles() = additionalFiles.joinToString(DELIMITER)
 }
 
 /**
