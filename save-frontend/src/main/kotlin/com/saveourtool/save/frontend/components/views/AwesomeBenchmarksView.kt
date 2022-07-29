@@ -320,12 +320,12 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     }
                                                 }
                                             }
+                                        }
 
-                                            if (matchingBenchmarksCount == 0) {
-                                                p {
-                                                    className = ClassName("media-body font-weight-bold mb-0 small lh-125 text-left")
-                                                    +"No matching data was found - please select different filters"
-                                                }
+                                        if (matchingBenchmarksCount == 0) {
+                                            p {
+                                                className = ClassName("media-body font-weight-bold mb-0 small lh-125 text-left")
+                                                +"No matching data was found - please select different filters"
                                             }
                                         }
                                     }

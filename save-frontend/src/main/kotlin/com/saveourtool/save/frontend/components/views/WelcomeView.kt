@@ -17,8 +17,11 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 
+import csstype.*
+import org.w3c.dom.HTML.a
 import org.w3c.fetch.Headers
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -101,7 +104,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("page-header align-items-start min-vh-100")
                 style = jso {
                     background =
-                            "-webkit-linear-gradient(270deg, (0,20,73), rgb(0,0,0))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
                 }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
@@ -123,7 +126,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         marketingTitle("Evaluation")
                         h3 {
                             className = ClassName("mt-4")
-                            +"Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
+                            +"Advanced cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
@@ -179,7 +182,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         div {
             className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
             div {
-                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
+                style = jso {
+                    backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                }
                 h4 {
                     className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
                     +"Sign in"
@@ -214,9 +220,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     p {
                         className = ClassName("text-sm text-center")
                         h4 {
+                            style = jso {
+                                color = "#3075c0".unsafeCast<Color>()
+                            }
                             a {
-                                className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
                                 href = "#/${FrontendRoutes.PROJECTS.path}"
+                                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -233,7 +242,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         div {
             className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
             div {
-                className = ClassName("bg-info shadow-primary border-radius-lg py-3 pe-1 rounded")
+                className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
+                style = jso {
+                    backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                }
                 h4 {
                     className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
                     div {
@@ -243,50 +255,22 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                             fontAwesomeIcon(icon = faHome)
                         }
                     }
-                    +"Welcome ${props.userInfo?.name}!"
+                    +"Welcome, ${props.userInfo?.name}!"
                 }
             }
         }
 
         div {
             className = ClassName("card-body")
-            p {
-                className = ClassName("mt-4 text-sm")
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "#/${FrontendRoutes.PROJECTS.path}"
-                    h4 {
-                        fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
-                        +"List of Projects"
-                    }
-                }
-
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                    h4 {
-                        fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
-                        +"Benchmarks Archive"
-                    }
-                }
-
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
-                    h4 {
-                        fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
-                        +"User Settings"
-                    }
-                }
-
-                a {
-                    className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${FrontendRoutes.CONTESTS.path}"
-                    h4 {
-                        fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
-                        +"Contests"
-                    }
-                }
+            div {
+                className = ClassName("text-sm")
+                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faBell)
+                hrNoMargin()
+                menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
+                hrNoMargin()
+                menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
+                hrNoMargin()
+                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}", faUser)
             }
         }
     }
@@ -328,6 +312,28 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             }
         }
     }
+
+    private fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) =
+            a {
+                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+                href = link
+                h4 {
+                    style = jso {
+                        color = "#3075c0".unsafeCast<Color>()
+                        marginBottom = "0.0em".unsafeCast<Margin>()
+                    }
+                    fontAwesomeIcon(icon = icon, "ml-2 mr-2")
+                    +text
+                }
+            }
+
+    private fun ChildrenBuilder.hrNoMargin() =
+            ReactHTML.hr {
+                style = jso {
+                    marginTop = "0.0em".unsafeCast<Margin>()
+                    marginBottom = "0.0em".unsafeCast<Margin>()
+                }
+            }
 
     companion object :
         RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {

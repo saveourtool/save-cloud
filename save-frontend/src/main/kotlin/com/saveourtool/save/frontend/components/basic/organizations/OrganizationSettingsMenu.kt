@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
@@ -12,8 +13,11 @@ import org.w3c.fetch.Response
 import react.*
 
 import react.dom.html.ButtonType
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 
 private val organizationPermissionManagerCard = manageUserRoleCardComponent()
 
@@ -57,6 +61,16 @@ external interface OrganizationSettingsMenuProps : Props {
      * Callback to show notification message
      */
     var updateNotificationMessage: (String, String) -> Unit
+
+    /**
+     * Current organization
+     */
+    var organization: Organization
+
+    /**
+     * Callback invoked in order to change canCreateContests flag
+     */
+    var onCanCreateContestsChange: (Boolean) -> Unit
 }
 
 @Suppress(
@@ -110,20 +124,41 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 +"Main settings"
             }
             div {
-                className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
-                div {
-                    className = ClassName("row d-flex justify-content-center mt-3")
+                className = ClassName("card card-body mt-0 p-0")
+                if (props.selfRole == Role.SUPER_ADMIN) {
                     div {
-                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-danger")
-                            disabled = !props.selfRole.hasDeletePermission()
-                            onClick = {
-                                props.deleteOrganizationCallback()
+                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
+                        div {
+                            input {
+                                className = ClassName("form-check-input")
+                                type = InputType.checkbox
+                                value = props.organization.canCreateContests.toString()
+                                id = "canCreateContestsCheckbox"
+                                checked = props.organization.canCreateContests
+                                onChange = {
+                                    props.onCanCreateContestsChange(!props.organization.canCreateContests)
+                                }
                             }
-                            +"Delete organization"
                         }
+                        div {
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "canCreateContestsCheckbox"
+                                +"Can create contests"
+                            }
+                        }
+                    }
+                }
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-danger")
+                        disabled = !props.selfRole.hasDeletePermission()
+                        onClick = {
+                            props.deleteOrganizationCallback()
+                        }
+                        +"Delete organization"
                     }
                 }
             }
