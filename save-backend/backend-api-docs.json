@@ -117,6 +117,16 @@
           "organization-controller"
         ],
         "operationId": "updateOrganization",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -147,6 +157,16 @@
           "organization-controller"
         ],
         "operationId": "updateOrganization_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -157,6 +177,82 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/manage-contest-permission": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "setAbilityToCreateContest",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isAbleToCreateContests",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/manage-contest-permission": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "setAbilityToCreateContest_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isAbleToCreateContests",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -4806,8 +4902,8 @@
           "category": {
             "type": "string",
             "enum": [
-              "AI",
               "ALL",
+              "AI",
               "AUDIT",
               "CODING_STANDARD",
               "PERFORMANCE",
