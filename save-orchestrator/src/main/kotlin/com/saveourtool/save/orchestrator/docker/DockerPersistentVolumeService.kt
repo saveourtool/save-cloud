@@ -16,9 +16,12 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
+import kotlin.io.path.relativeTo
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -42,15 +45,22 @@ class DockerPersistentVolumeService(
             .exec()
         blockingPullImage("alpine", "latest")
 
+        val resourcesRelativePath = resources.single().relativeTo(
+            Paths.get(configProperties.testResources.tmpPath)
+        )
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
                 HostConfig()
                     .withMounts(
                         listOf(
-                            Mount()
+/*                            Mount()
                                 .withType(MountType.BIND)
                                 .withSource(resources.single().absolutePathString())
-                                .withTarget("$SAVE_AGENT_USER_HOME/tmp"),
+                                .withTarget("$SAVE_AGENT_USER_HOME/tmp"),*/
+                            Mount()
+                                .withType(MountType.VOLUME)
+                                .withSource(configProperties.docker.testResourcesVolumeName)
+                                .withTarget("$SAVE_AGENT_USER_HOME/tmp/" + resourcesRelativePath.pathString),
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)

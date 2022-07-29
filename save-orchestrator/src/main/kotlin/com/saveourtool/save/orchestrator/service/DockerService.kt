@@ -38,6 +38,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 
 import java.io.File
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.ExperimentalPathApi
@@ -198,7 +199,10 @@ class DockerService(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
         )
-        val resourcesForExecution = createTempDirectory(prefix = "save-execution-${execution.id}")
+        val resourcesForExecution = createTempDirectory(
+            directory = Paths.get(configProperties.testResources.tmpPath),
+            prefix = "save-execution-${execution.id}"
+        )
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
         // collect standard test suites for docker image, which were selected by user, if any
