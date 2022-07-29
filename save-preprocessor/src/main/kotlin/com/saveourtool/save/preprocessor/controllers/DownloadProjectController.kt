@@ -205,23 +205,23 @@ class DownloadProjectController(
 
     // check that all test suites are from same git repo (sources can be different) and have same version (sha1)
     private fun List<TestSuite>.getSingleVersion(): String = this
-        .also {
-            require(it.isNotEmpty()) {
+        .also { testSuites ->
+            require(testSuites.isNotEmpty()) {
                 "No TestSuite is selected"
             }
         }
         .associateBy { it.source.git.url }
-        .also {
-            require(it.keys.size == 1) {
-                "Only a single git location is supported, but got: ${it.keys}"
+        .also { urlToTestSuite ->
+            require(urlToTestSuite.keys.size == 1) {
+                "Only a single git location is supported, but got: ${urlToTestSuite.keys}"
             }
         }
         .values
         .map { it.version }
         .distinct()
-        .also {
-            require(it.size == 1) {
-                "Only a single version is supported, but got: $it"
+        .also { versions ->
+            require(versions.size == 1) {
+                "Only a single version is supported, but got: $versions"
             }
         }
         .single()

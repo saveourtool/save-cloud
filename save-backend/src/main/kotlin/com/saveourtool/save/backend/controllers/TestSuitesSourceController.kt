@@ -13,13 +13,11 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
 typealias TestSuiteList = List<TestSuite>
-typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
 
 /**
  * Controller for [TestSuitesSource]
@@ -215,9 +213,6 @@ class TestSuitesSourceController(
                 }
         }
         .collectList()
-
-
-
 
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()

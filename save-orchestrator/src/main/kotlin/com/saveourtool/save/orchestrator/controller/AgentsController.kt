@@ -6,18 +6,18 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
+import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.*
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.*
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -48,6 +48,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+
 import kotlin.io.path.*
 
 /**
@@ -240,10 +241,10 @@ class AgentsController(
             }
         }
 
-    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<List<TestSuitesSourceSnapshotKey>> = webClientBackend.get()
-            .uri("/test-suites-source/list-snapshot-by-execution-id?executionId={id}", requiredId())
-            .retrieve()
-            .bodyToMono()
+    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
+        .uri("/test-suites-source/list-snapshot-by-execution-id?executionId={id}", requiredId())
+        .retrieve()
+        .bodyToMono()
 
     private fun <T> reportExecutionError(
         execution: Execution,

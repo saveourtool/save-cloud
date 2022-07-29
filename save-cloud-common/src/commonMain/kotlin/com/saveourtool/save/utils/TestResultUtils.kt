@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.core.logging.logTrace
 import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored

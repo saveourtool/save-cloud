@@ -3,11 +3,13 @@ package com.saveourtool.save.testsuite
 import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
 
+typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
+
 /**
- * @param organizationName
- * @param testSuitesSourceName
- * @param version
- * @param creationTimeInMills
+ * @property organizationName
+ * @property testSuitesSourceName
+ * @property version
+ * @property creationTimeInMills
  */
 @Serializable
 data class TestSuitesSourceSnapshotKey(
@@ -16,12 +18,6 @@ data class TestSuitesSourceSnapshotKey(
     val version: String,
     val creationTimeInMills: Long,
 ) {
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @param
-     */
     constructor(
         organizationName: String,
         testSuitesSourceName: String,
@@ -34,11 +30,6 @@ data class TestSuitesSourceSnapshotKey(
         creationTimeToLong(creationTime),
     )
 
-    /**
-     * @param testSuitesSourceDto
-     * @param version
-     * @param creationTimeInMills
-     */
     constructor(testSuitesSourceDto: TestSuitesSourceDto, version: String, creationTimeInMills: Long) : this(
         testSuitesSourceDto.organizationName,
         testSuitesSourceDto.name,
@@ -51,13 +42,13 @@ data class TestSuitesSourceSnapshotKey(
      */
     fun convertAndGetCreationTime(): LocalDateTime = creationTimeFromLong(creationTimeInMills)
 
-
     /**
      * @param organizationName
      * @param testSuitesSourceName
      * @param version
      * @return true if object contains provided values
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun equalsTo(
         organizationName: String,
         testSuitesSourceName: String,

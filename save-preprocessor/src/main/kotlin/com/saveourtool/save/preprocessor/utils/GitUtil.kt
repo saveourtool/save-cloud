@@ -93,18 +93,18 @@ private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != 
     UsernamePasswordCredentialsProvider(password, "")
 }
 
-private fun <R> withRethrow(action: () -> R): R {
-    try {
-        return action()
-    } catch (ex: GitAPIException) {
-        throw IllegalStateException("Error in JGit API", ex)
-    }
-}
-
 private fun <R, T : GitCommand<*>> T.gitCallWithRethrow(call: (T) -> R): R = withRethrow {
     call(this)
 }
 
 private fun <R, T : GitCommand<R>> T.callWithRethrow(): R = withRethrow {
     this.call()
+}
+
+private fun <R> withRethrow(action: () -> R): R {
+    try {
+        return action()
+    } catch (ex: GitAPIException) {
+        throw IllegalStateException("Error in JGit API", ex)
+    }
 }

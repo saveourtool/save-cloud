@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultLocation
@@ -111,7 +110,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                 .toMonoOrNotFound()
                 .filterWhen {
                     projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-                }.mapNotNull {
+                }
+                .mapNotNull {
                     if (page == null || size == null) {
                         testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
                             TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
@@ -179,11 +179,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false) testSuite: String?,
         authentication: Authentication,
     ) =
-            executionService.findExecution(executionId).toMonoOrNotFound().filterWhen {
-                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-            }.map {
-                testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
-            }
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
+                .filterWhen {
+                    projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+                }
+                .map {
+                    testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
+                }
 
     /**
      * @param agentContainerId id of an agent

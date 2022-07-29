@@ -9,7 +9,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
-
 /**
  * @param status
  * @param messageCreator

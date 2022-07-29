@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.IOException
-import java.io.UncheckedIOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -49,6 +48,7 @@ class GitPreprocessorService(
      * @param repositoryProcessor operation on folder should be finished here -- folder will be removed after it
      * @return result of [repositoryProcessor]
      * @throws IllegalStateException
+     * @throws Exception
      */
     fun <T> cloneAndProcessDirectory(
         gitDto: GitDto,
@@ -69,7 +69,7 @@ class GitPreprocessorService(
         }
         return Mono.usingWhen(
             Mono.fromSupplier(cloneAction),
-            { (directory, creationTime) -> repositoryProcessor(directory, creationTime)},
+            { (directory, creationTime) -> repositoryProcessor(directory, creationTime) },
             { (directory, _) -> directory.deleteRecursivelySafelyAsync() }
         )
     }
@@ -79,6 +79,7 @@ class GitPreprocessorService(
      * @param archiveProcessor operation on file should be finished here -- file will be removed after it
      * @return archived git repository, file will be deleted after release Flux
      * @throws IOException
+     * @throws Exception
      */
     fun <T> archiveToTar(
         pathToRepository: Path,
@@ -97,7 +98,7 @@ class GitPreprocessorService(
         }
         return Mono.usingWhen(
             Mono.fromSupplier(archiveAction),
-            { tmpFile -> archiveProcessor(tmpFile)},
+            { tmpFile -> archiveProcessor(tmpFile) },
             { tmpFile -> tmpFile.deleteRecursivelySafelyAsync() }
         )
     }

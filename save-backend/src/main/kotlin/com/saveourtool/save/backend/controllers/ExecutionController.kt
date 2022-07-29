@@ -11,7 +11,6 @@ import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
@@ -105,7 +104,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecution(
         @RequestParam id: Long,
         authentication: Authentication?
-    ): Mono<Execution> = executionService.findExecution(id).toMonoOrNotFound( "Execution with id=$id is not found")
+    ): Mono<Execution> = executionService.findExecution(id).toMonoOrNotFound("Execution with id=$id is not found")
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
@@ -271,10 +270,11 @@ class ExecutionController(private val executionService: ExecutionService,
             executionService.findExecution(id)
                 .toMonoOrNotFound()
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .flatMap { it.getTestRootPathByTestSuites()
-                    .distinct()
-                    .singleOrNull()
-                    .toMono()
+                .flatMap {
+                    it.getTestRootPathByTestSuites()
+                        .distinct()
+                        .singleOrNull()
+                        .toMono()
                 }
                 .switchIfEmptyToNotFound()
 
@@ -285,6 +285,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication [Authentication] representing an authenticated request
      * @return bodiless response
      * @throws ResponseStatusException
+     * @throws IllegalArgumentException
      */
     @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional

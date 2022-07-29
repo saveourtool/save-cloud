@@ -21,7 +21,6 @@ import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.trace
-import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Qualifier
@@ -29,10 +28,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.nio.file.Paths
 import java.time.Duration
 
 import java.time.LocalDateTime

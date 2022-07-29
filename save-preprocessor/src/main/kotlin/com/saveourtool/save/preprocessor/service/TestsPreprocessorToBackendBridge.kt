@@ -7,6 +7,7 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import com.saveourtool.save.utils.debug
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -15,13 +16,10 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
-
-typealias TestSuitesSourceSnapshotKeyList = List<TestSuitesSourceSnapshotKey>
 
 /**
  * A bridge from preprocesor to backend (rest api wrapper)
