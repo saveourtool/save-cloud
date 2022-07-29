@@ -6,10 +6,7 @@ import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.detectLatestSha1
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.toByteBufferFlux
-import com.saveourtool.save.utils.toDataBufferFlux
+import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
 import org.springframework.core.io.FileSystemResource
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import kotlin.io.path.div
 
 /**
@@ -43,9 +41,12 @@ class TestSuitesPreprocessorController(
         .flatMap { version ->
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
-                    log.info { "Loaded: $it" }
+                    log.info { "Loaded ${it.size} test suites" }
                 }
         }
+        .defaultIfEmpty(
+            log.debug { "There is no new version for ${testSuitesSourceDto.name} in ${testSuitesSourceDto.organizationName}" }
+        )
 
     /**
      * Fetch new tests suites from provided source with specific version
@@ -63,7 +64,7 @@ class TestSuitesPreprocessorController(
         .flatMap {
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
-                    log.info { "Loaded: $it" }
+                    log.info { "Loaded ${it.size} test suites" }
                 }
         }
 

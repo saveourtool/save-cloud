@@ -7,31 +7,31 @@ import kotlinx.serialization.Serializable
  * @param organizationName
  * @param testSuitesSourceName
  * @param version
- * @param creationTime
+ * @param creationTimeInMills
  */
 @Serializable
 data class TestSuitesSourceSnapshotKey(
     val organizationName: String,
     val testSuitesSourceName: String,
     val version: String,
-    val creationTime: LocalDateTime,
+    val creationTimeInMills: Long,
 ) {
     /**
      * @param organizationName
      * @param testSuitesSourceName
      * @param version
-     * @param creationTimeInMills
+     * @param
      */
     constructor(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
-        creationTimeInMills: Long
+        creationTime: LocalDateTime
     ) : this(
         organizationName,
         testSuitesSourceName,
         version,
-        Instant.fromEpochMilliseconds(creationTimeInMills).toLocalDateTime(creationTimeZoneId),
+        creationTimeToLong(creationTime),
     )
 
     /**
@@ -47,10 +47,9 @@ data class TestSuitesSourceSnapshotKey(
     )
 
     /**
-     * @return [TestSuitesSourceSnapshotKey.creationTime] as milliseconds from epoch
+     * @return [TestSuitesSourceSnapshotKey.creationTimeInMills] as [LocalDateTime] in [TimeZone.UTC]
      */
-    fun getCreationTimeInMills(): Long = creationTime.toInstant(TimeZone.UTC)
-        .toEpochMilliseconds()
+    fun convertAndGetCreationTime(): LocalDateTime = creationTimeFromLong(creationTimeInMills)
 
 
     /**
@@ -67,5 +66,11 @@ data class TestSuitesSourceSnapshotKey(
 
     companion object {
         private val creationTimeZoneId = TimeZone.UTC
+
+        private fun creationTimeToLong(creationTime: LocalDateTime): Long = creationTime.toInstant(creationTimeZoneId)
+            .toEpochMilliseconds()
+
+        private fun creationTimeFromLong(creationTimeInMills: Long): LocalDateTime = Instant.fromEpochMilliseconds(creationTimeInMills)
+            .toLocalDateTime(creationTimeZoneId)
     }
 }

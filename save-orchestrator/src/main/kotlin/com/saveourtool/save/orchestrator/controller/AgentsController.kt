@@ -225,7 +225,6 @@ class AgentsController(
         .let { content ->
             targetDirectory.createDirectories()
             val targetFile = Files.createTempFile(targetDirectory, "archive-", ARCHIVE_EXTENSION)
-            targetFile.createFile()
             DataBufferUtils.write(content, targetFile.outputStream())
                 .map { DataBufferUtils.release(it) }
                 .collectList()
@@ -241,9 +240,8 @@ class AgentsController(
             }
         }
 
-    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<List<TestSuitesSourceSnapshotKey>> = webClientBackend.post()
-            .uri("/test-suites-source/list-snapshot-by-execution-id")
-            .bodyValue(this.requiredId())
+    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<List<TestSuitesSourceSnapshotKey>> = webClientBackend.get()
+            .uri("/test-suites-source/list-snapshot-by-execution-id?executionId={id}", requiredId())
             .retrieve()
             .bodyToMono()
 

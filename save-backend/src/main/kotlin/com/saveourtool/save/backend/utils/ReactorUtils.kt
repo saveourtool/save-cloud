@@ -6,9 +6,10 @@ package com.saveourtool.save.backend.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.reactive.function.BodyExtractors.toMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -70,21 +71,6 @@ inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): 
         SequenceInputStream(in1, in2)
     }
     .map { objectMapper.readValue(it, T::class.java) }
-
-/**
- * @param status
- * @param messageCreator
- * @return original [Mono] or [Mono.error] with 404 status otherwise
- */
-fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCreator: (() -> String?) = { null }) = switchIfEmpty {
-    Mono.error(ResponseStatusException(status, messageCreator()))
-}
-
-/**
- * @param messageCreator
- * @return original [Mono] or [Mono.error] with 404 status otherwise
- */
-fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null }) = switchIfEmptyToResponseException(HttpStatus.NOT_FOUND, messageCreator)
 
 /**
  * @return [Mono] with original value or with [ResponseEntity] with [HttpStatus.FORBIDDEN]

@@ -12,6 +12,7 @@ import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridg
 import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
@@ -190,12 +191,17 @@ class DownloadProjectController(
         .flatMap { it.executeTests() }
 
     private fun TestSuitesSourceDto.getLatestVersion(): Mono<String> =
-            testsPreprocessorToBackendBridge.listTestSuitesSourceVersions(this)
-                .flatMap { keys ->
-                    keys.maxByOrNull { it.creationTime }
-                        ?.version
-                        .toMono()
-                }
+            testSuitesPreprocessorController.fetch(this).flatMap {
+                testsPreprocessorToBackendBridge.listTestSuitesSourceVersions(this)
+                    .flatMap { keys ->
+                        keys.maxByOrNull { it.creationTimeInMills }
+                            ?.version
+                            .toMono()
+                    }
+                    .switchIfEmptyToNotFound {
+                        "Not found any version for $name in $organizationName"
+                    }
+            }
 
     // check that all test suites are from same git repo (sources can be different) and have same version (sha1)
     private fun List<TestSuite>.getSingleVersion(): String = this

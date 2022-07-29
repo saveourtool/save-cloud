@@ -1,19 +1,12 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
-import com.saveourtool.save.backend.ResourceResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.backend.utils.switchIfEmptyToResponseException
-import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.orConflict
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -141,7 +134,8 @@ class TestSuitesSourceController(
     fun listSnapshotVersions(
         @PathVariable organizationName: String,
         @PathVariable name: String,
-    ): Flux<TestSuitesSourceSnapshotKey> = testSuitesSourceSnapshotStorage.list(organizationName, name)
+    ): Mono<TestSuitesSourceSnapshotKeyList> = testSuitesSourceSnapshotStorage.list(organizationName, name)
+        .collectList()
 
     /**
      * @param organizationName

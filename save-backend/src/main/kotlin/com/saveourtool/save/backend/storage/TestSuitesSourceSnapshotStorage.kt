@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.file.Path
 import kotlin.io.path.div
+import kotlin.io.path.name
 
 /**
  * Storage for snapshots of [com.saveourtool.save.entities.TestSuitesSource]
@@ -25,7 +26,7 @@ class TestSuitesSourceSnapshotStorage(
      * @return true if there is 4 parts between pathToContent and rootDir and ends with [ARCHIVE_EXTENSION]
      */
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            pathToContent.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+            pathToContent.name.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
@@ -39,7 +40,7 @@ class TestSuitesSourceSnapshotStorage(
     }
 
     override fun buildPathToContent(rootDir: Path, key: TestSuitesSourceSnapshotKey): Path = with(key) {
-        return rootDir / organizationName / testSuitesSourceName / getCreationTimeInMills().toString() / "$version$ARCHIVE_EXTENSION"
+        return rootDir / organizationName / testSuitesSourceName / creationTimeInMills.toString() / "$version$ARCHIVE_EXTENSION"
     }
 
     /**
@@ -93,7 +94,7 @@ class TestSuitesSourceSnapshotStorage(
     ): Mono<String> = list()
         .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName }
         .reduce { max, next ->
-            if (max.creationTime > next.creationTime) max else next
+            if (max.creationTimeInMills > next.creationTimeInMills) max else next
         }
         .map { it.version }
 
