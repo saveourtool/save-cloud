@@ -5,10 +5,6 @@
 package com.saveourtool.save.frontend.components.views.usersettingsview
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.SETTINGS_EMAIL
-import com.saveourtool.save.SETTINGS_ORGANIZATIONS
-import com.saveourtool.save.SETTINGS_PROFILE
-import com.saveourtool.save.SETTINGS_TOKEN
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -18,6 +14,7 @@ import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -213,7 +210,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_PROFILE"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -224,7 +221,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_EMAIL"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -235,7 +232,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_ORGANIZATIONS"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -258,7 +255,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_TOKEN"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }

@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.isNameValid
 
 /**
  * @property name organization
@@ -50,13 +51,26 @@ class Contest(
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds.split(",")
+    fun getTestSuiteIds() = testSuiteIds.split(DELIMITER)
         .mapNotNull {
             it.toLongOrNull()
         }
         .toSet()
 
+    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || it == DELIMITER }
+
+    private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
+
+    /**
+     * Validate contest data
+     *
+     * @return true if contest data is valid, false otherwise
+     */
+    fun isValid() = isNameValid(name) && isTestSuiteIdsValid() && isDateRangeValid()
+
     companion object {
+        private const val DELIMITER = ','
+
         /**
          * Create a stub for testing.
          *

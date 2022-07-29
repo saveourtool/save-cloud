@@ -8,7 +8,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.CREATE_ORGANIZATION
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
@@ -18,6 +17,7 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.*
@@ -314,7 +314,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         className = ClassName("btn btn-primary mb-2")
                                         a {
                                             className = ClassName("text-light")
-                                            href = "#/$CREATE_ORGANIZATION/"
+                                            href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
                                             +"Add new organization"
                                         }
                                     }

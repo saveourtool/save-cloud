@@ -11,6 +11,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
@@ -140,7 +141,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = AWESOME_BENCHMARKS
+                    val hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 12.rem
@@ -174,7 +175,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = PROJECTS
+                    val hrefAnchor = FrontendRoutes.PROJECTS.path
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active ")
                     style = jso {
                         width = 8.rem
@@ -186,7 +187,7 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    val hrefAnchor = CONTESTS
+                    val hrefAnchor = FrontendRoutes.CONTESTS.path
                     className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem
@@ -261,12 +262,12 @@ fun topBar() = FC<TopBarProps> { props ->
                     props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/$SETTINGS_EMAIL"
+                                window.location.href = "#/$name/${FrontendRoutes.SETTINGS_EMAIL.path}"
                             }
                         }
                         dropdownEntry(faCity, "My organizations") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/$SETTINGS_ORGANIZATIONS"
+                                window.location.href = "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                             }
                         }
                     }

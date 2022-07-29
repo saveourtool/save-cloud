@@ -9,7 +9,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -23,6 +22,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -690,7 +690,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         className = ClassName("btn btn-primary")
                         a {
                             className = ClassName("text-light")
-                            href = "#/$CREATE_PROJECT/"
+                            href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
                             +"+ New Tool"
                         }
                     }

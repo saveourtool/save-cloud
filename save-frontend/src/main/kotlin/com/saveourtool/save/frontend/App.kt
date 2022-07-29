@@ -18,6 +18,7 @@ import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.HTMLElement
@@ -164,17 +165,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/$AWESOME_BENCHMARKS"
+                                    path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/$CONTESTS/:contestName"
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/$SETTINGS_PROFILE"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsProfileMenuView::class.react.create {
                                             userName = it
@@ -183,7 +184,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/$SETTINGS_EMAIL"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsEmailMenuView::class.react.create {
                                             userName = it
@@ -192,7 +193,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/$SETTINGS_TOKEN"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_TOKEN.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsTokenMenuView::class.react.create {
                                             userName = it
@@ -201,7 +202,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/$SETTINGS_ORGANIZATIONS"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsOrganizationsMenuView::class.react.create {
                                             userName = it
@@ -210,24 +211,24 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/$CREATE_PROJECT"
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}"
                                     element = CreationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/$CREATE_ORGANIZATION"
+                                    path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
                                     element = CreateOrganizationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/$PROJECTS"
+                                    path = "/${FrontendRoutes.PROJECTS.path}"
                                     element = CollectionView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }
                                 }
 
                                 Route {
-                                    path = "/$CONTESTS"
+                                    path = "/${FrontendRoutes.CONTESTS.path}"
                                     element = ContestListView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }

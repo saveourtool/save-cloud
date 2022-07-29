@@ -22,14 +22,4 @@ data class ContestDto(
     val endTime: LocalDateTime?,
     val description: String?,
     val organizationName: String,
-) {
-    fun isValid() {
-
-    }
-
-    fun isDateRangeValid(contestCreationDateTime: LocalDateTime) = if (startTime != null && endTime != null) {
-        startTime < endTime && contestCreationDateTime.toLocalDateTime() <= startDate
-    } else {
-        true
-    }
-}
+)

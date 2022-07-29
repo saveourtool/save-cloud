@@ -6,10 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.AWESOME_BENCHMARKS
-import com.saveourtool.save.CONTESTS
-import com.saveourtool.save.PROJECTS
-import com.saveourtool.save.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.animations.*
@@ -18,6 +14,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 
 import org.w3c.fetch.Headers
@@ -219,7 +216,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         h4 {
                             a {
                                 className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                                href = "#/$PROJECTS"
+                                href = "#/${FrontendRoutes.PROJECTS.path}"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -257,7 +254,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("mt-4 text-sm")
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "#/$PROJECTS"
+                    href = "#/${FrontendRoutes.PROJECTS.path}"
                     h4 {
                         fontAwesomeIcon(icon = faExternalLinkAlt, "ml-2 mr-2")
                         +"List of Projects"
@@ -266,7 +263,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/$AWESOME_BENCHMARKS"
+                    href = "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                     h4 {
                         fontAwesomeIcon(icon = faFolderOpen, "ml-2 mr-2")
                         +"Benchmarks Archive"
@@ -275,7 +272,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/${props.userInfo?.name}/$SETTINGS_EMAIL"
+                    href = "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                     h4 {
                         fontAwesomeIcon(icon = faUser, "ml-2 mr-2")
                         +"User Settings"
@@ -284,7 +281,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
 
                 a {
                     className = ClassName("text-info text-gradient font-weight-bold ml-2 mr-2")
-                    href = "/#/$CONTESTS"
+                    href = "/#/${FrontendRoutes.CONTESTS.path}"
                     h4 {
                         fontAwesomeIcon(icon = faBell, "ml-2 mr-2")
                         +"Contests"

@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.CONTESTS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
@@ -12,8 +11,9 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
+import com.saveourtool.save.validation.FrontendRoutes
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
@@ -67,7 +67,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                 Fragment.create {
                     td {
                         a {
-                            href = "#/$CONTESTS/${cellProps.row.original.name}"
+                            href = "#/${FrontendRoutes.CONTESTS.path}/${cellProps.row.original.name}"
                             +cellProps.value
                         }
                     }
