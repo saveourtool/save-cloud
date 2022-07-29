@@ -50,6 +50,7 @@ import kotlin.io.path.pathString
     TestConfiguration::class,
     DockerService::class,
     DockerPersistentVolumeService::class,
+    AgentService::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient

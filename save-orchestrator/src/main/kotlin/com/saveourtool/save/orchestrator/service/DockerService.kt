@@ -120,8 +120,8 @@ class DockerService(
         log.info("Made request to start containers for execution.id=$executionId")
         val now = Clock.System.now()
         var duration = 0L
-        while (duration < agentStartTimeout && !areAgentsHaveStarted.get()) {
-            Thread.sleep(10_000L)
+        while (duration < AGENTS_START_TIMEOUT && !areAgentsHaveStarted.get()) {
+            Thread.sleep(AGENTS_START_SLEEP_INTERVAL)
             duration = (Clock.System.now() - now).inWholeMilliseconds
         }
         if (!areAgentsHaveStarted.get()) {
@@ -369,8 +369,9 @@ class DockerService(
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
+        private const val AGENTS_START_SLEEP_INTERVAL = 10_000L
+        private const val AGENTS_START_TIMEOUT = 60_000L
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
-        private val agentStartTimeout = 60_000L
     }
 }
 
