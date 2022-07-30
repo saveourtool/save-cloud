@@ -209,18 +209,18 @@ class DownloadProjectController(
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @PostMapping("/uploadStandardTestSuite")
     fun uploadStandardTestSuite() =
-        Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
-            .doOnSuccess {
-                testsPreprocessorToBackendBridge.getStandardTestSuitesSources()
-                    .flatMapMany { Flux.fromIterable(it) }
-                    .flatMap { testSuitesSourceDto ->
-                        testSuitesPreprocessorController.fetch(testSuitesSourceDto)
-                    }.doOnError {
-                        log.error("Error to update standard test suite sources")
-                    }
-                    .subscribeOn(scheduler)
-                    .subscribe()
-            }
+            Mono.just(ResponseEntity("Upload standard test suites pending...\n", HttpStatus.ACCEPTED))
+                .doOnSuccess {
+                    testsPreprocessorToBackendBridge.getStandardTestSuitesSources()
+                        .flatMapMany { Flux.fromIterable(it) }
+                        .flatMap { testSuitesSourceDto ->
+                            testSuitesPreprocessorController.fetch(testSuitesSourceDto)
+                        }.doOnError {
+                            log.error("Error to update standard test suite sources")
+                        }
+                        .subscribeOn(scheduler)
+                        .subscribe()
+                }
 
     /**
      * Execute tests by execution id:
