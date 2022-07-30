@@ -42,6 +42,18 @@ data class TestSuitesSourceSnapshotKey(
      */
     fun convertAndGetCreationTime(): LocalDateTime = creationTimeFromLong(creationTimeInMills)
 
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @return true if object contains provided values
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun equalsTo(
+        organizationName: String,
+        testSuitesSourceName: String,
+    ): Boolean = this.organizationName == organizationName && this.testSuitesSourceName == testSuitesSourceName
+
     /**
      * @param organizationName
      * @param testSuitesSourceName

@@ -87,7 +87,7 @@ class TestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
     ): Flux<TestSuitesSourceSnapshotKey> = list()
-        .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName }
+        .filter { it.equalsTo(organizationName, testSuitesSourceName) }
 
     /**
      * @param organizationName
@@ -98,7 +98,7 @@ class TestSuitesSourceSnapshotStorage(
         organizationName: String,
         testSuitesSourceName: String,
     ): Mono<String> = list()
-        .filter { it.organizationName == organizationName && it.testSuitesSourceName == testSuitesSourceName }
+        .filter { it.equalsTo(organizationName, testSuitesSourceName) }
         .reduce { max, next ->
             if (max.creationTimeInMills > next.creationTimeInMills) max else next
         }
