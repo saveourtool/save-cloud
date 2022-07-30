@@ -48,6 +48,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.nio.file.Path
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
@@ -77,7 +78,7 @@ class AgentsControllerTest {
             testSuiteIds = "1"
             id = 42L
         }
-        whenever(dockerService.prepareConfiguration(any())).thenReturn(
+        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
         )
         whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -103,7 +104,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }

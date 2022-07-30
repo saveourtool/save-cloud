@@ -65,7 +65,8 @@ class DockerServiceTest {
         val testExecution = Execution.stub(project).apply {
             id = 42L
         }
-        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testExecution)
+        val testDockerImageLocation = createTempDirectory()
+        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testDockerImageLocation, testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             DockerService.RunConfiguration(baseImageId, agentRunCmd, pvId)

@@ -193,7 +193,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId, "version")
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId)
 
         // /test-suites/standard/ids-by-name
         mockServerBackend.enqueue(

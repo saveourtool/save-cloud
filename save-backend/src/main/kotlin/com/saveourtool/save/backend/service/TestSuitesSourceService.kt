@@ -93,9 +93,9 @@ class TestSuitesSourceService(
         val gitUrl = "https://github.com/saveourtool/save-cli"
         val branch = "main"
         val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
-        testRootPaths.map { testRootPath ->
+        return testRootPaths.map { testRootPath ->
             getOrCreate(
-                organizationName,
+                organizationService.getByName(organizationName),
                 gitService.getByOrganizationAndUrl(organizationService.getByName(organizationName), gitUrl),
                 branch,
                 testRootPath,
