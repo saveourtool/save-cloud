@@ -11,24 +11,7 @@ package com.saveourtool.save.frontend.externals.animations
 import react.FC
 import react.PropsWithChildren
 
-@JsName("ScrollContainer")
-external val scrollContainer: FC<ScrollContainerProps>
-
-@JsName("ScrollPage")
-external val scrollPage: FC<ScrollPageProps>
-
-@JsName("Animator")
-external val animator: FC<AnimatorProps>
-
-@JsName("Fade")
-external val fade: Animation
-
-@JsName("Move")
-external val move: Animation
-
-@JsName("Sticky")
-external val sticky: Animation
-
+// =================core==========================
 @JsName("ScrollContainerProps")
 external interface ScrollContainerProps : PropsWithChildren {
     var snap: String
@@ -48,6 +31,95 @@ external interface AnimatorProps : PropsWithChildren {
 
 @JsName("Animation")
 external interface Animation
+
+@JsName("ScrollContainer")
+external val scrollContainer: FC<ScrollContainerProps>
+
+@JsName("ScrollPage")
+external val scrollPage: FC<ScrollPageProps>
+
+@JsName("Animator")
+external val animator: FC<AnimatorProps>
+
+// =================sticky animation==========================
+@JsName("Sticky")
+external fun sticky(
+    left: Number = definedExternally,
+    top: Number = definedExternally,
+): Animation
+
+@JsName("StickyIn")
+external fun stickyIn(
+    left: Number = definedExternally,
+    top: Number = definedExternally,
+): Animation
+
+@JsName("StickyOut")
+external fun stickyOut(
+    left: Number = definedExternally,
+    top: Number = definedExternally,
+): Animation
+
+// =================fade animation==========================
+@JsName("Fade")
+external fun fade(
+    from: Number = definedExternally,
+    to: Number = definedExternally,
+): Animation
+
+@JsName("FadeIn")
+external fun fadeIn(
+    from: Number = definedExternally,
+    to: Number = definedExternally
+): Animation
+
+@JsName("FadeOut")
+external fun fadeOut(
+    from: Number = definedExternally,
+    to: Number = definedExternally
+): Animation
+
+
+// =================move animation==========================
+@JsName("Move")
+external fun move(
+    dx: Number = definedExternally,
+    dy: Number = definedExternally,
+    outDx: Number = definedExternally,
+    outDy: Number = definedExternally
+): Animation
+
+
+@JsName("MoveIn")
+external fun moveIn(
+    dx: Number = definedExternally,
+    dy: Number = definedExternally
+): Animation
+
+@JsName("MoveOut")
+external fun moveOut(
+    dx: Number = definedExternally,
+    dy: Number = definedExternally
+): Animation
+
+// =================zoom animation==========================
+@JsName("Zoom")
+external fun zoom(
+    from: Number = definedExternally,
+    to: Number = definedExternally,
+): Animation
+
+@JsName("ZoomIn")
+external fun zoomIn(
+    from: Number = definedExternally,
+    to: Number = definedExternally,
+): Animation
+
+@JsName("ZoomOut")
+external fun zoomOut(
+    from: Number = definedExternally,
+    to: Number = definedExternally,
+): Animation
 
 /**
  * @param animations
