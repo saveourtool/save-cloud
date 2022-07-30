@@ -22,7 +22,7 @@ import kotlin.io.path.div
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
  */
 @RestController
-@RequestMapping("/test-suites-source")
+@RequestMapping("/test-suites-sources")
 class TestSuitesPreprocessorController(
     private val gitPreprocessorService: GitPreprocessorService,
     private val testDiscoveringService: TestDiscoveringService,

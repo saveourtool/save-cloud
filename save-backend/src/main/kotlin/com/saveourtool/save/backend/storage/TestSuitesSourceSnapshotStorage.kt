@@ -2,10 +2,13 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.test.TestFilesContent
+import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.utils.ARCHIVE_EXTENSION
-import com.saveourtool.save.utils.countPartsTill
-import com.saveourtool.save.utils.pathNamesTill
+import com.saveourtool.save.utils.*
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -13,8 +16,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-import kotlin.io.path.div
-import kotlin.io.path.name
+import kotlin.io.path.*
 
 /**
  * Storage for snapshots of [com.saveourtool.save.entities.TestSuitesSource]
@@ -23,6 +25,10 @@ import kotlin.io.path.name
 class TestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites") {
+    private val tmpDir = createTempDirectory(
+        Path.of(configProperties.fileStorage.location) / "tmp"
+    )
+
     /**
      * @param rootDir
      * @param pathToContent
@@ -99,6 +105,42 @@ class TestSuitesSourceSnapshotStorage(
             if (max.creationTimeInMills > next.creationTimeInMills) max else next
         }
         .map { it.version }
+
+    /**
+     * @param request
+     * @return [TestFilesContent] filled with test files
+     */
+    fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = with(request.testSuitesSource) {
+        findKey(organizationName, name, request.version)
+            .orNotFound {
+                "There is no content for tests from $name in $organizationName with version ${request.version}"
+            }
+    }
+        .flatMap { key ->
+            val tmpSourceDir = createTempDirectory(tmpDir, "source-")
+            val tmpArchive = createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
+            val sourceContent = download(key)
+                .map { DefaultDataBufferFactory.sharedInstance.wrap(it) }
+                .cast(DataBuffer::class.java)
+
+            DataBufferUtils.write(sourceContent, tmpArchive.outputStream())
+                .map { DataBufferUtils.release(it) }
+                .collectList()
+                .map {
+                    tmpArchive.extractZipHere()
+                    tmpArchive.deleteExisting()
+                }
+                .map {
+                    val testFilePath = request.test.filePath
+                    val additionalTestFilePath = request.test.additionalFiles.firstOrNull()
+                    val result = TestFilesContent(
+                        tmpSourceDir.resolve(testFilePath).readLines(),
+                        additionalTestFilePath?.let { tmpSourceDir.resolve(it).readLines() },
+                    )
+                    tmpSourceDir.toFile().deleteRecursively()
+                    result
+                }
+        }
 
     private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
 

@@ -44,7 +44,7 @@ class TestsPreprocessorToBackendBridge(
         creationTime: Instant,
         resourceWithContent: Resource,
     ): Mono<Unit> = webClientBackend.post()
-        .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
+        .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/upload-snapshot?version={version}&creationTime={creationTime}",
             testSuitesSource.organizationName, testSuitesSource.name,
             version, creationTime.toEpochMilli())
         .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -59,7 +59,7 @@ class TestsPreprocessorToBackendBridge(
      */
     fun doesTestSuitesSourceContainVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
             webClientBackend.get()
-                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
+                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/contains-snapshot?version={version}",
                     testSuitesSource.organizationName, testSuitesSource.name, version)
                 .retrieve()
                 .bodyToMono()
@@ -70,7 +70,7 @@ class TestsPreprocessorToBackendBridge(
      */
     fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Mono<TestSuitesSourceSnapshotKeyList> =
             webClientBackend.get()
-                .uri("/test-suites-source/{organizationName}/{testSuitesSourceName}/list-snapshot",
+                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/list-snapshot",
                     testSuitesSource.organizationName, testSuitesSource.name)
                 .retrieve()
                 .bodyToMono()
@@ -87,7 +87,7 @@ class TestsPreprocessorToBackendBridge(
         version: String
     ) = webClientBackend.get()
         .uri(
-            "/test-suites-source/{organizationName}/{testSuitesSourceName}/get-test-suites?version={version}",
+            "/test-suites-sources/{organizationName}/{testSuitesSourceName}/get-test-suites?version={version}",
             organizationName, testSuitesSourceName, version
         )
         .retrieve()
@@ -107,7 +107,7 @@ class TestsPreprocessorToBackendBridge(
         branch: String
     ): Mono<TestSuitesSourceDto> = webClientBackend.post()
         .uri(
-            "/test-suites-source/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
+            "/test-suites-sources/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
             organizationName,
             gitUrl,
             testRootPath,
@@ -122,7 +122,7 @@ class TestsPreprocessorToBackendBridge(
      * @return list of standard test suites sourcers
      */
     fun getStandardTestSuitesSources(): Mono<TestSuitesSourceDtoList> = webClientBackend.get()
-        .uri("/test-suites-source/get-standard")
+        .uri("/test-suites-sources/get-standard")
         .retrieve()
         .bodyToMono()
 

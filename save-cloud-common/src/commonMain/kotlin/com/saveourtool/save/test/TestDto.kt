@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.test
 
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import kotlinx.serialization.Serializable
 
 /**
@@ -39,10 +40,13 @@ data class TestBatch(
 
 /**
  * @property test [TestDto] of a test that is requested
- * @property testRootPath path to test root
+ * @property testSuitesSource source of test
+ * @property version version of this test
  */
 @Serializable
 data class TestFilesRequest(
     val test: TestDto,
-    val testRootPath: String,
+    val testSuitesSource: TestSuitesSourceDto,
+    val version: String,
+
 )

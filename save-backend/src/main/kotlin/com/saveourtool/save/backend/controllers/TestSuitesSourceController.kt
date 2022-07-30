@@ -23,7 +23,7 @@ typealias TestSuiteList = List<TestSuite>
  * Controller for [TestSuitesSource]
  */
 @RestController
-@RequestMapping("/internal/test-suites-source")
+@RequestMapping("/internal/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,

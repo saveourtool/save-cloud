@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.utils
 
+import okio.Path.Companion.toPath
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory

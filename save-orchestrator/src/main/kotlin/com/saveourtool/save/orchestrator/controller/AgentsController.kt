@@ -215,7 +215,7 @@ class AgentsController(
         targetDirectory: Path
     ): Mono<Unit> = webClientBackend.post()
         .uri(
-            "/test-suites-source/{organizationName}/{sourceName}/download-snapshot?version={version}",
+            "/test-suites-sources/{organizationName}/{sourceName}/download-snapshot?version={version}",
             organizationName,
             testSuitesSourceName,
             version,
@@ -243,7 +243,7 @@ class AgentsController(
         }
 
     private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
-        .uri("/test-suites-source/list-snapshot-by-execution-id?executionId={id}", requiredId())
+        .uri("/test-suites-sources/list-snapshot-by-execution-id?executionId={id}", requiredId())
         .retrieve()
         .bodyToMono()
 

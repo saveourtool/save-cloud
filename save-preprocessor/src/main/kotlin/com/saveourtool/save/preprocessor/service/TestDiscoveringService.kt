@@ -10,8 +10,6 @@ import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.info
@@ -190,20 +188,6 @@ class TestDiscoveringService(
     fun discoverAndSaveAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = getAllTests(rootTestConfig, testSuites)
         .toFlux()
         .save()
-
-    private fun getTestLinesByPath(pathPrefix: String, testPath: String?) = testPath?.let {
-        (pathPrefix.toPath() / it).toFile().readLines()
-    }
-
-    /**
-     * @param testFilesRequest request for test files
-     * @return [TestFilesContent] of public tests with additional info
-     */
-    @Suppress("UnsafeCallOnNullableType")
-    fun getPublicTestFiles(testFilesRequest: TestFilesRequest) = TestFilesContent(
-        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.filePath)!!,
-        getTestLinesByPath(testFilesRequest.testRootPath, testFilesRequest.test.additionalFiles.firstOrNull()),
-    )
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
 
