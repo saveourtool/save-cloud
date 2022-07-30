@@ -25,9 +25,7 @@ import kotlin.io.path.*
 class TestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
 ) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites") {
-    private val tmpDir = createTempDirectory(
-        Path.of(configProperties.fileStorage.location) / "tmp"
-    )
+    private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
     /**
      * @param rootDir
