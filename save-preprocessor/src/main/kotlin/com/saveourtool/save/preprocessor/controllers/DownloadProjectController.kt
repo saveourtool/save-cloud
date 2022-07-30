@@ -13,6 +13,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.info
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
@@ -33,6 +34,8 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 
 import java.time.Duration
@@ -115,9 +118,13 @@ class DownloadProjectController(
         .doOnSuccess {
             testsPreprocessorToBackendBridge.getStandardTestSuitesSources()
                 .flatMapMany { Flux.fromIterable(it) }
-                .flatMap {
-                    val version = it.gitDto.detectLatestSha1(it.branch)
-                    it.fetchAndGetTestSuites(version)
+                .flatMap { testSuitesSource ->
+                    testsPreprocessorToBackendBridge.listTestSuitesSourceVersions(testSuitesSource)
+                        .map { keys ->
+                            keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
+                                ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
+                        }
+                        .flatMapMany { testSuitesSource.fetchAndGetTestSuites(it) }
                 }
                 .saveOnExecutionAndExecute(executionRequestForStandardSuites)
                 .subscribeOn(scheduler)
