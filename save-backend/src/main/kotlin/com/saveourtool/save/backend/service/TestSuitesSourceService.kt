@@ -97,8 +97,8 @@ class TestSuitesSourceService(
             getOrCreate(
                 organizationService.getByName(organizationName),
                 gitService.getByOrganizationAndUrl(organizationService.getByName(organizationName), gitUrl),
-                branch,
                 testRootPath,
+                branch,
             )
         }
     }
