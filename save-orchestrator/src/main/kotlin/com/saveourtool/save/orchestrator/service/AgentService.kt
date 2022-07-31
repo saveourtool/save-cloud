@@ -20,7 +20,7 @@ import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.TestSuiteType
-import com.saveourtool.save.utils.DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.trace
 import org.apache.commons.io.FilenameUtils
@@ -179,7 +179,7 @@ class AgentService(
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return webClientBackend
             .get()
-            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = DELIMITER)}")
+            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = DATABASE_DELIMITER)}")
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
             .flatMap { agentStatuses ->

@@ -1,6 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.utils.DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isNameValid
@@ -52,13 +52,13 @@ class Contest(
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds.split(DELIMITER)
+    fun getTestSuiteIds() = testSuiteIds.split(DATABASE_DELIMITER)
         .mapNotNull {
             it.toLongOrNull()
         }
         .toSet()
 
-    private fun isTestSuiteIdsValid() = testSuiteIds.isBlank() || testSuiteIds.all { it.isDigit() || it.toString() == DELIMITER }
+    private fun isTestSuiteIdsValid() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
 
     private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 

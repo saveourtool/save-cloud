@@ -4,18 +4,18 @@
 
 package com.saveourtool.save.validation
 
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
+
 private fun String.hasOnlyLettersOrDigitsOrHyphens() = all { it.isLetterOrDigit() || it == '-' }
 
 private fun String.containsForbiddenWords(additionalForbiddenWords: List<String> = emptyList()) = FrontendRoutes.values()
     .map {
-        it.path.split("/")
+        it.path.split(URL_PATH_DELIMITER)
     }
     .map {
         it + additionalForbiddenWords
     }
-    .reduce { accumulator, forbiddenWordList ->
-        accumulator + forbiddenWordList
-    }
+    .flatten()
     .any {
         this == it
     }

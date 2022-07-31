@@ -11,6 +11,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
@@ -105,7 +106,7 @@ fun topBar() = FC<TopBarProps> { props ->
                 }
                 location.pathname
                     .substringBeforeLast("?")
-                    .split("/")
+                    .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->

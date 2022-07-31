@@ -20,7 +20,7 @@ import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.DELIMITER
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
@@ -214,7 +214,7 @@ class DockerService(
             val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
 
             testSuitesDir.resolve("save.toml").apply { createFile() }.writeText(configData)
-            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(DELIMITER) { it.name }}\""
+            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(DATABASE_DELIMITER) { it.name }}\""
         } else {
             ""
         }

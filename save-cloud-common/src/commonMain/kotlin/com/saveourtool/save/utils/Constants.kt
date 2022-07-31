@@ -4,4 +4,5 @@
 
 package com.saveourtool.save.utils
 
-const val DELIMITER = ","
+const val DATABASE_DELIMITER = ","
+const val URL_PATH_DELIMITER = "/"
