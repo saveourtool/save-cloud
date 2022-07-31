@@ -127,6 +127,7 @@ class Execution(
      */
     fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
         ?.split(DATABASE_DELIMITER)
+        ?.map { it.trim() }
         ?.map { it.toLong() }
 
     /**
