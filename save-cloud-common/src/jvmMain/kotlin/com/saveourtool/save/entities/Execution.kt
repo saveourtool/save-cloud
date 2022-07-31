@@ -127,8 +127,7 @@ class Execution(
      */
     fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
         ?.split(DATABASE_DELIMITER)
-        ?.map { it.trim() }
-        ?.map { it.toLong() }
+        ?.map { it.trim().toLong() }
 
     /**
      * Format and set provided list of TestSuite IDs
