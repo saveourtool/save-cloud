@@ -17,9 +17,9 @@ import kotlinx.serialization.Serializable
 data class ContestDto(
     val name: String,
     @Contextual
-    val startTime: LocalDateTime,
+    val startTime: LocalDateTime?,
     @Contextual
-    val endTime: LocalDateTime,
+    val endTime: LocalDateTime?,
     val description: String?,
     val organizationName: String,
 )

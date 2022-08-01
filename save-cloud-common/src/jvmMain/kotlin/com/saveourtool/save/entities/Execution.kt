@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.format
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -125,8 +126,8 @@ class Execution(
      * @return list of TestSuite IDs
      */
     fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
-        ?.split(TEST_SUITE_IDS_DELIMITER)
-        ?.map { it.toLong() }
+        ?.split(DATABASE_DELIMITER)
+        ?.map { it.trim().toLong() }
 
     /**
      * Format and set provided list of TestSuite IDs
@@ -137,7 +138,7 @@ class Execution(
         this.testSuiteIds = testSuiteIds
             .distinct()
             .sorted()
-            .joinToString(TEST_SUITE_IDS_DELIMITER)
+            .joinToString(DATABASE_DELIMITER)
     }
 
     /**
@@ -169,8 +170,6 @@ class Execution(
     }
 
     companion object {
-        private const val TEST_SUITE_IDS_DELIMITER = ", "
-
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
