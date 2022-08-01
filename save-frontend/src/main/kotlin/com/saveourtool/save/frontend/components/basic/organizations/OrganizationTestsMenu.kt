@@ -55,7 +55,7 @@ external interface OrganizationTestsMenuProps : Props {
     var selfRole: Role
 }
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
 
