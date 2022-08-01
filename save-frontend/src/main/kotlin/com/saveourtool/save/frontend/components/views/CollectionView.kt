@@ -3,8 +3,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.CREATE_ORGANIZATION
-import com.saveourtool.save.frontend.CREATE_PROJECT
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -15,11 +13,11 @@ import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -99,7 +97,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2 mr-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/$CREATE_PROJECT/"
+                    href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
                     +"Add new tested tool"
                 }
             }
@@ -108,7 +106,7 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
                 className = ClassName("btn btn-primary mb-2")
                 a {
                     className = ClassName("text-light")
-                    href = "#/$CREATE_ORGANIZATION/"
+                    href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
                     +"Add new organization"
                 }
             }

@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.ManyToOne
@@ -34,7 +35,7 @@ class Test(
     /**
      * @return [additionalFiles] as a list of strings
      */
-    fun additionalFilesAsList() = additionalFiles.split(",").filter { it.isNotBlank() }
+    fun additionalFilesAsList() = additionalFiles.split(DATABASE_DELIMITER).filter { it.isNotBlank() }
 
     /**
      * @return [TestDto] constructed from `this`

@@ -34,6 +34,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import java.util.*
@@ -187,15 +188,16 @@ internal class ContestController(
     @ApiResponse(responseCode = "404", description = "Organization with given name was not found.")
     @ApiResponse(responseCode = "403", description = "User cannot create contests with given organization.")
     @ApiResponse(responseCode = "409", description = "Contest with given name is already present.")
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "TOO_LONG_FUNCTION")
     fun createContest(
         @RequestBody contestDto: ContestDto,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
-        Optional.ofNullable(
-            organizationService.findByName(contestDto.organizationName)
-        )
+    ): Mono<ResponseEntity<String>> = Mono.just(
+        contestDto.organizationName
     )
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
@@ -205,8 +207,17 @@ internal class ContestController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
+        .map {
+            contestDto.toContest(it)
+        }
         .filter {
-            contestService.createContestIfNotPresent(contestDto.toContest(it))
+            it.isValid()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))
+        }
+        .filter {
+            contestService.createContestIfNotPresent(it)
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(

@@ -10,6 +10,8 @@ import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.isNameValid
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -21,8 +23,7 @@ import react.dom.html.ReactHTML.form
 
 import kotlin.js.json
 import kotlinx.browser.window
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -98,7 +99,23 @@ fun ChildrenBuilder.showContestCreationModal(
     }
 }
 
-private fun String.dateToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(LocalDate.parse(this), time)
+private fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
+    LocalDate.parse(this),
+    time,
+)
+
+/**
+ * @param startTime
+ * @param endTime
+ */
+fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (startTime != null && endTime != null) {
+    startTime < endTime
+} else {
+    true
+}
+
+private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
+        !isNameValid(contestDto.name)
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -107,12 +124,11 @@ private fun String.dateToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = L
     "AVOID_NULL_CHECKS"
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
-    val stubDateTime = LocalDateTime(1, 1, 1, 1, 1)
     val (contestDto, setContestDto) = useState(
         ContestDto(
             "",
-            stubDateTime,
-            stubDateTime,
+            null,
+            null,
             "",
             props.organizationName,
         )
@@ -120,7 +136,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val onSaveButtonPressed = useRequest {
         val response = post(
-            "$apiUrl/contests/create",
+            "$apiUrl/${FrontendRoutes.CONTESTS}/create",
             jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
@@ -128,7 +144,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         if (!response.ok) {
             props.onSaveError(response)
         } else {
-            props.onSaveSuccess("${window.location.origin}#/contests/${contestDto.name}")
+            props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
         }
     }
 
@@ -144,9 +160,9 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
-                            true,
+                            contestDto.name.isBlank() || isNameValid(contestDto.name),
                             "col-12",
-                            "Contest name"
+                            "Contest name",
                         ) {
                             setContestDto(contestDto.copy(name = it.target.value))
                         }
@@ -158,7 +174,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             InputTypes.CONTEST_SUPER_ORGANIZATION_NAME,
                             "col-12",
                             "Super organization name",
-                            contestDto.organizationName
+                            contestDto.organizationName,
                         )
                     }
                     // ==== Contest dates
@@ -166,19 +182,19 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2 d-flex justify-content-between")
                         inputDateFormRequired(
                             InputTypes.CONTEST_START_TIME,
-                            true,
+                            isDateRangeValid(contestDto.startTime, contestDto.endTime),
                             "col-6",
                             "Starting time",
                         ) {
-                            setContestDto(contestDto.copy(startTime = it.target.value.dateToLocalDateTime()))
+                            setContestDto(contestDto.copy(startTime = it.target.value.dateStringToLocalDateTime()))
                         }
                         inputDateFormRequired(
                             InputTypes.CONTEST_END_TIME,
-                            true,
+                            isDateRangeValid(contestDto.startTime, contestDto.endTime),
                             "col-6",
                             "Ending time",
                         ) {
-                            setContestDto(contestDto.copy(endTime = it.target.value.dateToLocalDateTime(LocalTime(23, 59, 59))))
+                            setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
                         }
                     }
                     // ==== Contest description
@@ -199,10 +215,9 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 button {
                     type = ButtonType.button
                     className = ClassName("btn btn-primary")
+                    disabled = isButtonDisabled(contestDto)
+                    onClick = { onSaveButtonPressed() }
                     +"Create contest"
-                    onClick = {
-                        onSaveButtonPressed()
-                    }
                 }
             }
         }
