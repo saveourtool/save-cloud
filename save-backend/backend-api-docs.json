@@ -4432,10 +4432,8 @@
       },
       "ContestDto": {
         "required": [
-          "endTime",
           "name",
-          "organizationName",
-          "startTime"
+          "organizationName"
         ],
         "type": "object",
         "properties": {

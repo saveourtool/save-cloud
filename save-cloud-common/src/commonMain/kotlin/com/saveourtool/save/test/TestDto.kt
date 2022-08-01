@@ -5,6 +5,7 @@
 package com.saveourtool.save.test
 
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,7 +26,7 @@ data class TestDto(
     /**
      * @return [additionalFiles] as a [String]
      */
-    fun joinAdditionalFiles() = additionalFiles.joinToString(",")
+    fun joinAdditionalFiles() = additionalFiles.joinToString(DATABASE_DELIMITER)
 }
 
 /**

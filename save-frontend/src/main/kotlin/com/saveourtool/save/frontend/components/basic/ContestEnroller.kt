@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
@@ -192,7 +193,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                             if (isContestSelector) {
                                 setContestName(selectedOption)
                             } else {
-                                val (newOrganizationName, newProjectName) = selectedOption.split("/")
+                                val (newOrganizationName, newProjectName) = selectedOption.split(URL_PATH_DELIMITER)
                                 setOrganizationName(newOrganizationName)
                                 setProjectName(newProjectName)
                             }

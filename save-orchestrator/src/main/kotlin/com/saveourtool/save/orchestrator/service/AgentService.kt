@@ -19,6 +19,8 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.trace
 import org.slf4j.LoggerFactory
@@ -174,7 +176,7 @@ class AgentService(
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return webClientBackend
             .get()
-            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = ",")}")
+            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = DATABASE_DELIMITER)}")
             .retrieve()
             .bodyToMono<List<AgentStatusDto>>()
             .flatMap { agentStatuses ->

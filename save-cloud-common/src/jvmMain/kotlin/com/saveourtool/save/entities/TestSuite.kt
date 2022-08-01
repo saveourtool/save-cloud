@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
@@ -38,7 +39,7 @@ class TestSuite(
     /**
      * @return [tags] as a list of strings
      */
-    fun tagsAsList() = tags?.split(",", ";")?.filter { it.isNotBlank() }.orEmpty()
+    fun tagsAsList() = tags?.split(DATABASE_DELIMITER)?.filter { it.isNotBlank() }.orEmpty()
 
     /**
      * @return Dto of testSuite
@@ -60,6 +61,6 @@ class TestSuite(
          * @param tags list of tags
          * @return representation of [tags] as a single string understood by [TestSuite.tagsAsList]
          */
-        fun tagsFromList(tags: List<String>) = tags.joinToString(separator = ",")
+        fun tagsFromList(tags: List<String>) = tags.joinToString(separator = DATABASE_DELIMITER)
     }
 }
