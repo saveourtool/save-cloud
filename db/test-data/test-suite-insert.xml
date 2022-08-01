@@ -4,22 +4,38 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-    <changeSet id="test-suite-insert" author="petertrr" context="dev">
-        <update dbms="mysql" tableName="test_suite">
+    <changeSet id="test-suite-insert" author="frolov" context="dev">
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="2" />
+            <column name="name" value="test" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="description" value="description"/>
             <column name="language" value="Java"/>
-            <where>id=2</where>
-        </update>
+            <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
+        </insert>
 
-        <update dbms="mysql" tableName="test_suite">
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="3" />
+            <column name="name" value="test" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="description" value="description"/>
             <column name="language" value="null"/>
-            <where>id=3</where>
-        </update>
+            <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
+        </insert>
 
-        <update dbms="mysql" tableName="test_suite">
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="4" />
+            <column name="name" value="test" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="description" value="description"/>
             <column name="language" value="C++"/>
-            <where>id=4</where>
-        </update>
-
+            <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="test-suite-insert" author="petertrr" context="dev">
         <insert dbms="mysql" tableName="test_suite">
             <column name="id" value="5"/>
             <column name="name" value="Security issues for Unknown language"/>
@@ -28,6 +44,7 @@
             <column name="language" value="null"/>
             <column name="tags" value="security,codestyle"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -38,6 +55,7 @@
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -48,6 +66,7 @@
             <column name="language" value="Java"/>
             <column name="tags" value="NPE,security"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -58,6 +77,7 @@
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
 
@@ -69,6 +89,7 @@
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -79,6 +100,7 @@
             <column name="language" value="C++"/>
             <column name="tags" value="security,NPE,hardcode"/>
             <column name="version" valueComputed="id"/>
+            <column name="source_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="test_suite">
@@ -89,12 +111,7 @@
             <column name="language" value="Java"/>
             <column name="tags" value="NPE,security"/>
             <column name="version" valueComputed="id"/>
-        </insert>
-    </changeSet>
-
-    <changeSet id="add-test_suites_source" author="nulls">
-        <update tableName="test_suite">
             <column name="source_id" value="1" />
-        </update>
+        </insert>
     </changeSet>
 </databaseChangeLog>

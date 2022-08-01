@@ -10,8 +10,7 @@
             <column name="url" value="github" />
             <column name="username" value="admin" />
             <column name="password" value="12345" />
-            <column name="branch" value="master" />
-            <column name="project_id" value="1" />
+            <column name="organization_id" value="1" />
         </insert>
 
         <insert dbms="mysql" tableName="git">
@@ -19,8 +18,16 @@
             <column name="url" value="https://github.com/saveourtool/save-cloud" />
             <column name="username" value="kentr0w" />
             <column name="password" value="pass" />
-            <column name="branch" value="feature/create-backend" />
-            <column name="project_id" value="2" />
+            <column name="organization_id" value="1" />
+        </insert>
+    </changeSet>
+    <changeSet id="add-save-cli" author="nulls" context="dev">
+        <insert dbms="mysql" tableName="git">
+            <column name="id" value="3" />
+            <column name="url" value="https://github.com/saveourtool/save-cli" />
+            <column name="username" value="null" />
+            <column name="password" value="null" />
+            <column name="organization_id" value="1" />
         </insert>
     </changeSet>
 </databaseChangeLog>

@@ -7,20 +7,23 @@
 
     <include file="user-insert.xml" relativeToChangelogFile="true"/>
     <include file="organization-insert.xml" relativeToChangelogFile="true"/>
+    <include file="git-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suites-source-insert.xml" relativeToChangelogFile="true"/>
     <include file="test-suite-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-insert.xml" relativeToChangelogFile="true"/>
     <include file="project-insert.xml" relativeToChangelogFile="true"/>
     <include file="execution-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-execution-insert.xml" relativeToChangelogFile="true"/>
+    <include file="agent-insert.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-project-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-organization-insert.xml" relativeToChangelogFile="true"/>
     <include file="awesome-bench-insert.xml" relativeToChangelogFile="true"/>
     <include file="contest-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-project-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-execution-insert.xml" relativeToChangelogFile="true"/>
-    <include file="git-insert.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="02-petertrr" author="petertrr">
-        <tagDatabase tag="v2.0-insert"/>
+    <changeSet id="add-tests-data" author="nulls">
+        <tagDatabase tag="test-data-insert"/>
     </changeSet>
-
 </databaseChangeLog>

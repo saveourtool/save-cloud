@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="contest-insert" author="sanyavertolet" context="dev">
-        <loadData tableName="contest" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/contest.csv">
+        <loadData tableName="contest" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/contest.csv">
             <column header="id" name="id" type="bigint"/>
             <column header="name" name="name" type="varchar(250)"/>
             <column header="status" name="status" type="varchar(250)" defaultValue="CREATED"/>

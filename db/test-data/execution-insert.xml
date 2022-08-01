@@ -23,6 +23,15 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
+
+            <column name="user_id" value="1"/>
+
+            <column name="all_tests" value="14"/>
+
+            <column name="unmatched_checks" value="1"/>
+            <column name="matched_checks" value="9"/>
+            <column name="expected_checks" value="14"/>
+            <column name="unexpected_checks" value="0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -41,6 +50,15 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
+
+            <column name="user_id" value="1"/>
+
+            <column name="all_tests" value="0"/>
+
+            <column name="unmatched_checks" value="0"/>
+            <column name="matched_checks" value="0"/>
+            <column name="expected_checks" value="0"/>
+            <column name="unexpected_checks" value="0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -59,6 +77,15 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
+
+            <column name="user_id" value="1"/>
+
+            <column name="all_tests" value="2"/>
+
+            <column name="unmatched_checks" value="0"/>
+            <column name="matched_checks" value="0"/>
+            <column name="expected_checks" value="2"/>
+            <column name="unexpected_checks" value="0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="4" />
@@ -77,6 +104,15 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
+
+            <column name="user_id" value="1"/>
+
+            <column name="all_tests" value="2"/>
+
+            <column name="unmatched_checks" value="0"/>
+            <column name="matched_checks" value="0"/>
+            <column name="expected_checks" value="2"/>
+            <column name="unexpected_checks" value="0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="5" />
@@ -95,6 +131,15 @@
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
             <column name="additional_files" value="null" />
+
+            <column name="user_id" value="1"/>
+
+            <column name="all_tests" value="14"/>
+
+            <column name="unmatched_checks" value="1"/>
+            <column name="matched_checks" value="9"/>
+            <column name="expected_checks" value="14"/>
+            <column name="unexpected_checks" value="3"/>
         </insert>
     </changeSet>
 
