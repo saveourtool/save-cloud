@@ -24,7 +24,6 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.utils.warn
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -247,9 +246,7 @@ class DockerService(
 
         val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
         log.info("Built persistent volume with tests by id $pvId")
-        if (!resourcesForExecution.toFile().deleteRecursively()) {
-            log.warn { "Failed to delete a temporary directory $resourcesForExecution" }
-        }
+        FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)

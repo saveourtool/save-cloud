@@ -19,7 +19,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 import kotlin.time.Duration.Companion.seconds
@@ -48,6 +47,7 @@ class DockerPersistentVolumeService(
         val resourcesRelativePath = resources.single().relativeTo(
             Paths.get(configProperties.testResources.tmpPath)
         )
+        val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
                 HostConfig()
@@ -56,7 +56,7 @@ class DockerPersistentVolumeService(
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(configProperties.docker.testResourcesVolumeName)
-                                .withTarget("$SAVE_AGENT_USER_HOME/tmp/${resourcesRelativePath.pathString}"),
+                                .withTarget("$intermediateResourcesPath/${resourcesRelativePath.pathString}"),
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)
@@ -66,7 +66,7 @@ class DockerPersistentVolumeService(
             )
             .withCmd(
                 "sh", "-c",
-                "cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                "cp -R $intermediateResourcesPath/* $EXECUTION_DIR" +
                         " && chown -R 1100:1100 $EXECUTION_DIR" +
                         " && echo Successfully copied"
             )

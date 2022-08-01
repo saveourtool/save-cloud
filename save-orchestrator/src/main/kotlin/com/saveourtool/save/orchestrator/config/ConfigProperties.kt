@@ -65,7 +65,7 @@ data class ConfigProperties(
         val loggingDriver: String,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
-        val testResourcesVolumeName: String? = "save-tmp-resources",
+        val testResourcesVolumeName: String? = null,
     )
 
     /**
