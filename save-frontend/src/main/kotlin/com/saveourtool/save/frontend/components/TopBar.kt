@@ -230,30 +230,31 @@ fun topBar() = FC<TopBarProps> { props ->
                     asDynamic()["data-toggle"] = "dropdown"
 
                     div {
-                        className = ClassName("row")
+                        className = ClassName("d-flex flex-row")
                         div {
+                            className = ClassName("d-flex flex-column")
                             span {
                                 className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                                 +(props.userInfo?.name ?: "")
                             }
-                            props.userInfo?.avatar?.let {
-                                img {
-                                    className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle fas fa-lg fa-fw mr-2")
-                                    src = "/api/$v1/avatar$it"
-                                    height = 26.0
-                                    width = 26.0
+                            val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                            if (globalRole.priority >= Role.ADMIN.priority) {
+                                small {
+                                    className = ClassName("text-gray-400 text-justify")
+                                    +globalRole.formattedName
                                 }
-                            } ?: fontAwesomeIcon(icon = faUser) {
-                                it.className = "fas fa-lg fa-fw mr-2 text-gray-400"
                             }
                         }
-                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                        if (globalRole.priority >= Role.ADMIN.priority) {
-                            small {
-                                className = ClassName("text-gray-400 text-justify")
-                                +globalRole.formattedName
+                        props.userInfo?.avatar?.let {
+                            img {
+                                className =
+                                    ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
+                                src = "/api/$v1/avatar$it"
+                                height = 45.0
+                                width = 45.0
                             }
+                        } ?: fontAwesomeIcon(icon = faUser) {
+                            it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
                         }
                     }
                 }
