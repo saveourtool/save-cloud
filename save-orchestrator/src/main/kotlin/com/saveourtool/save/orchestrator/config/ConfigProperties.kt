@@ -57,6 +57,7 @@ data class ConfigProperties(
      * @property runtime OCI compliant runtime for docker
      * @property loggingDriver logging driver for the container
      * @property registry docker registry to pull images for test executions from
+     * @property testResourcesVolumeType Type of Docker volume (bind/volume). `bind` should only be used for local running and for tests.
      * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
      * Nullable, because it's not required in Kubernetes
      */
@@ -65,6 +66,7 @@ data class ConfigProperties(
         val loggingDriver: String,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
+        val testResourcesVolumeType: String = "volume",
         val testResourcesVolumeName: String? = null,
     )
 
