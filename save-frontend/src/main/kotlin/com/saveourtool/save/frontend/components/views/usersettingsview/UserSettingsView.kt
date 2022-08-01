@@ -106,13 +106,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val user = props.userName
                 ?.let { getUser(it) }
             val organizationInfos = getOrganizationInfos()
             setState {
-                image = avatar
                 userInfo = user
+                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationInfos = organizationInfos
             }
@@ -333,15 +332,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     isUploading = false
                 }
             }
-
-    private suspend fun getAvatar() = get(
-        "$apiUrl/users/${props.userName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ImageInfo>()
-        }
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationInfos() = get(
