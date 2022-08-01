@@ -237,7 +237,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                 +(props.userInfo?.name ?: "")
                             }
                             val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                            if (globalRole.priority >= Role.ADMIN.priority) {
+                            if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
                                 small {
                                     className = ClassName("text-gray-400 text-justify")
                                     +globalRole.formattedName
