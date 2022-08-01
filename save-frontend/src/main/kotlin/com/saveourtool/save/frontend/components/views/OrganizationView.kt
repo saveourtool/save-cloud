@@ -6,7 +6,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
@@ -21,7 +20,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
@@ -57,9 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.span
-import react.dom.html.ReactHTML.ul
 
 /**
  * `Props` retrieved from router
@@ -461,43 +456,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun ChildrenBuilder.renderTests() {
-        val fc = FC<Props> {
-            var testSuitesSourceSnapshotKeys by useState<TestSuitesSourceSnapshotKeyList>(emptyList())
-            runOnlyOnFirstRender {
-                useRequest(isDeferred = false) {
-                    get(
-                        url = "$apiUrl/test-suites-sources/${props.organizationName}/list-snapshot",
-                        headers = Headers().also {
-                            it.set("Accept", "application/json")
-                        },
-                        loadingHandler = ::loadingHandler,
-                    )
-                        .unsafeMap {
-                            it.decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
-                        }
-                        .let {
-                            testSuitesSourceSnapshotKeys = it
-                        }
-                }()
-            }
+        div {
+            className = ClassName("card shadow mb-4 w-100")
             div {
-                className = ClassName("card shadow mb-4 w-100")
-                ul {
-                    className = ClassName("navbar-nav mx-auto")
-                    testSuitesSourceSnapshotKeys.forEach { key ->
-                        li {
-                            className = ClassName("nav-item")
-                            span {
-                                +key.toString()
-                            }
-                        }
-                    }
-
-                }
+                className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
+                +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
             }
-        }
-        fc {
-
         }
     }
 

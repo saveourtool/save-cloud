@@ -42,7 +42,6 @@ data class TestSuitesSourceSnapshotKey(
      */
     fun convertAndGetCreationTime(): LocalDateTime = creationTimeFromLong(creationTimeInMills)
 
-
     /**
      * @param organizationName
      * @param testSuitesSourceName
