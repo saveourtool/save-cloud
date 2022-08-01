@@ -24,6 +24,7 @@ import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.utils.debug
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -199,6 +200,7 @@ class DockerService(
             directory = Paths.get(configProperties.testResources.tmpPath),
             prefix = "save-execution-${execution.id}"
         )
+        log.debug { "Copying resources from $originalResourcesPath into $resourcesForExecution" }
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
         // collect standard test suites for docker image, which were selected by user, if any
@@ -212,7 +214,11 @@ class DockerService(
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
 
-            testSuitesDir.resolve("save.toml").apply { createFile() }.writeText(configData)
+            testSuitesDir.resolve("save.toml").apply {
+                log.debug { "Creating a synthetic save.toml at $this" }
+                createFile()
+            }
+                .writeText(configData)
             " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
         } else {
             ""

@@ -56,7 +56,7 @@ class DockerPersistentVolumeService(
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(configProperties.docker.testResourcesVolumeName)
-                                .withTarget("$intermediateResourcesPath/${resourcesRelativePath.pathString}"),
+                                .withTarget(intermediateResourcesPath),
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)
@@ -66,7 +66,7 @@ class DockerPersistentVolumeService(
             )
             .withCmd(
                 "sh", "-c",
-                "cp -R $intermediateResourcesPath/* $EXECUTION_DIR" +
+                "cp -R $intermediateResourcesPath/${resourcesRelativePath.pathString}/* $EXECUTION_DIR" +
                         " && chown -R 1100:1100 $EXECUTION_DIR" +
                         " && echo Successfully copied"
             )
