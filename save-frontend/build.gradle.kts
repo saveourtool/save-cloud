@@ -72,7 +72,7 @@ kotlin {
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
-            implementation(npm("react-spinners", "0.13.0", generateExternals = true))
+            implementation(npm("react-spinners", "0.13.0"))
             implementation(npm("react-tsparticles", "1.42.1"))
             implementation(npm("tsparticles", "2.1.3"))
             implementation(npm("jquery", "3.6.0"))

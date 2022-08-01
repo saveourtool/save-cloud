@@ -5,6 +5,8 @@
 
 package com.saveourtool.save.validation
 
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
+
 /**
  * @property path substring of url that defines given route
  */
@@ -19,4 +21,13 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_PROFILE("settings/profile"),
     SETTINGS_TOKEN("settings/token"),
     ;
+
+    companion object {
+        /**
+         * Get forbidden words from [FrontendRoutes].
+         *
+         * @return list of forbidden words
+         */
+        fun getForbiddenWords() = FrontendRoutes.values().map { it.path.split(URL_PATH_DELIMITER) }.flatten()
+    }
 }

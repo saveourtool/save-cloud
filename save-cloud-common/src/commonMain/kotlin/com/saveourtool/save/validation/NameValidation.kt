@@ -4,21 +4,9 @@
 
 package com.saveourtool.save.validation
 
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
-
 private fun String.hasOnlyLettersOrDigitsOrHyphens() = all { it.isLetterOrDigit() || it == '-' }
 
-private fun String.containsForbiddenWords(additionalForbiddenWords: List<String> = emptyList()) = FrontendRoutes.values()
-    .map {
-        it.path.split(URL_PATH_DELIMITER)
-    }
-    .map {
-        it + additionalForbiddenWords
-    }
-    .flatten()
-    .any {
-        this == it
-    }
+private fun String.containsForbiddenWords() = FrontendRoutes.getForbiddenWords().any { this == it }
 
 /**
  * Check if name is valid.
