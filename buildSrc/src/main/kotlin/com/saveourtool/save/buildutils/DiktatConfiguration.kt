@@ -34,17 +34,6 @@ fun Project.configureDiktat() {
         }
     }
     fixDiktatTasks()
-
-    if (path == rootProject.path) {
-        tasks.register("mergeDiktatReports", ReportMergeTask::class) {
-            input.from(
-                *fileTree(buildDir.resolve("diktat-sarif-reports"))
-                    .toList()
-                    .toTypedArray()
-            )
-            output.set(buildDir.resolve("diktat-sarif-reports/diktat-merged.sarif"))
-        }
-    }
 }
 
 /**
