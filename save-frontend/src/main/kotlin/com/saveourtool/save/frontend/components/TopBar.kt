@@ -247,7 +247,7 @@ fun topBar() = FC<TopBarProps> { props ->
                         props.userInfo?.avatar?.let {
                             img {
                                 className =
-                                    ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
+                                        ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
                                 src = "/api/$v1/avatar$it"
                                 height = 45.0
                                 width = 45.0
