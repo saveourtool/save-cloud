@@ -82,26 +82,29 @@ class DownloadProjectController(
         @RequestBody executionRequest: ExecutionRequest,
     ): Mono<TextResponse> = executionRequest.toAcceptedResponseMono()
         .doOnSuccess {
-            val (selectedBranch, selectedVersion) = with(executionRequest.branchOrCommit) {
-                if (isNullOrBlank()) {
-                    null to null
-                } else if (startsWith("origin/")) {
-                    replaceFirst("origin/", "") to null
-                } else {
-                    null to this
+            Mono.fromCallable {
+                val (selectedBranch, selectedVersion) = with(executionRequest.branchOrCommit) {
+                    if (isNullOrBlank()) {
+                        null to null
+                    } else if (startsWith("origin/")) {
+                        replaceFirst("origin/", "") to null
+                    } else {
+                        null to this
+                    }
                 }
+                val branch = selectedBranch ?: executionRequest.gitDto.detectDefaultBranchName()
+                val version = selectedVersion ?: executionRequest.gitDto.detectLatestSha1(branch)
+                branch to version
             }
-            val branch = selectedBranch ?: executionRequest.gitDto.detectDefaultBranchName()
-            val version = selectedVersion ?: executionRequest.gitDto.detectLatestSha1(branch)
-
-            // search or create new test suites source by content
-            testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
-                executionRequest.project.organization.name,
-                executionRequest.gitDto.url,
-                executionRequest.testRootPath,
-                branch,
-            )
-                .mapToTestSuites(version)
+                .flatMapMany { (branch, version) ->
+                    // search or create new test suites source by content
+                    testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
+                        executionRequest.project.organization.name,
+                        executionRequest.gitDto.url,
+                        executionRequest.testRootPath,
+                        branch,
+                    ).mapToTestSuites(version)
+                }
                 .saveOnExecutionAndExecute(executionRequest)
                 .subscribeOn(scheduler)
                 .subscribe()
@@ -124,7 +127,7 @@ class DownloadProjectController(
                             keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
                                 ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
                         }
-                        .flatMapMany { testSuitesSource.fetchAndGetTestSuites(it) }
+                        .flatMapMany { testSuitesSource.getTestSuites(it) }
                 }
                 .saveOnExecutionAndExecute(executionRequestForStandardSuites)
                 .subscribeOn(scheduler)
@@ -138,14 +141,15 @@ class DownloadProjectController(
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
-        .flatMap {
-            testsPreprocessorToBackendBridge.getTestSuites(
-                organizationName,
-                name,
-                version
-            )
-        }
-        .flatMapMany { Flux.fromIterable(it) }
+        .flatMapMany { getTestSuites(version) }
+
+    private fun TestSuitesSourceDto.getTestSuites(
+        version: String,
+    ): Flux<TestSuite> = testsPreprocessorToBackendBridge.getTestSuites(
+        organizationName,
+        name,
+        version
+    ).flatMapMany { Flux.fromIterable(it) }
 
     private fun Flux<TestSuite>.saveOnExecutionAndExecute(
         requestBase: ExecutionRequestBase,

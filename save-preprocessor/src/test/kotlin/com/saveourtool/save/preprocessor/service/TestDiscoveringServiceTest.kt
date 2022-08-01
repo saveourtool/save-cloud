@@ -17,6 +17,8 @@ import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -28,7 +30,10 @@ import java.nio.file.Path
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(TestDiscoveringService::class)
+@Import(
+    TestDiscoveringService::class,
+    TestsPreprocessorToBackendBridge::class,
+)
 class TestDiscoveringServiceTest {
     private val logger = LoggerFactory.getLogger(TestDiscoveringServiceTest::class.java)
     private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
@@ -36,6 +41,12 @@ class TestDiscoveringServiceTest {
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
     private lateinit var testSuitesSourceDto: TestSuitesSourceDto
+
+    @MockBean
+    private lateinit var configProperties: ConfigProperties
+
+    @MockBean
+    private lateinit var webClientCustomizer: WebClientCustomizer
 
     @BeforeAll
     fun setUp() {
