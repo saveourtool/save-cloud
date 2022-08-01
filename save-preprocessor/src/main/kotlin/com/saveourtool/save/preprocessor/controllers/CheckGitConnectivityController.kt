@@ -1,5 +1,7 @@
 package com.saveourtool.save.preprocessor.controllers
 
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.preprocessor.utils.detectDefaultBranchName
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.TransportException
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -33,14 +35,14 @@ class CheckGitConnectivityController {
         log.info("Received a request to check git connectivity for $user: with $url")
         return Mono.just(
             try {
-                Git.lsRemoteRepository()
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(user, token))
-                    .setHeads(true)
-                    .setTags(true)
-                    .setRemote(url)
-                    .call()
+                // a simple operation by detecting a default branch
+                GitDto(
+                    url,
+                    user,
+                    token,
+                ).detectDefaultBranchName()
                 true
-            } catch (e: TransportException) {
+            } catch (e: IllegalStateException) {
                 false
             }
         )

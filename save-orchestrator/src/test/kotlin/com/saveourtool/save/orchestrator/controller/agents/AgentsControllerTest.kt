@@ -11,6 +11,7 @@ import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -49,11 +50,13 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createTempDirectory
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, Beans::class)
 @MockBeans(MockBean(AgentRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@AutoConfigureWebTestClient(timeout = "P2D")
 class AgentsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -61,6 +64,7 @@ class AgentsControllerTest {
     @Autowired
     private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
+
 
     @AfterEach
     fun tearDown() {
@@ -78,6 +82,13 @@ class AgentsControllerTest {
             testSuiteIds = "1"
             id = 42L
         }
+        mockServer.enqueue(
+            ".*/test-suites-sources/list-snapshot-by-execution-id.*",
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(emptyList<TestSuitesSourceSnapshotKey>()))
+        )
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
         )

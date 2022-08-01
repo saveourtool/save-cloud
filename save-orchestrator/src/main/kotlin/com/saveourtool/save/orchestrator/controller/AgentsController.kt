@@ -166,10 +166,12 @@ class AgentsController(
                 .map { unzipIfRequired(pathToFile) }
         }
         .collectList()
-        .switchIfEmpty(Mono.just(emptyList()))
         .map {
             log.info { "Downloaded all additional files for execution $id to $targetDirectory" }
         }
+        .defaultIfEmpty(log.warn {
+            "Not found any additional files for execution $id"
+        })
 
     private fun Pair<FileKey, Execution>.downloadTo(
         pathToFile: Path
@@ -210,6 +212,9 @@ class AgentsController(
         .map {
             log.info { "Downloaded all tests for execution $id to $targetDirectory" }
         }
+        .defaultIfEmpty(log.warn {
+            "Not found any tests for execution $id"
+        })
 
     private fun TestSuitesSourceSnapshotKey.downloadTestsTo(
         targetDirectory: Path
