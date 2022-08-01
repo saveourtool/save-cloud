@@ -46,6 +46,12 @@ import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 import kotlinx.datetime.Clock
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import java.time.Duration
+import java.util.function.BooleanSupplier
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -119,25 +125,31 @@ class DockerService(
                 agentRunner.start(execution.id!!)
                 log.info("Made request to start containers for execution.id=$executionId")
             }
-            .map {
+            .flatMapMany {
                 // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
                 // if no, mark execution as failed with internal error here
                 val now = Clock.System.now()
-                var duration = 0L
-                while (duration < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()) {
-                    // println("WAITING ${configProperties.agentsStartSleepIntervalMillis} millis")
-                    // Mono.delay(Duration.ofMillis(configProperties.agentsStartSleepIntervalMillis))
-                    Thread.sleep(configProperties.agentsStartSleepIntervalMillis)
-                    duration = (Clock.System.now() - now).inWholeMilliseconds
-                }
-                if (!areAgentsHaveStarted.get()) {
-                    log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
-                    agentRunner.stop(executionId)
-                    agentService.updateExecution(executionId, ExecutionStatus.ERROR,
-                        "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
-                    ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
-                        .subscribe()
-                }
+                var duration: Long = 0
+                Flux.interval(configProperties.agentsStartSleepIntervalMillis.seconds.toJavaDuration())
+                    .takeWhile {
+                        println("\n\ntakeWhile ${duration}")
+                        duration < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
+                    }
+                    .doOnNext {
+                        println("\n\nDURATION ${duration}")
+                        duration = (Clock.System.now() - now).inWholeMilliseconds
+                    }
+                    .doOnComplete {
+                        println("\n\ndoOnComplete ${duration}")
+                        if (!areAgentsHaveStarted.get()) {
+                            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                            agentRunner.stop(executionId)
+                            agentService.updateExecution(executionId, ExecutionStatus.ERROR,
+                                "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
+                            ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
+                                .subscribe()
+                        }
+                    }
             }
             .subscribe()
     }
