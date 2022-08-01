@@ -207,13 +207,13 @@ class ExecutionControllerTest {
             .expectBody<Execution>()
             .consumeWith {
                 val responseBody = requireNotNull(it.responseBody)
-                assertEquals("1, 2, 3", responseBody.testSuiteIds)
+                assertEquals("1,2,3", responseBody.testSuiteIds)
                 assertEquals("testPath", responseBody.resourcesRootPath)
                 assertEquals(20, responseBody.batchSize)
                 assertEquals("executionVersion", responseBody.version)
             }
         val isUpdatedExecution = executionRepository.findAll().any {
-            it.testSuiteIds == "1, 2, 3" &&
+            it.testSuiteIds == "1,2,3" &&
                     it.resourcesRootPath == "testPath" &&
                     it.batchSize == 20 &&
                     it.version == "executionVersion"
