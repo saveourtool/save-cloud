@@ -53,14 +53,10 @@ class DockerPersistentVolumeService(
                 HostConfig()
                     .withMounts(
                         listOf(
-/*                            Mount()
-                                .withType(MountType.BIND)
-                                .withSource(resources.single().absolutePathString())
-                                .withTarget("$SAVE_AGENT_USER_HOME/tmp"),*/
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(configProperties.docker.testResourcesVolumeName)
-                                .withTarget("$SAVE_AGENT_USER_HOME/tmp/" + resourcesRelativePath.pathString),
+                                .withTarget("$SAVE_AGENT_USER_HOME/tmp/${resourcesRelativePath.pathString}"),
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)

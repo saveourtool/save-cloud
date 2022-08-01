@@ -41,10 +41,11 @@ data class ConfigProperties(
 ) {
     /**
      * @property basePath path to the root directory, where all test resources are stored
-     * @property tmpPath path to the directory, where test resources can be copied to when creating volumes with test resources.
-     * Because a new volume can't be mounted to the running container (save-orchestrator), and to be able to fill the created volume
-     * with resources, we need to use an intermediate container, which will start with that volume mounted.
-     * To be able to access resources, orchestrator and this 'save-copier' container should have a shared mount.
+     * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
+     * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
+     * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
+     * To be able to access resources, orchestrator and this intermediate container should have a shared mount, and [tmpPath] serves
+     * as a host location for this shared mount.
      */
     data class TestResources(
         val basePath: String,
@@ -56,7 +57,8 @@ data class ConfigProperties(
      * @property runtime OCI compliant runtime for docker
      * @property loggingDriver logging driver for the container
      * @property registry docker registry to pull images for test executions from
-     * @property testResourcesVolumeName nullable, because it's not required in Kubernetes
+     * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
+     * Nullable, because it's not required in Kubernetes
      */
     data class DockerSettings(
         val host: String,
