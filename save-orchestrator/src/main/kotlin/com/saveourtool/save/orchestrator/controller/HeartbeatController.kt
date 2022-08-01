@@ -58,9 +58,7 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        if (!areAgentsHaveStarted.get()) {
-            areAgentsHaveStarted.getAndSet(true)
-        }
+        areAgentsHaveStarted.compareAndSet(false, true)
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)

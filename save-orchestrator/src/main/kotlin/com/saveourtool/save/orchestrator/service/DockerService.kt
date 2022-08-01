@@ -115,24 +115,31 @@ class DockerService(
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()
+            .map {
+                agentRunner.start(execution.id!!)
+                log.info("Made request to start containers for execution.id=$executionId")
+            }
+            .map {
+                // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
+                // if no, mark execution as failed with internal error here
+                val now = Clock.System.now()
+                var duration = 0L
+                while (duration < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()) {
+                    // println("WAITING ${configProperties.agentsStartSleepIntervalMillis} millis")
+                    // Mono.delay(Duration.ofMillis(configProperties.agentsStartSleepIntervalMillis))
+                    Thread.sleep(configProperties.agentsStartSleepIntervalMillis)
+                    duration = (Clock.System.now() - now).inWholeMilliseconds
+                }
+                if (!areAgentsHaveStarted.get()) {
+                    log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                    agentRunner.stop(executionId)
+                    agentService.updateExecution(executionId, ExecutionStatus.ERROR,
+                        "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
+                    ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
+                        .subscribe()
+                }
+            }
             .subscribe()
-        agentRunner.start(execution.id!!)
-        log.info("Made request to start containers for execution.id=$executionId")
-        // Check, whether the agents were actually started, if yes, all cases will be covered by themselfs and HeartBeatInspector,
-        // if no, mark execution as failed with internal error here
-        val now = Clock.System.now()
-        var duration = 0L
-        while (duration < AGENTS_START_TIMEOUT && !areAgentsHaveStarted.get()) {
-            Thread.sleep(AGENTS_START_SLEEP_INTERVAL)
-            duration = (Clock.System.now() - now).inWholeMilliseconds
-        }
-        if (!areAgentsHaveStarted.get()) {
-            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
-            agentService.updateExecution(executionId, ExecutionStatus.ERROR,
-                "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
-            ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
-                .subscribe()
-        }
     }
 
     /**
@@ -371,8 +378,6 @@ class DockerService(
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
         private val loggingContext = LoggingContextImpl(log)
-        private const val AGENTS_START_SLEEP_INTERVAL = 10_000L
-        private const val AGENTS_START_TIMEOUT = 60_000L
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

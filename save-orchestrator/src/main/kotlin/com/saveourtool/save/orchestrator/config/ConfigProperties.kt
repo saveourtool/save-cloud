@@ -22,6 +22,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentSettings if set, this will override defaults in agent.properties
  * @property kubernetes configuration for setup in Kubernetes
  * @property shutdown configuration related to process of shutting down groups of agents for executions
+ * @property agentsStartTimeoutMillis interval in milliseconds, which indicates how much time is given to agents for starting, if time's up - mark execution with internal error
+ * @property agentsStartSleepIntervalMillis interval in milliseconds, within which agents will be checked, whether they are started
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -38,6 +40,8 @@ data class ConfigProperties(
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
     val agentSettings: AgentSettings = AgentSettings(),
+    val agentsStartTimeoutMillis: Long,
+    val agentsStartSleepIntervalMillis: Long,
 ) {
     /**
      * @property basePath path to the root directory, where all test resources are stored
