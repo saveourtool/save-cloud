@@ -23,8 +23,6 @@ services:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
       - "5100:5100"
-    tmpfs:
-      - /tmp
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - save:/home/cnb
