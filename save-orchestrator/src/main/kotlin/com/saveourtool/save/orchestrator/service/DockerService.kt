@@ -37,6 +37,7 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -45,13 +46,9 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
-import kotlinx.datetime.Clock
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
-import java.time.Duration
-import java.util.function.BooleanSupplier
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
+import kotlinx.datetime.Clock
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -111,7 +108,7 @@ class DockerService(
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
@@ -130,17 +127,14 @@ class DockerService(
                 // if no, mark execution as failed with internal error here
                 val now = Clock.System.now()
                 var duration: Long = 0
-                Flux.interval(configProperties.agentsStartSleepIntervalMillis.seconds.toJavaDuration())
+                Flux.interval(configProperties.agentsStartSleepIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        println("\n\ntakeWhile ${duration}")
                         duration < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
                     }
                     .doOnNext {
-                        println("\n\nDURATION ${duration}")
                         duration = (Clock.System.now() - now).inWholeMilliseconds
                     }
                     .doOnComplete {
-                        println("\n\ndoOnComplete ${duration}")
                         if (!areAgentsHaveStarted.get()) {
                             log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
                             agentRunner.stop(executionId)
