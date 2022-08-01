@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
-import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
@@ -19,8 +18,13 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller for working with projects.
@@ -29,7 +33,6 @@ import reactor.core.publisher.Mono
 @RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(
     private val projectService: ProjectService,
-    private val gitService: GitService,
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
@@ -111,49 +114,74 @@ class ProjectController(
         .filter { projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ) }
 
     /**
-     * @param newProjectDto newProjectDto
+     * @param projectCreationRequest [ProjectDto]
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
     @PostMapping("/save")
-    @Suppress("UnsafeCallOnNullableType")
-    fun saveProject(@RequestBody newProjectDto: NewProjectDto, authentication: Authentication): ResponseEntity<String> {
-        val userId = (authentication.details as AuthenticationDetails).id
-        val organization = organizationService.findByName(newProjectDto.organizationName)
-        val newProject = newProjectDto.project.apply {
-            this.organization = organization!!
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "TYPE_ALIAS")
+    fun saveProject(
+        @RequestBody projectCreationRequest: ProjectDto,
+        authentication: Authentication,
+    ): Mono<ResponseEntity<String>> = Mono.just(projectCreationRequest)
+        .flatMap {
+            Mono.zip(
+                projectCreationRequest.toMono(),
+                organizationService.findByName(it.organizationName).toMono(),
+            )
         }
-        val (projectId, projectStatus) = projectService.getOrSaveProject(
-            newProject.apply {
-                this.userId = userId
-            }
-        )
-        if (projectStatus == ProjectSaveStatus.EXIST) {
-            log.warn("Project with id = $projectId already exists")
-            return ResponseEntity.badRequest().body(projectStatus.message)
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Couldn't find organization with name ${projectCreationRequest.organizationName}",
+            ))
         }
-        log.info("Save new project id = $projectId")
-        lnkUserProjectService.setRoleByIds(userId, projectId, Role.OWNER)
-        return ResponseEntity.ok(projectStatus.message)
-    }
+        .filter { (projectDto, _) ->
+            projectDto.validate()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Invalid input data: check url and naming validity",
+            ))
+        }
+        .map { (projectDto, organization) ->
+            projectService.getOrSaveProject(projectDto.toProject(organization))
+        }
+        .filter { (_, status) ->
+            status == ProjectSaveStatus.NEW
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "Project with name ${projectCreationRequest.name} is already present in organization ${projectCreationRequest.organizationName}",
+            ))
+        }
+        .map { (projectId, status) ->
+            lnkUserProjectService.setRoleByIds((authentication.details as AuthenticationDetails).id, projectId, Role.OWNER)
+            ResponseEntity.ok(status.message)
+        }
 
     /**
-     * @param project
+     * @param projectDto
      * @param authentication
      * @return response
      */
     @PostMapping("/update")
-    fun updateProject(@RequestBody project: Project, authentication: Authentication): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
-        authentication, project.name, project.organization.name, Permission.WRITE
+    fun updateProject(
+        @RequestBody projectDto: ProjectDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
+        authentication, projectDto.name, projectDto.organizationName, Permission.WRITE
     )
         .map { projectFromDb ->
             // fixme: instead of manually updating fields, a special ProjectUpdateDto could be introduced
             projectFromDb.apply {
-                name = project.name
-                description = project.description
-                url = project.url
-                email = project.email
-                public = project.public
+                name = projectDto.name
+                description = projectDto.description
+                url = projectDto.url
+                email = projectDto.email
+                public = projectDto.isPublic
             }
         }
         .map { updatedProject ->

@@ -211,7 +211,7 @@ internal class ContestController(
             contestDto.toContest(it)
         }
         .filter {
-            it.isValid()
+            it.validate()
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))

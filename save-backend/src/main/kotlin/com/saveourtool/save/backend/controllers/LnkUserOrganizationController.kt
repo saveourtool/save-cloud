@@ -15,9 +15,9 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -328,7 +328,7 @@ class LnkUserOrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
         authentication: Authentication,
-    ): Flux<OrganizationInfo> = Mono.justOrEmpty(
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmpty {
@@ -341,7 +341,7 @@ class LnkUserOrganizationController(
             it.organization != null && it.organization?.status != OrganizationStatus.DELETED
         }
         .map {
-            it.organization!!.toOrganizationInfo(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
     companion object {

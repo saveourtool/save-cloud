@@ -25,6 +25,7 @@ enum class InputTypes(val str: String) {
     GIT_TOKEN("git token"),
     GIT_URL("git url"),
     GIT_USER("git username"),
+    PROJECT_EMAIL("project email"),
 
     // ==== signIn view
     LOGIN("login"),
@@ -123,6 +124,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
  * @param form
  * @param classes
  * @param text
+ * @param validInput
  * @param onChangeFun
  * @return div with an input form
  */
@@ -130,6 +132,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     form: InputTypes,
     classes: String,
     text: String,
+    validInput: Boolean = true,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
     className = ClassName("$classes pl-2 pr-2")
@@ -144,7 +147,11 @@ internal fun ChildrenBuilder.inputTextFormOptional(
         ariaDescribedBy = "${form.name}Span"
         id = form.name
         required = false
-        className = ClassName("form-control")
+        if (validInput) {
+            className = ClassName("form-control")
+        } else {
+            className = ClassName("form-control is-invalid")
+        }
     }
 }
 

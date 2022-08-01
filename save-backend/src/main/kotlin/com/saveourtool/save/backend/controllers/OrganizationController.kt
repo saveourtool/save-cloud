@@ -11,6 +11,8 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.v1
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -112,13 +114,13 @@ internal class OrganizationController(
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveOrganization(@RequestBody newOrganization: Organization, authentication: Authentication): Mono<StringResponse> {
+    fun saveOrganization(
+        @RequestBody newOrganization: OrganizationDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> {
         val ownerId = (authentication.details as AuthenticationDetails).id
         val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
-            newOrganization.apply {
-                this.ownerId = ownerId
-                this.dateCreated = LocalDateTime.now()
-            }
+            newOrganization.toOrganization(LocalDateTime.now())
         )
         if (organizationStatus == OrganizationSaveStatus.NEW) {
             lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)

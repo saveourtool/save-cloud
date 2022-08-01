@@ -166,12 +166,8 @@ class ProjectControllerTest {
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
-        val newProject = NewProjectDto(
-            project,
-            "Huawei",
-        )
         saveProjectAndAssert(
-            newProject,
+            project,
             { expectStatus().isOk }
         ) {
             expectStatus()
@@ -216,7 +212,7 @@ class ProjectControllerTest {
         .let { assertion(it) }
 
     private fun saveProjectAndAssert(
-        newProject: NewProjectDto,
+        newProject: Project,
         saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
         getAssertion: WebTestClient.ResponseSpec.() -> Unit,
     ) {
@@ -228,10 +224,9 @@ class ProjectControllerTest {
             .exchange()
             .let { saveAssertion(it) }
 
-        val project = newProject.project
         webClient
             .get()
-            .uri("/api/$v1/projects/get/organization-name?name=${project.name}&organizationName=${project.organization.name}")
+            .uri("/api/$v1/projects/get/organization-name?name=${newProject.name}&organizationName=${newProject.organization.name}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

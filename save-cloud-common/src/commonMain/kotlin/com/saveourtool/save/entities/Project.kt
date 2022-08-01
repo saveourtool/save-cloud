@@ -75,3 +75,22 @@ data class Project(
         }
     }
 }
+
+/**
+ * @param organization organization that is an owner of a given project
+ * @param status
+ * @return [Project] from [ProjectDto]
+ */
+fun ProjectDto.toProject(
+    organization: Organization,
+    status: ProjectStatus = ProjectStatus.CREATED,
+) = Project(
+    name,
+    url,
+    description,
+    status,
+    isPublic,
+    userId = null,
+    email,
+    organization = organization,
+)
