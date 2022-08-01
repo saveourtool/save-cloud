@@ -46,17 +46,17 @@ internal class ExecutionTest {
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
         execution.formatAndSetTestSuiteIds(listOf(4L))
         assertEquals("4", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(3L, 2L, 1L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
     }
 
     @Test
