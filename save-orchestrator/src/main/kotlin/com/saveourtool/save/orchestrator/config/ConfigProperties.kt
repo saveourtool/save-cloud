@@ -92,15 +92,15 @@ data class ConfigProperties(
         val backendUrl: String? = null,
         val orchestratorUrl: String? = null,
     )
-}
 
-/**
- * @property checksIntervalMillis interval between checks whether agents are really finished
- * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
- * @property gracefulNumChecks during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
- */
-data class ShutdownSettings(
-    val checksIntervalMillis: Long,
-    val gracefulTimeoutSeconds: Long,
-    val gracefulNumChecks: Int,
-)
+    /**
+     * @property checksIntervalMillis interval between checks whether agents are really finished
+     * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
+     * @property gracefulNumChecks during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
+     */
+    data class ShutdownSettings(
+        val checksIntervalMillis: Long,
+        val gracefulTimeoutSeconds: Long,
+        val gracefulNumChecks: Int,
+    )
+}
