@@ -22,6 +22,13 @@ class TestSuitesSourceService(
 ) {
     /**
      * @param organization [TestSuitesSource.organization]
+     * @return list of entities of [TestSuitesSource] or null
+     */
+    fun getAllByOrganization(organization: Organization) =
+            testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
+
+    /**
+     * @param organization [TestSuitesSource.organization]
      * @param name [TestSuitesSource.name]
      * @return entity of [TestSuitesSource] or null
      */

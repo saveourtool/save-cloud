@@ -35,6 +35,25 @@ class TestSuitesSourceController(
 ) {
     /**
      * @param organizationName
+     * @return list of [TestSuitesSourceDto] found by provided values or empty response
+     */
+    @GetMapping("/{organizationName}/list")
+    fun list(
+        @PathVariable organizationName: String,
+    ): Mono<TestSuitesSourceDtoList> = Mono.just(organizationName)
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Organization not found by name $organizationName"
+        }
+        .map { organization ->
+            testSuitesSourceService.getAllByOrganization(organization)
+                .map { it.toDto() }
+        }
+
+    /**
+     * @param organizationName
      * @param name
      * @return [TestSuitesSourceDto] found by provided values or not found exception
      */
@@ -47,7 +66,7 @@ class TestSuitesSourceController(
             organizationService.findByName(it).toMono()
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "Organization not found by name $name"
+            "Organization not found by name $organizationName"
         }
         .flatMap { organization ->
             testSuitesSourceService.findByName(organization, name).toMono()

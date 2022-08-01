@@ -12,6 +12,12 @@ import org.springframework.stereotype.Repository
 interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
     /**
      * @param organizationId
+     * @return found entities
+     */
+    fun findAllByOrganizationId(organizationId: Long): List<TestSuitesSource>
+
+    /**
+     * @param organizationId
      * @param name
      * @return found entity or null
      */

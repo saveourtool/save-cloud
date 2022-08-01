@@ -63,15 +63,15 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
-     * @param dockerImageLocation location to base image
+     * @param resourcesForExecution location to resources are required for [execution]
      * @param execution [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(dockerImageLocation: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
         log.info("Preparing image and volume for execution.id=${execution.id}")
-        val buildResult = prepareImageAndVolumeForExecution(dockerImageLocation, execution)
+        val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("For execution.id=${execution.id} using base image [id=${buildResult.imageId}] and PV [id=${buildResult.pvId}]")
         return buildResult
