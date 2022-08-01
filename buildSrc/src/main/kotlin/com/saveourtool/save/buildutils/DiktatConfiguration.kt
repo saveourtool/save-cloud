@@ -6,7 +6,6 @@ package com.saveourtool.save.buildutils
 
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
-import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.cqfn.diktat.plugin.gradle.DiktatExtension
 import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
 import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
