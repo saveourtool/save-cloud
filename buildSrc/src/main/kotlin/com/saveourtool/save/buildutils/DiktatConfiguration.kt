@@ -69,7 +69,5 @@ private fun Project.fixDiktatTasks() {
         javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
             languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
         })
-        // https://github.com/saveourtool/diktat/issues/1269
-        systemProperty("user.home", rootDir.toString())
     }
 }
