@@ -7,6 +7,7 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.v1
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,7 +24,7 @@ typealias TestSuiteList = List<TestSuite>
  * Controller for [TestSuitesSource]
  */
 @RestController
-@RequestMapping("/internal/test-suites-sources")
+@RequestMapping("/internal/test-suites-sources", "/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
@@ -133,6 +134,17 @@ class TestSuitesSourceController(
         @PathVariable organizationName: String,
         @PathVariable name: String,
     ): Mono<TestSuitesSourceSnapshotKeyList> = testSuitesSourceSnapshotStorage.list(organizationName, name)
+        .collectList()
+
+    /**
+     * @param organizationName
+     * @return list of [TestSuitesSourceSnapshotKey] are found by [organizationName]
+     */
+    @GetMapping("/{organizationName}/list-snapshot")
+    fun listSnapshots(
+        @PathVariable organizationName: String,
+    ): Mono<TestSuitesSourceSnapshotKeyList> = testSuitesSourceSnapshotStorage.list()
+        .filter { it.organizationName == organizationName }
         .collectList()
 
     /**
