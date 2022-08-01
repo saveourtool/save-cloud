@@ -1,4 +1,9 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+@file:Suppress(
+    "FILE_NAME_MATCH_CLASS",
+    "FILE_WILDCARD_IMPORTS",
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+    "TOP_LEVEL_ORDER"
+)
 
 package com.saveourtool.save.frontend.components.basic.organizations
 
@@ -15,10 +20,9 @@ import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
@@ -28,6 +32,7 @@ import react.table.columns
  * @param str
  * @return encoded [str]
  */
+@Suppress("FUNCTION_NAME_INCORRECT_CASE")
 external fun encodeURIComponent(str: String): String
 
 /**
@@ -97,10 +102,14 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             }
         }
     }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable {
+        setSelectedTestSuitesSource(it)
+        fetchTestSuitesSourcesSnapshotKeys()
+    }
 
     div {
         className = ClassName("d-flex justify-content-center mb-3")
-        ReactHTML.button {
+        button {
             type = ButtonType.button
             className = ClassName("btn btn-sm btn-primary")
             disabled = !props.selfRole.hasWritePermission()
@@ -117,27 +126,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 testSuitesSources.toTypedArray()
             }
             content = testSuitesSources
-        }
-    }
-    div {
-        className = ClassName("input-group-prepend")
-
-        select {
-            className = ClassName("form-control")
-            testSuitesSources.forEach {
-                ReactHTML.option {
-                    +it.name
-                }
-            }
-            required = true
-            value = selectedTestSuitesSource?.name
-            onChange = { event ->
-                testSuitesSources.find { it.name == event.target.value }
-                    ?.let {
-                        setSelectedTestSuitesSource(it)
-                        fetchTestSuitesSourcesSnapshotKeys()
-                    }
-            }
         }
     }
     div {
@@ -161,8 +149,10 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     var content: List<D>
 }
 
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private val testSuitesSourcesTable: FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
+@Suppress("MAGIC_NUMBER", "TYPE_ALIAS", "TOO_LONG_FUNCTION")
+private fun prepareTestSuitesSourcesTable(
+    selectHandler: (TestSuitesSourceDto) -> Unit
+): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { organizationName }) { cellProps ->
             Fragment.create {
@@ -191,6 +181,20 @@ private val testSuitesSourcesTable: FC<TablePropsWithContent<TestSuitesSourceDto
                     a {
                         href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
                         +"source"
+                    }
+                }
+            }
+        }
+        column(id = "list", header = "Available version", { this }) { cellsProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
+                        onClick = {
+                            selectHandler(cellsProps.value)
+                        }
+                        +"list"
                     }
                 }
             }
@@ -229,4 +233,3 @@ private val testSuitesSourceSnapshotKeysTable: FC<TablePropsWithContent<TestSuit
         arrayOf(it.content)
     },
 )
-
