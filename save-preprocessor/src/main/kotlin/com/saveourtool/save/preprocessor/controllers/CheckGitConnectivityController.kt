@@ -2,9 +2,6 @@ package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.utils.detectDefaultBranchName
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
