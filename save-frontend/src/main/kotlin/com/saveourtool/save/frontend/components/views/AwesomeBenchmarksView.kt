@@ -7,12 +7,13 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
+import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.Cursor
@@ -291,9 +292,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                         div {
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
-                                                            benchmark.tags.split(",").map { " #$it " }.forEach {
+                                                            benchmark.tags.split(DATABASE_DELIMITER).map { " #$it " }.forEach {
                                                                 a {
-                                                                    className = ClassName("/#/$AWESOME_BENCHMARKS")
+                                                                    className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
                                                                     +it
                                                                 }
                                                             }
@@ -443,7 +444,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         +""" Go to the"""
                                         a {
                                             className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
-                                            +""" $AWESOME_BENCHMARKS """
+                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS.path} """
                                         }
                                         +"""repository"""
                                     }
@@ -493,7 +494,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
         scope.launch {
             val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/$AWESOME_BENCHMARKS",
+                "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
