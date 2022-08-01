@@ -185,6 +185,6 @@ class AgentsControllerTest {
                     .first {
                         (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
                     }
-                    as AgentStatus
+                        as AgentStatus
             }!!
 }
