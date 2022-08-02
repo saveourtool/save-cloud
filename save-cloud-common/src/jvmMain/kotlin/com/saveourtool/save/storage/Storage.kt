@@ -106,7 +106,7 @@ interface Storage<K> {
          * @property projectCoordinates
          * @property key
          */
-        class Key<K> internal constructor(
+        data class Key<K> internal constructor(
             val projectCoordinates: ProjectCoordinates?,
             val key: K
         )
