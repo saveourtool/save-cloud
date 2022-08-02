@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.TestExecutionFilters
@@ -83,7 +84,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
             flatMap { testExecutionDto ->
-                debugInfoStorage.doesExist(Pair(executionId, TestResultLocation.from(testExecutionDto)))
+                debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
                     .map { testExecutionDto.copy(hasDebugInfo = it) }
             }
         }

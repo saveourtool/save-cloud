@@ -138,7 +138,7 @@ class TestSuitesControllerTest {
     @Test
     @WithMockUser
     fun testAllStandardTestSuites() {
-        val testSuitesSource = testSuitesSourceRepository.findById(standardTestSuitesSourceId).get()
+        val testSuitesSource = testSuitesSourceRepository.findById(STANDARD_TEST_SUITES_SOURCE_ID).get()
         val testSuite = TestSuiteDto(
             "tester",
             null,
@@ -178,7 +178,7 @@ class TestSuitesControllerTest {
     }
 
     companion object {
-        private const val standardTestSuitesSourceId = 2L
+        private const val STANDARD_TEST_SUITES_SOURCE_ID = 2L
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterEach
