@@ -11,6 +11,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.orchestrator.service.areAgentsHaveStarted
 import com.saveourtool.save.utils.debug
 
 import org.slf4j.LoggerFactory
@@ -57,7 +58,7 @@ class HeartbeatController(private val agentService: AgentService,
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
         logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-
+        areAgentsHaveStarted.compareAndSet(false, true)
         // store new state into DB
         return agentService.updateAgentStatusesWithDto(
             AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)

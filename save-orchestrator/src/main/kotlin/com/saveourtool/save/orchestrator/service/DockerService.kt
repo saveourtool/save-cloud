@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Python
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
@@ -31,11 +32,17 @@ import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
 
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+
 
 import kotlin.io.path.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
+import kotlinx.datetime.Clock
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
@@ -52,6 +59,7 @@ class DockerService(
     internal val dockerContainerManager: DockerContainerManager,
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
+    private val agentService: AgentService,
 ) {
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
@@ -98,7 +106,7 @@ class DockerService(
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
@@ -108,9 +116,34 @@ class DockerService(
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
             .retrieve()
             .toBodilessEntity()
+            .map {
+                agentRunner.start(execution.id!!)
+                log.info("Made request to start containers for execution.id=$executionId")
+            }
+            .flatMapMany {
+                // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
+                // if no, mark execution as failed with internal error here
+                val now = Clock.System.now()
+                val duration = AtomicLong(0)
+                Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
+                    .takeWhile {
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
+                    }
+                    .doOnNext {
+                        duration.set((Clock.System.now() - now).inWholeMilliseconds)
+                    }
+                    .doOnComplete {
+                        if (!areAgentsHaveStarted.get()) {
+                            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                            agentRunner.stop(executionId)
+                            agentService.updateExecution(executionId, ExecutionStatus.ERROR,
+                                "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
+                            ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
+                                .subscribe()
+                        }
+                    }
+            }
             .subscribe()
-        agentRunner.start(execution.id!!)
-        log.info("Successfully started all containers for execution.id=$executionId")
     }
 
     /**
