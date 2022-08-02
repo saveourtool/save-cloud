@@ -44,6 +44,7 @@ class DebugInfoStorage(
      * @param pathToContent
      * @return [Pair] of executionId and [TestResultLocation] object is built by [Path]
      */
+    @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): DebugInfoStorageKey {
         val pathNames = pathToContent.pathNamesTill(rootDir)
 

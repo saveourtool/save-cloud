@@ -35,6 +35,7 @@ class TestSuitesSourceSnapshotStorage(
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
             pathToContent.name.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
+    @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
         val (version, creationTime, sourceName, organizationName) = pathToContent.pathNamesTill(rootDir)
         return TestSuitesSourceSnapshotKey(

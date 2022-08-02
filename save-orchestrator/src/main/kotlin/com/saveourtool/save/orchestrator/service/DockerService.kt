@@ -38,14 +38,13 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
-
 import kotlin.io.path.*
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
-import kotlinx.datetime.Clock
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
+import kotlinx.datetime.Clock
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
