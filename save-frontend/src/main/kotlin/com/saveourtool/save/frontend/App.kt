@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.frontend.components.*
@@ -14,9 +15,10 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
+import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.HTMLElement
@@ -25,7 +27,6 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.dom.render
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -100,16 +101,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         state.userInfo = null
     }
 
+    override fun componentDidMount() {
+        getUser()
+    }
+
+    @Suppress("TOO_LONG_FUNCTION", "NULLABLE_PROPERTY_TYPE")
     private fun getUser() {
         scope.launch {
-            val userInfoNew: UserInfo? = get(
+            val userName: String? = get(
                 "${window.location.origin}/sec/user",
                 Headers().also { it.set("Accept", "application/json") },
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
                 val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+                if (!ok || responseText == "null") null else responseText
             }
 
             val globalRole: Role? = get(
@@ -121,16 +127,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
             }
+
+            val user: UserInfo? = userName
+                ?.let { getUser(it) }
+
+            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+
             userInfoNew?.let {
                 setState {
-                    userInfo = userInfoNew.copy(globalRole = globalRole)
+                    userInfo = userInfoNew
                 }
             }
         }
-    }
-
-    override fun componentDidMount() {
-        getUser()
     }
 
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
@@ -147,6 +155,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                         div {
                             className = ClassName("container-fluid")
+                            id = "common-save-container"
                             Routes {
                                 Route {
                                     path = "/"
@@ -156,17 +165,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/awesome-benchmarks"
+                                    path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/contests/:contestName"
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/profile"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsProfileMenuView::class.react.create {
                                             userName = it
@@ -175,7 +184,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/email"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsEmailMenuView::class.react.create {
                                             userName = it
@@ -184,7 +193,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/token"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_TOKEN.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsTokenMenuView::class.react.create {
                                             userName = it
@@ -193,7 +202,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/${state.userInfo?.name}/settings/organizations"
+                                    path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsOrganizationsMenuView::class.react.create {
                                             userName = it
@@ -207,24 +216,24 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
-                                    path = "/creation"
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}"
                                     element = CreationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/createOrganization"
+                                    path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
                                     element = CreateOrganizationView::class.react.create()
                                 }
 
                                 Route {
-                                    path = "/projects"
+                                    path = "/${FrontendRoutes.PROJECTS.path}"
                                     element = CollectionView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }
                                 }
 
                                 Route {
-                                    path = "/contests"
+                                    path = "/${FrontendRoutes.CONTESTS.path}"
                                     element = ContestListView::class.react.create {
                                         currentUserInfo = state.userInfo
                                     }

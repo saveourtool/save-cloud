@@ -22,7 +22,9 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.time.LocalDateTime
+import java.util.*
 
 /**
  * Controller for working with organizations.
@@ -70,6 +72,40 @@ internal class OrganizationController(
     }
 
     /**
+     * @param organizationName name of an organization
+     * @param isAbleToCreateContests new value of flag Organization.canCreateContests
+     * @param authentication an [Authentication] representing an authenticated request
+     * @return response
+     */
+    @PostMapping("/{organizationName}/manage-contest-permission")
+    @Suppress("UnsafeCallOnNullableType")
+    fun setAbilityToCreateContest(
+        @PathVariable organizationName: String,
+        @RequestParam isAbleToCreateContests: Boolean,
+        authentication: Authentication
+    ): Mono<StringResponse> = Mono.just(
+        organizationName
+    )
+        .flatMap {
+            organizationService.findByName(organizationName).toMono()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+        }
+        .map { organization ->
+            organizationService.updateOrganization(
+                organization.copy(canCreateContests = isAbleToCreateContests).apply { id = organization.id }
+            )
+            ResponseEntity.ok("Organization updated")
+        }
+
+    /**
      * @param newOrganization newOrganization
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
@@ -99,20 +135,43 @@ internal class OrganizationController(
     }
 
     /**
-     * @param organization updateOrganization
+     * @param organizationName name of an organization that should be changed
+     * @param organization draft organization that should be saved as an organization with name [organizationName]
      * @param authentication an [Authentication] representing an authenticated request
      * @return response
      */
     @PostMapping("/{organizationName}/update")
-    @Suppress("UnsafeCallOnNullableType")
-    fun updateOrganization(@RequestBody organization: Organization, authentication: Authentication): Mono<StringResponse> = Mono
-        .just(organization)
-        .filter { organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER) }
-        .map {
-            organizationService.updateOrganization(organization)
+    fun updateOrganization(
+        @PathVariable organizationName: String,
+        @RequestBody organization: Organization,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.just(
+        organizationName
+    )
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+        }
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
+        }
+        .filter {
+            organizationService.findByName(organization.name) != null
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "There already is an organization with name ${organization.name}"))
+        }
+        .map { organizationFromDb ->
+            organizationService.updateOrganization(
+                organization.copy(canCreateContests = organizationFromDb.canCreateContests).apply { id = organizationFromDb.id }
+            )
             ResponseEntity.ok("Organization updated")
         }
-        .defaultIfEmpty(ResponseEntity.status(HttpStatus.FORBIDDEN).build())
 
     /**
      * @param organizationName

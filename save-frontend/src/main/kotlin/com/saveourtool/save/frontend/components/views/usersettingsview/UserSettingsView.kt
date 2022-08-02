@@ -14,6 +14,7 @@ import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -105,13 +106,12 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val user = props.userName
                 ?.let { getUser(it) }
             val organizationInfos = getOrganizationInfos()
             setState {
-                image = avatar
                 userInfo = user
+                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationInfos = organizationInfos
             }
@@ -209,7 +209,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/profile"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -220,7 +220,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/email"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -231,7 +231,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/organizations"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -254,7 +254,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/settings/token"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -332,15 +332,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                     isUploading = false
                 }
             }
-
-    private suspend fun getAvatar() = get(
-        "$apiUrl/users/${props.userName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ImageInfo>()
-        }
 
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationInfos() = get(

@@ -43,6 +43,13 @@ enum class InputTypes(val str: String) {
     GIT_HUB("git hub"),
     LINKEDIN("linkedin"),
     TWITTER("twitter"),
+
+    // ==== contest creation component
+    CONTEST_NAME("contest name"),
+    CONTEST_START_TIME("contest starting time"),
+    CONTEST_END_TIME("contest ending time"),
+    CONTEST_DESCRIPTION("contest description"),
+    CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name"),
     ;
 }
 
@@ -125,20 +132,126 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     classes: String,
     text: String,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
-) =
-        div {
-            className = ClassName("$classes pl-2 pr-2")
-            label {
-                className = ClassName("form-label")
-                htmlFor = form.name
-                +text
-            }
-            input {
-                type = InputType.text
-                onChange = onChangeFun
-                ariaDescribedBy = "${form.name}Span"
-                id = form.name
-                required = false
+) = div {
+    className = ClassName("$classes pl-2 pr-2")
+    label {
+        className = ClassName("form-label")
+        htmlFor = form.name
+        +text
+    }
+    input {
+        type = InputType.text
+        onChange = onChangeFun
+        ariaDescribedBy = "${form.name}Span"
+        id = form.name
+        required = false
+        className = ClassName("form-control")
+    }
+}
+
+/**
+ * @param form
+ * @param classes
+ * @param name
+ * @param inputText
+ * @return div with a disabled input form
+ */
+internal fun ChildrenBuilder.inputTextDisabled(
+    form: InputTypes,
+    classes: String,
+    name: String,
+    inputText: String,
+) = div {
+    className = ClassName("$classes pl-2 pr-2")
+    label {
+        className = ClassName("form-label")
+        htmlFor = form.name
+        +name
+    }
+    input {
+        type = InputType.text
+        ariaDescribedBy = "${form.name}Span"
+        id = form.name
+        required = false
+        className = ClassName("form-control")
+        disabled = true
+        value = inputText
+    }
+}
+
+/**
+ * @param form
+ * @param classes
+ * @param text
+ * @param onChangeFun
+ * @return a [div] with optional input form with datepicker
+ */
+internal fun ChildrenBuilder.inputDateFormOptional(
+    form: InputTypes,
+    classes: String,
+    text: String,
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+) = div {
+    className = ClassName("$classes pl-2 pr-2")
+    label {
+        className = ClassName("form-label")
+        htmlFor = form.name
+        +text
+    }
+    input {
+        type = InputType.date
+        onChange = onChangeFun
+        ariaDescribedBy = "${form.name}Span"
+        id = form.name
+        required = false
+        className = ClassName("form-control")
+    }
+}
+
+/**
+ * @param form
+ * @param validInput
+ * @param classes
+ * @param text
+ * @param onChangeFun
+ * @return a [div] with required input form with datepicker
+ */
+internal fun ChildrenBuilder.inputDateFormRequired(
+    form: InputTypes,
+    validInput: Boolean,
+    classes: String,
+    text: String,
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+) = div {
+    className = ClassName("$classes mt-1")
+    label {
+        className = ClassName("form-label")
+        htmlFor = form.name
+        +text
+    }
+    div {
+        className = ClassName("input-group has-validation")
+        span {
+            className = ClassName("input-group-text")
+            id = "${form.name}Span"
+            +"*"
+        }
+        input {
+            type = InputType.date
+            onChange = onChangeFun
+            id = form.name
+            required = true
+            if (validInput) {
                 className = ClassName("form-control")
+            } else {
+                className = ClassName("form-control is-invalid")
             }
         }
+        if (!validInput) {
+            div {
+                className = ClassName("invalid-feedback d-block")
+                +"Please input a valid ${form.str}"
+            }
+        }
+    }
+}

@@ -34,7 +34,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * [RState] of organization creation view component
+ * [State] of organization creation view component
  */
 external interface OrganizationSaveViewState : State {
     /**
@@ -147,7 +147,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                 div {
                     className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("col-sm-4")
+                        className = ClassName("col-sm-4 mt-5")
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {

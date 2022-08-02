@@ -2,7 +2,6 @@ package com.saveourtool.save.gateway.controller
 
 import com.saveourtool.save.gateway.utils.userName
 import com.saveourtool.save.info.OauthProviderInfo
-import com.saveourtool.save.info.UserInfo
 import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
@@ -38,7 +37,5 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal?): UserInfo? = principal?.let {
-        UserInfo(principal.userName())
-    }
+    fun currentUserName(principal: Principal?): String? = principal?.userName()
 }

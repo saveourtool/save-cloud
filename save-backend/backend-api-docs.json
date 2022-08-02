@@ -117,6 +117,16 @@
           "organization-controller"
         ],
         "operationId": "updateOrganization",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -147,6 +157,16 @@
           "organization-controller"
         ],
         "operationId": "updateOrganization_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -157,6 +177,82 @@
           },
           "required": true
         },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organizations/{organizationName}/manage-contest-permission": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "setAbilityToCreateContest",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isAbleToCreateContests",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organization/{organizationName}/manage-contest-permission": {
+      "post": {
+        "tags": [
+          "organization-controller"
+        ],
+        "operationId": "setAbilityToCreateContest_1",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isAbleToCreateContests",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1412,6 +1508,86 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/contests/update": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Update contest.",
+        "description": "Change existing contest settings.",
+        "operationId": "updateContest",
+        "parameters": [
+          {
+            "name": "contestRequest",
+            "description": "name of an organization",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Not enough permission to edit current contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either organization or contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/create": {
@@ -3164,6 +3340,84 @@
         ]
       }
     },
+    "/api/v1/contests/by-organization": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get contests connected with given organization.",
+        "description": "Get contests connected with given organization.",
+        "operationId": "getOrganizationContests",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "query",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "amount of records that will be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Either contest with such name was not found or tests are not provided.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched public tests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/active": {
       "get": {
         "tags": [
@@ -4172,10 +4426,8 @@
       },
       "ContestDto": {
         "required": [
-          "endTime",
           "name",
-          "organizationName",
-          "startTime"
+          "organizationName"
         ],
         "type": "object",
         "properties": {
@@ -4625,6 +4877,7 @@
           "category": {
             "type": "string",
             "enum": [
+              "ALL",
               "AI",
               "AUDIT",
               "CODING_STANDARD",

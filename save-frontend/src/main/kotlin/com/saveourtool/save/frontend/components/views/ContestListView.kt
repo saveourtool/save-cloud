@@ -11,11 +11,11 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
+import com.saveourtool.save.validation.FrontendRoutes
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.td
@@ -67,7 +67,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                 Fragment.create {
                     td {
                         a {
-                            href = "#/contests/${cellProps.row.original.name}"
+                            href = "#/${FrontendRoutes.CONTESTS.path}/${cellProps.row.original.name}"
                             +cellProps.value
                         }
                     }

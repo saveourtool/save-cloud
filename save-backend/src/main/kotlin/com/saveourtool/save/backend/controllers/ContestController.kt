@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
 import com.saveourtool.save.v1
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,6 +34,9 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -147,6 +152,27 @@ internal class ContestController(
         }
     }
 
+    @GetMapping("/by-organization")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get contests connected with given organization.",
+        description = "Get contests connected with given organization.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.QUERY, description = "name of an organization", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of records that will be returned", required = false),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
+    @ApiResponse(responseCode = "404", description = "Either contest with such name was not found or tests are not provided.")
+    fun getOrganizationContests(
+        @RequestParam organizationName: String,
+        @RequestParam(required = false, defaultValue = "10") pageSize: Int,
+    ): Flux<ContestDto> = Flux.fromIterable(
+        contestService.findPageOfContestsByOrganizationName(organizationName, Pageable.ofSize(pageSize))
+    )
+        .map { it.toDto() }
+
     @PostMapping("/create")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -162,15 +188,16 @@ internal class ContestController(
     @ApiResponse(responseCode = "404", description = "Organization with given name was not found.")
     @ApiResponse(responseCode = "403", description = "User cannot create contests with given organization.")
     @ApiResponse(responseCode = "409", description = "Contest with given name is already present.")
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "TOO_LONG_FUNCTION")
     fun createContest(
         @RequestBody contestDto: ContestDto,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
-        Optional.ofNullable(
-            organizationService.findByName(contestDto.organizationName)
-        )
+    ): Mono<ResponseEntity<String>> = Mono.just(
+        contestDto.organizationName
     )
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
@@ -180,8 +207,17 @@ internal class ContestController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
         }
+        .map {
+            contestDto.toContest(it)
+        }
         .filter {
-            contestService.createContestIfNotPresent(contestDto.toContest(it))
+            it.isValid()
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))
+        }
+        .filter {
+            contestService.createContestIfNotPresent(it)
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(
@@ -191,5 +227,43 @@ internal class ContestController(
         }
         .map {
             ResponseEntity.ok("Contest has been successfully created!")
+        }
+
+    @PostMapping("/update")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Update contest.",
+        description = "Change existing contest settings.",
+    )
+    @Parameters(
+        Parameter(name = "contestRequest", `in` = ParameterIn.DEFAULT, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission to edit current contest.")
+    @ApiResponse(responseCode = "404", description = "Either organization or contest with such name was not found.")
+    @Suppress("TYPE_ALIAS")
+    fun updateContest(
+        @RequestBody contestRequest: ContestDto,
+        authentication: Authentication,
+    ): Mono<ResponseEntity<String>> = Mono.zip(
+        Mono.justOrEmpty(Optional.ofNullable(organizationService.findByName(contestRequest.organizationName))),
+        Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
+    )
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."))
+        }
+        .filter { (organization, _) ->
+            organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
+        }
+        .switchIfEmpty {
+            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have enough permissions to edit this contest."))
+        }
+        .map { (organization, contest) ->
+            contestService.updateContest(
+                contestRequest.toContest(organization, contest.testSuiteIds, contest.status).apply { id = contest.id }
+            )
+            ResponseEntity.ok("Contest successfully updated")
         }
 }

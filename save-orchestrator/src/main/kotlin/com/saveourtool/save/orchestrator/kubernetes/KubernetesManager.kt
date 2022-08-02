@@ -1,7 +1,11 @@
-package com.saveourtool.save.orchestrator.docker
+package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
+import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.DockerClient
@@ -14,8 +18,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
-import javax.annotation.PreDestroy
-
 /**
  * A component that manages save-agents running in Kubernetes.
  */
@@ -27,15 +29,6 @@ class KubernetesManager(
     private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
-    /**
-     * Cleanup resources related to the connection to the Kubernetes API server
-     */
-    @PreDestroy
-    fun close() {
-        logger.info("Closing connection to Kubernetes API server")
-        kc.close()
-    }
-
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
@@ -43,11 +36,12 @@ class KubernetesManager(
         "NestedBlockDepth",
     )
     override fun create(executionId: Long,
-                        baseImageId: String,
+                        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
                         replicas: Int,
                         workingDir: String,
-                        agentRunCmd: String,
     ): List<String> {
+        val (baseImageId, agentRunCmd, pvId) = configuration
+        require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
@@ -81,6 +75,7 @@ class KubernetesManager(
                                         "executionId" to executionId.toString(),
                                         "baseImageId" to baseImageId,
                                         // "baseImageName" to baseImageName
+                                        // "io.kompose.service" to
                                     )
                                 }
                                 image = baseImageName
@@ -135,13 +130,14 @@ class KubernetesManager(
 
     override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
-        val isDeleted = kc.batch()
+        val deletedResources = kc.batch()
             .v1()
             .jobs()
             .withName(jobName)
             .delete()
+        val isDeleted = deletedResources.size == 1
         if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete job with name $jobName")
+            throw AgentRunnerException("Failed to delete job with name $jobName: response is $deletedResources")
         }
         logger.debug("Deleted Job for execution id=$executionId")
     }
@@ -152,9 +148,10 @@ class KubernetesManager(
             logger.debug("Agent id=$agentId is already stopped or not yet created")
             return true
         }
-        val isDeleted = kc.pods().withName(agentId).delete()
+        val deletedResources = kc.pods().withName(agentId).delete()
+        val isDeleted = deletedResources.size == 1
         if (!isDeleted) {
-            throw AgentRunnerException("Failed to delete pod with name $agentId")
+            throw AgentRunnerException("Failed to delete pod with name $agentId: response is $deletedResources")
         } else {
             logger.debug("Deleted pod with name=$agentId")
             return true

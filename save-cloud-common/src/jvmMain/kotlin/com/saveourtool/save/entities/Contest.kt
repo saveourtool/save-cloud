@@ -1,7 +1,9 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.isNameValid
 
 /**
  * @property name organization
@@ -50,11 +52,22 @@ class Contest(
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds.split(",")
+    fun getTestSuiteIds() = testSuiteIds.split(DATABASE_DELIMITER)
         .mapNotNull {
             it.toLongOrNull()
         }
         .toSet()
+
+    private fun isTestSuiteIdsValid() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
+
+    private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
+
+    /**
+     * Validate contest data
+     *
+     * @return true if contest data is valid, false otherwise
+     */
+    fun isValid() = isNameValid(name) && isTestSuiteIdsValid() && isDateRangeValid()
 
     companion object {
         /**
@@ -87,7 +100,7 @@ class Contest(
          */
         fun ContestDto.toContest(
             organization: Organization,
-            testSuiteIds: List<Long> = emptyList(),
+            testSuiteIds: String = "",
             status: ContestStatus = ContestStatus.CREATED,
         ) = Contest(
             name,
@@ -95,7 +108,7 @@ class Contest(
             startTime,
             endTime,
             organization,
-            testSuiteIds.joinToString(","),
+            testSuiteIds,
             description,
         )
     }

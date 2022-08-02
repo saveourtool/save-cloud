@@ -10,10 +10,12 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
+import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
+import com.saveourtool.save.orchestrator.utils.allExecute
+import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
@@ -47,7 +49,6 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.attribute.PosixFilePermission
 
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -63,8 +64,7 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val configProperties: ConfigProperties,
-    @Qualifier("webClientBackend")
-    private val webClientBackend: WebClient,
+    @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -90,6 +90,7 @@ class AgentsController(
                         "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
             }
             getTestRootPath(execution)
+                .subscribeOn(agentService.scheduler)
                 .switchIfEmpty(
                     Mono.error(
                         ResponseStatusException(
@@ -114,15 +115,17 @@ class AgentsController(
                         .collectList()
                         .switchIfEmpty(Mono.just(emptyList()))
                 }
+                .publishOn(agentService.scheduler)
                 .map {
                     // todo: pass SDK via request body
-                    dockerService.buildBaseImage(execution)
+                    dockerService.prepareConfiguration(execution)
                 }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
-                .map { (baseImageId, agentRunCmd) ->
-                    dockerService.createContainers(execution.id!!, baseImageId, agentRunCmd)
+                .publishOn(agentService.scheduler)
+                .map { configuration ->
+                    dockerService.createContainers(execution.id!!, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create docker containers", ex)
@@ -141,7 +144,6 @@ class AgentsController(
                             dockerService.startContainersAndUpdateExecution(execution, agentIds)
                         }
                 }
-                .subscribeOn(agentService.scheduler)
                 .subscribe()
         }
     }
@@ -175,7 +177,7 @@ class AgentsController(
                 log.info { "Marking files in ${pathToFile.parent} executable..." }
                 Files.walk(pathToFile.parent)
                     .filter { it.isRegularFile() }
-                    .forEach { it.tryMarkAsExecutable() }
+                    .forEach { with(loggingContext) { it.tryMarkAsExecutable() } }
             }
             Files.delete(pathToFile)
         }
@@ -209,20 +211,12 @@ class AgentsController(
             .then(
                 Mono.fromCallable {
                     // TODO: need to store information about isExecutable in Execution (FileKey)
-                    pathToFile.tryMarkAsExecutable()
+                    with(loggingContext) { pathToFile.tryMarkAsExecutable() }
                     log.debug {
                         "Downloaded $fileKey to ${pathToFile.absolutePathString()}"
                     }
                 }
             )
-    }
-
-    private fun Path.tryMarkAsExecutable() {
-        try {
-            Files.setPosixFilePermissions(this, Files.getPosixFilePermissions(this) + allExecute)
-        } catch (ex: UnsupportedOperationException) {
-            log.warn(ex) { "Failed to mark file ${this.name} as executable" }
-        }
     }
 
     private fun <T> reportExecutionError(
@@ -295,6 +289,6 @@ class AgentsController(
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
-        private val allExecute = setOf(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_EXECUTE)
+        private val loggingContext = LoggingContextImpl(log)
     }
 }

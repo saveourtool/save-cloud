@@ -41,7 +41,10 @@
     {
       "managers": ["helmv3", "helm-values"],
       "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies"
+      "groupSlug": "helm-dependencies",
+      "lockFileMaintenance": {
+          "enabled": true
+      }
     }
   ]
 }
