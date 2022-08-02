@@ -51,6 +51,18 @@ data class Project(
     @GeneratedValue
     var id: Long? = null
 
+    /**
+     * @return [ProjectDto] from [Project]
+     */
+    fun toDto() = ProjectDto(
+        name,
+        organization.name,
+        public,
+        description ?: "",
+        url ?: "",
+        email ?: "",
+    )
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.

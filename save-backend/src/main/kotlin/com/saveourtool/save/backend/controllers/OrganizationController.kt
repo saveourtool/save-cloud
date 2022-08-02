@@ -308,7 +308,7 @@ internal class OrganizationController(
     fun upsertGit(
         @PathVariable organizationName: String,
         @RequestBody gitDto: GitDto,
-        authentication: Authentication
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(organizationName).toMono()

@@ -117,7 +117,7 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project("ToDelete", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
@@ -140,7 +140,7 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete1", "url", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
@@ -165,7 +165,7 @@ class ProjectControllerTest {
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
+        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         saveProjectAndAssert(
             project,
             { expectStatus().isOk }
@@ -194,7 +194,7 @@ class ProjectControllerTest {
 
         webClient.post()
             .uri("/api/$v1/projects/update")
-            .bodyValue(project)
+            .bodyValue(project.toDto())
             .exchange()
             .expectStatus()
             .isForbidden
@@ -219,7 +219,7 @@ class ProjectControllerTest {
         webClient
             .post()
             .uri("/api/$v1/projects/save")
-            .body(BodyInserters.fromValue(newProject))
+            .body(BodyInserters.fromValue(newProject.toDto()))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { saveAssertion(it) }

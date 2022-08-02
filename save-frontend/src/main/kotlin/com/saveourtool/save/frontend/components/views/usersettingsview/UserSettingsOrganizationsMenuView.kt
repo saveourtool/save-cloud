@@ -37,7 +37,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("align-items-center ml-3")
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = organizationDto.avatar.let {
+                                    src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     height = 60.0
