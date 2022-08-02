@@ -2,10 +2,7 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
-import com.saveourtool.save.backend.repository.GitRepository
-import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.scheduling.JobsConfiguration
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.Git
@@ -57,7 +54,7 @@ class TestSuitesControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Autowired
-    lateinit var projectRepository: ProjectRepository
+    lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
     lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
@@ -151,7 +148,7 @@ class TestSuitesControllerTest {
     fun testAllStandardTestSuites() {
         // FIXME: a hardcoded value of url for standard test suites
         val standardTestSuitesSourceUrl = "https://github.com/saveourtool/save-cli"
-        val organization = projectRepository.getReferenceById(1).organization
+        val organization = organizationRepository.getReferenceById(1)
         val git = gitRepository.save(
             Git(
                 standardTestSuitesSourceUrl,
@@ -166,8 +163,8 @@ class TestSuitesControllerTest {
                 "standard test suites source",
                 null,
                 git,
-                "master",
-                "",
+                "main",
+                "examples/discovery-test",
             )
         )
         val testSuite = TestSuiteDto(
@@ -199,7 +196,7 @@ class TestSuitesControllerTest {
     fun testTestSuitesWithSpecificName() {
         // FIXME: a hardcoded value of url for standard test suites
         val standardTestSuitesSourceUrl = "https://github.com/saveourtool/save-cli"
-        val organization = projectRepository.getReferenceById(1).organization
+        val organization = organizationRepository.getReferenceById(1)
         val git = gitRepository.save(
             Git(
                 standardTestSuitesSourceUrl,
@@ -214,8 +211,8 @@ class TestSuitesControllerTest {
                 "standard test suites source",
                 null,
                 git,
-                "master",
-                "",
+                "main",
+                "examples/discovery-test",
             )
         )
         val name = "tester"
