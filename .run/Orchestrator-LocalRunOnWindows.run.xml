@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Orchestrator-LocalRunOnWindows" type="JetRunConfigurationType">
     <envs>
-      <env name="SPRING_PROFILES_ACTIVE" value="dev,secure,win" />
+      <env name="SPRING_PROFILES_ACTIVE" value="dev,win,docker-tcp" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.orchestrator.SaveOrchestratorKt" />
     <module name="save-cloud.save-orchestrator.main" />
