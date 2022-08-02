@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
+import com.saveourtool.save.validation.isValidEmail
 
 import kotlinx.serialization.Serializable
 
@@ -59,6 +60,25 @@ data class Project(
         "Entity is not saved yet: $this"
     }
 
+    /**
+     * Email validation
+     *
+     * @return true if email is valid, false otherwise
+     */
+    fun validateEmail() = email.isNullOrEmpty() || email?.isValidEmail() ?: true
+
+    /**
+     * @return [ProjectDto] from [Project]
+     */
+    fun toDto() = ProjectDto(
+        name,
+        organization.name,
+        public,
+        description ?: "",
+        url ?: "",
+        email ?: "",
+    )
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
@@ -83,3 +103,22 @@ data class Project(
         }
     }
 }
+
+/**
+ * @param organization organization that is an owner of a given project
+ * @param status
+ * @return [Project] from [ProjectDto]
+ */
+fun ProjectDto.toProject(
+    organization: Organization,
+    status: ProjectStatus = ProjectStatus.CREATED,
+) = Project(
+    name,
+    url,
+    description,
+    status,
+    isPublic,
+    userId = null,
+    email,
+    organization = organization,
+)

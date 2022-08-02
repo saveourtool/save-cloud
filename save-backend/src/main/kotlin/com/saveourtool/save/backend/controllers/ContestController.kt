@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
@@ -189,7 +190,7 @@ internal class ContestController(
     fun createContest(
         @RequestBody contestDto: ContestDto,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.just(
+    ): Mono<StringResponse> = Mono.just(
         contestDto.organizationName
     )
         .flatMap {
@@ -208,7 +209,7 @@ internal class ContestController(
             contestDto.toContest(it)
         }
         .filter {
-            it.isValid()
+            it.validate()
         }
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))
@@ -240,11 +241,10 @@ internal class ContestController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched public tests.")
     @ApiResponse(responseCode = "403", description = "Not enough permission to edit current contest.")
     @ApiResponse(responseCode = "404", description = "Either organization or contest with such name was not found.")
-    @Suppress("TYPE_ALIAS")
     fun updateContest(
         @RequestBody contestRequest: ContestDto,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.zip(
+    ): Mono<StringResponse> = Mono.zip(
         Mono.justOrEmpty(Optional.ofNullable(organizationService.findByName(contestRequest.organizationName))),
         Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
     )

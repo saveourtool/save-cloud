@@ -3,7 +3,7 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
-import com.saveourtool.save.validation.isNameValid
+import com.saveourtool.save.validation.isValidName
 
 /**
  * @property name organization
@@ -27,14 +27,7 @@ class Contest(
     var organization: Organization,
     var testSuiteIds: String = "",
     var description: String? = null,
-) {
-    /**
-     * id of contest
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+) : BaseEntity() {
     /**
      * Create Data Transfer Object in order to pass entity to frontend
      *
@@ -58,16 +51,16 @@ class Contest(
         }
         .toSet()
 
-    private fun isTestSuiteIdsValid() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
+    private fun validateTestSuiteIds() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
 
-    private fun isDateRangeValid() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
+    private fun validateDateRange() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
 
     /**
      * Validate contest data
      *
      * @return true if contest data is valid, false otherwise
      */
-    fun isValid() = isNameValid(name) && isTestSuiteIdsValid() && isDateRangeValid()
+    override fun validate() = name.isValidName() && validateTestSuiteIds() && validateDateRange()
 
     companion object {
         /**

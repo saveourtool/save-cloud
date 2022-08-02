@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.FrontendRoutes
-import com.saveourtool.save.validation.isNameValid
+import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -115,7 +115,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !isNameValid(contestDto.name)
+        !contestDto.name.isValidName()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -160,7 +160,8 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
-                            contestDto.name.isBlank() || isNameValid(contestDto.name),
+                            contestDto.name,
+                            contestDto.name.isBlank() || contestDto.name.isValidName(),
                             "col-12",
                             "Contest name",
                         ) {
@@ -202,6 +203,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormOptional(
                             InputTypes.CONTEST_DESCRIPTION,
+                            contestDto.description,
                             "",
                             "Contest description",
                         ) {
