@@ -98,8 +98,6 @@ class KubernetesManager(
                                 metadata = ObjectMeta().apply {
                                     labels = mapOf(
                                         "executionId" to executionId.toString(),
-                                        // Docker image ID doesn't match format of appropriate Kubernetes label
-//                                        "baseImageId" to baseImageId,
                                         // "baseImageName" to baseImageName
                                          "io.kompose.service" to "save-agent"
                                     )

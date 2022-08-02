@@ -57,7 +57,7 @@ class KubernetesPersistentVolumeService(
                     pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
                 }}
             """.trimMargin().also {
-                logger.debug { "Creating PVC from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
+                logger.debug { "Creating PVC from the following YAML:\n${it.asIndentedMultiline()}" }
             }
         ) as NamespaceableResource<PersistentVolumeClaim>
 
@@ -80,7 +80,7 @@ class KubernetesPersistentVolumeService(
                 |  hostPath:
                 |    path: ${resources.single().absolutePathString()}
             """.trimMargin().also {
-                logger.debug { "Creating PV from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
+                logger.debug { "Creating PV from the following YAML:\n${it.asIndentedMultiline()}" }
             }
         )
         sourceResourceVolume.create()
@@ -102,13 +102,18 @@ class KubernetesPersistentVolumeService(
                 |      storage: ${configProperties.kubernetes.pvcSize}
                 |  volumeName: $sourceVolumeName
             """.trimMargin().also {
-                logger.debug { "Creating PVC from the following YAML:\n${it.lines().joinToString(System.lineSeparator()) { it.prependIndent(" ".repeat(4)) }}" }
+                logger.debug { "Creating PVC from the following YAML:\n${it.asIndentedMultiline()}" }
             }
         ) as NamespaceableResource<PersistentVolumeClaim>
         val sourcePvc = sourceResource.create()
 
         return KubernetesPvId(persistentVolumeClaim.metadata.name, sourcePvc.metadata.name)
     }
+
+    private fun String.asIndentedMultiline(indent: Int = 4) = lines()
+        .joinToString(System.lineSeparator()) {
+            it.prependIndent(" ".repeat(indent))
+        }
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesPersistentVolumeService::class.java)
