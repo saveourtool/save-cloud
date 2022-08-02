@@ -31,6 +31,212 @@
         }
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/upload-snapshot": {
+      "post": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "uploadSnapshot",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creationTime",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "content"
+                ],
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "$ref": "#/components/schemas/Part"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/download-snapshot": {
+      "post": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "downloadSnapshot",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/get-or-create": {
+      "post": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "getOrCreate",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gitUrl",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testRootPath",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "branch",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuitesSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organizations/{organizationName}/upsert-git": {
       "post": {
         "tags": [
@@ -1680,6 +1886,303 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/list-snapshot": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "listSnapshotVersions",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/get-test-suites": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "getTestSuites",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuite"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/contains-snapshot": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "containsSnapshot",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{name}": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "findAsDtoByName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSuitesSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/list-snapshot": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "listSnapshots",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/list": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/list-snapshot-by-execution-id": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "getByExecutionId",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites-sources/get-standard": {
+      "get": {
+        "tags": [
+          "test-suites-source-controller"
+        ],
+        "operationId": "getStandardTestSuitesSources",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/execution": {
       "get": {
         "tags": [
@@ -2838,7 +3341,7 @@
         "tags": [
           "download-files-controller"
         ],
-        "operationId": "list",
+        "operationId": "list_1",
         "parameters": [
           {
             "name": "organizationName",
@@ -3952,6 +4455,9 @@
       "Unit": {
         "type": "object"
       },
+      "Part": {
+        "type": "object"
+      },
       "GitDto": {
         "required": [
           "url"
@@ -3965,6 +4471,36 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "TestSuitesSourceDto": {
+        "required": [
+          "branch",
+          "gitDto",
+          "name",
+          "organizationName",
+          "testRootPath"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "gitDto": {
+            "$ref": "#/components/schemas/GitDto"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "testRootPath": {
             "type": "string"
           }
         }
@@ -4424,9 +4960,6 @@
           "executionId": {
             "type": "integer",
             "format": "int64"
-          },
-          "version": {
-            "type": "string"
           }
         }
       },
@@ -4456,6 +4989,125 @@
           }
         },
         "description": "contest requested for creation"
+      },
+      "TestSuitesSourceSnapshotKey": {
+        "required": [
+          "creationTimeInMills",
+          "organizationName",
+          "testSuitesSourceName",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "testSuitesSourceName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "creationTimeInMills": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Git": {
+        "required": [
+          "organization",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TestSuite": {
+        "required": [
+          "name",
+          "source",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TestSuitesSource"
+          },
+          "version": {
+            "type": "string"
+          },
+          "dateAdded": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "language": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TestSuitesSource": {
+        "required": [
+          "branch",
+          "git",
+          "name",
+          "organization",
+          "testRootPath"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "git": {
+            "$ref": "#/components/schemas/Git"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "testRootPath": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "Execution": {
         "required": [
@@ -4644,36 +5296,6 @@
             "items": {
               "type": "string"
             }
-          }
-        }
-      },
-      "TestSuitesSourceDto": {
-        "required": [
-          "branch",
-          "gitDto",
-          "name",
-          "organization",
-          "testRootPath"
-        ],
-        "type": "object",
-        "properties": {
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "gitDto": {
-            "$ref": "#/components/schemas/GitDto"
-          },
-          "branch": {
-            "type": "string"
-          },
-          "testRootPath": {
-            "type": "string"
           }
         }
       },
