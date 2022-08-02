@@ -15,5 +15,14 @@
             <column name="branch" value="master"/>
             <column name="test_root_path" value=""/>
         </insert>
+        <insert tableName="test_suites_source">
+            <column name="id" value="2"/>
+            <column name="name" value="Standard test suites"/>
+            <column name="description" value="description"/>
+            <column name="organization_id" value="1"/>
+            <column name="git_id" value="3"/>
+            <column name="branch" value="main"/>
+            <column name="test_root_path" value="examples/discovery-test"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>
