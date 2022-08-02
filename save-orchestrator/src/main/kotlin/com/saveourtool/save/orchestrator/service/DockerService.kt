@@ -42,6 +42,7 @@ import reactor.core.publisher.Flux
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
@@ -127,13 +128,13 @@ class DockerService(
                 // Check, whether the agents were actually started, if yes, all cases will be covered by themselves and HeartBeatInspector,
                 // if no, mark execution as failed with internal error here
                 val now = Clock.System.now()
-                var duration: Long = 0
-                Flux.interval(configProperties.agentsStartSleepIntervalMillis.milliseconds.toJavaDuration())
+                val duration = AtomicLong(0)
+                Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        duration < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
                     }
                     .doOnNext {
-                        duration = (Clock.System.now() - now).inWholeMilliseconds
+                        duration.set((Clock.System.now() - now).inWholeMilliseconds)
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
