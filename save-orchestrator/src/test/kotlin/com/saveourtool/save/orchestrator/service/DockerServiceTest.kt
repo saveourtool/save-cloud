@@ -20,6 +20,7 @@ import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
@@ -32,8 +33,10 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.util.FileSystemUtils
+import java.nio.file.Files
+import java.nio.file.Paths
 
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createTempDirectory
@@ -54,8 +57,16 @@ import kotlin.io.path.pathString
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
+    @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var testImageId: String
     private lateinit var testContainerId: String
+
+    @BeforeEach
+    fun setUp() {
+        Files.createDirectories(
+            Paths.get(configProperties.testResources.tmpPath)
+        )
+    }
 
     @Test
     @Suppress("UnsafeCallOnNullableType")
@@ -104,12 +115,17 @@ class DockerServiceTest {
 
     @AfterEach
     fun tearDown() {
+        FileSystemUtils.deleteRecursively(
+            Paths.get(configProperties.testResources.tmpPath)
+        )
         if (::testContainerId.isInitialized) {
             dockerClient.removeContainerCmd(testContainerId).exec()
         }
         if (::testImageId.isInitialized) {
             dockerClient.removeImageCmd(testImageId).exec()
         }
+        mockServer.checkQueues()
+        mockServer.cleanup()
     }
 
     companion object {
@@ -118,18 +134,12 @@ class DockerServiceTest {
         @JvmStatic
         private val mockServer = createMockWebServer()
 
-        @AfterEach
-        fun cleanup() {
-            mockServer.checkQueues()
-            mockServer.cleanup()
-        }
-
+        @JvmStatic
         @AfterAll
         fun teardown() {
             mockServer.shutdown()
         }
 
-        @OptIn(ExperimentalPathApi::class)
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
