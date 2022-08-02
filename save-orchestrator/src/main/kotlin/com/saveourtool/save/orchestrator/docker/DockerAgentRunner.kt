@@ -20,6 +20,7 @@ import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
@@ -127,6 +128,7 @@ class DockerAgentRunner(
         }
     }
 
+    @Scheduled(cron = "0 0 4 * * MON")
     override fun prune() {
         var reclaimedBytes = 0L
         for (type in PruneType.values()) {
