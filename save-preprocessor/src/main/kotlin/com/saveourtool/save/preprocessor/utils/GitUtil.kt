@@ -87,10 +87,10 @@ fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path)
 private fun GitDto.credentialsProvider(): CredentialsProvider = if (username != null && password != null) {
     UsernamePasswordCredentialsProvider(username, password)
 } else {
-    username?.let {
-        CredentialsProvider.getDefault()
-    } ?:  // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
-    UsernamePasswordCredentialsProvider(password, "")
+    password?.let {
+        // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
+        UsernamePasswordCredentialsProvider(it, "")
+    } ?: CredentialsProvider.getDefault()
 }
 
 private fun <R, T : GitCommand<*>> T.gitCallWithRethrow(call: (T) -> R): R = withRethrow {
