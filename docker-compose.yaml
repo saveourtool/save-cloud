@@ -28,6 +28,7 @@ services:
       - save:/home/cnb
       - /home/saveu/executionLogs:/home/cnb/executionLogs/
       - /home/saveu/configs/orchestrator:/home/cnb/config
+      - save-tmp-resources:/tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
     deploy:
@@ -132,6 +133,7 @@ volumes:
   grafana-storage:
   prometheus-storage:
   loki-storage:
+  save-tmp-resources:
 
 secrets:
   db_password:
