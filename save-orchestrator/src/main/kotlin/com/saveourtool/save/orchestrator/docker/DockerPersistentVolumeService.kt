@@ -49,7 +49,7 @@ class DockerPersistentVolumeService(
         )
         val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
         val sourceMount = when (configProperties.docker.testResourcesVolumeType) {
-            "mount" -> Mount()
+            "volume" -> Mount()
                 .withType(MountType.VOLUME)
                 .withSource(configProperties.docker.testResourcesVolumeName)
                 .withTarget(intermediateResourcesPath)
@@ -57,7 +57,7 @@ class DockerPersistentVolumeService(
                 .withType(MountType.BIND)
                 .withSource(configProperties.testResources.tmpPath)
                 .withTarget(intermediateResourcesPath)
-            else -> error("Supported values are `mount` and `bind`")
+            else -> error("Supported values are `volume` and `bind`")
         }
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
