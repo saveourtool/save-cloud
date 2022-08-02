@@ -20,8 +20,10 @@ import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE
 import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
+import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
 import org.apache.commons.io.file.PathUtils
@@ -196,9 +198,11 @@ class DockerService(
             configProperties.testResources.basePath,
             execution.resourcesRootPath!!,
         )
-        val baseDirectoryForResources = Paths.get(configProperties.testResources.tmpPath)
-        baseDirectoryForResources.createDirectories()
-        val resourcesForExecution = createTempDirectory(directory = baseDirectoryForResources, prefix = "save-execution-${execution.id}-")
+        val resourcesForExecution = createTempDirectory(
+            directory = Paths.get(configProperties.testResources.tmpPath),
+            prefix = "save-execution-${execution.id}"
+        )
+        log.debug { "Copying resources from $originalResourcesPath into $resourcesForExecution" }
         originalResourcesPath.copyRecursively(resourcesForExecution.toFile())
 
         // collect standard test suites for docker image, which were selected by user, if any
@@ -212,8 +216,12 @@ class DockerService(
             // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
             val configData = createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer)
 
-            testSuitesDir.resolve("save.toml").apply { createFile() }.writeText(configData)
-            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(",") { it.name }}\""
+            testSuitesDir.resolve("save.toml").apply {
+                log.debug { "Creating a synthetic save.toml at $this" }
+                createFile()
+            }
+                .writeText(configData)
+            " $STANDARD_TEST_SUITE_DIR --include-suites \"${testSuitesForDocker.joinToString(DATABASE_DELIMITER) { it.name }}\""
         } else {
             ""
         }
@@ -246,6 +254,7 @@ class DockerService(
 
         val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
         log.info("Built persistent volume with tests by id $pvId")
+        FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
