@@ -90,21 +90,6 @@ class TestSuitesSourceSnapshotStorage(
         .filter { it.equalsTo(organizationName, testSuitesSourceName) }
 
     /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @return max version of existed snapshots
-     */
-    fun latestVersion(
-        organizationName: String,
-        testSuitesSourceName: String,
-    ): Mono<String> = list()
-        .filter { it.equalsTo(organizationName, testSuitesSourceName) }
-        .reduce { max, next ->
-            if (max.creationTimeInMills > next.creationTimeInMills) max else next
-        }
-        .map { it.version }
-
-    /**
      * @param request
      * @return [TestFilesContent] filled with test files
      */

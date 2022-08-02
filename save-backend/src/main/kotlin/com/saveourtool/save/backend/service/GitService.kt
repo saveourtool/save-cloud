@@ -6,13 +6,11 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.web.bind.annotation.RestController
 
 /**
  * Service of git
  */
 @Service
-@RestController
 class GitService(private val gitRepository: GitRepository) {
     /**
      * @param organization
