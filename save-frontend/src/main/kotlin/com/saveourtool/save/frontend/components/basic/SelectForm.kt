@@ -51,7 +51,7 @@ external interface SelectFormRequiredProps : Props {
      * Callback invoked when form is changed
      */
     @Suppress("TYPE_ALIAS")
-    var onChangeFun: (form: InputTypes, organization: ChangeEvent<HTMLSelectElement>, isProject: Boolean) -> Unit
+    var onChangeFun: (ChangeEvent<HTMLSelectElement>) -> Unit
 }
 
 @Suppress(
@@ -118,7 +118,7 @@ private fun selectFormRequired() = FC<SelectFormRequiredProps> { props ->
                 }
 
                 onChange = {
-                    props.onChangeFun(props.form!!, it, true)
+                    props.onChangeFun(it)
                 }
             }
 

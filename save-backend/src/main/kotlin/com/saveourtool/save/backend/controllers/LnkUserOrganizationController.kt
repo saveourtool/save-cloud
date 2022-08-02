@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
@@ -15,9 +16,9 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -164,12 +165,11 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
-    @Suppress("TYPE_ALIAS")
     fun setRole(
         @PathVariable organizationName: String,
         @RequestBody setRoleRequest: SetRoleRequest,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
+    ): Mono<StringResponse> = Mono.justOrEmpty(
         Optional.ofNullable(
             organizationService.findByName(organizationName)
         )
@@ -220,12 +220,11 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "200", description = "Role was successfully removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
-    @Suppress("ThrowsCount", "TYPE_ALIAS")
     fun removeRole(
         @PathVariable organizationName: String,
         @PathVariable userName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
+    ): Mono<StringResponse> = Mono.justOrEmpty(
         Optional.ofNullable(
             organizationService.findByName(organizationName)
         )
@@ -328,7 +327,7 @@ class LnkUserOrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
         authentication: Authentication,
-    ): Flux<OrganizationInfo> = Mono.justOrEmpty(
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmpty {
@@ -341,7 +340,7 @@ class LnkUserOrganizationController(
             it.organization != null && it.organization?.status != OrganizationStatus.DELETED
         }
         .map {
-            it.organization!!.toOrganizationInfo(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
     companion object {

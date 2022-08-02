@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.entities.ContestResult
@@ -138,7 +139,7 @@ class LnkContestProjectController(
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.zip(
+    ): Mono<StringResponse> = Mono.zip(
         projectService.findWithPermissionByNameAndOrganization(
             authentication,
             projectName,

@@ -34,17 +34,26 @@
     "/api/v1/organizations/{organizationName}/upsert-git": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Upsert organization git.",
+        "description": "Upsert organization git.",
         "operationId": "upsertGit",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -59,7 +68,37 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully saved an organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for saving organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -68,23 +107,37 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/upsert-git": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Upsert organization git.",
+        "description": "Upsert organization git.",
         "operationId": "upsertGit_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -99,7 +152,37 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully saved an organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for saving organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -108,23 +191,37 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/update": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Update existing organization.",
+        "description": "Change settings of an existing organization by it\u0027s name.",
         "operationId": "updateOrganization",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -139,7 +236,47 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully updated an organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Organization with such name already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for managing this organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -148,23 +285,37 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/update": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Update existing organization.",
+        "description": "Change settings of an existing organization by it\u0027s name.",
         "operationId": "updateOrganization_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -179,7 +330,47 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully updated an organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Organization with such name already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for managing this organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -188,19 +379,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/manage-contest-permission": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Make an organization to be able to create contests.",
+        "description": "Make an organization to be able to create contests.",
         "operationId": "setAbilityToCreateContest",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -209,15 +408,52 @@
           {
             "name": "isAbleToCreateContests",
             "in": "query",
+            "description": "new flag for contest creation ability",
             "required": true,
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Could not change ability to create contests due to lack of permission.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully changed ability to create contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -226,19 +462,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/manage-contest-permission": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Make an organization to be able to create contests.",
+        "description": "Make an organization to be able to create contests.",
         "operationId": "setAbilityToCreateContest_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -247,15 +491,52 @@
           {
             "name": "isAbleToCreateContests",
             "in": "query",
+            "description": "new flag for contest creation ability",
             "required": true,
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Could not change ability to create contests due to lack of permission.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully changed ability to create contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -264,20 +545,35 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/save": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Create a new organization.",
+        "description": "Create a new organization.",
         "operationId": "saveOrganization",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Organization"
+                "$ref": "#/components/schemas/OrganizationDto"
               }
             }
           },
@@ -285,7 +581,27 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully saved a new organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Organization with such name already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -294,20 +610,35 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/save": {
       "post": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Create a new organization.",
+        "description": "Create a new organization.",
         "operationId": "saveOrganization_1",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Organization"
+                "$ref": "#/components/schemas/OrganizationDto"
               }
             }
           },
@@ -315,7 +646,27 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully saved a new organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Organization with such name already exists.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -324,7 +675,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/users/{userName}/save/token": {
@@ -802,22 +1158,62 @@
     "/api/v1/projects/update": {
       "post": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Update an existing project.",
+        "description": "Update an existing project.",
         "operationId": "updateProject",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Project"
+                "$ref": "#/components/schemas/ProjectDto"
               }
             }
           },
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "Either project or organization could not be found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully updated a project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for managing project settings.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -826,28 +1222,73 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/save": {
       "post": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Create a new project.",
+        "description": "Create a new project.",
         "operationId": "saveProject",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewProjectDto"
+                "$ref": "#/components/schemas/ProjectDto"
               }
             }
           },
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "Could not find organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Either invalid data, or project with such name is already created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully created a new project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -856,7 +1297,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/users/roles": {
@@ -1737,22 +2183,57 @@
     "/api/v1/organizations/{organizationName}/list-git": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organization Gits.",
+        "description": "Get a list of organization\u0027s Gits.",
         "operationId": "listGit",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched a list of GitDtos.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1764,28 +2245,68 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/list-git": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organization Gits.",
+        "description": "Get a list of organization\u0027s Gits.",
         "operationId": "listGit_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched a list of GitDtos.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GitDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1797,19 +2318,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/avatar": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get avatar by organization name.",
+        "description": "Get organization avatar by organization name.",
         "operationId": "avatar",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1818,7 +2347,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched avatar by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1827,19 +2366,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/avatar": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get avatar by organization name.",
+        "description": "Get organization avatar by organization name.",
         "operationId": "avatar_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1848,7 +2395,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched avatar by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1857,19 +2414,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organization by name.",
+        "description": "Get an organization by its name.",
         "operationId": "getOrganizationByName",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1877,8 +2442,28 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched organization by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1887,19 +2472,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organization by name.",
+        "description": "Get an organization by its name.",
         "operationId": "getOrganizationByName_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -1907,8 +2500,28 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched organization by it\u0027s name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1917,18 +2530,38 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/get/list": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organizations by ownerId.",
+        "description": "Get list of all organizations where user with ownerId is an owner.",
         "operationId": "getOrganizationsByOwnerId",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of organizations.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1940,18 +2573,39 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/get/list": {
       "get": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Get organizations by ownerId.",
+        "description": "Get list of all organizations where user with ownerId is an owner.",
         "operationId": "getOrganizationsByOwnerId_1",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched list of organizations.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1963,7 +2617,13 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/users/{userName}": {
@@ -2204,12 +2864,35 @@
     "/api/v1/projects/": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get all avaliable projects.",
+        "description": "Get all projects, avaliable for current user.",
         "operationId": "getProjects",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Projects successfully fetched.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2221,7 +2904,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/{organizationName}/{projectName}/users": {
@@ -2317,12 +3005,27 @@
     "/api/v1/projects/not-deleted": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get non-deleted projects.",
+        "description": "Get non-deleted projects, avaliable for current user.",
         "operationId": "getNotDeletedProjects",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched non-deleted projects.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2334,19 +3037,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/get/projects-by-organization": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get all projects by organization name.",
+        "description": "Get all projects by organization name.",
         "operationId": "getProjectsByOrganizationName",
         "parameters": [
           {
             "name": "organizationName",
-            "in": "query",
+            "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -2355,7 +3066,20 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched projects by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2367,19 +3091,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/get/organization-name": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get project by name and organization name.",
+        "description": "Get project by name and organization name.",
         "operationId": "getProjectByNameAndOrganizationName",
         "parameters": [
           {
             "name": "name",
-            "in": "query",
+            "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -2387,16 +3119,53 @@
           },
           {
             "name": "organizationName",
-            "in": "query",
+            "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Could not find project with such name and organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched project by name and organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for accessing given project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2405,28 +3174,55 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/get/not-deleted-projects-by-organization": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get non-deleted projects by organization name.",
+        "description": "Get non-deleted projects by organization name.",
         "operationId": "getNonDeletedProjectsByOrganizationName",
         "parameters": [
           {
             "name": "organizationName",
-            "in": "query",
+            "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched projects by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2438,18 +3234,46 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/all": {
       "get": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Get all projects.",
+        "description": "Get all projects, including deleted and private. Only accessible for super admins",
         "operationId": "getProjects_1",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Projects successfully fetched.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2461,7 +3285,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/users": {
@@ -2724,7 +3553,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationInfo"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2737,7 +3566,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationInfo"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -2750,7 +3579,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrganizationInfo"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -3552,13 +4381,16 @@
     "/api/v1/organization/{organizationName}/delete-git": {
       "delete": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Upsert organization git.",
+        "description": "Upsert organization git.",
         "operationId": "deleteGit",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3567,15 +4399,52 @@
           {
             "name": "url",
             "in": "query",
+            "description": "url of a git",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Not enough permission for deleting organization git credentials.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully deleted an organization git credentials.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3584,19 +4453,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/delete-git": {
       "delete": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Upsert organization git.",
+        "description": "Upsert organization git.",
         "operationId": "deleteGit_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3605,15 +4482,52 @@
           {
             "name": "url",
             "in": "query",
+            "description": "url of a git",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Not enough permission for deleting organization git credentials.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully deleted an organization git credentials.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3622,28 +4536,72 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organization/{organizationName}/delete": {
       "delete": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Delete existing organization.",
+        "description": "Delete existing organization by its name.",
         "operationId": "deleteOrganization",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully deleted an organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for deleting this organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3652,28 +4610,72 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/delete": {
       "delete": {
         "tags": [
-          "organization-controller"
+          "organizations"
         ],
+        "summary": "Delete existing organization.",
+        "description": "Delete existing organization by its name.",
         "operationId": "deleteOrganization_1",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully deleted an organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for deleting this organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3682,7 +4684,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
@@ -3781,8 +4788,10 @@
     "/api/v1/projects/{organizationName}/{projectName}/delete": {
       "delete": {
         "tags": [
-          "project-controller"
+          "projects"
         ],
+        "summary": "Delete a project.",
+        "description": "Delete a project.",
         "operationId": "deleteProject",
         "parameters": [
           {
@@ -3800,11 +4809,47 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Not enough permission for project deletion.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully deleted a project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either could not find such organization or such project in such organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3813,7 +4858,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/users/roles/{userName}": {
@@ -4007,6 +5057,46 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "OrganizationDto": {
+        "required": [
+          "canCreateContests",
+          "description",
+          "name",
+          "userRoles"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "canCreateContests": {
+            "type": "boolean"
+          },
+          "userRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "NONE",
+                "OWNER",
+                "SUPER_ADMIN",
+                "VIEWER"
+              ]
+            }
           }
         }
       },
@@ -4341,17 +5431,33 @@
         },
         "description": "pair of userName and role that is requested to be set"
       },
-      "NewProjectDto": {
+      "ProjectDto": {
         "required": [
+          "description",
+          "email",
+          "isPublic",
+          "name",
           "organizationName",
-          "project"
+          "url"
         ],
         "type": "object",
         "properties": {
-          "project": {
-            "$ref": "#/components/schemas/Project"
+          "name": {
+            "type": "string"
           },
           "organizationName": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           }
         }
@@ -4685,34 +5791,6 @@
               "RUNNING",
               "TEST_ERROR"
             ]
-          }
-        }
-      },
-      "OrganizationInfo": {
-        "required": [
-          "name",
-          "userRoles"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "userRoles": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "NONE",
-                "OWNER",
-                "SUPER_ADMIN",
-                "VIEWER"
-              ]
-            }
-          },
-          "avatar": {
-            "type": "string"
           }
         }
       },

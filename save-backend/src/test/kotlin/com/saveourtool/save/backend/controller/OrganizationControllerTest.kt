@@ -130,7 +130,6 @@ class OrganizationControllerTest {
     @WithMockUser(value = "admin", roles = ["VIEWER"])
     fun `upsert git credential in organization`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
-
         val gitDtoToCreate = GitDto("url")
         webClient.post()
             .uri("/api/$v1/organizations/${organization.name}/upsert-git")
@@ -187,6 +186,9 @@ class OrganizationControllerTest {
 
     private fun prepareLink(organization: Organization, user: User, userRole: Role) {
         given(lnkUserOrganizationRepository.findByUserIdAndOrganizationName(any(), any())).willReturn(
+            LnkUserOrganization(organization, user, userRole)
+        )
+        given(lnkUserOrganizationRepository.findByUserIdAndOrganization(any(), any())).willReturn(
             LnkUserOrganization(organization, user, userRole)
         )
         given(organizationRepository.findByName(any())).willReturn(organization)
