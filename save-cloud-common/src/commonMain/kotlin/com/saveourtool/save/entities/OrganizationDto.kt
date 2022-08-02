@@ -39,6 +39,7 @@ data class OrganizationDto(
      *
      * @return true if organization is valid, false otherwise
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     override fun validate(): Boolean = validateName()
 
     companion object {
