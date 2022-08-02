@@ -35,7 +35,6 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 
@@ -162,10 +161,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
                                         inputTextFormRequired(
                                             InputTypes.PROJECT_NAME,
+                                            state.projectCreationRequest.name,
                                             state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName(),
                                             "col-md-12 pl-2 pr-2",
                                             "Tested tool name",
-                                            true,
                                         ) {
                                             setState {
                                                 projectCreationRequest = projectCreationRequest.copy(name = it.target.value)
@@ -173,6 +172,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
                                         inputTextFormOptional(
                                             InputTypes.PROJECT_URL,
+                                            state.projectCreationRequest.url,
                                             "col-md-12 pl-2 pr-2 mt-3",
                                             "Tested Tool Website",
                                             validInput = state.projectCreationRequest.url.isEmpty() || state.projectCreationRequest.validateUrl(),
@@ -184,6 +184,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
                                         inputTextFormOptional(
                                             InputTypes.PROJECT_EMAIL,
+                                            state.projectCreationRequest.email,
                                             "col-md-12 pl-2 pr-2 mt-3",
                                             "Tested Tool Email",
                                             validInput = state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail(),
@@ -214,14 +215,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                     id = InputTypes.DESCRIPTION.name
                                                     required = false
                                                 }
-                                            }
-                                        }
-
-                                        div {
-                                            className = ClassName("col-md-12 mt-3 border-top")
-                                            p {
-                                                className = ClassName("mx-auto mt-2")
-                                                +"Provide Credentials if your repo with Test Suites is private:"
                                             }
                                         }
 

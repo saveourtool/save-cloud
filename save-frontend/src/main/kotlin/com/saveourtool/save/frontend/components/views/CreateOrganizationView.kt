@@ -131,9 +131,10 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                     div {
                                         inputTextFormRequired(
                                             InputTypes.ORGANIZATION_NAME,
+                                            state.organizationDto.name,
                                             state.organizationDto.name.isEmpty() || state.organizationDto.validateName(),
-                                            "", "Organization name",
-                                            true,
+                                            "",
+                                            "Organization name",
                                         ) {
                                             setState {
                                                 organizationDto = organizationDto.copy(name = it.target.value)

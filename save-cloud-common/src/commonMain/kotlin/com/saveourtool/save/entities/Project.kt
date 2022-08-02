@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.EnumType
+import com.saveourtool.save.validation.isValidEmail
 
 import kotlinx.serialization.Serializable
 
@@ -50,6 +51,13 @@ data class Project(
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    /**
+     * Email validation
+     *
+     * @return true if email is valid, false otherwise
+     */
+    fun validateEmail() = email.isNullOrEmpty() || email?.isValidEmail() ?: true
 
     /**
      * @return [ProjectDto] from [Project]

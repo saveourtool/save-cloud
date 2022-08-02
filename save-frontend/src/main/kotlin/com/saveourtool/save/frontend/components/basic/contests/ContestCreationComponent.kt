@@ -160,6 +160,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
+                            contestDto.name,
                             contestDto.name.isBlank() || contestDto.name.isValidName(),
                             "col-12",
                             "Contest name",
@@ -202,6 +203,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextFormOptional(
                             InputTypes.CONTEST_DESCRIPTION,
+                            contestDto.description,
                             "",
                             "Contest description",
                         ) {

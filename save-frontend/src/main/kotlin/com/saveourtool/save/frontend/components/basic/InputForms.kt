@@ -2,6 +2,10 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.validation.DATE_RANGE_ERROR_MESSAGE
+import com.saveourtool.save.validation.EMAIL_ERROR_MESSAGE
+import com.saveourtool.save.validation.NAME_ERROR_MESSAGE
+import com.saveourtool.save.validation.URL_ERROR_MESSAGE
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.ChildrenBuilder
@@ -14,30 +18,39 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
 
+private const val URL_PLACEHOLDER = "https://example.com"
+private const val EMAIL_PLACEHOLDER = "test@example.com"
+
 /**
  * @property str
+ * @property placeholder
+ * @property errorMessage
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
-enum class InputTypes(val str: String) {
+enum class InputTypes(
+    val str: String,
+    val errorMessage: String? = null,
+    val placeholder: String? = null,
+) {
     // ==== new project view
     DESCRIPTION("project description"),
     GIT_BRANCH("git branch"),
     GIT_TOKEN("git token"),
-    GIT_URL("git url"),
+    GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
     GIT_USER("git username"),
-    PROJECT_EMAIL("project email"),
+    PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
 
     // ==== signIn view
     LOGIN("login"),
     PASSWORD("password"),
-    PROJECT_NAME("project name"),
-    PROJECT_URL("project Url"),
+    PROJECT_NAME("project name", NAME_ERROR_MESSAGE),
+    PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
 
     // ==== create organization view
-    ORGANIZATION_NAME("organization name"),
+    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE),
 
     // ==== user setting view
-    USER_EMAIL("user email"),
+    USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
     COMPANY("company"),
     LOCATION("location"),
     GIT_HUB("git hub"),
@@ -45,11 +58,11 @@ enum class InputTypes(val str: String) {
     TWITTER("twitter"),
 
     // ==== contest creation component
-    CONTEST_NAME("contest name"),
-    CONTEST_START_TIME("contest starting time"),
-    CONTEST_END_TIME("contest ending time"),
+    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE),
+    CONTEST_START_TIME("contest starting time", DATE_RANGE_ERROR_MESSAGE),
+    CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
-    CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name"),
+    CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
     ;
 }
 
@@ -57,9 +70,10 @@ enum class InputTypes(val str: String) {
  * @param form
  * @param validInput
  * @param classes
- * @param text
- * @param isProjectOrOrganizationName
+ * @param name
+ * @param errorText
  * @param onChangeFun
+ * @param textValue
  * @return div with an input form
  */
 @Suppress(
@@ -69,10 +83,11 @@ enum class InputTypes(val str: String) {
 )
 internal fun ChildrenBuilder.inputTextFormRequired(
     form: InputTypes,
+    textValue: String?,
     validInput: Boolean,
     classes: String,
-    text: String,
-    isProjectOrOrganizationName: Boolean = false,
+    name: String,
+    errorText: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) =
         div {
@@ -80,7 +95,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
             label {
                 className = ClassName("form-label")
                 htmlFor = form.name
-                +text
+                +name
             }
 
             div {
@@ -97,6 +112,8 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                     onChange = onChangeFun
                     id = form.name
                     required = true
+                    value = textValue
+                    placeholder = form.placeholder
                     if (validInput) {
                         className = ClassName("form-control")
                     } else {
@@ -105,16 +122,9 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                 }
 
                 if (!validInput) {
-                    if (isProjectOrOrganizationName) {
-                        div {
-                            className = ClassName("invalid-feedback d-block")
-                            +"Please input a valid ${form.str}. The name can be no longer than 64 characters and can't contain any spaces."
-                        }
-                    } else {
-                        div {
-                            className = ClassName("invalid-feedback d-block")
-                            +"Please input a valid ${form.str}"
-                        }
+                    div {
+                        className = ClassName("invalid-feedback d-block")
+                        +(form.errorMessage ?: errorText)
                     }
                 }
             }
@@ -123,23 +133,30 @@ internal fun ChildrenBuilder.inputTextFormRequired(
 /**
  * @param form
  * @param classes
- * @param text
+ * @param name
  * @param validInput
  * @param onChangeFun
+ * @param errorText
+ * @param textValue
  * @return div with an input form
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 internal fun ChildrenBuilder.inputTextFormOptional(
     form: InputTypes,
+    textValue: String?,
     classes: String,
-    text: String,
+    name: String?,
     validInput: Boolean = true,
+    errorText: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
     className = ClassName("$classes pl-2 pr-2")
-    label {
-        className = ClassName("form-label")
-        htmlFor = form.name
-        +text
+    name?.let { name ->
+        label {
+            className = ClassName("form-label")
+            htmlFor = form.name
+            +name
+        }
     }
     input {
         type = InputType.text
@@ -147,10 +164,18 @@ internal fun ChildrenBuilder.inputTextFormOptional(
         ariaDescribedBy = "${form.name}Span"
         id = form.name
         required = false
+        value = textValue
+        placeholder = form.placeholder
         if (validInput) {
             className = ClassName("form-control")
         } else {
             className = ClassName("form-control is-invalid")
+        }
+    }
+    if (!validInput) {
+        div {
+            className = ClassName("invalid-feedback d-block")
+            +(form.errorMessage ?: errorText)
         }
     }
 }
@@ -219,14 +244,17 @@ internal fun ChildrenBuilder.inputDateFormOptional(
  * @param validInput
  * @param classes
  * @param text
+ * @param errorMessage
  * @param onChangeFun
  * @return a [div] with required input form with datepicker
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 internal fun ChildrenBuilder.inputDateFormRequired(
     form: InputTypes,
     validInput: Boolean,
     classes: String,
     text: String,
+    errorMessage: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
     className = ClassName("$classes mt-1")
@@ -256,7 +284,7 @@ internal fun ChildrenBuilder.inputDateFormRequired(
         if (!validInput) {
             div {
                 className = ClassName("invalid-feedback d-block")
-                +"Please input a valid ${form.str}"
+                +(form.errorMessage ?: errorMessage)
             }
         }
     }
