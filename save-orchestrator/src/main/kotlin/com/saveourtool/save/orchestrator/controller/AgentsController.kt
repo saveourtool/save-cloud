@@ -48,6 +48,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import kotlin.io.path.*
 
@@ -84,7 +85,12 @@ class AgentsController(
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
                         "status=${execution.status}]"
             }
-            Mono.fromCallable { createTempDirectory(prefix = "save-execution-${execution.id}") }
+            Mono.fromCallable {
+                createTempDirectory(
+                    directory = Paths.get(configProperties.testResources.tmpPath),
+                    prefix = "save-execution-${execution.id}"
+                )
+            }
                 .flatMap { resourcesForExecution ->
                     val resourcesPath = resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
                     execution.downloadTestsTo(resourcesPath)

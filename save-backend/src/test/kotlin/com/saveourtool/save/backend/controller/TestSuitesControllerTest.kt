@@ -178,7 +178,7 @@ class TestSuitesControllerTest {
     }
 
     companion object {
-        private val standardTestSuitesSourceId = 2L
+        private const val standardTestSuitesSourceId = 2L
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterEach

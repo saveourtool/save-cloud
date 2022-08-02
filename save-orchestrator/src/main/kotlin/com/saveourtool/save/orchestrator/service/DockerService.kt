@@ -14,6 +14,7 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
+import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -33,10 +35,10 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 
+import kotlin.io.path.*
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
-import kotlin.io.path.*
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -188,10 +190,6 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-//        val resourcesForExecution = createTempDirectory(
-//            directory = Paths.get(configProperties.testResources.tmpPath),
-//            prefix = "save-execution-${execution.id}"
-//        )
         // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
         resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
             .resolve("save.toml")
