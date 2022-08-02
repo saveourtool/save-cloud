@@ -127,7 +127,7 @@ class HeartBeatInspector(
         }
     }
 
-    @Scheduled(cron = "*/\${orchestrator.heartBeatInspectorInterval} * * * * ?")
+    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
     private fun run() {
         determineCrashedAgents()
         processCrashedAgents()

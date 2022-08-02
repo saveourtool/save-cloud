@@ -45,9 +45,15 @@ data class ConfigProperties(
 ) {
     /**
      * @property basePath path to the root directory, where all test resources are stored
+     * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
+     * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
+     * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
+     * To be able to access resources, orchestrator and this intermediate container should have a shared mount, and [tmpPath] serves
+     * as a host location for this shared mount.
      */
     data class TestResources(
         val basePath: String,
+        val tmpPath: String,
     )
 
     /**
@@ -55,12 +61,17 @@ data class ConfigProperties(
      * @property runtime OCI compliant runtime for docker
      * @property loggingDriver logging driver for the container
      * @property registry docker registry to pull images for test executions from
+     * @property testResourcesVolumeType Type of Docker volume (bind/volume). `bind` should only be used for local running and for tests.
+     * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
+     * Nullable, because it's not required in Kubernetes
      */
     data class DockerSettings(
         val host: String,
         val loggingDriver: String,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
+        val testResourcesVolumeType: String = "volume",
+        val testResourcesVolumeName: String? = null,
     )
 
     /**
@@ -87,15 +98,15 @@ data class ConfigProperties(
         val backendUrl: String? = null,
         val orchestratorUrl: String? = null,
     )
-}
 
-/**
- * @property checksIntervalMillis interval between checks whether agents are really finished
- * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
- * @property gracefulNumChecks during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
- */
-data class ShutdownSettings(
-    val checksIntervalMillis: Long,
-    val gracefulTimeoutSeconds: Long,
-    val gracefulNumChecks: Int,
-)
+    /**
+     * @property checksIntervalMillis interval between checks whether agents are really finished
+     * @property gracefulTimeoutSeconds if agent doesn't shut down during this time, it will be forcefully terminated
+     * @property gracefulNumChecks during [gracefulTimeoutSeconds], perform this number of checks whether agent is still running
+     */
+    data class ShutdownSettings(
+        val checksIntervalMillis: Long,
+        val gracefulTimeoutSeconds: Long,
+        val gracefulNumChecks: Int,
+    )
+}
