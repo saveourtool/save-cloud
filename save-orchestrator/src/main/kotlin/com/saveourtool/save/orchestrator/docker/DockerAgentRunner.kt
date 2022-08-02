@@ -127,6 +127,14 @@ class DockerAgentRunner(
         }
     }
 
+    override fun prune() {
+        // docker system prune -a --filter "until=720h"
+        for (type in PruneType.values()) {
+            val oneMonth = "720h"
+            val oldData = dockerClient.pruneCmd(type).withUntilFilter(oneMonth)
+        }
+    }
+
     /**
      * Creates a docker container
      *
