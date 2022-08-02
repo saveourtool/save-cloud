@@ -14,7 +14,6 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
@@ -37,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
+import kotlin.io.path.*
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -51,8 +51,6 @@ class DockerService(
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
 ) {
-    private val testSuiteDirName = "test-suites"
-
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
@@ -190,6 +188,10 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+//        val resourcesForExecution = createTempDirectory(
+//            directory = Paths.get(configProperties.testResources.tmpPath),
+//            prefix = "save-execution-${execution.id}"
+//        )
         // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
         resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
             .resolve("save.toml")
@@ -226,6 +228,7 @@ class DockerService(
 
         val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
         log.info("Built persistent volume with tests by id $pvId")
+        FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)

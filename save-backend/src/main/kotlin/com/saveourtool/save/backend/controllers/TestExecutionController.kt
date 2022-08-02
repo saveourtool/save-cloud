@@ -231,6 +231,7 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")
         }
     } catch (exception: DataAccessException) {
+        log.warn("Unable to save test results", exception)
         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save")
     }
 
