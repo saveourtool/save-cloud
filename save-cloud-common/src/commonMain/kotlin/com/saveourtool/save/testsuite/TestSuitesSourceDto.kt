@@ -6,12 +6,6 @@ import kotlinx.serialization.Serializable
 typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
 
 /**
- * @param organizationName
- * @param name
- * @param description
- * @param gitDto
- * @param branch
- * @param testRootPath
  * @property organizationName
  * @property name
  * @property description

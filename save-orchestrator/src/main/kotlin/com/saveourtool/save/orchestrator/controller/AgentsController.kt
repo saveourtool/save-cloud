@@ -86,8 +86,9 @@ class AgentsController(
                         "status=${execution.status}]"
             }
             Mono.fromCallable {
+                val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
                 createTempDirectory(
-                    directory = Paths.get(configProperties.testResources.tmpPath),
+                    directory = tmpDir,
                     prefix = "save-execution-${execution.id}"
                 )
             }

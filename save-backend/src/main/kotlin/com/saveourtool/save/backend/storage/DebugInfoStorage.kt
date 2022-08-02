@@ -44,18 +44,13 @@ class DebugInfoStorage(
      * @param pathToContent
      * @return [Pair] of executionId and [TestResultLocation] object is built by [Path]
      */
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun buildKey(rootDir: Path, pathToContent: Path): DebugInfoStorageKey {
         val pathNames = pathToContent.pathNamesTill(rootDir)
 
-        val testName = pathNames[0].dropLast(SUFFIX_FILE_NAME.length)
-        val testLocation = pathNames[1]
-        val testSuiteName = pathNames[2]
-        val pluginName = pathNames[3]
-        val executionId = pathNames[4].toLong()
+        val (testName, testLocation, testSuiteName, pluginName, executionId) = pathNames
         return DebugInfoStorageKey(
-            executionId,
-            TestResultLocation(testSuiteName, pluginName, testLocation, testName)
+            executionId.toLong(),
+            TestResultLocation(testSuiteName, pluginName, testLocation, testName.dropLast(SUFFIX_FILE_NAME.length))
         )
     }
 

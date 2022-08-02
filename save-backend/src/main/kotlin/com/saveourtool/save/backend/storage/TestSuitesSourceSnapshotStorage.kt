@@ -35,14 +35,13 @@ class TestSuitesSourceSnapshotStorage(
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
             pathToContent.name.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
-        val pathNames = pathToContent.pathNamesTill(rootDir)
+        val (version, creationTime, sourceName, organizationName) = pathToContent.pathNamesTill(rootDir)
         return TestSuitesSourceSnapshotKey(
-            pathNames[3],
-            pathNames[2].decodeUrl(),
-            pathNames[0].dropLast(ARCHIVE_EXTENSION.length),
-            pathNames[1].toLong()
+            organizationName,
+            sourceName.decodeUrl(),
+            creationTime.dropLast(ARCHIVE_EXTENSION.length),
+            version.toLong()
         )
     }
 

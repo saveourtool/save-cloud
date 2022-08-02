@@ -56,7 +56,6 @@ import kotlinx.serialization.json.Json
 @Import(AgentService::class, Beans::class)
 @MockBeans(MockBean(AgentRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@AutoConfigureWebTestClient(timeout = "P2D")
 class AgentsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
