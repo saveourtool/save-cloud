@@ -24,6 +24,7 @@ import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserter
 import org.springframework.web.reactive.function.BodyInserters
@@ -191,19 +192,18 @@ class DownloadProjectController(
     /**
      * Accept execution rerun request
      *
-     * @param executionRerunRequest request
+     * @param executionId ID of [Execution]
      * @return status 202
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     @PostMapping("/rerunExecution")
-    fun rerunExecution(@RequestBody executionRerunRequest: ExecutionRequest) = Mono.fromCallable {
-        requireNotNull(executionRerunRequest.executionId) { "Can't rerun execution with unknown id" }
+    fun rerunExecution(@RequestParam("id") executionId: Long) = Mono.fromCallable {
         ResponseEntity("Clone pending", HttpStatus.ACCEPTED)
     }
         .doOnSuccess {
-            updateExecutionStatus(executionRerunRequest.executionId!!, ExecutionStatus.PENDING)
-                .flatMap { cleanupInOrchestrator(executionRerunRequest.executionId!!) }
-                .flatMap { getExecution(executionRerunRequest.executionId!!) }
+            updateExecutionStatus(executionId, ExecutionStatus.PENDING)
+                .flatMap { cleanupInOrchestrator(executionId) }
+                .flatMap { getExecution(executionId) }
                 .doOnNext {
                     log.info { "Skip initializing tests for execution.id = ${it.id}: it's rerun" }
                 }

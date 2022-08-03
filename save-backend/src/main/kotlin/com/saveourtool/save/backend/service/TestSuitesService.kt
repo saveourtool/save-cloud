@@ -84,16 +84,16 @@ class TestSuitesService(
      * @return all standard test suites
      */
     fun getStandardTestSuites(): Mono<TestSuiteDtoList> = blockingToFlux { testSuitesSourceService.getStandardTestSuitesSources() }
-            .flatMap { testSuitesSource ->
-                testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
-                    .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
-                    .map { testSuitesSource to it.version }
-            }
-            .flatMap { (testSuitesSource, version) ->
-                blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
-            }
-            .map { it.toDto() }
-            .collectList()
+        .flatMap { testSuitesSource ->
+            testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
+                .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
+                .map { testSuitesSource to it.version }
+        }
+        .flatMap { (testSuitesSource, version) ->
+            blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
+        }
+        .map { it.toDto() }
+        .collectList()
 
     /**
      * @param id

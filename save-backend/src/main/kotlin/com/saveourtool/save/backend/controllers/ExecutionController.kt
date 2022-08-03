@@ -14,13 +14,10 @@ import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionInitializationDto
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
@@ -298,32 +295,10 @@ class ExecutionController(private val executionService: ExecutionService,
         )) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        val git = gitService.getByOrganizationAndUrl(execution.project.organization, execution.getTestSuiteRepoUrl())
-            .toDto()
-        val executionType = execution.type
-        val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.getTestRootPathByTestSuites()
-                .distinct()
-                .single()
-        } else {
-            // for standard suites there is no need for a testRootPath
-            "N/A"
-        }
-
         executionService.resetMetrics(execution)
         executionService.updateExecutionWithUser(execution, authentication.username())
-        val executionRequest = ExecutionRequest(
-            project = execution.project,
-            gitDto = git,
-            // TODO: rerun is incorrect for execution which was run from branch initially
-            branchOrCommit = execution.version,
-            testRootPath = testRootPath,
-            sdk = execution.sdk.toSdk(),
-            executionId = execution.id,
-        )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution")
-            .bodyValue(executionRequest)
+            .uri("/rerunExecution?id={executionId}", execution.requiredId())
             .retrieve()
             .bodyToMono()
     }
@@ -339,29 +314,6 @@ class ExecutionController(private val executionService: ExecutionService,
         ?.map { it.source }
         ?.map { it.testRootPath }
         .orEmpty()
-
-    private fun Execution.getTestSuiteRepoUrl(): String = parseAndGetTestSuiteIds()
-        ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
-                "Can't find test suite with id=$testSuiteId for executionId=$id"
-            }
-        }
-        ?.mapNotNull {
-            it.source
-        }
-        ?.map {
-            it.git.url
-        }
-        .orEmpty()
-        .distinct()
-        .single()
-
-    /**
-     * @param execution
-     * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
-     */
-    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
-    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     /**
      * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing

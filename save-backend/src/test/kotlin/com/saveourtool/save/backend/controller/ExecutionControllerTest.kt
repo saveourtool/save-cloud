@@ -27,10 +27,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
@@ -256,47 +253,46 @@ class ExecutionControllerTest {
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "admin")
     fun `test testSuiteIds`() {
-        val project = projectRepository.findById(1).get()
-        val executionEmptyTestSuiteIds = Execution.stub(project).apply {
-            testSuiteIds = null
+        mutateMockedUser {
+            details = AuthenticationDetails(id = 1)
         }
+        val execution = executionRepository.findById(6).get()
+        val executionEmptyTestSuiteIds = executionRepository.save(execution.apply {
+            testSuiteIds = null
+        })
 
-        webClient.post()
-            .uri("/internal/findTestRootPathForExecutionByTestSuites")
-            .body(BodyInserters.fromValue(executionEmptyTestSuiteIds))
+        webClient.get()
+            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", executionEmptyTestSuiteIds.requiredId())
             .exchange()
             .expectStatus()
-            .isOk
-            .expectBody<List<String>>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertTrue(responseBody.isEmpty())
-            }
+            .isNotFound
 
+        val organization = execution.project.organization
         val git = gitRepository.save(
             Git(
                 url = "test",
                 username = null,
                 password = null,
-                organization = project.organization,
+                organization = organization,
+            )
+        )
+        val source1 = testSuitesSourceRepository.save(
+            TestSuitesSource(
+                organization = organization,
+                name = "test1",
+                description = null,
+                git = git,
+                branch = "main",
+                testRootPath = "testRootPath"
             )
         )
         val testSuite1 = testSuiteRepository.save(
             TestSuite(
                 name = "test1",
                 description = null,
-                source = testSuitesSourceRepository.save(
-                    TestSuitesSource(
-                        organization = project.organization,
-                        name = "test1",
-                        description = null,
-                        git = git,
-                        branch = "main",
-                        testRootPath = "test 1"
-                    )
-                ),
+                source = source1,
                 version = "1",
                 dateAdded = testLocalDateTime,
             )
@@ -305,54 +301,53 @@ class ExecutionControllerTest {
             TestSuite(
                 name = "test2",
                 description = null,
-                source = testSuitesSourceRepository.save(
-                    TestSuitesSource(
-                        organization = project.organization,
-                        name = "test2",
-                        description = null,
-                        git = git,
-                        branch = "main",
-                        testRootPath = "test 2"
-                    )
-                ),
+                source = source1,
                 version = "1",
                 dateAdded = testLocalDateTime,
             )
         )
+
+        val validExecutionTestSuiteIds = executionRepository.save(execution.apply {
+            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId()))
+        })
+        webClient.get()
+            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", validExecutionTestSuiteIds.requiredId())
+            .exchange()
+            .expectStatus()
+            .isOk
+            .expectBody<String>()
+            .consumeWith {
+                val responseBody = requireNotNull(it.responseBody)
+                assertEquals("testRootPath", responseBody)
+            }
+
         val testSuite3 = testSuiteRepository.save(
             TestSuite(
                 name = "test3",
                 description = null,
                 source = testSuitesSourceRepository.save(
                     TestSuitesSource(
-                        organization = project.organization,
+                        organization = organization,
                         name = "test3",
                         description = null,
                         git = git,
                         branch = "main",
-                        testRootPath = "test 3"
+                        testRootPath = "anotherTestRootPath"
                     )
                 ),
                 version = "1",
                 dateAdded = testLocalDateTime,
             )
         )
-        val executionTestSuiteIds = Execution.stub(project).apply {
-            testSuiteIds = "${testSuite1.id}, ${testSuite2.id}, ${testSuite3.id}"
-        }
+        val invalidExecutionTestSuiteIds = executionRepository.save(execution.apply {
+            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId(), testSuite3.requiredId()))
+        })
 
-        webClient.post()
-            .uri("/internal/findTestRootPathForExecutionByTestSuites")
-            .body(BodyInserters.fromValue(executionTestSuiteIds))
+        webClient.get()
+            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", invalidExecutionTestSuiteIds.requiredId())
             .exchange()
             .expectStatus()
-            .isOk
-            .expectBody<List<String>>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertFalse(responseBody.isEmpty())
-                assertEquals(listOf("test 1", "test 2", "test 3"), responseBody)
-            }
+            .isNotFound
     }
 
     companion object {

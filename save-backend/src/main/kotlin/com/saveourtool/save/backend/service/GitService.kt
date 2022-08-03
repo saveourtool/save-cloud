@@ -25,7 +25,6 @@ class GitService(private val gitRepository: GitRepository) {
      */
     fun findByOrganizationAndUrl(organization: Organization, url: String): Git? = gitRepository.findByOrganizationAndUrl(organization, url)
 
-
     /**
      * @param organization
      * @param url

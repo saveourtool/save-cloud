@@ -98,10 +98,12 @@ fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOr
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [T]
  */
 fun <T> blockingToMono(supplier: () -> T): Mono<T> = Mono.fromCallable(supplier).subscribeOn(Schedulers.boundedElastic())
 
 /**
  * @param supplier blocking operation like JDBC
+ * @return [Flux] from result of blocking operation [List] of [T]
  */
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
