@@ -10,7 +10,6 @@ import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 
-import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -42,12 +41,12 @@ class ProjectService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun getOrSaveProject(project: Project): Pair<Long, ProjectSaveStatus> {
-        val exampleMatcher = ExampleMatcher.matchingAll()
+        val exampleMatcher = ExampleMatcher.matching()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
-            .withMatcher("organization", ExampleMatcher.GenericPropertyMatchers.exact())
-        val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
+            .withMatcher("organization.name", ExampleMatcher.GenericPropertyMatchers.exact())
+        val (projectId, projectSaveStatus) = projectRepository.findByNameAndOrganizationName(project.name, project.organization.name)?.let {
             Pair(it.id, ProjectSaveStatus.EXIST)
-        }.orElseGet {
+        } ?: run {
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
         }
