@@ -13,15 +13,16 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property backendUrl url of save-backend
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
+ * @property kubernetes configuration for setup in Kubernetes
+ * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
  * @property agentsCount a number of agents to start for every [Execution]
  * @property executionLogs path to folder to store cli logs
+ * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  * @property agentSettings if set, this will override defaults in agent.properties
- * @property kubernetes configuration for setup in Kubernetes
- * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property agentsStartTimeoutMillis interval in milliseconds, which indicates how much time is given to agents for starting, if time's up - mark execution with internal error
  * @property agentsStartCheckIntervalMillis interval in milliseconds, within which agents will be checked, whether they are started
  */
@@ -32,6 +33,7 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val kubernetes: KubernetesSettings?,
+    val dockerResourcesLifetime: String = "720h",
     val agentsCount: Int,
     val executionLogs: String,
     val shutdown: ShutdownSettings,
