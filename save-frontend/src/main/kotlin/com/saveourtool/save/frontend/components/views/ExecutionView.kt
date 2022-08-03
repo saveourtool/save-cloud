@@ -310,6 +310,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     init {
         state.executionDto = null
         state.filters = getFiltersParamUrl()
+        console.log("status = ${state.filters.status}  fileName = ${state.filters.fileName}  testSuite = ${state.filters.testSuite}  tag = ${state.filters.tag}")
     }
 
     override fun componentDidMount() {
@@ -447,14 +448,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     }
 
     private fun getFiltersParamUrl(): TestExecutionFilters {
-        val url = URLSearchParams(window.location.search)
+        val url = URLSearchParams(window.location.href)
+        console.log("search = ${window.location.search}  href = ${window.location.href}")
         return TestExecutionFilters(status = url.get("status")?.let { TestResultStatus.valueOf(it) }, fileName = url.get("fileName"), testSuite = url.get("testSuite"),
             tag = url.get("tag"))
     }
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters): String {
-        val hrefFirst: String = window.location.href.split('?')
-            .first()
+        val hrefFirst: String = window.location.href.split('?').first()
         val filtersList = listOf("status=" to filterValue.status?.name, "fileName=" to filterValue.fileName, "testSuite=" to filterValue.testSuite, "tag=" to filterValue.tag)
             .filter {
                 it.second?.isNotBlank() ?: false
@@ -465,7 +466,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         } else {
             "$hrefFirst?${filtersList.joinToString("&")
                 .replace("(", "")
-                .replace(")", "")
+               .replace(")", "")
                 .replace(", ", "")}"
         }
     }
