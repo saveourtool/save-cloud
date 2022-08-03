@@ -35,13 +35,11 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.util.FileSystemUtils
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import kotlin.io.path.Path
-import kotlin.io.path.createDirectory
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.pathString
+import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -89,7 +87,11 @@ class DockerServiceTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("Test1", "Test2")))
         )
-        val resourcesForExecution = createTempDirectory()
+        val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
+        val resourcesForExecution = createTempDirectory(
+            directory = tmpDir,
+            prefix = "save-execution-${testExecution.requiredId()}"
+        )
         resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
         val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
         testContainerId = dockerService.createContainers(

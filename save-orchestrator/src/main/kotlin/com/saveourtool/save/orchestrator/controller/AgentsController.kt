@@ -62,6 +62,8 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
+    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
+
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
@@ -86,7 +88,6 @@ class AgentsController(
                         "status=${execution.status}]"
             }
             Mono.fromCallable {
-                val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
                 createTempDirectory(
                     directory = tmpDir,
                     prefix = "save-execution-${execution.id}"
