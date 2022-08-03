@@ -41,8 +41,8 @@ class TestSuitesSourceSnapshotStorage(
         return TestSuitesSourceSnapshotKey(
             organizationName,
             sourceName.decodeUrl(),
-            creationTime.dropLast(ARCHIVE_EXTENSION.length),
-            version.toLong()
+            version.dropLast(ARCHIVE_EXTENSION.length),
+            creationTime.toLong()
         )
     }
 

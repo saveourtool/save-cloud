@@ -4,13 +4,17 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.scheduling.JobsConfiguration
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
+
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -34,11 +38,18 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.writeText
+import kotlinx.datetime.toKotlinLocalDateTime
+
 @SpringBootTest(classes = [SaveApplication::class])
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "P2D")
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
@@ -53,6 +64,9 @@ class TestSuitesControllerTest {
 
     @Autowired
     lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @Autowired
+    lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
 
     @MockBean
     lateinit var scheduler: Scheduler
@@ -150,6 +164,17 @@ class TestSuitesControllerTest {
                 assertEquals(1, it.responseBody!!.size)
             }
         }
+        val tmpContent = createTempFile()
+        tmpContent.writeText("test")
+        val storageKey = TestSuitesSourceSnapshotKey(
+            testSuite.source.organizationName,
+            testSuite.source.name,
+            testSuite.version,
+            LocalDateTime.now().toKotlinLocalDateTime(),
+        )
+        testSuitesSourceSnapshotStorage.upload(storageKey, tmpContent.toByteBufferFlux())
+            .block()
+        tmpContent.deleteExisting()
         val allStandardTestSuite = testSuiteRepository.findAll().count { it.source.git.url == testSuitesSource.git.url }
         webClient.get()
             .uri("/api/$v1/allStandardTestSuites")
@@ -159,7 +184,7 @@ class TestSuitesControllerTest {
             .expectBody<List<TestSuiteDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(it.responseBody!!.size, allStandardTestSuite)
+                assertEquals(allStandardTestSuite, it.responseBody!!.size)
             }
     }
 
