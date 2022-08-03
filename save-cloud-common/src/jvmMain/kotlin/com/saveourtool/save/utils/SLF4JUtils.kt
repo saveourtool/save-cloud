@@ -22,6 +22,12 @@ inline fun Logger.debug(msg: () -> String) {
     }
 }
 
+inline fun Logger.debug(exception: Throwable, msg: () -> String) {
+    if (this.isDebugEnabled) {
+        debug(msg(), exception)
+    }
+}
+
 inline fun Logger.info(msg: () -> String) {
     if (this.isInfoEnabled) {
         info(msg())
@@ -43,6 +49,12 @@ inline fun Logger.warn(exception: Throwable, msg: () -> String) {
 inline fun Logger.error(msg: () -> String) {
     if (this.isErrorEnabled) {
         error(msg())
+    }
+}
+
+inline fun Logger.error(exception: Throwable, msg: () -> String) {
+    if (this.isErrorEnabled) {
+        error(msg(), exception)
     }
 }
 

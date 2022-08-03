@@ -5,6 +5,7 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
+internal const val TEST_SUITES_DIR_NAME = "test-suites"
 
 /**
  * Describes operations that should be supported with a specific engine for running save-agents.

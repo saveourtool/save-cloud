@@ -4,24 +4,21 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.utils.STANDARD_TEST_SUITE_DIR
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.info
+import com.saveourtool.save.testsuite.*
+import com.saveourtool.save.utils.*
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.exception.ZipException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
@@ -40,9 +37,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.io.File
 import java.io.FileOutputStream
@@ -50,11 +50,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.createDirectories
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.name
-import kotlin.io.path.outputStream
+import kotlin.io.path.*
 
 /**
  * Controller used to start agents with needed information
@@ -66,6 +62,8 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
+    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
+
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
@@ -87,38 +85,26 @@ class AgentsController(
         return response.doOnSuccess {
             log.info {
                 "Starting preparations for launching execution [project=${execution.project}, id=${execution.id}, " +
-                        "status=${execution.status}, resourcesRootPath=${execution.resourcesRootPath}]"
+                        "status=${execution.status}]"
             }
-            getTestRootPath(execution)
-                .subscribeOn(agentService.scheduler)
-                .switchIfEmpty(
-                    Mono.error(
-                        ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Failed detect testRootPath for execution.id = ${execution.requiredId()}"
-                        )
-                    )
+            Mono.fromCallable {
+                createTempDirectory(
+                    directory = tmpDir,
+                    prefix = "save-execution-${execution.id}"
                 )
-                .flatMap { testRootPath ->
-                    val filesLocation = Paths.get(
-                        configProperties.testResources.basePath,
-                        execution.resourcesRootPath!!,
-                        testRootPath
-                    )
-                    execution.parseAndGetAdditionalFiles()
-                        .toFlux()
-                        .flatMap { fileKey ->
-                            val pathToFile = filesLocation.resolve(fileKey.name)
-                            (fileKey to execution).downloadTo(pathToFile)
-                                .map { unzipIfRequired(pathToFile) }
+            }
+                .flatMap { resourcesForExecution ->
+                    val resourcesPath = resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
+                    execution.downloadTestsTo(resourcesPath)
+                        .map {
+                            execution.downloadAdditionalFilesTo(resourcesPath)
                         }
-                        .collectList()
-                        .switchIfEmpty(Mono.just(emptyList()))
+                        .map { resourcesForExecution }
                 }
                 .publishOn(agentService.scheduler)
                 .map {
                     // todo: pass SDK via request body
-                    dockerService.prepareConfiguration(execution)
+                    dockerService.prepareConfiguration(it, execution)
                 }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
@@ -148,20 +134,6 @@ class AgentsController(
         }
     }
 
-    private fun getTestRootPath(execution: Execution): Mono<String> = when (execution.type) {
-        ExecutionType.STANDARD -> Mono.just(STANDARD_TEST_SUITE_DIR)
-        ExecutionType.GIT -> webClientBackend.post()
-            .uri("/findTestRootPathForExecutionByTestSuites")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(execution)
-            .retrieve()
-            .bodyToMono<List<String>>()
-            .map {
-                it.distinct().single()
-            }
-        else -> throw NotImplementedError("Not supported executionType ${execution.type}")
-    }
-
     // if some additional file is archive, unzip it into proper destination:
     // for standard mode into STANDARD_TEST_SUITE_DIR
     // for Git mode into testRootPath
@@ -172,7 +144,7 @@ class AgentsController(
         // FixMe: for now support only .zip files
         if (pathToFile.name.endsWith(".zip")) {
             val shouldBeExecutable = Files.getPosixFilePermissions(pathToFile).any { allExecute.contains(it) }
-            pathToFile.unzipHere()
+            pathToFile.extractZipHereSafely()
             if (shouldBeExecutable) {
                 log.info { "Marking files in ${pathToFile.parent} executable..." }
                 Files.walk(pathToFile.parent)
@@ -183,15 +155,31 @@ class AgentsController(
         }
     }
 
-    private fun Path.unzipHere() {
-        log.debug { "Unzip ${this.absolutePathString()} into ${this.parent.absolutePathString()}" }
+    @Suppress("TooGenericExceptionCaught")
+    private fun Path.extractZipHereSafely() {
         try {
-            val zipFile = ZipFile(this.toString())
-            zipFile.extractAll(this.parent.toString())
-        } catch (e: ZipException) {
-            log.error("Error occurred during extracting of archive ${this.name}", e)
+            extractZipHere()
+        } catch (e: Exception) {
+            log.error("Error occurred during extracting of archive $name", e)
         }
     }
+
+    private fun Execution.downloadAdditionalFilesTo(
+        targetDirectory: Path
+    ): Mono<Unit> = parseAndGetAdditionalFiles()
+        .toFlux()
+        .flatMap { fileKey ->
+            val pathToFile = targetDirectory.resolve(fileKey.name)
+            (fileKey to this).downloadTo(pathToFile)
+                .map { unzipIfRequired(pathToFile) }
+        }
+        .collectList()
+        .map {
+            log.info { "Downloaded all additional files for execution $id to $targetDirectory" }
+        }
+        .defaultIfEmpty(log.warn {
+            "Not found any additional files for execution $id"
+        })
 
     private fun Pair<FileKey, Execution>.downloadTo(
         pathToFile: Path
@@ -218,6 +206,59 @@ class AgentsController(
                 }
             )
     }
+
+    private fun Execution.downloadTestsTo(
+        targetDirectory: Path
+    ): Mono<Unit> = getTestSuitesSourceSnapshotKeys()
+        .flatMapMany { Flux.fromIterable(it) }
+        .index()
+        .flatMap { (index, key) ->
+            val testSuiteSourceDir = targetDirectory / "test-suite-source-$index"
+            key.downloadTestsTo(testSuiteSourceDir)
+        }
+        .collectList()
+        .map {
+            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
+        }
+        .defaultIfEmpty(log.warn {
+            "Not found any tests for execution $id"
+        })
+
+    private fun TestSuitesSourceSnapshotKey.downloadTestsTo(
+        targetDirectory: Path
+    ): Mono<Unit> = webClientBackend.post()
+        .uri(
+            "/test-suites-sources/{organizationName}/{sourceName}/download-snapshot?version={version}",
+            organizationName,
+            testSuitesSourceName,
+            version,
+        )
+        .contentType(MediaType.APPLICATION_JSON)
+        .accept(MediaType.APPLICATION_OCTET_STREAM)
+        .retrieve()
+        .bodyToFlux<DataBuffer>()
+        .let { content ->
+            targetDirectory.createDirectories()
+            val targetFile = Files.createTempFile(targetDirectory, "archive-", ARCHIVE_EXTENSION)
+            DataBufferUtils.write(content, targetFile.outputStream())
+                .map { DataBufferUtils.release(it) }
+                .collectList()
+                .map { targetFile }
+        }
+        .map {
+            it.extractZipHere()
+            it.deleteExisting()
+        }
+        .map {
+            log.debug {
+                "Downloaded tests from test suites source ($testSuitesSourceName in $organizationName with version $version) to $targetDirectory"
+            }
+        }
+
+    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
+        .uri("/test-suites-sources/list-snapshot-by-execution-id?executionId={id}", requiredId())
+        .retrieve()
+        .bodyToMono()
 
     private fun <T> reportExecutionError(
         execution: Execution,

@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.core.logging.logTrace
 import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
@@ -37,26 +36,14 @@ fun TestResult.toTestResultDebugInfo(testSuiteName: String, pluginName: String):
     // In standard mode we have extra paths in json reporter, since we created extra directories,
     // and this information won't be matched with data from DB without such removal
     val location = resources.test.parent!!.toString()
-    val adjustedLocation = adjustLocation(location)
     return TestResultDebugInfo(
         TestResultLocation(
             testSuiteName,
             pluginName,
-            adjustedLocation,
+            location,
             resources.test.name
         ),
         debugInfo,
         status,
     )
-}
-
-/**
- * @param location location to be processed
- */
-fun adjustLocation(location: String) = if (location.startsWith(PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE)) {
-    logTrace("Adjusting path to [$location]: trimming $PREFIX_FOR_SUITES_LOCATION_IN_STANDARD_MODE")
-    location.dropWhile { it != '/' }.drop(1)
-} else {
-    // Use filePath as is for Git mode
-    location
 }

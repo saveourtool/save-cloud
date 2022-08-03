@@ -11,6 +11,7 @@ import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -42,6 +43,7 @@ import org.springframework.web.reactive.function.BodyInserters
 
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 import kotlin.io.path.ExperimentalPathApi
@@ -75,10 +77,16 @@ class AgentsControllerTest {
             type = ExecutionType.STANDARD
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
-            resourcesRootPath = "resourcesRootPath"
             id = 42L
         }
-        whenever(dockerService.prepareConfiguration(any())).thenReturn(
+        mockServer.enqueue(
+            ".*/test-suites-sources/list-snapshot-by-execution-id.*",
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(emptyList<TestSuitesSourceSnapshotKey>()))
+        )
+        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
         )
         whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
@@ -104,7 +112,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
     }

@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.ContestService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestService
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
@@ -30,7 +31,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -51,11 +51,13 @@ import kotlin.jvm.optionals.getOrNull
 @RestController
 @OptIn(ExperimentalStdlibApi::class)
 @RequestMapping(path = ["/api/$v1/contests"])
+@Suppress("LongParameterList")
 internal class ContestController(
     private val contestService: ContestService,
     private val testService: TestService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val organizationService: OrganizationService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -140,17 +142,12 @@ internal class ContestController(
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         val test = testService.findTestsByTestSuiteId(testSuite.requiredId()).firstOrNull()
             ?: return Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        return TestFilesRequest(test.toDto(), testSuite.testRootPath).let<TestFilesRequest, Mono<TestFilesContent>> {
-            preprocessorWebClient.post()
-                .uri("/tests/get-content")
-                .bodyValue(it)
-                .retrieve()
-                .bodyToMono()
-        }.map { testFilesContent ->
-            testFilesContent.copy(
-                language = testSuite.language,
-            )
-        }
+        return testSuitesSourceSnapshotStorage.getTestContent(TestFilesRequest(test.toDto(), testSuite.source.toDto(), testSuite.version))
+            .map { testFilesContent ->
+                testFilesContent.copy(
+                    language = testSuite.language,
+                )
+            }
     }
 
     @GetMapping("/by-organization")
