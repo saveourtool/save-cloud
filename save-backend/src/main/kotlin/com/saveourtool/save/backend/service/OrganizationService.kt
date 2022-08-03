@@ -25,11 +25,11 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) == 0L) {
-            Pair(0L, OrganizationSaveStatus.CONFLICT)
-        } else {
+        val (organizationId, organizationSaveStatus) = try {
             organizationRepository.saveOrganizationName(organization.name)
             Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
+        } catch (error: Error) {
+            Pair(0L, OrganizationSaveStatus.CONFLICT)
         }
         requireNotNull(organizationId) { "Should have gotten an ID for organization from the database" }
         return Pair(organizationId, organizationSaveStatus)

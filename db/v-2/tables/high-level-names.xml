@@ -6,11 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="add-high-level-names-table" author="sanyavertolet" context="dev or prod">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="high_level_names"/>
-            </not>
-        </preConditions>
         <createTable tableName="high_level_names">
             <column name="name" type="varchar(64)">
                 <constraints primaryKey="true" nullable="false"/>
@@ -24,10 +19,7 @@
         </rollback>
     </changeSet>
     
-    <changeSet id="update-high-level-names-table-on-prod-if-empty" author="sanyavertolet" context="prod">
-        <preConditions>
-            <tableIsEmpty tableName="high-level-names"/>
-        </preConditions>
+    <changeSet id="update-high-level-names-table-on-prod" author="sanyavertolet" context="prod">
         <sql>
             insert into save_cloud.high_level_names(name) select name from save_cloud.user;
             insert into save_cloud.high_level_names(name) select name from save_cloud.organization
