@@ -147,6 +147,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setIsNeedRedirect(isNeedRedirect: Boolean) = statusContext.setIsNeedRedirect(isNeedRedirect)
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
     useEffect(*dependencies) {

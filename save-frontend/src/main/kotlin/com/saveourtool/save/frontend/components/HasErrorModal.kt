@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.externals.animations.ringLoader
 import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
 import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.topBarComponent
+import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -41,10 +42,11 @@ val requestStatusContext: Context<RequestStatusContext> = createContext()
  * Also renders its `children`.
  */
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
-val requestModalHandler: FC<PropsWithChildren> = FC { props ->
+val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (loadingCounter, setLoadingCounter) = useState(0)
-    val statusContext = RequestStatusContext(setResponse, setLoadingCounter)
+    val (isNeedRedirect, setIsNeedRedirect) = useState(false)
+    val statusContext = RequestStatusContext(setResponse, setIsNeedRedirect, setLoadingCounter)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
@@ -69,6 +71,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,
+                isNeedRedirect = isNeedRedirect,
             )
             else -> ErrorModalState(
                 isErrorModalOpen = response != null,
@@ -135,11 +138,13 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         arrayOf(statusContext)
     ) { statusContext }
 
-    val reactNode = if (modalState.status == 404.toShort()) {
+    val reactNode = if (modalState.status == 404.toShort() && modalState.isNeedRedirect) {
         div.create {
             className = ClassName("d-flex flex-column")
             id = "content-wrapper"
-            topBarComponent()
+            topBarComponent {
+                userInfo = props.userInfo
+            }
             div {
                 className = ClassName("container-fluid")
                 FallbackView::class.react {
@@ -161,11 +166,23 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
 }
 
 /**
+ * [State] of request modal component
+ */
+external interface RequestModalProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+}
+
+/**
  * @property setResponse [StateSetter] for response error handler
  * @property setLoadingCounter [StateSetter] for active request counter
+ * @property setIsNeedRedirect
  */
 data class RequestStatusContext(
     val setResponse: StateSetter<Response?>,
+    val setIsNeedRedirect: StateSetter<Boolean>,
     val setLoadingCounter: StateSetter<Int>,
 )
 
@@ -175,6 +192,7 @@ data class RequestStatusContext(
  * @property errorLabel
  * @property confirmationText text that will be displayed on modal dismiss button
  * @property status
+ * @property isNeedRedirect
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
@@ -182,6 +200,7 @@ data class ErrorModalState(
     val errorLabel: String,
     val confirmationText: String = "Close",
     val status: Short?,
+    val isNeedRedirect: Boolean = false,
 )
 
 /**

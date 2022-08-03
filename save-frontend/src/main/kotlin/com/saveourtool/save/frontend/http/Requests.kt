@@ -45,6 +45,7 @@ suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: 
         set("Accept", "application/json")
     },
     loadingHandler = ::classLoadingHandler,
+    responseHandler = ::classComponentResponseRedirectHandler,
 )
     .runCatching {
         decodeFromJsonString<Project>()
@@ -60,6 +61,7 @@ suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
         set("Accept", "application/json")
     },
     loadingHandler = ::classLoadingHandler,
+    responseHandler = ::classComponentResponseRedirectHandler,
 )
     .decodeFromJsonString<Organization>()
 

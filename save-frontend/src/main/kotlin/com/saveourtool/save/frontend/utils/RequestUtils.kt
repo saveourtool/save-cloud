@@ -46,6 +46,11 @@ interface WithRequestStatusContext {
     fun setResponse(response: Response)
 
     /**
+     * @param isNeedRedirect
+     */
+    fun setIsNeedRedirect(isNeedRedirect: Boolean)
+
+    /**
      * @param transform
      */
     fun setLoadingCounter(transform: (oldValue: Int) -> Int)
@@ -180,7 +185,19 @@ internal fun ComponentWithScope<*, *>.classComponentResponseHandler(
 ) {
     val hasResponseContext = this.asDynamic().context is RequestStatusContext
     if (hasResponseContext) {
-        this.withModalResponseHandler(response)
+        this.withModalResponseHandler(response, false)
+    }
+}
+
+/**
+ * @param response
+ */
+internal fun ComponentWithScope<*, *>.classComponentResponseRedirectHandler(
+    response: Response,
+) {
+    val hasResponseContext = this.asDynamic().context is RequestStatusContext
+    if (hasResponseContext) {
+        this.withModalResponseHandler(response, true)
     }
 }
 
@@ -217,9 +234,13 @@ private suspend fun ComponentWithScope<*, *>.loadingHandler(request: suspend () 
 
 private fun ComponentWithScope<*, *>.withModalResponseHandler(
     response: Response,
+    isNeedRedirect: Boolean
 ) {
     if (!response.ok) {
         val statusContext: RequestStatusContext = this.asDynamic().context
+        if (isNeedRedirect) {
+            statusContext.setIsNeedRedirect(isNeedRedirect)
+        }
         statusContext.setResponse.invoke(response)
     }
 }
@@ -254,6 +275,7 @@ fun <R> useRequest(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setIsNeedRedirect(isNeedRedirect: Boolean) = statusContext.setIsNeedRedirect(isNeedRedirect)
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
 
