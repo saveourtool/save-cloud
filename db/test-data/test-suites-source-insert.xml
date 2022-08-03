@@ -22,7 +22,7 @@
             <column name="organization_id" value="3"/>
             <column name="git_id" value="3"/>
             <column name="branch" value="main"/>
-            <column name="test_root_path" value="some-another-test"/>
+            <column name="test_root_path" value="examples/discovery-test"/>
         </insert>
     </changeSet>
 </databaseChangeLog>
