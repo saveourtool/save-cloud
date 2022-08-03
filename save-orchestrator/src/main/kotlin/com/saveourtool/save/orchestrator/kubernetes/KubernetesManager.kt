@@ -130,10 +130,7 @@ class KubernetesManager(
 
     override fun stop(executionId: Long) {
         val jobName = jobNameForExecution(executionId)
-        val deletedResources = kc.batch()
-            .v1()
-            .jobs()
-            .withName(jobName)
+        val deletedResources = kcJobsWithName(jobName)
             .delete()
         val isDeleted = deletedResources.size == 1
         if (!isDeleted) {
@@ -160,16 +157,14 @@ class KubernetesManager(
 
     override fun cleanup(executionId: Long) {
         logger.debug("Removing a Job for execution id=$executionId")
-        val job = kc.batch()
-            .v1()
-            .jobs()
-            .withName(jobNameForExecution(executionId))
-            .get()
-        job?.let {
-            kc.batch().v1().jobs()
-                .withName(jobNameForExecution(executionId))
-                .delete()
+        val job = kcJobsWithName(jobNameForExecution(executionId))
+        job.get()?.let {
+            job.delete()
         }
+    }
+
+    override fun prune() {
+        val jobs = kc.batch().v1().jobs().list()
     }
 
     override fun isAgentStopped(agentId: String): Boolean {
@@ -190,6 +185,11 @@ class KubernetesManager(
     }
 
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
+
+    private fun kcJobsWithName(name: String) = kc.batch()
+        .v1()
+        .jobs()
+        .withName(name)
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
