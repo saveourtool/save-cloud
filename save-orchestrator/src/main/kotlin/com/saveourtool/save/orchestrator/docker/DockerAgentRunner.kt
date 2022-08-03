@@ -36,7 +36,7 @@ import kotlin.io.path.writeText
 @Component
 @Profile("!kubernetes")
 class DockerAgentRunner(
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
@@ -128,20 +128,17 @@ class DockerAgentRunner(
         }
     }
 
-    //@Scheduled(cron = "0 0 4 * * MON")
-    @Scheduled(cron = "10 * * * * ?")
+    @Scheduled(cron = "0 0 4 * * MON")
     override fun prune() {
-        println("\n\n\n---------------------PRUNE")
         var reclaimedBytes = 0L
-        for (type in PruneType.values()) {
-            // There is no option --filter for `docker volume prune`, also it could be quite dangerous to remove volumes,
-            // as it possible to lose some prepared data
-            if (type == PruneType.VOLUMES) {
-                continue
-            }
-            val oneMonth = "720h"
-            val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(oneMonth).exec()
-            reclaimedBytes += pruneCmd.spaceReclaimed ?: 0
+        // Release all old resources, except volumes,
+        // since there is no option --filter for `docker volume prune`, and also it could be quite dangerous to remove volumes,
+        // as it possible to lose some prepared data
+        for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
+            val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
+            val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
+            logger.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            reclaimedBytes += currentReclaimedBytes
         }
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }

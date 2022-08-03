@@ -2,7 +2,6 @@ package com.saveourtool.save.orchestrator.runner
 
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
-import org.springframework.scheduling.annotation.Scheduled
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -53,6 +52,9 @@ interface AgentRunner {
      */
     fun cleanup(executionId: Long)
 
+    /**
+     * Prune old docker data
+     */
     fun prune()
 
     /**

@@ -164,7 +164,8 @@ class KubernetesManager(
     }
 
     override fun prune() {
-        val jobs = kc.batch().v1().jobs().list()
+        logger.debug("${this::class.simpleName}#prune is called, but it's no-op, " +
+                "because we don't directly interact with the docker containers or images on the nodes of Kubernetes themselves")
     }
 
     override fun isAgentStopped(agentId: String): Boolean {
