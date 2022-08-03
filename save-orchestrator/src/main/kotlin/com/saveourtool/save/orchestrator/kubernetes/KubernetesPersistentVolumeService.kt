@@ -64,6 +64,7 @@ class KubernetesPersistentVolumeService(
         val persistentVolumeClaim = resource.create()
 
         val sourceVolumeName = UUID.randomUUID()
+        // todo: check where it is mounted to; shouldn't be a hostPath but rather a special volume like for Docker?
         @Language("yaml")
         val sourceResourceVolume = kc.resource(
             """

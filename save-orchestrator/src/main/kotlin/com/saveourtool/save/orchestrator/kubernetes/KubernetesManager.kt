@@ -74,11 +74,14 @@ class KubernetesManager(
                             Container().apply {
                                 name = "save-vol-copier"
                                 image = "alpine:latest"
+                                // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
+                                // Probably, a separate client process should be introduced. Until then, one init container performs copying
+                                // into a shared mount while others are sleeping for 90 seconds.
                                 command = listOf(
                                     "sh", "-c",
-                                    "cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ]; then cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
                                             " && chown -R 1100:1100 $EXECUTION_DIR" +
-                                            " && echo Successfully copied"
+                                            " && echo Successfully copied; else echo Copying already in progress && sleep 90; fi"
                                 )
                                 volumeMounts = listOf(
                                     VolumeMount().apply {

@@ -20,7 +20,7 @@ startupProbe:
   httpGet:
     path: /actuator/health/liveness
     port: {{ or .managementPort .containerPort }}
-  failureThreshold: 10
+  failureThreshold: 30
   periodSeconds: 10
 livenessProbe:
   httpGet:
