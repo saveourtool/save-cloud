@@ -22,7 +22,7 @@ class OrganizationService(
      * @param organization an [Organization] to store
      * @return organization's id, should never return null
      */
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
         val (organizationId, organizationSaveStatus) = try {
