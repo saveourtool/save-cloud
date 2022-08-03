@@ -51,9 +51,15 @@ class ProjectService(
     }
 
     /**
+     * @param project [Project] to be updated
      * @return updated [project]
      */
-    fun updateProject(project: Project): Project = projectRepository.save(project)
+    fun updateProject(project: Project): Project = run {
+        requireNotNull(project.id) {
+            "Project must be taken from DB so it's id must not be null"
+        }
+        projectRepository.save(project)
+    }
 
     /**
      * @return list of all projects
