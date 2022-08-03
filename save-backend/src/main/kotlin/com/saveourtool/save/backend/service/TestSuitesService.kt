@@ -34,6 +34,8 @@ class TestSuitesService(
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         // FIXME: need to check logic about [dateAdded]
+        // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
+        // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
         val testSuites = testSuitesDto
             .distinctBy {
                 // Same suites may be declared in different directories, we unify them here.
