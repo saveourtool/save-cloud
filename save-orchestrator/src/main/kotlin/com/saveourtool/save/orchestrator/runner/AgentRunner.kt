@@ -53,6 +53,11 @@ interface AgentRunner {
     fun cleanup(executionId: Long)
 
     /**
+     * Prune old docker data
+     */
+    fun prune()
+
+    /**
      * Base on id of an execution load data about existing running agents for it.
      * TODO: implement under https://github.com/saveourtool/save-cloud/issues/11
      *
