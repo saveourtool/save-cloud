@@ -49,7 +49,7 @@ import kotlin.io.path.writeText
 import kotlinx.datetime.toKotlinLocalDateTime
 
 @SpringBootTest(classes = [SaveApplication::class])
-@AutoConfigureWebTestClient(timeout = "P2D")
+@AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),

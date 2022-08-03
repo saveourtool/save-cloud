@@ -315,7 +315,6 @@ class DownloadProjectTest(
         val execution = Execution.stub(project).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -359,9 +358,8 @@ class DownloadProjectTest(
         }
 
         webClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?id=${execution.requiredId()}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -382,7 +380,6 @@ class DownloadProjectTest(
             id = 98L
             status = ExecutionStatus.PENDING
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))
@@ -426,9 +423,8 @@ class DownloadProjectTest(
             }
 
         webClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?id=${execution.requiredId()}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
