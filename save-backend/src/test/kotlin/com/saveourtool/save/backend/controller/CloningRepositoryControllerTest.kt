@@ -110,7 +110,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "JohnDoe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
             "/upload",
@@ -138,7 +138,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "JohnDoe")
     fun checkNewJobResponseForBin() {
         val binFile = tmpDir.resolve("binFile").apply {
             createFile()

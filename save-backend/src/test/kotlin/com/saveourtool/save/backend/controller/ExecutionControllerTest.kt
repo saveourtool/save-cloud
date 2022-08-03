@@ -75,7 +75,7 @@ class ExecutionControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Test
-    @WithMockUser("John Doe")
+    @WithMockUser("JohnDoe")
     fun testDataSave() {
         val project = projectRepository.findById(1).get()
         val execution = Execution.stub(project).apply {
@@ -96,7 +96,7 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @WithMockUser("John Doe")
+    @WithMockUser("JohnDoe")
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
         val project = projectRepository.findById(1).get()
@@ -184,7 +184,7 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @WithMockUser("John Doe")
+    @WithMockUser("JohnDoe")
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun checkUpdateNewExecution() {
         val execution = Execution.stub(projectRepository.findAll().first())
@@ -222,7 +222,7 @@ class ExecutionControllerTest {
     }
 
     @Test
-    @WithMockUser("John Doe")
+    @WithMockUser("JohnDoe")
     fun `should send request to preprocessor to rerun execution`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
@@ -253,7 +253,7 @@ class ExecutionControllerTest {
 
     @Suppress("TOO_LONG_FUNCTION")
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "JohnDoe")
     fun `test testSuiteIds`() {
         val project = projectRepository.findById(1).get()
         val executionEmptyTestSuiteIds = Execution.stub(project).apply {
