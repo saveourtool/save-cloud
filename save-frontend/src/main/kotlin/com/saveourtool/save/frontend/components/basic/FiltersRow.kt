@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
+import kotlinx.browser.window
 import react.FC
 import react.Props
 import react.dom.html.InputType
@@ -19,6 +20,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+
 import react.useState
 
 val testExecutionFiltersRow = testExecutionFiltersRow()
@@ -43,6 +45,11 @@ external interface FiltersRowProps : Props {
      * lambda to change [filters]
      */
     var onChangeFilters: (TestExecutionFilters) -> Unit
+
+    /**
+     * change URL after change state in ExecutionView.kt
+     */
+    var onChangeURL: (TestExecutionFilters) -> Unit
 }
 
 /**
@@ -53,7 +60,7 @@ external interface FiltersRowProps : Props {
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
-    val(filters, setFilters) = useState(props.filters)
+    val (filters, setFilters) = useState(props.filters)
     div {
         className = ClassName("container-fluid")
         div {
@@ -154,6 +161,8 @@ private fun testExecutionFiltersRow(
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     props.onChangeFilters(filters)
+                    props.onChangeURL(filters)
+                    //window.location.href = getHrefToAnyFilters(filters)
                 }
             }
             button {
@@ -162,6 +171,8 @@ private fun testExecutionFiltersRow(
                 onClick = {
                     setFilters(TestExecutionFilters.empty)
                     props.onChangeFilters(TestExecutionFilters.empty)
+                    props.onChangeURL(TestExecutionFilters.empty)
+                    //window.location.href = getHrefToAnyFilters(TestExecutionFilters.empty)
                 }
             }
         }

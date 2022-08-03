@@ -113,6 +113,16 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
+            column("id", "Execution Id", { id }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            +"${cellProps.row.original.id}"
+                        }
+                    }
+                }
+            }
             column("status", "Status", { status }) { cellProps ->
                 Fragment.create {
                     td {
