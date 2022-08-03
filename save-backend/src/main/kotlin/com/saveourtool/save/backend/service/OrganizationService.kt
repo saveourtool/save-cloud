@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for organization
@@ -22,10 +23,14 @@ class OrganizationService(
      * @return organization's id, should never return null
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun getOrSaveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = organizationRepository.findByName(organization.name)?.let {
-            Pair(it.id, OrganizationSaveStatus.EXIST)
-        } ?: Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
+    @Transactional
+    fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
+        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) == 0L) {
+            Pair(0L, OrganizationSaveStatus.CONFLICT)
+        } else {
+            organizationRepository.saveOrganizationName(organization.name)
+            Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
+        }
         requireNotNull(organizationId) { "Should have gotten an ID for organization from the database" }
         return Pair(organizationId, organizationSaveStatus)
     }

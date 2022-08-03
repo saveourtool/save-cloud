@@ -159,24 +159,27 @@ internal class OrganizationController(
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,
-    ): Mono<StringResponse> {
-        val ownerId = (authentication.details as AuthenticationDetails).id
-        val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
-            newOrganization.toOrganization(LocalDateTime.now())
-        )
-        if (organizationStatus == OrganizationSaveStatus.NEW) {
-            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
+    ): Mono<StringResponse> = Mono.just(newOrganization)
+        .map {
+            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
         }
-
-        val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
-            logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
-            ResponseEntity.status(HttpStatus.CONFLICT).body(organizationStatus.message)
-        } else {
-            logger.info("Save new organization id = $organizationId with ownerId $ownerId")
+        .filter { (_, status) ->
+            status == OrganizationSaveStatus.NEW
+        }
+        .map { (organizationId, organizationStatus) ->
+            lnkUserOrganizationService.setRoleByIds(
+                (authentication.details as AuthenticationDetails).id,
+                organizationId,
+                Role.OWNER,
+            )
+            logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-        return Mono.just(response)
-    }
+        .defaultIfEmpty(
+            ResponseEntity.status(HttpStatus.CONFLICT).body(OrganizationSaveStatus.CONFLICT.message).also {
+                logger.info("Organization has invalid name - ${newOrganization.name}.")
+            }
+        )
 
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader

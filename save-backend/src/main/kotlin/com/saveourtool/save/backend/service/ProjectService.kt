@@ -44,7 +44,7 @@ class ProjectService(
     fun getOrSaveProject(project: Project): Pair<Long, ProjectSaveStatus> {
         val exampleMatcher = ExampleMatcher.matchingAll()
             .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
-            .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
+            .withMatcher("organization", ExampleMatcher.GenericPropertyMatchers.exact())
         val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
             Pair(it.id, ProjectSaveStatus.EXIST)
         }.orElseGet {

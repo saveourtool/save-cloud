@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-high-level-names-table" author="sanyavertolet" context="dev or prod">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="high_level_names"/>
+            </not>
+        </preConditions>
+        <createTable tableName="high_level_names">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+        </createTable>
+        
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="high_level_names" />
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="update-high-level-names-table-on-prod-if-empty" author="sanyavertolet" context="prod">
+        <preConditions>
+            <tableIsEmpty tableName="high-level-names"/>
+        </preConditions>
+        <sql>
+            insert into save_cloud.high_level_names(name) select name from save_cloud.user;
+            insert into save_cloud.high_level_names(name) select name from save_cloud.organization
+        </sql>
+    </changeSet>
+</databaseChangeLog>
