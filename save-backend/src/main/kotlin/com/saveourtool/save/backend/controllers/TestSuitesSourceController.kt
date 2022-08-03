@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 typealias TestSuiteList = List<TestSuite>
 
@@ -307,14 +309,19 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
     @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(responseCode = "409", description = "Git credentials was not found by provided url.")
     fun getOrCreate(
         @PathVariable organizationName: String,
         @RequestParam gitUrl: String,
         @RequestParam testRootPath: String,
         @RequestParam branch: String,
     ): Mono<TestSuitesSourceDto> = getOrganization(organizationName)
-        .map { organization ->
-            organization to gitService.getByOrganizationAndUrl(organization, gitUrl)
+        .zipWhen { organization ->
+            gitService.findByOrganizationAndUrl(organization, gitUrl)
+                .toMono()
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "There is no git credential with url $gitUrl in $organizationName"
+                }
         }
         .map { (organization, git) ->
             testSuitesSourceService.getOrCreate(organization, git, testRootPath, branch)

@@ -27,7 +27,7 @@
             <column name="url" value="https://github.com/saveourtool/save-cli" />
             <column name="username" value="null" />
             <column name="password" value="null" />
-            <column name="organization_id" value="1" />
+            <column name="organization_id" value="3" />
         </insert>
     </changeSet>
 </databaseChangeLog>

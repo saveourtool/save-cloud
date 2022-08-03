@@ -298,9 +298,9 @@ class ExecutionController(private val executionService: ExecutionService,
         )) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        val executionType = execution.type
         val git = gitService.getByOrganizationAndUrl(execution.project.organization, execution.getTestSuiteRepoUrl())
             .toDto()
+        val executionType = execution.type
         val testRootPath = if (executionType == ExecutionType.GIT) {
             execution.getTestRootPathByTestSuites()
                 .distinct()

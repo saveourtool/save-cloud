@@ -31,12 +31,4 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
         source: TestSuitesSource,
         version: String
     ): List<TestSuite>
-
-    /**
-     * @param source source of the test suite
-     * @return matched test suites
-     */
-    fun findAllBySource(
-        source: TestSuitesSource,
-    ): List<TestSuite>
 }

@@ -21,9 +21,18 @@ class GitService(private val gitRepository: GitRepository) {
     /**
      * @param organization
      * @param url
-     * @return list of gits by organization if exists
+     * @return list of gits by organization if exists or null
      */
-    fun getByOrganizationAndUrl(organization: Organization, url: String): Git = gitRepository.findByOrganizationAndUrl(organization, url)
+    fun findByOrganizationAndUrl(organization: Organization, url: String): Git? = gitRepository.findByOrganizationAndUrl(organization, url)
+
+
+    /**
+     * @param organization
+     * @param url
+     * @return list of gits by organization if exists
+     * @throws NoSuchElementException
+     */
+    fun getByOrganizationAndUrl(organization: Organization, url: String): Git = findByOrganizationAndUrl(organization, url)
         ?: throw NoSuchElementException("There is no git credential with url $url in ${organization.name}")
 
     /**

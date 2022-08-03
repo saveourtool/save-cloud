@@ -3,6 +3,8 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -13,7 +15,11 @@ import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
+import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
+
+typealias TestSuiteDtoList = List<TestSuiteDto>
 
 /**
  * Service for test suites
@@ -24,6 +30,7 @@ class TestSuitesService(
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
     /**
      * Save new test suites to DB
@@ -76,9 +83,17 @@ class TestSuitesService(
     /**
      * @return all standard test suites
      */
-    fun getStandardTestSuites() = testSuitesSourceService.getStandardTestSuitesSources()
-        .flatMap { testSuitesSource -> testSuiteRepository.findAllBySource(testSuitesSource) }
-        .map { it.toDto() }
+    fun getStandardTestSuites(): Mono<TestSuiteDtoList> = blockingToFlux { testSuitesSourceService.getStandardTestSuitesSources() }
+            .flatMap { testSuitesSource ->
+                testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
+                    .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
+                    .map { testSuitesSource to it.version }
+            }
+            .flatMap { (testSuitesSource, version) ->
+                blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
+            }
+            .map { it.toDto() }
+            .collectList()
 
     /**
      * @param id
