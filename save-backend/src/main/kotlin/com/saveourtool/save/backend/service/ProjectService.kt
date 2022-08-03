@@ -51,6 +51,11 @@ class ProjectService(
     }
 
     /**
+     * @return updated [project]
+     */
+    fun updateProject(project: Project): Project = projectRepository.save(project)
+
+    /**
      * @return list of all projects
      */
     fun getProjects(): Flux<Project> = projectRepository.findAll().let { Flux.fromIterable(it) }
