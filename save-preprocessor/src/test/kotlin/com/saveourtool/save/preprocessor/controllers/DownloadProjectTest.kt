@@ -294,6 +294,8 @@ class DownloadProjectTest(
 
     @Test
     fun testStandardTestSuites() {
+        whenever(testsPreprocessorToBackendBridge.getStandardTestSuitesSources())
+            .thenReturn(Mono.just(listOf(standardTestSuitesSourceDto)))
         whenever(testSuitesPreprocessorController.fetch(standardTestSuitesSourceDto))
             .thenReturn(Mono.just(Unit))
 
