@@ -9,4 +9,5 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 data class KubernetesPvId(
     val pvcName: String,
     val sourcePvcName: String,
+    val sourcePath: String,
 ) : PersistentVolumeId

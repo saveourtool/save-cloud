@@ -79,7 +79,7 @@ class KubernetesManager(
                                 // into a shared mount while others are sleeping for 90 seconds.
                                 command = listOf(
                                     "sh", "-c",
-                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ]; then cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ]; then cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
                                             " && chown -R 1100:1100 $EXECUTION_DIR" +
                                             " && echo Successfully copied; else echo Copying already in progress && sleep 90; fi"
                                 )

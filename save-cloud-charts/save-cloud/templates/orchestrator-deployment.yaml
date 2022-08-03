@@ -53,17 +53,50 @@ spec:
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
           resources:
             limits:
-              memory: 400M
+              memory: 800M
             requests:
-              memory: 300M
+              memory: 600M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
         - name: repos-storage
           hostPath:
             path: /tmp/save/repos
         - name: tmp-resources-storage
-          hostPath:
-            path: /tmp/save/resources
+          persistentVolumeClaim:
+            claimName: tmp-resources-storage
         - name: execution-logs-storage
           # FixMe: Do we still need logs storage? All logs should be stored in Loki.
           emptyDir: {}
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tmp-resources-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: tmp-resources-storage
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path:  /tmp/save/resources
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: tmp-resources-storage
+  name: tmp-resources-storage
+spec:
+  volumeName: tmp-resources-storage
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
 import com.saveourtool.save.utils.debug
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
@@ -11,11 +12,14 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.copyTo
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.pathString
+import kotlin.io.path.relativeTo
 
 /**
  * Implementation of [PersistentVolumeService] that creates Persistent Volumes in Kubernetes
@@ -63,52 +67,15 @@ class KubernetesPersistentVolumeService(
 
         val persistentVolumeClaim = resource.create()
 
-        val sourceVolumeName = UUID.randomUUID()
-        // todo: check where it is mounted to; shouldn't be a hostPath but rather a special volume like for Docker?
-        @Language("yaml")
-        val sourceResourceVolume = kc.resource(
-            """
-                |apiVersion: v1
-                |kind: PersistentVolume
-                |metadata:
-                |  name: $sourceVolumeName
-                |  namespace: ${configProperties.kubernetes.namespace}
-                |spec:
-                |  accessModes:
-                |    - ReadWriteOnce
-                |  capacity:
-                |    storage: ${configProperties.kubernetes.pvcSize}
-                |  hostPath:
-                |    path: ${resources.single().absolutePathString()}
-            """.trimMargin().also {
-                logger.debug { "Creating PV from the following YAML:\n${it.asIndentedMultiline()}" }
-            }
+        val resourcesRelativePath = resources.single().relativeTo(
+            Paths.get(configProperties.testResources.tmpPath)
         )
-        sourceResourceVolume.create()
-
-        @Language("yaml")
-        val sourceResource = kc.resource(
-            """
-                |apiVersion: v1
-                |kind: PersistentVolumeClaim
-                |metadata:
-                |  generateName: save-execution-source-
-                |  namespace: ${configProperties.kubernetes.namespace}
-                |spec:
-                |  accessModes:
-                |    - ReadWriteOnce
-                |  storageClassName: ""  # Empty string matches volume created on the previous step
-                |  resources:
-                |    requests:
-                |      storage: ${configProperties.kubernetes.pvcSize}
-                |  volumeName: $sourceVolumeName
-            """.trimMargin().also {
-                logger.debug { "Creating PVC from the following YAML:\n${it.asIndentedMultiline()}" }
-            }
-        ) as NamespaceableResource<PersistentVolumeClaim>
-        val sourcePvc = sourceResource.create()
-
-        return KubernetesPvId(persistentVolumeClaim.metadata.name, sourcePvc.metadata.name)
+        val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
+        return KubernetesPvId(
+            persistentVolumeClaim.metadata.name,
+            "tmp-resources-storage",
+            "$intermediateResourcesPath/${resourcesRelativePath.pathString}"
+        )
     }
 
     private fun String.asIndentedMultiline(indent: Int = 4) = lines()
