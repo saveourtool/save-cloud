@@ -304,6 +304,7 @@ class DownloadProjectTest(
             .exchange()
             .expectStatus()
             .isAccepted
+        Thread.sleep(2_500)  // wait for background task to complete on mocks
         verify(testsPreprocessorToBackendBridge).getStandardTestSuitesSources()
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
         verify(testSuitesPreprocessorController).fetch(standardTestSuitesSourceDto)
