@@ -34,6 +34,7 @@
 
     <addUniqueConstraint tableName="contest" columnNames="name" constraintName="uq_contest_name"/>
   </changeSet>
+
   <changeSet id="add-test_suite_ids-column" author="sanyavertolet">
     <addColumn tableName="contest">
       <column name="test_suite_ids" type="varchar(500)" defaultValue="">
@@ -48,5 +49,6 @@
         <constraints foreignKeyName="fk_contest_organization" references="organization(id)" nullable="false"/>
       </column>
     </addColumn>
+
   </changeSet>
 </databaseChangeLog>
