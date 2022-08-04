@@ -68,9 +68,6 @@ import kotlinx.serialization.json.Json
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
 class HeartbeatControllerTest {
-    private val organization = Organization.stub(0)
-    private val git = Git("N/A", organization = organization)
-        .apply { id = 0 }
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
