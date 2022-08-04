@@ -9,6 +9,11 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**
+ * Map where key is ID of saved [TestSuitesSourceDto] and value is [List] of [TestDto]
+ */
+typealias TestBatch = Map<Long, List<TestDto>>
+
+/**
  * @property filePath path to a test file
  * @property hash hash of file content
  * @property testSuiteId id of test suite, which this test belongs to
@@ -28,16 +33,6 @@ data class TestDto(
      */
     fun joinAdditionalFiles() = additionalFiles.joinToString(DATABASE_DELIMITER)
 }
-
-/**
- * @property tests a list of tests in a batch
- * @property suitesToArgs map of test suite IDs to command line arguments for these suites
- */
-@Serializable
-data class TestBatch(
-    val tests: List<TestDto>,
-    val suitesToArgs: Map<Long, String>,
-)
 
 /**
  * @property test [TestDto] of a test that is requested

@@ -94,11 +94,10 @@ class TestService(
                 val execution = executionRepository.getReferenceById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
-            val testDtos = testExecutions.map { it.test.toDto() }
             Mono.fromCallable {
-                val testBatch = TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                    it.id!! to it.source.testRootPath
-                })
+                val testBatch = testExecutions.groupBy({ it.test.testSuite.source.requiredId() },
+                    { it.test.toDto() }
+                )
                 log.debug("Releasing lock for executionId=$executionId")
                 testBatch
             }
