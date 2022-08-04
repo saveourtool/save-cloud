@@ -18,11 +18,4 @@
                     tableName="high_level_names" />
         </rollback>
     </changeSet>
-    
-    <changeSet id="update-high-level-names-table-on-prod" author="sanyavertolet" context="prod">
-        <sql>
-            insert into save_cloud.high_level_names(name) select name from save_cloud.user;
-            insert into save_cloud.high_level_names(name) select name from save_cloud.organization
-        </sql>
-    </changeSet>
 </databaseChangeLog>
