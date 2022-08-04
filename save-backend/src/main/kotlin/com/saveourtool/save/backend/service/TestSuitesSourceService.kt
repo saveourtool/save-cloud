@@ -96,7 +96,7 @@ class TestSuitesSourceService(
     fun getStandardTestSuitesSources(): List<TestSuitesSource> {
         // FIXME: a hardcoded values for standard test suites
         // Will be removed in phase 3
-        val organizationName = "CQFN.org"
+        val organizationName = "CQFN"
         val gitUrl = "https://github.com/saveourtool/save-cli"
         val branch = "main"
         val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
