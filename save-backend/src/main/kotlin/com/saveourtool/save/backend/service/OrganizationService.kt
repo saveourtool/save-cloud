@@ -4,8 +4,12 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import kotlinx.serialization.Contextual
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import javax.persistence.EntityManager
+import javax.persistence.LockModeType
 
 /**
  * Service for organization
@@ -15,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
+    private val entityManager: EntityManager,
 ) {
     /**
      * Store [organization] in the database
@@ -24,6 +29,7 @@ class OrganizationService(
      */
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
         val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) != 0L) {
             organizationRepository.saveOrganizationName(organization.name)
