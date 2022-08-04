@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="replace-dots-with-hyphens" author="sanyavertolet" context="">
+        <sql>
+            update save_cloud.`user` set name = replace (name, '.', '-');
+            update save_cloud.project set name = replace (name, '.', '-');
+            update save_cloud.organization set name = replace (name, '.', '-');
+            update save_cloud.contest set name = replace (name, '.', '-');
+        </sql>
+    </changeSet>
+
+    <changeSet id="insert-high-level-names-data" author="sanyavertolet" context="">
+        <sql>
+            insert into save_cloud.high_level_names select name from save_cloud.organization;
+            insert into save_cloud.high_level_names select name from save_cloud.user;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
