@@ -226,7 +226,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      */
     @PostMapping(value = ["/internal/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
-        if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
+        if (testExecutionsDto.isEmpty()) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
+        } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")
