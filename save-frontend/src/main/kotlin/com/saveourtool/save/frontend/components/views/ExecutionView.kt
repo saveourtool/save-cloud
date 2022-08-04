@@ -43,6 +43,8 @@ import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.url.URL
+import org.w3c.dom.url.URLSearchParams
 
 /**
  * [Props] for execution results view
@@ -54,9 +56,9 @@ external interface ExecutionProps : PropsWithChildren {
     var executionId: String
 
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -141,7 +143,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "File Name") { cellProps ->
+            column(id = "path", header = "Test Name") { cellProps ->
                 Fragment.create {
                     td {
                         spread(cellProps.row.getToggleRowExpandedProps())
@@ -280,6 +282,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 }
                             }
                         }
+                        onChangeURL = { filtervValue ->
+                            window.location.href = getUrlWithFiltersParams(filtervValue)
+                        }
                     }
                 }
             }
@@ -322,7 +327,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                filters = filters.copy(status = props.status)
+                filters = props.filters
             }
         }
     }
@@ -439,6 +444,24 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
         executionTestsNotFound {
             executionDto = state.executionDto
+        }
+    }
+
+    private fun getFiltersParamUrl(): TestExecutionFilters {
+        val url = URLSearchParams(window.location.search)
+        return TestExecutionFilters(status = url.get("status") ?. let { TestResultStatus.valueOf(it) }, fileName = url.get("fileName"), testSuite = url.get("testSuite"), tag = url.get("tag"))
+    }
+
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) : String {
+        val hrefFirst : String = window.location.href.split('?').first()
+        val filtersList = listOf( "status=" to filterValue.status?.name, "fileName=" to filterValue.fileName, "testSuite=" to filterValue.testSuite, "tag=" to filterValue.tag)
+            .filter {
+                it.second?.isNotBlank() ?: false
+            }
+        return if (filtersList.isEmpty()) {
+            hrefFirst
+        } else {
+            "$hrefFirst?${filtersList.joinToString("&").replace("(", "").replace(")", "").replace(", ","")}"
         }
     }
 
