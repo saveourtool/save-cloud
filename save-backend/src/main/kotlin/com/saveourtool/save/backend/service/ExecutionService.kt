@@ -7,9 +7,9 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.utils.debug
-import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,7 +36,7 @@ class ExecutionService(
      * @param id id of execution
      * @return execution if it has been found
      */
-    fun findExecution(id: Long): Optional<Execution> = executionRepository.findById(id)
+    fun findExecution(id: Long): Execution? = executionRepository.findByIdOrNull(id)
 
     /**
      * @param execution
@@ -119,7 +119,6 @@ class ExecutionService(
                     .flatMap { testRepository.findAllByTestSuiteId(it) }
                     .count()
                     .toLong()
-                execution.resourcesRootPath = FilenameUtils.separatorsToUnix(executionInitializationDto.resourcesRootPath)
                 execution.execCmd = executionInitializationDto.execCmd
                 execution.batchSizeForAnalyzer = executionInitializationDto.batchSizeForAnalyzer
                 executionRepository.save(execution)

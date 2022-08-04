@@ -1,21 +1,25 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.info
-import org.apache.commons.io.FilenameUtils
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
+import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
+
+typealias TestSuiteDtoList = List<TestSuiteDto>
 
 /**
  * Service for test suites
@@ -25,7 +29,8 @@ class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
-    private val projectRepository: ProjectRepository,
+    private val testSuitesSourceService: TestSuitesSourceService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
     /**
      * Save new test suites to DB
@@ -35,6 +40,9 @@ class TestSuitesService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
+        // FIXME: need to check logic about [dateAdded]
+        // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
+        // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
         val testSuites = testSuitesDto
             .distinctBy {
                 // Same suites may be declared in different directories, we unify them here.
@@ -43,13 +51,11 @@ class TestSuitesService(
             }
             .map {
                 TestSuite(
-                    type = it.type,
                     name = it.name,
                     description = it.description,
-                    project = it.project,
+                    source = testSuitesSourceService.getByName(it.source.organizationName, it.source.name),
+                    version = it.version,
                     dateAdded = null,
-                    testRootPath = FilenameUtils.separatorsToUnix(it.testRootPath),
-                    testSuiteRepoUrl = it.testSuiteRepoUrl,
                     language = it.language,
                     tags = it.tags?.let(TestSuite::tagsFromList),
                 )
@@ -77,51 +83,41 @@ class TestSuitesService(
     /**
      * @return all standard test suites
      */
-    fun getStandardTestSuites() =
-            testSuiteRepository.findAllByTypeIs(TestSuiteType.STANDARD).map { it.toDto() }
-
-    /**
-     * @param name name of the test suite
-     * @return all standard test suites with specific name
-     */
-    fun findStandardTestSuitesByName(name: String) =
-            testSuiteRepository.findAllByNameAndType(name, TestSuiteType.STANDARD)
-
-    /**
-     * @param project a project associated with test suites
-     * @return a list of test suites
-     */
-    @Transactional
-    fun findTestSuitesByProject(project: Project) =
-            testSuiteRepository.findByProjectId(
-                requireNotNull(project.id) { "Cannot find test suites for project with missing id (name=${project.name}, organization=${project.organization.name})" }
-            )
+    fun getStandardTestSuites(): Mono<TestSuiteDtoList> = blockingToFlux { testSuitesSourceService.getStandardTestSuitesSources() }
+        .flatMap { testSuitesSource ->
+            testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
+                .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
+                .map { testSuitesSource to it.version }
+        }
+        .flatMap { (testSuitesSource, version) ->
+            blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
+        }
+        .map { it.toDto() }
+        .collectList()
 
     /**
      * @param id
      * @return test suite with [id]
      */
-    fun findTestSuiteById(id: Long) = testSuiteRepository.findById(id)
+    fun findTestSuiteById(id: Long): TestSuite? = testSuiteRepository.findByIdOrNull(id)
 
     /**
-     * Mark provided testSuites as obsolete
-     *
-     * @param testSuiteDtos
+     * @param id
+     * @return test suite with [id]
+     * @throws ResponseStatusException if [TestSuite] is not found by [id]
      */
-    @Suppress("UnsafeCallOnNullableType")
-    fun markObsoleteTestSuites(testSuiteDtos: List<TestSuiteDto>) {
-        testSuiteDtos.forEach { testSuiteDto ->
-            val testSuite = testSuiteRepository.findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
-                testSuiteDto.name,
-                testSuiteDto.type!!,
-                testSuiteDto.testRootPath,
-                testSuiteDto.testSuiteRepoUrl,
-            )
-            log.info { "Mark test suite ${testSuite.name} with id ${testSuite.id} as obsolete" }
-            testSuite.type = TestSuiteType.OBSOLETE_STANDARD
-            testSuiteRepository.save(testSuite)
-        }
-    }
+    fun getById(id: Long) = testSuiteRepository.findByIdOrNull(id)
+        .orNotFound { "TestSuite (id=$id) not found" }
+
+    /**
+     * @param source source of the test suite
+     * @param version version of snapshot of source
+     * @return matched test suites
+     */
+    fun getBySourceAndVersion(
+        source: TestSuitesSource,
+        version: String
+    ): List<TestSuite> = testSuiteRepository.findAllBySourceAndVersion(source, version)
 
     /**
      * Delete testSuites and related tests & test executions from DB
@@ -132,21 +128,17 @@ class TestSuitesService(
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
         testSuiteDtos.forEach { testSuiteDto ->
             // Get test suite id by testSuiteDto
-            val testSuiteId = testSuiteRepository.findByNameAndTypeAndTestRootPathAndTestSuiteRepoUrl(
-                testSuiteDto.name,
-                testSuiteDto.type!!,
-                testSuiteDto.testRootPath,
-                testSuiteDto.testSuiteRepoUrl,
-            ).id!!
+            val testSuiteId = getSavedIdByDto(testSuiteDto)
 
             // Get test ids related to the current testSuiteId
-            val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.id }
+            val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
                 // Executions could be absent
-                testExecutionRepository.findByTestId(testId!!).ifPresent { testExecution ->
+                testExecutionRepository.findByTestId(testId).ifPresent { testExecution ->
                     // Delete test executions
-                    log.debug { "Delete test execution with id ${testExecution.id}" }
-                    testExecutionRepository.deleteById(testExecution.id!!)
+                    val testExecutionId = testExecution.requiredId()
+                    log.debug { "Delete test execution with id $testExecutionId" }
+                    testExecutionRepository.deleteById(testExecutionId)
                 }
                 // Delete tests
                 log.debug { "Delete test with id $testId" }
@@ -156,6 +148,16 @@ class TestSuitesService(
             testSuiteRepository.deleteById(testSuiteId)
         }
     }
+
+    private fun getSavedIdByDto(
+        dto: TestSuiteDto,
+    ): Long = testSuiteRepository.findByNameAndSourceAndVersion(
+        dto.name,
+        testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
+        dto.version
+    )
+        ?.requiredId()
+        .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)

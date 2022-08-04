@@ -22,7 +22,6 @@ import javax.persistence.ManyToOne
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
  * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
- * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
@@ -57,8 +56,6 @@ class Execution(
     var status: ExecutionStatus,
 
     var testSuiteIds: String?,
-
-    var resourcesRootPath: String?,
 
     var batchSize: Int?,
 
@@ -182,7 +179,6 @@ class Execution(
             endTime = null,
             status = ExecutionStatus.RUNNING,
             testSuiteIds = null,
-            resourcesRootPath = null,
             batchSize = 20,
             type = ExecutionType.GIT,
             version = null,

@@ -1,10 +1,9 @@
 package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.core.config.TestConfig
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
-import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
@@ -13,9 +12,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
@@ -27,13 +30,23 @@ import java.nio.file.Path
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Import(TestDiscoveringService::class)
+@Import(
+    TestDiscoveringService::class,
+    TestsPreprocessorToBackendBridge::class,
+)
 class TestDiscoveringServiceTest {
     private val logger = LoggerFactory.getLogger(TestDiscoveringServiceTest::class.java)
     private val propertiesRelativePath = "examples/kotlin-diktat/save.properties"
     @Autowired private lateinit var testDiscoveringService: TestDiscoveringService
     private lateinit var tmpDir: Path
     private lateinit var rootTestConfig: TestConfig
+    private lateinit var testSuitesSourceDto: TestSuitesSourceDto
+
+    @MockBean
+    private lateinit var configProperties: ConfigProperties
+
+    @MockBean
+    private lateinit var webClientCustomizer: WebClientCustomizer
 
     @BeforeAll
     fun setUp() {
@@ -46,6 +59,16 @@ class TestDiscoveringServiceTest {
                 it.checkout().setName("993aa6228cba0a9f9075fb3aca8a0a8b9196a12a").call()
             }
         rootTestConfig = testDiscoveringService.getRootTestConfig(tmpDir.resolve("examples/kotlin-diktat").toString())
+        val organization = Organization.stub(42)
+        testSuitesSourceDto = TestSuitesSourceDto(
+            organization.name,
+            "Test",
+            null,
+            GitDto("https://github.com/saveourtool/save-cli"),
+            "examples/kotlin-diktat",
+            "main",
+
+        )
     }
 
     @AfterAll
@@ -56,9 +79,8 @@ class TestDiscoveringServiceTest {
     @Test
     fun `should discover test suites`() {
         val testSuites = testDiscoveringService.getAllTestSuites(
-            Project.stub(null),
             rootTestConfig,
-            propertiesRelativePath,
+            testSuitesSourceDto,
             "not-provided"
         )
 
@@ -71,9 +93,8 @@ class TestDiscoveringServiceTest {
     fun `should throw exception with invalid path for test suites discovering`() {
         assertThrows<IllegalArgumentException> {
             testDiscoveringService.getAllTestSuites(
-                Project.stub(null),
                 testDiscoveringService.getRootTestConfig(tmpDir.resolve("buildSrc").toString()),
-                propertiesRelativePath,
+                testSuitesSourceDto,
                 "not-provided"
             )
         }
@@ -104,7 +125,8 @@ class TestDiscoveringServiceTest {
         }
     }
 
-    private fun createTestSuiteStub(name: String, id: Long) = TestSuite(TestSuiteType.PROJECT, name, null, null, null, propertiesRelativePath).apply {
-        this.id = id
+    private fun createTestSuiteStub(name: String, id: Long) = mock<TestSuite>().also {
+        whenever(it.id).thenReturn(id)
+        whenever(it.name).thenReturn(name)
     }
 }

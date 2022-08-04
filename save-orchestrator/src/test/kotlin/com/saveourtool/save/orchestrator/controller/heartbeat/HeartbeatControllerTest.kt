@@ -2,9 +2,7 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
@@ -14,7 +12,6 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,6 +26,7 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -70,6 +68,17 @@ import kotlinx.serialization.json.Json
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
 class HeartbeatControllerTest {
+    private val organization = Organization.stub(0)
+    private val git = Git("N/A", organization = organization)
+        .apply { id = 0 }
+    private val testSuitesSource = TestSuitesSource(
+        organization,
+        "",
+        null,
+        git,
+        "",
+        ""
+    ).apply { id = 0 }
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
@@ -116,7 +125,7 @@ class HeartbeatControllerTest {
                 .addHeader("Content-Type", "application/json")
         )
 
-        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+        val testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
             id = 0
         }
 
@@ -168,7 +177,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -224,7 +233,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -263,7 +272,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -302,7 +311,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,
@@ -334,7 +343,7 @@ class HeartbeatControllerTest {
                 ),
                 mapOf(1L to "")
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
+            testSuite = TestSuite("", null, testSuitesSource, "1", LocalDateTime.now()).apply {
                 id = 0
             },
             mockAgentStatuses = false,

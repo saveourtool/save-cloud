@@ -20,6 +20,7 @@ import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
@@ -35,7 +36,7 @@ import kotlin.io.path.writeText
 @Component
 @Profile("!kubernetes")
 class DockerAgentRunner(
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
@@ -125,6 +126,21 @@ class DockerAgentRunner(
                 logger.info("Container $containerId is not present, so won't attempt to remove")
             }
         }
+    }
+
+    @Scheduled(cron = "0 0 4 * * MON")
+    override fun prune() {
+        var reclaimedBytes = 0L
+        // Release all old resources, except volumes,
+        // since there is no option --filter for `docker volume prune`, and also it could be quite dangerous to remove volumes,
+        // as it possible to lose some prepared data
+        for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
+            val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
+            val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
+            logger.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            reclaimedBytes += currentReclaimedBytes
+        }
+        logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
     /**

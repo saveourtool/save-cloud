@@ -398,7 +398,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             state.execCmd,
             state.batchSizeForAnalyzer,
             null,
-            null,
         )
         formData.appendJson("execution", request)
         state.files.forEach {
