@@ -279,8 +279,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     filters = filters.copy(tag = filterValue.tag)
                                 }
                             }
-                        }
-                        onChangeUrl = { filterValue ->
                             window.location.href = getUrlWithFiltersParams(filterValue)
                         }
                     }

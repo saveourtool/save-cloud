@@ -45,11 +45,6 @@ external interface FiltersRowProps : Props {
      * lambda to change [filters]
      */
     var onChangeFilters: (TestExecutionFilters) -> Unit
-
-    /**
-     * change URL after change state in ExecutionView.kt
-     */
-    var onChangeUrl: (TestExecutionFilters) -> Unit
 }
 
 /**
@@ -167,7 +162,6 @@ private fun testExecutionFiltersRow(
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     props.onChangeFilters(filters)
-                    props.onChangeUrl(filters)
                 }
             }
             button {
@@ -176,7 +170,6 @@ private fun testExecutionFiltersRow(
                 onClick = {
                     setFilters(TestExecutionFilters.empty)
                     props.onChangeFilters(TestExecutionFilters.empty)
-                    props.onChangeUrl(TestExecutionFilters.empty)
                 }
             }
         }
