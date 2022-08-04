@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="high-level-names-insert" author="sanyavertolet" context="dev">
-        <loadData tableName="high_level_names" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/v-2/insert-test-data/sqlRequests/high-level-names.csv">
+        <loadData tableName="high_level_names" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/high-level-names.csv">
             <column header="name" name="name" type="varchar(64)" />
         </loadData>
     </changeSet>
