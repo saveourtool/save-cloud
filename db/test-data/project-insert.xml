@@ -9,7 +9,7 @@
         <insert dbms="mysql" tableName="project">
             <column name="id" value="1" />
             <column name="name" value="huaweiName" />
-            <column name="url" value="huawei.com" />
+            <column name="url" value="https://huawei.com" />
             <column name="description" value="test description" />
             <column name="user_id" value="1" />
             <column name="organization_id" value="1" />
@@ -18,8 +18,8 @@
         </insert>
         <insert dbms="mysql" tableName="project">
             <column name="id" value="2" />
-            <column name="name" value="huaweiName 2" />
-            <column name="url" value="example.com" />
+            <column name="name" value="huaweiName2" />
+            <column name="url" value="http://example.com" />
             <column name="description" value="test description 2" />
             <column name="user_id" value="1" />
             <column name="organization_id" value="1" />

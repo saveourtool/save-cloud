@@ -157,7 +157,7 @@ internal class OrganizationController(
         description = "Create a new organization.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully saved a new organization.")
-    @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @ApiResponse(responseCode = "409", description = "Requested name is busy.")
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,

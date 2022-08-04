@@ -11,7 +11,7 @@ enum class OrganizationSaveStatus(val message: String) {
     /**
      * Organization has conflicting name
      */
-    CONFLICT("Organization name is already taken"),
+    CONFLICT("This name is already taken"),
 
     /**
      * New organization
