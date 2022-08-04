@@ -21,6 +21,21 @@ sealed class ExecutionRequestBase {
      * An SDK for this execution
      */
     abstract val sdk: Sdk
+
+    /**
+     * Execution id of request, it's null on first request
+     */
+    abstract val executionId: Long?
+
+    /**
+     * null in [ExecutionRequest]
+     */
+    abstract val execCmd: String?
+
+    /**
+     * null in [ExecutionRequest]
+     */
+    abstract val batchSizeForAnalyzer: String?
 }
 
 /**
@@ -32,6 +47,8 @@ sealed class ExecutionRequestBase {
  * @property testRootPath root path of the test repository where save.properties file and high level save.toml file could be stored
  * @property sdk
  * @property executionId id of execution. It is null until execution is created (when request comes from frontend).
+ * @property execCmd
+ * @property batchSizeForAnalyzer
  */
 @Suppress("KDOC_NO_CONSTRUCTOR_PROPERTY_WITH_COMMENT")
 @Serializable
@@ -41,7 +58,9 @@ data class ExecutionRequest(
     val branchOrCommit: String?,
     val testRootPath: String,
     override val sdk: Sdk,
-    val executionId: Long?,
+    override val executionId: Long?,
+    override val execCmd: String? = null,
+    override val batchSizeForAnalyzer: String? = null,
 ) : ExecutionRequestBase()
 
 /**
@@ -51,15 +70,13 @@ data class ExecutionRequest(
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property executionId
- * @property version
  */
 @Serializable
 data class ExecutionRequestForStandardSuites(
     override val project: Project,
     val testSuites: List<String>,
     override val sdk: Sdk,
-    val execCmd: String?,
-    val batchSizeForAnalyzer: String?,
-    val executionId: Long?,
-    val version: String?,
+    override val execCmd: String?,
+    override val batchSizeForAnalyzer: String?,
+    override val executionId: Long?,
 ) : ExecutionRequestBase()

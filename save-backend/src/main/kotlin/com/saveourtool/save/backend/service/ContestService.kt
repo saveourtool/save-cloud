@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Service for contests
@@ -80,7 +79,7 @@ class ContestService(
     fun getTestSuiteForPublicTest(contest: Contest) = contest.getTestSuiteIds()
         .firstOrNull()
         ?.let {
-            testSuitesService.findTestSuiteById(it)?.getOrNull()
+            testSuitesService.findTestSuiteById(it)
         }
 
     /**

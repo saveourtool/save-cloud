@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="project-insert" author="frolov" context="dev">
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="1" />
+            <column name="name" value="huaweiName" />
+            <column name="url" value="huawei.com" />
+            <column name="description" value="test description" />
+            <column name="user_id" value="1" />
+            <column name="organization_id" value="1" />
+            <column name="email" value="email@domain.com"/>
+            <column name="number_of_containers" value="3"/>
+        </insert>
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="2" />
+            <column name="name" value="huaweiName 2" />
+            <column name="url" value="example.com" />
+            <column name="description" value="test description 2" />
+            <column name="user_id" value="1" />
+            <column name="organization_id" value="1" />
+            <column name="email" value="email@domain.com"/>
+            <column name="number_of_containers" value="3"/>
+        </insert>
+
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="3" />
+            <column name="name" value="TheProject" />
+            <column name="url" value="http://example.com" />
+            <column name="description" value="This is an example project" />
+            <column name="public" valueBoolean="false" />
+            <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
+            <column name="email" value="test@example.com"/>
+            <column name="number_of_containers" value="5"/>
+        </insert>
+        <insert dbms="mysql" tableName="project">
+            <column name="id" value="4" />
+            <column name="name" value="TheProject2" />
+            <column name="url" value="https://example.com" />
+            <column name="description" value="This is a second example project" />
+            <column name="status" value="DELETED" />
+            <column name="public" valueBoolean="true" />
+            <column name="user_id" value="2" />
+            <column name="organization_id" value="2" />
+            <column name="email" value="another_test@example.com"/>
+            <column name="number_of_containers" value="1"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

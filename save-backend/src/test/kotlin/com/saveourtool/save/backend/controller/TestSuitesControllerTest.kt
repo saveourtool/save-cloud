@@ -2,17 +2,19 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
-import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.repository.TestSuiteRepository
+import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.scheduling.JobsConfiguration
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
+
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -36,8 +38,15 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+
 import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
+
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.writeText
+import kotlinx.datetime.toKotlinLocalDateTime
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -54,20 +63,22 @@ class TestSuitesControllerTest {
     lateinit var testSuiteRepository: TestSuiteRepository
 
     @Autowired
-    lateinit var projectRepository: ProjectRepository
+    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @Autowired
+    lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
 
     @MockBean
     lateinit var scheduler: Scheduler
 
     @Test
     fun `should accept test suites and return saved test suites`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
 
         saveTestSuites(listOf(testSuite)) {
@@ -76,21 +87,20 @@ class TestSuitesControllerTest {
                     val body = it.responseBody!!
                     assertEquals(listOf(testSuite).size, body.size)
                     assertEquals(testSuite.name, body[0].name)
-                    assertEquals(testSuite.project, body[0].project)
-                    assertEquals(testSuite.type, body[0].type)
+                    assertEquals(testSuite.source, body[0].source.toDto())
+                    assertEquals(testSuite.version, body[0].version)
                 }
         }
     }
 
     @Test
     fun `saved test suites should be persisted in the DB`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1"
         )
 
         saveTestSuites(listOf(testSuite)) {
@@ -98,18 +108,17 @@ class TestSuitesControllerTest {
         }
 
         val databaseData = testSuiteRepository.findAll()
-        assertTrue(databaseData.any { it.project?.id == testSuite.project?.id && it.name == testSuite.name })
+        assertTrue(databaseData.any { it.source.name == testSuite.source.name && it.name == testSuite.name })
     }
 
     @Test
     fun `should save only new test suites`() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.findById(1).get()
         val testSuite = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {
@@ -118,11 +127,10 @@ class TestSuitesControllerTest {
         }
 
         val testSuite2 = TestSuiteDto(
-            TestSuiteType.PROJECT,
             "test2",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite, testSuite2)) {
             expectBody<List<TestSuite>>().consumeWith {
@@ -140,23 +148,34 @@ class TestSuitesControllerTest {
             .spec()
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     @Test
     @WithMockUser
     fun testAllStandardTestSuites() {
-        val project = projectRepository.findById(1).get()
+        val testSuitesSource = testSuitesSourceRepository.findById(STANDARD_TEST_SUITES_SOURCE_ID).get()
         val testSuite = TestSuiteDto(
-            TestSuiteType.STANDARD,
             "tester",
             null,
-            project,
-            "save.properties"
+            testSuitesSource.toDto(),
+            "1",
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {
                 assertEquals(1, it.responseBody!!.size)
             }
         }
-        val allStandardTestSuite = testSuiteRepository.findAll().count { it.type == TestSuiteType.STANDARD }
+        val tmpContent = createTempFile()
+        tmpContent.writeText("test")
+        val storageKey = TestSuitesSourceSnapshotKey(
+            testSuite.source.organizationName,
+            testSuite.source.name,
+            testSuite.version,
+            LocalDateTime.now().toKotlinLocalDateTime(),
+        )
+        testSuitesSourceSnapshotStorage.upload(storageKey, tmpContent.toByteBufferFlux())
+            .block()
+        tmpContent.deleteExisting()
+        val allStandardTestSuite = testSuiteRepository.findAll().count { it.source.git.url == testSuitesSource.git.url }
         webClient.get()
             .uri("/api/$v1/allStandardTestSuites")
             .exchange()
@@ -165,36 +184,7 @@ class TestSuitesControllerTest {
             .expectBody<List<TestSuiteDto>>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(it.responseBody!!.size, allStandardTestSuite)
-            }
-    }
-
-    @Test
-    fun testTestSuitesWithSpecificName() {
-        val project = projectRepository.findById(1).get()
-        val name = "tester"
-        val testSuite = TestSuiteDto(
-            TestSuiteType.STANDARD,
-            name,
-            null,
-            project,
-            "save.properties"
-        )
-        saveTestSuites(listOf(testSuite)) {
-            expectBody<List<TestSuite>>().consumeWith {
-                assertEquals(1, it.responseBody!!.size)
-            }
-        }
-
-        webClient.get()
-            .uri("/internal/standardTestSuitesWithName?name=$name")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<List<TestSuite>>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                assertEquals(it.responseBody!!.first().name, name)
+                assertEquals(allStandardTestSuite, it.responseBody!!.size)
             }
     }
 
@@ -213,6 +203,7 @@ class TestSuitesControllerTest {
     }
 
     companion object {
+        private const val STANDARD_TEST_SUITES_SOURCE_ID = 2L
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterEach

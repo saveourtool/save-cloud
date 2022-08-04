@@ -106,7 +106,7 @@ class CloneRepositoryController(
                 authentication.username(),
                 fileStorage.convertToLatestFileInfo(projectCoordinates, files)
             ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId(), version = savedExecution.stubVersion())
+                executionRequest.copy(executionId = savedExecution.requiredId())
             }
         }
 
@@ -163,7 +163,4 @@ class CloneRepositoryController(
         .switchIfEmpty(Mono.just(emptyList()))
         .map { execution.formatAndSetAdditionalFiles(it) }
         .map { executionService.saveExecution(execution) }
-
-    // TODO: Save the proper version https://github.com/saveourtool/save-cloud/issues/321
-    private fun Execution.stubVersion() = this.parseAndGetAdditionalFiles().first().name
 }
