@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
-import kotlinx.browser.window
 import react.FC
 import react.Props
 import react.dom.html.InputType
@@ -50,7 +49,7 @@ external interface FiltersRowProps : Props {
     /**
      * change URL after change state in ExecutionView.kt
      */
-    var onChangeURL: (TestExecutionFilters) -> Unit
+    var onChangeUrl: (TestExecutionFilters) -> Unit
 }
 
 /**
@@ -63,7 +62,7 @@ private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
     val (filters, setFilters) = useState(props.filters)
     useEffect(props.filters) {
-        if (filters !== props.filters){
+        if (filters !== props.filters) {
             setFilters(props.filters)
         }
     }
@@ -168,7 +167,7 @@ private fun testExecutionFiltersRow(
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     props.onChangeFilters(filters)
-                    props.onChangeURL(filters)
+                    props.onChangeUrl(filters)
                 }
             }
             button {
@@ -177,7 +176,7 @@ private fun testExecutionFiltersRow(
                 onClick = {
                     setFilters(TestExecutionFilters.empty)
                     props.onChangeFilters(TestExecutionFilters.empty)
-                    props.onChangeURL(TestExecutionFilters.empty)
+                    props.onChangeUrl(TestExecutionFilters.empty)
                 }
             }
         }

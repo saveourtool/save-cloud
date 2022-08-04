@@ -43,8 +43,6 @@ import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.w3c.dom.url.URL
-import org.w3c.dom.url.URLSearchParams
 
 /**
  * [Props] for execution results view
@@ -282,8 +280,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                 }
                             }
                         }
-                        onChangeURL = { filtervValue ->
-                            window.location.href = getUrlWithFiltersParams(filtervValue)
+                        onChangeUrl = { filterValue ->
+                            window.location.href = getUrlWithFiltersParams(filterValue)
                         }
                     }
                 }
@@ -447,21 +445,20 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    private fun getFiltersParamUrl(): TestExecutionFilters {
-        val url = URLSearchParams(window.location.search)
-        return TestExecutionFilters(status = url.get("status") ?. let { TestResultStatus.valueOf(it) }, fileName = url.get("fileName"), testSuite = url.get("testSuite"), tag = url.get("tag"))
-    }
-
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) : String {
-        val hrefFirst : String = window.location.href.split('?').first()
-        val filtersList = listOf( "status=" to filterValue.status?.name, "fileName=" to filterValue.fileName, "testSuite=" to filterValue.testSuite, "tag=" to filterValue.tag)
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters): String {
+        val hrefFirst: String = window.location.href.split('?')
+            .first()
+        val filtersList = listOf("status=" to filterValue.status?.name, "fileName=" to filterValue.fileName, "testSuite=" to filterValue.testSuite, "tag=" to filterValue.tag)
             .filter {
                 it.second?.isNotBlank() ?: false
             }
         return if (filtersList.isEmpty()) {
             hrefFirst
         } else {
-            "$hrefFirst?${filtersList.joinToString("&").replace("(", "").replace(")", "").replace(", ","")}"
+            "$hrefFirst?${filtersList.joinToString("&")
+                .replace("(", "")
+                .replace(")", "")
+                .replace(", ", "")}"
         }
     }
 

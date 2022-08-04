@@ -85,7 +85,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
         }
     }
-
     private val contestView: FC<Props> = withRouter { _, params ->
         ContestView::class.react {
             currentUserInfo = state.userInfo
