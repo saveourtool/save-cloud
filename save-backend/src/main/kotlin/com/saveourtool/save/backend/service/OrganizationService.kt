@@ -29,7 +29,6 @@ class OrganizationService(
      */
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
         val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) != 0L) {
             organizationRepository.saveOrganizationName(organization.name)
