@@ -81,7 +81,7 @@ private fun testExecutionFiltersRow(
                         className = ClassName("form-control")
                         val elements = TestResultStatus.values().map { it.name }.toMutableList()
                         elements.add(0, ANY)
-                        value = filters.status?.name ?: elements[0]
+                        value = filters.status?.name ?: ANY
                         elements.forEach { element ->
                             option {
                                 if (element == props.filters.status?.name) {
