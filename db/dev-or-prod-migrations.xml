@@ -7,7 +7,6 @@
 
     <changeSet id="replace-dots-with-hyphens" author="sanyavertolet" context="">
         <sql>
-            update save_cloud.`user` set name = replace (name, '.', '-');
             update save_cloud.project set name = replace (name, '.', '-');
             update save_cloud.organization set name = replace (name, '.', '-');
             update save_cloud.contest set name = replace (name, '.', '-');
