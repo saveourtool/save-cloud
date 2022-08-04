@@ -1034,7 +1034,7 @@
             }
           },
           "409": {
-            "description": "Organization with such name already exists.",
+            "description": "Requested name is busy.",
             "content": {
               "*/*": {
                 "schema": {
@@ -1099,7 +1099,7 @@
             }
           },
           "409": {
-            "description": "Organization with such name already exists.",
+            "description": "Requested name is busy.",
             "content": {
               "*/*": {
                 "schema": {
