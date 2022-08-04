@@ -26,6 +26,7 @@ jobs:
           gradle-version: wrapper
           arguments: |
             :save-backend:generateOpenApiDocs
+            -PisExecutedOnCI=true
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
