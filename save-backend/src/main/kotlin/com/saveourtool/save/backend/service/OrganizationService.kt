@@ -16,7 +16,6 @@ import javax.persistence.EntityManager
 @Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
-    private val entityManager: EntityManager,
 ) {
     /**
      * Store [organization] in the database
