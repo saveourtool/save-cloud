@@ -7,6 +7,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_SOURCE_PREFIX_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
@@ -41,8 +42,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 
 import java.io.File
 import java.io.FileOutputStream
@@ -211,9 +210,11 @@ class AgentsController(
         targetDirectory: Path
     ): Mono<Unit> = getTestSuitesSourceSnapshotKeys()
         .flatMapMany { Flux.fromIterable(it) }
-        .index()
-        .flatMap { (index, key) ->
-            val testSuiteSourceDir = targetDirectory / "test-suite-source-$index"
+        .flatMap { key ->
+            key.getTestSuitesSourceId().map { it to key }
+        }
+        .flatMap { (id, key) ->
+            val testSuiteSourceDir = targetDirectory / "$TEST_SUITES_SOURCE_PREFIX_DIR_NAME$id"
             key.downloadTestsTo(testSuiteSourceDir)
         }
         .collectList()
@@ -257,6 +258,11 @@ class AgentsController(
 
     private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
         .uri("/test-suites-sources/list-snapshot-by-execution-id?executionId={id}", requiredId())
+        .retrieve()
+        .bodyToMono()
+
+    private fun TestSuitesSourceSnapshotKey.getTestSuitesSourceId(): Mono<Long> = webClientBackend.get()
+        .uri("/test-suites-sources/{organizationName}/{name}/id", organizationName, testSuitesSourceName)
         .retrieve()
         .bodyToMono()
 
