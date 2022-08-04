@@ -53,6 +53,14 @@ data class Project(
     var id: Long? = null
 
     /**
+     * @return [id] as not null with validating
+     * @throws IllegalArgumentException when [id] is not set that means entity is not saved yet
+     */
+    fun requiredId(): Long = requireNotNull(id) {
+        "Entity is not saved yet: $this"
+    }
+
+    /**
      * Email validation
      *
      * @return true if email is valid, false otherwise

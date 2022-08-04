@@ -11,18 +11,17 @@ import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionInitializationDto
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
@@ -43,6 +42,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -101,7 +101,7 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecution(
         @RequestParam id: Long,
         authentication: Authentication?
-    ): Mono<Execution> = justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
+    ): Mono<Execution> = executionService.findExecution(id).toMonoOrNotFound("Execution with id=$id is not found")
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
@@ -123,7 +123,8 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(executionService.findExecution(executionId))
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
                 .map { it.toDto() }
 
@@ -263,12 +264,16 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
     @Transactional
     fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-            Mono.justOrEmpty(executionService.findExecution(id))
-                .switchIfEmpty() {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+            executionService.findExecution(id)
+                .toMonoOrNotFound()
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .map { it.getTestRootPath() }
+                .flatMap {
+                    it.getTestRootPathByTestSuites()
+                        .distinct()
+                        .singleOrNull()
+                        .toMono()
+                }
+                .switchIfEmptyToNotFound()
 
     /**
      * Accepts a request to rerun an existing execution
@@ -277,45 +282,23 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication [Authentication] representing an authenticated request
      * @return bodiless response
      * @throws ResponseStatusException
+     * @throws IllegalArgumentException
      */
     @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
-        val execution = executionService.findExecution(id).orElseThrow {
-            IllegalArgumentException("Can't rerun execution $id, because it does not exist")
-        }
+        val execution = executionService.findExecution(id)
+            ?: throw IllegalArgumentException("Can't rerun execution $id, because it does not exist")
         if (!projectPermissionEvaluator.hasPermission(
             authentication, execution.project, Permission.WRITE
         )) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        val executionType = execution.type
-        val git = gitService.getByOrganizationAndUrl(execution.project.organization, execution.getTestSuiteRepoUrl())
-            .toDto()
-        val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.getTestRootPathByTestSuites()
-                .distinct()
-                .single()
-        } else {
-            // for standard suites there is no need for a testRootPath
-            "N/A"
-        }
-
         executionService.resetMetrics(execution)
         executionService.updateExecutionWithUser(execution, authentication.username())
-        val executionRequest = ExecutionRequest(
-            project = execution.project,
-            gitDto = git,
-            // TODO: rerun is incorrect for execution which was run from branch initially
-            branchOrCommit = execution.version,
-            testRootPath = testRootPath,
-            sdk = execution.sdk.toSdk(),
-            executionId = execution.id,
-        )
         return preprocessorWebClient.post()
-            .uri("/rerunExecution")
-            .bodyValue(executionRequest)
+            .uri("/rerunExecution?id={executionId}", execution.requiredId())
             .retrieve()
             .bodyToMono()
     }
@@ -324,52 +307,25 @@ class ExecutionController(private val executionService: ExecutionService,
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this
         .parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
+            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
+                "Can't find test suite with id=$testSuiteId for executionId=$id"
             }
         }
-        ?.map {
-            it.testRootPath
-        }
+        ?.map { it.source }
+        ?.map { it.testRootPath }
         .orEmpty()
-
-    private fun Execution.getTestRootPath(): String = getTestRootPathByTestSuites()
-        .distinct()
-        .single()
-
-    private fun Execution.getTestSuiteRepoUrl(): String = parseAndGetTestSuiteIds()
-        ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
-            }
-        }
-        ?.mapNotNull {
-            it.testSuiteRepoUrl
-        }
-        .orEmpty()
-        .distinct()
-        .single()
-
-    /**
-     * @param execution
-     * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
-     */
-    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
-    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     /**
      * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing
      */
     private fun Flux<Long>.findPresentExecutions(): Flux<Execution> = collectMap({ id -> id }) { id -> executionService.findExecution(id) }
         .flatMapMany { idsToExecutions ->
-            idsToExecutions.filterValues { it.isEmpty }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
+            idsToExecutions.filterValues { it == null }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
                 log.warn("Cannot delete executions with ids=${missingExecutions.keys} because they are missing in the DB")
                 if (missingExecutions.size == idsToExecutions.size) {
                     return@flatMapMany Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "All executions are missing"))
                 }
             }
-            Flux.fromIterable(idsToExecutions.mapValues { it.value.get() }.values)
+            Flux.fromIterable(idsToExecutions.mapValues { it.value }.values)
         }
 }

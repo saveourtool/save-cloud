@@ -19,11 +19,9 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.trace
-import org.apache.commons.io.FilenameUtils
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,10 +29,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.nio.file.Paths
 import java.time.Duration
 
 import java.time.LocalDateTime
@@ -335,44 +331,13 @@ class AgentService(
             .uri("/testSuite/${tests.first().testSuiteId}")
             .retrieve()
             .bodyToMono<TestSuite>()
-            .map { testSuite ->
-                testSuite.type == TestSuiteType.STANDARD
-            }
-            .flatMap { isStandardMode ->
-                if (isStandardMode) {
-                    // in standard mode for each test get proper prefix location, since we created extra directories
-                    // parent location for each test under one test suite is the same, so we can group them as the following
-                    Flux.fromIterable(tests.groupBy { it.testSuiteId }.values).flatMap { testGroup ->
-                        webClientBackend.get()
-                            .uri("/testSuite/${testGroup.first().testSuiteId}")
-                            .retrieve()
-                            .bodyToMono<TestSuite>()
-                            .flatMapIterable { testSuite ->
-                                val locationInStandardDir = getLocationInStandardDirForTestSuite(testSuite.toDto())
-                                testGroup.map { test ->
-                                    val testFilePathInStandardDir =
-                                            Paths.get(locationInStandardDir)
-                                                .resolve(Paths.get(test.filePath))
-                                    FilenameUtils.separatorsToUnix(testFilePathInStandardDir.toString())
-                                }
-                            }
-                    }
-                        .collectList()
-                        .map { isStandardMode to it }
-                } else {
-                    Mono.fromCallable {
-                        isStandardMode to tests.map {
-                            it.filePath
-                        }
-                    }
+            .map {
+                tests.map {
+                    it.filePath
                 }
             }
-            .map { (isStandardMode, testPaths) ->
-                val cliArgs = if (!isStandardMode) {
-                    suitesToArgs.values.first()
-                } else {
-                    ""
-                } + " " + testPaths.joinToString(" ")
+            .map { testPaths ->
+                val cliArgs = suitesToArgs.values.first() + " " + testPaths.joinToString(" ")
                 log.debug("Constructed cli args for SAVE-cli: $cliArgs")
                 cliArgs
             }

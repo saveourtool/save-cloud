@@ -7,6 +7,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -34,13 +35,13 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.util.FileSystemUtils
+
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import kotlin.io.path.Path
-import kotlin.io.path.createDirectory
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.pathString
+import kotlin.io.path.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -70,15 +71,29 @@ class DockerServiceTest {
     }
 
     @Test
-    @Suppress("UnsafeCallOnNullableType")
+    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should create a container with save agent and test resources and start it`() {
         // build base image
         val project = Project.stub(null)
         val testExecution = Execution.stub(project).apply {
-            resourcesRootPath = "foo"
             id = 42L
+            testSuiteIds = "1,2,3"
         }
-        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(testExecution)
+        mockServer.enqueue(
+            "/test-suite/names-by-ids",
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Accept", "application/json")
+                .setHeader("Content-Type", "application/json")
+                .setBody(Json.encodeToString(listOf("Test1", "Test2")))
+        )
+        val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
+        val resourcesForExecution = createTempDirectory(
+            directory = tmpDir,
+            prefix = "save-execution-${testExecution.requiredId()}"
+        )
+        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
+        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             DockerService.RunConfiguration(baseImageId, agentRunCmd, pvId)

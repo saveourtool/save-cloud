@@ -16,7 +16,10 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -30,13 +33,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+
 import java.time.LocalDateTime
-import java.util.*
 
 /**
  * Controller for working with organizations.
@@ -69,8 +70,8 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
     ) = Mono.fromCallable {
         organizationService.findByName(organizationName)
-    }.switchIfEmpty {
-        Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
+    }.switchIfEmptyToNotFound {
+        "Organization not found by name $organizationName"
     }
 
     @GetMapping("/get/list")
@@ -130,14 +131,14 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(organizationName).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "No organization with name $organizationName was found."))
+        .switchIfEmptyToNotFound {
+            "No organization with name $organizationName was found."
         }
         .filter {
             organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough permission for managing canCreateContests flag."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for managing canCreateContests flag."
         }
         .map { organization ->
             organizationService.updateOrganization(
@@ -203,20 +204,20 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find an organization with name $organizationName."))
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough permission for managing organization $organizationName."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for managing organization $organizationName."
         }
         .filter {
             organizationService.findByName(organization.name) != null
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "There already is an organization with name ${organization.name}"))
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "There already is an organization with name ${organization.name}"
         }
         .map { organizationFromDb ->
             organizationService.updateOrganization(
@@ -246,14 +247,14 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find an organization with name $organizationName."))
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough permission for deletion of organization $organizationName."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for deletion of organization $organizationName."
         }
         .map {
             organizationService.deleteOrganization(it.name)
@@ -280,8 +281,8 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find an organization with name $organizationName."))
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.WRITE)
@@ -313,14 +314,14 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(organizationName).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find organization with name $organizationName"))
+        .switchIfEmptyToNotFound {
+            "Could not find organization with name $organizationName"
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough permission for saving git of $organizationName."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for saving git of $organizationName."
         }
         .map {
             gitService.upsert(it, gitDto)
@@ -350,14 +351,14 @@ internal class OrganizationController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find an organization with name $organizationName."))
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
         }
         .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough permission for managing organization git credentials."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for managing organization git credentials."
         }
         .map {
             gitService.delete(it, url)

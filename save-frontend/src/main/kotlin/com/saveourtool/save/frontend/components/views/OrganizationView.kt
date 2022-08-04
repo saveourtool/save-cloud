@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -456,12 +457,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun ChildrenBuilder.renderTests() {
-        div {
-            className = ClassName("card shadow mb-4 w-100")
-            div {
-                className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
-                +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
-            }
+        organizationTestsMenu {
+            organizationName = props.organizationName
+            selfRole = state.selfRole
         }
     }
 

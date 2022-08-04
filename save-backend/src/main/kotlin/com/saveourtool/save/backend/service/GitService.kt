@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 /**
@@ -20,9 +21,17 @@ class GitService(private val gitRepository: GitRepository) {
     /**
      * @param organization
      * @param url
-     * @return list of gits by organization if exists
+     * @return list of gits by organization if exists or null
      */
-    fun getByOrganizationAndUrl(organization: Organization, url: String): Git = gitRepository.findByOrganizationAndUrl(organization, url)
+    fun findByOrganizationAndUrl(organization: Organization, url: String): Git? = gitRepository.findByOrganizationAndUrl(organization, url)
+
+    /**
+     * @param organization
+     * @param url
+     * @return list of gits by organization if exists
+     * @throws NoSuchElementException
+     */
+    fun getByOrganizationAndUrl(organization: Organization, url: String): Git = findByOrganizationAndUrl(organization, url)
         ?: throw NoSuchElementException("There is no git credential with url $url in ${organization.name}")
 
     /**
@@ -48,4 +57,10 @@ class GitService(private val gitRepository: GitRepository) {
     fun delete(organization: Organization, url: String) {
         gitRepository.delete(getByOrganizationAndUrl(organization, url))
     }
+
+    /**
+     * @param id
+     * @return [GitDto] found by provided values or null
+     */
+    fun findById(id: Long): GitDto? = gitRepository.findByIdOrNull(id)?.toDto()
 }
