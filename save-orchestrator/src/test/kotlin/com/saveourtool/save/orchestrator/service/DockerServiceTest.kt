@@ -159,11 +159,6 @@ class DockerServiceTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
-            registry.add("orchestrator.testResources.basePath") {
-                val tmpDir = createTempDirectory("repository")
-                Path(tmpDir.pathString, "foo").createDirectory()
-                tmpDir.pathString
-            }
             registry.add("orchestrator.backendUrl") {
                 mockServer.start()
                 "http://localhost:${mockServer.port}"
