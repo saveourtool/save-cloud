@@ -25,10 +25,10 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = try {
+        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) != 0L) {
             organizationRepository.saveOrganizationName(organization.name)
             Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
-        } catch (error: Error) {
+        } else {
             Pair(0L, OrganizationSaveStatus.CONFLICT)
         }
         requireNotNull(organizationId) { "Should have gotten an ID for organization from the database" }
@@ -42,7 +42,7 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String) = getByName(organizationName)
+    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
         .apply {
             status = OrganizationStatus.DELETED
         }

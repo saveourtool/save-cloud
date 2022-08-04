@@ -24,7 +24,6 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -84,7 +83,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                 window.location.href = "${window.location.origin}#/${state.organizationDto.name}/"
                 window.location.reload()
             } else if (responseFromCreationOrganization.isConflict()) {
-                val responseText = responseFromCreationOrganization.text().await()
+                val responseText = responseFromCreationOrganization.unpackMessage()
                 setState {
                     conflictErrorMessage = responseText
                 }

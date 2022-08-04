@@ -16,6 +16,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -166,6 +167,10 @@ internal class OrganizationController(
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
         }
+        .switchIfEmpty {
+            logger.info("Save")
+            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, OrganizationSaveStatus.CONFLICT.message))
+        }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
                 (authentication.details as AuthenticationDetails).id,
@@ -175,11 +180,6 @@ internal class OrganizationController(
             logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-        .defaultIfEmpty(
-            ResponseEntity.status(HttpStatus.CONFLICT).body(OrganizationSaveStatus.CONFLICT.message).also {
-                logger.info("Organization has invalid name - ${newOrganization.name}.")
-            }
-        )
 
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader

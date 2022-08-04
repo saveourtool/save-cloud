@@ -52,6 +52,8 @@ interface WithRequestStatusContext {
 }
 
 /**
+ * Get errors from backend (Spring Boot returns errors in message part of json)
+ *
  * @return message part of json response
  */
 suspend fun Response.unpackMessage(): String = json().await().asDynamic()["message"].toString()
