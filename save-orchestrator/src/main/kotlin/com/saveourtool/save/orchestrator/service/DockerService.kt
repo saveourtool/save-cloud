@@ -107,10 +107,10 @@ class DockerService(
      * @param agentIds list of IDs of agents (==containers) for this execution
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
+    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
-        webClientBackend
+        return webClientBackend
             .post()
             .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
@@ -134,7 +134,7 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
@@ -143,7 +143,6 @@ class DockerService(
                         }
                     }
             }
-            .subscribe()
     }
 
     /**
@@ -259,7 +258,8 @@ class DockerService(
 
         val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
         log.info("Built persistent volume with tests by id $pvId")
-        FileSystemUtils.deleteRecursively(resourcesForExecution)
+        // FixMe: temporary moved after `AgentRunner.start`
+//        FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
@@ -274,6 +274,7 @@ class DockerService(
             imageId = baseImageId,
             runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME\"",
             pvId = pvId,
+            resourcesPath = resourcesForExecution,
         )
     }
 
@@ -335,11 +336,13 @@ class DockerService(
      * @property imageId ID of an image which should be used for a container
      * @property runCmd command that should be run as container's entrypoint
      * @property pvId ID of a persistent volume that should be attached to a container
+     * @property resourcesPath FixMe: needed only until agents download test by themselves
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageId: String,
         val runCmd: String,
         val pvId: I,
+        val resourcesPath: Path,
     )
 
     companion object {

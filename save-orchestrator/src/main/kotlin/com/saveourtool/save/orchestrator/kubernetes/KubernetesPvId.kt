@@ -5,6 +5,7 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 /**
  * @property pvcName name of the Kubernetes PVC
  * @property sourcePvcName name of the PVC which contains original resources that should be copied into [pvcName]
+ * Fixme: now it should be passed from PersistentVolumeManager into Runner because it will mount it to the init container.
  */
 data class KubernetesPvId(
     val pvcName: String,

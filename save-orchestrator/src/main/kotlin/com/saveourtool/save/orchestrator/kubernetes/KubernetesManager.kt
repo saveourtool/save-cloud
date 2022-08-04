@@ -72,16 +72,17 @@ class KubernetesManager(
                         nodeName = System.getenv("NODE_NAME")
                         initContainers = listOf(
                             Container().apply {
-                                name = "save-vol-copier"
-                                image = "alpine:latest"
                                 // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
                                 // Probably, a separate client process should be introduced. Until then, one init container performs copying
-                                // into a shared mount while others are sleeping for 90 seconds.
+                                // into a shared mount while others are sleeping for this many seconds:
+                                val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
+                                name = "save-vol-copier"
+                                image = "alpine:latest"
                                 command = listOf(
                                     "sh", "-c",
                                     "if [ -z \"$(ls -A $EXECUTION_DIR)\" ]; then cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
                                             " && chown -R 1100:1100 $EXECUTION_DIR" +
-                                            " && echo Successfully copied; else echo Copying already in progress && sleep 90; fi"
+                                            " && echo Successfully copied; else echo Copying already in progress && sleep $waitForCopySeconds; fi"
                                 )
                                 volumeMounts = listOf(
                                     VolumeMount().apply {
@@ -125,10 +126,18 @@ class KubernetesManager(
                                         }
                                     }
                                 )
-                                command = agentRunCmd.let {
-                                    // `agentRunCmd` looks like `sh -c "rest of the command"`
-                                    it.substringBefore('"').trim().split(" ") + "\"${it.substringAfter('"')}"
-                                }
+
+                                // `agentRunCmd` looks like `sh -c "rest of the command"`
+                                val (command, args) = agentRunCmd
+                                    .let {
+                                        it.substringBefore('"').trim().split(" ") + "\"${it.substringAfter('"')}"
+                                    }
+                                    .let {
+                                        it.dropLast(1) to it.last().trim('"')
+                                    }
+                                this.command = command
+                                this.args = listOf(args)
+
                                 this.workingDir = workingDir
                                 volumeMounts = listOf(
                                     VolumeMount().apply {
