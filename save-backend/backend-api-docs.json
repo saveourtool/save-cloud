@@ -1034,7 +1034,7 @@
             }
           },
           "409": {
-            "description": "Requested name is busy.",
+            "description": "Requested name is not available.",
             "content": {
               "*/*": {
                 "schema": {
@@ -1099,7 +1099,7 @@
             }
           },
           "409": {
-            "description": "Requested name is busy.",
+            "description": "Requested name is not available.",
             "content": {
               "*/*": {
                 "schema": {
