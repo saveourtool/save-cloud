@@ -110,7 +110,7 @@ class HeartbeatControllerTest {
         mockServer.enqueue(
             "/getTestBatches\\?agentId=.*",
             MockResponse()
-                .setBody(Json.encodeToString(mapOf(0L to list)))
+                .setBody(Json.encodeToString(list))
                 .addHeader("Content-Type", "application/json")
         )
 

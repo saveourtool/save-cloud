@@ -318,7 +318,7 @@ class TestSuitesSourceController(
      * @param executionId
      * @return selected [TestSuitesSourceDto] with versions for [com.saveourtool.save.entities.Execution] found by provided values
      */
-    @PostMapping("/download-snapshot-by-execution-id")
+    @PostMapping("/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
