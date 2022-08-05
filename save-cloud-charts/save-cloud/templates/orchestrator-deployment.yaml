@@ -64,6 +64,9 @@ spec:
           emptyDir: {}
 
 ---
+# Temporary solution: a volume that can be shared between orchestrator and init-container that would copy test resources
+# into a PV created for an execution. When agent will be able to download resources directly, this won't be needed.
+
 apiVersion: v1
 kind: PersistentVolume
 metadata:
