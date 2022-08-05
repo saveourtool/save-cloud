@@ -16,7 +16,6 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_SOURCE_PREFIX_DIR_NAME
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
@@ -322,7 +321,6 @@ class AgentService(
             }
 
     private fun TestBatch.constructCliCommand() = buildString {
-        append(TEST_SUITES_DIR_NAME)
         entries.forEach { (testSuitesSourceId, tests) ->
             tests.forEach {
                 append(" ")

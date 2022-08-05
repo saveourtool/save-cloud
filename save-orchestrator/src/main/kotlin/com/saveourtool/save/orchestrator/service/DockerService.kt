@@ -228,7 +228,7 @@ class DockerService(
             .apply { createFile() }
             .writeText(createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer))
         // collect test suite names, which were selected by user
-        val saveCliExecFlags = " $TEST_SUITES_DIR_NAME --include-suites \"${execution.getTestSuiteNames()}\""
+        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames()}\" $TEST_SUITES_DIR_NAME"
 
         // include save-agent into the image
         PathUtils.copyFile(
