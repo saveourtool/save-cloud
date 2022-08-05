@@ -114,10 +114,12 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                     required = true
                     value = textValue
                     placeholder = form.placeholder
-                    if (validInput) {
-                        className = ClassName("form-control")
+                    className = if (textValue.isNullOrEmpty()) {
+                        ClassName("form-control")
+                    } else if (validInput) {
+                        ClassName("form-control is-valid")
                     } else {
-                        className = ClassName("form-control is-invalid")
+                        ClassName("form-control is-invalid")
                     }
                 }
 
@@ -166,10 +168,12 @@ internal fun ChildrenBuilder.inputTextFormOptional(
         required = false
         value = textValue
         placeholder = form.placeholder
-        if (validInput) {
-            className = ClassName("form-control")
+        className = if (textValue.isNullOrEmpty()) {
+            ClassName("form-control")
+        } else if (validInput) {
+            ClassName("form-control is-valid")
         } else {
-            className = ClassName("form-control is-invalid")
+            ClassName("form-control is-invalid")
         }
     }
     if (!validInput) {
@@ -275,10 +279,12 @@ internal fun ChildrenBuilder.inputDateFormRequired(
             onChange = onChangeFun
             id = form.name
             required = true
-            if (validInput) {
-                className = ClassName("form-control")
+            className = if (value.isNullOrEmpty()) {
+                ClassName("form-control")
+            } else if (validInput) {
+                ClassName("form-control is-valid")
             } else {
-                className = ClassName("form-control is-invalid")
+                ClassName("form-control is-invalid")
             }
         }
         if (!validInput) {

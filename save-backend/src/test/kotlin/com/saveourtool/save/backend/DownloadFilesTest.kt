@@ -85,7 +85,7 @@ class DownloadFilesTest {
     private val organization2 = Organization("Huawei", OrganizationStatus.CREATED, 1, null).apply { id = 1 }
     private var testProject: Project = Project(
         organization = organization,
-        name = "The Project",
+        name = "TheProject",
         url = "example.com",
         description = "This is an example project",
         status = ProjectStatus.CREATED,
@@ -139,13 +139,13 @@ class DownloadFilesTest {
 
         val sampleFileInfo = tmpFile.toFileInfo()
         val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "The Project"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        fileStorage.upload(ProjectCoordinates("Example.com", "TheProject"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
 
         webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/The Project/download")
+            .uri("/api/$v1/files/Example.com/TheProject/download")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -158,7 +158,7 @@ class DownloadFilesTest {
             }
 
         webTestClient.get()
-            .uri("/api/$v1/files/Example.com/The Project/list")
+            .uri("/api/$v1/files/Example.com/TheProject/list")
             .exchange()
             .expectStatus()
             .isOk

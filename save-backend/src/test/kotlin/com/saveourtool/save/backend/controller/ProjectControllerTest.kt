@@ -81,13 +81,13 @@ class ProjectControllerTest {
                 .expectBody<Project>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
-                    Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
+                    Assertions.assertEquals(it.responseBody!!.url, "https://huawei.com")
                 }
         }
     }
 
     @Test
-    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
@@ -99,13 +99,13 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
         }
 
-        getProjectAndAssert("The Project", "Example.com") {
+        getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
         }
     }
@@ -134,7 +134,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "John Doe")
+    @WithUserDetails(value = "JohnDoe")
     fun `delete project without owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
@@ -157,7 +157,7 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe", roles = ["VIEWER"])
+    @WithMockUser(username = "JohnDoe", roles = ["VIEWER"])
     fun `check save new project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)

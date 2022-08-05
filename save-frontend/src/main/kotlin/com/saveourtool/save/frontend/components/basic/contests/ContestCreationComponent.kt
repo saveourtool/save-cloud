@@ -129,22 +129,27 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
             "",
             null,
             null,
-            "",
+            null,
             props.organizationName,
         )
     )
 
+    val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
+
     val onSaveButtonPressed = useRequest {
         val response = post(
-            "$apiUrl/${FrontendRoutes.CONTESTS}/create",
+            "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
             jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
+            ::responseHandlerWithValidation
         )
-        if (!response.ok) {
-            props.onSaveError(response)
-        } else {
+        if (response.ok) {
             props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+        } else if (response.isConflict()) {
+            setConflictErrorMessage(response.unpackMessage())
+        } else {
+            props.onSaveError(response)
         }
     }
 
@@ -161,11 +166,12 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
                             contestDto.name,
-                            contestDto.name.isBlank() || contestDto.name.isValidName(),
+                            (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null,
                             "col-12",
                             "Contest name",
                         ) {
                             setContestDto(contestDto.copy(name = it.target.value))
+                            setConflictErrorMessage(null)
                         }
                     }
                     // ==== Organization Name selection
@@ -217,9 +223,15 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 button {
                     type = ButtonType.button
                     className = ClassName("btn btn-primary")
-                    disabled = isButtonDisabled(contestDto)
+                    disabled = isButtonDisabled(contestDto) || conflictErrorMessage != null
                     onClick = { onSaveButtonPressed() }
                     +"Create contest"
+                }
+            }
+            conflictErrorMessage?.let {
+                div {
+                    className = ClassName("invalid-feedback d-block text-center")
+                    +it
                 }
             }
         }
