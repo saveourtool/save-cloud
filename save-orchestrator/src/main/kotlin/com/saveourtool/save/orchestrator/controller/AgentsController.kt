@@ -7,14 +7,12 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_SOURCE_PREFIX_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
 import com.github.dockerjava.api.exception.DockerClientException
@@ -208,31 +206,10 @@ class AgentsController(
 
     private fun Execution.downloadTestsTo(
         targetDirectory: Path
-    ): Mono<Unit> = getTestSuitesSourceSnapshotKeys()
-        .flatMapMany { Flux.fromIterable(it) }
-        .flatMap { key ->
-            key.getTestSuitesSourceId().map { it to key }
-        }
-        .flatMap { (id, key) ->
-            val testSuiteSourceDir = targetDirectory / "$TEST_SUITES_SOURCE_PREFIX_DIR_NAME$id"
-            key.downloadTestsTo(testSuiteSourceDir)
-        }
-        .collectList()
-        .map {
-            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
-        }
-        .defaultIfEmpty(log.warn {
-            "Not found any tests for execution $id"
-        })
-
-    private fun TestSuitesSourceSnapshotKey.downloadTestsTo(
-        targetDirectory: Path
     ): Mono<Unit> = webClientBackend.post()
         .uri(
-            "/test-suites-sources/{organizationName}/{sourceName}/download-snapshot?version={version}",
-            organizationName,
-            testSuitesSourceName,
-            version,
+            "/test-suites-sources/download-snapshot-by-execution-id?executionId={executionId}",
+            requiredId(),
         )
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -251,20 +228,11 @@ class AgentsController(
             it.deleteExisting()
         }
         .map {
-            log.debug {
-                "Downloaded tests from test suites source ($testSuitesSourceName in $organizationName with version $version) to $targetDirectory"
-            }
+            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
         }
-
-    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
-        .uri("/test-suites-sources/list-snapshot-by-execution-id?executionId={id}", requiredId())
-        .retrieve()
-        .bodyToMono()
-
-    private fun TestSuitesSourceSnapshotKey.getTestSuitesSourceId(): Mono<Long> = webClientBackend.get()
-        .uri("/test-suites-sources/{organizationName}/{name}/id", organizationName, testSuitesSourceName)
-        .retrieve()
-        .bodyToMono()
+        .defaultIfEmpty(log.warn {
+            "Not found any tests for execution ${requiredId()}"
+        })
 
     private fun <T> reportExecutionError(
         execution: Execution,

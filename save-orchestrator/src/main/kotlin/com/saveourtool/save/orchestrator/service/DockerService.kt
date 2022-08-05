@@ -22,6 +22,7 @@ import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.utils.orConflict
 
 import com.github.dockerjava.api.DockerClient
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -222,13 +223,12 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
-            .resolve("save.toml")
+        // create stub toml config in aim to override execCmd and batchSizeForAnalyzer
+        resourcesForExecution.resolve("save.toml")
             .apply { createFile() }
             .writeText(createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer))
         // collect test suite names, which were selected by user
-        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames()}\" $TEST_SUITES_DIR_NAME"
+        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
         // include save-agent into the image
         PathUtils.copyFile(
