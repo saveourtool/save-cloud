@@ -18,10 +18,10 @@ import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.orConflict
 
 import com.github.dockerjava.api.DockerClient
-import com.saveourtool.save.utils.DATABASE_DELIMITER
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
