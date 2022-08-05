@@ -61,6 +61,11 @@ external interface ProjectSaveViewState : State {
      * Draft [ProjectDto]
      */
     var projectCreationRequest: ProjectDto
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
 }
 
 /**
@@ -75,6 +80,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
         state.projectCreationRequest = ProjectDto.empty
+        state.conflictErrorMessage = null
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
@@ -86,10 +92,16 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                         jsonHeaders,
                         Json.encodeToString(state.projectCreationRequest),
                         loadingHandler = ::classLoadingHandler,
+                        responseHandler = ::classComponentResponseHandlerWithValidation,
                     )
-            if (responseFromCreationProject.ok == true) {
+            if (responseFromCreationProject.ok) {
                 window.location.href = "${window.location.origin}#/${state.projectCreationRequest.organizationName}/${state.projectCreationRequest.name}"
                 window.location.reload()
+            } else if (responseFromCreationProject.isConflict()) {
+                val responseText = responseFromCreationProject.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
             } else {
                 responseFromCreationProject.text().then {
                     setState {
@@ -162,12 +174,14 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         inputTextFormRequired(
                                             InputTypes.PROJECT_NAME,
                                             state.projectCreationRequest.name,
-                                            state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName(),
+                                            (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
+                                                    state.conflictErrorMessage == null,
                                             "col-md-12 pl-2 pr-2",
                                             "Tested tool name",
                                         ) {
                                             setState {
                                                 projectCreationRequest = projectCreationRequest.copy(name = it.target.value)
+                                                conflictErrorMessage = null
                                             }
                                         }
                                         inputTextFormOptional(
@@ -219,7 +233,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                         }
 
                                         div {
-                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-0 row")
+                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-0 row d-flex alighn-items-center")
                                             label {
                                                 className = ClassName("text-xs")
                                                 fontAwesomeIcon(icon = faQuestionCircle)
@@ -233,7 +247,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 +"Project visibility:"
                                             }
                                             form {
-                                                className = ClassName("col-7 form-group row d-flex justify-content-around")
+                                                className = ClassName("col-7 form-group row d-flex justify-content-around align-items-center mb-0")
                                                 div {
                                                     className = ClassName("form-check-inline")
                                                     input {
@@ -277,10 +291,17 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
 
                                     button {
                                         type = ButtonType.button
-                                        className = ClassName("btn btn-info mt-4 mr-3")
+                                        className = ClassName("btn btn-info mt-4")
                                         +"Create test project"
-                                        disabled = !state.projectCreationRequest.validate()
+                                        disabled = !state.projectCreationRequest.validate() || state.conflictErrorMessage != null
                                         onClick = { saveProject() }
+                                    }
+
+                                    state.conflictErrorMessage?.let {
+                                        div {
+                                            className = ClassName("invalid-feedback d-block")
+                                            +it
+                                        }
                                     }
                                 }
                             }
@@ -290,12 +311,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             }
         }
     }
-
-    private fun ChildrenBuilder.createDiv(blockName: String, text: String) =
-            div {
-                className = ClassName("$blockName mt-2")
-                +text
-            }
 
     companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
         init {
