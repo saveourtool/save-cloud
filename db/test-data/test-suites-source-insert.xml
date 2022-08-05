@@ -25,4 +25,17 @@
             <column name="test_root_path" value="examples/discovery-test"/>
         </insert>
     </changeSet>
+
+    <changeSet id="add-test_suite_source-2" author="sanyavertolet">
+        <insert tableName="test_suites_source">
+            <column name="id" value="3"/>
+            <column name="name" value="Another test suites from github"/>
+            <column name="description" value="Another description"/>
+            <column name="organization_id" value="1"/>
+            <column name="git_id" value="1"/>
+            <column name="branch" value="main"/>
+            <column name="test_root_path" value=""/>
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
