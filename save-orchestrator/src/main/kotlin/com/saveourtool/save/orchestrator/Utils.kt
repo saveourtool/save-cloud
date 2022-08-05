@@ -87,33 +87,6 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
     }
 
 /**
- * Create synthetic toml config for standard mode in aim to execute all suites at the same time
- *
- * @param execCmd execCmd for SAVE-cli for testing in standard mode
- * @param batchSizeForAnalyzer batchSize for SAVE-cli for testing in standard mode
- * @return synthetic toml config data
- */
-// FixMe: Use serialization after ktoml upgrades
-fun createSyntheticTomlConfig(execCmd: String?, batchSizeForAnalyzer: String?): String {
-    val exeCmdForTomlConfig = if (execCmd.isNullOrBlank()) "" else "execCmd = \"$execCmd\""
-    val batchSizeForTomlConfig = if (batchSizeForAnalyzer.isNullOrBlank()) {
-        ""
-    } else {
-        """
-        |[fix]
-        |    batchSize = $batchSizeForAnalyzer
-        |[warn]
-        |    batchSize = $batchSizeForAnalyzer
-        """.trimMargin()
-    }
-    return """
-           |[general]
-           |$exeCmdForTomlConfig
-           |$batchSizeForTomlConfig
-           """.trimMargin()
-}
-
-/**
  * Load default agent.properties from classpath, get properties values using configuration and store into [agentPropertiesFile].
  *
  * @param agentPropertiesFile target file

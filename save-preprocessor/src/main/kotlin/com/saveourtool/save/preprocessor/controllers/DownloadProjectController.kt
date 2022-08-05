@@ -35,8 +35,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
 import reactor.netty.http.client.HttpClientRequest
 
 import java.time.Duration
@@ -158,36 +156,31 @@ class DownloadProjectController(
         .filter(requestBase.getTestSuiteFilter())
         .collectList()
         .flatMap { testSuites ->
+            require(testSuites.isNotEmpty()) {
+                "No test suite is selected"
+            }
+            testSuites.map { it.source }
+                .distinct()
+                .also { sources ->
+                    require(sources.size == 1) {
+                        "Only a single test suites source is allowed for a run, but got: $sources"
+                    }
+                }
+            val version = testSuites.map { it.version }
+                .distinct()
+                .also { versions ->
+                    require(versions.size == 1) {
+                        "Only a single version is supported, but got: $versions"
+                    }
+                }
+                .single()
             updateExecution(
                 requestBase,
-                testSuites.getSingleVersion(),
+                version,
                 testSuites.map { it.requiredId() },
             )
         }
         .flatMap { it.executeTests() }
-
-    // check that all test suites are from same git repo (sources can be different) and have same version (sha1)
-    private fun List<TestSuite>.getSingleVersion(): String = this
-        .also { testSuites ->
-            require(testSuites.isNotEmpty()) {
-                "No TestSuite is selected"
-            }
-        }
-        .associateBy { it.source.git.url }
-        .also { urlToTestSuite ->
-            require(urlToTestSuite.keys.size == 1) {
-                "Only a single git location is supported, but got: ${urlToTestSuite.keys}"
-            }
-        }
-        .values
-        .map { it.version }
-        .distinct()
-        .also { versions ->
-            require(versions.size == 1) {
-                "Only a single version is supported, but got: $versions"
-            }
-        }
-        .single()
 
     /**
      * Accept execution rerun request
