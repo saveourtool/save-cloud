@@ -105,7 +105,7 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
-        getProjectAndAssert("The Project", "Example.com") {
+        getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
         }
     }
