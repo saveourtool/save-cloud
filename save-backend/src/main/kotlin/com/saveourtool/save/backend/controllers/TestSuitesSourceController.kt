@@ -431,6 +431,31 @@ class TestSuitesSourceController(
             .map { it.toDto() }
     }
 
+    /**
+     * @param organizationName
+     * @param name
+     * @return ID of [TestSuitesSource] found by [organizationName] and [name]
+     */
+    @GetMapping("/{organizationName}/{name}/id")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "ID of requested test suites source.",
+        description = "ID of requested test suites source.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
+        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully resolved ID for requested test suites source.")
+    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
+    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    fun getId(
+        @PathVariable organizationName: String,
+        @PathVariable name: String,
+    ): Mono<Long> = getTestSuitesSource(organizationName, name).map { it.requiredId() }
+
     private fun getOrganization(organizationName: String): Mono<Organization> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()

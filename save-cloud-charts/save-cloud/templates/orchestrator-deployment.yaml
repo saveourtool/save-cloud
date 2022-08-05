@@ -44,8 +44,6 @@ spec:
                   fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: repos-storage
-              mountPath: /home/cnb
             - name: tmp-resources-storage
               mountPath: /tmp/save/resources
             - name: execution-logs-storage
@@ -58,9 +56,6 @@ spec:
               memory: 600M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
-        - name: repos-storage
-          hostPath:
-            path: /tmp/save/repos
         - name: tmp-resources-storage
           persistentVolumeClaim:
             claimName: tmp-resources-storage
