@@ -87,7 +87,12 @@ class AgentsControllerTest {
                 .setBody(Json.encodeToString(emptyList<TestSuitesSourceSnapshotKey>()))
         )
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
-            DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
+            DockerService.RunConfiguration(
+                "test-image-id",
+                "test-exec-cmd",
+                DockerPvId("test-pv-id"),
+                Path.of("test-resources-path"),
+            )
         )
         whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
         mockServer.enqueue(

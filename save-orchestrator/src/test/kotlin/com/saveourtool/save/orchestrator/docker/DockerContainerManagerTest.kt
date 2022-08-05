@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import java.nio.file.Path
 
 import kotlin.io.path.createTempFile
 
@@ -59,7 +60,12 @@ class DockerContainerManagerTest {
         testFile.writeText("wow such testing")
         testContainerId = dockerAgentRunner.create(
             executionId = 42,
-            configuration = DockerService.RunConfiguration(baseImageId, "./script.sh", DockerPvId("test-volume")),
+            configuration = DockerService.RunConfiguration(
+                baseImageId,
+                "./script.sh",
+                DockerPvId("test-volume"),
+                Path.of("test-resources-path"),
+            ),
             replicas = 1,
             workingDir = "/",
         ).single()
