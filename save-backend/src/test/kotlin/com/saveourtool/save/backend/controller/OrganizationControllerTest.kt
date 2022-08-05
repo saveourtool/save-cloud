@@ -55,7 +55,7 @@ class OrganizationControllerTest {
         ""
     ).also { it.id = 1 }
     private val johnDoeUser = User(
-        "John Doe",
+        "JohnDoe",
         "",
         Role.VIEWER.toString(),
         ""
@@ -95,7 +95,7 @@ class OrganizationControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "John Doe", roles = ["VIEWER"])
+    @WithMockUser(value = "JohDoe", roles = ["VIEWER"])
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
         webClient.delete()

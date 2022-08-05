@@ -10,8 +10,6 @@ import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 
-import org.springframework.data.domain.Example
-import org.springframework.data.domain.ExampleMatcher
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -42,17 +40,25 @@ class ProjectService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun getOrSaveProject(project: Project): Pair<Long, ProjectSaveStatus> {
-        val exampleMatcher = ExampleMatcher.matchingAll()
-            .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.exact())
-            .withMatcher("owner", ExampleMatcher.GenericPropertyMatchers.exact())
-        val (projectId, projectSaveStatus) = projectRepository.findOne(Example.of(project, exampleMatcher)).map {
+        val (projectId, projectSaveStatus) = projectRepository.findByNameAndOrganizationName(project.name, project.organization.name)?.let {
             Pair(it.id, ProjectSaveStatus.EXIST)
-        }.orElseGet {
+        } ?: run {
             val savedProject = projectRepository.save(project)
             Pair(savedProject.id, ProjectSaveStatus.NEW)
         }
         requireNotNull(projectId) { "Should have gotten an ID for project from the database" }
         return Pair(projectId, projectSaveStatus)
+    }
+
+    /**
+     * @param project [Project] to be updated
+     * @return updated [project]
+     */
+    fun updateProject(project: Project): Project = run {
+        requireNotNull(project.id) {
+            "Project must be taken from DB so it's id must not be null"
+        }
+        projectRepository.save(project)
     }
 
     /**

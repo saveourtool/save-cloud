@@ -16,6 +16,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -156,28 +157,29 @@ internal class OrganizationController(
         description = "Create a new organization.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully saved a new organization.")
-    @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @ApiResponse(responseCode = "409", description = "Requested name is not available.")
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,
-    ): Mono<StringResponse> {
-        val ownerId = (authentication.details as AuthenticationDetails).id
-        val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
-            newOrganization.toOrganization(LocalDateTime.now())
-        )
-        if (organizationStatus == OrganizationSaveStatus.NEW) {
-            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
+    ): Mono<StringResponse> = Mono.just(newOrganization)
+        .map {
+            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
         }
-
-        val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
-            logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
-            ResponseEntity.status(HttpStatus.CONFLICT).body(organizationStatus.message)
-        } else {
-            logger.info("Save new organization id = $organizationId with ownerId $ownerId")
+        .filter { (_, status) ->
+            status == OrganizationSaveStatus.NEW
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            OrganizationSaveStatus.CONFLICT.message
+        }
+        .map { (organizationId, organizationStatus) ->
+            lnkUserOrganizationService.setRoleByIds(
+                (authentication.details as AuthenticationDetails).id,
+                organizationId,
+                Role.OWNER,
+            )
+            logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-        return Mono.just(response)
-    }
 
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader
