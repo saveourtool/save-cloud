@@ -504,7 +504,7 @@
           "404": {
             "description": "Test suites source with such name in organization name was not found.",
             "content": {
-              "*/*": {
+              "application/octet-stream": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -548,7 +548,7 @@
           "409": {
             "description": "IDs of test suites were not set on requested execution or weren\u0027t found by ID.",
             "content": {
-              "*/*": {
+              "application/octet-stream": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -592,7 +592,7 @@
           "200": {
             "description": "Successfully downloaded snapshot of test suites source for requested execution.",
             "content": {
-              "*/*": {
+              "application/octet-stream": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -636,7 +636,7 @@
           "401": {
             "description": "Unauthorized",
             "content": {
-              "*/*": {
+              "application/octet-stream": {
                 "schema": {
                   "type": "array",
                   "items": {
