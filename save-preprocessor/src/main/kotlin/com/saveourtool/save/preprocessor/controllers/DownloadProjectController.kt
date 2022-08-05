@@ -160,7 +160,7 @@ class DownloadProjectController(
                 "No test suite is selected"
             }
             testSuites.map { it.source }
-                .distinct()
+                .distinctBy { it.requiredId() }
                 .also { sources ->
                     require(sources.size == 1) {
                         "Only a single test suites source is allowed for a run, but got: $sources"
