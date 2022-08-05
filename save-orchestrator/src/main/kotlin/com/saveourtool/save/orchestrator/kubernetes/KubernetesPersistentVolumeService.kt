@@ -25,6 +25,7 @@ class KubernetesPersistentVolumeService(
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
+    @Suppress("TOO_LONG_FUNCTION")
     override fun createFromResources(resources: Collection<Path>): KubernetesPvId {
         requireNotNull(configProperties.kubernetes)
         if (resources.size > 1) {
