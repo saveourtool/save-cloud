@@ -161,9 +161,9 @@ class DownloadProjectController(
             }
             testSuites.map { it.source }
                 .distinct()
-                .also {
-                    require(it.size == 1) {
-                        "Only a single test suites source is allowed for a run, but got: $it"
+                .also { sources ->
+                    require(sources.size == 1) {
+                        "Only a single test suites source is allowed for a run, but got: $sources"
                     }
                 }
             val version = testSuites.map { it.version }
