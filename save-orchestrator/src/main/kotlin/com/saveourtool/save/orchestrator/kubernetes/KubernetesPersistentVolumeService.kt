@@ -13,11 +13,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.copyTo
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
 
@@ -46,8 +41,8 @@ class KubernetesPersistentVolumeService(
                 |  namespace: ${configProperties.kubernetes.namespace}
                 |${configProperties.kubernetes.pvcAnnotations?.let { pvcAnnotations ->
                 "  annotations:\n" +
-                    pvcAnnotations.lines().joinToString { "|    $it\n" }
-                }}
+                        pvcAnnotations.lines().joinToString { "|    $it\n" }
+            }}
                 |  
                 |spec:
                 |  accessModes:
@@ -56,10 +51,10 @@ class KubernetesPersistentVolumeService(
                 |    requests:
                 |      storage: ${configProperties.kubernetes.pvcSize}
                 |#  NB: key `volumeName` is not needed here, otherwise provisioner won't attempt to create a PV automatically
-                |#  storageClassName: ${""/*configProperties.kubernetes.pvcStorageClass*/}
+                |#  storageClassName: ${"" /* configProperties.kubernetes.pvcStorageClass*/}
                 ${configProperties.kubernetes.pvcStorageSpec.let { pvcStorageSpec ->
-                    pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
-                }}
+                pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
+            }}
             """.trimMargin().also {
                 logger.debug { "Creating PVC from the following YAML:\n${it.asIndentedMultiline()}" }
             }

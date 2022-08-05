@@ -28,13 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -105,6 +103,7 @@ class DockerService(
     /**
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
+     * @return
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
@@ -259,7 +258,7 @@ class DockerService(
         val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
         log.info("Built persistent volume with tests by id $pvId")
         // FixMe: temporary moved after `AgentRunner.start`
-//        FileSystemUtils.deleteRecursively(resourcesForExecution)
+        // FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
