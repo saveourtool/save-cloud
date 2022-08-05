@@ -1034,7 +1034,7 @@
             }
           },
           "409": {
-            "description": "Organization with such name already exists.",
+            "description": "Requested name is not available.",
             "content": {
               "*/*": {
                 "schema": {
@@ -1099,7 +1099,7 @@
             }
           },
           "409": {
-            "description": "Organization with such name already exists.",
+            "description": "Requested name is not available.",
             "content": {
               "*/*": {
                 "schema": {
@@ -2652,6 +2652,93 @@
                   "items": {
                     "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{name}/id": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "ID of requested test suites source.",
+        "description": "ID of requested test suites source.",
+        "operationId": "getId",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "name of test suites source",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "409": {
+            "description": "Organization was not found by provided name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test suites source with such name in organization name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully resolved ID for requested test suites source.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }

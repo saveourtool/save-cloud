@@ -46,7 +46,6 @@ data class ConfigProperties(
     val agentsStartCheckIntervalMillis: Long,
 ) {
     /**
-     * @property basePath path to the root directory, where all test resources are stored
      * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
      * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
      * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
@@ -54,7 +53,6 @@ data class ConfigProperties(
      * as a host location for this shared mount.
      */
     data class TestResources(
-        val basePath: String,
         val tmpPath: String,
     )
 

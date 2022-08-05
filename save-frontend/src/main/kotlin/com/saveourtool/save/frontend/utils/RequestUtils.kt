@@ -57,6 +57,13 @@ interface WithRequestStatusContext {
 }
 
 /**
+ * Get errors from backend (Spring Boot returns errors in message part of json)
+ *
+ * @return message part of json response
+ */
+suspend fun Response.unpackMessage(): String = json().await().asDynamic()["message"].toString()
+
+/**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
  *
  * @param map mapping function
@@ -175,6 +182,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 }
 
 /**
+ * @return true if given [Response] has 409 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isConflict(): Boolean = this.status == 409.toShort()
+
+/**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
  *
  * @param response
@@ -217,6 +230,33 @@ internal suspend fun ComponentWithScope<*, *>.classLoadingHandler(request: suspe
 }
 
 /**
+ * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
+ *
+ * @param response
+ */
+@Suppress("MAGIC_NUMBER")
+internal fun ComponentWithScope<*, *>.classComponentResponseHandlerWithValidation(
+    response: Response,
+) {
+    val hasResponseContext = this.asDynamic().context is RequestStatusContext
+    if (hasResponseContext) {
+        this.responseHandlerWithValidation(response)
+    }
+}
+
+/**
+ * @param response
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "MAGIC_NUMBER")
+internal fun WithRequestStatusContext.responseHandlerWithValidation(
+    response: Response,
+) {
+    if (!response.ok && !response.isConflict()) {
+        setResponse(response)
+    }
+}
+
+/**
  * Handler that allows to show loading modal
  *
  * @param request REST API method
@@ -251,6 +291,15 @@ private fun WithRequestStatusContext.withModalResponseHandler(
 ) {
     if (!response.ok) {
         setResponse(response)
+    }
+}
+
+private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
+    response: Response,
+) {
+    if (!response.ok && !response.isConflict()) {
+        val statusContext: RequestStatusContext = this.asDynamic().context
+        statusContext.setResponse.invoke(response)
     }
 }
 
