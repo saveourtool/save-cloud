@@ -5,7 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="replace-dots-with-hyphens" author="sanyavertolet" context="">
+    <changeSet id="replace-dots-with-hyphens" author="sanyavertolet" context="dev or prod">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <runningAs username="test"/>
+            </not>
+        </preConditions>
         <sql>
             update save_cloud.project set name = replace (name, '.', '-');
             update save_cloud.organization set name = replace (name, '.', '-');
@@ -14,6 +19,11 @@
     </changeSet>
 
     <changeSet id="insert-high-level-names-data" author="sanyavertolet" context="">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <runningAs username="test"/>
+            </not>
+        </preConditions>
         <sql>
             insert into save_cloud.high_level_names select name from save_cloud.organization;
             insert into save_cloud.high_level_names select name from save_cloud.user;
