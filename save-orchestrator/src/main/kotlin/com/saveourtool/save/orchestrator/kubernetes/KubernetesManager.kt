@@ -37,6 +37,7 @@ class KubernetesManager(
         "LongMethod",
         "MagicNumber",
         "NestedBlockDepth",
+        "ComplexMethod",
     )
     override fun create(executionId: Long,
                         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
@@ -75,6 +76,7 @@ class KubernetesManager(
                                 // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
                                 // Probably, a separate client process should be introduced. Until then, one init container performs copying
                                 // into a shared mount while others are sleeping for this many seconds:
+                                @Suppress("FLOAT_IN_ACCURATE_CALCULATIONS", "MAGIC_NUMBER")
                                 val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
                                 name = "save-vol-copier"
                                 image = "alpine:latest"
@@ -103,7 +105,7 @@ class KubernetesManager(
                                     labels = mapOf(
                                         "executionId" to executionId.toString(),
                                         // "baseImageName" to baseImageName
-                                         "io.kompose.service" to "save-agent"
+                                        "io.kompose.service" to "save-agent"
                                     )
                                 }
                                 image = baseImageName

@@ -103,7 +103,8 @@ class DockerService(
     /**
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
-     * @return
+     * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
+     * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {

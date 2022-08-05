@@ -15,11 +15,6 @@ interface PersistentVolumeService {
      * @return identifier of the created module
      */
     fun createFromResources(resources: Collection<Path>): PersistentVolumeId
-
-    /**
-     * Delete a persistent volume denoted by id [id].
-     */
-//    fun delete(id: PersistentVolumeId)
 }
 
 /**

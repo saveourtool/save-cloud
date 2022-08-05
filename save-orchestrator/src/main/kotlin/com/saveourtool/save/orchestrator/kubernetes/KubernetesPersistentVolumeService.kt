@@ -51,7 +51,6 @@ class KubernetesPersistentVolumeService(
                 |    requests:
                 |      storage: ${configProperties.kubernetes.pvcSize}
                 |#  NB: key `volumeName` is not needed here, otherwise provisioner won't attempt to create a PV automatically
-                |#  storageClassName: ${"" /* configProperties.kubernetes.pvcStorageClass*/}
                 ${configProperties.kubernetes.pvcStorageSpec.let { pvcStorageSpec ->
                 pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
             }}
@@ -73,6 +72,7 @@ class KubernetesPersistentVolumeService(
         )
     }
 
+    @Suppress("MAGIC_NUMBER")
     private fun String.asIndentedMultiline(indent: Int = 4) = lines()
         .joinToString(System.lineSeparator()) {
             it.prependIndent(" ".repeat(indent))
