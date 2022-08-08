@@ -110,6 +110,12 @@ class TestSuitesSourceService(
         }
     }
 
+    fun getOrganizationsWithPublicTestSuiteSources() = testSuitesSourceRepository.findAll()
+        .map {
+            it.organization.name
+        }
+        .distinct()
+
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()
 

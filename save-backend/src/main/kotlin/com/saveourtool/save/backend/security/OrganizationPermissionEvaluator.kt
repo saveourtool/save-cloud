@@ -59,6 +59,9 @@ class OrganizationPermissionEvaluator {
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
+
+    fun canAccessTestSuiteSourceS(userId: Long?, organizationRole: Role): Boolean = true
+
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
      * Simply delegating now.

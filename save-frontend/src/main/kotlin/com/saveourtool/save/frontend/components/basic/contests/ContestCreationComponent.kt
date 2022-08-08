@@ -72,7 +72,7 @@ fun ChildrenBuilder.showContestCreationModal(
         props.isOpen = isOpen
         props.style = Styles(
             content = json(
-                "top" to "25%",
+                "top" to "15%",
                 "left" to "30%",
                 "right" to "30%",
                 "bottom" to "auto",
@@ -153,9 +153,19 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         }
     }
 
+    val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
+
     div {
         className = ClassName("card")
         contestCreationCard {
+            showTestSuiteSelectorModal(
+                "",
+                isTestSuiteSelectorOpen,
+                {},
+                {},
+            ) {
+                setIsTestSuiteSelectorOpen(false)
+            }
             div {
                 className = ClassName("")
                 form {
@@ -202,6 +212,18 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             "Ending time",
                         ) {
                             setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
+                        }
+                    }
+                    // ==== Contest test suites
+                    div {
+                        className = ClassName("d-flex justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-secondary mt-4")
+                            +"Select test suites"
+                            onClick = {
+                                setIsTestSuiteSelectorOpen(true)
+                            }
                         }
                     }
                     // ==== Contest description
