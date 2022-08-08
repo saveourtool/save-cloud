@@ -108,7 +108,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
     runConfirmWindowModal(
         isConfirmWindowOpen = isConfirmDeleteGitCredentialWindowOpened,
         confirmLabel = "Deletion of git credential",
-        confirmMessage = "Please confirm deletion of git credential for ${gitCredentialToDelete.url}",
+        confirmMessage = "Please confirm deletion of git credential for ${gitCredentialToDelete.url}." +
+                "Note, this action will also delete corresponding test suite sources.",
         okButtonLabel = "Ok",
         closeButtonLabel = "Cancel",
         handlerClose = { setConfirmDeleteGitCredentialWindowOpened(false) }) {

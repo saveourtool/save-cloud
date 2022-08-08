@@ -42,4 +42,10 @@ interface TestSuitesSourceRepository : BaseEntityRepository<TestSuitesSource> {
      * @return found entities
      */
     fun findAllByGit(git: Git): List<TestSuitesSource>
+
+    /**
+     * @param id
+     * @return found entities
+     */
+    fun findAllByGitId(id: Long): List<TestSuitesSource>
 }

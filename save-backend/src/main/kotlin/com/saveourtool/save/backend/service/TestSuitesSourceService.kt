@@ -53,6 +53,10 @@ class TestSuitesSourceService(
             "TestSuitesSource not found by name $name in $organizationName"
         }
 
+    fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
+
+    fun findByGitId(id: Long) = testSuitesSourceRepository.findAllByGitId(id)
+
     /**
      * @param organization
      * @param git

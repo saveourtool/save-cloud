@@ -7,6 +7,8 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
@@ -54,6 +56,7 @@ internal class OrganizationController(
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val gitService: GitService,
+    private val testSuitesSourceService: TestSuitesSourceService,
 ) {
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -342,7 +345,7 @@ internal class OrganizationController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "url", `in` = ParameterIn.QUERY, description = "url of a git", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials.")
+    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials and corresponding test suite sources.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting organization git credentials.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun deleteGit(
@@ -363,6 +366,22 @@ internal class OrganizationController(
             "Not enough permission for managing organization git credentials."
         }
         .map {
+            val git = gitService.getByOrganizationAndUrl(it, url)
+            val testSuitesSources = testSuitesSourceService.findByGitId(git.id!!)
+            val testSuitesSources2 = testSuitesSourceService.findByGit(git)
+
+            println("---------------------------------------1")
+            testSuitesSources.forEach {
+                println(it.name)
+            }
+
+            println("---------------------------------------2")
+
+            testSuitesSources2.forEach {
+                println(it.name)
+            }
+
+
             gitService.delete(it, url)
             ResponseEntity.ok("Git credential deleted")
         }
