@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.lazyToMono
 import com.saveourtool.save.domain.ImageInfo
@@ -17,8 +18,10 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -58,6 +61,7 @@ internal class OrganizationController(
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -368,18 +372,32 @@ internal class OrganizationController(
             "Not enough permission for managing organization git credentials."
         }
         .map { organization ->
-            // Find and remove all corresponding data to the current git repository
+            // Find and remove all corresponding data to the current git repository from DB and file system storage
             val git = gitService.getByOrganizationAndUrl(organization, url)
             val testSuitesSources = testSuitesSourceService.findByGit(git)
             testSuitesSources.forEach { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
+                // Remove data from storage,
+                // since it is common for all test suites from one test suite source, it's enough to take any one of them
+                testSuites.firstOrNull()?.let {
+                    cleanupStorageData(it)
+                }
                 testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
                 testSuitesSourceService.delete(testSuitesSource)
             }
-
             gitService.delete(organization, url)
-            ResponseEntity.ok("Git credential deleted")
+            ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
         }
+
+    private fun cleanupStorageData(testSuite: TestSuite) {
+        testSuitesSourceSnapshotStorage.findKey(
+            testSuite.source.organization.name,
+            testSuite.source.name,
+            testSuite.version,
+        ).flatMap { key ->
+            testSuitesSourceSnapshotStorage.delete(key)
+        }.subscribe()
+    }
 
     companion object {
         @JvmStatic

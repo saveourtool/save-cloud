@@ -211,7 +211,7 @@ interface TestExecutionRepository : BaseEntityRepository<TestExecution>, JpaSpec
     /** Returns a TestExecutions matched by the test id
      *
      * @param testId test id
-     * @return Optional TestExecution
+     * @return list of [TestExecution]'s
      */
     fun findByTestId(testId: Long): List<TestExecution>
 
