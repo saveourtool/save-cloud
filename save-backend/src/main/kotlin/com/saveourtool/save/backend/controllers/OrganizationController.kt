@@ -349,6 +349,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials and all corresponding data.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting organization git credentials.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     fun deleteGit(
         @PathVariable organizationName: String,
         @RequestParam url: String,
@@ -366,9 +367,9 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization git credentials."
         }
-        .map {
+        .map { organization ->
             // Find and remove all corresponding data to the current git repository
-            val git = gitService.getByOrganizationAndUrl(it, url)
+            val git = gitService.getByOrganizationAndUrl(organization, url)
             val testSuitesSources = testSuitesSourceService.findByGit(git)
             testSuitesSources.forEach { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
@@ -376,7 +377,7 @@ internal class OrganizationController(
                 testSuitesSourceService.delete(testSuitesSource)
             }
 
-            gitService.delete(it, url)
+            gitService.delete(organization, url)
             ResponseEntity.ok("Git credential deleted")
         }
 

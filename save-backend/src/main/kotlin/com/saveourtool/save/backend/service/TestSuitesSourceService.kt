@@ -53,8 +53,15 @@ class TestSuitesSourceService(
             "TestSuitesSource not found by name $name in $organizationName"
         }
 
+    /**
+     * @param git
+     * @return entity
+     */
     fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
 
+    /**
+     * @param entity
+     */
     fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
 
     /**
