@@ -55,7 +55,7 @@ class TestSuitesSourceService(
 
     fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
 
-    fun findByGitId(id: Long) = testSuitesSourceRepository.findAllByGitId(id)
+    fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
 
     /**
      * @param organization

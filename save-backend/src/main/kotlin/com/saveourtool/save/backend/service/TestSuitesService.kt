@@ -120,6 +120,14 @@ class TestSuitesService(
     ): List<TestSuite> = testSuiteRepository.findAllBySourceAndVersion(source, version)
 
     /**
+     * @param source source of the test suite
+     * @return matched test suites
+     */
+    fun getBySource(
+        source: TestSuitesSource,
+    ): List<TestSuite> = testSuiteRepository.findAllBySource(source)
+
+    /**
      * Delete testSuites and related tests & test executions from DB
      *
      * @param testSuiteDtos suites, which need to be deleted
