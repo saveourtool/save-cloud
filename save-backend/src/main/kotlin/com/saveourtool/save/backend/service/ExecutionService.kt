@@ -1,12 +1,17 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.*
+import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -44,7 +49,7 @@ class ExecutionService(
      * @return id of the created [Execution]
      */
     fun saveExecutionAndReturnId(execution: Execution, username: String): Long = executionRepository.save(execution.apply {
-        this.user = userRepository.findByName(username).orElseThrow()
+        this.user = userRepository.findByName(username).orNotFound()
     }).requiredId()
 
     /**
@@ -180,9 +185,51 @@ class ExecutionService(
      */
     @Transactional
     fun updateExecutionWithUser(execution: Execution, username: String) {
-        val user = userRepository.findByName(username).orElseThrow()
+        val user = userRepository.findByName(username).orNotFound()
         executionRepository.save(execution.apply {
             this.user = user
         })
+    }
+
+    @Transactional
+    fun createNew(
+        project: Project,
+
+        testSuiteIds: List<Long>,
+        files: List<FileInfo>,
+        username: String,
+        batchSize: Int,
+        sdk: Sdk,
+    ): Execution {
+        val user = userRepository.findByName(username).orNotFound {
+            "Not found user $username"
+        }
+        val execution = Execution(
+            project = project,
+            startTime = LocalDateTime.now(),
+            endTime = null,
+            status = ExecutionStatus.PENDING,
+            testSuiteIds = null,
+            batchSize = batchSize,
+            // FIXME: remove this type
+            type = ExecutionType.GIT,
+            version = null,
+            allTests = 0,
+            runningTests = 0,
+            passedTests = 0,
+            failedTests = 0,
+            skippedTests = 0,
+            unmatchedChecks = 0,
+            matchedChecks = 0,
+            expectedChecks = 0,
+            unexpectedChecks = 0,
+            sdk = sdk.toString(),
+            additionalFiles = "",
+            user = user,
+            execCmd = null,
+            batchSizeForAnalyzer = null,
+        )
+        log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
+        return execution
     }
 }

@@ -65,22 +65,15 @@ class CloneRepositoryController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<ShortFileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = with(executionRequest.project) {
-        // Project cannot be taken from executionRequest directly for permission evaluation:
-        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+    ): Mono<StringResponse> =
             sendToPreprocessor(
                 executionRequest,
+                authentication,
                 ExecutionType.GIT,
-                authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId())
+                files
+            ) { request, executionId ->
+                request.copy(executionId = executionId)
             }
-        }
 
     /**
      * Endpoint to save project as binary file
@@ -95,44 +88,47 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+    ): Mono<StringResponse> =
             sendToPreprocessor(
                 executionRequestForStandardSuites,
+                authentication,
                 ExecutionType.STANDARD,
-                authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId())
+                files
+            ) { request, executionId ->
+                request.copy(executionId = executionId)
             }
-        }
 
     private fun <T : ExecutionRequestBase> sendToPreprocessor(
         executionRequest: T,
+        authentication: Authentication,
         executionType: ExecutionType,
-        username: String,
-        files: Flux<FileInfo>,
-        updateExecutionInRequest: (T, Execution) -> T
+        files: Flux<ShortFileInfo>,
+        updateExecutionInRequest: (T, Long) -> T
     ): Mono<StringResponse> {
-        val project = with(executionRequest.project) {
-            projectService.findByNameAndOrganizationName(name, organization.name)
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
-
-        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-        log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
-        val uri = when (executionType) {
-            ExecutionType.GIT -> "/upload"
-            ExecutionType.STANDARD -> "/uploadBin"
-        }
-        return files.updateExecution(newExecution).flatMap { savedExecution ->
-            preprocessorWebClient.post()
-                .uri(uri)
-                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
-                .retrieve()
-                .toEntity()
+        return with(executionRequest.project) {
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
+        }.flatMap { project ->
+            val newExecution = createNewExecution(
+                project,
+                authentication.username(),
+                executionType,
+                configProperties.initialBatchSize,
+                executionRequest.sdk
+            )
+            log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
+            val uri = when (executionType) {
+                ExecutionType.GIT -> "/upload"
+                ExecutionType.STANDARD -> "/uploadBin"
+            }
+            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
+            return@flatMap fileStorage.convertToLatestFileInfo(projectCoordinates, files)
+                .updateExecution(newExecution).flatMap { savedExecution ->
+                preprocessorWebClient.post()
+                    .uri(uri)
+                    .bodyValue(updateExecutionInRequest(executionRequest, savedExecution.requiredId()))
+                    .retrieve()
+                    .toEntity()
+            }
         }
     }
 

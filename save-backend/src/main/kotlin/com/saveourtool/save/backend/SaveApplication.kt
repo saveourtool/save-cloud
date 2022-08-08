@@ -14,6 +14,7 @@ typealias StringResponse = ResponseEntity<String>
 typealias EmptyResponse = ResponseEntity<Void>
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 typealias ResourceResponse = ResponseEntity<Resource>
+typealias IdResponse = ResponseEntity<Long>
 
 /**
  * An entrypoint for spring for save-backend

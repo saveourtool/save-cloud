@@ -197,5 +197,17 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
+
+        /**
+         * Format and set provided list of TestSuite IDs
+         *
+         * @param testSuiteIds list of TestSuite IDs
+         */
+        fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
+            this.testSuiteIds = testSuiteIds
+                .distinct()
+                .sorted()
+                .joinToString(DATABASE_DELIMITER)
+        }
     }
 }

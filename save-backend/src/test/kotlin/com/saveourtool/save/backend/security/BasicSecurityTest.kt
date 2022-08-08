@@ -33,9 +33,9 @@ class BasicSecurityTest {
     @BeforeEach
     fun setUp() {
         whenever(userRepository.findByName("user")).thenReturn(
-            Optional.of(User("user", null, "ROLE_USER", "basic").apply {
+            User("user", null, "ROLE_USER", "basic").apply {
                 id = 99
-            })
+            }
         )
     }
 

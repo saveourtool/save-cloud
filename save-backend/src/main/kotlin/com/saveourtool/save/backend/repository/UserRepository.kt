@@ -15,7 +15,7 @@ interface UserRepository : BaseEntityRepository<User> {
      * @param username
      * @return user or null if no results have been found
      */
-    fun findByName(username: String): Optional<User>
+    fun findByName(username: String): User?
 
     /**
      * @param username
