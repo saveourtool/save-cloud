@@ -279,7 +279,7 @@
     react-is "^18.2.0"
     react-transition-group "^4.4.2"
 
-"@mui/private-theming@^5.9.1", "@mui/private-theming@^5.9.3":
+"@mui/private-theming@^5.9.3":
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/@mui/private-theming/-/private-theming-5.9.3.tgz#8ea06dbe0522b0cf4ba5ee19b1a4d7f74539ae1c"
   integrity sha512-Ys3WO39WqoGciGX9k5AIi/k2zJhlydv4FzlEEwtw9OqdMaV0ydK/TdZekKzjP9sTI/JcdAP3H5DWtUaPLQJjWg==

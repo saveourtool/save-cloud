@@ -19,10 +19,8 @@ openApi {
     outputFileName.set("backend-api-docs.json")
     waitTimeInSeconds.set(120)
 
-    findProperty("isExecutedOnCI")?.let {
-        tasks.named<BootRun>("bootRun") {
-            jvmArgs("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
-        }
+    customBootRun {
+        jvmArgs.add("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
     }
 }
 
