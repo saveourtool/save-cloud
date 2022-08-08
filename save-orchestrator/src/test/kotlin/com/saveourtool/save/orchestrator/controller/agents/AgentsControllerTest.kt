@@ -11,14 +11,15 @@ import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.compressAsZipTo
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okio.Buffer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -46,8 +47,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempDirectory
+import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -79,12 +79,17 @@ class AgentsControllerTest {
             testSuiteIds = "1"
             id = 42L
         }
+        val tmpDir = createTempDirectory()
+        val tmpFile = createTempFile(tmpDir)
+        tmpFile.writeText("test")
+        val tmpArchive = createTempFile()
+        tmpDir.compressAsZipTo(tmpArchive)
         mockServer.enqueue(
-            ".*/test-suites-sources/list-snapshot-by-execution-id.*",
+            ".*/test-suites-sources/download-snapshot-by-execution-id.*",
             MockResponse()
                 .setResponseCode(200)
-                .addHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(emptyList<TestSuitesSourceSnapshotKey>()))
+                .addHeader("Content-Type", "application/octet-stream")
+                .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration(
@@ -120,6 +125,10 @@ class AgentsControllerTest {
         verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
+
+        tmpFile.deleteExisting()
+        tmpDir.deleteExisting()
+        tmpArchive.deleteExisting()
     }
 
     @Test

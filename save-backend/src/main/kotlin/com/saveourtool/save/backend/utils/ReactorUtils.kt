@@ -100,7 +100,9 @@ fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOr
  * @param supplier blocking operation like JDBC
  * @return [Mono] from result of blocking operation [T]
  */
-fun <T> blockingToMono(supplier: () -> T): Mono<T> = Mono.fromCallable(supplier).subscribeOn(Schedulers.boundedElastic())
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = Mono.just(Unit)
+    .flatMap { supplier().toMono() }
+    .subscribeOn(Schedulers.boundedElastic())
 
 /**
  * @param supplier blocking operation like JDBC
