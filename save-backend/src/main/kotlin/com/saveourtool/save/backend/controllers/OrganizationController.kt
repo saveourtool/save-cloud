@@ -10,6 +10,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.lazyToMono
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
@@ -18,7 +19,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -73,7 +73,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-    ) = Mono.fromCallable {
+    ) = lazyToMono {
         organizationService.findByName(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
