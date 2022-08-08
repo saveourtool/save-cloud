@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
-import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -35,7 +34,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
@@ -235,11 +233,6 @@ class AgentsController(
                 "Not found any tests for execution ${requiredId()}"
             }
         }
-
-    private fun Flux<DataBuffer>.writeTo(targetFile: Path): Mono<Path> =
-            DataBufferUtils.write(this, targetFile.outputStream())
-                .map { DataBufferUtils.release(it) }
-                .then(Mono.just(targetFile))
 
     private fun <T> reportExecutionError(
         execution: Execution,
