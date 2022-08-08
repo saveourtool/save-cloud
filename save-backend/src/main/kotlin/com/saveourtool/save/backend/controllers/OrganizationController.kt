@@ -122,6 +122,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully changed ability to create contests.")
     @ApiResponse(responseCode = "403", description = "Could not change ability to create contests due to lack of permission.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @Suppress("UnsafeCallOnNullableType")
     fun setAbilityToCreateContest(
         @PathVariable organizationName: String,
         @RequestParam isAbleToCreateContests: Boolean,
@@ -196,6 +197,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "403", description = "Not enough permission for managing this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
         @PathVariable organizationName: String,
         @RequestBody organization: Organization,
