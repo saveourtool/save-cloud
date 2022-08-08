@@ -2,11 +2,11 @@
 
 package com.saveourtool.save.utils
 
-import okio.Path.Companion.toPath
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import kotlin.io.path.exists
 import kotlin.io.path.name
+import kotlin.io.path.outputStream
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
@@ -32,6 +33,15 @@ fun Path.toDataBufferFlux(): Flux<DataBuffer> = if (exists()) {
  * @return content of file as [Flux] of [ByteBuffer]
  */
 fun Path.toByteBufferFlux(): Flux<ByteBuffer> = this.toDataBufferFlux().map { it.asByteBuffer() }
+
+/**
+ * @param target path to file to where a content from receiver will be written
+ * @return [Mono] with [target]
+ */
+fun Flux<DataBuffer>.writeTo(target: Path): Mono<Path> =
+        DataBufferUtils.write(this, target.outputStream())
+            .map { DataBufferUtils.release(it) }
+            .then(Mono.just(target))
 
 /**
  * @param stop
