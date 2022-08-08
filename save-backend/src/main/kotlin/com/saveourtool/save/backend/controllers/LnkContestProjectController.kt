@@ -49,7 +49,7 @@ class LnkContestProjectController(
     @GetMapping("/{contestName}/scores")
     fun getRatingsInContest(
         @PathVariable contestName: String,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<ContestResult> = Flux.fromIterable(lnkContestProjectService.getAllByContestName(contestName))
         .getScores()
 
@@ -66,7 +66,7 @@ class LnkContestProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @RequestParam(defaultValue = "4") amount: Int,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<ContestResult> = Flux.fromIterable(
         lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, amount)
     ).getScores()
@@ -89,9 +89,9 @@ class LnkContestProjectController(
     @GetMapping("/{contestName}/eligible-projects")
     fun getAvaliableProjectsForContest(
         @PathVariable contestName: String,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getAllProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getAllProjectsByUserId((authentication?.details as AuthenticationDetails).id).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
