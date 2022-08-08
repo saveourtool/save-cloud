@@ -42,7 +42,7 @@ class KubernetesPersistentVolumeService(
                 |  namespace: ${configProperties.kubernetes.namespace}
                 |${configProperties.kubernetes.pvcAnnotations?.let { pvcAnnotations ->
                 "  annotations:\n" +
-                        pvcAnnotations.lines().joinToString { "|    $it\n" }
+                        pvcAnnotations.lines().joinToString("\n") { "|    $it\n" }
             }}
                 |  
                 |spec:
