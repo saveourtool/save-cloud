@@ -168,7 +168,7 @@ internal class OrganizationController(
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
         }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             OrganizationSaveStatus.CONFLICT.message
         }
         .map { (organizationId, organizationStatus) ->
