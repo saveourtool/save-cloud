@@ -46,8 +46,6 @@ class KubernetesPersistentVolumeService(
             }}
                 |  
                 |spec:
-                |  accessModes:
-                |    - ReadWriteMany
                 |  resources:
                 |    requests:
                 |      storage: ${configProperties.kubernetes.pvcSize}
