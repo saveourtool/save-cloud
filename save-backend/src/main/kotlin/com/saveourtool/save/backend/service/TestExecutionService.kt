@@ -8,6 +8,8 @@ import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
@@ -248,36 +250,48 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
      * @param executionId ID of the [Execution], during which these tests will be executed
      * @param testIds IDs of the tests, which will be executed
      */
-    fun saveTestExecutions(executionId: Long, testIds: List<Long>) {
-        log.debug { "Will create test executions for executionId=$executionId for tests $testIds" }
-        val execution = executionRepository.findById(executionId).get()
-        testIds.map { testId ->
+    fun saveTestExecutionsByTestIds(executionId: Long, testIds: List<Long>) {
+        saveTestExecutions(
+            executionRepository.findById(executionId).get(),
+            testIds.mapNotNull { testId ->
+                testRepository.findById(testId).orElseGet {
+                    log.error { "Can't find test with id = $testId to save in testExecution" }
+                    null
+                }
+            }
+        )
+    }
+
+    /**
+     * @param execution the [Execution], during which these tests will be executed
+     * @param tests the tests, which will be executed
+     */
+    fun saveTestExecutions(execution: Execution, tests: List<Test>) {
+        val executionId = execution.requiredId()
+        log.debug { "Will create test executions for executionId=$executionId for tests ${tests.map { it.requiredId() }}" }
+        tests.map { test ->
+            val testId = test.requiredId()
             val testExecutionList = testExecutionRepository.findByExecutionIdAndTestId(executionId, testId)
             if (testExecutionList.isNotEmpty()) {
-                log.debug("For execution with id=$executionId test id=$testId already exists in DB, deleting it")
+                log.debug { "For execution with id=$executionId test id=$testId already exists in DB, deleting it" }
                 testExecutionRepository.deleteAllByExecutionIdAndTestId(executionId, testId)
             }
-            testRepository.findById(testId)
-                .ifPresentOrElse({ test ->
-                    log.debug("Creating TestExecution for test $testId")
-                    val id = testExecutionRepository.save(
-                        TestExecution(
-                            test = test,
-                            execution = execution,
-                            agent = null,
-                            status = TestResultStatus.READY_FOR_TESTING,
-                            startTime = null,
-                            endTime = null,
-                            unmatched = null,
-                            matched = null,
-                            expected = null,
-                            unexpected = null,
-                        )
-                    )
-                    log.debug { "Created TestExecution $id for test $testId" }
-                },
-                    { log.error { "Can't find test with id = $testId to save in testExecution" } }
+            log.debug("Creating TestExecution for test $testId")
+            val testExecution = testExecutionRepository.save(
+                TestExecution(
+                    test = test,
+                    execution = execution,
+                    agent = null,
+                    status = TestResultStatus.READY_FOR_TESTING,
+                    startTime = null,
+                    endTime = null,
+                    unmatched = null,
+                    matched = null,
+                    expected = null,
+                    unexpected = null,
                 )
+            )
+            log.debug { "Created TestExecution ${testExecution.requiredId()} for test $testId" }
         }
     }
 

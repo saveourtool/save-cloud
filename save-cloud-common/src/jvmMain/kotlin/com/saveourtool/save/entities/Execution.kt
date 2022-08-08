@@ -199,15 +199,18 @@ class Execution(
         )
 
         /**
-         * Format and set provided list of TestSuite IDs
-         *
          * @param testSuiteIds list of TestSuite IDs
+         * @return formatted string
          */
-        fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-            this.testSuiteIds = testSuiteIds
-                .distinct()
-                .sorted()
-                .joinToString(DATABASE_DELIMITER)
-        }
+        fun formatTestSuiteIds(testSuiteIds: List<Long>): String = testSuiteIds
+            .distinct()
+            .sorted()
+            .joinToString(DATABASE_DELIMITER)
+
+        /**
+         * @param fileKeys list of [FileKey]
+         * @return formatted string
+         */
+        fun formatAdditionalFiles(fileKeys: List<FileKey>): String = fileKeys.format()
     }
 }

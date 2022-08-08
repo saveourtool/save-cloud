@@ -53,7 +53,7 @@ class TestController(
         val testIds = testService.findTestsByExecutionId(executionId).map { it.requiredId() }
         log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $testIds" }
         meterRegistry.timer("save.backend.saveTestExecution").record {
-            testExecutionService.saveTestExecutions(executionId, testIds)
+            testExecutionService.saveTestExecutionsByTestIds(executionId, testIds)
         }
     }
 

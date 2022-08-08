@@ -1,34 +1,87 @@
 package com.saveourtool.save.backend.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.backend.IdResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
+import com.saveourtool.save.backend.utils.blockingToMono
+import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.username
-import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRunRequest
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ExecutionRunRequestByContest
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
-import jdk.nashorn.internal.runtime.regexp.joni.Config.log
+import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
+import io.micrometer.core.instrument.MeterRegistry
+import org.slf4j.Logger
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.http.client.MultipartBodyBuilder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 @RestController
 @RequestMapping("/api/run")
 class RunExecutionController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
+    private val executionInfoStorage: ExecutionInfoStorage,
+    private val testService: TestService,
+    private val testExecutionService: TestExecutionService,
+    private val contestService: ContestService,
+    private val meterRegistry: MeterRegistry,
     private val configProperties: ConfigProperties,
+    objectMapper: ObjectMapper,
+    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
+    private val webClientOrchestrator = WebClient.builder()
+        .baseUrl(configProperties.orchestratorUrl)
+        .codecs {
+            it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
+        }
+        .apply(kotlinSerializationWebClientCustomizer::customize)
+        .build()
+    private val scheduler = Schedulers.boundedElastic()
 
+
+    @PostMapping("/triggerByContest")
     fun triggerByContestId(
+        @RequestBody originalRequest: ExecutionRunRequestByContest,
+        authentication: Authentication,
+    ): Mono<IdResponse> = justOrNotFound(contestService.findById(originalRequest.contestId))
+        .map { contest ->
+            ExecutionRunRequest(
+                project = originalRequest.project,
+                testSuiteIds = contest.testSuiteIds.split(DATABASE_DELIMITER).map { it.toLong() },
+                files = originalRequest.files,
+                sdk = originalRequest.sdk,
+                execCmd = originalRequest.execCmd,
+                batchSizeForAnalyzer = originalRequest.batchSizeForAnalyzer,
+            )
+        }
+        .flatMap {
+            trigger(it, authentication)
+        }
+
+    @PostMapping("/trigger")
+    fun trigger(
         @RequestBody request: ExecutionRunRequest,
         authentication: Authentication,
     ): Mono<IdResponse> = with(request.project) {
@@ -36,42 +89,73 @@ class RunExecutionController(
             // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
             projectService.findWithPermissionByNameAndOrganization(authentication, name, organizationName, Permission.WRITE)
         }.flatMap { project ->
-                val newExecution = createNewExecution(
-                    project,
-                    authentication.username(),
-                    // FIXME: remove this type
-                    ExecutionType.GIT,
-                    configProperties.initialBatchSize,
-                    request.sdk
-                )
+        val execution = executionService.createNew(
+            project = project,
+            testSuiteIds = request.testSuiteIds,
+            files = request.files,
+            username = authentication.username(),
+            sdk = request.sdk,
+            execCmd = request.execCmd,
+            batchSizeForAnalyzer = request.batchSizeForAnalyzer
+        )
 
-                val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
-                sendToPreprocessor(
-                    executionRequest,
-                    ExecutionType.GIT,
-                    authentication.username(),
-                    fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-                ) { executionRequest, savedExecution ->
-                    executionRequest.copy(executionId = savedExecution.requiredId())
+        val executionId = execution.requiredId()
+        Mono.just(ResponseEntity.accepted().body(executionId))
+            .doOnSuccess {
+                blockingToMono {
+                    val tests = request.testSuiteIds.flatMap { testService.findTestsByTestSuiteId(it) }
+                    log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
+                    meterRegistry.timer("save.backend.saveTestExecution").record {
+                        testExecutionService.saveTestExecutions(execution, tests)
+                    }
                 }
+                    .flatMap {
+                        initializeAgents(execution)
+                            .map {
+                                log.debug { "Initialized agents for execution $executionId" }
+                            }
+                    }
+                    .onErrorResume { ex ->
+                        val failReason = "Error during preprocessing. Reason: ${ex.message}"
+                        log.error(
+                            "$failReason, will mark execution.id=$executionId as failed; error: ",
+                            ex
+                        )
+                        val executionUpdateDto = ExecutionUpdateDto(
+                            executionId,
+                            ExecutionStatus.ERROR,
+                            failReason
+                        )
+                        blockingToMono {
+                            executionService.updateExecutionStatus(execution, executionUpdateDto.status)
+                        }.flatMap {
+                            executionInfoStorage.upsertIfRequired(executionUpdateDto)
+                        }
+                    }
+                    .subscribeOn(scheduler)
+                    .subscribe()
             }
+    }
 
 
-    private fun createNewExecution(
-        project: Project,
-        username: String,
-        type: ExecutionType,
-        batchSize: Int,
-        sdk: Sdk,
-        additionalFiles: String,
-    ): Execution {
-        val execution = Execution.stub(project).apply {
-            status = ExecutionStatus.PENDING
-            this.batchSize = batchSize
-            this.sdk = sdk.toString()
-            this.type = type
-            id = executionService.saveExecutionAndReturnId(this, username)
+    /**
+     * POST request to orchestrator to initiate its work
+     */
+    private fun initializeAgents(execution: Execution): Mono<ResponseEntity<HttpStatus>> {
+        val bodyBuilder = MultipartBodyBuilder().apply {
+            part("execution", execution, MediaType.APPLICATION_JSON)
         }
-        return execution
+
+        return webClientOrchestrator
+            .post()
+            .uri("/initializeAgents")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .retrieve()
+            .toEntity()
+    }
+
+    companion object {
+        private val log: Logger = getLogger<RunExecutionController>()
     }
 }

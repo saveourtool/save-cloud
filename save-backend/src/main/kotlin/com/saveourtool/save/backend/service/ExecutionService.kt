@@ -1,9 +1,11 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.domain.format
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
@@ -32,6 +34,8 @@ class ExecutionService(
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
+    private val testSuitesService: TestSuitesService,
+    private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -89,6 +93,33 @@ class ExecutionService(
             }
         }
         executionRepository.save(execution)
+    }
+
+    /**
+     * @param execution [Execution]
+     * @param newStatus [Execution.status]
+     * @throws ResponseStatusException
+     */
+    @Transactional
+    fun updateExecutionStatus(execution: Execution, newStatus: ExecutionStatus) {
+        log.debug("Updating status to $newStatus on execution id = ${execution.requiredId()}")
+        val updatedExecution = execution.apply {
+            status = newStatus
+        }
+        if (updatedExecution.status == ExecutionStatus.FINISHED || updatedExecution.status == ExecutionStatus.ERROR) {
+            // execution is completed, we can update end time
+            updatedExecution.endTime = LocalDateTime.now()
+            // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
+            testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.requiredId()).map { testExec ->
+                log.debug {
+                    "Test execution id=${testExec.id} has status ${testExec.status} while execution id=${updatedExecution.id} has status ${updatedExecution.status}. " +
+                            "Will mark it ${TestResultStatus.INTERNAL_ERROR}"
+                }
+                testExec.status = TestResultStatus.INTERNAL_ERROR
+                testExecutionRepository.save(testExec)
+            }
+        }
+        executionRepository.save(updatedExecution)
     }
 
     /**
@@ -194,12 +225,12 @@ class ExecutionService(
     @Transactional
     fun createNew(
         project: Project,
-
         testSuiteIds: List<Long>,
         files: List<FileInfo>,
         username: String,
-        batchSize: Int,
         sdk: Sdk,
+        execCmd: String?,
+        batchSizeForAnalyzer: String?,
     ): Execution {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
@@ -209,12 +240,14 @@ class ExecutionService(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.PENDING,
-            testSuiteIds = null,
-            batchSize = batchSize,
+            testSuiteIds = Execution.formatTestSuiteIds(testSuiteIds),
+            batchSize = configProperties.initialBatchSize,
             // FIXME: remove this type
             type = ExecutionType.GIT,
-            version = null,
-            allTests = 0,
+            version = testSuitesService.getSingleVersionByIds(testSuiteIds),
+            allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
+                .count()
+                .toLong(),
             runningTests = 0,
             passedTests = 0,
             failedTests = 0,
@@ -224,10 +257,10 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk.toString(),
-            additionalFiles = "",
+            additionalFiles = files.format(),
             user = user,
-            execCmd = null,
-            batchSizeForAnalyzer = null,
+            execCmd = execCmd,
+            batchSizeForAnalyzer = batchSizeForAnalyzer,
         )
         log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
         return execution
