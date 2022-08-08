@@ -35,6 +35,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
@@ -91,10 +92,8 @@ class AgentsController(
                 .flatMap { resourcesForExecution ->
                     val resourcesPath = resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
                     execution.downloadTestsTo(resourcesPath)
-                        .map {
-                            execution.downloadAdditionalFilesTo(resourcesPath)
-                        }
-                        .map { resourcesForExecution }
+                        .then(execution.downloadAdditionalFilesTo(resourcesPath))
+                        .thenReturn(resourcesForExecution)
                 }
                 .publishOn(agentService.scheduler)
                 .map {
@@ -172,9 +171,11 @@ class AgentsController(
         .map {
             log.info { "Downloaded all additional files for execution $id to $targetDirectory" }
         }
-        .defaultIfEmpty(log.warn {
-            "Not found any additional files for execution $id"
-        })
+        .lazyDefaultIfEmpty {
+            log.warn {
+                "Not found any additional files for execution $id"
+            }
+        }
 
     private fun Pair<FileKey, Execution>.downloadTo(
         pathToFile: Path
@@ -186,11 +187,10 @@ class AgentsController(
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .retrieve()
             .bodyToFlux<DataBuffer>()
-            .let {
+            .let { content ->
                 pathToFile.parent.createDirectories()
-                DataBufferUtils.write(it, pathToFile.outputStream())
+                content.writeTo(pathToFile)
             }
-            .map { DataBufferUtils.release(it) }
             .then(
                 Mono.fromCallable {
                     // TODO: need to store information about isExecutable in Execution (FileKey)
@@ -200,6 +200,11 @@ class AgentsController(
                     }
                 }
             )
+            .lazyDefaultIfEmpty {
+                log.warn {
+                    "Not found additional file $fileKey for execution ${execution.id}"
+                }
+            }
     }
 
     private fun Execution.downloadTestsTo(
@@ -216,10 +221,7 @@ class AgentsController(
         .let { content ->
             targetDirectory.createDirectories()
             val targetFile = Files.createTempFile(targetDirectory, "archive-", ARCHIVE_EXTENSION)
-            DataBufferUtils.write(content, targetFile.outputStream())
-                .map { DataBufferUtils.release(it) }
-                .collectList()
-                .map { targetFile }
+            content.writeTo(targetFile)
         }
         .map {
             it.extractZipHere()
@@ -228,9 +230,16 @@ class AgentsController(
         .map {
             log.info { "Downloaded all tests for execution $id to $targetDirectory" }
         }
-        .defaultIfEmpty(log.warn {
-            "Not found any tests for execution ${requiredId()}"
-        })
+        .lazyDefaultIfEmpty {
+            log.warn {
+                "Not found any tests for execution ${requiredId()}"
+            }
+        }
+
+    private fun Flux<DataBuffer>.writeTo(targetFile: Path): Mono<Path> =
+            DataBufferUtils.write(this, targetFile.outputStream())
+                .map { DataBufferUtils.release(it) }
+                .then(Mono.just(targetFile))
 
     private fun <T> reportExecutionError(
         execution: Execution,
