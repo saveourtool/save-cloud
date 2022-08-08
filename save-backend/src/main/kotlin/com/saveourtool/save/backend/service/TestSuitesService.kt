@@ -137,12 +137,10 @@ class TestSuitesService(
         testSuiteDtos.forEach { testSuiteDto ->
             // Get test suite id by testSuiteDto
             val testSuiteId = getSavedIdByDto(testSuiteDto)
-
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
-                // Executions could be absent
-                testExecutionRepository.findByTestId(testId).ifPresent { testExecution ->
+                testExecutionRepository.findByTestId(testId).forEach { testExecution ->
                     // Delete test executions
                     val testExecutionId = testExecution.requiredId()
                     log.debug { "Delete test execution with id $testExecutionId" }
@@ -159,8 +157,9 @@ class TestSuitesService(
 
     private fun getSavedIdByDto(
         dto: TestSuiteDto,
-    ): Long = testSuiteRepository.findByNameAndSourceAndVersion(
+    ): Long = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
         dto.name,
+        dto.tags?.let(TestSuite::tagsFromList),
         testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
         dto.version
     )

@@ -12,12 +12,14 @@ import org.springframework.stereotype.Repository
 interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleExecutor<TestSuite> {
     /**
      * @param name name of the test suite
+     * @param tags tags of the test suite
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suite
      */
-    fun findByNameAndSourceAndVersion(
+    fun findByNameAndTagsAndSourceAndVersion(
         name: String,
+        tags: String?,
         source: TestSuitesSource,
         version: String
     ): TestSuite?
