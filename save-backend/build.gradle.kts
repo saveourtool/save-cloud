@@ -10,7 +10,7 @@ plugins {
     kotlin("jvm")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
-    id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
+    id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
 }
 
 openApi {
