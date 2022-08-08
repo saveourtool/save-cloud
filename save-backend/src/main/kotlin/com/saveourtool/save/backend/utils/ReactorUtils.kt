@@ -95,19 +95,12 @@ fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOr
 }
 
 /**
- * @param supplier it returns nullable [T]
- * @return [Mono] from result or empty
- */
-fun <T : Any> lazyToMono(supplier: () -> T?): Mono<T> = Mono.just(UInt)
-    .flatMap { supplier().toMono() }
-
-/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
  * @return [Mono] from result of blocking operation [T]
  */
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = lazyToMono(supplier)
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
     .subscribeOn(Schedulers.boundedElastic())
 
 /**
