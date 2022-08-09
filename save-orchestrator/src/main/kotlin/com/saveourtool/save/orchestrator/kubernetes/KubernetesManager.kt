@@ -95,7 +95,7 @@ class KubernetesManager(
                                     },
                                     VolumeMount().apply {
                                         name = "save-execution-pvc"
-                                        mountPath = EXECUTION_DIR
+                                        mountPath = EXECUTION_DIR.substringBeforeLast("/")
                                     }
                                 )
                             }
