@@ -47,7 +47,6 @@ data class FileKey(
  */
 fun List<FileKey>.format(): String = this.joinToString(FileKey.OBJECT_DELIMITER) { it.format() }
 
-fun List<FileInfo>.format(): String = joinToString(FileKey.OBJECT_DELIMITER) { it.format() }
 /**
  * @return formatted string
  */

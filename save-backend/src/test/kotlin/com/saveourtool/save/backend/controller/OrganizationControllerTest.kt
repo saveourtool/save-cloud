@@ -229,6 +229,6 @@ class OrganizationControllerTest {
         given(organizationRepository.findByName(any())).willReturn(organization)
         whenever(organizationRepository.save(any())).thenReturn(organization)
         given(userRepository.findByName(any())).willReturn(user)
-        given(userRepository.findByNameAndSource(any(), any())).willReturn(Optional.of(user))
+        given(userRepository.findByNameAndSource(any(), any())).willReturn(user)
     }
 }

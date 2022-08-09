@@ -8,7 +8,6 @@ import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.username
-import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRunRequest
 import com.saveourtool.save.entities.ExecutionRunRequestByContest
@@ -18,6 +17,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -47,16 +47,16 @@ class RunExecutionController(
     private val testExecutionService: TestExecutionService,
     private val contestService: ContestService,
     private val meterRegistry: MeterRegistry,
-    private val configProperties: ConfigProperties,
+    configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
-    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
+//    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val webClientOrchestrator = WebClient.builder()
         .baseUrl(configProperties.orchestratorUrl)
         .codecs {
             it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
         }
-        .apply(kotlinSerializationWebClientCustomizer::customize)
+//        .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
     private val scheduler = Schedulers.boundedElastic()
 
@@ -68,7 +68,7 @@ class RunExecutionController(
     ): Mono<IdResponse> = justOrNotFound(contestService.findById(originalRequest.contestId))
         .map { contest ->
             ExecutionRunRequest(
-                project = originalRequest.project,
+                projectCoordinates = originalRequest.projectCoordinates,
                 testSuiteIds = contest.testSuiteIds.split(DATABASE_DELIMITER).map { it.toLong() },
                 files = originalRequest.files,
                 sdk = originalRequest.sdk,
@@ -84,58 +84,64 @@ class RunExecutionController(
     fun trigger(
         @RequestBody request: ExecutionRunRequest,
         authentication: Authentication,
-    ): Mono<IdResponse> = with(request.project) {
-            // Project cannot be taken from executionRequest directly for permission evaluation:
-            // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organizationName, Permission.WRITE)
-        }.flatMap { project ->
-        val execution = executionService.createNew(
-            project = project,
-            testSuiteIds = request.testSuiteIds,
-            files = request.files,
-            username = authentication.username(),
-            sdk = request.sdk,
-            execCmd = request.execCmd,
-            batchSizeForAnalyzer = request.batchSizeForAnalyzer
-        )
-
-        val executionId = execution.requiredId()
-        Mono.just(ResponseEntity.accepted().body(executionId))
-            .doOnSuccess {
-                blockingToMono {
-                    val tests = request.testSuiteIds.flatMap { testService.findTestsByTestSuiteId(it) }
-                    log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
-                    meterRegistry.timer("save.backend.saveTestExecution").record {
-                        testExecutionService.saveTestExecutions(execution, tests)
-                    }
-                }
-                    .flatMap {
-                        initializeAgents(execution)
-                            .map {
-                                log.debug { "Initialized agents for execution $executionId" }
-                            }
-                    }
-                    .onErrorResume { ex ->
-                        val failReason = "Error during preprocessing. Reason: ${ex.message}"
-                        log.error(
-                            "$failReason, will mark execution.id=$executionId as failed; error: ",
-                            ex
-                        )
-                        val executionUpdateDto = ExecutionUpdateDto(
-                            executionId,
-                            ExecutionStatus.ERROR,
-                            failReason
-                        )
-                        blockingToMono {
-                            executionService.updateExecutionStatus(execution, executionUpdateDto.status)
-                        }.flatMap {
-                            executionInfoStorage.upsertIfRequired(executionUpdateDto)
+    ): Mono<IdResponse> = with(request.projectCoordinates) {
+        // Project cannot be taken from executionRequest directly for permission evaluation:
+        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
+        projectService.findWithPermissionByNameAndOrganization(authentication, projectName, organizationName, Permission.WRITE)
+    }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "User ${authentication.username()} doesn't have access to ${request.projectCoordinates}"
+        }
+        .map { project ->
+            executionService.createNew(
+                project = project,
+                testSuiteIds = request.testSuiteIds,
+                files = request.files,
+                username = authentication.username(),
+                sdk = request.sdk,
+                execCmd = request.execCmd,
+                batchSizeForAnalyzer = request.batchSizeForAnalyzer
+            )
+        }
+        .subscribeOn(Schedulers.boundedElastic())
+        .flatMap { execution ->
+            val executionId = execution.requiredId()
+            Mono.just(ResponseEntity.accepted().body(executionId))
+                .doOnSuccess {
+                    blockingToMono {
+                        val tests = request.testSuiteIds.flatMap { testService.findTestsByTestSuiteId(it) }
+                        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
+                        meterRegistry.timer("save.backend.saveTestExecution").record {
+                            testExecutionService.saveTestExecutions(execution, tests)
                         }
                     }
-                    .subscribeOn(scheduler)
-                    .subscribe()
-            }
-    }
+                        .flatMap {
+                            initializeAgents(execution)
+                                .map {
+                                    log.debug { "Initialized agents for execution $executionId" }
+                                }
+                        }
+                        .onErrorResume { ex ->
+                            val failReason = "Error during preprocessing. Reason: ${ex.message}"
+                            log.error(
+                                "$failReason, will mark execution.id=$executionId as failed; error: ",
+                                ex
+                            )
+                            val executionUpdateDto = ExecutionUpdateDto(
+                                executionId,
+                                ExecutionStatus.ERROR,
+                                failReason
+                            )
+                            blockingToMono {
+                                executionService.updateExecutionStatus(execution, executionUpdateDto.status)
+                            }.flatMap {
+                                executionInfoStorage.upsertIfRequired(executionUpdateDto)
+                            }
+                        }
+                        .subscribeOn(scheduler)
+                        .subscribe()
+                }
+        }
 
 
     /**

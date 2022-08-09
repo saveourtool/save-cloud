@@ -2,10 +2,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.domain.format
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
@@ -257,7 +254,7 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk.toString(),
-            additionalFiles = files.format(),
+            additionalFiles = files.map { it.toFileKey() }.format(),
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
