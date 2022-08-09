@@ -25,12 +25,16 @@ typealias TestSuiteDtoList = List<TestSuiteDto>
  * Service for test suites
  */
 @Service
+@Suppress("LongParameterList")
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val executionService: ExecutionService,
+    private val agentStatusService: AgentStatusService,
+    private val agentService: AgentService,
 ) {
     /**
      * Save new test suites to DB
@@ -134,9 +138,8 @@ class TestSuitesService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
-        testSuiteDtos.forEach { testSuiteDto ->
-            // Get test suite id by testSuiteDto
-            val testSuiteId = getSavedIdByDto(testSuiteDto)
+        val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
+        testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
@@ -150,8 +153,17 @@ class TestSuitesService(
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
-            log.info("Delete test suite ${testSuiteDto.name} with id $testSuiteId")
+            log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
+        }
+        // Delete executions and agents, which related to the test suites
+        // All test executions should be removed at this moment, that's why iterate one more time
+        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
+            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+            agentService.deleteAgentByExecutionIds(executionIds)
+            log.debug { "Delete executions with ids $executionIds" }
+            executionService.deleteExecutionByIds(executionIds)
         }
     }
 

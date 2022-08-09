@@ -53,6 +53,7 @@ import java.time.LocalDateTime
 )
 @RestController
 @RequestMapping(path = ["/api/$v1/organization", "/api/$v1/organizations"])
+@Suppress("LongParameterList")
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,

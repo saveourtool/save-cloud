@@ -33,4 +33,10 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * @return execution
      */
     fun findTopByProjectOrderByStartTimeDesc(project: Project): Execution?
+
+    /**
+     * @param id to find execution, which contain this suite id
+     * @return list of [Execution]'s
+     */
+    fun findAllByTestSuiteIdsContaining(id: String): List<Execution>
 }

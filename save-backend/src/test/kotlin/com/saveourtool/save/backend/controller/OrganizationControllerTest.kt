@@ -4,6 +4,9 @@ import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.AgentStatusService
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -43,6 +46,9 @@ import java.util.*
     GitService::class,
     TestSuitesSourceService::class,
     TestSuitesService::class,
+    ExecutionService::class,
+    AgentStatusService::class,
+    AgentService::class,
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -95,6 +101,15 @@ class OrganizationControllerTest {
 
     @MockBean
     private lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
+
+    @MockBean
+    private lateinit var executionRepository: ExecutionRepository
+
+    @MockBean
+    private lateinit var agentStatusRepository: AgentStatusRepository
+
+    @MockBean
+    private lateinit var agentRepository: AgentRepository
 
     @BeforeEach
     internal fun setUp() {
