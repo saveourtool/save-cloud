@@ -16,7 +16,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -122,10 +121,11 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully changed ability to create contests.")
     @ApiResponse(responseCode = "403", description = "Could not change ability to create contests due to lack of permission.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @Suppress("UnsafeCallOnNullableType")
     fun setAbilityToCreateContest(
         @PathVariable organizationName: String,
         @RequestParam isAbleToCreateContests: Boolean,
-        authentication: Authentication
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
     )
@@ -168,7 +168,7 @@ internal class OrganizationController(
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
         }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             OrganizationSaveStatus.CONFLICT.message
         }
         .map { (organizationId, organizationStatus) ->
@@ -196,6 +196,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "403", description = "Not enough permission for managing this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
         @PathVariable organizationName: String,
         @RequestBody organization: Organization,
@@ -278,7 +279,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun listGit(
         @PathVariable organizationName: String,
-        authentication: Authentication
+        authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()

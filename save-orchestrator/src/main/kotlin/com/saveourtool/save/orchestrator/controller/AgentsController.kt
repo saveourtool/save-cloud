@@ -7,14 +7,12 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_SOURCE_PREFIX_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.imageName
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.allExecute
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 
 import com.github.dockerjava.api.exception.DockerClientException
@@ -23,7 +21,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.buffer.DataBuffer
-import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -36,9 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToFlux
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
 import reactor.kotlin.core.publisher.toFlux
@@ -102,10 +97,8 @@ class AgentsController(
                 .flatMap { resourcesForExecution ->
                     val resourcesPath = resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
                     execution.downloadTestsTo(resourcesPath)
-                        .map {
-                            execution.downloadAdditionalFilesTo(resourcesPath)
-                        }
-                        .map { resourcesForExecution }
+                        .then(execution.downloadAdditionalFilesTo(resourcesPath))
+                        .thenReturn(resourcesForExecution)
                 }
                 .publishOn(agentService.scheduler)
                 .map {
@@ -183,9 +176,11 @@ class AgentsController(
         .map {
             log.info { "Downloaded all additional files for execution $id to $targetDirectory" }
         }
-        .defaultIfEmpty(log.warn {
-            "Not found any additional files for execution $id"
-        })
+        .lazyDefaultIfEmpty {
+            log.warn {
+                "Not found any additional files for execution $id"
+            }
+        }
 
     private fun Pair<FileKey, Execution>.downloadTo(
         pathToFile: Path
@@ -197,11 +192,10 @@ class AgentsController(
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .retrieve()
             .bodyToFlux<DataBuffer>()
-            .let {
+            .let { content ->
                 pathToFile.parent.createDirectories()
-                DataBufferUtils.write(it, pathToFile.outputStream())
+                content.writeTo(pathToFile)
             }
-            .map { DataBufferUtils.release(it) }
             .then(
                 Mono.fromCallable {
                     // TODO: need to store information about isExecutable in Execution (FileKey)
@@ -211,35 +205,19 @@ class AgentsController(
                     }
                 }
             )
+            .lazyDefaultIfEmpty {
+                log.warn {
+                    "Not found additional file $fileKey for execution ${execution.id}"
+                }
+            }
     }
 
     private fun Execution.downloadTestsTo(
         targetDirectory: Path
-    ): Mono<Unit> = getTestSuitesSourceSnapshotKeys()
-        .flatMapMany { Flux.fromIterable(it) }
-        .flatMap { key ->
-            key.getTestSuitesSourceId().map { it to key }
-        }
-        .flatMap { (id, key) ->
-            val testSuiteSourceDir = targetDirectory / "$TEST_SUITES_SOURCE_PREFIX_DIR_NAME$id"
-            key.downloadTestsTo(testSuiteSourceDir)
-        }
-        .collectList()
-        .map {
-            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
-        }
-        .defaultIfEmpty(log.warn {
-            "Not found any tests for execution $id"
-        })
-
-    private fun TestSuitesSourceSnapshotKey.downloadTestsTo(
-        targetDirectory: Path
     ): Mono<Unit> = webClientBackend.post()
         .uri(
-            "/test-suites-sources/{organizationName}/{sourceName}/download-snapshot?version={version}",
-            organizationName,
-            testSuitesSourceName,
-            version,
+            "/test-suites-sources/download-snapshot-by-execution-id?executionId={executionId}",
+            requiredId(),
         )
         .contentType(MediaType.APPLICATION_JSON)
         .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -248,30 +226,20 @@ class AgentsController(
         .let { content ->
             targetDirectory.createDirectories()
             val targetFile = Files.createTempFile(targetDirectory, "archive-", ARCHIVE_EXTENSION)
-            DataBufferUtils.write(content, targetFile.outputStream())
-                .map { DataBufferUtils.release(it) }
-                .collectList()
-                .map { targetFile }
+            content.writeTo(targetFile)
         }
         .map {
             it.extractZipHere()
             it.deleteExisting()
         }
         .map {
-            log.debug {
-                "Downloaded tests from test suites source ($testSuitesSourceName in $organizationName with version $version) to $targetDirectory"
+            log.info { "Downloaded all tests for execution $id to $targetDirectory" }
+        }
+        .lazyDefaultIfEmpty {
+            log.warn {
+                "Not found any tests for execution ${requiredId()}"
             }
         }
-
-    private fun Execution.getTestSuitesSourceSnapshotKeys(): Mono<TestSuitesSourceSnapshotKeyList> = webClientBackend.get()
-        .uri("/test-suites-sources/list-snapshot-by-execution-id?executionId={id}", requiredId())
-        .retrieve()
-        .bodyToMono()
-
-    private fun TestSuitesSourceSnapshotKey.getTestSuitesSourceId(): Mono<Long> = webClientBackend.get()
-        .uri("/test-suites-sources/{organizationName}/{name}/id", organizationName, testSuitesSourceName)
-        .retrieve()
-        .bodyToMono()
 
     private fun <T> reportExecutionError(
         execution: Execution,

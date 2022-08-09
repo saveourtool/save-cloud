@@ -23,3 +23,11 @@ fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCrea
  * @return original [Mono] or [Mono.error] with 404 status otherwise
  */
 fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null }) = switchIfEmptyToResponseException(HttpStatus.NOT_FOUND, messageCreator)
+
+/**
+ * @param lazyValue default value creator
+ * @return original [Mono] with switch to default value if original [Mono] is empty
+ */
+fun <T> Mono<T>.lazyDefaultIfEmpty(lazyValue: () -> T): Mono<T> = switchIfEmpty {
+    Mono.fromCallable(lazyValue)
+}

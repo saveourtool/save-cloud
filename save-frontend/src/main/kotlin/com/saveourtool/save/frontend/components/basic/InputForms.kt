@@ -283,7 +283,7 @@ internal fun ChildrenBuilder.inputDateFormRequired(
             onChange = onChangeFun
             id = form.name
             required = true
-            className = if (value.isNullOrEmpty()) {
+            className = if ((value as String?).isNullOrEmpty()) {
                 ClassName("form-control")
             } else if (validInput) {
                 ClassName("form-control is-valid")

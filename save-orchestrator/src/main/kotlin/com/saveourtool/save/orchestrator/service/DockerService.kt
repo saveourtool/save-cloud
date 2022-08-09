@@ -9,7 +9,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
 import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
@@ -19,6 +18,7 @@ import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.orConflict
 
 import com.github.dockerjava.api.DockerClient
@@ -40,8 +40,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createFile
-import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
@@ -222,13 +220,8 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
-            .resolve("save.toml")
-            .apply { createFile() }
-            .writeText(createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer))
         // collect test suite names, which were selected by user
-        val saveCliExecFlags = " $TEST_SUITES_DIR_NAME --include-suites \"${execution.getTestSuiteNames()}\""
+        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
         // include save-agent into the image
         PathUtils.copyFile(

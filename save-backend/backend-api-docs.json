@@ -474,6 +474,217 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/download-snapshot-by-execution-id": {
+      "post": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Download a snapshot of test suites source which is assigned to execution.",
+        "description": "Download a snapshot of test suites source which is assigned to execution.",
+        "operationId": "downloadByExecutionId",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "description": "ID of execution",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Test suites source with such name in organization name was not found.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "IDs of test suites were not set on requested execution or weren\u0027t found by ID.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully downloaded snapshot of test suites source for requested execution.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/upsert-git": {
       "post": {
         "tags": [
@@ -2664,93 +2875,6 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/id": {
-      "get": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "ID of requested test suites source.",
-        "description": "ID of requested test suites source.",
-        "operationId": "getId",
-        "parameters": [
-          {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "description": "name of test suites source",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Test suites source with such name in organization name was not found.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Successfully resolved ID for requested test suites source.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
     "/api/v1/test-suites-sources/{organizationName}/{name}/get-test-suites": {
       "get": {
         "tags": [
@@ -3162,80 +3286,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/TestSuitesSourceDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/list-snapshot-by-execution-id": {
-      "get": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "List of snapshots of test suites sources which are assigned to execution.",
-        "description": "List of snapshots of test suites sources which are assigned to execution.",
-        "operationId": "getByExecutionId",
-        "parameters": [
-          {
-            "name": "executionId",
-            "in": "query",
-            "description": "ID of execution",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "404": {
-            "description": "Execution was not found by provided ID.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
-                  }
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Successfully listed snapshots of test suites sources for requested execution.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
                   }
                 }
               }
@@ -4952,13 +5002,16 @@
     "/api/v1/contests/{organizationName}/{projectName}/eligible-contests": {
       "get": {
         "tags": [
-          "lnk-contest-project-controller"
+          "contests"
         ],
+        "summary": "Get contests that can be participated.",
+        "description": "Get list of contest names that a given project can participate in.",
         "operationId": "getAvaliableContestsForProject",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -4967,15 +5020,35 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched contests avaliable for project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -4987,19 +5060,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{organizationName}/{projectName}/best": {
       "get": {
         "tags": [
-          "lnk-contest-project-controller"
+          "contests"
         ],
+        "summary": "Get best contests of a project.",
+        "description": "Get list of contests in which given project has higher results.",
         "operationId": "getBestProjectContests",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -5008,6 +5089,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -5015,8 +5097,9 @@
           },
           {
             "name": "amount",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "description": "number of contests that will be fetched, default is 4",
+            "required": true,
             "schema": {
               "type": "integer",
               "format": "int32",
@@ -5026,7 +5109,20 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched best project contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -5038,7 +5134,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{contestName}": {
@@ -5058,12 +5159,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "responses": {
@@ -5108,13 +5203,16 @@
     "/api/v1/contests/{contestName}/scores": {
       "get": {
         "tags": [
-          "lnk-contest-project-controller"
+          "contests"
         ],
+        "summary": "Get scores of all projects in contest.",
+        "description": "Get scores of all projects in contest.",
         "operationId": "getRatingsInContest",
         "parameters": [
           {
             "name": "contestName",
             "in": "path",
+            "description": "name of a contest",
             "required": true,
             "schema": {
               "type": "string"
@@ -5123,7 +5221,20 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched contest scores.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -5135,7 +5246,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{contestName}/public-test": {
@@ -5155,12 +5271,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "responses": {
@@ -5205,13 +5315,16 @@
     "/api/v1/contests/{contestName}/enroll": {
       "get": {
         "tags": [
-          "lnk-contest-project-controller"
+          "contests"
         ],
+        "summary": "Register for a contest.",
+        "description": "Register your public project for a contest.",
         "operationId": "enrollForContest",
         "parameters": [
           {
             "name": "contestName",
             "in": "path",
+            "description": "name of a contest",
             "required": true,
             "schema": {
               "type": "string"
@@ -5220,6 +5333,7 @@
           {
             "name": "projectName",
             "in": "query",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -5228,15 +5342,62 @@
           {
             "name": "organizationName",
             "in": "query",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "403": {
+            "description": "Not enough permissions to enroll for a contest with given project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Only public projects can participate in contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either given project or given contest was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully enrolled for a contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -5245,28 +5406,55 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/{contestName}/eligible-projects": {
       "get": {
         "tags": [
-          "lnk-contest-project-controller"
+          "contests"
         ],
+        "summary": "Get projects that can participate in contest.",
+        "description": "Get list of user\u0027s projects that can participate in a given contest.",
         "operationId": "getAvaliableProjectsForContest",
         "parameters": [
           {
             "name": "contestName",
             "in": "path",
+            "description": "name of a contest",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched projects avaliable for contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -5278,7 +5466,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/contests/finished": {
@@ -5300,12 +5493,6 @@
               "format": "int32",
               "default": 10
             }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "responses": {
@@ -5440,12 +5627,6 @@
               "format": "int32",
               "default": 10
             }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "responses": {
