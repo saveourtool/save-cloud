@@ -56,7 +56,14 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
-    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
+    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
+    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
+        if (it.exists()) {
+            it
+        } else {
+            it.createDirectories()
+        }
+    }
 
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
