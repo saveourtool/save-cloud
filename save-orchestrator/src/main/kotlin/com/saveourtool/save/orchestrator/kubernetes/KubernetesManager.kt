@@ -50,6 +50,7 @@ class KubernetesManager(
     ): List<String> {
         val (baseImageId, agentRunCmd, pvId) = configuration
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
+        requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
@@ -99,7 +100,7 @@ class KubernetesManager(
                                     },
                                     VolumeMount().apply {
                                         name = "save-execution-pvc"
-                                        mountPath = configProperties.kubernetes!!.pvcMountPath
+                                        mountPath = configProperties.kubernetes.pvcMountPath
                                     }
                                 )
                             }
@@ -150,7 +151,7 @@ class KubernetesManager(
                                 volumeMounts = listOf(
                                     VolumeMount().apply {
                                         name = "save-execution-pvc"
-                                        mountPath = configProperties.kubernetes!!.pvcMountPath
+                                        mountPath = configProperties.kubernetes.pvcMountPath
                                     }
                                 )
                             }

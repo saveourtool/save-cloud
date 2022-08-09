@@ -84,6 +84,7 @@ data class ConfigProperties(
      * @property pvcAnnotations Kubernetes annotations for each PVC that will be generated to store resources for an execution
      * @property pvcSize requested size of the generated PVC
      * @property pvcStorageSpec Additional YAML spec for PVC
+     * @property pvcMountPath mount point for the PV with test resources
      */
     data class KubernetesSettings(
         val apiServerUrl: String,
