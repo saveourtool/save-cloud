@@ -83,7 +83,7 @@ class KubernetesManager(
                                 command = listOf(
                                     "sh", "-c",
                                     "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                                            " then cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
+                                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
                                             " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
                                             " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
                                             " fi"
@@ -95,7 +95,7 @@ class KubernetesManager(
                                     },
                                     VolumeMount().apply {
                                         name = "save-execution-pvc"
-                                        mountPath = EXECUTION_DIR.substringBeforeLast("/")
+                                        mountPath = configProperties.kubernetes!!.pvcMountPath
                                     }
                                 )
                             }

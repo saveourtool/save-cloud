@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.orchestrator.config
 
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -92,6 +93,7 @@ data class ConfigProperties(
         val pvcAnnotations: String?,
         val pvcSize: String,
         val pvcStorageSpec: String,
+        val pvcMountPath: String = EXECUTION_DIR,
     )
 
     /**
