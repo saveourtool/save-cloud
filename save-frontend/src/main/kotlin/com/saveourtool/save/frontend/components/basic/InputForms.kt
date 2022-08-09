@@ -63,6 +63,7 @@ enum class InputTypes(
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
     CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
+    CONTEST_TEST_SUITE_IDS("contest test suite ids"),
     ;
 }
 
@@ -140,6 +141,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
  * @param onChangeFun
  * @param errorText
  * @param textValue
+ * @param onClickFun
  * @return div with an input form
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
@@ -150,7 +152,8 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     name: String?,
     validInput: Boolean = true,
     errorText: String = "Please input a valid ${form.str}",
-    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+    onClickFun: () -> Unit = { },
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { },
 ) = div {
     className = ClassName("$classes pl-2 pr-2")
     name?.let { name ->
@@ -162,6 +165,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     }
     input {
         type = InputType.text
+        onClick = { onClickFun() }
         onChange = onChangeFun
         ariaDescribedBy = "${form.name}Span"
         id = form.name
@@ -279,7 +283,7 @@ internal fun ChildrenBuilder.inputDateFormRequired(
             onChange = onChangeFun
             id = form.name
             required = true
-            className = if (value.isNullOrEmpty()) {
+            className = if ((value as String?).isNullOrEmpty()) {
                 ClassName("form-control")
             } else if (validInput) {
                 ClassName("form-control is-valid")

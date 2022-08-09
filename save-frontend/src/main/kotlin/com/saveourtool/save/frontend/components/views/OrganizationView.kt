@@ -228,14 +228,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
             val users = getUsers()
             setState {
-                image = avatar
                 organization = organizationLoaded
+                image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
                 isEditDisabled = true
@@ -592,14 +591,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     isUploading = false
                 }
             }
-
-    private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    ).unsafeMap {
-        it.decodeFromJsonString<ImageInfo>()
-    }
 
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return

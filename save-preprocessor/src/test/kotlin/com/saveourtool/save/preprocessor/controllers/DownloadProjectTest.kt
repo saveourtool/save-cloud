@@ -135,7 +135,9 @@ class DownloadProjectTest(
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
         val git = Git(url = validRepo.url, organization = project.organization)
-        val testSuitesSource = TestSuitesSource(project.organization, "test", null, git, "main", "examples/kotlin-diktat/")
+        val testSuitesSource = TestSuitesSource(project.organization, "test", null, git, "main", "examples/kotlin-diktat/").apply {
+            id = 43L
+        }
 
         whenever(testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
             testSuitesSource.organization.name,

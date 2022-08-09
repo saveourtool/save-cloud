@@ -88,10 +88,10 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                     conflictErrorMessage = responseText
                 }
             } else {
-                responseFromCreationOrganization.text().then {
+                responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
                         isErrorWithOrganizationSave = true
-                        errorMessage = it
+                        errorMessage = message
                     }
                 }
             }
