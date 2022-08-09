@@ -82,9 +82,11 @@ class KubernetesManager(
                                 image = "alpine:latest"
                                 command = listOf(
                                     "sh", "-c",
-                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ]; then cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                                            " && chown -R 1100:1100 $EXECUTION_DIR" +
-                                            " && echo Successfully copied; else echo Copying already in progress && sleep $waitForCopySeconds; fi"
+                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
+                                            " then cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
+                                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
+                                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                                            " fi"
                                 )
                                 volumeMounts = listOf(
                                     VolumeMount().apply {
