@@ -107,6 +107,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
         )
         dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
+            .subscribe()
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
