@@ -19,7 +19,7 @@ data class TestSuiteDto(
     val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
-    var id: Long? = null
+    var id: Long? = null,
 ) {
     /**
      * @return non-nullable [id]
