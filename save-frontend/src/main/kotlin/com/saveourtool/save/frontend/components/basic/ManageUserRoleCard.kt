@@ -293,12 +293,15 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                             setRoleChange { SetRoleRequest(userName, event.target.value.toRole()) }
                             updatePermissions()
                         }
+                        value = userRole.formattedName
                         id = "role-$userIndex"
                         rolesAssignableBy(selfRole)
+                            .sortedByDescending {
+                                it.priority
+                            }
                             .map {
                                 option {
                                     value = it.formattedName
-                                    selected = it == userRole
                                     +it.formattedName
                                 }
                             }

@@ -72,7 +72,7 @@ fun ChildrenBuilder.showContestCreationModal(
         props.isOpen = isOpen
         props.style = Styles(
             content = json(
-                "top" to "25%",
+                "top" to "15%",
                 "left" to "30%",
                 "right" to "30%",
                 "bottom" to "auto",
@@ -124,15 +124,7 @@ private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == nul
     "AVOID_NULL_CHECKS"
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
-    val (contestDto, setContestDto) = useState(
-        ContestDto(
-            "",
-            null,
-            null,
-            null,
-            props.organizationName,
-        )
-    )
+    val (contestDto, setContestDto) = useState(ContestDto.empty.copy(organizationName = props.organizationName))
 
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
@@ -153,9 +145,26 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         }
     }
 
+    val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
+
+    val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
     div {
         className = ClassName("card")
         contestCreationCard {
+            showTestSuiteSelectorModal(
+                isTestSuiteSelectorOpen,
+                contestDto.testSuiteIds,
+                {
+                    setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds))
+                    setIsTestSuiteSelectorOpen(false)
+                },
+                {
+                    setSelectedTestSuiteIds(it)
+                },
+            ) {
+                setSelectedTestSuiteIds(emptyList())
+                setIsTestSuiteSelectorOpen(false)
+            }
             div {
                 className = ClassName("")
                 form {
@@ -203,6 +212,17 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         ) {
                             setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
                         }
+                    }
+                    // ==== Contest test suites
+                    div {
+                        className = ClassName("mt-2")
+                        inputTextFormOptional(
+                            InputTypes.CONTEST_TEST_SUITE_IDS,
+                            contestDto.testSuiteIds.joinToString(", "),
+                            "",
+                            "Test Suite Ids",
+                            onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                        )
                     }
                     // ==== Contest description
                     div {

@@ -110,6 +110,15 @@ class TestSuitesSourceService(
         }
     }
 
+    /**
+     * @return list of organizations that have open public test suite sources
+     */
+    fun getOrganizationsWithPublicTestSuiteSources() = testSuitesSourceRepository.findAll()
+        .map {
+            it.organization.name
+        }
+        .distinct()
+
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()
 
