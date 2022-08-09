@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
  * @property version snapshot version of [com.saveourtool.save.entities.TestSuitesSource]
  * @property language [com.saveourtool.save.entities.TestSuite.language]
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
+ * @property id
  */
 @Serializable
 data class TestSuiteDto(
@@ -18,12 +19,8 @@ data class TestSuiteDto(
     val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
-) {
-    /**
-     * Identificator of a TestSuite for easier test suite management
-     */
     var id: Long? = null
-
+) {
     /**
      * @return non-nullable [id]
      */

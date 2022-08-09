@@ -53,9 +53,8 @@ class TestSuite(
                 this.version,
                 this.language,
                 this.tagsAsList(),
-            ).apply {
-                this.id = id
-            }
+                id
+            )
 
     companion object {
         /**
