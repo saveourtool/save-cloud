@@ -18,7 +18,6 @@ detekt = "1.21.0"
 liquibase-core = "4.15.0"
 docker-java = "3.2.13"
 jgit = "6.2.0.202206071550-r"
-reactor = "3.4.8"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 logback = "1.2.11"
@@ -128,8 +127,6 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version = "5.4.1" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-reactor-kotlin-addons-extra = { module = "io.projectreactor.addons:reactor-extra", version.ref = "reactor" }
-reactor-kotlin-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions", version.ref = "reactor" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
