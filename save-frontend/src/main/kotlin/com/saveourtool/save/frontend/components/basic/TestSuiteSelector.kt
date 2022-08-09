@@ -115,7 +115,7 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                         className = ClassName("d-flex justify-content-center")
                         button {
                             type = ButtonType.button
-                            className = ClassName("btn btn-secondary mt-4")
+                            className = ClassName("btn btn-primary mt-4")
                             +"Apply"
                             onClick = {
                                 onSubmit()
@@ -159,7 +159,6 @@ private fun ChildrenBuilder.showAvaliableOptions(
 
 private fun ChildrenBuilder.showAvaliableTestSuites(
     testSuites: List<TestSuiteDto>,
-    preselectedTestSuites: List<Long>,
     selectedTestSuites: List<TestSuiteDto>,
     onTestSuiteClick: (TestSuiteDto) -> Unit,
 ) {
@@ -343,7 +342,7 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
                 selectedTestSuiteVersion == null -> showAvaliableOptions(avaliableTestSuitesVersions) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                 }
-                else -> showAvaliableTestSuites(avaliableTestSuites, props.preselectedTestSuiteIds, selectedTestSuites) { testSuite ->
+                else -> showAvaliableTestSuites(avaliableTestSuites, selectedTestSuites) { testSuite ->
                     setSelectedTestSuites { selectedTestSuites ->
                         selectedTestSuites.toMutableList()
                             .apply {
