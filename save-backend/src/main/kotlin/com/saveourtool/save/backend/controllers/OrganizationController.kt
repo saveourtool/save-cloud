@@ -8,7 +8,6 @@ import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.lazyToMono
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
@@ -69,7 +68,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     fun getOrganizationByName(
         @PathVariable organizationName: String,
-    ) = lazyToMono {
+    ) = Mono.fromCallable {
         organizationService.findByName(organizationName)
     }.switchIfEmptyToNotFound {
         "Organization not found by name $organizationName"
