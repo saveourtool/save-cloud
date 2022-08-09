@@ -503,6 +503,16 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
 
+    fun triggerFetch(
+        @PathVariable organizationName: String,
+        @PathVariable name: String,
+        authentication: Authentication,
+    ): ResponseEntity<Unit> {
+        testSuitesSourceService.findByName(organizationName, name)
+        return ResponseEntity.accepted()
+            .body(Unit)
+    }
+
     private fun TestSuitesSourceDto.downloadSnapshot(
         version: String
     ): Mono<ByteBufferFluxResponse> = testSuitesSourceSnapshotStorage.findKey(organizationName, name, version)
