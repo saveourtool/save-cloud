@@ -24,7 +24,6 @@ import org.springframework.http.codec.multipart.Part
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
@@ -58,7 +57,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/list",
             "/api/$v1/test-suites-sources/{organizationName}/list",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -95,7 +94,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}",
             "/api/$v1/test-suites-sources/{organizationName}/{name}",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -131,7 +130,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/upload-snapshot",
             "/api/$v1/test-suites-sources/{organizationName}/{name}/upload-snapshot",
-               ],
+        ],
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
     )
     @RequiresAuthorizationSourceHeader
@@ -180,7 +179,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/download-snapshot",
             "/api/$v1/test-suites-sources/{organizationName}/{name}/download-snapshot",
-               ],
+        ],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
     )
     @RequiresAuthorizationSourceHeader
@@ -231,7 +230,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/contains-snapshot",
             "/api/$v1/test-suites-sources/{organizationName}/{name}/contains-snapshot",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -266,7 +265,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/list-snapshot",
             "/api/$v1/test-suites-sources/{organizationName}/{name}/list-snapshot",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -287,14 +286,9 @@ class TestSuitesSourceController(
         @PathVariable name: String,
     ): Mono<TestSuitesSourceSnapshotKeyList> = findAsDtoByName(organizationName, name)
         .flatMap {
-            println(it)
             testSuitesSourceSnapshotStorage.list(it.organizationName, it.name)
                 .collectList()
         }
-        .map {
-            it.also { println(it) }
-        }
-
 
     /**
      * @param organizationName
@@ -303,7 +297,7 @@ class TestSuitesSourceController(
     @GetMapping(path = [
         "/internal/test-suites-sources/{organizationName}/list-snapshot",
         "/api/$v1/test-suites-sources/{organizationName}/list-snapshot",
-                       ],
+    ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -336,7 +330,7 @@ class TestSuitesSourceController(
     @PostMapping(path = [
         "/internal/test-suites-sources/{organizationName}/get-or-create",
         "/api/$v1/test-suites-sources/{organizationName}/get-or-create",
-                        ],
+    ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -429,7 +423,9 @@ class TestSuitesSourceController(
             testSuitesService.getBySourceAndVersion(
                 testSuitesSource,
                 version
-            ).map { it.toDto() }
+            ).map {
+                it.toDto(it.requiredId())
+            }
         }
 
     /**
@@ -440,7 +436,7 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/list-snapshot-by-execution-id",
             "/api/$v1/test-suites-sources/list-snapshot-by-execution-id",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -491,13 +487,13 @@ class TestSuitesSourceController(
     /**
      * Will be removed in phase 3
      *
-     * @return list of standard test suites sourcers
+     * @return list of standard test suites sources
      */
     @GetMapping(
         path = [
             "/internal/test-suites-sources/get-standard",
             "/api/$v1/test-suites-sources/get-standard",
-               ],
+        ],
     )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -521,8 +517,8 @@ class TestSuitesSourceController(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/id",
             "/api/$v1/test-suites-sources/{organizationName}/{name}/id",
-               ],
-        )
+        ],
+    )
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -560,6 +556,14 @@ class TestSuitesSourceController(
                 }
 
     @GetMapping("/api/$v1/test-suites-sources/organizations-list")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organizations with public test suite sources.",
+        description = "Get list of organizations with public test suite sources",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
     fun getOrganizationNamesWithPublicTestSuiteSources(
         authentication: Authentication,
     ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()

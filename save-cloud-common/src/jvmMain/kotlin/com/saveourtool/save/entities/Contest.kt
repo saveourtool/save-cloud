@@ -40,6 +40,7 @@ class Contest(
         endTime!!,
         description,
         organization.name,
+        getTestSuiteIds().toList(),
     )
 
     /**
@@ -49,7 +50,7 @@ class Contest(
         .mapNotNull {
             it.toLongOrNull()
         }
-        .toSet()
+        .distinct()
 
     private fun validateTestSuiteIds() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
 
@@ -83,17 +84,17 @@ class Contest(
             this.id = id
         }
 
+        private fun joinTestSuiteIds(testSuiteIds: List<Long>) = testSuiteIds.joinToString(DATABASE_DELIMITER)
+
         /**
          * Create [Contest] from [ContestDto]
          *
          * @param organization that created contest
-         * @param testSuiteIds list of test suite ids
          * @param status [ContestStatus]
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
-            testSuiteIds: String = "",
             status: ContestStatus = ContestStatus.CREATED,
         ) = Contest(
             name,
@@ -101,7 +102,7 @@ class Contest(
             startTime,
             endTime,
             organization,
-            testSuiteIds,
+            joinTestSuiteIds(testSuiteIds),
             description,
         )
     }

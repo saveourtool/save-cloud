@@ -15,6 +15,8 @@ import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -34,7 +36,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -196,32 +197,25 @@ internal class ContestController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+        .switchIfEmptyToNotFound()
         .filter {
             organizationPermissionEvaluator.canCreateContests(it, authentication)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
-        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN)
         .map {
             contestDto.toContest(it)
         }
         .filter {
             it.validate()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Contest data is not valid."
         }
         .filter {
             contestService.createContestIfNotPresent(it)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "Contest with name ${contestDto.name} is already present",
-            ))
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Contest with name ${contestDto.name} is already present"
         }
         .map {
             ResponseEntity.ok("Contest has been successfully created!")
@@ -248,18 +242,18 @@ internal class ContestController(
         Mono.justOrEmpty(Optional.ofNullable(organizationService.findByName(contestRequest.organizationName))),
         Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
     )
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."))
+        .switchIfEmptyToNotFound {
+            "Either organization [${contestRequest.organizationName}] or contest [${contestRequest.name}] was not found."
         }
         .filter { (organization, _) ->
             organizationPermissionEvaluator.hasPermission(authentication, organization, Permission.DELETE)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have enough permissions to edit this contest."))
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "You do not have enough permissions to edit this contest."
         }
         .map { (organization, contest) ->
             contestService.updateContest(
-                contestRequest.toContest(organization, contest.testSuiteIds, contest.status).apply { id = contest.id }
+                contestRequest.toContest(organization, contest.status).apply { id = contest.id }
             )
             ResponseEntity.ok("Contest successfully updated")
         }

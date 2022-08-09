@@ -6,59 +6,37 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.core.plugin.Plugin
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.organizations.encodeURIComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.modal.Classes
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
-import com.saveourtool.save.v1
 
 import csstype.ClassName
-import csstype.Width
-import kotlinx.coroutines.await
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
 import react.*
 import react.dom.*
-import react.dom.html.InputType
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.select
-import react.dom.html.ReactHTML.span
-import react.dom.html.ReactHTML.strong
-import react.dom.html.ReactHTML.ul
-
-import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
-import react.dom.aria.ariaHidden
-import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
+import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.small
+import react.dom.html.ReactHTML.ul
+
 import kotlin.js.json
+
+val testSuiteSelector = testSuiteSelector()
 
 /**
  * [Props] for [testSuiteSelector] component
@@ -67,20 +45,28 @@ external interface TestSuiteSelectorProps : Props {
     /**
      * Lambda invoked when test suites were successfully set
      */
-    var onSuccess: (String) -> Unit
+    var onTestSuiteIdUpdate: (List<Long>) -> Unit
 
     /**
-     * Lambda invoked when an error occurred
+     * List of test suite ids that should be preselected
      */
-    var onFailure: (Response) -> Unit
+    var preselectedTestSuiteIds: List<Long>
 }
 
+/**
+ * @param isOpen
+ * @param preselectedTestSuiteIds
+ * @param onSubmit
+ * @param onTestSuiteIdUpdate
+ * @param onCancel
+ */
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.showTestSuiteSelectorModal(
-    contestName: String,
     isOpen: Boolean,
-    onSuccess: (String) -> Unit,
-    onFailure: (Response) -> Unit,
-    onClose: () -> Unit,
+    preselectedTestSuiteIds: List<Long>,
+    onSubmit: () -> Unit,
+    onTestSuiteIdUpdate: (List<Long>) -> Unit,
+    onCancel: () -> Unit,
 ) {
     modal { props ->
         props.isOpen = isOpen
@@ -108,12 +94,9 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                         className = ClassName("close")
                         asDynamic()["data-dismiss"] = "modal"
                         ariaLabel = "Close"
-                        span {
-                            ariaHidden = true
-                            +"x"
-                        }
+                        fontAwesomeIcon(icon = faTimesCircle)
                         onClick = {
-                            onClose()
+                            onCancel()
                         }
                     }
                 }
@@ -121,8 +104,8 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                 div {
                     className = ClassName("modal-body")
                     testSuiteSelector {
-                        this.onSuccess = onSuccess
-                        this.onFailure = onFailure
+                        this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
+                        this.preselectedTestSuiteIds = preselectedTestSuiteIds
                     }
                 }
 
@@ -133,189 +116,23 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-secondary mt-4")
+                            +"Apply"
+                            onClick = {
+                                onSubmit()
+                            }
+                        }
+                    }
+                    div {
+                        className = ClassName("d-flex justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-secondary mt-4")
                             +"Cancel"
                             onClick = {
-                                onClose()
+                                onCancel()
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-val testSuiteSelector = testSuiteSelector()
-
-private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
-    val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
-    val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
-    val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-
-    val (avaliableOrganizations, setAvaliableOrganizations) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
-        val organizations = get(
-            url = "$apiUrl/test-suites-sources/organizations-list",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString<List<String>>()
-        setAvaliableOrganizations(organizations)
-    }()
-
-    val (avaliableTestSuiteSources, setAvaliableTestSuiteSources) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
-        selectedOrganization?.let { selectedOrganization ->
-            val testSuiteSources = get(
-                url = "$apiUrl/test-suites-sources/$selectedOrganization/list",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-                .decodeFromJsonString<List<TestSuitesSourceDto>>()
-                .map { it.name }
-            setAvaliableTestSuiteSources(testSuiteSources)
-        }
-    }()
-
-    val (avaliableTestSuitesVersions, setAvaliableTestSuitesVersions) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
-        selectedTestSuiteSource?.let { selectedTestSuiteSource ->
-            val testSuiteSourcesVersions = get(
-                url = "$apiUrl/test-suites-sources/${selectedOrganization}/${encodeURIComponent(selectedTestSuiteSource)}/list-snapshot",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-            )
-                .decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
-                .map { it.version }
-            setAvaliableTestSuitesVersions(testSuiteSourcesVersions)
-        }
-    }()
-
-    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
-        selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
-            selectedTestSuiteSource?.let { selectedTestSuiteSource ->
-                val testSuites = get(
-                    url = "$apiUrl/test-suites-sources/${selectedOrganization}/${
-                        encodeURIComponent(
-                            selectedTestSuiteSource
-                        )
-                    }" +
-                            "/get-test-suites?version=${encodeURIComponent(selectedTestSuiteVersion)}",
-                    headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
-                )
-                    .decodeFromJsonString<List<TestSuiteDto>>()
-                setAvaliableTestSuites(testSuites)
-            }
-        }
-    }()
-
-    val sendSetContestTestSuitesRequest = useRequest(isDeferred = false) {
-        if (selectedTestSuites.isNotEmpty()) {
-            val response = post(
-                url = "$apiUrl/contests/update",
-                headers = jsonHeaders,
-                body = undefined,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-            if (response.ok) {
-                props.onSuccess(response.text().await())
-            } else {
-                props.onFailure(response)
-            }
-        }
-    }
-
-    div {
-        // ==================== BREADCRUMB ====================
-        className = ClassName("")
-        nav {
-            ariaLabel = "breadcrumb"
-            ol {
-                className = ClassName("breadcrumb")
-                li {
-                    className = ClassName("breadcrumb-item")
-                    a {
-                        onClick = {
-                            setSelectedOrganization(null)
-                            setSelectedTestSuiteSource(null)
-                            setSelectedTestSuiteVersion(null)
-                        }
-                        +"organizations"
-                    }
-                }
-                selectedOrganization?.let {
-                    li {
-                        val isActive = selectedTestSuiteSource?.let { "" } ?: "active"
-                        className = ClassName("breadcrumb-item $isActive")
-                        a {
-                            onClick = {
-                                setSelectedTestSuiteSource(null)
-                                setSelectedTestSuiteVersion(null)
-                            }
-                            +selectedOrganization
-                        }
-                    }
-                }
-                selectedTestSuiteSource?.let {
-                    li {
-                        val isActive = selectedTestSuiteVersion?.let { "" } ?: "active"
-                        className = ClassName("breadcrumb-item $isActive")
-                        a {
-                            onClick = {
-                                setSelectedTestSuiteVersion(null)
-                            }
-                            +selectedTestSuiteSource
-                        }
-                    }
-                }
-                selectedTestSuiteVersion?.let {
-                    li {
-                        className = ClassName("breadcrumb-item active")
-                        +selectedTestSuiteVersion
-                    }
-                }
-            }
-        }
-        // ==================== SELECTOR ====================
-        div {
-            className = ClassName("")
-            when {
-                selectedOrganization == null -> showAvaliableOptions(avaliableOrganizations) { organization ->
-                    setSelectedOrganization(organization)
-                }
-                selectedTestSuiteSource == null -> showAvaliableOptions(avaliableTestSuiteSources) { testSuiteSource ->
-                    setSelectedTestSuiteSource(testSuiteSource)
-                }
-                selectedTestSuiteVersion == null -> showAvaliableOptions(avaliableTestSuitesVersions) { testSuiteVersion ->
-                    setSelectedTestSuiteVersion(testSuiteVersion)
-                }
-                else -> showAvaliableTestSuites(avaliableTestSuites, selectedTestSuites) { testSuite ->
-                    setSelectedTestSuites { selectedTestSuites ->
-                        selectedTestSuites.toMutableList().apply {
-                            if (testSuite in selectedTestSuites) {
-                                remove(testSuite)
-                            } else {
-                                add(testSuite)
-                            }
-                        }.toList()
-                    }
-                }
-            }
-        }
-        div {
-            className = ClassName("")
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mt-4")
-                +"Cancel"
-                onClick = {
-                    sendSetContestTestSuitesRequest()
                 }
             }
         }
@@ -342,13 +159,18 @@ private fun ChildrenBuilder.showAvaliableOptions(
 
 private fun ChildrenBuilder.showAvaliableTestSuites(
     testSuites: List<TestSuiteDto>,
+    preselectedTestSuites: List<Long>,
     selectedTestSuites: List<TestSuiteDto>,
     onTestSuiteClick: (TestSuiteDto) -> Unit,
 ) {
     div {
         className = ClassName("list-group")
         testSuites.forEach { testSuite ->
-            val active = if (testSuite in selectedTestSuites) { "active" } else { "" }
+            val active = if (testSuite in selectedTestSuites) {
+                "active"
+            } else {
+                ""
+            }
             a {
                 className = ClassName("list-group-item list-group-item-action $active")
                 onClick = {
@@ -369,6 +191,173 @@ private fun ChildrenBuilder.showAvaliableTestSuites(
                 }
                 small {
                     +(testSuite.tags?.joinToString(", ") ?: "")
+                }
+            }
+        }
+    }
+}
+
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
+private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
+    val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
+    val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
+    val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
+    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+
+    val (avaliableOrganizations, setAvaliableOrganizations) = useState<List<String>>(emptyList())
+    useRequest(dependencies = arrayOf(selectedOrganization)) {
+        val organizations: List<String> = get(
+            url = "$apiUrl/test-suites-sources/organizations-list",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+            .decodeFromJsonString()
+        setAvaliableOrganizations(organizations)
+    }()
+
+    val (avaliableTestSuiteSources, setAvaliableTestSuiteSources) = useState<List<String>>(emptyList())
+    useRequest(dependencies = arrayOf(selectedOrganization)) {
+        selectedOrganization?.let { selectedOrganization ->
+            val testSuiteSources = get(
+                url = "$apiUrl/test-suites-sources/$selectedOrganization/list",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString<List<TestSuitesSourceDto>>()
+                .map { it.name }
+            setAvaliableTestSuiteSources(testSuiteSources)
+        }
+    }()
+
+    val (avaliableTestSuitesVersions, setAvaliableTestSuitesVersions) = useState<List<String>>(emptyList())
+    useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
+        selectedTestSuiteSource?.let { selectedTestSuiteSource ->
+            val testSuiteSourcesVersions: List<String> = get(
+                url = "$apiUrl/test-suites-sources/$selectedOrganization/${encodeURIComponent(selectedTestSuiteSource)}/list-snapshot",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
+                .map { it.version }
+            setAvaliableTestSuitesVersions(testSuiteSourcesVersions)
+        }
+    }()
+
+    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
+        selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
+            selectedTestSuiteSource?.let { selectedTestSuiteSource ->
+                val testSuites: List<TestSuiteDto> = get(
+                    url = "$apiUrl/test-suites-sources/$selectedOrganization/${
+                        encodeURIComponent(
+                            selectedTestSuiteSource
+                        )
+                    }" +
+                            "/get-test-suites?version=${encodeURIComponent(selectedTestSuiteVersion)}",
+                    headers = jsonHeaders,
+                    loadingHandler = ::loadingHandler,
+                    responseHandler = ::noopResponseHandler,
+                )
+                    .decodeFromJsonString()
+                setAvaliableTestSuites(testSuites)
+                testSuites.filter {
+                    it.id in props.preselectedTestSuiteIds
+                }
+                    .let {
+                        setSelectedTestSuites(it)
+                    }
+            }
+        }
+    }()
+
+    div {
+        // ==================== BREADCRUMB ====================
+        className = ClassName("")
+        nav {
+            ariaLabel = "breadcrumb"
+            ol {
+                className = ClassName("breadcrumb")
+                li {
+                    className = ClassName("breadcrumb-item")
+                    a {
+                        role = "button".unsafeCast<AriaRole>()
+                        onClick = {
+                            setSelectedOrganization(null)
+                            setSelectedTestSuiteSource(null)
+                            setSelectedTestSuiteVersion(null)
+                        }
+                        +"organizations"
+                    }
+                }
+                selectedOrganization?.let {
+                    li {
+                        val isActive = selectedTestSuiteSource?.let { "" } ?: "active"
+                        className = ClassName("breadcrumb-item $isActive")
+                        a {
+                            role = "button".unsafeCast<AriaRole>()
+                            onClick = {
+                                setSelectedTestSuiteSource(null)
+                                setSelectedTestSuiteVersion(null)
+                            }
+                            +selectedOrganization
+                        }
+                    }
+                }
+                selectedTestSuiteSource?.let {
+                    li {
+                        val isActive = selectedTestSuiteVersion?.let { "" } ?: "active"
+                        className = ClassName("breadcrumb-item $isActive")
+                        a {
+                            role = "button".unsafeCast<AriaRole>()
+                            onClick = {
+                                setSelectedTestSuiteVersion(null)
+                            }
+                            +selectedTestSuiteSource
+                        }
+                    }
+                }
+                selectedTestSuiteVersion?.let {
+                    li {
+                        a {
+                            role = "button".unsafeCast<AriaRole>()
+                            className = ClassName("breadcrumb-item active")
+                            +selectedTestSuiteVersion
+                        }
+                    }
+                }
+            }
+        }
+        // ==================== SELECTOR ====================
+        div {
+            className = ClassName("")
+            when {
+                selectedOrganization == null -> showAvaliableOptions(avaliableOrganizations) { organization ->
+                    setSelectedOrganization(organization)
+                }
+                selectedTestSuiteSource == null -> showAvaliableOptions(avaliableTestSuiteSources) { testSuiteSource ->
+                    setSelectedTestSuiteSource(testSuiteSource)
+                }
+                selectedTestSuiteVersion == null -> showAvaliableOptions(avaliableTestSuitesVersions) { testSuiteVersion ->
+                    setSelectedTestSuiteVersion(testSuiteVersion)
+                }
+                else -> showAvaliableTestSuites(avaliableTestSuites, props.preselectedTestSuiteIds, selectedTestSuites) { testSuite ->
+                    setSelectedTestSuites { selectedTestSuites ->
+                        selectedTestSuites.toMutableList()
+                            .apply {
+                                if (testSuite in selectedTestSuites) {
+                                    remove(testSuite)
+                                } else {
+                                    add(testSuite)
+                                }
+                            }
+                            .toList()
+                            .also { listOfTestSuiteDtos ->
+                                props.onTestSuiteIdUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                            }
+                    }
                 }
             }
         }

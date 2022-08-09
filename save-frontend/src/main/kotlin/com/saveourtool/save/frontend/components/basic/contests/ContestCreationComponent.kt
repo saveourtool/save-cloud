@@ -124,15 +124,7 @@ private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == nul
     "AVOID_NULL_CHECKS"
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
-    val (contestDto, setContestDto) = useState(
-        ContestDto(
-            "",
-            null,
-            null,
-            null,
-            props.organizationName,
-        )
-    )
+    val (contestDto, setContestDto) = useState(ContestDto.empty.copy(organizationName = props.organizationName))
 
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
@@ -155,15 +147,22 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
 
+    val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
     div {
         className = ClassName("card")
         contestCreationCard {
             showTestSuiteSelectorModal(
-                "",
                 isTestSuiteSelectorOpen,
-                {},
-                {},
+                contestDto.testSuiteIds,
+                {
+                    setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds))
+                    setIsTestSuiteSelectorOpen(false)
+                },
+                {
+                    setSelectedTestSuiteIds(it)
+                },
             ) {
+                setSelectedTestSuiteIds(emptyList())
                 setIsTestSuiteSelectorOpen(false)
             }
             div {
@@ -216,15 +215,14 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     }
                     // ==== Contest test suites
                     div {
-                        className = ClassName("d-flex justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-secondary mt-4")
-                            +"Select test suites"
-                            onClick = {
-                                setIsTestSuiteSelectorOpen(true)
-                            }
-                        }
+                        className = ClassName("mt-2")
+                        inputTextFormOptional(
+                            InputTypes.CONTEST_TEST_SUITE_IDS,
+                            contestDto.testSuiteIds.joinToString(", "),
+                            "",
+                            "Test Suite Ids",
+                            onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                        )
                     }
                     // ==== Contest description
                     div {

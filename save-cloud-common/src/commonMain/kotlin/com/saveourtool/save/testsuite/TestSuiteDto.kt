@@ -18,4 +18,16 @@ data class TestSuiteDto(
     val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
-)
+) {
+    /**
+     * Identificator of a TestSuite for easier test suite management
+     */
+    var id: Long? = null
+
+    /**
+     * @return non-nullable [id]
+     */
+    fun requiredId(): Long = requireNotNull(id) {
+        "Entity is not saved yet: $this"
+    }
+}
