@@ -20,6 +20,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 /**
  * A component that manages save-agents running in Kubernetes.
@@ -32,6 +34,8 @@ class KubernetesManager(
     private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
+    private val boundPvcs: ConcurrentMap<Long, String> = ConcurrentHashMap()
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
@@ -173,6 +177,7 @@ class KubernetesManager(
         kc.resource(job)
             .create()
         logger.info("Created Job for execution id=$executionId")
+        boundPvcs[executionId] = pvId.pvcName
         // fixme: wait for pods to be created
         return generateSequence<List<String>> {
             Thread.sleep(1_000)
@@ -222,6 +227,12 @@ class KubernetesManager(
         val job = kcJobsWithName(jobNameForExecution(executionId))
         job.get()?.let {
             job.delete()
+        }
+        boundPvcs.remove(executionId)?.let { pvcName ->
+            logger.debug("Removing a PVC for execution id=$executionId with name $pvcName")
+            kc.persistentVolumeClaims()
+                .withName(pvcName)
+                .delete()
         }
     }
 
