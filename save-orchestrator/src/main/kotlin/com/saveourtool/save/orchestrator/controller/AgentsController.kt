@@ -115,11 +115,11 @@ class AgentsController(
                             Agent(id, execution)
                         }
                     )
-                        .map { agentIds to resourcesPath }
                         .doOnError(WebClientResponseException::class) { exception ->
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
                             dockerService.cleanup(execution.id!!)
                         }
+                        .thenReturn(agentIds to resourcesPath)
                 }
                 .flatMapMany { (agentIds, resourcesPath) ->
                     dockerService.startContainersAndUpdateExecution(execution, agentIds).doOnTerminate {
