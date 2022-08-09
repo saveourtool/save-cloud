@@ -23,4 +23,6 @@ data:
 
     logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
 
-    {{ .Values.orchestrator.applicationProperties | nindent 4 }}
+    {{ if .Values.orchestrator.applicationProperties }}
+    {{- .Values.orchestrator.applicationProperties | nindent 4 }}
+    {{ end }}
