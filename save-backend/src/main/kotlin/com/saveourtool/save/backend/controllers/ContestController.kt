@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.justOrNotFound
-import com.saveourtool.save.backend.utils.lazyToMono
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.permission.Permission
@@ -227,7 +226,7 @@ internal class ContestController(
         @RequestBody contestRequest: ContestDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.zip(
-        lazyToMono { organizationService.findByName(contestRequest.organizationName) },
+        organizationService.findByName(contestRequest.organizationName).toMono(),
         Mono.justOrEmpty(contestService.findByName(contestRequest.name)),
     )
         .switchIfEmptyToNotFound {
