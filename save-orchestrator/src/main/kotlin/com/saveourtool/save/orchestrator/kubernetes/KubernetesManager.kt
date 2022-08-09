@@ -146,7 +146,7 @@ class KubernetesManager(
                                 volumeMounts = listOf(
                                     VolumeMount().apply {
                                         name = "save-execution-pvc"
-                                        mountPath = EXECUTION_DIR
+                                        mountPath = configProperties.kubernetes!!.pvcMountPath
                                     }
                                 )
                             }
