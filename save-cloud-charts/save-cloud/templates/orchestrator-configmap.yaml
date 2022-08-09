@@ -12,6 +12,7 @@ data:
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     orchestrator.kubernetes.namespace=${POD_NAMESPACE}
+    orchestrator.kubernetes.pvcMountPath=/home/save-agent
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
