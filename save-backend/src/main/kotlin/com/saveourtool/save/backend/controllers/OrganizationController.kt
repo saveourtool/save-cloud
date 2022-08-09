@@ -126,7 +126,7 @@ internal class OrganizationController(
     fun setAbilityToCreateContest(
         @PathVariable organizationName: String,
         @RequestParam isAbleToCreateContests: Boolean,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
     )
@@ -137,7 +137,7 @@ internal class OrganizationController(
             "No organization with name $organizationName was found."
         }
         .filter {
-            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication!!, it.name, Role.SUPER_ADMIN)
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing canCreateContests flag."
@@ -161,7 +161,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "409", description = "Requested name is not available.")
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(newOrganization)
         .map {
             organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
@@ -174,7 +174,7 @@ internal class OrganizationController(
         }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
-                (authentication?.details as AuthenticationDetails).id,
+                (authentication.details as AuthenticationDetails).id,
                 organizationId,
                 Role.OWNER,
             )
@@ -201,7 +201,7 @@ internal class OrganizationController(
     fun updateOrganization(
         @PathVariable organizationName: String,
         @RequestBody organization: Organization,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
     )
@@ -212,7 +212,7 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication!!, it.name, Role.OWNER)
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.OWNER)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization $organizationName."
@@ -246,7 +246,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -280,7 +280,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun listGit(
         @PathVariable organizationName: String,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -313,7 +313,7 @@ internal class OrganizationController(
     fun upsertGit(
         @PathVariable organizationName: String,
         @RequestBody gitDto: GitDto,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(organizationName).toMono()
@@ -350,7 +350,7 @@ internal class OrganizationController(
     fun deleteGit(
         @PathVariable organizationName: String,
         @RequestParam url: String,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
