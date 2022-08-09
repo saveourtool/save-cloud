@@ -117,7 +117,6 @@ class WebSecurityConfig(
             "/api/$v1/contests/active",
             "/api/$v1/contests/finished",
             "/api/$v1/contests/*/public-test",
-            "/api/$v1/contests/*/by-organization",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
         )
