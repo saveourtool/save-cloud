@@ -25,7 +25,7 @@ fun getHostIp(): String {
  *
  * @param sourceDir source directory
  * @param targetDir target directory
- * @throws FileNotFoundException if source dir doesn't exists
+ * @throws FileNotFoundException if source dir doesn't exist
  */
 fun copyRecursivelyWithAttributes(sourceDir: File, targetDir: File) {
     if (!sourceDir.exists()) {
