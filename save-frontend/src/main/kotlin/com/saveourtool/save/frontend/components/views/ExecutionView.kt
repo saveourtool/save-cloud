@@ -41,6 +41,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -85,12 +86,6 @@ external interface StatusProps<D : Any> : TableProps<D> {
     var filters: TestExecutionFilters
 }
 
-private data class AdditionalRowInfo(
-    val errorDescription: String? = null,
-    val testResultDebugInfo: TestResultDebugInfo? = null,
-    val executionInfo: ExecutionUpdateDto? = null,
-)
-
 /**
  * A Component for execution view
  */
@@ -98,6 +93,7 @@ private data class AdditionalRowInfo(
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+    @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
@@ -304,6 +300,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     )
 
+    init {
+        state.executionDto = null
+        state.filters = TestExecutionFilters.empty
+    }
+
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution)
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
@@ -318,15 +319,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 additionalInfo[id] = additionalInfo[id]!!
                     .copy(executionInfo = trExecutionInfoResponse.decodeFromJsonString<ExecutionUpdateDto>())
             }
-        } catch (ex: Exception) {
+        } catch (ex: SerializationException) {
             additionalInfo[id] = additionalInfo[id]!!
                 .copy(errorDescription = ex.describe())
         }
-    }
-
-    init {
-        state.executionDto = null
-        state.filters = TestExecutionFilters.empty
     }
 
     override fun componentDidMount() {
@@ -469,3 +465,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 }
+
+/**
+ * @property errorDescription if retrieved data can't be parsed, this field should contain description of the error
+ * @property testResultDebugInfo
+ * @property executionInfo
+ */
+private data class AdditionalRowInfo(
+    val errorDescription: String? = null,
+    val testResultDebugInfo: TestResultDebugInfo? = null,
+    val executionInfo: ExecutionUpdateDto? = null,
+)
