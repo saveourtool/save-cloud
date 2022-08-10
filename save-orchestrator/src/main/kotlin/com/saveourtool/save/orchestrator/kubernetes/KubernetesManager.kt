@@ -69,42 +69,14 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
-                        if (configProperties.kubernetes?.useGvisor == true) {
+                        if (configProperties.kubernetes.useGvisor) {
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
                         }
                         // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
-                        initContainers = listOf(
-                            Container().apply {
-                                // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
-                                // Probably, a separate client process should be introduced. Until then, one init container performs copying
-                                // into a shared mount while others are sleeping for this many seconds:
-                                @Suppress("FLOAT_IN_ACCURATE_CALCULATIONS", "MAGIC_NUMBER")
-                                val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
-                                name = "save-vol-copier"
-                                image = "alpine:latest"
-                                command = listOf(
-                                    "sh", "-c",
-                                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
-                                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
-                                            " fi"
-                                )
-                                volumeMounts = listOf(
-                                    VolumeMount().apply {
-                                        name = "save-resources-tmp"
-                                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
-                                    },
-                                    VolumeMount().apply {
-                                        name = "save-execution-pvc"
-                                        mountPath = configProperties.kubernetes.pvcMountPath
-                                    }
-                                )
-                            }
-                        )
+                        initContainers = initContainersSpec(pvId)
                         containers = listOf(
                             Container().apply {
                                 name = "save-agent-pod"
@@ -136,16 +108,8 @@ class KubernetesManager(
                                     }
                                 )
 
-                                // `agentRunCmd` looks like `sh -c "rest of the command"`
-                                val (command, args) = agentRunCmd
-                                    .let {
-                                        it.substringBefore('"').trim().split(" ") + "\"${it.substringAfter('"')}"
-                                    }
-                                    .let {
-                                        it.dropLast(1) to it.last().trim('"')
-                                    }
-                                this.command = command
-                                this.args = listOf(args)
+                                this.command = agentRunCmd.dropLast(1)
+                                this.args = listOf(agentRunCmd.last())
 
                                 this.workingDir = workingDir
                                 volumeMounts = listOf(
@@ -190,6 +154,45 @@ class KubernetesManager(
             .take(10)
             .firstOrNull { it.isNotEmpty() }
             .orEmpty()
+    }
+
+    private fun initContainersSpec(pvId: KubernetesPvId): List<Container> {
+        requireNotNull(configProperties.kubernetes)
+
+        // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
+        // Probably, a separate client process should be introduced. Until then, one init container performs copying
+        // into a shared mount while others are sleeping for this many seconds:
+        @Suppress(
+            "FLOAT_IN_ACCURATE_CALCULATIONS",
+            "MAGIC_NUMBER",
+            "MagicNumber",
+        )
+        val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
+
+        return listOf(
+            Container().apply {
+                name = "save-vol-copier"
+                image = "alpine:latest"
+                command = listOf(
+                    "sh", "-c",
+                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
+                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
+                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
+                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                            " fi"
+                )
+                volumeMounts = listOf(
+                    VolumeMount().apply {
+                        name = "save-resources-tmp"
+                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
+                    },
+                    VolumeMount().apply {
+                        name = "save-execution-pvc"
+                        mountPath = configProperties.kubernetes.pvcMountPath
+                    }
+                )
+            }
+        )
     }
 
     override fun start(executionId: Long) {

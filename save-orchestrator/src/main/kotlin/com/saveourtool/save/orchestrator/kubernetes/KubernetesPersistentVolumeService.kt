@@ -26,11 +26,8 @@ class KubernetesPersistentVolumeService(
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
     @Suppress("TOO_LONG_FUNCTION")
-    override fun createFromResources(resources: Collection<Path>): KubernetesPvId {
+    override fun createFromResources(resourcesDir: Path): KubernetesPvId {
         requireNotNull(configProperties.kubernetes)
-        if (resources.size > 1) {
-            TODO("Not yet implemented")
-        }
 
         @Language("yaml")
         val resource = kc.resource(
@@ -60,7 +57,7 @@ class KubernetesPersistentVolumeService(
 
         val persistentVolumeClaim = resource.create()
 
-        val resourcesRelativePath = resources.single().relativeTo(
+        val resourcesRelativePath = resourcesDir.relativeTo(
             Paths.get(configProperties.testResources.tmpPath)
         )
         val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"

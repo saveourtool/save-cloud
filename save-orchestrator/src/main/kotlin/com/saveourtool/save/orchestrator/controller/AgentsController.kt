@@ -138,12 +138,6 @@ class AgentsController(
         }
     }
 
-    /**
-     * if some additional file is archive, unzip it into proper destination:
-     * for standard mode into [STANDARD_TEST_SUITE_DIR]
-     * for Git mode into [testRootPath]
-     */
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun unzipIfRequired(
         pathToFile: Path,
     ) {

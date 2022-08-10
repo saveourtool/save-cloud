@@ -249,7 +249,7 @@ class DockerService(
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
 
-        val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
+        val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests by id $pvId")
         // FixMe: temporary moved after `AgentRunner.start`
         // FileSystemUtils.deleteRecursively(resourcesForExecution)
@@ -265,7 +265,7 @@ class DockerService(
             .first()
         return RunConfiguration(
             imageId = baseImageId,
-            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME\"",
+            runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
         )
@@ -327,13 +327,14 @@ class DockerService(
      * Information required to start containers with save-agent
      *
      * @property imageId ID of an image which should be used for a container
-     * @property runCmd command that should be run as container's entrypoint
+     * @property runCmd command that should be run as container's entrypoint.
+     * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
-     * @property resourcesPath FixMe: needed only until agents download test by themselves
+     * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageId: String,
-        val runCmd: String,
+        val runCmd: List<String>,
         val pvId: I,
         val resourcesPath: Path,
     )

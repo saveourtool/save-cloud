@@ -95,7 +95,7 @@ class AgentsControllerTest {
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration(
                 "test-image-id",
-                "test-exec-cmd",
+                listOf("sh", "-c", "test-exec-cmd"),
                 DockerPvId("test-pv-id"),
                 Path.of("test-resources-path"),
             )

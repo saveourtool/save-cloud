@@ -62,7 +62,7 @@ class DockerContainerManagerTest {
             executionId = 42,
             configuration = DockerService.RunConfiguration(
                 baseImageId,
-                "./script.sh",
+                listOf("./script.sh"),
                 DockerPvId("test-volume"),
                 Path.of("test-resources-path"),
             ),
