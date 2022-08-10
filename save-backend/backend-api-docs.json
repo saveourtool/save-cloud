@@ -3979,13 +3979,16 @@
     "/api/v1/projects/{organizationName}/{projectName}/users": {
       "get": {
         "tags": [
-          "lnk-user-project-controller"
+          "projects"
         ],
+        "summary": "Get users from project with their roles.",
+        "description": "Get list of users that are connected with given project and their roles in it.",
         "operationId": "getAllUsersByProjectNameAndOrganizationName",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -3994,15 +3997,48 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
+          "404": {
+            "description": "Project with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched users from project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -4014,19 +4050,27 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/{organizationName}/{projectName}/users/not-from": {
       "get": {
         "tags": [
-          "lnk-user-project-controller"
+          "projects"
         ],
+        "summary": "Get users not from project.",
+        "description": "Get list of users that are not connected with given project.",
         "operationId": "getAllUsersNotFromProjectWithNamesStartingWith",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of an organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -4035,6 +4079,7 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "name of a project",
             "required": true,
             "schema": {
               "type": "string"
@@ -4047,11 +4092,43 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched users not from project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project with such name was not found or considered to be private.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -4063,7 +4140,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/projects/not-deleted": {
