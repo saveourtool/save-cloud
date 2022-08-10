@@ -47,6 +47,7 @@ interface WithRequestStatusContext {
 
     /**
      * @param isNeedRedirect
+     * @param response
      */
     fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response)
 
@@ -272,6 +273,7 @@ private suspend fun ComponentWithScope<*, *>.loadingHandler(request: suspend () 
     deferred.await()
 }
 
+@Suppress("MAGIC_NUMBER")
 private fun ComponentWithScope<*, *>.withModalResponseHandler(
     response: Response,
     isNeedRedirect: Boolean
@@ -310,7 +312,7 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
  * @param request
  * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
 fun <R> useRequest(
     dependencies: Array<dynamic> = emptyArray(),
     isDeferred: Boolean = true,
@@ -322,7 +324,9 @@ fun <R> useRequest(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(isNeedRedirect && response.status == 404.toShort())
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
 

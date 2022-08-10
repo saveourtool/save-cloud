@@ -192,7 +192,7 @@ data class RequestStatusContext(
  * @property errorLabel
  * @property confirmationText text that will be displayed on modal dismiss button
  * @property status
- * @property isNeedRedirect
+ * @property redirectToFallbackView
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
