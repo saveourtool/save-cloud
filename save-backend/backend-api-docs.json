@@ -5122,6 +5122,60 @@
         ]
       }
     },
+    "/api/v1/contests/{contestName}/test-suites": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get test suites connected to contest.",
+        "description": "Get list of test suites dtos.",
+        "operationId": "getTestSuiteDtosByContestName",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "query",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/{contestName}/scores": {
       "get": {
         "tags": [
@@ -5193,9 +5247,29 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "testSuiteId",
+            "in": "query",
+            "description": "id of a testSuite",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
+          "403": {
+            "description": "Cannot fetch public test from test suite not connected to contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestFilesContent"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Either contest with such name was not found or tests are not provided.",
             "content": {
