@@ -45,8 +45,8 @@ val requestStatusContext: Context<RequestStatusContext> = createContext()
 val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (loadingCounter, setLoadingCounter) = useState(0)
-    val (isNeedRedirect, setIsNeedRedirect) = useState(false)
-    val statusContext = RequestStatusContext(setResponse, setIsNeedRedirect, setLoadingCounter)
+    val (redirectToFallbackView, setRedirectToFallbackView) = useState(false)
+    val statusContext = RequestStatusContext(setResponse, setRedirectToFallbackView, setLoadingCounter)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
@@ -71,7 +71,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,
-                isNeedRedirect = isNeedRedirect,
+                redirectToFallbackView = redirectToFallbackView,
             )
             else -> ErrorModalState(
                 isErrorModalOpen = response != null,
@@ -138,7 +138,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
         arrayOf(statusContext)
     ) { statusContext }
 
-    val reactNode = if (modalState.status == 404.toShort() && modalState.isNeedRedirect) {
+    val reactNode = if (modalState.redirectToFallbackView) {
         div.create {
             className = ClassName("d-flex flex-column")
             id = "content-wrapper"
@@ -178,11 +178,11 @@ external interface RequestModalProps : PropsWithChildren {
 /**
  * @property setResponse [StateSetter] for response error handler
  * @property setLoadingCounter [StateSetter] for active request counter
- * @property setIsNeedRedirect
+ * @property setRedirectToFallbackView
  */
 data class RequestStatusContext(
     val setResponse: StateSetter<Response?>,
-    val setIsNeedRedirect: StateSetter<Boolean>,
+    val setRedirectToFallbackView: StateSetter<Boolean>,
     val setLoadingCounter: StateSetter<Int>,
 )
 
@@ -200,7 +200,7 @@ data class ErrorModalState(
     val errorLabel: String,
     val confirmationText: String = "Close",
     val status: Short?,
-    val isNeedRedirect: Boolean = false,
+    val redirectToFallbackView: Boolean = false,
 )
 
 /**

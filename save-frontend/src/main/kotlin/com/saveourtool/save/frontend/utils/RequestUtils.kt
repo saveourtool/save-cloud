@@ -48,7 +48,7 @@ interface WithRequestStatusContext {
     /**
      * @param isNeedRedirect
      */
-    fun setIsNeedRedirect(isNeedRedirect: Boolean)
+    fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response)
 
     /**
      * @param transform
@@ -205,7 +205,7 @@ internal fun ComponentWithScope<*, *>.classComponentResponseHandler(
 /**
  * @param response
  */
-internal fun ComponentWithScope<*, *>.classComponentResponseRedirectHandler(
+internal fun ComponentWithScope<*, *>.classComponentRedirectOnFallbackResponseHandler(
     response: Response,
 ) {
     val hasResponseContext = this.asDynamic().context is RequestStatusContext
@@ -278,9 +278,7 @@ private fun ComponentWithScope<*, *>.withModalResponseHandler(
 ) {
     if (!response.ok) {
         val statusContext: RequestStatusContext = this.asDynamic().context
-        if (isNeedRedirect) {
-            statusContext.setIsNeedRedirect(isNeedRedirect)
-        }
+        statusContext.setRedirectToFallbackView(isNeedRedirect && response.status == 404.toShort())
         statusContext.setResponse.invoke(response)
     }
 }
@@ -324,7 +322,7 @@ fun <R> useRequest(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setIsNeedRedirect(isNeedRedirect: Boolean) = statusContext.setIsNeedRedirect(isNeedRedirect)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(isNeedRedirect && response.status == 404.toShort())
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
 
