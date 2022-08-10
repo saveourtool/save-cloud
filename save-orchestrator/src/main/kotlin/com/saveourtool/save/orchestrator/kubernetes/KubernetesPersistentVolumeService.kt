@@ -1,16 +1,20 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.PersistentVolumeService
-import io.fabric8.kubernetes.api.model.HostPathVolumeSource
-import io.fabric8.kubernetes.api.model.PersistentVolume
-import io.fabric8.kubernetes.api.model.PersistentVolumeSpec
+import com.saveourtool.save.utils.debug
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
 import io.fabric8.kubernetes.client.KubernetesClient
+import io.fabric8.kubernetes.client.dsl.NamespaceableResource
+import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.copyTo
-import kotlin.io.path.createTempDirectory
+import java.nio.file.Paths
+import kotlin.io.path.pathString
+import kotlin.io.path.relativeTo
 
 /**
  * Implementation of [PersistentVolumeService] that creates Persistent Volumes in Kubernetes
@@ -19,22 +23,58 @@ import kotlin.io.path.createTempDirectory
 @Component
 class KubernetesPersistentVolumeService(
     private val kc: KubernetesClient,
+    private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
-    override fun createFromResources(resources: Collection<Path>): KubernetesPvId {
-        val tmpDir = createTempDirectory()
-        resources.forEach {
-            it.copyTo(tmpDir)
+    @Suppress("TOO_LONG_FUNCTION")
+    override fun createFromResources(resourcesDir: Path): KubernetesPvId {
+        requireNotNull(configProperties.kubernetes)
+
+        @Language("yaml")
+        val resource = kc.resource(
+            """
+                |apiVersion: v1
+                |kind: PersistentVolumeClaim
+                |metadata:
+                |  generateName: save-execution-pv-
+                |  namespace: ${configProperties.kubernetes.namespace}
+                |${configProperties.kubernetes.pvcAnnotations?.let { pvcAnnotations ->
+                "  annotations:\n" +
+                        pvcAnnotations.lines().joinToString("\n") { "|    $it\n" }
+            }}
+                |  
+                |spec:
+                |  resources:
+                |    requests:
+                |      storage: ${configProperties.kubernetes.pvcSize}
+                |#  NB: key `volumeName` is not needed here, otherwise provisioner won't attempt to create a PV automatically
+                ${configProperties.kubernetes.pvcStorageSpec.let { pvcStorageSpec ->
+                pvcStorageSpec.lines().joinToString("\n") { "|  $it\n" }
+            }}
+            """.trimMargin().also {
+                logger.debug { "Creating PVC from the following YAML:\n${it.asIndentedMultiline()}" }
+            }
+        ) as NamespaceableResource<PersistentVolumeClaim>
+
+        val persistentVolumeClaim = resource.create()
+
+        val resourcesRelativePath = resourcesDir.relativeTo(
+            Paths.get(configProperties.testResources.tmpPath)
+        )
+        val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
+        return KubernetesPvId(
+            persistentVolumeClaim.metadata.name,
+            "tmp-resources-storage",
+            "$intermediateResourcesPath/${resourcesRelativePath.pathString}"
+        )
+    }
+
+    @Suppress("MAGIC_NUMBER")
+    private fun String.asIndentedMultiline(indent: Int = 4) = lines()
+        .joinToString(System.lineSeparator()) {
+            it.prependIndent(" ".repeat(indent))
         }
 
-        val persistentVolume = kc.persistentVolumes().create(
-            PersistentVolume().apply {
-                spec = PersistentVolumeSpec().apply {
-                    hostPath = HostPathVolumeSource().apply {
-                        path = tmpDir.absolutePathString()
-                    }
-                }
-            }
-        )
-        return KubernetesPvId(persistentVolume.fullResourceName)
+    companion object {
+        private val logger = LoggerFactory.getLogger(KubernetesPersistentVolumeService::class.java)
     }
 }

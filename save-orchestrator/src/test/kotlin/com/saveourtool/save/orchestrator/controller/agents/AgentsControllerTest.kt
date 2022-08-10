@@ -41,6 +41,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Flux
 
 import java.io.File
 import java.nio.file.Files
@@ -92,9 +93,17 @@ class AgentsControllerTest {
                 .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
-            DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
+            DockerService.RunConfiguration(
+                "test-image-id",
+                listOf("sh", "-c", "test-exec-cmd"),
+                DockerPvId("test-pv-id"),
+                Path.of("test-resources-path"),
+            )
         )
-        whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.createContainers(any(), any()))
+            .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
+            .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(
             "/addAgents.*",
             MockResponse()
