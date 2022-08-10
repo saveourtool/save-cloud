@@ -1,0 +1,25 @@
+{
+	"testResultLocation": {
+		"testSuiteName": "test",
+		"pluginName": "WarnPlugin",
+		"testLocation": "src/test/suite1",
+		"testName": "testPath2"
+	},
+	"debugInfo": {
+		"execCmd": "python3 my-tool.py -i src/test/suite1/testPath2",
+		"stdout": "Processing file testPath2...",
+		"stderr": "",
+		"durationMillis": "200",
+		"countWarnings": {
+			"unmatched": "0",
+			"matched": "10",
+			"expected": "10",
+			"unexpected": "0"
+		}
+	},
+	"testStatus": {
+		"type": "com.saveourtool.save.core.result.Pass",
+		"shortMessage": "Everything is awesome",
+		"message": "Everything is fine when you're part of the team"
+	}
+}

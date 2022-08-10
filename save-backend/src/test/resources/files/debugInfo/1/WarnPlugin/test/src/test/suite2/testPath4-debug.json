@@ -1,0 +1,25 @@
+{
+	"testResultLocation": {
+		"testSuiteName": "test",
+		"pluginName": "WarnPlugin",
+		"testLocation": "src/test/suite2",
+		"testName": "testPath4"
+	},
+	"debugInfo": {
+		"execCmd": "python3 my-tool.py -i src/test/suite2/testPath4",
+		"stdout": "",
+		"stderr": "python3: command not found",
+		"durationMillis": "20",
+		"countWarnings": {
+			"unmatched": "42",
+			"matched": "0",
+			"expected": "42",
+			"unexpected": "0"
+		}
+	},
+	"testStatus": {
+		"type": "com.saveourtool.save.core.result.Fail",
+		"shortReason": "We've got problems",
+		"reason": "There are 42 unexpected warnings."
+	}
+}

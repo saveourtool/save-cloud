@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
@@ -84,6 +85,12 @@ external interface StatusProps<D : Any> : TableProps<D> {
     var filters: TestExecutionFilters
 }
 
+private data class AdditionalRowInfo(
+    val errorDescription: String? = null,
+    val testResultDebugInfo: TestResultDebugInfo? = null,
+    val executionInfo: ExecutionUpdateDto? = null,
+)
+
 /**
  * A Component for execution view
  */
@@ -91,6 +98,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+    private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -144,8 +152,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             column(id = "path", header = "File Name") { cellProps ->
                 Fragment.create {
                     td {
-                        spread(cellProps.row.getToggleRowExpandedProps())
-
                         val testName = cellProps.value.filePath
                         val shortTestName = if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                         +shortTestName
@@ -153,6 +159,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         // debug info is provided by agent after the execution
                         // possibly there can be cases when this info is not available
                         if (cellProps.value.hasDebugInfo == true) {
+                            spread(cellProps.row.getToggleRowExpandedProps())
                             style = jso {
                                 textDecoration = "underline".unsafeCast<TextDecoration>()
                                 color = "blue".unsafeCast<Color>()
@@ -161,16 +168,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                             onClick = {
                                 this@ExecutionView.scope.launch {
-                                    val testExecution = cellProps.value
-                                    val trDebugInfoRequest = getDebugInfoFor(testExecution)
-                                    if (trDebugInfoRequest.ok) {
-                                        cellProps.row.original.asDynamic().debugInfo =
-                                                trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
-                                    }
-                                    val trExecutionInfo = getExecutionInfoFor(testExecution)
-                                    if (trExecutionInfo.ok) {
-                                        cellProps.row.original.asDynamic().executionInfo =
-                                                trExecutionInfo.decodeFromJsonString<ExecutionUpdateDto>()
+                                    if (!cellProps.row.isExpanded) {
+                                        getAdditionalInfoFor(cellProps.value, cellProps.row.id)
                                     }
                                     cellProps.row.toggleRowExpanded()
                                 }
@@ -217,15 +216,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             usePagination,
         ),
         renderExpandedRow = { tableInstance, row ->
-            val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
-            trei?.failReason?.let {
-                executionStatusComponent(it, tableInstance)
-            }
-            val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
-            trdi?.let {
-                testStatusComponent(trdi, tableInstance)
-            } ?: trei ?: run {
-                tr {
+            val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
+            when {
+                errorDescription != null -> tr {
+                    td {
+                        colSpan = tableInstance.columns.size
+                        +"Error retrieving additional information: $errorDescription"
+                    }
+                }
+                trei?.failReason != null -> executionStatusComponent(trei.failReason!!, tableInstance)()
+                trdi != null -> testStatusComponent(trdi, tableInstance)()
+                else -> tr {
                     td {
                         colSpan = tableInstance.columns.size
                         +"No info available yet for this test execution"
@@ -302,6 +303,26 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             arrayOf(it.filters)
         }
     )
+
+    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
+        val trDebugInfoResponse = getDebugInfoFor(testExecution)
+        val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
+        // there may be errors during deserialization, which will otherwise be silently ignored
+        try {
+            additionalInfo[id] = AdditionalRowInfo()
+            if (trDebugInfoResponse.ok) {
+                additionalInfo[id] = additionalInfo[id]!!
+                    .copy(testResultDebugInfo = trDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>())
+            }
+            if (trExecutionInfoResponse.ok) {
+                additionalInfo[id] = additionalInfo[id]!!
+                    .copy(executionInfo = trExecutionInfoResponse.decodeFromJsonString<ExecutionUpdateDto>())
+            }
+        } catch (ex: Exception) {
+            additionalInfo[id] = additionalInfo[id]!!
+                .copy(errorDescription = ex.describe())
+        }
+    }
 
     init {
         state.executionDto = null
