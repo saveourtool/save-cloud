@@ -14,15 +14,12 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 
-import kotlinx.datetime.*
 import kotlinx.js.jso
 
 /**
- * Component that allows to create new contests
+ * Component that allows to see public tests
  */
 val publicTestComponent = publicTestComponent()
-
-private val contestCreationCard = cardComponent()
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
