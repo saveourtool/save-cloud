@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
@@ -100,6 +101,16 @@ class TestSuitesService(
      * @return test suite with [id]
      */
     fun findTestSuiteById(id: Long): TestSuite? = testSuiteRepository.findByIdOrNull(id)
+
+    /**
+     * @param ids
+     * @return List of [TestSuite] by [ids]
+     */
+    fun findTestSuitesByIds(ids: List<Long>): Flux<TestSuite> = blockingToFlux {
+        ids.mapNotNull { id ->
+            testSuiteRepository.findByIdOrNull(id)
+        }
+    }
 
     /**
      * @param id

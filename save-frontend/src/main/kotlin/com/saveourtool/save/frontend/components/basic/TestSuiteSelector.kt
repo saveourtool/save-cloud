@@ -30,8 +30,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
 import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.ul
 
 import kotlin.js.json
@@ -152,45 +150,6 @@ private fun ChildrenBuilder.showAvaliableOptions(
                     onOptionClick(option)
                 }
                 +option
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.showAvaliableTestSuites(
-    testSuites: List<TestSuiteDto>,
-    selectedTestSuites: List<TestSuiteDto>,
-    onTestSuiteClick: (TestSuiteDto) -> Unit,
-) {
-    div {
-        className = ClassName("list-group")
-        testSuites.forEach { testSuite ->
-            val active = if (testSuite in selectedTestSuites) {
-                "active"
-            } else {
-                ""
-            }
-            a {
-                className = ClassName("list-group-item list-group-item-action $active")
-                onClick = {
-                    onTestSuiteClick(testSuite)
-                }
-                div {
-                    className = ClassName("d-flex w-100 justify-content-between")
-                    h5 {
-                        className = ClassName("mb-1")
-                        +(testSuite.name)
-                    }
-                    small {
-                        +(testSuite.language ?: "")
-                    }
-                }
-                p {
-                    +(testSuite.description ?: "")
-                }
-                small {
-                    +(testSuite.tags?.joinToString(", ") ?: "")
-                }
             }
         }
     }

@@ -72,17 +72,6 @@ class ContestService(
     }
 
     /**
-     * @param contest
-     * @return test suite that has public test as its part
-     */
-    @Suppress("COMPLEX_EXPRESSION")
-    fun getTestSuiteForPublicTest(contest: Contest) = contest.getTestSuiteIds()
-        .firstOrNull()
-        ?.let {
-            testSuitesService.findTestSuiteById(it)
-        }
-
-    /**
      * @param organizationName
      * @param pageable
      * @return page of contests
