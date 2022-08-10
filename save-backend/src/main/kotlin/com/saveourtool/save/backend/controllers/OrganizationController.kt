@@ -355,7 +355,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials and all corresponding data.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting organization git credentials.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION")
     fun deleteGit(
         @PathVariable organizationName: String,
         @RequestParam url: String,
@@ -377,17 +377,26 @@ internal class OrganizationController(
             // Find and remove all corresponding data to the current git repository from DB and file system storage
             val git = gitService.getByOrganizationAndUrl(organization, url)
             val testSuitesSources = testSuitesSourceService.findByGit(git)
+            // List of test suites for removing data from storage at next step
+            val testSuitesList: MutableList<TestSuite?> = mutableListOf()
             testSuitesSources.forEach { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
-                // Remove data from storage,
-                // since it is common for all test suites from one test suite source, it's enough to take any one of them
-                testSuites.firstOrNull()?.let {
-                    cleanupStorageData(it)
-                }
+                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
+                testSuitesList.add(testSuites.firstOrNull())
                 testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
                 testSuitesSourceService.delete(testSuitesSource)
             }
             gitService.delete(organization, url)
+            testSuitesList
+        }
+        .flatMap { testSuitesList ->
+            Flux.fromIterable(testSuitesList).map { testSuite ->
+                testSuite?.let {
+                    cleanupStorageData(it)
+                }
+            }.collectList()
+        }
+        .map {
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
         }
 
@@ -398,7 +407,7 @@ internal class OrganizationController(
             testSuite.version,
         ).flatMap { key ->
             testSuitesSourceSnapshotStorage.delete(key)
-        }.subscribe()
+        }
     }
 
     companion object {
