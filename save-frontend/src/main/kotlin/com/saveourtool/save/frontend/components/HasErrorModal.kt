@@ -148,7 +148,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
             div {
                 className = ClassName("container-fluid")
                 FallbackView::class.react {
-                    bigText = "404"
+                    bigText = "${response?.status}"
                     smallText = "Page not found"
                     withRouterLink = false
                 }
