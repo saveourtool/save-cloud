@@ -157,10 +157,10 @@ class TestDiscoveringService(
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
                         val (allFiles, additionalFiles) = if (it is FixPlugin.FixTestFiles) {
-                            listOf(it.test.toNioPath(), it.expected.toNioPath()) to
+                            listOf(it.test, it.expected) to
                                     listOf(it.expected.getRelativePath(rootTestConfig))
                         } else {
-                            listOf(it.test.toNioPath()) to emptyList()
+                            listOf(it.test) to emptyList()
                         }
                         val testRelativePath = it.test.getRelativePath(rootTestConfig)
                         TestDto(

@@ -8,7 +8,6 @@ import org.springframework.util.FileSystemUtils
 import java.io.File
 import java.io.IOException
 import java.math.BigInteger
-import java.nio.file.Path
 import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.Properties
@@ -24,10 +23,10 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
 /**
  * @return hash of content of all files
  */
-fun Collection<Path>.toHash(): String {
+fun Collection<okio.Path>.toHash(): String {
     val md = MessageDigest.getInstance("MD5")
     this.forEach {
-        it.inputStream()
+        it.toNioPath().inputStream()
             .use { inputStream ->
                 DigestInputStream(inputStream, md)
             }
