@@ -130,22 +130,16 @@ class LnkUserProjectController(
         .map { users ->
             users.map { it.requiredId() }.toSet()
         }
-        .flatMap { projectUserIds ->
-            Mono.zip(
-                Mono.just(projectUserIds),
-                lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds).toMono()
-            )
+        .map { projectUserIds ->
+            projectUserIds to lnkUserProjectService.getNonProjectUsersByName(prefix, projectUserIds)
         }
-        .flatMap { (projectUserIds, exactMatchUsers) ->
-            Mono.zip(
-                Mono.just(exactMatchUsers),
-                Mono.just(lnkUserProjectService.getNonProjectUsersByNamePrefix(
-                    prefix,
-                    projectUserIds + exactMatchUsers.map { it.requiredId() },
-                    PAGE_SIZE - exactMatchUsers.size,
-                )
-                )
-            )
+        .map { (projectUserIds, exactMatchUsers) ->
+            exactMatchUsers to
+                    lnkUserProjectService.getNonProjectUsersByNamePrefix(
+                        prefix,
+                        projectUserIds + exactMatchUsers.map { it.requiredId() },
+                        PAGE_SIZE - exactMatchUsers.size,
+                    )
         }
         .map { (exactMatchUsers, prefixUsers) ->
             (exactMatchUsers + prefixUsers).map { it.toUserInfo() }

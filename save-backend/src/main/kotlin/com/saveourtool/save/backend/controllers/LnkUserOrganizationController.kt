@@ -292,21 +292,16 @@ class LnkUserOrganizationController(
         .map { users ->
             users.map { (user, _) -> user.requiredId() }.toSet()
         }
-        .flatMap { organizationUserIds ->
-            Mono.zip(
-                Mono.just(organizationUserIds),
-                lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds).toMono(),
-            )
+        .map { organizationUserIds ->
+            organizationUserIds to lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds)
         }
-        .flatMap { (organizationUserIds, exactMatchUsers) ->
-            Mono.zip(
-                Mono.just(exactMatchUsers),
-                lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
-                    prefix,
-                    organizationUserIds + exactMatchUsers.map { it.requiredId() },
-                    PAGE_SIZE - exactMatchUsers.size,
-                ).toMono()
-            )
+        .map { (organizationUserIds, exactMatchUsers) ->
+            exactMatchUsers to
+                    lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
+                        prefix,
+                        organizationUserIds + exactMatchUsers.map { it.requiredId() },
+                        PAGE_SIZE - exactMatchUsers.size,
+                    )
         }
         .map { (exactMatchUsers, prefixUsers) ->
             (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
