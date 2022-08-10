@@ -25,11 +25,10 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  */
 fun Collection<okio.Path>.toHash(): String {
     val md = MessageDigest.getInstance("MD5")
-    this.forEach {
-        it.toNioPath().inputStream()
-            .use { inputStream ->
-                DigestInputStream(inputStream, md)
-            }
+    this.forEach { path ->
+        path.toNioPath()
+            .inputStream()
+            .use { DigestInputStream(it, md) }
             .let { digestInputStream ->
                 while (-1 != digestInputStream.read()) {
                     // need to read input stream fully
