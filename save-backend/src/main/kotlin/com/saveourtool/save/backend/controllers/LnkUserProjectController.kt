@@ -64,13 +64,8 @@ class LnkUserProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Mono<List<UserInfo>> = Mono.zip(
-        Mono.just(organizationName),
-        Mono.just(projectName),
-    )
-        .flatMap {
-            projectService.findByNameAndOrganizationName(projectName, organizationName).toMono()
-        }
+    ): Mono<List<UserInfo>> = projectService.findByNameAndOrganizationName(projectName, organizationName)
+        .toMono()
         .switchIfEmptyToNotFound {
             "No project with name $projectName was found."
         }
