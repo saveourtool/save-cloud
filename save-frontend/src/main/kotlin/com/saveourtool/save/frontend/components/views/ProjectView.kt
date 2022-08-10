@@ -862,7 +862,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         return post(
             "$apiUrl/projects/update",
             headers,
-            Json.encodeToString(draftProject),
+            Json.encodeToString(draftProject.toDto()),
             loadingHandler = ::noopLoadingHandler,
         )
     }

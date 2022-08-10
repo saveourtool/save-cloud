@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -177,32 +176,25 @@ internal class ContestController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-        }
+        .switchIfEmptyToNotFound()
         .filter {
             organizationPermissionEvaluator.canCreateContests(it, authentication)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.FORBIDDEN))
-        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN)
         .map {
             contestDto.toContest(it)
         }
         .filter {
             it.validate()
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(HttpStatus.CONFLICT, "Contest data is not valid."))
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Contest data is not valid."
         }
         .filter {
             contestService.createContestIfNotPresent(it)
         }
-        .switchIfEmpty {
-            Mono.error(ResponseStatusException(
-                HttpStatus.CONFLICT,
-                "Contest with name ${contestDto.name} is already present",
-            ))
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Contest with name ${contestDto.name} is already present"
         }
         .map {
             ResponseEntity.ok("Contest has been successfully created!")
@@ -240,7 +232,7 @@ internal class ContestController(
         }
         .map { (organization, contest) ->
             contestService.updateContest(
-                contestRequest.toContest(organization, contest.testSuiteIds, contest.status).apply { id = contest.id }
+                contestRequest.toContest(organization, contest.status).apply { id = contest.id }
             )
             ResponseEntity.ok("Contest successfully updated")
         }

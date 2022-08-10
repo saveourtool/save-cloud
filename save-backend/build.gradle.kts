@@ -54,7 +54,7 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
-    implementation(libs.reactor.kotlin.addons.extra)
+    implementation("io.projectreactor.addons:reactor-extra")
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }
