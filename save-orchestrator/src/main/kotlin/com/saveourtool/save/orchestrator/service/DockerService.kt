@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -102,12 +101,14 @@ class DockerService(
     /**
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
+     * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
+     * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
+    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
-        webClientBackend
+        return webClientBackend
             .post()
             .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
@@ -131,7 +132,7 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
@@ -140,7 +141,6 @@ class DockerService(
                         }
                     }
             }
-            .subscribe()
     }
 
     /**
@@ -249,23 +249,25 @@ class DockerService(
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
 
-        val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
+        val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests by id $pvId")
-        FileSystemUtils.deleteRecursively(resourcesForExecution)
+        // FixMe: temporary moved after `AgentRunner.start`
+        // FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
         val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
             .map { it.id }
             .ifEmpty {
-                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
+                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exist, will build it first")
                 listOf(buildBaseImage(sdk))
             }
             .first()
         return RunConfiguration(
             imageId = baseImageId,
-            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME\"",
+            runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
+            resourcesPath = resourcesForExecution,
         )
     }
 
@@ -325,13 +327,16 @@ class DockerService(
      * Information required to start containers with save-agent
      *
      * @property imageId ID of an image which should be used for a container
-     * @property runCmd command that should be run as container's entrypoint
+     * @property runCmd command that should be run as container's entrypoint.
+     * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
+     * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageId: String,
-        val runCmd: String,
+        val runCmd: List<String>,
         val pvId: I,
+        val resourcesPath: Path,
     )
 
     companion object {

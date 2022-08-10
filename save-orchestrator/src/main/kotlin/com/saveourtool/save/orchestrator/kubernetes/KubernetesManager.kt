@@ -4,8 +4,11 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.findImage
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
 import com.github.dockerjava.api.DockerClient
@@ -17,6 +20,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 /**
  * A component that manages save-agents running in Kubernetes.
@@ -29,11 +34,14 @@ class KubernetesManager(
     private val configProperties: ConfigProperties,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
+    private val boundPvcs: ConcurrentMap<Long, String> = ConcurrentHashMap()
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
         "MagicNumber",
         "NestedBlockDepth",
+        "ComplexMethod",
     )
     override fun create(executionId: Long,
                         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
@@ -42,6 +50,7 @@ class KubernetesManager(
     ): List<String> {
         val (baseImageId, agentRunCmd, pvId) = configuration
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
+        requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
             ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
@@ -60,61 +69,53 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
-                        if (configProperties.kubernetes?.useGvisor == true) {
+                        if (configProperties.kubernetes.useGvisor) {
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
                         }
                         // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
+                        metadata = ObjectMeta().apply {
+                            labels = mapOf(
+                                "executionId" to executionId.toString(),
+                                // "baseImageName" to baseImageName
+                                "io.kompose.service" to "save-agent"
+                            )
+                        }
+                        // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
+                        restartPolicy = "Never"
+                        initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            Container().apply {
-                                name = "save-agent-pod"
-                                metadata = ObjectMeta().apply {
-                                    labels = mapOf(
-                                        "executionId" to executionId.toString(),
-                                        "baseImageId" to baseImageId,
-                                        // "baseImageName" to baseImageName
-                                        // "io.kompose.service" to
-                                    )
+                            agentContainerSpec(baseImageName, agentRunCmd)
+                        )
+                        volumes = listOf(
+                            Volume().apply {
+                                name = "save-resources-tmp"
+                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
+                                    claimName = pvId.sourcePvcName
                                 }
-                                image = baseImageName
-                                imagePullPolicy = "IfNotPresent"  // so that local images could be used
-                                // If agent fails, we should handle it manually (update statuses, attempt restart etc)
-                                restartPolicy = "Never"
-                                if (!configProperties.docker.runtime.isNullOrEmpty()) {
-                                    logger.warn {
-                                        "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
-                                                "because custom runtimes are not supported yet"
-                                    }
+                            },
+                            Volume().apply {
+                                name = "save-execution-pvc"
+                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
+                                    claimName = pvId.pvcName
                                 }
-                                env = listOf(
-                                    EnvVar().apply {
-                                        name = "POD_NAME"
-                                        valueFrom = EnvVarSource().apply {
-                                            fieldRef = ObjectFieldSelector().apply {
-                                                fieldPath = "metadata.name"
-                                            }
-                                        }
-                                    }
-                                )
-                                command = agentRunCmd.split(" ")
-                                this.workingDir = workingDir
                             }
                         )
                     }
                 }
             }
         }
-        kc.batch()
-            .v1()
-            .jobs()
-            .create(job)
+        logger.debug { "Attempt to create Job from the following spec: $job" }
+        kc.resource(job)
+            .create()
         logger.info("Created Job for execution id=$executionId")
+        boundPvcs[executionId] = pvId.pvcName
         // fixme: wait for pods to be created
         return generateSequence<List<String>> {
             Thread.sleep(1_000)
-            kc.pods().withLabel("baseImageId", baseImageId)
+            kc.pods().withLabel("executionId", executionId.toString())
                 .list()
                 .items
                 .map { it.metadata.name }
@@ -125,7 +126,7 @@ class KubernetesManager(
     }
 
     override fun start(executionId: Long) {
-        logger.debug("${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself")
+        logger.debug { "${this::class.simpleName}#start is called, but it's no-op because Kubernetes workloads are managed by Kubernetes itself" }
     }
 
     override fun stop(executionId: Long) {
@@ -161,6 +162,12 @@ class KubernetesManager(
         job.get()?.let {
             job.delete()
         }
+        boundPvcs.remove(executionId)?.let { pvcName ->
+            logger.debug("Removing a PVC for execution id=$executionId with name $pvcName")
+            kc.persistentVolumeClaims()
+                .withName(pvcName)
+                .delete()
+        }
     }
 
     override fun prune() {
@@ -186,6 +193,78 @@ class KubernetesManager(
     }
 
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
+
+    private fun initContainersSpec(pvId: KubernetesPvId): List<Container> {
+        requireNotNull(configProperties.kubernetes)
+
+        // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
+        // Probably, a separate client process should be introduced. Until then, one init container performs copying
+        // into a shared mount while others are sleeping for this many seconds:
+        @Suppress(
+            "FLOAT_IN_ACCURATE_CALCULATIONS",
+            "MAGIC_NUMBER",
+            "MagicNumber",
+        )
+        val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
+
+        return listOf(
+            Container().apply {
+                name = "save-vol-copier"
+                image = "alpine:latest"
+                command = listOf(
+                    "sh", "-c",
+                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
+                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
+                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
+                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                            " fi"
+                )
+                volumeMounts = listOf(
+                    VolumeMount().apply {
+                        name = "save-resources-tmp"
+                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
+                    },
+                    VolumeMount().apply {
+                        name = "save-execution-pvc"
+                        mountPath = configProperties.kubernetes.pvcMountPath
+                    }
+                )
+            }
+        )
+    }
+
+    private fun agentContainerSpec(imageName: String, agentRunCmd: List<String>) = Container().apply {
+        name = "save-agent-pod"
+        image = imageName
+        imagePullPolicy = "IfNotPresent"  // so that local images could be used
+        if (!configProperties.docker.runtime.isNullOrEmpty()) {
+            logger.warn {
+                "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
+                        "because custom runtimes are not supported yet"
+            }
+        }
+        env = listOf(
+            EnvVar().apply {
+                name = "POD_NAME"
+                valueFrom = EnvVarSource().apply {
+                    fieldRef = ObjectFieldSelector().apply {
+                        fieldPath = "metadata.name"
+                    }
+                }
+            }
+        )
+
+        this.command = agentRunCmd.dropLast(1)
+        this.args = listOf(agentRunCmd.last())
+
+        this.workingDir = workingDir
+        volumeMounts = listOf(
+            VolumeMount().apply {
+                name = "save-execution-pvc"
+                mountPath = requireNotNull(configProperties.kubernetes).pvcMountPath
+            }
+        )
+    }
 
     private fun kcJobsWithName(name: String) = kc.batch()
         .v1()

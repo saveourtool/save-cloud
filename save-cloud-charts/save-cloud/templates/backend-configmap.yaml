@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.backend.name }}-config
 data:
   application.properties: |
-    backend.preprocessorUrl=http://preprocessor
+    backend.preprocessor-url=http://preprocessor
+    backend.orchestrator-url=http://orchestrator
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*

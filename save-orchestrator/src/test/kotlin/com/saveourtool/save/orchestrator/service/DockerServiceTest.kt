@@ -93,10 +93,10 @@ class DockerServiceTest {
             prefix = "save-execution-${testExecution.requiredId()}"
         )
         resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
-        val (baseImageId, agentRunCmd, pvId) = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
+        val configuration = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
-            DockerService.RunConfiguration(baseImageId, agentRunCmd, pvId)
+            configuration
         ).single()
         logger.debug("Created container $testContainerId")
 
@@ -107,6 +107,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
         )
         dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
+            .subscribe()
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start

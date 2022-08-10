@@ -158,7 +158,7 @@ class DockerAgentRunner(
     private fun createContainerFromImage(baseImageId: String,
                                          pvId: DockerPvId,
                                          workingDir: String,
-                                         runCmd: String,
+                                         runCmd: List<String>,
                                          containerName: String,
     ): String {
         val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
@@ -167,8 +167,15 @@ class DockerAgentRunner(
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
             .withWorkingDir(workingDir)
-            // load environment variables required by save-agent and then run it
-            .withCmd("bash", "-c", "env \$(cat $envFileTargetPath | xargs) $runCmd")
+            // Load environment variables required by save-agent and then run it.
+            // Rely on `runCmd` format: last argument is parameter of the subshell.
+            .withCmd(
+                // this part is like `sh -c` with probably some other flags
+                runCmd.dropLast(1) + (
+                        // last element is an actual command that will be executed in a new shell
+                        "env \$(cat $envFileTargetPath | xargs) ${runCmd.last()}"
+                )
+            )
             .withName(containerName)
             .withUser("save-agent")
             .withHostConfig(
