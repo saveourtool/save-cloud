@@ -19,7 +19,7 @@
 	},
 	"testStatus": {
 		"type": "com.saveourtool.save.core.result.Pass",
-		"shortMessage": "Everything is awesome",
-		"message": "Everything is fine when you're part of the team"
+		"shortMessage": "Test passed normally",
+		"message": "Test passed normally"
 	}
 }
