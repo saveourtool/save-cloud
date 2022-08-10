@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -110,12 +111,12 @@ class AgentsController(
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(execution.id!!, configuration)
+                    dockerService.createContainers(execution.id!!, configuration) to configuration.resourcesPath
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
-                    reportExecutionError(execution, "Unable to create docker containers", ex)
+                    reportExecutionError(execution, "Unable to create containers", ex)
                 }
-                .flatMap { agentIds ->
+                .flatMap { (agentIds, resourcesPath) ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
                             Agent(id, execution)
@@ -125,18 +126,18 @@ class AgentsController(
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
                             dockerService.cleanup(execution.id!!)
                         }
-                        .doOnSuccess {
-                            dockerService.startContainersAndUpdateExecution(execution, agentIds)
-                        }
+                        .thenReturn(agentIds to resourcesPath)
+                }
+                .flatMapMany { (agentIds, resourcesPath) ->
+                    dockerService.startContainersAndUpdateExecution(execution, agentIds).doOnTerminate {
+                        log.debug { "Removing temporary directory ${resourcesPath.absolutePathString()}" }
+                        FileSystemUtils.deleteRecursively(resourcesPath)
+                    }
                 }
                 .subscribe()
         }
     }
 
-    // if some additional file is archive, unzip it into proper destination:
-    // for standard mode into STANDARD_TEST_SUITE_DIR
-    // for Git mode into testRootPath
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     private fun unzipIfRequired(
         pathToFile: Path,
     ) {
