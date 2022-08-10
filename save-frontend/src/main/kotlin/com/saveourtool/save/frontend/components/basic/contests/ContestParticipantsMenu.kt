@@ -11,6 +11,7 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h6
 
 import kotlinx.js.jso
 
@@ -62,6 +63,12 @@ private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props
             display = Display.flex
             flexDirection = FlexDirection.column
             alignItems = AlignItems.center
+        }
+        if (results.isEmpty()) {
+            h6 {
+                className = ClassName("text-center")
+                +"There are no participants yet. You can be the first one to participate in it!"
+            }
         }
         results.forEach { contestResult ->
             div {
