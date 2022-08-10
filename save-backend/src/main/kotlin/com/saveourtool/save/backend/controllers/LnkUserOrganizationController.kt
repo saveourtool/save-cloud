@@ -22,6 +22,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -31,7 +32,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -41,6 +41,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.util.function.Tuple2
@@ -62,8 +63,6 @@ class LnkUserOrganizationController(
     private val organizationService: OrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
-    private val logger = LoggerFactory.getLogger(LnkUserOrganizationController::class.java)
-
     @GetMapping("{organizationName}/users")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -272,30 +271,47 @@ class LnkUserOrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of users")
     @ApiResponse(responseCode = "404", description = "Requested organization doesn't exist")
+    @Suppress("TOO_LONG_FUNCTION")
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
         @RequestParam prefix: String,
         authentication: Authentication,
-    ): List<UserInfo> {
-        if (prefix.isEmpty()) {
-            return emptyList()
+    ): Mono<List<UserInfo>> = Mono.just(organizationName)
+        .filter {
+            prefix.isNotEmpty()
         }
-        val organization = organizationService.findByName(organizationName)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        val organizationUserIds = lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
-            .map { (user, _) ->
-                user.requiredId()
-            }.toSet()
-        // first we need to get users with exact match by name
-        val exactMatchUsers = lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds)
-        // and then we need to get those whose names start with `prefix`
-        val prefixUsers = lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
-            prefix,
-            organizationUserIds + exactMatchUsers.map { it.requiredId() },
-            PAGE_SIZE - exactMatchUsers.size,
-        )
-        return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
-    }
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "No organization with name $organizationName was found."
+        }
+        .map { organization ->
+            lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
+        }
+        .map { users ->
+            users.map { (user, _) -> user.requiredId() }.toSet()
+        }
+        .flatMap { organizationUserIds ->
+            Mono.zip(
+                Mono.just(organizationUserIds),
+                lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds).toMono(),
+            )
+        }
+        .flatMap { (organizationUserIds, exactMatchUsers) ->
+            Mono.zip(
+                Mono.just(exactMatchUsers),
+                lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
+                    prefix,
+                    organizationUserIds + exactMatchUsers.map { it.requiredId() },
+                    PAGE_SIZE - exactMatchUsers.size,
+                ).toMono()
+            )
+        }
+        .map { (exactMatchUsers, prefixUsers) ->
+            (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+        }
+        .defaultIfEmpty(emptyList())
 
     @GetMapping("/can-create-contests")
     @RequiresAuthorizationSourceHeader
