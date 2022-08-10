@@ -76,49 +76,18 @@ class KubernetesManager(
                         }
                         // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
+                        metadata = ObjectMeta().apply {
+                            labels = mapOf(
+                                "executionId" to executionId.toString(),
+                                // "baseImageName" to baseImageName
+                                "io.kompose.service" to "save-agent"
+                            )
+                        }
+                        // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
+                        restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            Container().apply {
-                                name = "save-agent-pod"
-                                metadata = ObjectMeta().apply {
-                                    labels = mapOf(
-                                        "executionId" to executionId.toString(),
-                                        // "baseImageName" to baseImageName
-                                        "io.kompose.service" to "save-agent"
-                                    )
-                                }
-                                image = baseImageName
-                                imagePullPolicy = "IfNotPresent"  // so that local images could be used
-                                // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
-                                restartPolicy = "Never"
-                                if (!configProperties.docker.runtime.isNullOrEmpty()) {
-                                    logger.warn {
-                                        "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
-                                                "because custom runtimes are not supported yet"
-                                    }
-                                }
-                                env = listOf(
-                                    EnvVar().apply {
-                                        name = "POD_NAME"
-                                        valueFrom = EnvVarSource().apply {
-                                            fieldRef = ObjectFieldSelector().apply {
-                                                fieldPath = "metadata.name"
-                                            }
-                                        }
-                                    }
-                                )
-
-                                this.command = agentRunCmd.dropLast(1)
-                                this.args = listOf(agentRunCmd.last())
-
-                                this.workingDir = workingDir
-                                volumeMounts = listOf(
-                                    VolumeMount().apply {
-                                        name = "save-execution-pvc"
-                                        mountPath = configProperties.kubernetes.pvcMountPath
-                                    }
-                                )
-                            }
+                            agentContainerSpec(baseImageName, agentRunCmd)
                         )
                         volumes = listOf(
                             Volume().apply {
@@ -154,45 +123,6 @@ class KubernetesManager(
             .take(10)
             .firstOrNull { it.isNotEmpty() }
             .orEmpty()
-    }
-
-    private fun initContainersSpec(pvId: KubernetesPvId): List<Container> {
-        requireNotNull(configProperties.kubernetes)
-
-        // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
-        // Probably, a separate client process should be introduced. Until then, one init container performs copying
-        // into a shared mount while others are sleeping for this many seconds:
-        @Suppress(
-            "FLOAT_IN_ACCURATE_CALCULATIONS",
-            "MAGIC_NUMBER",
-            "MagicNumber",
-        )
-        val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
-
-        return listOf(
-            Container().apply {
-                name = "save-vol-copier"
-                image = "alpine:latest"
-                command = listOf(
-                    "sh", "-c",
-                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
-                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
-                            " fi"
-                )
-                volumeMounts = listOf(
-                    VolumeMount().apply {
-                        name = "save-resources-tmp"
-                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
-                    },
-                    VolumeMount().apply {
-                        name = "save-execution-pvc"
-                        mountPath = configProperties.kubernetes.pvcMountPath
-                    }
-                )
-            }
-        )
     }
 
     override fun start(executionId: Long) {
@@ -263,6 +193,78 @@ class KubernetesManager(
     }
 
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
+
+    private fun initContainersSpec(pvId: KubernetesPvId): List<Container> {
+        requireNotNull(configProperties.kubernetes)
+
+        // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
+        // Probably, a separate client process should be introduced. Until then, one init container performs copying
+        // into a shared mount while others are sleeping for this many seconds:
+        @Suppress(
+            "FLOAT_IN_ACCURATE_CALCULATIONS",
+            "MAGIC_NUMBER",
+            "MagicNumber",
+        )
+        val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
+
+        return listOf(
+            Container().apply {
+                name = "save-vol-copier"
+                image = "alpine:latest"
+                command = listOf(
+                    "sh", "-c",
+                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
+                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
+                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
+                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                            " fi"
+                )
+                volumeMounts = listOf(
+                    VolumeMount().apply {
+                        name = "save-resources-tmp"
+                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
+                    },
+                    VolumeMount().apply {
+                        name = "save-execution-pvc"
+                        mountPath = configProperties.kubernetes.pvcMountPath
+                    }
+                )
+            }
+        )
+    }
+
+    private fun agentContainerSpec(imageName: String, agentRunCmd: List<String>) = Container().apply {
+        name = "save-agent-pod"
+        image = imageName
+        imagePullPolicy = "IfNotPresent"  // so that local images could be used
+        if (!configProperties.docker.runtime.isNullOrEmpty()) {
+            logger.warn {
+                "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
+                        "because custom runtimes are not supported yet"
+            }
+        }
+        env = listOf(
+            EnvVar().apply {
+                name = "POD_NAME"
+                valueFrom = EnvVarSource().apply {
+                    fieldRef = ObjectFieldSelector().apply {
+                        fieldPath = "metadata.name"
+                    }
+                }
+            }
+        )
+
+        this.command = agentRunCmd.dropLast(1)
+        this.args = listOf(agentRunCmd.last())
+
+        this.workingDir = workingDir
+        volumeMounts = listOf(
+            VolumeMount().apply {
+                name = "save-execution-pvc"
+                mountPath = requireNotNull(configProperties.kubernetes).pvcMountPath
+            }
+        )
+    }
 
     private fun kcJobsWithName(name: String) = kc.batch()
         .v1()
