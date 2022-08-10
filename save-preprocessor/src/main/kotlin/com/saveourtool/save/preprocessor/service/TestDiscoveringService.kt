@@ -156,17 +156,18 @@ class TestDiscoveringService(
             plugins.asSequence().flatMap { plugin ->
                 plugin.discoverTestFiles(testConfig.directory)
                     .map {
-                        val additionalFiles = if (it is FixPlugin.FixTestFiles) {
-                            listOf(it.expected.getRelativePath(rootTestConfig))
+                        val (allFiles, additionalFiles) = if (it is FixPlugin.FixTestFiles) {
+                            listOf(it.test.toNioPath(), it.expected.toNioPath()) to
+                                    listOf(it.expected.getRelativePath(rootTestConfig))
                         } else {
-                            emptyList()
+                            listOf(it.test.toNioPath()) to emptyList()
                         }
                         val testRelativePath = it.test.getRelativePath(rootTestConfig)
                         TestDto(
                             testRelativePath,
                             plugin::class.simpleName!!,
                             testSuite.id!!,
-                            it.test.toFile().toHash(),
+                            allFiles.toHash(),
                             additionalFiles,
                         )
                     }
