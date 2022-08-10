@@ -422,13 +422,18 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             getPageCount = { pageSize ->
-                val count: Int = post(
-                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=1&size=$pageSize&checkDebugInfo=true",
-                    headers = Headers().apply {
-                        set("Accept", "application/json")
-                        set("Content-Type", "application/json")
+                val status = filters.status?.let {
+                    "&status=${filters.status}"
+                } ?: ""
+                val testSuite = filters.testSuite?.let {
+                    "&testSuite=${filters.testSuite}"
+                } ?: ""
+
+                val count: Int = get(
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    headers = Headers().also {
+                        it.set("Accept", "application/json")
                     },
-                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 )
                     .json()
