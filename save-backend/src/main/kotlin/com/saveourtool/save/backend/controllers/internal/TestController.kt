@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.entities.Test
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestFilesRequest
@@ -28,7 +26,6 @@ import reactor.core.publisher.Mono
 @RequestMapping("/internal")
 class TestController(
     private val testService: TestService,
-    private val testExecutionService: TestExecutionService,
     private val meterRegistry: MeterRegistry,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
@@ -43,26 +40,6 @@ class TestController(
             testService.saveTests(testDtos)
         }
     }
-
-    /**
-     * @param executionId ID of the [Execution][com.saveourtool.save.entities.Execution],
-     * all tests are initialized for this execution will be executed (creating an instance of [TestExecution][com.saveourtool.save.entities.TestExecution])
-     */
-    @PostMapping("/executeTestsByExecutionId")
-    fun executeTestsByExecutionId(@RequestParam executionId: Long) {
-        val testIds = testService.findTestsByExecutionId(executionId).map { it.requiredId() }
-        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: $testIds" }
-        meterRegistry.timer("save.backend.saveTestExecution").record {
-            testExecutionService.saveTestExecutionsByTestIds(executionId, testIds)
-        }
-    }
-
-    /**
-     * @param testSuiteId ID of the [TestSuite], for which all corresponding tests will be returned
-     * @return list of tests
-     */
-    @GetMapping("/getTestsByTestSuiteId")
-    fun getTestsByTestSuiteId(@RequestParam testSuiteId: Long): List<Test> = testService.findTestsByTestSuiteId(testSuiteId)
 
     /**
      * @param agentId

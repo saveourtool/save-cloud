@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -45,9 +46,11 @@ class UserDetailsService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val user = userRepository.findByName(name)!!.apply {
-            avatar = relativePath
-        }
+        val user = userRepository.findByName(name)
+            .orNotFound()
+            .apply {
+                avatar = relativePath
+            }
         user.let { userRepository.save(it) }
     }
 

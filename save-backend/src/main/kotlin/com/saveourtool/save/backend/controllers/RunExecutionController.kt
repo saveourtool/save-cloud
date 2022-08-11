@@ -1,12 +1,13 @@
 package com.saveourtool.save.backend.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.backend.IdResponse
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.backend.utils.username
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.ExecutionRunRequest
 import com.saveourtool.save.execution.ExecutionStatus
@@ -14,6 +15,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.micrometer.core.instrument.MeterRegistry
@@ -27,6 +29,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -58,17 +61,11 @@ class RunExecutionController(
     fun trigger(
         @RequestBody request: ExecutionRunRequest,
         authentication: Authentication,
-    ): Mono<IdResponse> = with(request.projectCoordinates) {
-        // Project cannot be taken from executionRequest directly for permission evaluation:
-        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
-        projectService.findWithPermissionByNameAndOrganization(authentication, projectName, organizationName, Permission.WRITE)
-    }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "User ${authentication.username()} doesn't have access to ${request.projectCoordinates}"
-        }
-        .map { project ->
+    ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
+        .validateAccess(authentication) { it }
+        .map {
             executionService.createNew(
-                project = project,
+                projectCoordinates = request.projectCoordinates,
                 testSuiteIds = request.testSuiteIds,
                 files = request.files,
                 username = authentication.username(),
@@ -79,44 +76,87 @@ class RunExecutionController(
         }
         .subscribeOn(Schedulers.boundedElastic())
         .flatMap { execution ->
-            val executionId = execution.requiredId()
-            Mono.just(ResponseEntity.accepted().body(executionId))
+            Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
-                    blockingToMono {
-                        val tests = request.testSuiteIds.flatMap { testService.findTestsByTestSuiteId(it) }
-                        log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
-                        meterRegistry.timer("save.backend.saveTestExecution").record {
-                            testExecutionService.saveTestExecutions(execution, tests)
-                        }
-                    }
-                        .flatMap {
-                            initializeAgents(execution)
-                                .map {
-                                    log.debug { "Initialized agents for execution $executionId" }
-                                }
-                        }
-                        .onErrorResume { ex ->
-                            val failReason = "Error during preprocessing. Reason: ${ex.message}"
-                            log.error(
-                                "$failReason, will mark execution.id=$executionId as failed; error: ",
-                                ex
-                            )
-                            val executionUpdateDto = ExecutionUpdateDto(
-                                executionId,
-                                ExecutionStatus.ERROR,
-                                failReason
-                            )
-                            blockingToMono {
-                                executionService.updateExecutionStatus(execution, executionUpdateDto.status)
-                            }.flatMap {
-                                executionInfoStorage.upsertIfRequired(executionUpdateDto)
-                            }
-                        }
-                        .subscribeOn(scheduler)
-                        .subscribe()
+                    asyncTrigger(execution)
                 }
         }
 
+    @PostMapping("/reTrigger")
+    fun reTrigger(
+        @RequestParam executionId: Long,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono { executionService.findExecution(executionId) }
+        .switchIfEmptyToNotFound { "Not found execution id = $executionId" }
+        .validateAccess(authentication) { execution ->
+            ProjectCoordinates(
+                execution.project.organization.name,
+                execution.project.name
+            )
+        }
+        .map { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { execution ->
+            Mono.just(execution.toAcceptedResponse())
+                .doOnSuccess {
+                    asyncTrigger(execution)
+                }
+        }
+
+    private fun <T> Mono<T>.validateAccess(
+        authentication: Authentication,
+        projectCoordinatesGetter: (T) -> ProjectCoordinates,
+    ): Mono<T> =
+            flatMap { value ->
+                val projectCoordinates = projectCoordinatesGetter(value)
+                with(projectCoordinates) {
+                    projectService.findWithPermissionByNameAndOrganization(
+                        authentication,
+                        projectName,
+                        organizationName,
+                        Permission.WRITE
+                    )
+                }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+                    "User ${authentication.username()} doesn't have access to $projectCoordinates"
+                }.map { value }
+            }
+
+    private fun asyncTrigger(execution: Execution) {
+        val executionId = execution.requiredId()
+        blockingToMono {
+            val tests = execution.parseAndGetTestSuiteIds()
+                .orEmpty()
+                .flatMap { testService.findTestsByTestSuiteId(it) }
+            log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
+            meterRegistry.timer("save.backend.saveTestExecution").record {
+                testExecutionService.saveTestExecutions(execution, tests)
+            }
+        }
+            .flatMap {
+                initializeAgents(execution)
+                    .map {
+                        log.debug { "Initialized agents for execution $executionId" }
+                    }
+            }
+            .onErrorResume { ex ->
+                val failReason = "Error during preprocessing. Reason: ${ex.message}"
+                log.error(
+                    "$failReason, will mark execution.id=$executionId as failed; error: ",
+                    ex
+                )
+                val executionUpdateDto = ExecutionUpdateDto(
+                    executionId,
+                    ExecutionStatus.ERROR,
+                    failReason
+                )
+                blockingToMono {
+                    executionService.updateExecutionStatus(execution, executionUpdateDto.status)
+                }.flatMap {
+                    executionInfoStorage.upsertIfRequired(executionUpdateDto)
+                }
+            }
+            .subscribeOn(scheduler)
+            .subscribe()
+    }
 
     /**
      * POST request to orchestrator to initiate its work
@@ -134,6 +174,9 @@ class RunExecutionController(
             .retrieve()
             .toEntity()
     }
+
+    private fun Execution.toAcceptedResponse(): StringResponse =
+            ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()

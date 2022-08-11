@@ -28,6 +28,7 @@ import java.util.Optional
 @Service
 class ExecutionService(
     private val executionRepository: ExecutionRepository,
+    private val projectService: ProjectService,
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
@@ -219,13 +220,64 @@ class ExecutionService(
         })
     }
 
+    @Suppress("LongParameterList")
     @Transactional
     fun createNew(
-        project: Project,
+        projectCoordinates: ProjectCoordinates,
         testSuiteIds: List<Long>,
-        files: List<FileInfo>,
+        files: List<FileKey>,
         username: String,
         sdk: Sdk,
+        execCmd: String?,
+        batchSizeForAnalyzer: String?,
+    ): Execution {
+        val project = with(projectCoordinates) {
+            projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
+                "Not found project $projectName in $organizationName"
+            }
+        }
+        return doCreateNew(
+            project = project,
+            formattedTestSuiteIds = Execution.formatTestSuiteIds(testSuiteIds),
+            version = testSuitesService.getSingleVersionByIds(testSuiteIds),
+            allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
+                .count()
+                .toLong(),
+            additionalFiles = files.format(),
+            username = username,
+            sdk = sdk.toString(),
+            execCmd = execCmd,
+            batchSizeForAnalyzer = batchSizeForAnalyzer,
+        )
+    }
+
+    @Transactional
+    fun createNewCopy(
+        execution: Execution,
+        username: String,
+    ): Execution {
+        return doCreateNew(
+            project = execution.project,
+            formattedTestSuiteIds = execution.testSuiteIds,
+            version = execution.version,
+            allTests = execution.allTests,
+            additionalFiles = execution.additionalFiles,
+            username = username,
+            sdk = execution.sdk,
+            execCmd = execution.execCmd,
+            batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+        )
+    }
+
+    @Suppress("LongParameterList")
+    fun doCreateNew(
+        project: Project,
+        formattedTestSuiteIds: String?,
+        version: String?,
+        allTests: Long,
+        additionalFiles: String,
+        username: String,
+        sdk: String,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
     ): Execution {
@@ -237,14 +289,12 @@ class ExecutionService(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.PENDING,
-            testSuiteIds = Execution.formatTestSuiteIds(testSuiteIds),
+            testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
             // FIXME: remove this type
             type = ExecutionType.GIT,
-            version = testSuitesService.getSingleVersionByIds(testSuiteIds),
-            allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
-                .count()
-                .toLong(),
+            version = version,
+            allTests = allTests,
             runningTests = 0,
             passedTests = 0,
             failedTests = 0,
@@ -253,8 +303,8 @@ class ExecutionService(
             matchedChecks = 0,
             expectedChecks = 0,
             unexpectedChecks = 0,
-            sdk = sdk.toString(),
-            additionalFiles = files.map { it.toStorageKey() }.format(),
+            sdk = sdk,
+            additionalFiles = additionalFiles,
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
