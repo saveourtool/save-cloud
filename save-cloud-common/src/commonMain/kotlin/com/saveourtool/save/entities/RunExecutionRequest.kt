@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
  * @property batchSizeForAnalyzer
  */
 @Serializable
-data class ExecutionRunRequest(
+data class RunExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,

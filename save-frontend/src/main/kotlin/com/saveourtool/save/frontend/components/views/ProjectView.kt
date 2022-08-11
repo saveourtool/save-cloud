@@ -467,7 +467,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun submitExecutionRequestByContest() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = ExecutionRunRequest(
+        val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
             testSuiteIds = state.selectedContest.testSuiteIds,
             files = state.files.map { it.toStorageKey() },

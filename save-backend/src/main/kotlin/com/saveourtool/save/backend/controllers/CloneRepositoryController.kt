@@ -127,7 +127,7 @@ class CloneRepositoryController(
             .collectList()
             .zipWith(testSuiteIdsMono)
             .map { (files, testSuitesIds) ->
-                ExecutionRunRequest(
+                RunExecutionRequest(
                     projectCoordinates = projectCoordinates,
                     testSuiteIds = testSuitesIds,
                     files = files.map { it.toStorageKey() },

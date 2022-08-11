@@ -9,7 +9,7 @@ import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRunRequest
+import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
@@ -70,7 +70,7 @@ class RunExecutionController(
      */
     @PostMapping("/trigger")
     fun trigger(
-        @RequestBody request: ExecutionRunRequest,
+        @RequestBody request: RunExecutionRequest,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
@@ -179,15 +179,11 @@ class RunExecutionController(
      * POST request to orchestrator to initiate its work
      */
     private fun initializeAgents(execution: Execution): Mono<EmptyResponse> {
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution, MediaType.APPLICATION_JSON)
-        }
-
         return webClientOrchestrator
             .post()
             .uri("/initializeAgents")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(execution)
             .retrieve()
             .toEntity()
     }
