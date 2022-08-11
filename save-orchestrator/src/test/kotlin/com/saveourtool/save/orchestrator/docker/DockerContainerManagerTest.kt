@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

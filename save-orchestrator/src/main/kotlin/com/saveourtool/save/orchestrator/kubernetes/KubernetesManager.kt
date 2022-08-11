@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.findImage
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -11,12 +10,10 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
-import com.github.dockerjava.api.DockerClient
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
