@@ -1,42 +1,33 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
-import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionInitializationDto
-import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
@@ -52,7 +43,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 @RestController
 @Suppress("LongParameterList")
 class ExecutionController(private val executionService: ExecutionService,
-                          private val gitService: GitService,
                           private val testSuitesService: TestSuitesService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
@@ -60,33 +50,9 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
-                          private val executionInfoStorage: ExecutionInfoStorage,
-                          config: ConfigProperties,
-                          jackson2WebClientCustomizer: WebClientCustomizer,
+                          private val runExecutionController: RunExecutionController,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
-    private val preprocessorWebClient = WebClient.builder()
-        .apply(jackson2WebClientCustomizer::customize)
-        .baseUrl(config.preprocessorUrl)
-        .build()
-
-    /**
-     * @param execution
-     * @return id of created [Execution]
-     */
-    @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecutionAndReturnId(execution)
-
-    /**
-     * @param executionUpdateDto
-     * @return empty Mono
-     */
-    @PostMapping("/internal/updateExecutionByDto")
-    fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto): Mono<Unit> = Mono.fromCallable {
-        executionService.updateExecutionStatusById(executionUpdateDto.id, executionUpdateDto.status)
-    }.flatMap {
-        executionInfoStorage.upsertIfRequired(executionUpdateDto)
-    }
 
     /**
      * Get execution by id
@@ -105,16 +71,6 @@ class ExecutionController(private val executionService: ExecutionService,
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
-
-    /**
-     * @param executionInitializationDto
-     * @return execution
-     */
-    @PostMapping("/internal/updateNewExecution")
-    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
-            executionService.updateNewExecution(executionInitializationDto)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId
@@ -287,20 +243,8 @@ class ExecutionController(private val executionService: ExecutionService,
     @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
-        val execution = executionService.findExecution(id)
-            ?: throw IllegalArgumentException("Can't rerun execution $id, because it does not exist")
-        if (!projectPermissionEvaluator.hasPermission(
-            authentication, execution.project, Permission.WRITE
-        )) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
-        executionService.resetMetrics(execution)
-        executionService.updateExecutionWithUser(execution, authentication.username())
-        return preprocessorWebClient.post()
-            .uri("/rerunExecution?id={executionId}", execution.requiredId())
-            .retrieve()
-            .bodyToMono()
+    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> {
+        return runExecutionController.reTrigger(id, authentication)
     }
 
     @Suppress("UnsafeCallOnNullableType")

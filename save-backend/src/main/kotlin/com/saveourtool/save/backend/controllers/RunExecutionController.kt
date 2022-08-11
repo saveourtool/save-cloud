@@ -39,6 +39,7 @@ import reactor.core.scheduler.Schedulers
 
 @RestController
 @RequestMapping("/api/$v1/run")
+@Suppress("LongParameterList")
 class RunExecutionController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,

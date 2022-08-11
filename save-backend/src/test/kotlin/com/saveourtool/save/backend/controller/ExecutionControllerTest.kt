@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -183,42 +182,6 @@ class ExecutionControllerTest {
                 requireNotNull(it.responseBody)
                 assertEquals(executionCounts, it.responseBody!!.size)
             }
-    }
-
-    @Test
-    @WithMockUser("JohnDoe")
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun checkUpdateNewExecution() {
-        val execution = Execution.stub(projectRepository.findAll().first())
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        val executionUpdate = ExecutionInitializationDto(execution.project, listOf(1, 2, 3), "executionVersion", null, null)
-        webClient.post()
-            .uri("/internal/updateNewExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(executionUpdate))
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<Execution>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertEquals("1,2,3", responseBody.testSuiteIds)
-                assertEquals(20, responseBody.batchSize)
-                assertEquals("executionVersion", responseBody.version)
-            }
-        val isUpdatedExecution = executionRepository.findAll().any {
-            it.testSuiteIds == "1,2,3" &&
-                    it.batchSize == 20 &&
-                    it.version == "executionVersion"
-        }
-        assertTrue(isUpdatedExecution)
     }
 
     @Test
