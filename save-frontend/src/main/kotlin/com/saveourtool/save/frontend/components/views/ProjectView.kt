@@ -210,6 +210,11 @@ external interface ProjectViewState : State {
      * Role of a user that is seeing this view
      */
     var selfRole: Role
+
+    /**
+     * File for delete
+     */
+    var file: FileInfo?
 }
 
 /**
@@ -310,6 +315,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.INFO
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
+        state.file = null
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -458,6 +464,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             when (state.confirmationType) {
                 ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
                 ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
+                ConfirmationType.DELETE_FILE_CONFIRM -> fileDelete()
                 else -> {
                     // this is a generated else block
                 }
@@ -734,7 +741,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun postFileDelete(file: FileInfo) {
+    private fun fileDelete() {
         scope.launch {
             val headers = Headers().also {
                 it.set("Accept", "application/json")
@@ -742,19 +749,29 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                "$apiUrl/files/${props.owner}/${props.name}/${state.file?.uploadedMillis}",
                 headers,
-                Json.encodeToString(file),
+                Json.encodeToString(state.file),
                 loadingHandler = ::noopLoadingHandler,
             )
 
             if (response.ok) {
                 setState {
                     files.remove(file)
-                    bytesReceived -= file.sizeBytes
-                    suiteByteSize -= file.sizeBytes
+                    bytesReceived -= file?.sizeBytes ?: 0
+                    suiteByteSize -= file?.sizeBytes ?: 0
                 }
             }
+        }
+    }
+
+    private fun postFileDelete(fileForDelete: FileInfo) {
+        setState {
+            file = fileForDelete
+            confirmationType = ConfirmationType.DELETE_FILE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete this file?"
         }
     }
 
