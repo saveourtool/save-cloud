@@ -222,7 +222,6 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(dockerService, times(1)).cleanup(anyLong())
-        verify(dockerService, times(1)).removeImage(anyString())
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {

@@ -27,22 +27,9 @@ class JobsConfiguration {
         .build()
 
     @Bean
-    fun baseImageBuildingJobDetail(): JobDetail = JobBuilder.newJob(BaseImageBuildingJob::class.java)
-        .storeDurably()
-        .withIdentity(BaseImageBuildingJob.jobKey)
-        .withDescription("Build base images for test execution for different SDKs")
-        .build()
-
-    @Bean
     fun updateJobTrigger(configProperties: ConfigProperties): CronTrigger = scheduledTrigger(
         UpdateJob.jobKey,
         CronScheduleBuilder.cronSchedule(configProperties.scheduling.standardSuitesUpdateCron)
-    )
-
-    @Bean
-    fun buildBaseImageJobTrigger(configProperties: ConfigProperties): CronTrigger = scheduledTrigger(
-        BaseImageBuildingJob.jobKey,
-        CronScheduleBuilder.cronSchedule(configProperties.scheduling.baseImagesBuildCron)
     )
 }
 
