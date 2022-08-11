@@ -5764,8 +5764,8 @@
           }
         ],
         "responses": {
-          "403": {
-            "description": "Not enough permission for deleting organization git credentials.",
+          "200": {
+            "description": "Successfully deleted an organization git credentials and all corresponding data.",
             "content": {
               "*/*": {
                 "schema": {
@@ -5774,8 +5774,8 @@
               }
             }
           },
-          "200": {
-            "description": "Successfully deleted an organization git credentials.",
+          "403": {
+            "description": "Not enough permission for deleting organization git credentials.",
             "content": {
               "*/*": {
                 "schema": {
@@ -5847,8 +5847,8 @@
           }
         ],
         "responses": {
-          "403": {
-            "description": "Not enough permission for deleting organization git credentials.",
+          "200": {
+            "description": "Successfully deleted an organization git credentials and all corresponding data.",
             "content": {
               "*/*": {
                 "schema": {
@@ -5857,8 +5857,8 @@
               }
             }
           },
-          "200": {
-            "description": "Successfully deleted an organization git credentials.",
+          "403": {
+            "description": "Not enough permission for deleting organization git credentials.",
             "content": {
               "*/*": {
                 "schema": {
