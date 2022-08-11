@@ -9,7 +9,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
@@ -50,7 +49,6 @@ import kotlinx.datetime.Clock
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
-    private val dockerContainerManager: DockerContainerManager,
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
@@ -75,7 +73,7 @@ class DockerService(
         log.info("Preparing image and volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("For execution.id=${execution.id} using base image [id=${buildResult.imageId}] and PV [id=${buildResult.pvId}]")
+        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
         return buildResult
     }
 
@@ -238,11 +236,8 @@ class DockerService(
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
-        val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
-            .map { it.id }
-            .first()
         return RunConfiguration(
-            imageId = baseImageId,
+            imageTag = baseImage,
             runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
@@ -265,14 +260,14 @@ class DockerService(
     /**
      * Information required to start containers with save-agent
      *
-     * @property imageId ID of an image which should be used for a container
+     * @property imageTag tag of an image which should be used for a container
      * @property runCmd command that should be run as container's entrypoint.
      * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
      * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      */
     data class RunConfiguration<I : PersistentVolumeId>(
-        val imageId: String,
+        val imageTag: String,
         val runCmd: List<String>,
         val pvId: I,
         val resourcesPath: Path,

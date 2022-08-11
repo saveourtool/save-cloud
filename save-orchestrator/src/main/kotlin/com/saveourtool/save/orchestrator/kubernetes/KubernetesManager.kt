@@ -29,10 +29,8 @@ import java.util.concurrent.ConcurrentMap
 @Component
 @Profile("kubernetes")
 class KubernetesManager(
-    private val dockerClient: DockerClient,
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
-    private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
     private val boundPvcs: ConcurrentMap<Long, String> = ConcurrentHashMap()
 
@@ -48,13 +46,10 @@ class KubernetesManager(
                         replicas: Int,
                         workingDir: String,
     ): List<String> {
-        val (baseImageId, agentRunCmd, pvId) = configuration
+        val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
-        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
-            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
-        val baseImageName = baseImage.repoTags.first()
 
         // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
         // We use Job, because Deployment will always try to restart failing pods.
@@ -87,7 +82,7 @@ class KubernetesManager(
                         restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageName, agentRunCmd)
+                            agentContainerSpec(baseImageTag, agentRunCmd)
                         )
                         volumes = listOf(
                             Volume().apply {

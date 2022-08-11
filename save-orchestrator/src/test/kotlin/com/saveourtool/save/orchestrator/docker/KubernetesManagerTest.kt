@@ -32,17 +32,14 @@ import java.net.HttpURLConnection
 @EnableKubernetesMockClient
 @TestPropertySource("classpath:application.properties")
 class KubernetesManagerTest {
-    private val dockerClient: DockerClient = mock()
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager
 
     @BeforeEach
     fun setUp() {
         kubernetesManager = KubernetesManager(
-            dockerClient,
             kubernetesClient,
             configProperties,
-            CompositeMeterRegistry(),
         )
     }
 

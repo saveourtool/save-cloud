@@ -51,11 +51,11 @@ class DockerAgentRunner(
         replicas: Int,
         workingDir: String,
     ): List<String> {
-        val (baseImageId, agentRunCmd, pvId) = configuration
+        val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
         return (1..replicas).map { number ->
             logger.info("Building container #$number for execution.id=$executionId")
-            createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+            createContainerFromImage(baseImageTag, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
                 logger.info("Built container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
@@ -148,24 +148,22 @@ class DockerAgentRunner(
      *
      * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
-     * @param baseImageId id of the base docker image for this container
+     * @param baseImageTag tag of the base docker image for this container
      * @param workingDir working directory for [runCmd]
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(baseImageId: String,
+    private fun createContainerFromImage(baseImageTag: String,
                                          pvId: DockerPvId,
                                          workingDir: String,
                                          runCmd: List<String>,
                                          containerName: String,
     ): String {
-        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
-            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
-        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(workingDir)
             // Load environment variables required by save-agent and then run it.
             // Rely on `runCmd` format: last argument is parameter of the subshell.

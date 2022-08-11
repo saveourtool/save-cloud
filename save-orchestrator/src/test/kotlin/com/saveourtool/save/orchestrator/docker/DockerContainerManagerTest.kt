@@ -7,6 +7,7 @@ import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
+import com.github.dockerjava.api.model.Image
 import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -26,31 +27,28 @@ import kotlin.io.path.createTempFile
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
-@TestPropertySource("classpath:application.properties")
+@TestPropertySource("classpath:application.properties", "classpath:application-docker-tcp.properties")
 @Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
-@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
+//@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
 class DockerContainerManagerTest {
-    @Autowired private lateinit var configProperties: ConfigProperties
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
-    private lateinit var dockerContainerManager: DockerContainerManager
-    private lateinit var baseImageId: String
+    private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String
 
     @BeforeEach
     fun setUp() {
-        dockerContainerManager = DockerContainerManager(configProperties, CompositeMeterRegistry(), dockerClient)
-        dockerClient.pullImageCmd("ubuntu")
-            .withTag("latest")
+        dockerClient.pullImageCmd("ghcr.io/saveourtool/save-base")
+            .withRegistry("https://ghcr.io")
+            .withTag("openjdk-11")
             .exec(PullImageResultCallback())
             .awaitCompletion()
-        baseImageId = dockerClient.listImagesCmd()
+        baseImage = dockerClient.listImagesCmd()
             .exec()
             .first {
-                it.repoTags?.contains("ubuntu:latest") == true
+                it.repoTags?.contains("ghcr.io/saveourtool/save-base:openjdk-11") == true
             }
-            .id
         dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
 
@@ -61,7 +59,7 @@ class DockerContainerManagerTest {
         testContainerId = dockerAgentRunner.create(
             executionId = 42,
             configuration = DockerService.RunConfiguration(
-                baseImageId,
+                baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
                 DockerPvId("test-volume"),
                 Path.of("test-resources-path"),
@@ -84,16 +82,6 @@ class DockerContainerManagerTest {
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
         dockerAgentRunner.copyResourcesIntoContainer(testContainerId, "/var", listOf(testFile, resourceFile))
-    }
-
-    @Test
-    @Suppress("UnsafeCallOnNullableType")
-    fun `should build an image with provided resources`() {
-        testImageId = dockerContainerManager.buildImage(
-            imageName = "test:test"
-        )
-        val inspectImageResponse = dockerClient.inspectImageCmd(testImageId).exec()
-        Assertions.assertTrue(inspectImageResponse.size!! > 0)
     }
 
     @AfterEach

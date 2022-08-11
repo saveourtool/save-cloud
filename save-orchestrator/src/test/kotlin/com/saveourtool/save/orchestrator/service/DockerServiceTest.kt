@@ -5,7 +5,6 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
@@ -45,11 +44,10 @@ import kotlinx.serialization.json.Json
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
-@TestPropertySource("classpath:application.properties")
-@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
+@TestPropertySource("classpath:application.properties", "classpath:application-docker-tcp.properties")
+//@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
 @Import(
     Beans::class,
-    DockerContainerManager::class,
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
