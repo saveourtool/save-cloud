@@ -743,14 +743,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun fileDelete() {
         scope.launch {
-            val headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            }
-
             val response = delete(
                 "$apiUrl/files/${props.owner}/${props.name}/${state.file?.uploadedMillis}",
-                headers,
+                jsonHeaders,
                 Json.encodeToString(state.file),
                 loadingHandler = ::noopLoadingHandler,
             )
