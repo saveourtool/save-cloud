@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.views.ProjectView
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
@@ -49,6 +50,8 @@ external interface TestResourcesProps : PropsWithChildren {
     var projectName: String
     var organizationName: String
     var onContestEnrollerResponse: (String) -> Unit
+    var availableContests: List<ContestDto>
+    var selectedContest: ContestDto
 
     // properties for CUSTOM_TESTS mode
     var availableGitCredentials: List<GitDto>
@@ -130,6 +133,7 @@ fun testResourcesSelection(
     setExecCmd: (String) -> Unit,
     setBatchSize: (String) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
+    updateContestFromInputField: (ContestDto) -> Unit,
 ) = FC<TestResourcesProps> { props ->
     val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
     showContestEnrollerModal(
@@ -336,11 +340,30 @@ fun testResourcesSelection(
     div {
         className = ClassName(cardStyleByTestingType(props, TestingType.CONTEST_MODE))
         div {
-            className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0")
-            +"Stay turned! Soon you will be able to run your tool in contest mode!"
+            className = ClassName("input-group-prepend")
+
+            select {
+                className = ClassName("form-control")
+                props.availableContests.forEach {
+                    option {
+                        +it.label()
+                    }
+                }
+                required = true
+                value = props.selectedContest.label()
+                onChange = { event ->
+                    val selectedContestLabel = event.target.value
+                    val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
+                        "Invalid contest is selected $selectedContestLabel"
+                    }
+                    updateContestFromInputField(selectedContest)
+                }
+            }
         }
     }
 }
+
+private fun ContestDto.label(): String = "$organizationName/$name"
 
 private fun cardStyleByTestingType(props: TestResourcesProps, testingType: TestingType) =
         if (props.testingType == testingType) "card shadow mb-4 w-100" else "d-none"

@@ -3,7 +3,9 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ExecutionRunRequest(
     val projectCoordinates: ProjectCoordinates,
 

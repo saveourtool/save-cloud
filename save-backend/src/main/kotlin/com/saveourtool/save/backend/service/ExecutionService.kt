@@ -259,7 +259,8 @@ class ExecutionService(
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
         )
-        log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
-        return execution
+        val savedExecution = executionRepository.save(execution)
+        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
+        return savedExecution
     }
 }

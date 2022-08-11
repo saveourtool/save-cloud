@@ -18,6 +18,7 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import com.saveourtool.save.v1
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -38,47 +39,24 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 @RestController
-@RequestMapping("/api/run")
+@RequestMapping("/api/$v1/run")
 class RunExecutionController(
     private val projectService: ProjectService,
     private val executionService: ExecutionService,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
-    private val contestService: ContestService,
     private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
-//    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
 ) {
     private val webClientOrchestrator = WebClient.builder()
         .baseUrl(configProperties.orchestratorUrl)
         .codecs {
             it.defaultCodecs().multipartCodecs().encoder(Jackson2JsonEncoder(objectMapper))
         }
-//        .apply(kotlinSerializationWebClientCustomizer::customize)
         .build()
     private val scheduler = Schedulers.boundedElastic()
-
-
-    @PostMapping("/triggerByContest")
-    fun triggerByContestId(
-        @RequestBody originalRequest: ExecutionRunRequestByContest,
-        authentication: Authentication,
-    ): Mono<IdResponse> = justOrNotFound(contestService.findById(originalRequest.contestId))
-        .map { contest ->
-            ExecutionRunRequest(
-                projectCoordinates = originalRequest.projectCoordinates,
-                testSuiteIds = contest.testSuiteIds.split(DATABASE_DELIMITER).map { it.toLong() },
-                files = originalRequest.files,
-                sdk = originalRequest.sdk,
-                execCmd = originalRequest.execCmd,
-                batchSizeForAnalyzer = originalRequest.batchSizeForAnalyzer,
-            )
-        }
-        .flatMap {
-            trigger(it, authentication)
-        }
 
     @PostMapping("/trigger")
     fun trigger(

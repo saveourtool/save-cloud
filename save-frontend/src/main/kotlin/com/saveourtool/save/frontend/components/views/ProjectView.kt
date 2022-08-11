@@ -62,10 +62,21 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
     var currentUserInfo: UserInfo?
 }
 
+external interface StateWithRole : State {
+    /**
+     * Role of a user that is seeing this view
+     */
+    var selfRole: Role
+}
+
+external interface StandardTestsState : State {
+
+}
+
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : State {
+external interface ProjectViewState : StateWithRole {
     /**
      * Currently loaded for display Project
      */
@@ -206,15 +217,21 @@ external interface ProjectViewState : State {
      */
     var closeButtonLabel: String?
 
-    /**
-     * Role of a user that is seeing this view
-     */
-    var selfRole: Role
 
     /**
      * File for delete
      */
     var file: FileInfo
+
+    /**
+     *
+     */
+    var selectedContest: ContestDto
+
+    /**
+     *
+     */
+    var availableContests: List<ContestDto>
 }
 
 /**
@@ -258,6 +275,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 selectedLanguageForStandardTests = it
             }
+        },
+        updateContestFromInputField = {
+            setState {
+                selectedContest = it
+            }
         }
     )
     private val projectInfo = projectInfo(
@@ -293,6 +315,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         state.selectedGitCredential = GitDto("N/A")
         state.availableGitCredentials = emptyList()
+        state.selectedContest = ContestDto.empty
+        state.availableContests = emptyList()
         state.gitBranchOrCommitFromInputField = ""
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
@@ -370,6 +394,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 availableGitCredentials = gitCredentials
                 gitCredentials.firstOrNull()?.let { selectedGitCredential = it }
             }
+
+            val contests = getContests()
+            setState {
+                availableContests = contests
+                contests.firstOrNull()?.let { selectedContest = it }
+            }
+
             fetchLatestExecutionId()
         }
     }
@@ -378,6 +409,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun submitExecutionRequest() {
         when (state.testingType) {
             TestingType.CUSTOM_TESTS -> submitExecutionRequestWithCustomTests()
+            TestingType.CONTEST_MODE -> submitExecutionRequestByContest()
             else -> {
                 if (selectedStandardSuites.isEmpty()) {
                     setState {
@@ -428,6 +460,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             formData.appendJson("file", it.toShortFileInfo())
         }
         submitRequest("/submitExecutionRequest", Headers(), formData)
+    }
+
+    private fun submitExecutionRequestByContest() {
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val executionRequest = ExecutionRunRequest(
+            projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
+            testSuiteIds = state.selectedContest.testSuiteIds,
+            files = state.files.toList(),
+            sdk = selectedSdk,
+            execCmd = state.execCmd,
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer,
+        )
+        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
@@ -618,6 +663,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     testingType = state.testingType
                     isSubmitButtonPressed = state.isSubmitButtonPressed
                     gitDto = gitDto
+                    // properties for CONTEST_TESTS mode
                     projectName = props.name
                     organizationName = props.owner
                     onContestEnrollerResponse = {
@@ -627,6 +673,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             errorLabel = "Contest enrollment"
                         }
                     }
+                    selectedContest = state.selectedContest
+                    availableContests = state.availableContests
                     // properties for CUSTOM_TESTS mode
                     testRootPath = state.testRootPath
                     selectedGitCredential = state.selectedGitCredential
@@ -966,6 +1014,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     )
         .unsafeMap {
             it.decodeFromJsonString<List<GitDto>>()
+        }
+
+    private suspend fun getContests() = get(
+        "$apiUrl/contests/active",
+        Headers(),
+        loadingHandler = ::noopLoadingHandler,
+    )
+        .unsafeMap {
+            it.decodeFromJsonString<List<ContestDto>>()
         }
 
     companion object :
