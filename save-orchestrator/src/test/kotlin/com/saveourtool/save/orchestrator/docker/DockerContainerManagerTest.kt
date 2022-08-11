@@ -26,9 +26,9 @@ import kotlin.io.path.createTempFile
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
-@TestPropertySource("classpath:application.properties", "classpath:application-docker-tcp.properties")
+@TestPropertySource("classpath:application.properties")
 @Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
-//@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
+@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
