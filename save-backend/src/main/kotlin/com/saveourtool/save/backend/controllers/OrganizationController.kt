@@ -378,13 +378,12 @@ internal class OrganizationController(
             val git = gitService.getByOrganizationAndUrl(organization, url)
             val testSuitesSources = testSuitesSourceService.findByGit(git)
             // List of test suites for removing data from storage at next step
-            val testSuitesList: MutableList<TestSuite?> = mutableListOf()
-            testSuitesSources.forEach { testSuitesSource ->
+            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
-                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
-                testSuitesList.add(testSuites.firstOrNull())
                 testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
                 testSuitesSourceService.delete(testSuitesSource)
+                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
+                testSuites.firstOrNull()
             }
             gitService.delete(organization, url)
             testSuitesList
