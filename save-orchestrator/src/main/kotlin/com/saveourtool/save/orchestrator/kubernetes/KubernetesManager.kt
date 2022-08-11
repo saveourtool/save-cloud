@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.findImage
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -11,12 +10,10 @@ import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
-import com.github.dockerjava.api.DockerClient
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec
 import io.fabric8.kubernetes.client.KubernetesClient
-import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -29,10 +26,8 @@ import java.util.concurrent.ConcurrentMap
 @Component
 @Profile("kubernetes")
 class KubernetesManager(
-    private val dockerClient: DockerClient,
     private val kc: KubernetesClient,
     private val configProperties: ConfigProperties,
-    private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
     private val boundPvcs: ConcurrentMap<Long, String> = ConcurrentHashMap()
 
@@ -48,13 +43,10 @@ class KubernetesManager(
                         replicas: Int,
                         workingDir: String,
     ): List<String> {
-        val (baseImageId, agentRunCmd, pvId) = configuration
+        val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
-        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
-            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
-        val baseImageName = baseImage.repoTags.first()
 
         // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
         // We use Job, because Deployment will always try to restart failing pods.
@@ -87,7 +79,7 @@ class KubernetesManager(
                         restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageName, agentRunCmd)
+                            agentContainerSpec(baseImageTag, agentRunCmd)
                         )
                         volumes = listOf(
                             Volume().apply {

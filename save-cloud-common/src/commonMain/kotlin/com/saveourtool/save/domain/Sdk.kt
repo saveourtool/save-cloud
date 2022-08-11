@@ -28,10 +28,10 @@ open class Sdk(val name: String, open val version: String) {
 /**
  * @property version version of JDK
  */
-class Jdk(override val version: String) : Sdk("openjdk", version) {
+class Jdk(override val version: String) : Sdk("eclipse-temurin", version) {
     companion object {
         const val NAME = "Java"
-        val versions = listOf("8", "9", "10", "11", "12", "13", "14", "15", "16")
+        val versions = listOf("8", "11", "17")
     }
 }
 
@@ -41,7 +41,7 @@ class Jdk(override val version: String) : Sdk("openjdk", version) {
 class Python(override val version: String) : Sdk("python", version) {
     companion object {
         const val NAME = "Python"
-        val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9")
+        val versions = listOf("2.7", "3.2", "3.3", "3.4", "3.5", "3.6", "3.7", "3.8", "3.9", "3.10")
     }
 }
 
