@@ -47,7 +47,7 @@ jobs:
         run: |
           BASE_IMAGE_TAG=${{ matrix.base_image_tag }}
           IMAGE_TAG=${BASE_IMAGE_TAG%"-alpine"}
-          echo 'IMAGE_TAG=$IMAGE_TAG' >> $GITHUB_ENV
+          echo IMAGE_TAG=$IMAGE_TAG >> $GITHUB_ENV
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
