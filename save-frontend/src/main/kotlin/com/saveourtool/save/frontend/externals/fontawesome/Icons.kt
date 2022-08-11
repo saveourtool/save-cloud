@@ -36,6 +36,10 @@ external val faTimesCircle: FontAwesomeIconModule
 @JsNonModule
 external val faQuestionCircle: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faList")
+@JsNonModule
+external val faList: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faSpinner")
 @JsNonModule
 external val faSpinner: FontAwesomeIconModule
@@ -104,6 +108,10 @@ external val faCheckCircle: FontAwesomeIconModule
 @JsNonModule
 external val faPlus: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faAlignJustify")
+@JsNonModule
+external val faAlignJustify: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faArrowRight")
 @JsNonModule
 external val faArrowRight: FontAwesomeIconModule
@@ -147,3 +155,7 @@ external val faBell: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faArrowDown")
 @JsNonModule
 external val faArrowDown: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faCheckDouble")
+@JsNonModule
+external val faCheckDouble: FontAwesomeIconModule

@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.lodash.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -138,7 +139,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                 }
             setUsersNotFromGroup(users)
         },
-        500,
+        DEFAULT_DEBOUNCE_PERIOD,
     )
     val addUserToGroup = useRequest {
         val headers = Headers().apply {

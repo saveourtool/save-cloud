@@ -8,15 +8,18 @@ import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -111,6 +114,34 @@ class TestSuitesService(
             testSuiteRepository.findByIdOrNull(id)
         }
     }
+
+    /**
+     * @param filters
+     * @return [Flux] of [TestSuite] that match [filters]
+     */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+            ExampleMatcher.matchingAll()
+                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                // .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withIgnorePaths("description", "source", "version", "dateAdded", "language")
+                .let {
+                    Example.of(
+                        TestSuite(
+                            filters.name,
+                            "",
+                            TestSuitesSource.empty,
+                            "",
+                            null,
+                            filters.language,
+                            filters.tags
+                        ),
+                        it
+                    )
+                }
+                .let { testSuiteRepository.findAll(it) }
+                .toFlux()
 
     /**
      * @param id

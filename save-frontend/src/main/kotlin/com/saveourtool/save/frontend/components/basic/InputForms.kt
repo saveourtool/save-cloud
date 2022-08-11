@@ -75,6 +75,7 @@ enum class InputTypes(
  * @param errorText
  * @param onChangeFun
  * @param textValue
+ * @param onClickFun
  * @return div with an input form
  */
 @Suppress(
@@ -89,28 +90,27 @@ internal fun ChildrenBuilder.inputTextFormRequired(
     classes: String,
     name: String,
     errorText: String = "Please input a valid ${form.str}",
-    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+    onClickFun: () -> Unit = { },
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { }
 ) =
         div {
-            className = ClassName("$classes mt-1")
+            className = ClassName(classes)
             label {
                 className = ClassName("form-label")
                 htmlFor = form.name
                 +name
+                span {
+                    className = ClassName("text-red text-left")
+                    +"*"
+                }
             }
 
             div {
-                className = ClassName("input-group has-validation")
-                span {
-                    className = ClassName("input-group-text")
-                    id = "${form.name}Span"
-                    +"*"
-                }
-
                 val inputType = if (form == InputTypes.PASSWORD) InputType.password else InputType.text
                 input {
                     type = inputType
                     onChange = onChangeFun
+                    onClick = { onClickFun() }
                     id = form.name
                     required = true
                     value = textValue
@@ -155,7 +155,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     onClickFun: () -> Unit = { },
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { },
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     name?.let { name ->
         label {
             className = ClassName("form-label")
@@ -193,6 +193,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
  * @param classes
  * @param name
  * @param inputText
+ * @param isRequired
  * @return div with a disabled input form
  */
 internal fun ChildrenBuilder.inputTextDisabled(
@@ -200,12 +201,19 @@ internal fun ChildrenBuilder.inputTextDisabled(
     classes: String,
     name: String,
     inputText: String,
+    isRequired: Boolean = true,
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +name
+        if (isRequired) {
+            span {
+                className = ClassName("text-red text-left")
+                +"*"
+            }
+        }
     }
     input {
         type = InputType.text
@@ -231,7 +239,7 @@ internal fun ChildrenBuilder.inputDateFormOptional(
     text: String,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
@@ -265,19 +273,18 @@ internal fun ChildrenBuilder.inputDateFormRequired(
     errorMessage: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes mt-1")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +text
+        span {
+            className = ClassName("text-red text-left")
+            +"*"
+        }
     }
     div {
         className = ClassName("input-group has-validation")
-        span {
-            className = ClassName("input-group-text")
-            id = "${form.name}Span"
-            +"*"
-        }
         input {
             type = InputType.date
             onChange = onChangeFun
