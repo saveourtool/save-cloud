@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -527,16 +528,19 @@ class TestSuitesSourceController(
         @PathVariable name: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, name) }
-        .flatMap {
-            preprocessorWebClient.post()
-                .uri("/test-suites-sources/fetch")
-                .bodyValue(it.toDto())
-                .retrieve()
-                .toEntity<Unit>()
-        }
-        .map {
-            ResponseEntity.ok()
-                .body("Trigger fetching new tests from $name in $organizationName")
+        .flatMap { testSuitesSource ->
+            Mono.just(
+                ResponseEntity.ok()
+                    .body("Trigger fetching new tests from $name in $organizationName")
+            ).doOnSuccess {
+                preprocessorWebClient.post()
+                    .uri("/test-suites-sources/fetch")
+                    .bodyValue(testSuitesSource.toDto())
+                    .retrieve()
+                    .toEntity<Unit>()
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe()
+            }
         }
 
     private fun TestSuitesSourceDto.downloadSnapshot(
