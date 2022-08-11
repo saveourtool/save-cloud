@@ -289,4 +289,4 @@ class DockerService(
  * @param sdk
  * @return name like `save-base:openjdk-11`
  */
-internal fun baseImageName(sdk: Sdk) = "save-base:${sdk.toString().replace(":", "-")}"
+internal fun baseImageName(sdk: Sdk) = "ghcr.io/saveourtool/save-base:${sdk.toString().replace(":", "-")}"
