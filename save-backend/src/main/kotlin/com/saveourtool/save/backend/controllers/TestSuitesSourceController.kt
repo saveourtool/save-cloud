@@ -46,7 +46,6 @@ typealias TestSuiteList = List<TestSuite>
 @Tags(
     Tag(name = "test-suites-source"),
 )
-@Suppress("LongParameterList")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
@@ -54,14 +53,7 @@ class TestSuitesSourceController(
     private val organizationService: OrganizationService,
     private val gitService: GitService,
     private val executionService: ExecutionService,
-    configProperties: ConfigProperties,
-    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
-    private val preprocessorWebClient = WebClient.builder()
-        .apply(jackson2WebClientCustomizer::customize)
-        .baseUrl(configProperties.preprocessorUrl)
-        .build()
-
     /**
      * @param organizationName
      * @return list of [TestSuitesSourceDto] found by provided values or empty response
@@ -533,11 +525,7 @@ class TestSuitesSourceController(
                 ResponseEntity.ok()
                     .body("Trigger fetching new tests from $name in $organizationName")
             ).doOnSuccess {
-                preprocessorWebClient.post()
-                    .uri("/test-suites-sources/fetch")
-                    .bodyValue(testSuitesSource.toDto())
-                    .retrieve()
-                    .toEntity<Unit>()
+                testSuitesSourceService.fetch(testSuitesSource.toDto())
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }

@@ -15,21 +15,14 @@ import java.time.Duration
  */
 class UpdateJob(
     private val testSuitesSourceService: TestSuitesSourceService,
-    configProperties: ConfigProperties,
 ) : Job {
-    private val preprocessorWebClient = WebClient.create(configProperties.preprocessorUrl)
-
     @Suppress("MagicNumber")
     override fun execute(context: JobExecutionContext?) {
         logger.info("Running job $jobKey")
         testSuitesSourceService.getStandardTestSuitesSources()
             .toFlux()
             .flatMap { testSuitesSource ->
-                preprocessorWebClient.post()
-                    .uri("/test-suites-sources/fetch")
-                    .bodyValue(testSuitesSource)
-                    .retrieve()
-                    .toBodilessEntity()
+                testSuitesSourceService.fetch(testSuitesSource.toDto())
             }
             .collectList()
             .block(Duration.ofSeconds(10))

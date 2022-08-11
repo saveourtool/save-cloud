@@ -1,5 +1,7 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.EmptyResponse
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
@@ -8,8 +10,11 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
 import org.slf4j.Logger
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
 
 /**
  * Service for [com.saveourtool.save.entities.TestSuitesSource]
@@ -19,7 +24,14 @@ class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
     private val gitService: GitService,
+    configProperties: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
+    private val preprocessorWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(configProperties.preprocessorUrl)
+        .build()
+
     /**
      * @param organization [TestSuitesSource.organization]
      * @return list of entities of [TestSuitesSource] or null
@@ -77,7 +89,7 @@ class TestSuitesSourceService(
         git: Git,
         testRootPath: String,
         branch: String,
-    ) = testSuitesSourceRepository.findByOrganizationAndGitAndBranchAndTestRootPath(
+    ): TestSuitesSource = testSuitesSourceRepository.findByOrganizationAndGitAndBranchAndTestRootPath(
         organization,
         git,
         branch,
@@ -130,9 +142,19 @@ class TestSuitesSourceService(
         }
         .distinct()
 
-    companion object {
-        private val log: Logger = getLogger<TestSuitesSourceService>()
+    /**
+     * @param testSuitesSource test suites source which requested to be fetched
+     * @return empty response
+     */
+    fun fetch(
+        testSuitesSource: TestSuitesSourceDto,
+    ): Mono<EmptyResponse> = preprocessorWebClient.post()
+        .uri("/test-suites-sources/fetch")
+        .bodyValue(testSuitesSource)
+        .retrieve()
+        .toBodilessEntity()
 
+    companion object {
         /**
          * @return default name fot [com.saveourtool.save.entities.TestSuitesSource]
          */
