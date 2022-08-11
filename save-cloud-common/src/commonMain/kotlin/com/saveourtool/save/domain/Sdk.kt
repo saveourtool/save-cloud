@@ -28,7 +28,7 @@ open class Sdk(val name: String, open val version: String) {
 /**
  * @property version version of JDK
  */
-class Jdk(override val version: String) : Sdk("openjdk", version) {
+class Jdk(override val version: String) : Sdk("eclipse-temurin", version) {
     companion object {
         const val NAME = "Java"
         val versions = listOf("8", "9", "10", "11", "12", "13", "14", "15", "16", "17")

@@ -16,25 +16,25 @@ jobs:
       matrix:
         # This should replicate list of SDKs from com.saveourtool.save.domain.Sdk
         include:
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 8
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 9
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 10
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 11
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 12
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 13
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 14
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 15
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 16
-          - base_image_name: openjdk
+          - base_image_name: eclipse-temurin
             base_image_tag: 17
           - base_image_name: python
             base_image_tag: 2.7
@@ -55,7 +55,7 @@ jobs:
           - base_image_name: python
             base_image_tag: 3.9
           - base_image_name: python
-            base_image_tag: 3.10
+            base_image_tag: '3.10'
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v2
