@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import java.util.Optional
 
 @WebFluxTest(controllers = [LnkUserOrganizationController::class])
 @Import(

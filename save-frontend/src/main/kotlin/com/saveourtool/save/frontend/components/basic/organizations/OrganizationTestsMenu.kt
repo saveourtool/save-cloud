@@ -174,7 +174,12 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     var content: List<D>
 }
 
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS", "TOO_LONG_FUNCTION")
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
@@ -226,9 +231,6 @@ private fun prepareTestSuitesSourcesTable(
         column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
             Fragment.create {
                 td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
                     button {
                         type = ButtonType.button
                         className = ClassName("btn btn-sm btn-primary")

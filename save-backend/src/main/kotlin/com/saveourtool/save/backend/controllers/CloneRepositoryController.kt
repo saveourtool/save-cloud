@@ -35,7 +35,6 @@ class CloneRepositoryController(
     private val gitService: GitService,
     private val runExecutionController: RunExecutionController,
 ) {
-
     /**
      * Endpoint to save project
      *
@@ -96,6 +95,7 @@ class CloneRepositoryController(
                 testSuitesSourceService.getStandardTestSuitesSources()
             }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun <T : ExecutionRequestBase> sendToTrigger(
         executionRequest: T,
         authentication: Authentication,
@@ -109,16 +109,16 @@ class CloneRepositoryController(
         val testSuiteIdsMono = blockingToMono { testSuitesSourceResolver(executionRequest) }
             .flatMapIterable { it }
             .map { testSuitesSource ->
-            testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
-                .collectList()
-                .map { keys ->
-                    keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
-                        ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
-                }
-                .flatMapIterable { testSuitesService.getBySourceAndVersion(testSuitesSource, it) }
-                .filter(testSuitesFilter)
-                .map { it.requiredId() }
-        }
+                testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
+                    .collectList()
+                    .map { keys ->
+                        keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
+                            ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
+                    }
+                    .flatMapIterable { testSuitesService.getBySourceAndVersion(testSuitesSource, it) }
+                    .filter(testSuitesFilter)
+                    .map { it.requiredId() }
+            }
             .let {
                 Flux.concat(it)
             }

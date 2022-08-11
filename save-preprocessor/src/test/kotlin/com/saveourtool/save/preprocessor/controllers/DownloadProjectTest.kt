@@ -28,7 +28,6 @@ import org.mockito.kotlin.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Import
@@ -44,7 +43,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
-@WebFluxTest(controllers = [DownloadProjectController::class])
+// @WebFluxTest(controllers = [DownloadProjectController::class])
 @Import(LocalDateTimeConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")

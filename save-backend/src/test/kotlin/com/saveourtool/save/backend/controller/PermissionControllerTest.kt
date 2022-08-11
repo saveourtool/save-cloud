@@ -31,7 +31,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import reactor.core.publisher.Mono
 import reactor.util.function.Tuples
-import java.util.Optional
 
 @WebFluxTest(controllers = [PermissionController::class])
 @Import(

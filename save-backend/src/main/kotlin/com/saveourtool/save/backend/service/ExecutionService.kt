@@ -23,6 +23,7 @@ import java.util.Optional
 /**
  * Service that is used to manipulate executions
  */
+@Suppress("LongParameterList")
 @Service
 class ExecutionService(
     private val executionRepository: ExecutionRepository,
@@ -125,7 +126,17 @@ class ExecutionService(
      */
     fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> = executionRepository.findAllByTestSuiteIdsContaining(testSuiteId.toString())
 
-    @Suppress("LongParameterList")
+    /**
+     * @param projectCoordinates
+     * @param testSuiteIds
+     * @param files
+     * @param username
+     * @param sdk
+     * @param execCmd
+     * @param batchSizeForAnalyzer
+     * @return new [Execution] with provided values
+     */
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
     @Transactional
     fun createNew(
         projectCoordinates: ProjectCoordinates,
@@ -156,26 +167,29 @@ class ExecutionService(
         )
     }
 
+    /**
+     * @param execution
+     * @param username
+     * @return new [Execution] with values taken from [execution]
+     */
     @Transactional
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Execution {
-        return doCreateNew(
-            project = execution.project,
-            formattedTestSuiteIds = execution.testSuiteIds,
-            version = execution.version,
-            allTests = execution.allTests,
-            additionalFiles = execution.additionalFiles,
-            username = username,
-            sdk = execution.sdk,
-            execCmd = execution.execCmd,
-            batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
-        )
-    }
+    ): Execution = doCreateNew(
+        project = execution.project,
+        formattedTestSuiteIds = execution.testSuiteIds,
+        version = execution.version,
+        allTests = execution.allTests,
+        additionalFiles = execution.additionalFiles,
+        username = username,
+        sdk = execution.sdk,
+        execCmd = execution.execCmd,
+        batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+    )
 
-    @Suppress("LongParameterList")
-    fun doCreateNew(
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+    private fun doCreateNew(
         project: Project,
         formattedTestSuiteIds: String?,
         version: String?,

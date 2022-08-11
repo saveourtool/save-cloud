@@ -243,9 +243,7 @@ class ExecutionController(private val executionService: ExecutionService,
     @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> {
-        return runExecutionController.reTrigger(id, authentication)
-    }
+    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> = runExecutionController.reTrigger(id, authentication)
 
     @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this

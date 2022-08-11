@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.backend.EmptyResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
@@ -18,6 +18,8 @@ import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -37,6 +39,9 @@ import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
+/**
+ * Controller for running execution
+ */
 @RestController
 @RequestMapping("/api/$v1/run")
 @Suppress("LongParameterList")
@@ -58,6 +63,11 @@ class RunExecutionController(
         .build()
     private val scheduler = Schedulers.boundedElastic()
 
+    /**
+     * @param request incoming request from frontend
+     * @param authentication
+     * @return response with ID of created [Execution]
+     */
     @PostMapping("/trigger")
     fun trigger(
         @RequestBody request: ExecutionRunRequest,
@@ -83,6 +93,11 @@ class RunExecutionController(
                 }
         }
 
+    /**
+     * @param executionId ID of [Execution] which needs to be copied for new execution
+     * @param authentication
+     * @return response with ID of new created [Execution]
+     */
     @PostMapping("/reTrigger")
     fun reTrigger(
         @RequestParam executionId: Long,
@@ -121,6 +136,7 @@ class RunExecutionController(
                 }.map { value }
             }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
         val executionId = execution.requiredId()
         blockingToMono {
@@ -162,7 +178,7 @@ class RunExecutionController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution): Mono<ResponseEntity<HttpStatus>> {
+    private fun initializeAgents(execution: Execution): Mono<EmptyResponse> {
         val bodyBuilder = MultipartBodyBuilder().apply {
             part("execution", execution, MediaType.APPLICATION_JSON)
         }

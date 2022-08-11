@@ -515,23 +515,29 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
 
+    /**
+     * @param organizationName
+     * @param name
+     * @param authentication
+     * @return response from preprocessor
+     */
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{name}/fetch")
     fun triggerFetch(
         @PathVariable organizationName: String,
         @PathVariable name: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, name) }
-            .flatMap {
-                preprocessorWebClient.post()
-                    .uri("/test-suites-sources/fetch")
-                    .bodyValue(it.toDto())
-                    .retrieve()
-                    .toEntity<Unit>()
-            }
-            .map {
-                ResponseEntity.ok()
-                    .body("Trigger fetching new tests from $name in $organizationName")
-            }
+        .flatMap {
+            preprocessorWebClient.post()
+                .uri("/test-suites-sources/fetch")
+                .bodyValue(it.toDto())
+                .retrieve()
+                .toEntity<Unit>()
+        }
+        .map {
+            ResponseEntity.ok()
+                .body("Trigger fetching new tests from $name in $organizationName")
+        }
 
     private fun TestSuitesSourceDto.downloadSnapshot(
         version: String

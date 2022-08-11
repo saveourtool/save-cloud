@@ -111,6 +111,8 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
     }
 }
 
+private fun ContestDto.label(): String = "$organizationName/$name"
+
 /**
  * @param updateGitUrlFromInputField
  * @param updateGitBranchOrCommitInputField
@@ -118,6 +120,7 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
  * @param setSelectedLanguageForStandardTests
  * @param setExecCmd
  * @param setBatchSize
+ * @param updateContestFromInputField
  * @return an Component
  */
 @Suppress(
@@ -362,8 +365,6 @@ fun testResourcesSelection(
         }
     }
 }
-
-private fun ContestDto.label(): String = "$organizationName/$name"
 
 private fun cardStyleByTestingType(props: TestResourcesProps, testingType: TestingType) =
         if (props.testingType == testingType) "card shadow mb-4 w-100" else "d-none"

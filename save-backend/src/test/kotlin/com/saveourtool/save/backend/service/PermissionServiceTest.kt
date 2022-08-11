@@ -20,7 +20,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import java.util.Optional
 
 @ExtendWith(SpringExtension::class)
 @Import(PermissionService::class)

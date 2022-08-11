@@ -62,6 +62,9 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
     var currentUserInfo: UserInfo?
 }
 
+/**
+ * State with role
+ */
 external interface StateWithRole : State {
     /**
      * Role of a user that is seeing this view
@@ -69,14 +72,25 @@ external interface StateWithRole : State {
     var selfRole: Role
 }
 
-external interface StandardTestsState : State {
+/**
+ * [State] of project view component for CONTEST run
+ */
+external interface ContestRunState : State {
+    /**
+     * Currently selected contest
+     */
+    var selectedContest: ContestDto
 
+    /**
+     * All available contest
+     */
+    var availableContests: List<ContestDto>
 }
 
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole {
+external interface ProjectViewState : StateWithRole, ContestRunState {
     /**
      * Currently loaded for display Project
      */
@@ -217,21 +231,10 @@ external interface ProjectViewState : StateWithRole {
      */
     var closeButtonLabel: String?
 
-
     /**
      * File for delete
      */
     var file: FileInfo
-
-    /**
-     *
-     */
-    var selectedContest: ContestDto
-
-    /**
-     *
-     */
-    var availableContests: List<ContestDto>
 }
 
 /**

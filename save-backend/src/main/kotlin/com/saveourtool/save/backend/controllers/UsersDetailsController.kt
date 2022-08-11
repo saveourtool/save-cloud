@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
