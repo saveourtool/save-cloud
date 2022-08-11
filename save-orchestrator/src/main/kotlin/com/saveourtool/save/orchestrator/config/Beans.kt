@@ -34,6 +34,7 @@ class Beans(private val configProperties: ConfigProperties) {
      * @return instance of [DockerClient]
      */
     @Bean
+    @Profile("!kubernetes")
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {

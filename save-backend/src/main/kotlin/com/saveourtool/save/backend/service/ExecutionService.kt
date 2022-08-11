@@ -148,6 +148,14 @@ class ExecutionService(
             }
 
     /**
+     * Get all executions, which contains provided test suite id
+     *
+     * @param testSuiteId
+     * @return list of [Execution]'s
+     */
+    fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> = executionRepository.findAllByTestSuiteIdsContaining(testSuiteId.toString())
+
+    /**
      * @param execution execution, tests metrics of which should be reset
      */
     fun resetMetrics(execution: Execution) {
