@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
+  # Fixme: only for testing
+  push:
 
 jobs:
   build_base_images:
@@ -14,25 +16,25 @@ jobs:
       matrix:
         # This should replicate list of SDKs from com.saveourtool.save.domain.Sdk
         include:
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 8
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 9
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 10
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 11
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 12
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 13
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 14
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 15
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 16
-          - base_image_name: opendjk
+          - base_image_name: openjdk
             base_image_tag: 17
           - base_image_name: python
             base_image_tag: 2.7
