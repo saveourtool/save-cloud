@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
@@ -15,12 +16,13 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -30,7 +32,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -40,6 +41,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.util.function.Tuple2
@@ -61,8 +63,6 @@ class LnkUserOrganizationController(
     private val organizationService: OrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
-    private val logger = LoggerFactory.getLogger(LnkUserOrganizationController::class.java)
-
     @GetMapping("{organizationName}/users")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -164,12 +164,11 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
-    @Suppress("TYPE_ALIAS")
     fun setRole(
         @PathVariable organizationName: String,
         @RequestBody setRoleRequest: SetRoleRequest,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
+    ): Mono<StringResponse> = Mono.justOrEmpty(
         Optional.ofNullable(
             organizationService.findByName(organizationName)
         )
@@ -220,12 +219,11 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "200", description = "Role was successfully removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or organization doesn't exist")
-    @Suppress("ThrowsCount", "TYPE_ALIAS")
     fun removeRole(
         @PathVariable organizationName: String,
         @PathVariable userName: String,
         authentication: Authentication,
-    ): Mono<ResponseEntity<String>> = Mono.justOrEmpty(
+    ): Mono<StringResponse> = Mono.justOrEmpty(
         Optional.ofNullable(
             organizationService.findByName(organizationName)
         )
@@ -273,30 +271,42 @@ class LnkUserOrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of users")
     @ApiResponse(responseCode = "404", description = "Requested organization doesn't exist")
+    @Suppress("TOO_LONG_FUNCTION")
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
         @RequestParam prefix: String,
         authentication: Authentication,
-    ): List<UserInfo> {
-        if (prefix.isEmpty()) {
-            return emptyList()
+    ): Mono<List<UserInfo>> = Mono.just(organizationName)
+        .filter {
+            prefix.isNotEmpty()
         }
-        val organization = organizationService.findByName(organizationName)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        val organizationUserIds = lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
-            .map { (user, _) ->
-                user.requiredId()
-            }.toSet()
-        // first we need to get users with exact match by name
-        val exactMatchUsers = lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds)
-        // and then we need to get those whose names start with `prefix`
-        val prefixUsers = lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
-            prefix,
-            organizationUserIds + exactMatchUsers.map { it.requiredId() },
-            PAGE_SIZE - exactMatchUsers.size,
-        )
-        return (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
-    }
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "No organization with name $organizationName was found."
+        }
+        .map { organization ->
+            lnkUserOrganizationService.getAllUsersAndRolesByOrganization(organization)
+        }
+        .map { users ->
+            users.map { (user, _) -> user.requiredId() }.toSet()
+        }
+        .map { organizationUserIds ->
+            organizationUserIds to lnkUserOrganizationService.getNonOrganizationUsersByName(prefix, organizationUserIds)
+        }
+        .map { (organizationUserIds, exactMatchUsers) ->
+            exactMatchUsers to
+                    lnkUserOrganizationService.getNonOrganizationUsersByNamePrefix(
+                        prefix,
+                        organizationUserIds + exactMatchUsers.map { it.requiredId() },
+                        PAGE_SIZE - exactMatchUsers.size,
+                    )
+        }
+        .map { (exactMatchUsers, prefixUsers) ->
+            (exactMatchUsers + prefixUsers).map { it.toUserInfo() }
+        }
+        .defaultIfEmpty(emptyList())
 
     @GetMapping("/can-create-contests")
     @RequiresAuthorizationSourceHeader
@@ -328,7 +338,7 @@ class LnkUserOrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationWithRoles(
         authentication: Authentication,
-    ): Flux<OrganizationInfo> = Mono.justOrEmpty(
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
         lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
     )
         .switchIfEmpty {
@@ -341,7 +351,7 @@ class LnkUserOrganizationController(
             it.organization != null && it.organization?.status != OrganizationStatus.DELETED
         }
         .map {
-            it.organization!!.toOrganizationInfo(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
 
     companion object {

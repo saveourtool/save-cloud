@@ -145,6 +145,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     override fun ChildrenBuilder.render() {
         HashRouter {
             requestModalHandler {
+                userInfo = state.userInfo
                 div {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"

@@ -15,9 +15,11 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.compressAsZipTo
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okio.Buffer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -39,13 +41,14 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
+import reactor.core.publisher.Flux
 
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createTempDirectory
+import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -75,13 +78,32 @@ class AgentsControllerTest {
             type = ExecutionType.STANDARD
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
-            resourcesRootPath = "resourcesRootPath"
             id = 42L
         }
-        whenever(dockerService.prepareConfiguration(any())).thenReturn(
-            DockerService.RunConfiguration("test-image-id", "test-exec-cmd", DockerPvId("test-pv-id"))
+        val tmpDir = createTempDirectory()
+        val tmpFile = createTempFile(tmpDir)
+        tmpFile.writeText("test")
+        val tmpArchive = createTempFile()
+        tmpDir.compressAsZipTo(tmpArchive)
+        mockServer.enqueue(
+            ".*/test-suites-sources/download-snapshot-by-execution-id.*",
+            MockResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/octet-stream")
+                .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
-        whenever(dockerService.createContainers(any(), any())).thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
+            DockerService.RunConfiguration(
+                "test-image-id",
+                listOf("sh", "-c", "test-exec-cmd"),
+                DockerPvId("test-pv-id"),
+                Path.of("test-resources-path"),
+            )
+        )
+        whenever(dockerService.createContainers(any(), any()))
+            .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+        whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
+            .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(
             "/addAgents.*",
             MockResponse()
@@ -104,9 +126,13 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
+
+        tmpFile.deleteExisting()
+        tmpDir.deleteExisting()
+        tmpArchive.deleteExisting()
     }
 
     @Test
@@ -196,7 +222,6 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(dockerService, times(1)).cleanup(anyLong())
-        verify(dockerService, times(1)).removeImage(anyString())
     }
 
     private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-test_suites_source" author="nulls">
+        <insert tableName="test_suites_source">
+            <column name="id" value="1"/>
+            <column name="name" value="Test suites from github"/>
+            <column name="description" value="description"/>
+            <column name="organization_id" value="1"/>
+            <column name="git_id" value="1"/>
+            <column name="branch" value="master"/>
+            <column name="test_root_path" value=""/>
+        </insert>
+        <insert tableName="test_suites_source">
+            <column name="id" value="2"/>
+            <column name="name" value="Standard test suites"/>
+            <column name="description" value="description"/>
+            <column name="organization_id" value="3"/>
+            <column name="git_id" value="3"/>
+            <column name="branch" value="main"/>
+            <column name="test_root_path" value="examples/discovery-test"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="add-test_suite_source-2" author="sanyavertolet">
+        <insert tableName="test_suites_source">
+            <column name="id" value="3"/>
+            <column name="name" value="Another test suites from github"/>
+            <column name="description" value="Another description"/>
+            <column name="organization_id" value="1"/>
+            <column name="git_id" value="1"/>
+            <column name="branch" value="main"/>
+            <column name="test_root_path" value=""/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

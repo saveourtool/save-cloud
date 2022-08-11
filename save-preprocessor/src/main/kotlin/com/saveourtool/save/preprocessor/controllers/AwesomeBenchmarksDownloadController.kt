@@ -3,8 +3,8 @@ package com.saveourtool.save.preprocessor.controllers
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.utils.*
 import com.saveourtool.save.preprocessor.utils.generateDirectory
-import com.saveourtool.save.preprocessor.utils.pullOrCloneProjectWithSpecificBranch
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import org.eclipse.jgit.api.errors.GitAPIException
@@ -48,7 +48,9 @@ class AwesomeBenchmarksDownloadController(
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
                 .doOnSuccess {
                     log.debug("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
-                    pullOrCloneProjectWithSpecificBranch(gitDto, tmpDir, null)
+                    val branch = gitDto.detectDefaultBranchName()
+                    val sha1 = gitDto.detectLatestSha1(branch)
+                    gitDto.cloneToDirectory(branch, sha1, tmpDir.toPath())
                     log.info("Awesome-benchmarks were downloaded to ${tmpDir.absolutePath}")
                     processDirectoryAndCleanUp().subscribe()
                     tmpDir.deleteRecursively()

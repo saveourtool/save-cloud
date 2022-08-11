@@ -28,10 +28,14 @@ external interface ModalProps : PropsWithChildren {
      */
     var contentLabel: String
 
-    /** String or object className to be applied to the modal content. */
+    /**
+     * String or object className to be applied to the modal content.
+     */
     var className: Classes
 
-    /** String or object className to be applied to the overlay. */
+    /**
+     * String or object className to be applied to the overlay.
+     */
     var overlayClassName: Classes
 
     /**

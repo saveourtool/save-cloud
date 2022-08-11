@@ -34,22 +34,18 @@ class DockerPersistentVolumeService(
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
     @Suppress("TOO_LONG_FUNCTION")
-    override fun createFromResources(resources: Collection<Path>): DockerPvId {
-        if (resources.size > 1) {
-            TODO("Not yet implemented")
-        }
-
+    override fun createFromResources(resourcesDir: Path): DockerPvId {
         val createVolumeResponse = dockerClient.createVolumeCmd()
             .withName("save-execution-vol-${UUID.randomUUID()}")
             .exec()
         blockingPullImage("alpine", "latest")
 
-        val resourcesRelativePath = resources.single().relativeTo(
+        val resourcesRelativePath = resourcesDir.relativeTo(
             Paths.get(configProperties.testResources.tmpPath)
         )
         val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
         val sourceMount = when (configProperties.docker.testResourcesVolumeType) {
-            "mount" -> Mount()
+            "volume" -> Mount()
                 .withType(MountType.VOLUME)
                 .withSource(configProperties.docker.testResourcesVolumeName)
                 .withTarget(intermediateResourcesPath)
@@ -57,7 +53,7 @@ class DockerPersistentVolumeService(
                 .withType(MountType.BIND)
                 .withSource(configProperties.testResources.tmpPath)
                 .withTarget(intermediateResourcesPath)
-            else -> error("Supported values are `mount` and `bind`")
+            else -> error("Supported values are `volume` and `bind`")
         }
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
@@ -81,7 +77,7 @@ class DockerPersistentVolumeService(
             .exec()
         val dataCopyingContainerId = createContainerResponse.id
 
-        logger.info("Starting container $dataCopyingContainerId to copy files from $resources into volume ${createVolumeResponse.name}")
+        logger.info("Starting container $dataCopyingContainerId to copy files from $resourcesDir into volume ${createVolumeResponse.name}")
         dockerClient.startContainerCmd(dataCopyingContainerId)
             .exec()
         waitForCompletionWithTimeout(dataCopyingContainerId)

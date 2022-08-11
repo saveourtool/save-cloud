@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
@@ -19,11 +18,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
-import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.utils.trace
-import org.apache.commons.io.FilenameUtils
+import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,10 +26,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.nio.file.Paths
 import java.time.Duration
 
 import java.time.LocalDateTime
@@ -65,7 +58,7 @@ class AgentService(
                 .uri("/getTestBatches?agentId=$agentId")
                 .retrieve()
                 .bodyToMono<TestBatch>()
-                .flatMap { batch -> batch.toHeartbeatResponse(agentId) }
+                .flatMap { it.toHeartbeatResponse(agentId) }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -317,66 +310,19 @@ class AgentService(
             .toBodilessEntity()
     }
 
-    private fun TestBatch.toHeartbeatResponse(agentId: String) =
-            if (tests.isNotEmpty()) {
+    private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =
+            if (isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                constructCliCommand(tests, suitesToArgs).map { cliArgs ->
-                    NewJobResponse(tests, cliArgs)
-                }
+                Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
             } else {
                 log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
                 Mono.just(WaitResponse)
             }
 
-    @Suppress("TOO_LONG_FUNCTION")
-    private fun constructCliCommand(tests: List<TestDto>, suitesToArgs: Map<Long, String>): Mono<String> {
-        // first, need to check the current mode, it could be done by looking of type of any test suite for current tests
-        return webClientBackend.get()
-            .uri("/testSuite/${tests.first().testSuiteId}")
-            .retrieve()
-            .bodyToMono<TestSuite>()
-            .map { testSuite ->
-                testSuite.type == TestSuiteType.STANDARD
-            }
-            .flatMap { isStandardMode ->
-                if (isStandardMode) {
-                    // in standard mode for each test get proper prefix location, since we created extra directories
-                    // parent location for each test under one test suite is the same, so we can group them as the following
-                    Flux.fromIterable(tests.groupBy { it.testSuiteId }.values).flatMap { testGroup ->
-                        webClientBackend.get()
-                            .uri("/testSuite/${testGroup.first().testSuiteId}")
-                            .retrieve()
-                            .bodyToMono<TestSuite>()
-                            .flatMapIterable { testSuite ->
-                                val locationInStandardDir = getLocationInStandardDirForTestSuite(testSuite.toDto())
-                                testGroup.map { test ->
-                                    val testFilePathInStandardDir =
-                                            Paths.get(locationInStandardDir)
-                                                .resolve(Paths.get(test.filePath))
-                                    FilenameUtils.separatorsToUnix(testFilePathInStandardDir.toString())
-                                }
-                            }
-                    }
-                        .collectList()
-                        .map { isStandardMode to it }
-                } else {
-                    Mono.fromCallable {
-                        isStandardMode to tests.map {
-                            it.filePath
-                        }
-                    }
-                }
-            }
-            .map { (isStandardMode, testPaths) ->
-                val cliArgs = if (!isStandardMode) {
-                    suitesToArgs.values.first()
-                } else {
-                    ""
-                } + " " + testPaths.joinToString(" ")
-                log.debug("Constructed cli args for SAVE-cli: $cliArgs")
-                cliArgs
-            }
-    }
+    private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }
+        .also {
+            log.debug("Constructed cli args for SAVE-cli: $it")
+        }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

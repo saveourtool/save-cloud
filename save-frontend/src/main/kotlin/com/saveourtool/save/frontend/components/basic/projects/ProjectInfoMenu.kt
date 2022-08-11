@@ -103,7 +103,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     }()
 
     div {
-        className = ClassName("d-flex justify-content-between")
+        className = ClassName("d-flex justify-content-center")
         div {
             className = ClassName("col-3")
             div {

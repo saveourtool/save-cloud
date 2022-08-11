@@ -18,4 +18,8 @@ data class TestFilesContent(
     val expectedLines: List<String>?,
     val language: String? = null,
     val tags: List<String> = emptyList(),
-)
+) {
+    companion object {
+        val empty = TestFilesContent(emptyList(), null)
+    }
+}

@@ -228,7 +228,7 @@ class DownloadFilesController(
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
 
-        return debugInfoStorage.download(Pair(executionId, testResultLocation))
+        return debugInfoStorage.download(DebugInfoStorageKey(executionId, testResultLocation))
             .switchIfEmpty(
                 Mono.fromCallable {
                     logger.warn("Additional file for $executionId and $testResultLocation not found")

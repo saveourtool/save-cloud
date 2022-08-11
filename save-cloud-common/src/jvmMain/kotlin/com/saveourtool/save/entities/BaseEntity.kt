@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.validation.Validatable
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
@@ -9,7 +10,7 @@ import javax.persistence.MappedSuperclass
  */
 @MappedSuperclass
 @Suppress("CLASS_SHOULD_NOT_BE_ABSTRACT", "UnnecessaryAbstractClass")
-abstract class BaseEntity {
+abstract class BaseEntity : Validatable {
     /**
      * generate a unique id
      */

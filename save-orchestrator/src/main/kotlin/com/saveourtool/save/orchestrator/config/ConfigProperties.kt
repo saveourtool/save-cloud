@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.orchestrator.config
 
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -13,15 +14,18 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property backendUrl url of save-backend
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
+ * @property kubernetes configuration for setup in Kubernetes
+ * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
  * @property agentsCount a number of agents to start for every [Execution]
  * @property executionLogs path to folder to store cli logs
+ * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
  * @property agentsHeartBeatTimeoutMillis interval in milliseconds, after which agent should be marked as crashed, if there weren't received heartbeats from him
  * @property heartBeatInspectorInterval interval in seconds, with the frequency of which heartbeat inspector will look for crashed agents
  * @property agentSettings if set, this will override defaults in agent.properties
- * @property kubernetes configuration for setup in Kubernetes
- * @property shutdown configuration related to process of shutting down groups of agents for executions
+ * @property agentsStartTimeoutMillis interval in milliseconds, which indicates how much time is given to agents for starting, if time's up - mark execution with internal error
+ * @property agentsStartCheckIntervalMillis interval in milliseconds, within which agents will be checked, whether they are started
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
@@ -30,6 +34,7 @@ data class ConfigProperties(
     val testResources: TestResources,
     val docker: DockerSettings,
     val kubernetes: KubernetesSettings?,
+    val dockerResourcesLifetime: String = "720h",
     val agentsCount: Int,
     val executionLogs: String,
     val shutdown: ShutdownSettings,
@@ -38,9 +43,10 @@ data class ConfigProperties(
     val agentsHeartBeatTimeoutMillis: Long,
     val heartBeatInspectorInterval: Long,
     val agentSettings: AgentSettings = AgentSettings(),
+    val agentsStartTimeoutMillis: Long,
+    val agentsStartCheckIntervalMillis: Long,
 ) {
     /**
-     * @property basePath path to the root directory, where all test resources are stored
      * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
      * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
      * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
@@ -48,7 +54,6 @@ data class ConfigProperties(
      * as a host location for this shared mount.
      */
     data class TestResources(
-        val basePath: String,
         val tmpPath: String,
     )
 
@@ -76,12 +81,20 @@ data class ConfigProperties(
      * to authenticate orchestrator to the API server
      * @property namespace Kubernetes namespace, into which agents will be deployed.
      * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
+     * @property pvcAnnotations Kubernetes annotations for each PVC that will be generated to store resources for an execution
+     * @property pvcSize requested size of the generated PVC
+     * @property pvcStorageSpec Additional YAML spec for PVC
+     * @property pvcMountPath mount point for the PV with test resources
      */
     data class KubernetesSettings(
         val apiServerUrl: String,
         val serviceAccount: String,
         val namespace: String,
         val useGvisor: Boolean,
+        val pvcAnnotations: String?,
+        val pvcSize: String,
+        val pvcStorageSpec: String,
+        val pvcMountPath: String = EXECUTION_DIR,
     )
 
     /**

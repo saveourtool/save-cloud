@@ -25,7 +25,6 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - save:/home/cnb
       - /home/saveu/executionLogs:/home/cnb/executionLogs/
       - /home/saveu/configs/orchestrator:/home/cnb/config
       - save-tmp-resources:/tmp
@@ -102,7 +101,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.0.5
+    image: grafana/grafana:9.0.6
     ports:
       - "9100:3000"
     volumes:

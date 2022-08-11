@@ -1,6 +1,5 @@
 package com.saveourtool.save.preprocessor.controllers
 
-import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
@@ -8,17 +7,16 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.config.LocalDateTimeConfig
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
+import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.preprocessor.utils.RepositoryVolume
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteType
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okio.FileSystem
-import okio.Path.Companion.toPath
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -26,25 +24,24 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import reactor.core.publisher.Mono
 
 import java.io.File
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 @WebFluxTest(controllers = [DownloadProjectController::class])
@@ -60,7 +57,22 @@ class DownloadProjectTest(
     private val binFolder = "${configProperties.repository}/binFolder"
     private val binFilePath = "$binFolder/program"
     private val propertyPath = "$binFolder/save.properties"
+    private val standardTestSuitesSourceDto = TestSuitesSourceDto(
+        "organizationName",
+        "name",
+        "description",
+        GitDto(
+            "some-url",
+            null,
+            null,
+        ),
+        "branch",
+        "testRootPath",
+    )
     @MockBean private lateinit var testDiscoveringService: TestDiscoveringService
+    @MockBean private lateinit var testSuitesPreprocessorController: TestSuitesPreprocessorController
+    @MockBean private lateinit var testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge
+    @MockBean private lateinit var webClientCustomizer: WebClientCustomizer
 
     @BeforeEach
     fun webClientSetUp() {
@@ -69,6 +81,12 @@ class DownloadProjectTest(
         whenever(testDiscoveringService.getAllTests(any(), any())).thenReturn(
             sequenceOf(TestDto("foo", "fooPlugin", 15, "86", emptyList()))
         )
+    }
+
+    @BeforeEach
+    fun setupStandardTestSuitesSource() {
+        whenever(testsPreprocessorToBackendBridge.getStandardTestSuitesSources())
+            .thenReturn(Mono.just(listOf(standardTestSuitesSourceDto)))
     }
 
     @BeforeAll
@@ -116,28 +134,34 @@ class DownloadProjectTest(
             id = executionId
         }
         val validRepo = GitDto("https://github.com/saveourtool/save-cli.git")
-        val request = ExecutionRequest(project, validRepo, null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
-        // /saveTestSuites
-        mockServerBackend.enqueue(
-            "/saveTestSuites",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties", "https://github.com/saveourtool/save-cli.git").apply {
-                            id = 42L
-                        }
-                    )
-                )),
+        val git = Git(url = validRepo.url, organization = project.organization)
+        val testSuitesSource = TestSuitesSource(project.organization, "test", null, git, "main", "examples/kotlin-diktat/").apply {
+            id = 43L
+        }
+
+        whenever(testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
+            testSuitesSource.organization.name,
+            testSuitesSource.git.url,
+            testSuitesSource.testRootPath,
+            testSuitesSource.branch,
+        )).thenReturn(Mono.just(testSuitesSource.toDto()))
+        whenever(testSuitesPreprocessorController.fetch(eq(testSuitesSource.toDto()), any()))
+            .thenReturn(Mono.just(Unit))
+        whenever(testsPreprocessorToBackendBridge.getTestSuites(
+            eq(testSuitesSource.organization.name),
+            eq(testSuitesSource.name),
+            any(),
+        )).thenReturn(
+            Mono.just(listOf(
+                TestSuite("", null, testSuitesSource, "1", LocalDateTime.now())
+                    .apply {
+                        id = 42L
+                    }
+            )
+            )
         )
 
-        // /initializeTests
-        mockServerBackend.enqueue(
-            "/initializeTests",
-            MockResponse()
-                .setResponseCode(200)
-        )
+        val request = ExecutionRequest(project, validRepo, null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
         // /updateNewExecution
         mockServerBackend.enqueue(
             "/updateNewExecution",
@@ -161,8 +185,6 @@ class DownloadProjectTest(
         val assertions = sequence {
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
         }.onEach {
             logger.info("Request $it")
@@ -176,15 +198,48 @@ class DownloadProjectTest(
             .expectBody<String>()
             .isEqualTo(executionResponseBody(executionId))
         Thread.sleep(15_000)
-        
-        val dirName = listOf(validRepo.url).hashCode()
-        Assertions.assertTrue(File("${configProperties.repository}/$dirName").exists())
         assertions.forEach { Assertions.assertNotNull(it) }
     }
 
     @Suppress("LongMethod")
     @Test
     fun testSaveProjectAsBinaryFile() {
+        val version1 = TestSuitesSourceSnapshotKey(
+            "organizationName",
+            "testSuitesSourceName",
+            "version-1",
+            1L
+        )
+
+        val version2Value = "version-2"
+        val version2 = TestSuitesSourceSnapshotKey(
+            "organizationName",
+            "testSuitesSourceName",
+            version2Value,
+            2L
+        )
+
+        whenever(testsPreprocessorToBackendBridge.listTestSuitesSourceVersions(standardTestSuitesSourceDto))
+            .thenReturn(Mono.just(listOf(version2, version1)))
+
+        val git: Git = mock()
+        whenever(git.url).thenReturn("some-url")
+        val testSuitesSource: TestSuitesSource = mock()
+        whenever(testSuitesSource.git).thenReturn(git)
+
+        val testSuite1: TestSuite = mock()
+        whenever(testSuite1.name).thenReturn("Chapter1")
+        whenever(testSuite1.source).thenReturn(testSuitesSource)
+        whenever(testSuite1.version).thenReturn(version2Value)
+        val testSuite2: TestSuite = mock()
+
+        whenever(testSuite2.name).thenReturn("Chapter2")
+        whenever(testSuite2.source).thenReturn(testSuitesSource)
+        whenever(testSuite2.version).thenReturn(version2Value)
+
+        whenever(testsPreprocessorToBackendBridge.getTestSuites(any(), any(), eq(version2Value)))
+            .thenReturn(Mono.just(listOf(testSuite1, testSuite2)))
+
         val project = Project.stub(42)
         val executionId = 98L
         val execution = Execution.stub(project).apply {
@@ -192,20 +247,7 @@ class DownloadProjectTest(
             type = ExecutionType.STANDARD
             id = executionId
         }
-        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId, "version")
-
-        // /test-suites/standard/ids-by-name
-        mockServerBackend.enqueue(
-            "/test-suites/standard/ids-by-name",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        42
-                    )
-                )),
-        )
+        val request = ExecutionRequestForStandardSuites(project, listOf("Chapter1"), Sdk.Default, null, null, executionId)
 
         // /updateNewExecution
         mockServerBackend.enqueue(
@@ -233,7 +275,6 @@ class DownloadProjectTest(
         val assertions = sequence {
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
-            yield(mockServerBackend.takeRequest(60, TimeUnit.SECONDS))
             yield(mockServerOrchestrator.takeRequest(60, TimeUnit.SECONDS))
         }.onEach {
             logger.info("Request $it")
@@ -255,87 +296,21 @@ class DownloadProjectTest(
 
     @Test
     fun testStandardTestSuites() {
-        val requestSize = readStandardTestSuitesFile(configProperties.reposFileName)
-            .toList()
-            .flatMap { it.testSuitePaths }
-            .size
-        repeat(requestSize) {
-            val project = Project.stub(42)
-
-            val tempDir = "${configProperties.repository}/${"https://github.com/saveourtool/save-cli".hashCode()}/examples/kotlin-diktat/"
-            val config = "${tempDir}save.toml"
-            File(tempDir).mkdirs()
-            File(config).createNewFile()
-            whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(
-                TestConfig(
-                    config.toPath(),
-                    null,
-                    mutableListOf(),
-                    FileSystem.SYSTEM
-                )
-            )
-
-            mockServerBackend.enqueue(
-                "/saveTestSuites",
-                MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(
-                        objectMapper.writeValueAsString(
-                            listOf(
-                                TestSuite(TestSuiteType.PROJECT, "", null, project, LocalDateTime.now(), "save.properties")
-                            )
-                        )
-                    ),
-            )
-        }
-
-        repeat(requestSize) {
-            mockServerBackend.enqueue(
-                "/initializeTests",
-                MockResponse()
-                    .setResponseCode(200)
-            )
-        }
-
-        // /allStandardTestSuites
-        mockServerBackend.enqueue(
-            "/allStandardTestSuites",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(
-                    listOf(
-                        TestSuiteDto(TestSuiteType.STANDARD, "stub", null, null, "save.properties", "stub")
-                    )
-                ))
-        )
-
-        // /deleteTestSuite
-        mockServerBackend.enqueue(
-            "/markObsoleteTestSuites",
-            MockResponse()
-                .setResponseCode(200)
-        )
-
-        val assertions = MutableList(requestSize * 2) {
-            CompletableFuture.supplyAsync {
-                mockServerBackend.takeRequest(60, TimeUnit.SECONDS)
-            }
-        }.also { list ->
-            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
-            list.add(CompletableFuture.supplyAsync { mockServerBackend.takeRequest(60, TimeUnit.SECONDS) })
-        }
+        whenever(testsPreprocessorToBackendBridge.getStandardTestSuitesSources())
+            .thenReturn(Mono.just(listOf(standardTestSuitesSourceDto)))
+        whenever(testSuitesPreprocessorController.fetch(standardTestSuitesSourceDto))
+            .thenReturn(Mono.just(Unit))
 
         webClient.post()
             .uri("/uploadStandardTestSuite")
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(15_000)
-        assertions.map { it.orTimeout(60, TimeUnit.SECONDS).join() }
-            .forEach { Assertions.assertNotNull(it) }
-        Assertions.assertTrue(File("${configProperties.repository}/${"https://github.com/saveourtool/save-cli".hashCode()}").exists())
+        Thread.sleep(2_500)  // wait for background task to complete on mocks
+        verify(testsPreprocessorToBackendBridge).getStandardTestSuitesSources()
+        verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
+        verify(testSuitesPreprocessorController).fetch(standardTestSuitesSourceDto)
+        verifyNoMoreInteractions(testSuitesPreprocessorController)
     }
 
     @Test
@@ -345,7 +320,6 @@ class DownloadProjectTest(
         val execution = Execution.stub(project).apply {
             id = 98L
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue(
@@ -389,9 +363,8 @@ class DownloadProjectTest(
         }
 
         webClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?id=${execution.requiredId()}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -412,7 +385,6 @@ class DownloadProjectTest(
             id = 98L
             status = ExecutionStatus.PENDING
         }
-        val request = ExecutionRequest(project, GitDto("https://github.com/saveourtool/save-cli"), null, "examples/kotlin-diktat/", Sdk.Default, execution.id)
 
         // /updateExecutionByDto
         mockServerBackend.enqueue("/updateExecutionByDto", MockResponse().setResponseCode(200))
@@ -456,9 +428,8 @@ class DownloadProjectTest(
             }
 
         webClient.post()
-            .uri("/rerunExecution")
+            .uri("/rerunExecution?id=${execution.requiredId()}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted

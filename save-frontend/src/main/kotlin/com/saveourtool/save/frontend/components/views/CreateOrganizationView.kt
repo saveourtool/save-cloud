@@ -12,9 +12,6 @@ import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.events.Event
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
@@ -28,8 +25,6 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -48,9 +43,14 @@ external interface OrganizationSaveViewState : State {
     var errorMessage: String
 
     /**
-     * Validation of input fields
+     * Draft organization
      */
-    var isValidOrganizationName: Boolean?
+    var organizationDto: OrganizationDto
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
 }
 
 /**
@@ -61,65 +61,41 @@ external interface OrganizationSaveViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(true) {
-    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-
     init {
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
-        state.isValidOrganizationName = true
-    }
-
-    private fun changeFields(fieldName: InputTypes, target: Event, isOrganization: Boolean = true) {
-        val tg = target.target as HTMLInputElement
-        if (isOrganization) fieldsMap[fieldName] = tg.value else fieldsMap[fieldName] = tg.value
+        state.organizationDto = OrganizationDto.empty
+        state.conflictErrorMessage = null
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun saveOrganization() {
-        if (!isValidInput()) {
-            return
-        }
-        val organizationName = fieldsMap[InputTypes.ORGANIZATION_NAME]!!.trim()
-        val dateCreated = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-
-        val newOrganizationRequest = Organization(organizationName, OrganizationStatus.CREATED, null, dateCreated, null)
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
         scope.launch {
             val responseFromCreationOrganization =
                     post(
                         "$apiUrl/organization/save",
-                        headers,
-                        Json.encodeToString(newOrganizationRequest),
+                        jsonHeaders,
+                        Json.encodeToString(state.organizationDto),
                         loadingHandler = ::classLoadingHandler,
+                        responseHandler = ::classComponentResponseHandlerWithValidation,
                     )
             if (responseFromCreationOrganization.ok) {
-                window.location.href = "${window.location.origin}#/${organizationName.replace(" ", "%20")}/"
+                window.location.href = "${window.location.origin}#/${state.organizationDto.name}/"
                 window.location.reload()
+            } else if (responseFromCreationOrganization.isConflict()) {
+                val responseText = responseFromCreationOrganization.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
             } else {
-                responseFromCreationOrganization.text().then {
+                responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
                         isErrorWithOrganizationSave = true
-                        errorMessage = it
+                        errorMessage = message
                     }
                 }
             }
         }
-    }
-
-    @Suppress("SAY_NO_TO_VAR")
-    private fun isValidInput(): Boolean {
-        var valid = true
-        val value = fieldsMap[InputTypes.ORGANIZATION_NAME]
-        if (value.isInvalid(64)) {
-            setState { isValidOrganizationName = false }
-            valid = false
-        } else {
-            setState { isValidOrganizationName = true }
-        }
-        return valid
     }
 
     @Suppress(
@@ -165,16 +141,32 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                 form {
                                     className = ClassName("needs-validation")
                                     div {
-                                        inputTextFormRequired(InputTypes.ORGANIZATION_NAME, state.isValidOrganizationName!!, "", "Organization name", true) {
-                                            changeFields(InputTypes.ORGANIZATION_NAME, it as Event)
+                                        inputTextFormRequired(
+                                            InputTypes.ORGANIZATION_NAME,
+                                            state.organizationDto.name,
+                                            (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null,
+                                            "",
+                                            "Organization name",
+                                        ) {
+                                            setState {
+                                                organizationDto = organizationDto.copy(name = it.target.value)
+                                                conflictErrorMessage = null
+                                            }
                                         }
                                     }
                                     button {
                                         type = ButtonType.button
-                                        className = ClassName("btn btn-info mt-4 mr-3")
+                                        className = ClassName("btn btn-info mt-4")
                                         +"Create organization"
+                                        disabled = !state.organizationDto.validate() || state.conflictErrorMessage != null
                                         onClick = {
                                             saveOrganization()
+                                        }
+                                    }
+                                    state.conflictErrorMessage?.let {
+                                        div {
+                                            className = ClassName("invalid-feedback d-block")
+                                            +it
                                         }
                                     }
                                 }

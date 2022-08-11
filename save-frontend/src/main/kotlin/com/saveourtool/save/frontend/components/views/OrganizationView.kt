@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -227,14 +228,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
             val users = getUsers()
             setState {
-                image = avatar
                 organization = organizationLoaded
+                image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
                 isEditDisabled = true
@@ -456,12 +456,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun ChildrenBuilder.renderTests() {
-        div {
-            className = ClassName("card shadow mb-4 w-100")
-            div {
-                className = ClassName("card-body control-label col-auto justify-content-between justify-content-center font-weight-bold text-danger mb-4 pl-0 mx-auto")
-                +"Stay turned! Soon you will be able to select tests snapshots to run your tool!"
-            }
+        organizationTestsMenu {
+            organizationName = props.organizationName
+            selfRole = state.selfRole
         }
     }
 
@@ -500,7 +497,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
-                    errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
                 }
             }
             updateNotificationMessage = ::showNotification
@@ -594,14 +591,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     isUploading = false
                 }
             }
-
-    private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    ).unsafeMap {
-        it.decodeFromJsonString<ImageInfo>()
-    }
 
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
         topProject ?: return

@@ -12,6 +12,14 @@ gateway:
 orchestrator:
   profile: dev,kubernetes,minikube
   dockerHost: tcp://${HOST_IP}:2376
+  applicationProperties: |
+    orchestrator.docker.host=tcp://localhost:2376
+    logging.level.com.saveourtool=DEBUG
+    orchestrator.kubernetes.useGvisor=false
+    orchestrator.kubernetes.pvcAnnotations=
+    orchestrator.kubernetes.pvcSize=5Gi
+    orchestrator.kubernetes.pvcStorageSpec=hostPath:\n\
+    \  path: /tmp/save/volumes
 mysql:
   external: false
   ip: nil

@@ -44,10 +44,12 @@ kotlin {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
+                implementation(libs.spring.web)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
-                implementation(libs.reactor.kotlin.extensions)
+                implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+                implementation(libs.commons.compress)
             }
         }
         val jvmTest by getting {
