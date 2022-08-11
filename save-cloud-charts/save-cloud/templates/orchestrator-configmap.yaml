@@ -5,9 +5,6 @@ metadata:
 data:
   application.properties: |
     orchestrator.backendUrl=http://backend/internal
-    orchestrator.docker.host={{ .Values.orchestrator.dockerHost }}
-    orchestrator.docker.runtime=
-    orchestrator.docker.loggingDriver=json
 
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}

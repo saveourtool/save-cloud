@@ -229,12 +229,6 @@ class KubernetesManager(
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
-        if (!configProperties.docker.runtime.isNullOrEmpty()) {
-            logger.warn {
-                "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
-                        "because custom runtimes are not supported yet"
-            }
-        }
         env = listOf(
             EnvVar().apply {
                 name = "POD_NAME"
