@@ -15,8 +15,5 @@ RUN if [ "$BASE_IMAGE_NAME" = "python" ]; \
     ln -s $(which java) /usr/bin/java; \
   fi
 
-RUN if command -v groupadd &> /dev/null; \
-  then groupadd --gid 1100 save-agent && useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent; \
-  else addgroup -S -g 1100 save-agent && adduser -u 1100 -G save-agent -S -s /bin/sh save-agent; \
-  fi
+RUN groupadd --gid 1100 save-agent && useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent
 WORKDIR /home/save-agent/save-execution
