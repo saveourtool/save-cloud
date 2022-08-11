@@ -422,15 +422,18 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 }
             }
             getPageCount = { pageSize ->
-                val status = filters.status?.let {
-                    "&status=${filters.status}"
-                } ?: ""
-                val testSuite = filters.testSuite?.let {
-                    "&testSuite=${filters.testSuite}"
-                } ?: ""
+                val filtersQueryString = buildString {
+                    filters.status?.let {
+                        append("&status=${filters.status}")
+                    } ?: append("")
+
+                    filters.testSuite?.let {
+                        append("&testSuite=${filters.testSuite}")
+                    } ?: append("")
+                }
 
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$filtersQueryString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
