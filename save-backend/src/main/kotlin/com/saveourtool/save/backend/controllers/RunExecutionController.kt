@@ -176,15 +176,13 @@ class RunExecutionController(
     /**
      * POST request to orchestrator to initiate its work
      */
-    private fun initializeAgents(execution: Execution): Mono<EmptyResponse> {
-        return webClientOrchestrator
-            .post()
-            .uri("/initializeAgents")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(execution)
-            .retrieve()
-            .toEntity()
-    }
+    private fun initializeAgents(execution: Execution): Mono<EmptyResponse> = webClientOrchestrator
+        .post()
+        .uri("/initializeAgents")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(execution)
+        .retrieve()
+        .toEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
             ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")

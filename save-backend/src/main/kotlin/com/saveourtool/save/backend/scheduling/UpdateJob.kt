@@ -1,12 +1,10 @@
 package com.saveourtool.save.backend.scheduling
 
-import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.quartz.JobKey
 import org.slf4j.LoggerFactory
-import org.springframework.web.reactive.function.client.WebClient
 import reactor.kotlin.core.publisher.toFlux
 import java.time.Duration
 
