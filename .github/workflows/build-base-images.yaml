@@ -4,8 +4,6 @@ on:
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
-  # Fixme: only for testing
-  push:
 
 jobs:
   build_base_images:
