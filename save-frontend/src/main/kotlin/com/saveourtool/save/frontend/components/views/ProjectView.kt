@@ -467,7 +467,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val executionRequest = ExecutionRunRequest(
             projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
             testSuiteIds = state.selectedContest.testSuiteIds,
-            files = state.files.toList(),
+            files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
             execCmd = state.execCmd,
             batchSizeForAnalyzer = state.batchSizeForAnalyzer,

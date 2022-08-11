@@ -147,10 +147,10 @@ class CloningRepositoryControllerTest {
             createFile()
         }
         fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
-            binFile.toFileInfo().toFileKey(),
+            binFile.toFileInfo().toStorageKey(),
             binFile.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
         fileStorage.upload(ProjectCoordinates("Huawei", "huaweiName"),
-            property.toFileInfo().toFileKey(),
+            property.toFileInfo().toStorageKey(),
             property.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
 
         val sdk = Jdk("8")

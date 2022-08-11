@@ -1,6 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import kotlinx.serialization.Serializable
@@ -10,7 +10,7 @@ data class ExecutionRunRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
-    val files: List<FileInfo>,
+    val files: List<FileKey>,
 
     val sdk: Sdk,
     val execCmd: String? = null,

@@ -130,7 +130,7 @@ class CloneRepositoryController(
                 ExecutionRunRequest(
                     projectCoordinates = projectCoordinates,
                     testSuiteIds = testSuitesIds,
-                    files = files,
+                    files = files.map { it.toStorageKey() },
                     sdk = executionRequest.sdk,
                     execCmd = executionRequest.execCmd,
                     batchSizeForAnalyzer = executionRequest.batchSizeForAnalyzer,

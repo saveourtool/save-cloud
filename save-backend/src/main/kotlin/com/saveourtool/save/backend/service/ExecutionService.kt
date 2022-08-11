@@ -254,7 +254,7 @@ class ExecutionService(
             expectedChecks = 0,
             unexpectedChecks = 0,
             sdk = sdk.toString(),
-            additionalFiles = files.map { it.toFileKey() }.format(),
+            additionalFiles = files.map { it.toStorageKey() }.format(),
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,

@@ -24,6 +24,14 @@ data class FileInfo(
         this.name,
         this.isExecutable,
     )
+
+    /**
+     * @return [FileKey]
+     */
+    fun toStorageKey() = FileKey(
+        this.name,
+        this.uploadedMillis
+    )
 }
 
 /**
