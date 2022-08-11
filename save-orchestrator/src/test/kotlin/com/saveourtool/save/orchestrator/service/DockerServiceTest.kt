@@ -76,6 +76,7 @@ class DockerServiceTest {
         val testExecution = Execution.stub(project).apply {
             id = 42L
             testSuiteIds = "1,2,3"
+            sdk = "Java:11"
         }
         mockServer.enqueue(
             "/test-suite/names-by-ids",

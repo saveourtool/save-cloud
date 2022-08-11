@@ -40,13 +40,13 @@ class DockerContainerManagerTest {
     fun setUp() {
         dockerClient.pullImageCmd("ghcr.io/saveourtool/save-base")
             .withRegistry("https://ghcr.io")
-            .withTag("openjdk-11")
+            .withTag("eclipse-temurin-11")
             .exec(PullImageResultCallback())
             .awaitCompletion()
         baseImage = dockerClient.listImagesCmd()
             .exec()
             .first {
-                it.repoTags?.contains("ghcr.io/saveourtool/save-base:openjdk-11") == true
+                it.repoTags?.contains("ghcr.io/saveourtool/save-base:eclipse-temurin-11") == true
             }
         dockerClient.createVolumeCmd().withName("test-volume").exec()
     }
@@ -72,7 +72,7 @@ class DockerContainerManagerTest {
 
         Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertArrayEquals(
-            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) ./script.sh"),
+            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
