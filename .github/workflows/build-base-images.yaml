@@ -27,4 +27,4 @@ jobs:
           build-args: |
             BASE_IMAGE_NAME=openjdk
             BASE_IMAGE_TAG=11
-          tags: save-base:openjdk-11
+          tags: ghcr.io/saveourtool/save-base:openjdk-11
