@@ -68,7 +68,7 @@ class DockerService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        log.info("Preparing image and volume for execution.id=${execution.id}")
+        log.info("Preparing volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
@@ -228,7 +228,7 @@ class DockerService(
         fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
-        log.info("Built persistent volume with tests by id $pvId")
+        log.info("Built persistent volume with tests and additional files by id $pvId")
         // FixMe: temporary moved after `AgentRunner.start`
         // FileSystemUtils.deleteRecursively(resourcesForExecution)
 

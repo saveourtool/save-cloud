@@ -54,9 +54,9 @@ class DockerAgentRunner(
         val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
         return (1..replicas).map { number ->
-            logger.info("Building container #$number for execution.id=$executionId")
+            logger.info("Creating a container #$number for execution.id=$executionId")
             createContainerFromImage(baseImageTag, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
-                logger.info("Built container id=$agentId for execution.id=$executionId")
+                logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
                     .add(agentId)
@@ -171,7 +171,7 @@ class DockerAgentRunner(
                 // this part is like `sh -c` with probably some other flags
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
-                        "env \$(cat $envFileTargetPath | xargs) ${runCmd.last()}"
+                        "env \$(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
                 )
             )
             .withName(containerName)
