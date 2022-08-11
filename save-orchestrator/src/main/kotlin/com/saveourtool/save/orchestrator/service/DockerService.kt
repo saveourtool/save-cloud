@@ -45,14 +45,12 @@ import kotlinx.datetime.Clock
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
- * @property dockerContainerManager [DockerContainerManager] that is used to access docker daemon API
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
-    private val dockerClient: DockerClient,
-    internal val dockerContainerManager: DockerContainerManager,
+    private val dockerContainerManager: DockerContainerManager,
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
@@ -192,22 +190,6 @@ class DockerService(
     }
 
     /**
-     * @param imageName name of the image to remove
-     * @return an instance of docker command
-     */
-    fun removeImage(imageName: String) {
-        log.info("Removing image $imageName")
-        val existingImages = dockerClient.listImagesCmd().exec().map {
-            it.id
-        }
-        if (imageName in existingImages) {
-            dockerClient.removeImageCmd(imageName).exec()
-        } else {
-            log.info("Image $imageName is not present, so won't attempt to remove")
-        }
-    }
-
-    /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
@@ -258,10 +240,6 @@ class DockerService(
         val baseImage = baseImageName(sdk)
         val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
             .map { it.id }
-            .ifEmpty {
-                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exist, will build it first")
-                listOf(buildBaseImage(sdk))
-            }
             .first()
         return RunConfiguration(
             imageId = baseImageId,
@@ -269,45 +247,6 @@ class DockerService(
             pvId = pvId,
             resourcesPath = resourcesForExecution,
         )
-    }
-
-    /**
-     * @param sdk
-     * @return an ID of the built image or of an existing one
-     */
-    fun buildBaseImage(sdk: Sdk): String {
-        val images = dockerContainerManager.findImages(baseImageName(sdk))
-        if (images.isNotEmpty()) {
-            log.info("Base image for sdk=$sdk already exists, skipping build")
-            return images.first().id
-        }
-        log.info("Starting to build base image for sdk=$sdk")
-
-        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
-        // fixme: https://github.com/saveourtool/save-cloud/issues/352
-        val additionalRunCmd = if (sdk is Python) {
-            """|RUN curl -s "https://get.sdkman.io" | bash
-               |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
-               |RUN ln -s ${'$'}(which java) /usr/bin/java
-            """.trimMargin()
-        } else {
-            ""
-        }
-
-        return dockerContainerManager.buildImage(
-            baseImage = sdk.toString(),
-            imageName = baseImageName(sdk),
-            runCmd = """|RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
-                    |libcurl4-openssl-dev tzdata
-                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-                    |RUN rm -rf /var/lib/apt/lists/*
-                    |$additionalRunCmd
-                    |RUN groupadd --gid 1100 save-agent && useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent
-                    |WORKDIR $EXECUTION_DIR
-            """.trimMargin()
-        ).also {
-            log.debug("Successfully built base image id=$it")
-        }
     }
 
     private fun Execution.getTestSuiteNames(): List<String> = this
@@ -347,17 +286,7 @@ class DockerService(
 }
 
 /**
- * @param executionId
- */
-internal fun imageName(executionId: Long) = "save-execution:$executionId"
-
-/**
  * @param sdk
+ * @return name like `save-base:openjdk-11`
  */
-internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
-
-/**
- * @param imageName
- * @return whether [imageName] refers to a base image for save execution
- */
-internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-base-")
+internal fun baseImageName(sdk: Sdk) = "save-base:${sdk.toString().replace(":", "-")}"

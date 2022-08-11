@@ -303,9 +303,6 @@ class AgentsController(
     fun cleanup(@RequestParam executionId: Long) = Mono.fromCallable {
         dockerService.cleanup(executionId)
     }
-        .doOnSuccess {
-            dockerService.removeImage(imageName(executionId))
-        }
         .flatMap {
             Mono.just(ResponseEntity<Void>(HttpStatus.OK))
         }

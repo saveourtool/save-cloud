@@ -1,0 +1,30 @@
+name: Build base images for SAVE execution
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+  # Fixme: only for testing
+  push:
+
+jobs:
+  build_base_images:
+    name: Build base images and push to ghcr.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
+        with:
+          context: save-deploy/base-images
+          push: true
+          # https://github.com/marketplace/actions/build-and-push-docker-images#inputs
+          # '`List` type is a newline-delimited string'
+          build-args: |
+            BASE_IMAGE_NAME=openjdk
+            BASE_IMAGE_TAG=11
+          tags: save-base:openjdk-11
