@@ -214,7 +214,7 @@ external interface ProjectViewState : State {
     /**
      * File for delete
      */
-    var file: FileInfo?
+    var file: FileInfo
 }
 
 /**
@@ -315,7 +315,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.INFO
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
-        state.file = null
+        state.file = FileInfo("", 0, 0)
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -744,7 +744,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fileDelete() {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${state.file?.uploadedMillis}",
+                "$apiUrl/files/${props.owner}/${props.name}/${state.file.uploadedMillis}",
                 jsonHeaders,
                 Json.encodeToString(state.file),
                 loadingHandler = ::noopLoadingHandler,
@@ -753,8 +753,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             if (response.ok) {
                 setState {
                     files.remove(file)
-                    bytesReceived -= file?.sizeBytes ?: 0
-                    suiteByteSize -= file?.sizeBytes ?: 0
+                    bytesReceived -= file.sizeBytes
+                    suiteByteSize -= file.sizeBytes
                 }
             }
         }
