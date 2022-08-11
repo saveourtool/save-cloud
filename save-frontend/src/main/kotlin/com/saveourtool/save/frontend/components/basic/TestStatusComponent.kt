@@ -66,7 +66,10 @@ fun <D : Any> testStatusComponent(testResultDebugInfo: TestResultDebugInfo, tabl
             colSpan = 2
             +"Reason ("
             a {
-                href = "${window.location}/details/$testSuiteName/$pluginName/$testFilePath"
+                // Trim location until number of execution, since it could contain filters at the end, like `?status=PASSED`,
+                // when user got to this page by clicking corresponding table column on history view
+                val baseLocation = window.location.toString().dropLastWhile { !it.isDigit() }
+                href = "${baseLocation}/details/$testSuiteName/$pluginName/$testFilePath"
                 +"additional info "
                 fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
             }

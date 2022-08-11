@@ -187,6 +187,9 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
                 }
                 .map {
                     testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
+                }.map {
+                    println("\n\n\n\ngetTestExecutionsCount ${it}")
+                    it
                 }
 
     /**
