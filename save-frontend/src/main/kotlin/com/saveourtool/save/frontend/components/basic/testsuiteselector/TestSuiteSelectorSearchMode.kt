@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
+import com.saveourtool.save.frontend.components.basic.organizations.encodeURIComponent
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.externals.lodash.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.frontend.externals.lodash.debounce
@@ -15,7 +16,9 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
 
 import csstype.ClassName
+import org.w3c.dom.HTMLInputElement
 import react.*
+import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 
@@ -39,6 +42,20 @@ external interface TestSuiteSelectorSearchModeProps : Props {
     var onTestSuiteIdsUpdate: (List<Long>) -> Unit
 }
 
+private fun ChildrenBuilder.buildInput(
+    currentValue: String,
+    inputName: String,
+    classes: String,
+    setValue: (ChangeEvent<HTMLInputElement>) -> Unit
+) {
+    input {
+        className = ClassName("form-control $classes")
+        value = currentValue
+        placeholder = inputName
+        onChange = setValue
+    }
+}
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
@@ -58,14 +75,18 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
         useRequest(dependencies = arrayOf(filters)) {
-            val testSuitesFromBackend: List<TestSuiteDto> = get(
-                url = "$apiUrl/test-suites/filtered${filters.toQueryParams()}",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-                .decodeFromJsonString()
-            setFilteredTestSuites(testSuitesFromBackend)
+            if (filters.isNotEmpty()) {
+                val testSuitesFromBackend: List<TestSuiteDto> = get(
+                    url = "$apiUrl/test-suites/filtered${
+                        filters.copy(language = encodeURIComponent(filters.language)).toQueryParams()
+                    }",
+                    headers = jsonHeaders,
+                    loadingHandler = ::loadingHandler,
+                    responseHandler = ::noopResponseHandler,
+                )
+                    .decodeFromJsonString()
+                setFilteredTestSuites(testSuitesFromBackend)
+            }
         },
         DEFAULT_DEBOUNCE_PERIOD,
     )
@@ -80,21 +101,14 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
 
     div {
         className = ClassName("d-flex justify-content-around mb-3")
-        input {
-            className = ClassName("form-control mr-1")
-            value = filters.name
-            placeholder = "Name"
-            onChange = { event ->
-                setFilters { it.copy(name = event.target.value) }
-            }
+        buildInput(filters.name, "Name", "mr-1") { event ->
+            setFilters { it.copy(name = event.target.value) }
         }
-        input {
-            className = ClassName("form-control ml-1")
-            value = filters.tags
-            placeholder = "Tags"
-            onChange = { event ->
-                setFilters { it.copy(tags = event.target.value) }
-            }
+        buildInput(filters.language, "Language", "ml-1 mr-1") { event ->
+            setFilters { it.copy(language = event.target.value) }
+        }
+        buildInput(filters.tags, "Tags", "ml-1") { event ->
+            setFilters { it.copy(tags = event.target.value) }
         }
     }
 

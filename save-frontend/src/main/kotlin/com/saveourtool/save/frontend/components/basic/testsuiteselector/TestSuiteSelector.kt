@@ -135,14 +135,22 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
     }
 }
 
-private fun ChildrenBuilder.buildButton(icon: FontAwesomeIconModule, onClickFun: () -> Unit) {
+private fun ChildrenBuilder.buildButton(icon: FontAwesomeIconModule, tooltipText: String, onClickFun: () -> Unit) {
     button {
         type = ButtonType.button
+        title = tooltipText
         className = ClassName("btn btn-outline-secondary")
         fontAwesomeIcon(icon = icon)
         onClick = {
             onClickFun()
         }
+
+        val jquery = kotlinext.js.require("jquery")
+        kotlinext.js.require("popper.js")
+        kotlinext.js.require("bootstrap")
+        asDynamic()["data-toggle"] = "tooltip"
+        asDynamic()["data-placement"] = "bottom"
+        jquery("[data-toggle=\"tooltip\"]").tooltip()
     }
 }
 
@@ -154,9 +162,9 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
     })
     div {
         className = ClassName("d-flex align-self-center justify-content-around mb-2")
-        buildButton(faAlignJustify) { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
-        buildButton(faPlus) { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
-        buildButton(faSearch) { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
+        buildButton(faAlignJustify, "Manage linked test suites") { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
+        buildButton(faPlus, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
+        buildButton(faSearch, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
     when (currentMode) {
         TestSuiteSelectorMode.MANAGER -> testSuiteSelectorManagerMode {

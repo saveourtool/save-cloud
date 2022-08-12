@@ -48,7 +48,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     var preselectedTestSuiteIds: List<Long>
 }
 
-@Suppress("TOO_MANY_PARAMETERS", "TOO_LONG_FUNCTION", "LongParameterList", "LongMethod")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "TOO_LONG_FUNCTION",
+    "LongParameterList",
+    "LongMethod"
+)
 private fun ChildrenBuilder.showBreadcrumb(
     selectedOrganization: String?,
     selectedTestSuiteSource: String?,

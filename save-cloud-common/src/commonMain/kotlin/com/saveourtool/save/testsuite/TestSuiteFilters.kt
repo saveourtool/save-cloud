@@ -23,9 +23,9 @@ data class TestSuiteFilters(
     /**
      * @return [TestSuiteFilters] as query params for request
      */
-    fun toQueryParams() = listOf("tags=" to tags, "name=" to name, "language" to language)
+    fun toQueryParams() = listOf("tags" to tags, "name" to name, "language" to language)
         .filter { it.second.isNotBlank() }
-        .joinToString("&") { it.first + it.second }
+        .joinToString("&") { "${it.first}=${it.second}" }
         .let {
             if (it.isNotBlank()) {
                 "?$it"
@@ -37,7 +37,7 @@ data class TestSuiteFilters(
     /**
      * @return true if no filters are set, false otherwise
      */
-    fun isEmpty() = name.isBlank() && tags.isBlank()
+    fun isEmpty() = name.isBlank() && tags.isBlank() && language.isBlank()
 
     companion object {
         val empty = TestSuiteFilters(name = "", tags = "", language = "")
