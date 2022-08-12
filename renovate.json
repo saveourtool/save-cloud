@@ -4,6 +4,9 @@
   "schedule": [
     "before 4am on Monday"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "managers": ["github-actions"],
