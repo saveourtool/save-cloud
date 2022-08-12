@@ -138,8 +138,16 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                 }
                                     ReactHTML.form {
                                         className = ClassName("needs-validation")
+                                        ReactHTML.label {
+                                            className = ClassName("form-label")
+                                            +"User name"
+                                        }
                                         ReactHTML.div {
-                                            className = ClassName("col-7 mt-2 input-group pl-0")
+                                            ReactHTML.span {
+                                                className = ClassName("input-group-text")
+                                                +"*"
+                                            }
+                                            className = ClassName("mt-2 input-group pl-0")
                                             ReactHTML.input {
                                                 type = InputType.text
                                                 className = ClassName("form-control")
