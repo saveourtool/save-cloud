@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.format
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType

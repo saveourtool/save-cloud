@@ -20,7 +20,6 @@ internal class FileKeyTest {
         )
     }
 
-
     @Test
     fun parseList() {
         assertEquals(emptyList(), FileKey.parseList(""))

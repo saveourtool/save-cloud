@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.countPartsTill
 import org.springframework.http.codec.multipart.FilePart
