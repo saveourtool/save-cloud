@@ -156,7 +156,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         val organizations: List<String> = get(
             url = "$apiUrl/test-suites-sources/organizations-list",
             headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
             .decodeFromJsonString()
@@ -169,7 +169,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             val testSuiteSources = get(
                 url = "$apiUrl/test-suites-sources/$selectedOrganization/list",
                 headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
                 .decodeFromJsonString<List<TestSuitesSourceDto>>()
@@ -184,7 +184,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             val testSuiteSourcesVersions: List<String> = get(
                 url = "$apiUrl/test-suites-sources/$selectedOrganization/${encodeURIComponent(selectedTestSuiteSource)}/list-snapshot",
                 headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
                 .decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
@@ -206,7 +206,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     }" +
                             "/get-test-suites?version=${encodeURIComponent(selectedTestSuiteVersion)}",
                     headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = ::noopLoadingHandler,
                     responseHandler = ::noopResponseHandler,
                 )
                     .decodeFromJsonString()

@@ -46,7 +46,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
             url = "$apiUrl/test-suites/get-by-ids",
             headers = jsonHeaders,
             body = Json.encodeToString(props.preselectedTestSuiteIds),
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
             .decodeFromJsonString()

@@ -81,7 +81,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
                         filters.copy(language = encodeURIComponent(filters.language)).toQueryParams()
                     }",
                     headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = ::noopLoadingHandler,
                     responseHandler = ::noopResponseHandler,
                 )
                     .decodeFromJsonString()
