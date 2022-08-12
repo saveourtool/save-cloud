@@ -33,6 +33,10 @@ class DockerPersistentVolumeService(
     private val dockerClient: DockerClient,
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
+    private val settings: ConfigProperties.DockerSettings = requireNotNull(configProperties.docker) {
+        "Properties under configProperties.docker are not set, but are required with active profiles."
+    }
+
     @Suppress("TOO_LONG_FUNCTION")
     override fun createFromResources(resourcesDir: Path): DockerPvId {
         val createVolumeResponse = dockerClient.createVolumeCmd()
@@ -44,10 +48,10 @@ class DockerPersistentVolumeService(
             Paths.get(configProperties.testResources.tmpPath)
         )
         val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
-        val sourceMount = when (configProperties.docker.testResourcesVolumeType) {
+        val sourceMount = when (settings.testResourcesVolumeType) {
             "volume" -> Mount()
                 .withType(MountType.VOLUME)
-                .withSource(configProperties.docker.testResourcesVolumeName)
+                .withSource(settings.testResourcesVolumeName)
                 .withTarget(intermediateResourcesPath)
             "bind" -> Mount()
                 .withType(MountType.BIND)
@@ -91,7 +95,7 @@ class DockerPersistentVolumeService(
         repository: String,
         tag: String
     ) = dockerClient.pullImageCmd(repository)
-        .withRegistry(configProperties.docker.registry)
+        .withRegistry(settings.registry)
         .withTag(tag)
         .exec(PullImageResultCallback())
         .awaitCompletion()

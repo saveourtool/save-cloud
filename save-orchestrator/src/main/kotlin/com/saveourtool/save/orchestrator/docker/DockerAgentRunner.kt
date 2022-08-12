@@ -42,7 +42,9 @@ class DockerAgentRunner(
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
-    private val settings: DockerSettings = configProperties.docker
+    private val settings: DockerSettings = requireNotNull(configProperties.docker) {
+        "Properties under configProperties.docker are not set, but are required with active profiles."
+    }
 
     @Suppress("TYPE_ALIAS")
     private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
