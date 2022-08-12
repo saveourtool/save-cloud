@@ -87,7 +87,8 @@ external interface TableProps<D : Any> : Props {
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
-    "TooGenericExceptionCaught"
+    "TooGenericExceptionCaught",
+    "MAGIC_NUMBER",
 )
 fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
@@ -147,6 +148,9 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
     useEffect(*dependencies) {

@@ -8,7 +8,7 @@ class SdkTest {
     fun `should parse SDK correctly from strings`() {
         listOf(
             "Java:9",
-            "openjdk:9"
+            "eclipse-temurin:9"
         ).forEach {
             Assertions.assertTrue(it.toSdk() is Jdk)
             Assertions.assertEquals("9", it.toSdk().version)

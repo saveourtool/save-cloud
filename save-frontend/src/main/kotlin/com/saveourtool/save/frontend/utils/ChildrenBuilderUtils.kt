@@ -22,6 +22,7 @@ import react.dom.html.ReactHTML.h2
  */
 enum class ConfirmationType {
     DELETE_CONFIRM,
+    DELETE_FILE_CONFIRM,
     NO_BINARY_CONFIRM,
     NO_CONFIRM,
     ;

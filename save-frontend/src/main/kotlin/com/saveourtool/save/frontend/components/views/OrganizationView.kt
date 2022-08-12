@@ -497,7 +497,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
-                    errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
                 }
             }
             updateNotificationMessage = ::showNotification

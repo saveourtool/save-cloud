@@ -5,9 +5,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import csstype.ClassName
-import react.ChildrenBuilder
-import react.Props
-import react.State
+import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p

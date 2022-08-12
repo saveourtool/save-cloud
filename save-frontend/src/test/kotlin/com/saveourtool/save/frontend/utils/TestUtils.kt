@@ -17,9 +17,10 @@ import kotlinx.serialization.json.Json
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)
+    val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
     requestStatusContext.Provider {
-        value = RequestStatusContext(setMockState, setLoadingCounter)
+        value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
         +it.children
     }
 }
