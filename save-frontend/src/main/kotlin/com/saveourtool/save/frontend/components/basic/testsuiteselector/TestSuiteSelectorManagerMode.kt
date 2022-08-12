@@ -11,8 +11,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
 
+import csstype.ClassName
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.h6
 import react.useState
 
 import kotlinx.serialization.encodeToString
@@ -52,20 +54,27 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
         setSelectedTestSuites(testSuitesFromBackend)
     }()
 
-    showAvaliableTestSuites(preselectedTestSuites, selectedTestSuites) { testSuite ->
-        setSelectedTestSuites { selectedTestSuites ->
-            selectedTestSuites.toMutableList()
-                .apply {
-                    if (testSuite in selectedTestSuites) {
-                        remove(testSuite)
-                    } else {
-                        add(testSuite)
+    if (preselectedTestSuites.isEmpty()) {
+        h6 {
+            className = ClassName("text-center")
+            +"No test suites are selected yet."
+        }
+    } else {
+        showAvaliableTestSuites(preselectedTestSuites, selectedTestSuites) { testSuite ->
+            setSelectedTestSuites { selectedTestSuites ->
+                selectedTestSuites.toMutableList()
+                    .apply {
+                        if (testSuite in selectedTestSuites) {
+                            remove(testSuite)
+                        } else {
+                            add(testSuite)
+                        }
                     }
-                }
-                .toList()
-                .also { listOfTestSuiteDtos ->
-                    props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
-                }
+                    .toList()
+                    .also { listOfTestSuiteDtos ->
+                        props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                    }
+            }
         }
     }
 }

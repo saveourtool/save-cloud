@@ -135,11 +135,21 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
     }
 }
 
-private fun ChildrenBuilder.buildButton(icon: FontAwesomeIconModule, tooltipText: String, onClickFun: () -> Unit) {
+private fun ChildrenBuilder.buildButton(
+    icon: FontAwesomeIconModule,
+    isActive: Boolean,
+    tooltipText: String,
+    onClickFun: () -> Unit
+) {
     button {
         type = ButtonType.button
         title = tooltipText
-        className = ClassName("btn btn-outline-secondary")
+        val active = if (isActive) {
+            "active"
+        } else {
+            ""
+        }
+        className = ClassName("btn btn-outline-secondary $active")
         fontAwesomeIcon(icon = icon)
         onClick = {
             onClickFun()
@@ -162,9 +172,9 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
     })
     div {
         className = ClassName("d-flex align-self-center justify-content-around mb-2")
-        buildButton(faAlignJustify, "Manage linked test suites") { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
-        buildButton(faPlus, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
-        buildButton(faSearch, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
+        buildButton(faAlignJustify, currentMode == TestSuiteSelectorMode.MANAGER, "Manage linked test suites") { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
+        buildButton(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
+        buildButton(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
     when (currentMode) {
         TestSuiteSelectorMode.MANAGER -> testSuiteSelectorManagerMode {
