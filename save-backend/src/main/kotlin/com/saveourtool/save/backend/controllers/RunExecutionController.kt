@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 

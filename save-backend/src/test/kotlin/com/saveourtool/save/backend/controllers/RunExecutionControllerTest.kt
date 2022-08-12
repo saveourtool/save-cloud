@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit
 @EnableConfigurationProperties(ConfigProperties::class)
 @AutoConfigureWebTestClient(timeout = "6000000000")
 @ExtendWith(MySqlExtension::class)
+@Suppress("TOO_LONG_FUNCTION")
 class RunExecutionControllerTest(
     @Autowired private var webClient: WebTestClient,
 ) {
@@ -92,7 +93,7 @@ class RunExecutionControllerTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(15_000) // Time for request to create required entities
+        Thread.sleep(15_000)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
@@ -110,7 +111,6 @@ class RunExecutionControllerTest(
         val newTestExecutions = testExecutionRepository.findAll().toList()
         Assertions.assertEquals(originalTestExecutionIds.size + 24, newTestExecutions.size)
     }
-
 
     @WithMockUser("admin")
     @Test
@@ -139,11 +139,11 @@ class RunExecutionControllerTest(
             .map { it.requiredId() }
             .toList()
         webClient.post()
-            .uri("/api/$v1/run/re-trigger?executionId=${EXECUTION_ID}")
+            .uri("/api/$v1/run/re-trigger?executionId=$EXECUTION_ID")
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(15_000) // Time for request to create required entities
+        Thread.sleep(15_000)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
@@ -162,15 +162,10 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(originalTestExecutionIds.size + 1, newTestExecutions.size)
     }
 
-    @TestConfiguration
-    class AdditionalConfiguration {
-        @Bean fun meterRegistry() = SimpleMeterRegistry()
-    }
-
     companion object {
         private val log: Logger = getLogger<RunExecutionControllerTest>()
-        private const val PROJECT_ID = 1L
         private const val EXECUTION_ID = 6L
+        private const val PROJECT_ID = 1L
 
         @JvmStatic
         lateinit var mockServerOrchestrator: MockWebServer
@@ -193,5 +188,10 @@ class RunExecutionControllerTest(
             mockServerOrchestrator.start()
             registry.add("backend.orchestratorUrl") { "http://localhost:${mockServerOrchestrator.port}" }
         }
+    }
+
+    @TestConfiguration
+    class AdditionalConfiguration {
+        @Bean fun meterRegistry() = SimpleMeterRegistry()
     }
 }

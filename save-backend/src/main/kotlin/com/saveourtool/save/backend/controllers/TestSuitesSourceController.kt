@@ -506,7 +506,7 @@ class TestSuitesSourceController(
 
     /**
      * @param organizationName
-     * @param name
+     * @param sourceName
      * @param authentication
      * @return response from preprocessor
      */
