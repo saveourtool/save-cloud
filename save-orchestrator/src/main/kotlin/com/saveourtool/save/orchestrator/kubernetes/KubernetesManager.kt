@@ -64,8 +64,9 @@ class KubernetesManager(
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
+                            runtimeClassName = "gvisor"
                         }
-                        // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
+                        // FixMe: Orchestrator uses hostPath mounts to copy resources, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
