@@ -75,7 +75,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
         useRequest(dependencies = arrayOf(filters)) {
-            if (!filters.isEmpty()) {
+            if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
                     url = "$apiUrl/test-suites/filtered${
                         filters.copy(language = encodeURIComponent(filters.language)).toQueryParams()
