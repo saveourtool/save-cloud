@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
  * @property startTime start time of a contest
  * @property endTime end time of a contest
  * @property organizationName
+ * @property testSuiteIds
  */
 @Serializable
 data class ContestDto(
@@ -24,6 +25,11 @@ data class ContestDto(
     val endTime: LocalDateTime?,
     val description: String?,
     val organizationName: String,
+    val testSuiteIds: List<Long>,
 ) : Validatable {
     override fun validate(): Boolean = name.isValidName()
+
+    companion object {
+        val empty = ContestDto("", null, null, null, "", emptyList())
+    }
 }

@@ -16,8 +16,6 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_SOURCE_PREFIX_DIR_NAME
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
@@ -315,26 +313,16 @@ class AgentService(
     private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =
             if (isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                Mono.fromCallable { NewJobResponse(values.flatten(), constructCliCommand()) }
+                Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
             } else {
                 log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
                 Mono.just(WaitResponse)
             }
 
-    private fun TestBatch.constructCliCommand() = buildString {
-        append(TEST_SUITES_DIR_NAME)
-        entries.forEach { (testSuitesSourceId, tests) ->
-            tests.forEach {
-                append(" ")
-                append(TEST_SUITES_SOURCE_PREFIX_DIR_NAME)
-                append(testSuitesSourceId)
-                append('/')
-                append(it.filePath)
-            }
+    private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }
+        .also {
+            log.debug("Constructed cli args for SAVE-cli: $it")
         }
-    }.also {
-        log.debug("Constructed cli args for SAVE-cli: $it")
-    }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED

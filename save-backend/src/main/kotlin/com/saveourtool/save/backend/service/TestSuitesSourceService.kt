@@ -54,6 +54,17 @@ class TestSuitesSourceService(
         }
 
     /**
+     * @param git
+     * @return entity
+     */
+    fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
+
+    /**
+     * @param entity
+     */
+    fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
+
+    /**
      * @param organization
      * @param git
      * @param testRootPath
@@ -109,6 +120,15 @@ class TestSuitesSourceService(
             )
         }
     }
+
+    /**
+     * @return list of organizations that have open public test suite sources
+     */
+    fun getOrganizationsWithPublicTestSuiteSources() = testSuitesSourceRepository.findAll()
+        .map {
+            it.organization.name
+        }
+        .distinct()
 
     companion object {
         private val log: Logger = getLogger<TestSuitesSourceService>()

@@ -4,6 +4,7 @@ dockerTag: latest  # this should be set explicitly during chart installation
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
+pullPolicy: IfNotPresent
 backend:
   name: backend
   profile: dev,secure,kubernetes

@@ -45,4 +45,15 @@ class TestSuitesSource(
         branch = branch,
         testRootPath = testRootPath,
     )
+
+    companion object {
+        val empty = TestSuitesSource(
+            Organization.stub(-1),
+            "",
+            null,
+            Git.empty,
+            "",
+            "",
+        )
+    }
 }

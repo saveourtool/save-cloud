@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.domain.Python
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
@@ -9,8 +8,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.createSyntheticTomlConfig
-import com.saveourtool.save.orchestrator.docker.DockerContainerManager
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
@@ -19,16 +16,15 @@ import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.orConflict
 
-import com.github.dockerjava.api.DockerClient
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -40,22 +36,17 @@ import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.createFile
-import kotlin.io.path.writeText
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
- * @property dockerContainerManager [DockerContainerManager] that is used to access docker daemon API
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
-    private val dockerClient: DockerClient,
-    internal val dockerContainerManager: DockerContainerManager,
     private val agentRunner: AgentRunner,
     private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
@@ -77,10 +68,10 @@ class DockerService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        log.info("Preparing image and volume for execution.id=${execution.id}")
+        log.info("Preparing volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("For execution.id=${execution.id} using base image [id=${buildResult.imageId}] and PV [id=${buildResult.pvId}]")
+        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
         return buildResult
     }
 
@@ -104,12 +95,14 @@ class DockerService(
     /**
      * @param execution an [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
+     * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
+     * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>) {
+    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
-        webClientBackend
+        return webClientBackend
             .post()
             .uri("/updateExecutionByDto")
             .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
@@ -133,7 +126,7 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: agents $agentIds are not started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
@@ -142,7 +135,6 @@ class DockerService(
                         }
                     }
             }
-            .subscribe()
     }
 
     /**
@@ -194,22 +186,6 @@ class DockerService(
     }
 
     /**
-     * @param imageName name of the image to remove
-     * @return an instance of docker command
-     */
-    fun removeImage(imageName: String) {
-        log.info("Removing image $imageName")
-        val existingImages = dockerClient.listImagesCmd().exec().map {
-            it.id
-        }
-        if (imageName in existingImages) {
-            dockerClient.removeImageCmd(imageName).exec()
-        } else {
-            log.info("Image $imageName is not present, so won't attempt to remove")
-        }
-    }
-
-    /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
@@ -222,13 +198,8 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // create stub toml config in aim to execute all test suites directories from `testSuitesDir`
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME)
-            .resolve("save.toml")
-            .apply { createFile() }
-            .writeText(createSyntheticTomlConfig(execution.execCmd, execution.batchSizeForAnalyzer))
         // collect test suite names, which were selected by user
-        val saveCliExecFlags = " $TEST_SUITES_DIR_NAME --include-suites \"${execution.getTestSuiteNames()}\""
+        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
         // include save-agent into the image
         PathUtils.copyFile(
@@ -256,63 +227,19 @@ class DockerService(
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
 
-        val pvId = persistentVolumeService.createFromResources(listOf(resourcesForExecution))
-        log.info("Built persistent volume with tests by id $pvId")
-        FileSystemUtils.deleteRecursively(resourcesForExecution)
+        val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
+        log.info("Built persistent volume with tests and additional files by id $pvId")
+        // FixMe: temporary moved after `AgentRunner.start`
+        // FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
-        val baseImageId: String = dockerContainerManager.findImages(saveId = baseImage)
-            .map { it.id }
-            .ifEmpty {
-                log.info("Base image [$baseImage] for execution ${execution.id} doesn't exists, will build it first")
-                listOf(buildBaseImage(sdk))
-            }
-            .first()
         return RunConfiguration(
-            imageId = baseImageId,
-            runCmd = "sh -c \"chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME\"",
+            imageTag = baseImage,
+            runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
+            resourcesPath = resourcesForExecution,
         )
-    }
-
-    /**
-     * @param sdk
-     * @return an ID of the built image or of an existing one
-     */
-    fun buildBaseImage(sdk: Sdk): String {
-        val images = dockerContainerManager.findImages(baseImageName(sdk))
-        if (images.isNotEmpty()) {
-            log.info("Base image for sdk=$sdk already exists, skipping build")
-            return images.first().id
-        }
-        log.info("Starting to build base image for sdk=$sdk")
-
-        val aptCmd = "apt-get ${configProperties.aptExtraFlags}"
-        // fixme: https://github.com/saveourtool/save-cloud/issues/352
-        val additionalRunCmd = if (sdk is Python) {
-            """|RUN curl -s "https://get.sdkman.io" | bash
-               |RUN bash -c 'source "${'$'}HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open'
-               |RUN ln -s ${'$'}(which java) /usr/bin/java
-            """.trimMargin()
-        } else {
-            ""
-        }
-
-        return dockerContainerManager.buildImage(
-            baseImage = sdk.toString(),
-            imageName = baseImageName(sdk),
-            runCmd = """|RUN $aptCmd update && env DEBIAN_FRONTEND="noninteractive" $aptCmd install -y \
-                    |libcurl4-openssl-dev tzdata
-                    |RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-                    |RUN rm -rf /var/lib/apt/lists/*
-                    |$additionalRunCmd
-                    |RUN groupadd --gid 1100 save-agent && useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent
-                    |WORKDIR $EXECUTION_DIR
-            """.trimMargin()
-        ).also {
-            log.debug("Successfully built base image id=$it")
-        }
     }
 
     private fun Execution.getTestSuiteNames(): List<String> = this
@@ -331,14 +258,17 @@ class DockerService(
     /**
      * Information required to start containers with save-agent
      *
-     * @property imageId ID of an image which should be used for a container
-     * @property runCmd command that should be run as container's entrypoint
+     * @property imageTag tag of an image which should be used for a container
+     * @property runCmd command that should be run as container's entrypoint.
+     * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
+     * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      */
     data class RunConfiguration<I : PersistentVolumeId>(
-        val imageId: String,
-        val runCmd: String,
+        val imageTag: String,
+        val runCmd: List<String>,
         val pvId: I,
+        val resourcesPath: Path,
     )
 
     companion object {
@@ -349,17 +279,7 @@ class DockerService(
 }
 
 /**
- * @param executionId
- */
-internal fun imageName(executionId: Long) = "save-execution:$executionId"
-
-/**
  * @param sdk
+ * @return name like `save-base:openjdk-11`
  */
-internal fun baseImageName(sdk: Sdk) = "save-base-$sdk"
-
-/**
- * @param imageName
- * @return whether [imageName] refers to a base image for save execution
- */
-internal fun isBaseImageName(imageName: String) = imageName.startsWith("save-base-")
+internal fun baseImageName(sdk: Sdk) = "ghcr.io/saveourtool/save-base:${sdk.toString().replace(":", "-")}"

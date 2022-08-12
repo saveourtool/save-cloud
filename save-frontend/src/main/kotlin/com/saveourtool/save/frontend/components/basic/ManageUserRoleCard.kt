@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
@@ -138,7 +139,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                 }
             setUsersNotFromGroup(users)
         },
-        500,
+        DEFAULT_DEBOUNCE_PERIOD,
     )
     val addUserToGroup = useRequest {
         val headers = Headers().apply {
@@ -293,12 +294,15 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                             setRoleChange { SetRoleRequest(userName, event.target.value.toRole()) }
                             updatePermissions()
                         }
+                        value = userRole.formattedName
                         id = "role-$userIndex"
                         rolesAssignableBy(selfRole)
+                            .sortedByDescending {
+                                it.priority
+                            }
                             .map {
                                 option {
                                     value = it.formattedName
-                                    selected = it == userRole
                                     +it.formattedName
                                 }
                             }

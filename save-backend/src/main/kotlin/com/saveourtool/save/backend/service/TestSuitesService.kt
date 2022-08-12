@@ -8,14 +8,18 @@ import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -25,12 +29,16 @@ typealias TestSuiteDtoList = List<TestSuiteDto>
  * Service for test suites
  */
 @Service
+@Suppress("LongParameterList")
 class TestSuitesService(
     private val testSuiteRepository: TestSuiteRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val executionService: ExecutionService,
+    private val agentStatusService: AgentStatusService,
+    private val agentService: AgentService,
 ) {
     /**
      * Save new test suites to DB
@@ -102,6 +110,44 @@ class TestSuitesService(
     fun findTestSuiteById(id: Long): TestSuite? = testSuiteRepository.findByIdOrNull(id)
 
     /**
+     * @param ids
+     * @return List of [TestSuite] by [ids]
+     */
+    fun findTestSuitesByIds(ids: List<Long>): Flux<TestSuite> = blockingToFlux {
+        ids.mapNotNull { id ->
+            testSuiteRepository.findByIdOrNull(id)
+        }
+    }
+
+    /**
+     * @param filters
+     * @return [Flux] of [TestSuite] that match [filters]
+     */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+            ExampleMatcher.matchingAll()
+                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withIgnorePaths("description", "source", "version", "dateAdded")
+                .let {
+                    Example.of(
+                        TestSuite(
+                            filters.name,
+                            "",
+                            TestSuitesSource.empty,
+                            "",
+                            null,
+                            filters.language,
+                            filters.tags
+                        ),
+                        it
+                    )
+                }
+                .let { testSuiteRepository.findAll(it) }
+                .toFlux()
+
+    /**
      * @param id
      * @return test suite with [id]
      * @throws ResponseStatusException if [TestSuite] is not found by [id]
@@ -120,21 +166,26 @@ class TestSuitesService(
     ): List<TestSuite> = testSuiteRepository.findAllBySourceAndVersion(source, version)
 
     /**
+     * @param source source of the test suite
+     * @return matched test suites
+     */
+    fun getBySource(
+        source: TestSuitesSource,
+    ): List<TestSuite> = testSuiteRepository.findAllBySource(source)
+
+    /**
      * Delete testSuites and related tests & test executions from DB
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
     @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
-        testSuiteDtos.forEach { testSuiteDto ->
-            // Get test suite id by testSuiteDto
-            val testSuiteId = getSavedIdByDto(testSuiteDto)
-
+        val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
+        testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
-                // Executions could be absent
-                testExecutionRepository.findByTestId(testId).ifPresent { testExecution ->
+                testExecutionRepository.findByTestId(testId).forEach { testExecution ->
                     // Delete test executions
                     val testExecutionId = testExecution.requiredId()
                     log.debug { "Delete test execution with id $testExecutionId" }
@@ -144,15 +195,25 @@ class TestSuitesService(
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
-            log.info("Delete test suite ${testSuiteDto.name} with id $testSuiteId")
+            log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
+        }
+        // Delete executions and agents, which related to the test suites
+        // All test executions should be removed at this moment, that's why iterate one more time
+        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
+            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+            agentService.deleteAgentByExecutionIds(executionIds)
+            log.debug { "Delete executions with ids $executionIds" }
+            executionService.deleteExecutionByIds(executionIds)
         }
     }
 
     private fun getSavedIdByDto(
         dto: TestSuiteDto,
-    ): Long = testSuiteRepository.findByNameAndSourceAndVersion(
+    ): Long = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
         dto.name,
+        dto.tags?.let(TestSuite::tagsFromList),
         testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
         dto.version
     )

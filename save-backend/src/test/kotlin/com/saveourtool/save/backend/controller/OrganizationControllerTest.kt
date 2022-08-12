@@ -4,10 +4,16 @@ import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.backend.service.AgentService
+import com.saveourtool.save.backend.service.AgentStatusService
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
@@ -38,6 +44,11 @@ import java.util.*
     UserDetailsService::class,
     NoopWebSecurityConfig::class,
     GitService::class,
+    TestSuitesSourceService::class,
+    TestSuitesService::class,
+    ExecutionService::class,
+    AgentStatusService::class,
+    AgentService::class,
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -55,7 +66,7 @@ class OrganizationControllerTest {
         ""
     ).also { it.id = 1 }
     private val johnDoeUser = User(
-        "John Doe",
+        "JohnDoe",
         "",
         Role.VIEWER.toString(),
         ""
@@ -76,6 +87,30 @@ class OrganizationControllerTest {
     @MockBean
     private lateinit var gitRepository: GitRepository
 
+    @MockBean
+    private lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @MockBean
+    private lateinit var testSuiteRepository: TestSuiteRepository
+
+    @MockBean
+    private lateinit var testRepository: TestRepository
+
+    @MockBean
+    private lateinit var testExecutionRepository: TestExecutionRepository
+
+    @MockBean
+    private lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
+
+    @MockBean
+    private lateinit var executionRepository: ExecutionRepository
+
+    @MockBean
+    private lateinit var agentStatusRepository: AgentStatusRepository
+
+    @MockBean
+    private lateinit var agentRepository: AgentRepository
+
     @BeforeEach
     internal fun setUp() {
         whenever(gitRepository.save(any())).then {
@@ -95,7 +130,7 @@ class OrganizationControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "John Doe", roles = ["VIEWER"])
+    @WithMockUser(value = "JohDoe", roles = ["VIEWER"])
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
         webClient.delete()

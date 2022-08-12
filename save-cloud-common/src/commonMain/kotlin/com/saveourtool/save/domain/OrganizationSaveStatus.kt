@@ -9,9 +9,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class OrganizationSaveStatus(val message: String) {
     /**
-     * Organization exists
+     * Organization has conflicting name
      */
-    EXIST("Organization already exists"),
+    CONFLICT("This name is already taken"),
 
     /**
      * New organization

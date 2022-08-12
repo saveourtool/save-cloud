@@ -247,8 +247,8 @@ class ProjectController(
             }
         }
         .map { updatedProject ->
-            val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
-            ResponseEntity.ok(projectStatus.message)
+            projectService.updateProject(updatedProject)
+            ResponseEntity.ok("Project was successfully updated")
         }
 
     @DeleteMapping("/{organizationName}/{projectName}/delete")
@@ -276,8 +276,8 @@ class ProjectController(
                     }
                 }
                 .map { updatedProject ->
-                    val (_, projectStatus) = projectService.getOrSaveProject(updatedProject)
-                    ResponseEntity.ok(projectStatus.message)
+                    projectService.updateProject(updatedProject)
+                    ResponseEntity.ok("Successfully deleted project")
                 }
 
     companion object {

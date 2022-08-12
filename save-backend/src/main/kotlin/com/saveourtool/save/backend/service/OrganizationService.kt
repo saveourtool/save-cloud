@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for organization
@@ -21,11 +22,15 @@ class OrganizationService(
      * @param organization an [Organization] to store
      * @return organization's id, should never return null
      */
-    @Suppress("UnsafeCallOnNullableType")
-    fun getOrSaveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = organizationRepository.findByName(organization.name)?.let {
-            Pair(it.id, OrganizationSaveStatus.EXIST)
-        } ?: Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
+    @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
+    @Transactional
+    fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
+        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateOrganizationName(organization.name) != 0L) {
+            organizationRepository.saveOrganizationName(organization.name)
+            Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
+        } else {
+            Pair(0L, OrganizationSaveStatus.CONFLICT)
+        }
         requireNotNull(organizationId) { "Should have gotten an ID for organization from the database" }
         return Pair(organizationId, organizationSaveStatus)
     }
@@ -37,7 +42,7 @@ class OrganizationService(
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String) = getByName(organizationName)
+    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
         .apply {
             status = OrganizationStatus.DELETED
         }

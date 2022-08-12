@@ -80,7 +80,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     fetchTestSuitesSources()
 
-    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
+    val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useRequest(dependencies = arrayOf(selectedTestSuitesSource)) {
         selectedTestSuitesSource?.let { testSuitesSource ->
@@ -103,8 +103,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         }
     }
     val testSuitesSourcesTable = prepareTestSuitesSourcesTable {
-        setSelectedTestSuitesSource(it)
-        fetchTestSuitesSourcesSnapshotKeys()
+        if (selectedTestSuitesSource == it) {
+            setSelectedTestSuitesSource(null)
+        } else {
+            setSelectedTestSuitesSource(it)
+            fetchTestSuitesSourcesSnapshotKeys()
+        }
     }
 
     div {
@@ -128,13 +132,16 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             content = testSuitesSources
         }
     }
-    div {
-        className = ClassName("mb-2")
-        testSuitesSourceSnapshotKeysTable {
-            getData = { _, _ ->
-                testSuitesSourceSnapshotKeys.toTypedArray()
+
+    selectedTestSuitesSource?.let {
+        div {
+            className = ClassName("mb-2")
+            testSuitesSourceSnapshotKeysTable {
+                getData = { _, _ ->
+                    testSuitesSourceSnapshotKeys.toTypedArray()
+                }
+                content = testSuitesSourceSnapshotKeys
             }
-            content = testSuitesSourceSnapshotKeys
         }
     }
 }
@@ -154,47 +161,45 @@ private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
-        column(id = "organizationName", header = "Organization", { organizationName }) { cellProps ->
+        column(id = "organizationName", header = "Organization", { this }) { cellProps ->
             Fragment.create {
                 td {
-                    +cellProps.value
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +cellProps.value.organizationName
                 }
             }
         }
-        column(id = "name", header = "Name", { name }) { cellProps ->
+        column(id = "name", header = "Name", { this }) { cellProps ->
             Fragment.create {
                 td {
-                    +cellProps.value
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +cellProps.value.name
                 }
             }
         }
-        column(id = "description", header = "Description", { description }) { cellProps ->
+        column(id = "description", header = "Description", { this }) { cellProps ->
             Fragment.create {
                 td {
-                    +(cellProps.value ?: "Description is not provided")
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +(cellProps.value.description ?: "Description is not provided")
                 }
             }
         }
         column(id = "location", header = "Git location", { this }) { cellProps ->
             Fragment.create {
                 td {
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
                     a {
                         href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
                         +"source"
-                    }
-                }
-            }
-        }
-        column(id = "list", header = "Available version", { this }) { cellsProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
-                        onClick = {
-                            selectHandler(cellsProps.value)
-                        }
-                        +"list"
                     }
                 }
             }
