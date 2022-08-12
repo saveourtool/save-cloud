@@ -11,10 +11,12 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
+import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
 import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
@@ -53,6 +55,13 @@ class DockerAgentRunner(
     ): List<String> {
         val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
+
+        logger.debug { "Pulling image ${configuration.imageTag}" }
+        dockerClient.pullImageCmd(configuration.imageTag)
+            .withRegistry("https://ghcr.io")
+            .exec(PullImageResultCallback())
+            .awaitCompletion()
+
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
             createContainerFromImage(baseImageTag, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->

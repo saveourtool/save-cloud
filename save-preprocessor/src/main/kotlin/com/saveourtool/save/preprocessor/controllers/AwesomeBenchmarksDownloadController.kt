@@ -3,13 +3,10 @@ package com.saveourtool.save.preprocessor.controllers
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.utils.*
-import com.saveourtool.save.preprocessor.utils.generateDirectory
 
 import com.akuleshov7.ktoml.file.TomlFileReader
-import org.eclipse.jgit.api.errors.GitAPIException
-import org.eclipse.jgit.api.errors.InvalidRemoteException
-import org.eclipse.jgit.api.errors.TransportException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,8 +16,12 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+
+import java.nio.file.Path
 
 import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.serialization.serializer
 
@@ -33,9 +34,9 @@ import kotlinx.serialization.serializer
 @RestController
 class AwesomeBenchmarksDownloadController(
     private val configProperties: ConfigProperties,
+    private val gitPreprocessorService: GitPreprocessorService,
 ) {
     private val webClientBackend = WebClient.create(configProperties.backend)
-    private val tmpDir = generateDirectory(listOf(AWESOME_BENCHMARKS_URL), "${configProperties.repository}/awesome-benchmarks")
 
     /**
      * Controller to download standard test suites
@@ -44,31 +45,36 @@ class AwesomeBenchmarksDownloadController(
      */
     @Suppress("TOO_LONG_FUNCTION", "TYPE_ALIAS")
     @GetMapping("/download/awesome-benchmarks")
-    fun downloadAwesomeBenchmarks() =
+    fun downloadAwesomeBenchmarks(): Mono<ResponseEntity<String>> =
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
                 .doOnSuccess {
-                    log.debug("Starting to download awesome-benchmarks to ${tmpDir.absolutePath}")
-                    val branch = gitDto.detectDefaultBranchName()
-                    val sha1 = gitDto.detectLatestSha1(branch)
-                    gitDto.cloneToDirectory(branch, sha1, tmpDir.toPath())
-                    log.info("Awesome-benchmarks were downloaded to ${tmpDir.absolutePath}")
-                    processDirectoryAndCleanUp().subscribe()
-                    tmpDir.deleteRecursively()
-                }
-                .onErrorResume { exception ->
-                    tmpDir.deleteRecursively()
-                    when (exception) {
-                        is InvalidRemoteException,
-                        is TransportException,
-                        is GitAPIException -> log.warn("Error with git API while cloning ${gitDto.url} repository", exception)
-                        else -> log.warn("Cloning ${gitDto.url} repository failed", exception)
+                    Mono.fromCallable {
+                        gitDto.detectDefaultBranchName()
                     }
+                        .map { branch ->
+                            branch to gitDto.detectLatestSha1(branch)
+                        }
+                        .flatMap { (branch, version) ->
+                            log.debug("Starting to download awesome-benchmarks")
+                            gitPreprocessorService.cloneAndProcessDirectory(
+                                gitDto,
+                                branch,
+                                version
+                            ) { repositoryDir: Path, _ ->
+                                log.info("Awesome-benchmarks were downloaded to ${repositoryDir.absolutePathString()}")
+                                processDirectoryAndCleanUp(repositoryDir)
+                            }
+                        }
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .subscribe()
+                }.onErrorResume { exception ->
+                    log.warn("Cloning ${gitDto.url} repository failed", exception)
                     Mono.just(ResponseEntity("Downloading of awesome-benchmarks failed", HttpStatus.INTERNAL_SERVER_ERROR))
                 }
 
-    private fun processDirectoryAndCleanUp(): Mono<Void> {
+    private fun processDirectoryAndCleanUp(repositoryDirectory: Path): Mono<Void> {
         val resultList =
-                (tmpDir.toPath() / "benchmarks")
+                (repositoryDirectory / "benchmarks")
                     .toFile()
                     .walk()
                     .filter { it.isFile }
