@@ -35,6 +35,6 @@ data class TestResultLocation(
 @Serializable
 data class TestResultDebugInfo(
     val testResultLocation: TestResultLocation,
-    val debugInfo: DebugInfo?,
+    val debugInfo: DebugInfo? = null,
     val testStatus: TestStatus,
 )

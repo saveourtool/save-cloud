@@ -54,6 +54,17 @@ class TestSuitesSourceService(
         }
 
     /**
+     * @param git
+     * @return entity
+     */
+    fun findByGit(git: Git) = testSuitesSourceRepository.findAllByGit(git)
+
+    /**
+     * @param entity
+     */
+    fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
+
+    /**
      * @param organization
      * @param git
      * @param testRootPath
