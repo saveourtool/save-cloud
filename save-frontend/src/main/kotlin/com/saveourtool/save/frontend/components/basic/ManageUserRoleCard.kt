@@ -8,11 +8,11 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.lodash.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName

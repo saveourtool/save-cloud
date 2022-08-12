@@ -8,12 +8,12 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.frontend.components.basic.organizations.encodeURIComponent
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
-import com.saveourtool.save.frontend.externals.lodash.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
+import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement

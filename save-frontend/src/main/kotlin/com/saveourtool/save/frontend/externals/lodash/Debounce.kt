@@ -2,8 +2,6 @@
 
 package com.saveourtool.save.frontend.externals.lodash
 
-const val DEFAULT_DEBOUNCE_PERIOD = 500
-
 /**
  * @param function to be debounced
  * @param milliseconds between invocations
