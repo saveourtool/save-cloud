@@ -12,7 +12,6 @@ import java.nio.ByteBuffer
 typealias ByteArrayResponse = ResponseEntity<ByteArray>
 typealias StringResponse = ResponseEntity<String>
 typealias EmptyResponse = ResponseEntity<Void>
-typealias KotlinEmptyResponse = ResponseEntity<Unit>
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 typealias ResourceResponse = ResponseEntity<Resource>
 

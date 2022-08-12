@@ -137,6 +137,7 @@ The format will have the following form:
 ```bash
 {
   "name": "your-file-name",
+  "uploadedMillis":1658227620000,
   "isExecutable":false
 }
 ```
@@ -184,10 +185,12 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/submitExecutionRequest" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
+  "uploadedMillis":1658227620000,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
+  "uploadedMillis":1658227620000,
   "isExecutable": false
 };type=application/json'
 ```
@@ -212,14 +215,17 @@ curl -X POST "${SAVE_CLOUD_URL}/api/v1/executionRequestStandardTests" \
 };type=application/json" \
 -F 'file={
   "name": "ktlint",
+  "uploadedMillis":1658227620000,
   "isExecutable": false
 };type=application/json' \
 -F 'file={
   "name": "diktat-analysis.yml",
+  "uploadedMillis":1658227620000,
   "isExecutable":false
 };type=application/json' \
 -F 'file={
   "name": "diktat.jar",
+  "uploadedMillis":1658227620000,
   "isExecutable": false
 };type=application/json'
 ```

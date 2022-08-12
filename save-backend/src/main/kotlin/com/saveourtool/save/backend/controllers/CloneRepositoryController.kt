@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.domain.*
@@ -31,7 +30,6 @@ class CloneRepositoryController(
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
-    private val fileStorage: FileStorage,
     private val gitService: GitService,
     private val runExecutionController: RunExecutionController,
 ) {
@@ -123,14 +121,14 @@ class CloneRepositoryController(
                 Flux.concat(it)
             }
             .collectList()
-        return fileStorage.convertToLatestFileInfo(projectCoordinates, shortFiles)
+        return shortFiles.map { it.toStorageKey() }
             .collectList()
             .zipWith(testSuiteIdsMono)
             .map { (files, testSuitesIds) ->
                 RunExecutionRequest(
                     projectCoordinates = projectCoordinates,
                     testSuiteIds = testSuitesIds,
-                    files = files.map { it.toStorageKey() },
+                    files = files,
                     sdk = executionRequest.sdk,
                     execCmd = executionRequest.execCmd,
                     batchSizeForAnalyzer = executionRequest.batchSizeForAnalyzer,

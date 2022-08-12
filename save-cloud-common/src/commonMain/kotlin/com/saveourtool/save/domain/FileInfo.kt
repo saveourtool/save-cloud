@@ -22,6 +22,7 @@ data class FileInfo(
      */
     fun toShortFileInfo() = ShortFileInfo(
         this.name,
+        this.uploadedMillis,
         this.isExecutable,
     )
 
@@ -30,19 +31,29 @@ data class FileInfo(
      */
     fun toStorageKey() = FileKey(
         this.name,
-        this.uploadedMillis
+        this.uploadedMillis,
     )
 }
 
 /**
  * @property name name of a file
+ * @property uploadedMillis timestamp of file uploading
  * @property isExecutable whether the file is executable
  */
 @Serializable
 data class ShortFileInfo(
     val name: String,
+    val uploadedMillis: Long,
     val isExecutable: Boolean = false,
-)
+) {
+    /**
+     * @return [FileKey]
+     */
+    fun toStorageKey() = FileKey(
+        this.name,
+        this.uploadedMillis,
+    )
+}
 
 /**
  * @property path path to image

@@ -247,22 +247,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     }
 
     /**
-     * @param executionId ID of the [Execution], during which these tests will be executed
-     * @param testIds IDs of the tests, which will be executed
-     */
-    fun saveTestExecutionsByTestIds(executionId: Long, testIds: List<Long>) {
-        saveTestExecutions(
-            executionRepository.findById(executionId).get(),
-            testIds.mapNotNull { testId ->
-                testRepository.findById(testId).orElseGet {
-                    log.error { "Can't find test with id = $testId to save in testExecution" }
-                    null
-                }
-            }
-        )
-    }
-
-    /**
      * @param execution the [Execution], during which these tests will be executed
      * @param tests the tests, which will be executed
      */

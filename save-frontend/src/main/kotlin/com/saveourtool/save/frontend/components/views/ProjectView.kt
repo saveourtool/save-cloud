@@ -63,16 +63,6 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
 }
 
 /**
- * State with role
- */
-external interface StateWithRole : State {
-    /**
-     * Role of a user that is seeing this view
-     */
-    var selfRole: Role
-}
-
-/**
  * [State] of project view component for CONTEST run
  */
 external interface ContestRunState : State {

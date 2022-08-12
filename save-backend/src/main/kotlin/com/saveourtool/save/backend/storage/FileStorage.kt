@@ -64,27 +64,6 @@ class FileStorage(
 
     /**
      * @param projectCoordinates
-     * @param shortFileInfoFlux
-     * @return Flux of [FileInfo] found by [ShortFileInfo] with max uploadedMillis
-     */
-    fun convertToLatestFileInfo(projectCoordinates: ProjectCoordinates, shortFileInfoFlux: Flux<ShortFileInfo>): Flux<FileInfo> = shortFileInfoFlux
-        .flatMap { shortFileInfo ->
-            findLatestKeyByName(projectCoordinates, shortFileInfo.name)
-                .flatMap { fileKey ->
-                    contentSize(projectCoordinates, fileKey)
-                        .map { sizeBytes ->
-                            FileInfo(
-                                fileKey.name,
-                                fileKey.uploadedMillis,
-                                sizeBytes,
-                                shortFileInfo.isExecutable
-                            )
-                        }
-                }
-        }
-
-    /**
-     * @param projectCoordinates
      * @return a list of [FileInfo]'s
      */
     fun getFileInfoList(
