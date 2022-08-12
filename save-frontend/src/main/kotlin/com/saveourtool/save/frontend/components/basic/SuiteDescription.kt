@@ -14,7 +14,7 @@ fun suiteDescription(suite: TestSuiteDto) =
         """
             <div>
                   <ul class="pl-3">
-                  ${suite.source.gitDto.url?.let {
+                  ${suite.source.gitDto.url.let {
             "<li><a href=$it>$it</a></li>"
         }}
                 <li>${suite.source.testRootPath}</li>

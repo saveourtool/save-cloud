@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
@@ -115,7 +116,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName()
+        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -162,7 +163,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     setSelectedTestSuiteIds(it)
                 },
             ) {
-                setSelectedTestSuiteIds(emptyList())
+                setSelectedTestSuiteIds(contestDto.testSuiteIds)
                 setIsTestSuiteSelectorOpen(false)
             }
             div {
@@ -176,7 +177,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             InputTypes.CONTEST_NAME,
                             contestDto.name,
                             (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null,
-                            "col-12",
+                            "col-12 pl-2 pr-2",
                             "Contest name",
                         ) {
                             setContestDto(contestDto.copy(name = it.target.value))
@@ -188,7 +189,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextDisabled(
                             InputTypes.CONTEST_SUPER_ORGANIZATION_NAME,
-                            "col-12",
+                            "col-12 pl-2 pr-2",
                             "Super organization name",
                             contestDto.organizationName,
                         )
@@ -199,7 +200,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputDateFormRequired(
                             InputTypes.CONTEST_START_TIME,
                             isDateRangeValid(contestDto.startTime, contestDto.endTime),
-                            "col-6",
+                            "col-6 pl-2",
                             "Starting time",
                         ) {
                             setContestDto(contestDto.copy(startTime = it.target.value.dateStringToLocalDateTime()))
@@ -207,7 +208,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputDateFormRequired(
                             InputTypes.CONTEST_END_TIME,
                             isDateRangeValid(contestDto.startTime, contestDto.endTime),
-                            "col-6",
+                            "col-6 pr-2",
                             "Ending time",
                         ) {
                             setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
@@ -216,10 +217,11 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     // ==== Contest test suites
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormOptional(
+                        inputTextFormRequired(
                             InputTypes.CONTEST_TEST_SUITE_IDS,
                             contestDto.testSuiteIds.joinToString(", "),
-                            "",
+                            true,
+                            "col-12 pl-2 pr-2",
                             "Test Suite Ids",
                             onClickFun = { setIsTestSuiteSelectorOpen(true) }
                         )
@@ -230,7 +232,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormOptional(
                             InputTypes.CONTEST_DESCRIPTION,
                             contestDto.description,
-                            "",
+                            "col-12 pl-2 pr-2",
                             "Contest description",
                         ) {
                             setContestDto(contestDto.copy(description = it.target.value))

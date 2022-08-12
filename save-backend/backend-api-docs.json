@@ -1196,6 +1196,43 @@
         }
       }
     },
+    "/api/v1/test-suites/get-by-ids": {
+      "post": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getTestSuitesByIds",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/test-execution": {
       "post": {
         "tags": [
@@ -3769,6 +3806,58 @@
             "basic": []
           }
         ]
+      }
+    },
+    "/api/v1/test-suites/filtered": {
+      "get": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getFilteredTestSuites",
+        "parameters": [
+          {
+            "name": "tags",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/test-suites-sources/{organizationName}/{name}/get-test-suites": {
@@ -6557,6 +6646,41 @@
           }
         }
       },
+      "TestSuiteDto": {
+        "required": [
+          "name",
+          "source",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TestSuitesSourceDto"
+          },
+          "version": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "TestResultLocation": {
         "required": [
           "pluginName",
@@ -7128,41 +7252,6 @@
           },
           "twitter": {
             "type": "string"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "TestSuiteDto": {
-        "required": [
-          "name",
-          "source",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "source": {
-            "$ref": "#/components/schemas/TestSuitesSourceDto"
-          },
-          "version": {
-            "type": "string"
-          },
-          "language": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "id": {
             "type": "integer",
