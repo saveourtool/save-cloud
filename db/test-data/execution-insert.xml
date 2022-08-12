@@ -158,7 +158,7 @@
             <column name="failed_tests" value="0" />
             <column name="skipped_tests" value="0" />
             <column name="sdk" value="ubuntu:latest" />
-            <column name="additional_files" value="null" />
+            <column name="additional_files" value="test.bat:123" />
 
             <column name="user_id" value="1"/>
 

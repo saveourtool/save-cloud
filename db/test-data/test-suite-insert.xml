@@ -11,7 +11,7 @@
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="description" value="description"/>
             <column name="language" value="Java"/>
-            <column name="version" valueComputed="id"/>
+            <column name="version" value="123"/>
             <column name="source_id" value="1" />
         </insert>
 
@@ -21,7 +21,7 @@
             <column name="date_added" value="2021-01-01 00:00:00"/>
             <column name="description" value="description"/>
             <column name="language" value="null"/>
-            <column name="version" valueComputed="id"/>
+            <column name="version" value="123"/>
             <column name="source_id" value="1" />
         </insert>
 

@@ -96,7 +96,7 @@ class RunExecutionController(
      * @param authentication
      * @return response with ID of new created [Execution]
      */
-    @PostMapping("/reTrigger")
+    @PostMapping("/re-trigger")
     fun reTrigger(
         @RequestParam executionId: Long,
         authentication: Authentication,
@@ -182,7 +182,7 @@ class RunExecutionController(
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(execution)
         .retrieve()
-        .toEntity()
+        .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
             ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")

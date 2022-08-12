@@ -12,6 +12,7 @@ import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Lazy
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +32,7 @@ class ExecutionService(
     private val userRepository: UserRepository,
     private val testRepository: TestRepository,
     private val testExecutionRepository: TestExecutionRepository,
-    private val testSuitesService: TestSuitesService,
+    @Lazy private val testSuitesService: TestSuitesService,
     private val configProperties: ConfigProperties,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
