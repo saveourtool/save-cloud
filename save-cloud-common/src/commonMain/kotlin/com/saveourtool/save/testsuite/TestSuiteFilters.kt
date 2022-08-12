@@ -39,6 +39,11 @@ data class TestSuiteFilters(
      */
     fun isEmpty() = name.isBlank() && tags.isBlank() && language.isBlank()
 
+    /**
+     * @return true if any filter is set, false otherwise
+     */
+    fun isNotEmpty() = !isEmpty()
+
     companion object {
         val empty = TestSuiteFilters(name = "", tags = "", language = "")
     }
