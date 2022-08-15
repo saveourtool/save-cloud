@@ -56,9 +56,9 @@ external interface ExecutionProps : PropsWithChildren {
     var executionId: String
 
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -145,7 +145,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "File Name") { cellProps ->
+            column(id = "path", header = "Test Name") { cellProps ->
                 Fragment.create {
                     td {
                         val testName = cellProps.value.filePath
@@ -276,6 +276,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     filters = filters.copy(tag = filterValue.tag)
                                 }
                             }
+                            window.location.href = getUrlWithFiltersParams(filterValue)
                         }
                     }
                 }
@@ -339,7 +340,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                filters = filters.copy(status = props.status)
+                filters = props.filters
             }
         }
     }
@@ -466,6 +467,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             executionDto = state.executionDto
         }
     }
+
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
