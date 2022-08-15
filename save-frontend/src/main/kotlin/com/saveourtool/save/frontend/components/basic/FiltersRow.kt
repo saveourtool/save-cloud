@@ -55,6 +55,7 @@ external interface FiltersRowProps : Props {
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
+    //it is necessary that the table is overwritten by the search button, and not by any change in the filter fields
     val (filters, setFilters) = useState(props.filters)
     useEffect(props.filters) {
         if (filters !== props.filters) {
