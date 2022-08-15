@@ -126,22 +126,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         additionalOptions()
     }, plugins = plugins)
 
-    useEffect(tableInstance.state.pageSize) {
-        println("\n\n-----------useEffect 1")
-        if (useServerPaging) {
-            println("\n-----------useEffect 2")
-            scope.launch {
-                println("\n-----------useEffect 3 ${props.getPageCount == null} ||| ${tableInstance.state.pageSize}")
-                val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
-                println("===========newPageCount ${newPageCount} || pageCount ${pageCount}")
-                if (newPageCount != pageCount) {
-                    println("\n-----------useEffect 4")
-                    setPageCount(newPageCount)
-                }
-            }
-        }
-    }
-
     // list of entities, updates of which will cause update of the data retrieving effect
     val dependencies: Array<dynamic> = if (useServerPaging) {
         arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
@@ -149,6 +133,18 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         // when all data is already available, we don't need to repeat `getData` calls
         emptyArray()
     } + getAdditionalDependencies(props)
+
+    useEffect(*dependencies) {
+        if (useServerPaging) {
+            scope.launch {
+                val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
+                if (newPageCount != pageCount) {
+                    setPageCount(newPageCount)
+                }
+            }
+        }
+    }
+
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)

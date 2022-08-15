@@ -8,7 +8,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
@@ -450,48 +449,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     } ?: append("")
                 }
 
-                println("\n\nMAKING REQUEST")
-
-//                val count: Int = get(
-//                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$filtersQueryString",
-//                    headers = Headers().also {
-//                        it.set("Accept", "application/json")
-//                    },
-//                    loadingHandler = ::classLoadingHandler,
-//                ).decodeFromJsonString()
-
-
-//                    .json()
-//                    .also {
-//                        println("getPageCount 4")
-//                    }
-//                    .await()
-//                    .also {
-//                        println("getPageCount 5")
-//                    }
-//                    .unsafeCast<Int>()
-                //println("\n\n\n COUNT ${count / pageSize + 1}")
-                //count / pageSize + 1
-
-                val response = get(
+                val count: Int = get(
                     url = "$apiUrl/testExecution/count?executionId=${props.executionId}$filtersQueryString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
                     loadingHandler = ::classLoadingHandler,
                 )
-
-                if (response.ok) {
-                    response.unsafeMap {
-                        println("OKOK")
-                        it.decodeFromJsonString<Int>() / pageSize + 1
-                    }
-                } else {
-                    println("NOTOK")
-                    1
-                }
-
-
+                    .json()
+                    .await()
+                    .unsafeCast<Int>()
+                count / pageSize + 1
             }
         }
         executionTestsNotFound {
