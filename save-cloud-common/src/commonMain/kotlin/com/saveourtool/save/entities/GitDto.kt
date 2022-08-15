@@ -16,4 +16,7 @@ data class GitDto(
     val password: String? = null,
 ) : Validatable {
     override fun validate(): Boolean = url.isValidUrl()
+    companion object {
+        val empty = GitDto("")
+    }
 }

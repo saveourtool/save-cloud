@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
@@ -72,7 +73,7 @@ fun ChildrenBuilder.showContestCreationModal(
         props.isOpen = isOpen
         props.style = Styles(
             content = json(
-                "top" to "25%",
+                "top" to "15%",
                 "left" to "30%",
                 "right" to "30%",
                 "bottom" to "auto",
@@ -115,7 +116,7 @@ fun isDateRangeValid(startTime: LocalDateTime?, endTime: LocalDateTime?) = if (s
 }
 
 private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == null || contestDto.startTime == null || !isDateRangeValid(contestDto.startTime, contestDto.endTime) ||
-        !contestDto.name.isValidName()
+        !contestDto.name.isValidName() || contestDto.testSuiteIds.isEmpty()
 
 @Suppress(
     "TOO_LONG_FUNCTION",
@@ -124,33 +125,47 @@ private fun isButtonDisabled(contestDto: ContestDto) = contestDto.endTime == nul
     "AVOID_NULL_CHECKS"
 )
 private fun contestCreationComponent() = FC<ContestCreationComponentProps> { props ->
-    val (contestDto, setContestDto) = useState(
-        ContestDto(
-            "",
-            null,
-            null,
-            "",
-            props.organizationName,
-        )
-    )
+    val (contestDto, setContestDto) = useState(ContestDto.empty.copy(organizationName = props.organizationName))
+
+    val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
     val onSaveButtonPressed = useRequest {
         val response = post(
-            "$apiUrl/${FrontendRoutes.CONTESTS}/create",
+            "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
             jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
+            ::responseHandlerWithValidation
         )
-        if (!response.ok) {
-            props.onSaveError(response)
-        } else {
+        if (response.ok) {
             props.onSaveSuccess("${window.location.origin}#/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+        } else if (response.isConflict()) {
+            setConflictErrorMessage(response.unpackMessage())
+        } else {
+            props.onSaveError(response)
         }
     }
 
+    val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
+
+    val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
     div {
         className = ClassName("card")
         contestCreationCard {
+            showTestSuiteSelectorModal(
+                isTestSuiteSelectorOpen,
+                contestDto.testSuiteIds,
+                {
+                    setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds))
+                    setIsTestSuiteSelectorOpen(false)
+                },
+                {
+                    setSelectedTestSuiteIds(it)
+                },
+            ) {
+                setSelectedTestSuiteIds(contestDto.testSuiteIds)
+                setIsTestSuiteSelectorOpen(false)
+            }
             div {
                 className = ClassName("")
                 form {
@@ -161,11 +176,12 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired(
                             InputTypes.CONTEST_NAME,
                             contestDto.name,
-                            contestDto.name.isBlank() || contestDto.name.isValidName(),
-                            "col-12",
+                            (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null,
+                            "col-12 pl-2 pr-2",
                             "Contest name",
                         ) {
                             setContestDto(contestDto.copy(name = it.target.value))
+                            setConflictErrorMessage(null)
                         }
                     }
                     // ==== Organization Name selection
@@ -173,7 +189,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         className = ClassName("mt-2")
                         inputTextDisabled(
                             InputTypes.CONTEST_SUPER_ORGANIZATION_NAME,
-                            "col-12",
+                            "col-12 pl-2 pr-2",
                             "Super organization name",
                             contestDto.organizationName,
                         )
@@ -184,7 +200,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputDateFormRequired(
                             InputTypes.CONTEST_START_TIME,
                             isDateRangeValid(contestDto.startTime, contestDto.endTime),
-                            "col-6",
+                            "col-6 pl-2",
                             "Starting time",
                         ) {
                             setContestDto(contestDto.copy(startTime = it.target.value.dateStringToLocalDateTime()))
@@ -192,11 +208,23 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputDateFormRequired(
                             InputTypes.CONTEST_END_TIME,
                             isDateRangeValid(contestDto.startTime, contestDto.endTime),
-                            "col-6",
+                            "col-6 pr-2",
                             "Ending time",
                         ) {
                             setContestDto(contestDto.copy(endTime = it.target.value.dateStringToLocalDateTime(LocalTime(23, 59, 59))))
                         }
+                    }
+                    // ==== Contest test suites
+                    div {
+                        className = ClassName("mt-2")
+                        inputTextFormRequired(
+                            InputTypes.CONTEST_TEST_SUITE_IDS,
+                            contestDto.testSuiteIds.joinToString(", "),
+                            true,
+                            "col-12 pl-2 pr-2",
+                            "Test Suite Ids",
+                            onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                        )
                     }
                     // ==== Contest description
                     div {
@@ -204,7 +232,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormOptional(
                             InputTypes.CONTEST_DESCRIPTION,
                             contestDto.description,
-                            "",
+                            "col-12 pl-2 pr-2",
                             "Contest description",
                         ) {
                             setContestDto(contestDto.copy(description = it.target.value))
@@ -217,9 +245,15 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 button {
                     type = ButtonType.button
                     className = ClassName("btn btn-primary")
-                    disabled = isButtonDisabled(contestDto)
+                    disabled = isButtonDisabled(contestDto) || conflictErrorMessage != null
                     onClick = { onSaveButtonPressed() }
                     +"Create contest"
+                }
+            }
+            conflictErrorMessage?.let {
+                div {
+                    className = ClassName("invalid-feedback d-block text-center")
+                    +it
                 }
             }
         }

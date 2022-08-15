@@ -46,6 +46,11 @@ external interface OrganizationSaveViewState : State {
      * Draft organization
      */
     var organizationDto: OrganizationDto
+
+    /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
 }
 
 /**
@@ -60,6 +65,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
         state.organizationDto = OrganizationDto.empty
+        state.conflictErrorMessage = null
     }
 
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
@@ -71,15 +77,21 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                         jsonHeaders,
                         Json.encodeToString(state.organizationDto),
                         loadingHandler = ::classLoadingHandler,
+                        responseHandler = ::classComponentResponseHandlerWithValidation,
                     )
             if (responseFromCreationOrganization.ok) {
-                window.location.href = "${window.location.origin}#/${state.organizationDto.name.replace(" ", "%20")}/"
+                window.location.href = "${window.location.origin}#/${state.organizationDto.name}/"
                 window.location.reload()
+            } else if (responseFromCreationOrganization.isConflict()) {
+                val responseText = responseFromCreationOrganization.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
             } else {
-                responseFromCreationOrganization.text().then {
+                responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
                         isErrorWithOrganizationSave = true
-                        errorMessage = it
+                        errorMessage = message
                     }
                 }
             }
@@ -132,22 +144,29 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                         inputTextFormRequired(
                                             InputTypes.ORGANIZATION_NAME,
                                             state.organizationDto.name,
-                                            state.organizationDto.name.isEmpty() || state.organizationDto.validateName(),
+                                            (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null,
                                             "",
                                             "Organization name",
                                         ) {
                                             setState {
                                                 organizationDto = organizationDto.copy(name = it.target.value)
+                                                conflictErrorMessage = null
                                             }
                                         }
                                     }
                                     button {
                                         type = ButtonType.button
-                                        className = ClassName("btn btn-info mt-4 mr-3")
+                                        className = ClassName("btn btn-info mt-4")
                                         +"Create organization"
-                                        disabled = !state.organizationDto.validate()
+                                        disabled = !state.organizationDto.validate() || state.conflictErrorMessage != null
                                         onClick = {
                                             saveOrganization()
+                                        }
+                                    }
+                                    state.conflictErrorMessage?.let {
+                                        div {
+                                            className = ClassName("invalid-feedback d-block")
+                                            +it
                                         }
                                     }
                                 }

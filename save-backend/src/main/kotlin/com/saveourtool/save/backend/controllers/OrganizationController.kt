@@ -7,6 +7,9 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
@@ -14,8 +17,10 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -48,11 +53,15 @@ import java.time.LocalDateTime
 )
 @RestController
 @RequestMapping(path = ["/api/$v1/organization", "/api/$v1/organizations"])
+@Suppress("LongParameterList")
 internal class OrganizationController(
     private val organizationService: OrganizationService,
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val gitService: GitService,
+    private val testSuitesSourceService: TestSuitesSourceService,
+    private val testSuitesService: TestSuitesService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -121,10 +130,11 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully changed ability to create contests.")
     @ApiResponse(responseCode = "403", description = "Could not change ability to create contests due to lack of permission.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @Suppress("UnsafeCallOnNullableType")
     fun setAbilityToCreateContest(
         @PathVariable organizationName: String,
         @RequestParam isAbleToCreateContests: Boolean,
-        authentication: Authentication
+        authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
     )
@@ -156,28 +166,29 @@ internal class OrganizationController(
         description = "Create a new organization.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully saved a new organization.")
-    @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @ApiResponse(responseCode = "409", description = "Requested name is not available.")
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,
-    ): Mono<StringResponse> {
-        val ownerId = (authentication.details as AuthenticationDetails).id
-        val (organizationId, organizationStatus) = organizationService.getOrSaveOrganization(
-            newOrganization.toOrganization(LocalDateTime.now())
-        )
-        if (organizationStatus == OrganizationSaveStatus.NEW) {
-            lnkUserOrganizationService.setRoleByIds(ownerId, organizationId, Role.OWNER)
+    ): Mono<StringResponse> = Mono.just(newOrganization)
+        .map {
+            organizationService.saveOrganization(it.toOrganization(LocalDateTime.now()))
         }
-
-        val response = if (organizationStatus == OrganizationSaveStatus.EXIST) {
-            logger.info("Attempt to save an organization with id = $organizationId, but it already exists.")
-            ResponseEntity.status(HttpStatus.CONFLICT).body(organizationStatus.message)
-        } else {
-            logger.info("Save new organization id = $organizationId with ownerId $ownerId")
+        .filter { (_, status) ->
+            status == OrganizationSaveStatus.NEW
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            OrganizationSaveStatus.CONFLICT.message
+        }
+        .map { (organizationId, organizationStatus) ->
+            lnkUserOrganizationService.setRoleByIds(
+                (authentication.details as AuthenticationDetails).id,
+                organizationId,
+                Role.OWNER,
+            )
+            logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-        return Mono.just(response)
-    }
 
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader
@@ -194,6 +205,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "403", description = "Not enough permission for managing this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     @ApiResponse(responseCode = "409", description = "Organization with such name already exists.")
+    @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
         @PathVariable organizationName: String,
         @RequestBody organization: Organization,
@@ -276,7 +288,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun listGit(
         @PathVariable organizationName: String,
-        authentication: Authentication
+        authentication: Authentication,
     ): Flux<GitDto> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -340,9 +352,10 @@ internal class OrganizationController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "url", `in` = ParameterIn.QUERY, description = "url of a git", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials.")
+    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization git credentials and all corresponding data.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting organization git credentials.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "TOO_LONG_FUNCTION")
     fun deleteGit(
         @PathVariable organizationName: String,
         @RequestParam url: String,
@@ -360,10 +373,41 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization git credentials."
         }
-        .map {
-            gitService.delete(it, url)
-            ResponseEntity.ok("Git credential deleted")
+        .map { organization ->
+            // Find and remove all corresponding data to the current git repository from DB and file system storage
+            val git = gitService.getByOrganizationAndUrl(organization, url)
+            val testSuitesSources = testSuitesSourceService.findByGit(git)
+            // List of test suites for removing data from storage at next step
+            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
+                val testSuites = testSuitesService.getBySource(testSuitesSource)
+                testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
+                testSuitesSourceService.delete(testSuitesSource)
+                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
+                testSuites.firstOrNull()
+            }
+            gitService.delete(organization, url)
+            testSuitesList
         }
+        .flatMap { testSuitesList ->
+            Flux.fromIterable(testSuitesList).map { testSuite ->
+                testSuite?.let {
+                    cleanupStorageData(it)
+                }
+            }.collectList()
+        }
+        .map {
+            ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
+        }
+
+    private fun cleanupStorageData(testSuite: TestSuite) {
+        testSuitesSourceSnapshotStorage.findKey(
+            testSuite.source.organization.name,
+            testSuite.source.name,
+            testSuite.version,
+        ).flatMap { key ->
+            testSuitesSourceSnapshotStorage.delete(key)
+        }
+    }
 
     companion object {
         @JvmStatic

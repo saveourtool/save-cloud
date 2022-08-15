@@ -16,7 +16,7 @@ const val NAMING_ALLOWED_LENGTH = 64
  * @return true if name is valid, false otherwise
  */
 fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
-    isNotBlank() && first() != '-' && last() != '-' && hasOnlyLettersOrDigitsOrHyphens() && !containsForbiddenWords() && isLengthOk(allowedLength)
+    isNotBlank() && first() != '-' && last() != '-' && hasOnlyAlphaNumOrDotsOrHyphens() && !containsForbiddenWords() && isLengthOk(allowedLength)
 }
 
 /**
@@ -33,7 +33,7 @@ fun String.isValidUrl() = ValidationRegularExpressions.URL_VALIDATOR.value.match
  */
 fun String.isValidEmail() = ValidationRegularExpressions.EMAIL_VALIDATOR.value.matches(this)
 
-private fun String.hasOnlyLettersOrDigitsOrHyphens() = all { it.isLetterOrDigit() || it == '-' }
+private fun String.hasOnlyAlphaNumOrDotsOrHyphens() = all { it.isLetterOrDigit() || it == '-' || it == '.' }
 
 private fun String.containsForbiddenWords() = FrontendRoutes.getForbiddenWords().any { this == it }
 

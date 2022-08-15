@@ -1,9 +1,11 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.scheduling.UpdateJob
+import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
@@ -11,12 +13,10 @@ import org.quartz.Scheduler
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
@@ -28,6 +28,7 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
     private val quartzScheduler: Scheduler,
+    private val testSuitePermissionEvaluator: TestSuitePermissionEvaluator,
 ) {
     /**
      * Save new test suites into DB
@@ -45,6 +46,47 @@ class TestSuitesController(
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
     fun getAllStandardTestSuites(): Mono<ResponseListTestSuites> =
             testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }
+
+    /**
+     * @param testSuiteIds
+     * @param authentication
+     * @return [Flux] of [TestSuiteDto]s
+     */
+    @PostMapping("/api/$v1/test-suites/get-by-ids")
+    fun getTestSuitesByIds(
+        @RequestBody testSuiteIds: List<Long>,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = testSuitesService.findTestSuitesByIds(testSuiteIds)
+        .filter { testSuite ->
+            testSuitePermissionEvaluator.canAccessTestSuite(testSuite, authentication)
+        }
+        .map { testSuite ->
+            testSuite.toDto(testSuite.requiredId())
+        }
+
+    /**
+     * @param tags
+     * @param name
+     * @param language
+     * @param authentication
+     * @return [Flux] of [TestSuiteDto]s
+     */
+    @GetMapping("/api/$v1/test-suites/filtered")
+    fun getFilteredTestSuites(
+        @RequestParam(required = false, defaultValue = "") tags: String,
+        @RequestParam(required = false, defaultValue = "") name: String,
+        @RequestParam(required = false, defaultValue = "") language: String,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = Mono.just(TestSuiteFilters(name, language, tags))
+        .flatMapMany {
+            testSuitesService.findTestSuitesMatchingFilters(it)
+        }
+        .filter {
+            testSuitePermissionEvaluator.canAccessTestSuite(it, authentication)
+        }
+        .map {
+            it.toDto(it.requiredId())
+        }
 
     /**
      * @param id id of the test suite

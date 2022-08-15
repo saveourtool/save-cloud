@@ -63,6 +63,7 @@ enum class InputTypes(
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
     CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
+    CONTEST_TEST_SUITE_IDS("contest test suite ids"),
     ;
 }
 
@@ -74,6 +75,7 @@ enum class InputTypes(
  * @param errorText
  * @param onChangeFun
  * @param textValue
+ * @param onClickFun
  * @return div with an input form
  */
 @Suppress(
@@ -88,36 +90,37 @@ internal fun ChildrenBuilder.inputTextFormRequired(
     classes: String,
     name: String,
     errorText: String = "Please input a valid ${form.str}",
-    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+    onClickFun: () -> Unit = { },
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { }
 ) =
         div {
-            className = ClassName("$classes mt-1")
+            className = ClassName(classes)
             label {
                 className = ClassName("form-label")
                 htmlFor = form.name
                 +name
+                span {
+                    className = ClassName("text-red text-left")
+                    +"*"
+                }
             }
 
             div {
-                className = ClassName("input-group has-validation")
-                span {
-                    className = ClassName("input-group-text")
-                    id = "${form.name}Span"
-                    +"*"
-                }
-
                 val inputType = if (form == InputTypes.PASSWORD) InputType.password else InputType.text
                 input {
                     type = inputType
                     onChange = onChangeFun
+                    onClick = { onClickFun() }
                     id = form.name
                     required = true
                     value = textValue
                     placeholder = form.placeholder
-                    if (validInput) {
-                        className = ClassName("form-control")
+                    className = if (textValue.isNullOrEmpty()) {
+                        ClassName("form-control")
+                    } else if (validInput) {
+                        ClassName("form-control is-valid")
                     } else {
-                        className = ClassName("form-control is-invalid")
+                        ClassName("form-control is-invalid")
                     }
                 }
 
@@ -138,6 +141,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
  * @param onChangeFun
  * @param errorText
  * @param textValue
+ * @param onClickFun
  * @return div with an input form
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
@@ -148,9 +152,10 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     name: String?,
     validInput: Boolean = true,
     errorText: String = "Please input a valid ${form.str}",
-    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+    onClickFun: () -> Unit = { },
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { },
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     name?.let { name ->
         label {
             className = ClassName("form-label")
@@ -160,16 +165,19 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     }
     input {
         type = InputType.text
+        onClick = { onClickFun() }
         onChange = onChangeFun
         ariaDescribedBy = "${form.name}Span"
         id = form.name
         required = false
         value = textValue
         placeholder = form.placeholder
-        if (validInput) {
-            className = ClassName("form-control")
+        className = if (textValue.isNullOrEmpty()) {
+            ClassName("form-control")
+        } else if (validInput) {
+            ClassName("form-control is-valid")
         } else {
-            className = ClassName("form-control is-invalid")
+            ClassName("form-control is-invalid")
         }
     }
     if (!validInput) {
@@ -185,6 +193,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
  * @param classes
  * @param name
  * @param inputText
+ * @param isRequired
  * @return div with a disabled input form
  */
 internal fun ChildrenBuilder.inputTextDisabled(
@@ -192,12 +201,19 @@ internal fun ChildrenBuilder.inputTextDisabled(
     classes: String,
     name: String,
     inputText: String,
+    isRequired: Boolean = true,
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +name
+        if (isRequired) {
+            span {
+                className = ClassName("text-red text-left")
+                +"*"
+            }
+        }
     }
     input {
         type = InputType.text
@@ -223,7 +239,7 @@ internal fun ChildrenBuilder.inputDateFormOptional(
     text: String,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
@@ -257,28 +273,29 @@ internal fun ChildrenBuilder.inputDateFormRequired(
     errorMessage: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes mt-1")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +text
+        span {
+            className = ClassName("text-red text-left")
+            +"*"
+        }
     }
     div {
         className = ClassName("input-group has-validation")
-        span {
-            className = ClassName("input-group-text")
-            id = "${form.name}Span"
-            +"*"
-        }
         input {
             type = InputType.date
             onChange = onChangeFun
             id = form.name
             required = true
-            if (validInput) {
-                className = ClassName("form-control")
+            className = if ((value as String?).isNullOrEmpty()) {
+                ClassName("form-control")
+            } else if (validInput) {
+                ClassName("form-control is-valid")
             } else {
-                className = ClassName("form-control is-invalid")
+                ClassName("form-control is-invalid")
             }
         }
         if (!validInput) {

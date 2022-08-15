@@ -9,9 +9,9 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
 
 /**
- * Map where key is ID of saved [TestSuitesSourceDto] and value is [List] of [TestDto]
+ * [List] of [TestDto]
  */
-typealias TestBatch = Map<Long, List<TestDto>>
+typealias TestBatch = List<TestDto>
 
 /**
  * @property filePath path to a test file

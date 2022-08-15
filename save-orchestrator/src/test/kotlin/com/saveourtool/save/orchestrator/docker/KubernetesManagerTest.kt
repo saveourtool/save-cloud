@@ -5,18 +5,15 @@ import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
-import com.github.dockerjava.api.DockerClient
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServerExtension
-import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.mock
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -32,17 +29,14 @@ import java.net.HttpURLConnection
 @EnableKubernetesMockClient
 @TestPropertySource("classpath:application.properties")
 class KubernetesManagerTest {
-    private val dockerClient: DockerClient = mock()
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager
 
     @BeforeEach
     fun setUp() {
         kubernetesManager = KubernetesManager(
-            dockerClient,
             kubernetesClient,
             configProperties,
-            CompositeMeterRegistry(),
         )
     }
 

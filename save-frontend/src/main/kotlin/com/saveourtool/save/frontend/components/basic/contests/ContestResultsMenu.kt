@@ -2,7 +2,12 @@
 
 package com.saveourtool.save.frontend.components.basic.contests
 
+import csstype.*
 import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h6
+
+import kotlinx.js.jso
 
 /**
  * RESULTS tab in ContestView
@@ -27,5 +32,17 @@ external interface ContestResultsMenuProps : Props {
 )
 private fun contestResultsMenu(
 ) = FC<ContestResultsMenuProps> {
-    +"Your results will be here"
+    div {
+        className = ClassName("mb-3")
+        style = jso {
+            justifyContent = JustifyContent.center
+            display = Display.flex
+            flexDirection = FlexDirection.column
+            alignItems = AlignItems.center
+        }
+        h6 {
+            className = ClassName("text-center")
+            +"You didn't submit your tool yet."
+        }
+    }
 }

@@ -34,10 +34,13 @@ class Beans(private val configProperties: ConfigProperties) {
      * @return instance of [DockerClient]
      */
     @Bean
+    @Profile("!kubernetes")
     fun dockerClient(
         configProperties: ConfigProperties,
     ): DockerClient {
-        val settings = configProperties.docker
+        val settings = requireNotNull(configProperties.docker) {
+            "Properties under configProperties.docker are not set, but are required with active profiles."
+        }
         val dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig
             .createDefaultConfigBuilder()
             .withDockerHost(settings.host)

@@ -26,4 +26,5 @@
     <changeSet id="add-tests-data" author="nulls">
         <tagDatabase tag="test-data-insert"/>
     </changeSet>
+
 </databaseChangeLog>
