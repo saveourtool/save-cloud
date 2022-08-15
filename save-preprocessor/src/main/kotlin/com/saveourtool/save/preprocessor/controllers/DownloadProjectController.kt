@@ -144,15 +144,33 @@ class DownloadProjectController(
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
-        .flatMapMany { getTestSuites(version) }
+        //.map {
+            //it to getTestSuites(version)
+            //getTestSuites(version)
+            //getTestSuites(version).collectList()
+            //Mono.just(it)
+            //it
+        //}
+        .zipWith(getTestSuites(version)).map {
+            val isFetched = it.t1
+            val testSuites = it.t2
+            if (isFetched && testSuites.isEmpty()) {
+                //webClientBackend
+            }
+            //testSuites.flatMapMany(Flux::fromIterable)
+            //testSuites
+            Flux.fromIterable(testSuites)
+        }
 
     private fun TestSuitesSourceDto.getTestSuites(
         version: String,
-    ): Flux<TestSuite> = testsPreprocessorToBackendBridge.getTestSuites(
+    ): Mono<List<TestSuite>> = testsPreprocessorToBackendBridge.getTestSuites(
         organizationName,
         name,
         version
-    ).flatMapMany { Flux.fromIterable(it) }
+    )
+        //.flatMapMany { Flux.fromIterable(it) }
+
 
     private fun Flux<TestSuite>.saveOnExecutionAndExecute(
         requestBase: ExecutionRequestBase,

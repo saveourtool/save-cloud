@@ -146,7 +146,7 @@ class DownloadProjectTest(
             testSuitesSource.branch,
         )).thenReturn(Mono.just(testSuitesSource.toDto()))
         whenever(testSuitesPreprocessorController.fetch(eq(testSuitesSource.toDto()), any()))
-            .thenReturn(Mono.just(Unit))
+            .thenReturn(Mono.just(true))
         whenever(testsPreprocessorToBackendBridge.getTestSuites(
             eq(testSuitesSource.organization.name),
             eq(testSuitesSource.name),

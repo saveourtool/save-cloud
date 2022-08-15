@@ -58,13 +58,13 @@ class TestSuitesPreprocessorController(
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam version: String,
-    ): Mono<Unit> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
+    ): Mono<Boolean> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
         .map {
             println("\n\n\ndoesTestSuitesSourceContainVersion? ${it}")
             it
         }
         .filter(false::equals)
-        .flatMap {
+        .map {
             println("\n\n\nfetchTestSuitesFromGit....")
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
@@ -72,10 +72,12 @@ class TestSuitesPreprocessorController(
                         log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
                     }
                 }
+            true
         }
         .defaultIfEmpty(
             with(testSuitesSourceDto) {
                 log.info { "Test suites source $name in $organizationName already contains version $version" }
+                false
             }
         )
 
