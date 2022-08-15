@@ -127,7 +127,9 @@ class DownloadProjectController(
                             keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
                                 ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
                         }
-                        .flatMapMany { testSuitesSource.getTestSuites(it) }
+                        .flatMapMany {
+                            testSuitesSource.getTestSuites(it).flatMapMany { Flux.fromIterable(it) }
+                        }
                 }
                 .saveOnExecutionAndExecute(executionRequestForStandardSuites)
                 .subscribeOn(scheduler)
@@ -144,14 +146,7 @@ class DownloadProjectController(
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
-        //.map {
-            //it to getTestSuites(version)
-            //getTestSuites(version)
-            //getTestSuites(version).collectList()
-            //Mono.just(it)
-            //it
-        //}
-        .zipWith(getTestSuites(version)).map {
+        .zipWith(getTestSuites(version)).flatMapMany {
             val isFetched = it.t1
             val testSuites = it.t2
             if (isFetched && testSuites.isEmpty()) {
