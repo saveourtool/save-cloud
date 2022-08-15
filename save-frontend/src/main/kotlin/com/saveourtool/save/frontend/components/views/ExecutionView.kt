@@ -470,7 +470,15 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters): String {
         val hrefBeforeValues = window.location.href.substringBefore("?")
-        return "$hrefBeforeValues${filterValue.getUrlWithFiltersArguments()}"
+        val filtersList = listOfNotNull(filterValue.status?.name?.let { "status=${filterValue.status?.name}" },
+            filterValue.fileName?.let { "fileName=${filterValue.fileName}" },
+            filterValue.testSuite?.let { "testSuite=${filterValue.testSuite}" },
+            filterValue.tag?.let { "tag=${filterValue.tag}" })
+        return if (filtersList.isEmpty()) {
+            hrefBeforeValues
+        } else {
+            "$hrefBeforeValues?${filtersList.joinToString("&")}"
+        }
     }
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
