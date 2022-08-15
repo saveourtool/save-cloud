@@ -59,8 +59,13 @@ class TestSuitesPreprocessorController(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam version: String,
     ): Mono<Unit> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
+        .map {
+            println("\n\n\ndoesTestSuitesSourceContainVersion? ${it}")
+            it
+        }
         .filter(false::equals)
         .flatMap {
+            println("\n\n\nfetchTestSuitesFromGit....")
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
                     with(testSuitesSourceDto) {
@@ -70,7 +75,7 @@ class TestSuitesPreprocessorController(
         }
         .defaultIfEmpty(
             with(testSuitesSourceDto) {
-                log.debug { "Test suites source $name in $organizationName already contains version $version" }
+                log.info { "Test suites source $name in $organizationName already contains version $version" }
             }
         )
 
@@ -93,7 +98,9 @@ class TestSuitesPreprocessorController(
         sha1
     ) { repositoryDirectory, creationTime ->
         val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
+        println("\n\n\ntestRootPath ${testRootPath}")
         gitPreprocessorService.archiveToTar(testRootPath) { archive ->
+            println("archive ${archive}")
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSourceDto,
                 sha1,

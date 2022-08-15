@@ -240,6 +240,8 @@ class TestSuitesSourceController(
     ): Mono<Boolean> = findAsDtoByName(organizationName, name)
         .flatMap {
             testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
+            // TODO check db too
+            Mono.just(false)
         }
 
     /**

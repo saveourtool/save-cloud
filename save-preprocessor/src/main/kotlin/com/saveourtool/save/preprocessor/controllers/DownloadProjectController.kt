@@ -96,6 +96,7 @@ class DownloadProjectController(
                 branch to version
             }
                 .flatMapMany { (branch, version) ->
+                    println("\n\nupload ${branch} ${version}")
                     // search or create new test suites source by content
                     testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
                         executionRequest.project.organization.name,
@@ -135,7 +136,10 @@ class DownloadProjectController(
 
     private fun Mono<TestSuitesSourceDto>.mapToTestSuites(
         version: String,
-    ): Flux<TestSuite> = flatMapMany { it.fetchAndGetTestSuites(version) }
+    ): Flux<TestSuite> = flatMapMany {
+        println("\n\nmapToTestSuites")
+        it.fetchAndGetTestSuites(version)
+    }
 
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,

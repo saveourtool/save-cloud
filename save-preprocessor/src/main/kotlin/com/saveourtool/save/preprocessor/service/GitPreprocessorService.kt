@@ -57,6 +57,7 @@ class GitPreprocessorService(
         sha1: String,
         repositoryProcessor: GitRepositoryProcessor<T>,
     ): Mono<T> {
+        println("\n\ncloneAndProcessDirectory")
         val cloneAction: () -> Pair<Path, Instant> = {
             val tmpDir = createTempDirectoryForRepository()
             val creationTime = try {
