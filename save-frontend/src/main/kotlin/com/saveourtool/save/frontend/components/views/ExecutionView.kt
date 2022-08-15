@@ -444,19 +444,15 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     }
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters): String {
-        val hrefFirst: String = window.location.href.split('?')
-            .first()
-        val filtersList = listOf("status=" to filterValue.status?.name, "fileName=" to filterValue.fileName, "testSuite=" to filterValue.testSuite, "tag=" to filterValue.tag)
-            .filter {
-                it.second?.isNotBlank() ?: false
-            }
+        val hrefBeforeValues = window.location.href.substringBefore("?")
+        val filtersList = listOfNotNull(filterValue.status?.name?.let { "status=${filterValue.status?.name}" },
+            filterValue.fileName?.let { "fileName=${filterValue.fileName}" },
+            filterValue.testSuite?.let { "testSuite=${filterValue.testSuite}" },
+            filterValue.tag?.let { "tag=${filterValue.tag}" })
         return if (filtersList.isEmpty()) {
-            hrefFirst
+            hrefBeforeValues
         } else {
-            "$hrefFirst?${filtersList.joinToString("&")
-                .replace("(", "")
-                .replace(")", "")
-                .replace(", ", "")}"
+            "$hrefBeforeValues?${filtersList.joinToString("&")}"
         }
     }
 

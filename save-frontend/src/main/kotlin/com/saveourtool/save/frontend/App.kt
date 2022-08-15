@@ -75,12 +75,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     private val executionView: FC<Props> = withRouter { location, params ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
-            filters = URLSearchParams(location.search).let { filtersValue ->
+            filters = URLSearchParams(location.search).let { params ->
                 TestExecutionFilters(
-                    status = filtersValue.get("status")?.let { TestResultStatus.valueOf(it) },
-                    fileName = filtersValue.get("fileName"),
-                    testSuite = filtersValue.get("testSuite"),
-                    tag = filtersValue.get("tag")
+                    status = params.get("status")?.let { TestResultStatus.valueOf(it) },
+                    fileName = params.get("fileName"),
+                    testSuite = params.get("testSuite"),
+                    tag = params.get("tag")
                 )
             }
         }
