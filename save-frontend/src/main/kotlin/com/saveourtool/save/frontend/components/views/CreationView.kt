@@ -113,6 +113,8 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
+    private val selectFormRequired = selectFormRequired<String>()
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
@@ -161,13 +163,27 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                     div {
                                         className = ClassName("row-3")
                                         selectFormRequired {
-                                            form = InputTypes.ORGANIZATION_NAME
+                                            formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
-                                            text = "Organization"
-                                            onChangeFun = {
+                                            formName = "Organization"
+                                            getData = {
+                                                get(
+                                                    url = "$apiUrl/organization/get/list",
+                                                    headers = jsonHeaders,
+                                                    loadingHandler = ::loadingHandler,
+                                                )
+                                                    .unsafeMap {
+                                                        it.decodeFromJsonString<List<Organization>>()
+                                                    }
+                                                    .map {
+                                                        it.name
+                                                    }
+                                            }
+                                            onChangeFun = { value ->
                                                 setState {
-                                                    projectCreationRequest = projectCreationRequest.copy(organizationName = it.target.value)
+                                                    projectCreationRequest =
+                                                        projectCreationRequest.copy(organizationName = value?.let {value} ?: "")
                                                 }
                                             }
                                         }

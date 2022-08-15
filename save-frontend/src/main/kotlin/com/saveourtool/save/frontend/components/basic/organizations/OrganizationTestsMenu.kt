@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
@@ -17,7 +18,10 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import csstype.ClassName
+import kotlinext.js.asJsObject
+import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -26,14 +30,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
-/**
- * External function to JS
- *
- * @param str
- * @return encoded [str]
- */
-@Suppress("FUNCTION_NAME_INCORRECT_CASE")
-external fun encodeURIComponent(str: String): String
+
 
 /**
  * TESTS tab in OrganizationView
@@ -53,6 +50,8 @@ external interface OrganizationTestsMenuProps : Props {
      * [Role] of user that is observing this component
      */
     var selfRole: Role
+
+    var onErrorMessage: (Response) -> Unit
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
@@ -110,7 +109,20 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
-
+    showTestSuiteSourceCreationModal(
+        isTestSuiteSourceCreationModalOpen,
+        props.organizationName,
+        {
+            setIsTestSuitesSourceCreationModalOpen(false)
+            fetchTestSuitesSources()
+        },
+        {
+            setIsTestSuitesSourceCreationModalOpen(false)
+            props.onErrorMessage(it)
+        },
+    ) {
+        setIsTestSuitesSourceCreationModalOpen(false)
+    }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
         button {
@@ -154,11 +166,13 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
      * Signal to update table
      */
     var content: List<D>
+
+    var isTestSuiteSourceCreated: Boolean
 }
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS", "TOO_LONG_FUNCTION")
 private fun prepareTestSuitesSourcesTable(
-    selectHandler: (TestSuitesSourceDto) -> Unit
+    selectHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { this }) { cellProps ->
@@ -209,7 +223,7 @@ private fun prepareTestSuitesSourcesTable(
     useServerPaging = false,
     usePageSelection = false,
     getAdditionalDependencies = {
-        arrayOf(it.content)
+        arrayOf(it.content, it.isTestSuiteSourceCreated)
     },
 )
 

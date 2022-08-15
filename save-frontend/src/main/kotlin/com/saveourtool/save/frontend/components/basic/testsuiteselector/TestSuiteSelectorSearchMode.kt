@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.organizations.encodeURIComponent
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
