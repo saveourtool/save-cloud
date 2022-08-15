@@ -468,10 +468,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters): String {
-        val hrefBeforeValues = window.location.href.substringBefore("?")
-        return "$hrefBeforeValues${filterValue.toQueryParams()}"
-    }
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"
 
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
