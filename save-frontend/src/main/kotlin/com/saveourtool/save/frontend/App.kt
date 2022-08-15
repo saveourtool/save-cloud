@@ -36,6 +36,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
