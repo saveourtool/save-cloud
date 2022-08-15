@@ -481,7 +481,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
             contextType = requestStatusContext
