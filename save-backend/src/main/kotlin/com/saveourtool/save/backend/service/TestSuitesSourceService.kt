@@ -102,7 +102,7 @@ class TestSuitesSourceService(
     ) = testSuitesSourceRepository.save(
         TestSuitesSource(
             organization = organization,
-            name = defaultTestSuitesSourceName(git.url, branch, testRootPath),
+            name = generateDefaultName(organization.requiredId()),
             description = "auto created test suites source by git coordinates",
             git = git,
             branch = branch,
@@ -152,21 +152,6 @@ class TestSuitesSourceService(
         .retrieve()
         .toBodilessEntity()
 
-    companion object {
-        /**
-         * @return default name fot [com.saveourtool.save.entities.TestSuitesSource]
-         */
-        private fun defaultTestSuitesSourceName(
-            url: String,
-            branch: String,
-            subDirectory: String
-        ): String = buildString {
-            append(url)
-            append("/tree")
-            append("/$branch")
-            if (subDirectory.isNotBlank() && subDirectory != ".") {
-                append("/$subDirectory")
-            }
-        }
-    }
+    private fun generateDefaultName(organizationId: Long): String =
+            "TestSuitesSource-${testSuitesSourceRepository.findAllByOrganizationId(organizationId).size + 1}"
 }

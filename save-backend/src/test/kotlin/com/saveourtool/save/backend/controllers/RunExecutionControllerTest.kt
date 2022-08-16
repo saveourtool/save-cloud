@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit
 @ActiveProfiles("test")
 @SpringBootTest(classes = [SaveApplication::class])
 @EnableConfigurationProperties(ConfigProperties::class)
-@AutoConfigureWebTestClient(timeout = "6000000000")
+@AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @Suppress("TOO_LONG_FUNCTION")
 class RunExecutionControllerTest(
