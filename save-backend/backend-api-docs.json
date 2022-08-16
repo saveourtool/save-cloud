@@ -31,7 +31,7 @@
         }
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/upload-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot": {
       "post": {
         "tags": [
           "test-suites-source"
@@ -50,7 +50,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -155,7 +155,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/download-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/download-snapshot": {
       "post": {
         "tags": [
           "test-suites-source"
@@ -174,7 +174,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -1233,6 +1233,67 @@
         }
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/fetch": {
+      "post": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Post fetching of new tests from test suites source.",
+        "description": "Post fetching of new tests from test suites source.",
+        "operationId": "triggerFetch",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully trigger fetching new tests from requested test suites source.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-execution": {
       "post": {
         "tags": [
@@ -1395,6 +1456,67 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/run/trigger": {
+      "post": {
+        "tags": [
+          "run-execution-controller"
+        ],
+        "operationId": "trigger",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunExecutionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/run/re-trigger": {
+      "post": {
+        "tags": [
+          "run-execution-controller"
+        ],
+        "operationId": "reTrigger",
+        "parameters": [
+          {
+            "name": "executionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2606,7 +2728,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/list-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/list-snapshot": {
       "get": {
         "tags": [
           "test-suites-source"
@@ -2625,7 +2747,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -2701,7 +2823,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/contains-snapshot": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot": {
       "get": {
         "tags": [
           "test-suites-source"
@@ -2720,7 +2842,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -2793,7 +2915,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}": {
       "get": {
         "tags": [
           "test-suites-source"
@@ -2812,7 +2934,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -3860,7 +3982,7 @@
         }
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{name}/get-test-suites": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites": {
       "get": {
         "tags": [
           "test-suites-source"
@@ -3879,7 +4001,7 @@
             }
           },
           {
-            "name": "name",
+            "name": "sourceName",
             "in": "path",
             "description": "name of test suites source",
             "required": true,
@@ -6910,15 +7032,87 @@
       "ShortFileInfo": {
         "required": [
           "isExecutable",
-          "name"
+          "name",
+          "uploadedMillis"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          },
           "isExecutable": {
             "type": "boolean"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProjectCoordinates": {
+        "required": [
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          }
+        }
+      },
+      "RunExecutionRequest": {
+        "required": [
+          "files",
+          "projectCoordinates",
+          "sdk",
+          "testSuiteIds"
+        ],
+        "type": "object",
+        "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "testSuiteIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileKey"
+            }
+          },
+          "sdk": {
+            "$ref": "#/components/schemas/Sdk"
+          },
+          "execCmd": {
+            "type": "string"
+          },
+          "batchSizeForAnalyzer": {
+            "type": "string"
           }
         }
       },

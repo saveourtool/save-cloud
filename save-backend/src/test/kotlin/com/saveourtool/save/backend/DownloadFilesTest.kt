@@ -209,10 +209,11 @@ class DownloadFilesTest {
             .expectStatus()
             .isOk
             .expectBody<ShortFileInfo>()
-            .consumeWith {
+            .consumeWith { result ->
                 Assertions.assertTrue(
-                    fileStorage.convertToLatestFileInfo(ProjectCoordinates("Huawei", "huaweiName"), Flux.just(it.responseBody!!))
-                        .map(FileInfo::sizeBytes)
+                    Flux.just(result.responseBody!!)
+                        .map { it.toStorageKey() }
+                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
                         .toFuture()

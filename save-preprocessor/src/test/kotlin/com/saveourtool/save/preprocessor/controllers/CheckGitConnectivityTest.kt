@@ -22,8 +22,6 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 
-import java.time.Duration
-
 @WebFluxTest(controllers = [CheckGitConnectivityController::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient(timeout = "60000")
@@ -35,7 +33,6 @@ class CheckGitConnectivityTest(
 
     @BeforeEach
     fun webClientSetUp() {
-        webClient = webClient.mutate().responseTimeout(Duration.ofSeconds(5)).build()
         whenever(testDiscoveringService.getRootTestConfig(any())).thenReturn(mock())
     }
 

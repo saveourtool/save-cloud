@@ -1,57 +1,37 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.backend.utils.username
+import com.saveourtool.save.backend.service.*
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestBase
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
-import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
-import org.slf4j.LoggerFactory
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.toEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller to save project
- *
- * @property projectService service to manage projects
- * @property configProperties configuration properties
  */
 @RestController
 @RequestMapping("/api")
 class CloneRepositoryController(
-    private val projectService: ProjectService,
-    private val executionService: ExecutionService,
-    private val fileStorage: FileStorage,
-    private val configProperties: ConfigProperties,
-    jackson2WebClientCustomizer: WebClientCustomizer,
+    private val testSuitesService: TestSuitesService,
+    private val testSuitesSourceService: TestSuitesSourceService,
+    private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val gitService: GitService,
+    private val runExecutionController: RunExecutionController,
 ) {
-    private val log = LoggerFactory.getLogger(CloneRepositoryController::class.java)
-    private val preprocessorWebClient = WebClient.builder()
-        .apply(jackson2WebClientCustomizer::customize)
-        .baseUrl(configProperties.preprocessorUrl)
-        .build()
-
     /**
      * Endpoint to save project
      *
@@ -65,22 +45,29 @@ class CloneRepositoryController(
         @RequestPart(required = true) executionRequest: ExecutionRequest,
         @RequestPart("file", required = false) files: Flux<ShortFileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = with(executionRequest.project) {
-        // Project cannot be taken from executionRequest directly for permission evaluation:
-        // it can be fudged by user, who submits it. We should get project from DB based on name/owner combination.
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
-            sendToPreprocessor(
+    ): Mono<StringResponse> =
+            sendToTrigger(
                 executionRequest,
-                ExecutionType.GIT,
-                authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId())
+                authentication,
+                files,
+                { true }
+            ) {
+                val branch = with(executionRequest.branchOrCommit) {
+                    if (this?.startsWith("origin/") == true) {
+                        replaceFirst("origin/", "")
+                    } else {
+                        throw IllegalArgumentException("Branch should be specified")
+                    }
+                }
+                val testSuitesSource = testSuitesSourceService.getOrCreate(
+                    executionRequest.project.organization,
+                    gitService.findByOrganizationAndUrl(executionRequest.project.organization, executionRequest.gitDto.url)
+                        .orNotFound(),
+                    executionRequest.testRootPath,
+                    branch,
+                )
+                listOf(testSuitesSource)
             }
-        }
 
     /**
      * Endpoint to save project as binary file
@@ -95,72 +82,59 @@ class CloneRepositoryController(
         @RequestPart("execution", required = true) executionRequestForStandardSuites: ExecutionRequestForStandardSuites,
         @RequestPart("file", required = true) files: Flux<ShortFileInfo>,
         authentication: Authentication,
-    ): Mono<StringResponse> = with(executionRequestForStandardSuites.project) {
-        projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.WRITE)
-    }
-        .flatMap { project ->
-            val projectCoordinates = ProjectCoordinates(project.organization.name, project.name)
-            sendToPreprocessor(
+    ): Mono<StringResponse> =
+            sendToTrigger(
                 executionRequestForStandardSuites,
-                ExecutionType.STANDARD,
-                authentication.username(),
-                fileStorage.convertToLatestFileInfo(projectCoordinates, files)
-            ) { executionRequest, savedExecution ->
-                executionRequest.copy(executionId = savedExecution.requiredId())
+                authentication,
+                files,
+                { it.name in executionRequestForStandardSuites.testSuites }
+            ) {
+                testSuitesSourceService.getStandardTestSuitesSources()
             }
-        }
 
-    private fun <T : ExecutionRequestBase> sendToPreprocessor(
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun <T : ExecutionRequestBase> sendToTrigger(
         executionRequest: T,
-        executionType: ExecutionType,
-        username: String,
-        files: Flux<FileInfo>,
-        updateExecutionInRequest: (T, Execution) -> T
+        authentication: Authentication,
+        shortFiles: Flux<ShortFileInfo>,
+        testSuitesFilter: (TestSuite) -> Boolean,
+        testSuitesSourceResolver: (T) -> List<TestSuitesSource>,
     ): Mono<StringResponse> {
-        val project = with(executionRequest.project) {
-            projectService.findByNameAndOrganizationName(name, organization.name)
-        } ?: return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body("Project doesn't exist"))
-
-        val newExecution = createNewExecution(project, username, executionType, configProperties.initialBatchSize, executionRequest.sdk)
-        log.info("Sending request to preprocessor (executionType $executionType) to start save file for project id=${project.id}")
-        val uri = when (executionType) {
-            ExecutionType.GIT -> "/upload"
-            ExecutionType.STANDARD -> "/uploadBin"
+        val projectCoordinates = with(executionRequest.project) {
+            ProjectCoordinates(organization.name, name)
         }
-        return files.updateExecution(newExecution).flatMap { savedExecution ->
-            preprocessorWebClient.post()
-                .uri(uri)
-                .bodyValue(updateExecutionInRequest(executionRequest, savedExecution))
-                .retrieve()
-                .toEntity()
-        }
+        val testSuiteIdsMono = blockingToMono { testSuitesSourceResolver(executionRequest) }
+            .flatMapIterable { it }
+            .map { testSuitesSource ->
+                testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
+                    .collectList()
+                    .map { keys ->
+                        keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
+                            ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
+                    }
+                    .flatMapIterable { testSuitesService.getBySourceAndVersion(testSuitesSource, it) }
+                    .filter(testSuitesFilter)
+                    .map { it.requiredId() }
+            }
+            .let {
+                Flux.concat(it)
+            }
+            .collectList()
+        return shortFiles.map { it.toStorageKey() }
+            .collectList()
+            .zipWith(testSuiteIdsMono)
+            .map { (files, testSuitesIds) ->
+                RunExecutionRequest(
+                    projectCoordinates = projectCoordinates,
+                    testSuiteIds = testSuitesIds,
+                    files = files,
+                    sdk = executionRequest.sdk,
+                    execCmd = executionRequest.execCmd,
+                    batchSizeForAnalyzer = executionRequest.batchSizeForAnalyzer,
+                )
+            }
+            .flatMap {
+                runExecutionController.trigger(it, authentication)
+            }
     }
-
-    private fun createNewExecution(
-        project: Project,
-        username: String,
-        type: ExecutionType,
-        batchSize: Int,
-        sdk: Sdk,
-    ): Execution {
-        val execution = Execution.stub(project).apply {
-            status = ExecutionStatus.PENDING
-            this.batchSize = batchSize
-            this.sdk = sdk.toString()
-            this.type = type
-            id = executionService.saveExecutionAndReturnId(this, username)
-        }
-        log.info("Creating a new execution id=${execution.id} for project id=${project.id}")
-        return execution
-    }
-
-    private fun Flux<FileInfo>.updateExecution(
-        execution: Execution,
-    ): Mono<Execution> = map {
-        it.toFileKey()
-    }
-        .collectList()
-        .switchIfEmpty(Mono.just(emptyList()))
-        .map { execution.formatAndSetAdditionalFiles(it) }
-        .map { executionService.saveExecution(execution) }
 }

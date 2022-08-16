@@ -74,7 +74,7 @@ class AgentsController(
      */
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
-    fun initialize(@RequestPart(required = true) execution: Execution): Mono<BodilessResponseEntity> {
+    fun initialize(@RequestBody execution: Execution): Mono<BodilessResponseEntity> {
         if (execution.status != ExecutionStatus.PENDING) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
