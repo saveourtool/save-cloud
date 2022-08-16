@@ -9,6 +9,8 @@ import com.saveourtool.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import java.util.*
+import kotlin.NoSuchElementException
 
 /**
  * Service of lnkUserOrganization
@@ -84,7 +86,7 @@ class LnkUserOrganizationService(
      * @param userName
      * @return user with [userName]
      */
-    fun getUserByName(userName: String) = userRepository.findByName(userName)
+    fun getUserByName(userName: String): User? = userRepository.findByName(userName)
 
     /**
      * @param userId

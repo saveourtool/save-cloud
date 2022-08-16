@@ -116,12 +116,15 @@ prometheus:
 promtail:
   image:
     tag: 2.5.0
+  podLabels:
+    # This label will make promtail scrape itself according to the pipeeline stages below.
+    io.kompose.service: promtail
   config:
     clients:
       - url: http://save-cloud-loki:3100/loki/api/v1/push
     snippets:
       pipelineStages:
-        - docker: {}
+        - cri: {}
         - output:
             source: output
         - labels:

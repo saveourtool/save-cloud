@@ -97,6 +97,21 @@ external interface ProjectViewState : State {
     var errorLabel: String
 
     /**
+     * Message of warning
+     */
+    var confirmMessage: String
+
+    /**
+     * Flag to handle confirm Window
+     */
+    var isConfirmWindowOpen: Boolean?
+
+    /**
+     * Label of confirm Window
+     */
+    var confirmLabel: String
+
+    /**
      * Selected sdk
      */
     var selectedSdk: String
@@ -115,6 +130,11 @@ external interface ProjectViewState : State {
      * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
+
+    /**
+     * State for the creation of unified confirmation logic
+     */
+    var confirmationType: ConfirmationType
 
     /**
      * Git credential to the custom tests
@@ -272,6 +292,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
+        state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
         state.isErrorOpen = false
         state.isSubmitButtonPressed = false
@@ -353,7 +374,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             TestingType.CUSTOM_TESTS -> submitExecutionRequestWithCustomTests()
             else -> {
                 if (selectedStandardSuites.isEmpty()) {
-                    window.alert("Please choose at least one test suite")
+                    setState {
+                        isErrorOpen = true
+                        errorLabel = "Both type of project"
+                        errorMessage = "Please choose at least one test suite"
+                    }
                     return
                 }
                 submitExecutionRequestWithStandardTests()
@@ -572,7 +597,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     projectName = props.name
                     organizationName = props.owner
                     onContestEnrollerResponse = {
-                        window.alert(it)
+                        setState {
+                            isErrorOpen = true
+                            errorMessage = it
+                            errorLabel = "Contest enrollment"
+                        }
                     }
                     // properties for CUSTOM_TESTS mode
                     testRootPath = state.testRootPath
@@ -788,15 +817,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
         when {
             // no binaries were provided
-            state.files.isEmpty() -> {
-                val confirm = window.confirm(
-                    "You have not provided any files related to your tested tool (1)." +
-                            " If these files were uploaded to your repository - press OK," +
-                            " otherwise - please upload these files using 'Upload files' button."
-                )
-                if (confirm) {
-                    submitExecutionRequest()
-                }
+            state.files.isEmpty() -> setState {
+                confirmationType = ConfirmationType.NO_BINARY_CONFIRM
+                isConfirmWindowOpen = true
+                confirmLabel = "Single binary confirmation"
+                confirmMessage = "You have not provided any files related to your tested tool." +
+                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files using 'Upload files' button."
             }
             // everything is in place, can proceed
             else -> submitExecutionRequest()
@@ -805,11 +831,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun deleteProject() {
         val newProject = state.project.copy(status = ProjectStatus.DELETED)
-        if (window.confirm("Are you sure you want to delete this project?")) {
-            setState {
-                project = newProject
-            }
-            deleteProjectBuilder()
+
+        setState {
+            project = newProject
+            confirmationType = ConfirmationType.DELETE_CONFIRM
+            isConfirmWindowOpen = true
+            confirmLabel = ""
+            confirmMessage = "Are you sure you want to delete this project?"
         }
     }
 
