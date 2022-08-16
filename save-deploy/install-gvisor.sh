@@ -15,7 +15,6 @@ rm -f *.sha512
 chmod a+rx runsc containerd-shim-runsc-v1
 mv runsc containerd-shim-runsc-v1 /usr/local/bin
 EOF
-cp gvisor-install.sh /k8s-node
 
 # Run the following steps on the host system
 /usr/bin/nsenter -m/proc/1/ns/mnt -- sh /tmp/gvisor/gvisor-install.sh
