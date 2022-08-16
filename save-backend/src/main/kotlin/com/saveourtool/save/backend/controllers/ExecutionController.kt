@@ -9,11 +9,13 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -24,10 +26,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
@@ -50,9 +49,24 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentService: AgentService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
+                          private val executionInfoStorage: ExecutionInfoStorage,
                           private val runExecutionController: RunExecutionController,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
+
+    /**
+     * @param executionUpdateDto
+     * @return empty Mono
+     */
+    @PostMapping("/internal/updateExecutionByDto")
+    fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto): Mono<Unit> = Mono.fromCallable {
+        executionService.updateExecutionStatus(
+            executionService.findExecution(executionUpdateDto.id).orNotFound(),
+            executionUpdateDto.status
+        )
+    }.flatMap {
+        executionInfoStorage.upsertIfRequired(executionUpdateDto)
+    }
 
     /**
      * Get execution by id

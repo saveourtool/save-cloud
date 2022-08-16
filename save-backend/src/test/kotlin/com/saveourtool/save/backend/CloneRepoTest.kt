@@ -66,8 +66,8 @@ class CloneRepoTest {
         }
 
         val sdk = Jdk("8")
-        mockServerPreprocessor.enqueue(
-            "/upload",
+        mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -75,7 +75,7 @@ class CloneRepoTest {
         )
         val project = projectRepository.findAll().first { it.name == "huaweiName" }
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, null, executionId = null, sdk = sdk, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project, gitRepo, "origin/main", executionId = null, sdk = sdk, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -106,7 +106,7 @@ class CloneRepoTest {
         val organization = organizationRepository.getOrganizationById(1)
         val project = Project.stub(null, organization)
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, null, executionId = null, sdk = sdk, testRootPath = ".")
+        val executionRequest = ExecutionRequest(project, gitRepo, "origin/main", executionId = null, sdk = sdk, testRootPath = ".")
         val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
         // fixme: why is it repeated 3 times?
         val multiparts = executionsClones.map {
@@ -127,25 +127,25 @@ class CloneRepoTest {
     }
 
     companion object {
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+        @JvmStatic lateinit var mockServerOrchestrator: MockWebServer
 
         @AfterEach
         fun cleanup() {
-            mockServerPreprocessor.checkQueues()
-            mockServerPreprocessor.cleanup()
+            mockServerOrchestrator.checkQueues()
+            mockServerOrchestrator.cleanup()
         }
 
         @AfterAll
         fun tearDown() {
-            mockServerPreprocessor.shutdown()
+            mockServerOrchestrator.shutdown()
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer()
-            mockServerPreprocessor.start()
-            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+            mockServerOrchestrator = createMockWebServer()
+            mockServerOrchestrator.start()
+            registry.add("backend.orchestratorUrl") { "http://localhost:${mockServerOrchestrator.port}" }
         }
     }
 }

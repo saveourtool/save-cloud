@@ -112,8 +112,8 @@ class CloningRepositoryControllerTest {
     @Test
     @WithMockUser(username = "JohnDoe")
     fun checkNewJobResponse() {
-        mockServerPreprocessor.enqueue(
-            "/upload",
+        mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -121,7 +121,7 @@ class CloningRepositoryControllerTest {
         )
         val sdk = Jdk("8")
         val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(testProject, gitRepo, null, sdk = sdk, executionId = null, testRootPath = ".")
+        val executionRequest = ExecutionRequest(testProject, gitRepo, "origin/main", sdk = sdk, executionId = null, testRootPath = ".")
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -160,8 +160,8 @@ class CloningRepositoryControllerTest {
         bodyBuilder.part("file", property.toFileInfo())
         bodyBuilder.part("file", binFile.toFileInfo())
 
-        mockServerPreprocessor.enqueue(
-            "/uploadBin",
+        mockServerOrchestrator.enqueue(
+            "/initializeAgents",
             MockResponse()
                 .setResponseCode(202)
                 .setBody("Clone pending")
@@ -180,25 +180,25 @@ class CloningRepositoryControllerTest {
     }
 
     companion object {
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
+        @JvmStatic lateinit var mockServerOrchestrator: MockWebServer
 
         @AfterEach
         fun cleanup() {
-            mockServerPreprocessor.checkQueues()
-            mockServerPreprocessor.cleanup()
+            mockServerOrchestrator.checkQueues()
+            mockServerOrchestrator.cleanup()
         }
 
         @AfterAll
         fun tearDown() {
-            mockServerPreprocessor.shutdown()
+            mockServerOrchestrator.shutdown()
         }
 
         @DynamicPropertySource
         @JvmStatic
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer()
-            mockServerPreprocessor.start()
-            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
+            mockServerOrchestrator = createMockWebServer()
+            mockServerOrchestrator.start()
+            registry.add("backend.orchestratorUrl") { "http://localhost:${mockServerOrchestrator.port}" }
         }
     }
 }
