@@ -64,6 +64,20 @@ class TestsPreprocessorToBackendBridge(
                 .retrieve()
                 .bodyToMono()
 
+
+    /**
+     * @param testSuitesSource
+     * @param version
+     * @return true if backend knows [version], otherwise -- false
+     */
+    fun removeTestSuitesSourceWithVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
+        webClientBackend.get()
+            .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/remove-snapshot?version={version}",
+                testSuitesSource.organizationName, testSuitesSource.name, version)
+            .retrieve()
+            .bodyToMono()
+
+
     /**
      * @param testSuitesSource
      * @return list of [TestSuitesSourceSnapshotKey] related to [testSuitesSource]

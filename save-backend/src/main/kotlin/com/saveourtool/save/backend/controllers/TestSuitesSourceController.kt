@@ -240,8 +240,44 @@ class TestSuitesSourceController(
     ): Mono<Boolean> = findAsDtoByName(organizationName, name)
         .flatMap {
             testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
-            // TODO check db too
             Mono.just(false)
+        }
+
+
+    /**
+     * @param organizationName
+     * @param name
+     * @param version
+     * @return true if storage contains [version] of [TestSuitesSource] identified by provided values
+     */
+    @GetMapping(
+        path = [
+            "/internal/test-suites-sources/{organizationName}/{name}/remove-snapshot",
+            "/api/$v1/test-suites-sources/{organizationName}/{name}/remove-snapshot",
+        ],
+    )
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Check that test suites source contains provided version.",
+        description = "Check that test suites source contains provided version.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
+        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of checking snapshot", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully checked snapshot with provided values.")
+    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
+    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    fun removeSnapshot(
+        @PathVariable organizationName: String,
+        @PathVariable name: String,
+        @RequestParam version: String,
+    ): Mono<Boolean> = findAsDtoByName(organizationName, name)
+        .flatMap {
+            testSuitesSourceSnapshotStorage.removeKey(it.organizationName, it.name, version)
         }
 
     /**

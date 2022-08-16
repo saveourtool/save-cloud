@@ -150,11 +150,13 @@ class DownloadProjectController(
             val isFetched = it.t1
             val testSuites = it.t2
             if (isFetched && testSuites.isEmpty()) {
-                //webClientBackend
+                println("\n\n\n====================TEST SUITES FOUND IN STORAGE BUT NOT IN DB, REMOVE FROM STORAGE")
+                testsPreprocessorToBackendBridge.removeTestSuitesSourceWithVersion(this, version)
+            } else {
+                Mono.just(false)
+            }.flatMapMany{
+                Flux.fromIterable(testSuites)
             }
-            //testSuites.flatMapMany(Flux::fromIterable)
-            //testSuites
-            Flux.fromIterable(testSuites)
         }
 
     private fun TestSuitesSourceDto.getTestSuites(

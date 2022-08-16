@@ -64,6 +64,25 @@ class TestSuitesSourceSnapshotStorage(
         .map { true }
         .defaultIfEmpty(false)
 
+
+    /**
+     * @param organizationName
+     * @param testSuitesSourceName
+     * @param version
+     * @return true if storage contains snapshot with provided values, otherwise -- false
+     */
+    fun removeKey(
+        organizationName: String,
+        testSuitesSourceName: String,
+        version: String,
+    ): Mono<Boolean> = findKey(organizationName, testSuitesSourceName, version)
+        .flatMap {
+            delete(it).map {
+                it
+            }
+        }
+
+
     /**
      * @param organizationName
      * @param testSuitesSourceName
