@@ -114,4 +114,16 @@
             <column name="source_id" value="1" />
         </insert>
     </changeSet>
+    <changeSet id="add-standard-test-suite" author="nulls">
+        <insert dbms="mysql" tableName="test_suite">
+            <column name="id" value="12" />
+            <column name="name" value="standard" />
+            <column name="date_added" value="2021-01-01 00:00:00"/>
+            <column name="description" value="description"/>
+            <column name="language" value="Java"/>
+            <column name="tags" value="NPE,security"/>
+            <column name="version" value="123"/>
+            <column name="source_id" value="2" />
+        </insert>
+    </changeSet>
 </databaseChangeLog>

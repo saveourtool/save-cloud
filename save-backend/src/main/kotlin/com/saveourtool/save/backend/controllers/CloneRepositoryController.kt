@@ -10,7 +10,6 @@ import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -136,10 +135,6 @@ class CloneRepositoryController(
             }
             .flatMap {
                 runExecutionController.trigger(it, authentication)
-            }
-            .map {
-                ResponseEntity.accepted()
-                    .body("Clone pending, execution id is $it")
             }
     }
 }

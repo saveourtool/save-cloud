@@ -83,7 +83,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val triggerFetchTestSuiteSource = useRequest(dependencies = arrayOf(testSuiteSourceToFetch)) {
         testSuiteSourceToFetch?.let { testSuiteSource ->
             post(
-                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${testSuiteSource.name}/fetch",
+                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
                 headers = Headers().also {
                     it.set("Accept", "application/json")
                 },

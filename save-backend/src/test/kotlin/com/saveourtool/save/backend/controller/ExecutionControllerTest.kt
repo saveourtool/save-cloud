@@ -13,18 +13,10 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.testutils.checkQueues
-import com.saveourtool.save.testutils.cleanup
-import com.saveourtool.save.testutils.createMockWebServer
-import com.saveourtool.save.testutils.enqueue
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.v1
 
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,16 +28,12 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
 import java.time.LocalDateTime
 import java.time.Month
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -151,36 +139,6 @@ class ExecutionControllerTest {
             }
     }
 
-    @Test
-    @WithMockUser("JohnDoe")
-    fun `should send request to preprocessor to rerun execution`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
-        }
-
-        mockServerPreprocessor.enqueue(
-            "/rerunExecution.*",
-            MockResponse().setResponseCode(202)
-                .setHeader("Accept", "application/json")
-                .setHeader("Content-Type", "application/json")
-                .setBody("Clone pending")
-        )
-        val assertions = CompletableFuture.supplyAsync {
-            listOf(
-                mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
-            )
-        }
-
-        webClient.post()
-            .uri("/api/$v1/rerunExecution?id=5")
-            .exchange()
-            .expectStatus()
-            .isOk
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach {
-            assertNotNull(it)
-        }
-    }
-
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
     @WithMockUser(username = "admin")
@@ -282,25 +240,5 @@ class ExecutionControllerTest {
 
     companion object {
         private val log: Logger = getLogger<ExecutionControllerTest>()
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
-
-        @AfterEach
-        fun cleanup() {
-            mockServerPreprocessor.checkQueues()
-            mockServerPreprocessor.cleanup()
-        }
-
-        @AfterAll
-        fun tearDown() {
-            mockServerPreprocessor.shutdown()
-        }
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer()
-            mockServerPreprocessor.start()
-            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
-        }
     }
 }
