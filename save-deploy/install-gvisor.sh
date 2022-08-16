@@ -29,7 +29,7 @@ version = 2
   TypeUrl = "io.containerd.runsc.v1.options"
   ConfigPath = "/etc/containerd/runsc.toml"
 EOF
-  /usr/bin/nsenter -m/proc/1/ns/mnt -- cat <<EOF | tee -a /etc/containerd/runsc.toml
+  /usr/bin/nsenter -m/proc/1/ns/mnt -- cat <<EOF >> /etc/containerd/runsc.toml
 log_path = "/var/log/runsc/%ID%/shim.log"
 log_level = "debug"
 [runsc_config]
@@ -37,6 +37,8 @@ log_level = "debug"
   debug = "true"
   debug-log = "/var/log/runsc/%ID%/gvisor.%COMMAND%.log"
 EOF
+  /usr/bin/nsenter -m/proc/1/ns/mnt -- cat /etc/containerd/runsc.toml
+  echo Restarting containerd
   /usr/bin/nsenter -m/proc/1/ns/mnt -- systemctl restart containerd
 else
   echo runsc is already installed on "$NODE_NAME", skipping installation
