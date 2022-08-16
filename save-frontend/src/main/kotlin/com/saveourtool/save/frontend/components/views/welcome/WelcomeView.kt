@@ -2,9 +2,9 @@
  * A view related to the sign-in view
  */
 
-@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "MAGIC_NUMBER")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
 import com.saveourtool.save.frontend.CONTESTS
@@ -12,16 +12,15 @@ import com.saveourtool.save.frontend.PROJECTS
 import com.saveourtool.save.frontend.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.welcome.pagers.*
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
 
 import csstype.*
-import csstype.Cursor.Companion.zoomIn
-import org.w3c.dom.HTML.a
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML
@@ -38,10 +37,6 @@ import react.dom.html.ReactHTML.span
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-
-val zoomInScrollOut = batch(stickyIn(50, 70), fadeIn(1, 1), zoomIn(1, 1))
-
-val fadeUp = batch(fade(), move(), sticky());
 
 /**
  * [State] of project creation view component
@@ -108,10 +103,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         main {
             className = ClassName("main-content mt-0 ps")
             div {
-                className = ClassName("page-header align-items-start min-vh-100")
+                className = ClassName("page-header align-items-start")
                 style = jso {
+                    height = "100vh".unsafeCast<Height>()
                     background =
-                        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                    position = Position.relative
                 }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
@@ -133,7 +130,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         marketingTitle("Evaluation")
                         h3 {
                             className = ClassName("mt-4")
-                            +"Advanced cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
+                            +"Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
@@ -153,38 +150,23 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     }
                 }
                 div {
+                    className = ClassName("row")
                     style = jso {
                         justifyContent = JustifyContent.center
                         display = Display.flex
                         flexDirection = FlexDirection.column
                         alignItems = AlignItems.center
+                        position = Position.absolute
+                        bottom = 7.em
+                        left = "50%".unsafeCast<Left>()
                     }
-                    h4 {
-                        className = ClassName("animate__animated animate__bounce")
-                        +"Want to know more about SAVE?️"
-                        fontAwesomeIcon(faArrowDown)
-                    }
-                }
-
-                scrollContainer {
-/*                    scrollPage {
-                        animator {
-                            animation = batch(fade(), sticky(50, 90), moveOut(0, -200))
-                            // want to know about save?
+                    h1 {
+                        className = ClassName("animate__animated animate__pulse animate__infinite")
+                        style = jso {
+                            fontSize = 5.rem
+                            color = "#ffffff".unsafeCast<Color>()
                         }
-                    }*/
-
-                    scrollPage {
-                        animator {
-                            animation = fadeIn(100, 1)
-                            span {
-                                style = jso {
-                                    fontSize = "40px".unsafeCast<FontSize>()
-                                    color = "white".unsafeCast<Color>()
-                                }
-                                +"Let me show you scroll animation️"
-                            }
-                        }
+                        fontAwesomeIcon(faChevronDown)
                     }
                 }
             }
@@ -193,93 +175,28 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("min-vh-100")
                 style = jso {
                     background =
-                        "-webkit-linear-gradient(270deg, rgb(0, 67, 71), rgb(0, 56, 100))".unsafeCast<Background>()
-                }
-            }
-
-            div {
-                className = ClassName("min-vh-100")
-                style = jso {
-                    background =
-                        "-webkit-linear-gradient(270deg, rgb(0, 67, 71), rgb(0, 56, 100))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
                 }
 
+                renderGeneralInfoPage()
+
+                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                 scrollContainer {
-                    scrollPage {
-                        animator {
-                            animation = batch(fade(), sticky(50, 90), moveOut(0, -200))
-                            // want to know about save?
-                        }
-                    }
-
-                    scrollPage {
-                        animator {
-                            animation = fadeIn(1, 100)
-                            span {
-                                style = jso {
-                                    fontSize = "40px".unsafeCast<FontSize>()
-                                    color = "white".unsafeCast<Color>()
+                    scrollPage { }
+                    allWelcomePagers.forEach { pager ->
+                        scrollPage { }
+                        scrollPage {
+                            pager.forEach {
+                                animator {
+                                    animation = it.animation
+                                    it.renderPage(this)
                                 }
-                                +"Let me show you scroll animation️"
                             }
                         }
                     }
-
-                    scrollPage {
-                        animator {
-                            animation = fadeUp
-                            span {
-                                style = jso {
-                                    fontSize = "40px".unsafeCast<FontSize>()
-                                    color = "white".unsafeCast<Color>()
-                                }
-                                +"Let me show you scroll animation️"
-                            }
-                        }
-                    }
-
-/*                    scrollPage {
-                        div {
-                            style = jso {
-                                display = "flex".unsafeCast<Display>()
-                                justifyContent = "center".unsafeCast<JustifyContent>()
-                                alignItems = "center".unsafeCast<AlignItems>()
-                                height = "100%".unsafeCast<Height>()
-                            }
-
-                            span {
-                                style = jso {
-                                    fontSize = "40px".unsafeCast<FontSize>()
-                                    color = "white".unsafeCast<Color>()
-                                }
-                                animator {
-                                    animation = moveIn(-1000, 0)
-                                    +"Let me show you scroll animation️"
-                                }
-                                animator {
-                                    animation = moveIn(-1000, 0)
-                                    +"Let me show you scroll animation️"
-                                }
-                                animator {
-                                    animation = moveOut(-1000, 0)
-                                    +"Let me show you scroll animation️"
-                                }
-                                animator {
-                                    animation = moveOut(-1000, 0)
-                                    +"Let me show you scroll animation️"
-                                }
-                            }
-                        }
-                    }*/
                 }
 
-                span {
-                    className = ClassName("mask bg-gradient-dark opacity-6")
-                }
-
-                div {
-                    className = ClassName("align-items-center justify-content-center")
-                }
+                renderReadMorePage()
             }
         }
     }
@@ -421,26 +338,26 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     }
 
     private fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) =
-        a {
-            className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-            href = link
-            h4 {
-                style = jso {
-                    color = "#3075c0".unsafeCast<Color>()
-                    marginBottom = "0.0em".unsafeCast<Margin>()
+            a {
+                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+                href = link
+                h4 {
+                    style = jso {
+                        color = "#3075c0".unsafeCast<Color>()
+                        marginBottom = "0.0em".unsafeCast<Margin>()
+                    }
+                    fontAwesomeIcon(icon = icon, "ml-2 mr-2")
+                    +text
                 }
-                fontAwesomeIcon(icon = icon, "ml-2 mr-2")
-                +text
             }
-        }
 
     private fun ChildrenBuilder.hrNoMargin() =
-        ReactHTML.hr {
-            style = jso {
-                marginTop = "0.0em".unsafeCast<Margin>()
-                marginBottom = "0.0em".unsafeCast<Margin>()
+            ReactHTML.hr {
+                style = jso {
+                    marginTop = "0.0em".unsafeCast<Margin>()
+                    marginBottom = "0.0em".unsafeCast<Margin>()
+                }
             }
-        }
 
     companion object :
         RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext>>(WelcomeView::class) {
