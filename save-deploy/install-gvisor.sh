@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
 set -e
 
+if [ "$PWD" != "/k8s-node" ]; then
+  echo Script should be executed from the directory /k8s-node
+  cd /k8s-node
+fi
+
 # Script from https://gvisor.dev/docs/user_guide/install/#install-latest
 
 cat > gvisor-install.sh << 'EOF'
