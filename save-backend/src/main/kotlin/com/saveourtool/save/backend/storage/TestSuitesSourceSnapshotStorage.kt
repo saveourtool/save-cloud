@@ -64,7 +64,6 @@ class TestSuitesSourceSnapshotStorage(
         .map { true }
         .defaultIfEmpty(false)
 
-
     /**
      * @param organizationName
      * @param testSuitesSourceName
@@ -81,7 +80,6 @@ class TestSuitesSourceSnapshotStorage(
                 isRemoved
             }
         }
-
 
     /**
      * @param organizationName

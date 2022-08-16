@@ -96,7 +96,6 @@ class DownloadProjectController(
                 branch to version
             }
                 .flatMapMany { (branch, version) ->
-                    println("\n\nupload ${branch} ${version}")
                     // search or create new test suites source by content
                     testsPreprocessorToBackendBridge.getOrCreateTestSuitesSource(
                         executionRequest.project.organization.name,
@@ -142,6 +141,7 @@ class DownloadProjectController(
         it.fetchAndGetTestSuites(version)
     }
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "PARAMETER_NAME_IN_OUTER_LAMBDA")
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
@@ -149,7 +149,7 @@ class DownloadProjectController(
             val isFetched = it.t1
             val testSuites = it.t2
             if (!isFetched && testSuites.isEmpty()) {
-                println("\n\n\n====================TEST SUITES FOUND IN STORAGE BUT NOT IN DB, REMOVE FROM STORAGE")
+                log.warn("Set of test suites is found in storage, but doesn't exist in DB! Clean up corresponding test suite source...")
                 testsPreprocessorToBackendBridge.removeTestSuitesSourceWithVersion(this, version)
             } else {
                 Mono.just(false)
@@ -165,7 +165,6 @@ class DownloadProjectController(
         name,
         version
     ).flatMapMany { Flux.fromIterable(it) }
-
 
     private fun Flux<TestSuite>.saveOnExecutionAndExecute(
         requestBase: ExecutionRequestBase,

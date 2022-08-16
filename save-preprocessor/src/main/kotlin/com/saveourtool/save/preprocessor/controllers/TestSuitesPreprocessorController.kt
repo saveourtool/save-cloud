@@ -98,9 +98,7 @@ class TestSuitesPreprocessorController(
         sha1
     ) { repositoryDirectory, creationTime ->
         val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
-        println("\n\n\ntestRootPath ${testRootPath}")
         gitPreprocessorService.archiveToTar(testRootPath) { archive ->
-            println("archive ${archive}")
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSourceDto,
                 sha1,
