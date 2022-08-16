@@ -51,10 +51,6 @@ class TestSuitesSourceController(
     private val gitService: GitService,
     private val executionService: ExecutionService,
 ) {
-    /**
-     * @param organizationName
-     * @return list of [TestSuitesSourceDto] found by provided values or empty response
-     */
     @GetMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/list",
@@ -72,26 +68,15 @@ class TestSuitesSourceController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true)
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of test suites sources by organization name.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
     fun list(
         @PathVariable organizationName: String,
-    ): Mono<TestSuitesSourceDtoList> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(it).toMono()
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "Organization not found by name $organizationName"
-        }
+    ): Mono<TestSuitesSourceDtoList> = getOrganization(organizationName)
         .map { organization ->
             testSuitesSourceService.getAllByOrganization(organization)
                 .map { it.toDto() }
         }
 
-    /**
-     * @param organizationName
-     * @param name
-     * @return [TestSuitesSourceDto] found by provided values or not found exception
-     */
     @GetMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}",
@@ -102,32 +87,24 @@ class TestSuitesSourceController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get test suites source by organization name and it's name.",
-        description = "Get test suites source by organization name and it's name.",
+        summary = "Get test suites source by organization name and source name.",
+        description = "Get test suites source by organization name and test suites source name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
         Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of test suites sources by organization name.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun findAsDtoByName(
         @PathVariable organizationName: String,
         @PathVariable name: String
     ): Mono<TestSuitesSourceDto> = getTestSuitesSource(organizationName, name)
         .map { it.toDto() }
 
-    /**
-     * Upload snapshot of [TestSuitesSource] with [version]
-     *
-     * @param organizationName
-     * @param name
-     * @param version
-     * @param creationTime
-     * @param contentAsMonoPart
-     * @return empty response
-     */
     @PostMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/upload-snapshot",
@@ -150,8 +127,10 @@ class TestSuitesSourceController(
         Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "content of uploading snapshot", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully uploaded provided snapshot.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun uploadSnapshot(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -169,14 +148,6 @@ class TestSuitesSourceController(
             }
         }
 
-    /**
-     * Download snapshot of [TestSuitesSource] with [version]
-     *
-     * @param organizationName
-     * @param name
-     * @param version
-     * @return resource response
-     */
     @PostMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/download-snapshot",
@@ -197,8 +168,10 @@ class TestSuitesSourceController(
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of downloading snapshot", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully downloaded snapshot with provided version.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun downloadSnapshot(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -208,12 +181,6 @@ class TestSuitesSourceController(
             it.downloadSnapshot(version)
         }
 
-    /**
-     * @param organizationName
-     * @param name
-     * @param version
-     * @return true if storage contains [version] of [TestSuitesSource] identified by provided values
-     */
     @GetMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/contains-snapshot",
@@ -233,8 +200,10 @@ class TestSuitesSourceController(
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of checking snapshot", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully checked snapshot with provided values.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun containsSnapshot(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -244,11 +213,6 @@ class TestSuitesSourceController(
             testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
         }
 
-    /**
-     * @param organizationName
-     * @param name
-     * @return list of [TestSuitesSourceSnapshotKey] are found by [organizationName] and [name]
-     */
     @GetMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{name}/list-snapshot",
@@ -267,8 +231,11 @@ class TestSuitesSourceController(
         Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
+    @ApiResponse(responseCode = "404", description = ".")
     fun listSnapshotVersions(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -278,10 +245,6 @@ class TestSuitesSourceController(
                 .collectList()
         }
 
-    /**
-     * @param organizationName
-     * @return list of [TestSuitesSourceSnapshotKey] are found by [organizationName]
-     */
     @GetMapping(path = [
         "/internal/test-suites-sources/{organizationName}/list-snapshot",
         "/api/$v1/test-suites-sources/{organizationName}/list-snapshot",
@@ -298,7 +261,7 @@ class TestSuitesSourceController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for all test suites sources in requested organization.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
     fun listSnapshots(
         @PathVariable organizationName: String,
     ): Mono<TestSuitesSourceSnapshotKeyList> = getOrganization(organizationName)
@@ -308,13 +271,6 @@ class TestSuitesSourceController(
                 .collectList()
         }
 
-    /**
-     * @param organizationName
-     * @param gitUrl
-     * @param testRootPath
-     * @param branch
-     * @return existed [TestSuitesSourceDto] is found by provided values or a new one
-     */
     @PostMapping("/internal/test-suites-sources/{organizationName}/get-or-create")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -330,8 +286,7 @@ class TestSuitesSourceController(
         Parameter(name = "branch", `in` = ParameterIn.QUERY, description = "branch of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
-    @ApiResponse(responseCode = "409", description = "Git credentials was not found by provided url.")
+    @ApiResponse(responseCode = "404", description = "Either git credentials was not found by provided url or organization was not found by provided name.")
     fun getOrCreate(
         @PathVariable organizationName: String,
         @RequestParam gitUrl: String,
@@ -341,7 +296,7 @@ class TestSuitesSourceController(
         .zipWhen { organization ->
             gitService.findByOrganizationAndUrl(organization, gitUrl)
                 .toMono()
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                .switchIfEmptyToNotFound {
                     "There is no git credential with url $gitUrl in $organizationName"
                 }
         }
@@ -359,8 +314,7 @@ class TestSuitesSourceController(
         description = "Get or create a new test suite source by provided values.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
-    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
-    @ApiResponse(responseCode = "404", description = "Git credentials were not found by provided url.")
+    @ApiResponse(responseCode = "404", description = "Either git credentials were not found by provided url or organization was not found by provided name.")
     @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
     fun createTestSuitesSource(
         @RequestBody testSuiteRequest: TestSuitesSourceDto,
@@ -379,10 +333,6 @@ class TestSuitesSourceController(
             testSuitesSourceService.createSourceIfNotPresent(it)
         }
 
-    /**
-     * @param executionId
-     * @return selected [TestSuitesSourceDto] with versions for [com.saveourtool.save.entities.Execution] found by provided values
-     */
     @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -395,10 +345,12 @@ class TestSuitesSourceController(
         Parameter(name = "executionId", `in` = ParameterIn.QUERY, description = "ID of execution", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully downloaded snapshot of test suites source for requested execution.")
-    @ApiResponse(responseCode = "404", description = "Execution was not found by provided ID.")
-    @ApiResponse(responseCode = "409", description = "IDs of test suites were not set on requested execution or weren't found by ID.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found" +
+                " or test suites were not found by execution's ids.",
+    )
+    @ApiResponse(responseCode = "409", description = "IDs of test suites were not set on requested execution.")
     fun downloadByExecutionId(
         @RequestParam executionId: Long
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
@@ -407,19 +359,13 @@ class TestSuitesSourceController(
         val testSuiteId = execution.parseAndGetTestSuiteIds()?.firstOrNull()
             .orConflict { "Execution (id=$executionId) doesn't contain testSuiteIds" }
         testSuitesService.findTestSuiteById(testSuiteId)
-            .orConflict { "TestSuite (id=$testSuiteId) not found" }
+            .orNotFound { "TestSuite (id=$testSuiteId) not found" }
             .toDto()
             .let { it.source to it.version }
     }.flatMap { (source, version) ->
         source.downloadSnapshot(version)
     }
 
-    /**
-     * @param organizationName
-     * @param name
-     * @param version
-     * @return list of test suites from snapshot with [version] of [TestSuitesSource] found by [organizationName] and [name]
-     */
     @GetMapping("/internal/test-suites-sources/{organizationName}/{name}/get-test-suites")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -433,8 +379,10 @@ class TestSuitesSourceController(
         Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun getTestSuites(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -460,8 +408,10 @@ class TestSuitesSourceController(
         Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
-    @ApiResponse(responseCode = "404", description = "Test suites source with such name in organization name was not found.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
     fun getTestSuiteDtos(
         @PathVariable organizationName: String,
         @PathVariable name: String,
@@ -478,8 +428,6 @@ class TestSuitesSourceController(
 
     /**
      * Will be removed in phase 3
-     *
-     * @return list of standard test suites sources
      */
     @GetMapping(
         path = [

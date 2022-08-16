@@ -12,6 +12,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
+    private val selectFormRequired = selectFormRequired<Organization>()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organization/get/list") { _, res, _ ->
             res { response ->
@@ -25,8 +26,6 @@ class SelectFormTest {
             }
         }
     )
-
-    private val selectFormRequired = selectFormRequired<Organization>()
 
     @Test
     fun selectFormShouldShowOrganizations(): Promise<Unit> {

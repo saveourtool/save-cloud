@@ -31,7 +31,7 @@ import kotlinx.serialization.json.Json
 val testSuiteSourceCreationComponent = testSuiteSourceCreationComponent()
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-private val selectFormRequired = selectFormRequired<GitDto>()
+private val gitSelectionForm = selectFormRequired<GitDto>()
 
 /**
  * [Props] for [testSuiteSourceCreationComponent]
@@ -103,7 +103,7 @@ fun ChildrenBuilder.showTestSuiteSourceCreationModal(
 private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
-    val onSubmitButtonPressed = useRequest(dependencies = arrayOf(testSuiteSource)) {
+    val onSubmitButtonPressed = useRequest {
         post(
             url = "/api/$v1/test-suites-sources/create",
             headers = jsonHeaders,
@@ -162,7 +162,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                 setSaveStatus(null)
             }
         }
-        selectFormRequired {
+        gitSelectionForm {
             formType = InputTypes.SOURCE_GIT
             validInput = saveStatus != SourceSaveStatus.CONFLICT
             classes = "mb-2"

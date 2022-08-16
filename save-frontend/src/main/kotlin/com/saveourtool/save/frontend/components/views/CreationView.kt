@@ -77,7 +77,7 @@ external interface ProjectSaveViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-    private val organzationSelectForm= selectFormRequired<String>()
+    private val organzationSelectForm = selectFormRequired<String>()
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
@@ -162,7 +162,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                     className = ClassName("needs-validation")
                                     div {
                                         className = ClassName("row-3")
-                                        selectFormRequired {
+                                        organzationSelectForm {
                                             formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
