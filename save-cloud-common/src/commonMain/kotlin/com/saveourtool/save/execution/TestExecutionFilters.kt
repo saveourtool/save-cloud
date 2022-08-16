@@ -20,6 +20,20 @@ data class TestExecutionFilters(
 
     val tag: String?,
 ) {
+    /**
+     *  @return [TestExecutionFilters] as query params for request
+     */
+    fun toQueryParams() = listOf("status" to status?.name, "fileName" to fileName, "testSuite" to testSuite, "tag" to tag)
+        .filter { !it.second.isNullOrBlank() }
+        .joinToString("&") { "${it.first}=${it.second}" }
+        .let {
+            if (it.isNotBlank()) {
+                "?$it"
+            } else {
+                it
+            }
+        }
+
     companion object {
         val empty = TestExecutionFilters(status = null, fileName = null, testSuite = null, tag = null)
     }
