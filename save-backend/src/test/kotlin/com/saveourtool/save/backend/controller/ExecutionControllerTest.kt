@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource

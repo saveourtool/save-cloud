@@ -164,7 +164,7 @@ class TestSuitesSourceService(
             append(url)
             append("/tree")
             append("/$branch")
-            if (subDirectory.isNotBlank()) {
+            if (subDirectory.isNotBlank() && subDirectory != ".") {
                 append("/$subDirectory")
             }
         }

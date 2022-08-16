@@ -2,8 +2,11 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.ExecutionRepository
+import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
@@ -12,17 +15,20 @@ import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
-import io.kotest.matchers.collections.shouldExist
 
+import io.kotest.matchers.collections.shouldExist
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,8 +45,14 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 
+import java.time.Instant
+
+import kotlin.io.path.createTempFile
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.writeText
+
 @SpringBootTest(classes = [SaveApplication::class])
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "600000000")
 @ExtendWith(MySqlExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
@@ -58,6 +70,16 @@ class CloneRepoTest {
     @Autowired
     private lateinit var organizationRepository: OrganizationRepository
 
+    @Autowired
+    private lateinit var gitRepository: GitRepository
+
+    @Autowired
+    private lateinit var testSuitesSourceService: TestSuitesSourceService
+
+    @Autowired
+    private lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
+
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @Test
     @WithMockUser(username = "admin")
     fun checkSaveProject() {
@@ -74,8 +96,30 @@ class CloneRepoTest {
                 .addHeader("Content-Type", "application/json")
         )
         val project = projectRepository.findAll().first { it.name == "huaweiName" }
-        val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, "origin/main", executionId = null, sdk = sdk, testRootPath = ".")
+        val gitRepo = gitRepository.findAllByOrganizationId(project.organization.requiredId())
+            .first { it.url == "github" }
+        val branch = "master"
+        val testSuitesSource = testSuitesSourceService.getOrCreate(
+            project.organization,
+            gitRepo,
+            "",
+            branch,
+        )
+        val snapshotKey = TestSuitesSourceSnapshotKey(testSuitesSource.toDto(), "123", Instant.now().toEpochMilli())
+        val tempFile = createTempFile()
+        tempFile.writeText("TEST")
+        testSuitesSourceSnapshotStorage.upload(snapshotKey, tempFile.toByteBufferFlux())
+            .block()
+        tempFile.deleteExisting()
+        val executionRequest = ExecutionRequest(
+            project,
+            testSuitesSource.git.toDto(),
+            "origin/${testSuitesSource.branch}",
+            executionId = null,
+            sdk = sdk,
+            testRootPath = testSuitesSource.testRootPath
+        )
+
         val multipart = MultipartBodyBuilder().apply {
             part("executionRequest", executionRequest)
         }
@@ -93,6 +137,7 @@ class CloneRepoTest {
                     it.type == ExecutionType.GIT &&
                     it.sdk == sdk.toString()
         }
+        testSuitesSourceSnapshotStorage.delete(snapshotKey).block()
     }
 
     @Test
