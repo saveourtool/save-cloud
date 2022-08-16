@@ -77,7 +77,7 @@ external interface ProjectSaveViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-    private val selectFormRequired = selectFormRequired<String>()
+    private val organzationSelectForm= selectFormRequired<String>()
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
