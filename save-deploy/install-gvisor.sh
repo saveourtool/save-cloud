@@ -19,7 +19,24 @@ cp gvisor-install.sh /k8s-node
 # Run the following steps on the host system
 /usr/bin/nsenter -m/proc/1/ns/mnt -- sh /tmp/gvisor/gvisor-install.sh
 /usr/bin/nsenter -m/proc/1/ns/mnt -- /usr/local/bin/runsc install
-/usr/bin/nsenter -m/proc/1/ns/mnt -- systemctl reload docker
+# Add gvisor to containerd config (https://gvisor.dev/docs/user_guide/containerd/configuration/)
+/usr/bin/nsenter -m/proc/1/ns/mnt -- cat <<EOF | tee -a /etc/containerd/config.toml
+version = 2
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc]
+  runtime_type = "io.containerd.runsc.v1"
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runsc.options]
+  TypeUrl = "io.containerd.runsc.v1.options"
+  ConfigPath = "/etc/containerd/runsc.toml"
+EOF
+/usr/bin/nsenter -m/proc/1/ns/mnt -- cat <<EOF | sudo tee /etc/containerd/runsc.toml
+log_path = "/var/log/runsc/%ID%/shim.log"
+log_level = "debug"
+[runsc_config]
+  network = "host"
+  debug = "true"
+  debug-log = "/var/log/runsc/%ID%/gvisor.%COMMAND%.log"
+EOF
+/usr/bin/nsenter -m/proc/1/ns/mnt -- systemctl restart containerd
 
 echo "Finished"
 sleep infinity
