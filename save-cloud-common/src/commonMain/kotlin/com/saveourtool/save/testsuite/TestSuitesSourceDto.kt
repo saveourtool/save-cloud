@@ -24,12 +24,26 @@ data class TestSuitesSourceDto(
     val gitDto: GitDto,
     val branch: String,
     val testRootPath: String,
-): Validatable {
-    override fun validate(): Boolean = validateName() && validateTestRootPath()
+) : Validatable {
+    override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath()
 
+    /**
+     * @return true if name is valid, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun validateName(): Boolean = name.isValidName()
 
-    fun validateTestRootPath(): Boolean = testRootPath.isValidPath()
+    /**
+     * @return true if [organizationName] is set, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    private fun validateOrganizationName(): Boolean = name.isNotBlank()
+
+    /**
+     * @return true if [testRootPath] is valid, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun validateTestRootPath(): Boolean = testRootPath.isBlank() || testRootPath.isValidPath()
 
     companion object {
         val empty = TestSuitesSourceDto(

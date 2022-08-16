@@ -18,10 +18,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import csstype.ClassName
-import kotlinext.js.asJsObject
-import org.w3c.dom.url.URLSearchParams
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -29,8 +26,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
-
-
 
 /**
  * TESTS tab in OrganizationView
@@ -50,16 +45,14 @@ external interface OrganizationTestsMenuProps : Props {
      * [Role] of user that is observing this component
      */
     var selfRole: Role
-
-    var onErrorMessage: (Response) -> Unit
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
-
+    val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
-    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName)) {
+    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
             url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
             headers = Headers().also {
@@ -78,7 +71,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         }
     }
     fetchTestSuitesSources()
-
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useRequest(dependencies = arrayOf(selectedTestSuitesSource)) {
@@ -114,11 +106,8 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         props.organizationName,
         {
             setIsTestSuitesSourceCreationModalOpen(false)
+            setIsSourceCreated { !it }
             fetchTestSuitesSources()
-        },
-        {
-            setIsTestSuitesSourceCreationModalOpen(false)
-            props.onErrorMessage(it)
         },
     ) {
         setIsTestSuitesSourceCreationModalOpen(false)
@@ -167,6 +156,9 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
      */
     var content: List<D>
 
+    /**
+     * Flag to update table
+     */
     var isTestSuiteSourceCreated: Boolean
 }
 

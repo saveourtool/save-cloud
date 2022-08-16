@@ -1,13 +1,14 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToMono
+import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -349,7 +350,7 @@ class TestSuitesSourceController(
         }
         .map { it.toDto() }
 
-    @PostMapping("/api/$v1/test-suites-sources/{organizationName}/get-or-create")
+    @PostMapping("/api/$v1/test-suites-sources/create")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -357,27 +358,26 @@ class TestSuitesSourceController(
         summary = "Get or create a new test suite source by provided values.",
         description = "Get or create a new test suite source by provided values.",
     )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.QUERY, description = "name of organization", required = true),
-    )
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
-    @ApiResponse(responseCode = "409", description = "Organization was not found by provided name.")
-    @ApiResponse(responseCode = "409", description = "Git credentials was not found by provided url.")
+    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
+    @ApiResponse(responseCode = "404", description = "Git credentials were not found by provided url.")
+    @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
     fun createTestSuitesSource(
-        @PathVariable organizationName: String,
         @RequestBody testSuiteRequest: TestSuitesSourceDto,
-    ): Mono<StringResponse> = getOrganization(organizationName)
+    ): Mono<SourceSaveStatus> = getOrganization(testSuiteRequest.organizationName)
         .zipWhen { organization ->
             gitService.findByOrganizationAndUrl(organization, testSuiteRequest.gitDto.url)
                 .toMono()
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    "There is no git credential with url ${testSuiteRequest.gitDto.url} in $organizationName"
+                .switchIfEmptyToNotFound {
+                    "There is no git credential with url ${testSuiteRequest.gitDto.url} in ${testSuiteRequest.organizationName}"
                 }
         }
         .map { (organization, git) ->
-            testSuitesSourceService.getOrCreate(organization, git, testSuiteRequest.testRootPath, testSuiteRequest.branch)
+            testSuiteRequest.toTestSuiteSource(organization, git)
         }
-        .map { ResponseEntity.ok("Successfully created a new test suite source") }
+        .map {
+            testSuitesSourceService.createSourceIfNotPresent(it)
+        }
 
     /**
      * @param executionId
@@ -504,7 +504,7 @@ class TestSuitesSourceController(
         .flatMap {
             organizationService.findByName(it).toMono()
         }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+        .switchIfEmptyToNotFound {
             "Organization not found by name $organizationName"
         }
 

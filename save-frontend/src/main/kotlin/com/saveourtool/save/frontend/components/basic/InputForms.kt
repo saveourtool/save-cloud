@@ -37,19 +37,19 @@ enum class InputTypes(
 
     // ==== new project view
     GIT_BRANCH("git branch", null, placeholder = "leave empty if you would like to use default branch"),
-    GIT_TOKEN("git token", null, "Token"),
+    GIT_TOKEN("git token", null, "token"),
     GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
-    GIT_USER("git username", null, "Username"),
+    GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
 
     // ==== signIn view
-    LOGIN("login", null, "Login"),
+    LOGIN("login", null, "login"),
     PASSWORD("password", null, "*****"),
-    PROJECT_NAME("project name", NAME_ERROR_MESSAGE, "Name"),
+    PROJECT_NAME("project name", NAME_ERROR_MESSAGE, "name"),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
 
     // ==== create organization view
-    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE, "Name"),
+    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE, "name"),
 
     // ==== user setting view
     USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
@@ -60,7 +60,7 @@ enum class InputTypes(
     TWITTER("twitter"),
 
     // ==== contest creation component
-    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE, "Name"),
+    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE, "name"),
     CONTEST_START_TIME("contest starting time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
@@ -68,7 +68,7 @@ enum class InputTypes(
     CONTEST_TEST_SUITE_IDS("contest test suite ids"),
 
     // ==== test suite source creation
-    SOURCE_NAME("source name"),
+    SOURCE_NAME("source name", placeholder = "name"),
     SOURCE_GIT("source git"),
     SOURCE_TEST_ROOT_PATH("test root path", placeholder = "leave empty if tests are in repository root"),
     ;
@@ -187,7 +187,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
             ClassName("form-control is-invalid")
         }
     }
-    if (!validInput) {
+    if (!validInput && !textValue.isNullOrEmpty()) {
         div {
             className = ClassName("invalid-feedback d-block")
             +(form.errorMessage ?: errorText)

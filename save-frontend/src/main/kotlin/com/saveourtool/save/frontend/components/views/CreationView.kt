@@ -76,6 +76,8 @@ external interface ProjectSaveViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    private val selectFormRequired = selectFormRequired<String>()
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
@@ -112,8 +114,6 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
             }
         }
     }
-
-    private val selectFormRequired = selectFormRequired<String>()
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -183,7 +183,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             onChangeFun = { value ->
                                                 setState {
                                                     projectCreationRequest =
-                                                        projectCreationRequest.copy(organizationName = value?.let {value} ?: "")
+                                                            projectCreationRequest.copy(organizationName = value?.let { value } ?: "")
                                                 }
                                             }
                                         }

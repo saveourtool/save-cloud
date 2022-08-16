@@ -2,15 +2,11 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.fetch.Headers
 import react.FC
 import react.Props
-import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
@@ -21,7 +17,7 @@ import react.useState
 /**
  * SelectFormRequired component props
  */
-external interface SelectFormRequiredProps<D: Any> : Props {
+external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * Type of 'select'
      */
@@ -47,12 +43,24 @@ external interface SelectFormRequiredProps<D: Any> : Props {
      */
     var getData: suspend WithRequestStatusContext.() -> List<D>
 
+    /**
+     * Currently chosen field
+     */
     var selectedValue: String
 
+    /**
+     * Method to get string that should be shown
+     */
     var dataToString: (D) -> String
 
+    /**
+     * Message shown on invalid input
+     */
     var errorMessage: String?
 
+    /**
+     * Message shown on no options fetched
+     */
     var notFoundErrorMessage: String?
 
     /**
@@ -62,6 +70,9 @@ external interface SelectFormRequiredProps<D: Any> : Props {
     var onChangeFun: (D?) -> Unit
 }
 
+/**
+ * @return [FC] of required selection input form
+ */
 @Suppress(
     "TOO_MANY_PARAMETERS",
     "TOO_LONG_FUNCTION",
@@ -69,7 +80,7 @@ external interface SelectFormRequiredProps<D: Any> : Props {
     "TYPE_ALIAS",
     "LongMethod",
 )
-fun <D: Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
+fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
 
     useRequest(arrayOf(), isDeferred = false) {
@@ -98,6 +109,7 @@ fun <D: Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                 id = props.formType.name
                 required = true
                 option {
+                    disabled = true
                     +""
                 }
                 value = props.selectedValue
