@@ -27,6 +27,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
+import kotlinx.cinterop.toKString
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -47,6 +48,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import platform.posix.getenv
 
 /**
  * A main class for SAVE Agent
@@ -86,7 +88,14 @@ class SaveAgent(internal val config: AgentConfiguration,
     fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
+            // fixme: which state?
+            state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
+            // to be consistent with previous logic in orchestrator
+            val targetDirectory = "test=suites"
+            httpClient.downloadTestResources(targetDirectory.toPath(), getenv("EXECUTION_ID")!!.toKString())
+            httpClient.downloadAdditionalResources(targetDirectory.toPath(), getenv("additional_files_list")!!.toKString())
+            state.value = AgentState.STARTING
         }
         return coroutineScope.launch { startHeartbeats(this) }
     }

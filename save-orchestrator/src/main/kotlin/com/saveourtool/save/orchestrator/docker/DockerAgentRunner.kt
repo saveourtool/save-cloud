@@ -216,7 +216,9 @@ class DockerAgentRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
-                AGENT_ID=$containerId""".trimIndent()
+                AGENT_ID=$containerId
+                EXECUTION_ID=$executionId
+                """.trimIndent()
             )
         }
         copyResourcesIntoContainer(
