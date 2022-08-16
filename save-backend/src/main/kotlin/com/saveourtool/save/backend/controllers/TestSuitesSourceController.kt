@@ -248,7 +248,7 @@ class TestSuitesSourceController(
         ],
     )
     @RequiresAuthorizationSourceHeader
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Remove test suites source, that contains provided version.",

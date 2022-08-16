@@ -145,7 +145,18 @@ class DownloadProjectController(
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
-        .zipWith(getTestSuites(version).collectList()).flatMapMany {
+        .flatMap { isFetched ->
+            getTestSuites(version).collectList().map { testSuites ->
+                Mono.zip(
+                    Mono.just(isFetched),
+                    Mono.just(testSuites)
+                )
+            }
+        }
+        .flatMap {
+            it
+        }
+        .flatMapMany {
             val isFetched = it.t1
             val testSuites = it.t2
             if (!isFetched && testSuites.isEmpty()) {

@@ -59,18 +59,15 @@ class TestSuitesPreprocessorController(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam version: String,
     ): Mono<Boolean> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
-        .map {
-            it
-        }
         .filter(false::equals)
-        .map {
+        .flatMap {
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
                     with(testSuitesSourceDto) {
                         log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
                     }
+                    true
                 }
-            true
         }
         .defaultIfEmpty(
             with(testSuitesSourceDto) {
@@ -78,7 +75,6 @@ class TestSuitesPreprocessorController(
                 false
             }
         )
-
     /**
      * Detect latest version of TestSuitesSource
      *
@@ -97,8 +93,10 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto.branch,
         sha1
     ) { repositoryDirectory, creationTime ->
+        println("-----fetchTestSuitesFromGit")
         val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
         gitPreprocessorService.archiveToTar(testRootPath) { archive ->
+            println("archive ${archive}")
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSourceDto,
                 sha1,
