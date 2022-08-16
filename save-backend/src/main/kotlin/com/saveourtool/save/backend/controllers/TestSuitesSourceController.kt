@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
@@ -28,6 +29,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -42,7 +44,6 @@ typealias TestSuiteList = List<TestSuite>
 @Tags(
     Tag(name = "test-suites-source"),
 )
-@Suppress("LongParameterList")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
@@ -79,8 +80,8 @@ class TestSuitesSourceController(
 
     @GetMapping(
         path = [
-            "/internal/test-suites-sources/{organizationName}/{name}",
-            "/api/$v1/test-suites-sources/{organizationName}/{name}",
+            "/internal/test-suites-sources/{organizationName}/{sourceName}",
+            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}",
         ],
     )
     @RequiresAuthorizationSourceHeader
@@ -92,7 +93,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of test suites sources by organization name.")
     @ApiResponse(
@@ -101,14 +102,14 @@ class TestSuitesSourceController(
     )
     fun findAsDtoByName(
         @PathVariable organizationName: String,
-        @PathVariable name: String
-    ): Mono<TestSuitesSourceDto> = getTestSuitesSource(organizationName, name)
+        @PathVariable sourceName: String
+    ): Mono<TestSuitesSourceDto> = getTestSuitesSource(organizationName, sourceName)
         .map { it.toDto() }
 
     @PostMapping(
         path = [
-            "/internal/test-suites-sources/{organizationName}/{name}/upload-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{name}/upload-snapshot",
+            "/internal/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot",
+            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot",
         ],
         consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
     )
@@ -121,7 +122,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of uploading snapshot", required = true),
         Parameter(name = "creationTime", `in` = ParameterIn.QUERY, description = "creationTime of uploading snapshot", required = true),
         Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "content of uploading snapshot", required = true),
@@ -133,11 +134,11 @@ class TestSuitesSourceController(
     )
     fun uploadSnapshot(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
+        @PathVariable sourceName: String,
         @RequestParam version: String,
         @RequestParam creationTime: Long,
         @RequestPart("content") contentAsMonoPart: Mono<Part>
-    ): Mono<Unit> = findAsDtoByName(organizationName, name)
+    ): Mono<Unit> = findAsDtoByName(organizationName, sourceName)
         .map { TestSuitesSourceSnapshotKey(it, version, creationTime) }
         .flatMap { key ->
             contentAsMonoPart.flatMap { part ->
@@ -150,8 +151,8 @@ class TestSuitesSourceController(
 
     @PostMapping(
         path = [
-            "/internal/test-suites-sources/{organizationName}/{name}/download-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{name}/download-snapshot",
+            "/internal/test-suites-sources/{organizationName}/{sourceName}/download-snapshot",
+            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/download-snapshot",
         ],
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE],
     )
@@ -164,7 +165,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of downloading snapshot", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully downloaded snapshot with provided version.")
@@ -174,17 +175,17 @@ class TestSuitesSourceController(
     )
     fun downloadSnapshot(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
+        @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<ByteBufferFluxResponse> = findAsDtoByName(organizationName, name)
+    ): Mono<ByteBufferFluxResponse> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
             it.downloadSnapshot(version)
         }
 
     @GetMapping(
         path = [
-            "/internal/test-suites-sources/{organizationName}/{name}/contains-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{name}/contains-snapshot",
+            "/internal/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot",
+            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/contains-snapshot",
         ],
     )
     @RequiresAuthorizationSourceHeader
@@ -196,7 +197,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
         Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of checking snapshot", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully checked snapshot with provided values.")
@@ -206,17 +207,17 @@ class TestSuitesSourceController(
     )
     fun containsSnapshot(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
+        @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<Boolean> = findAsDtoByName(organizationName, name)
+    ): Mono<Boolean> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
             testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
         }
 
     @GetMapping(
         path = [
-            "/internal/test-suites-sources/{organizationName}/{name}/list-snapshot",
-            "/api/$v1/test-suites-sources/{organizationName}/{name}/list-snapshot",
+            "/internal/test-suites-sources/{organizationName}/{sourceName}/list-snapshot",
+            "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/list-snapshot",
         ],
     )
     @RequiresAuthorizationSourceHeader
@@ -228,7 +229,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
     @ApiResponse(
@@ -238,8 +239,8 @@ class TestSuitesSourceController(
     @ApiResponse(responseCode = "404", description = ".")
     fun listSnapshotVersions(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
-    ): Mono<TestSuitesSourceSnapshotKeyList> = findAsDtoByName(organizationName, name)
+        @PathVariable sourceName: String,
+    ): Mono<TestSuitesSourceSnapshotKeyList> = findAsDtoByName(organizationName, sourceName)
         .flatMap {
             testSuitesSourceSnapshotStorage.list(it.organizationName, it.name)
                 .collectList()
@@ -366,7 +367,7 @@ class TestSuitesSourceController(
         source.downloadSnapshot(version)
     }
 
-    @GetMapping("/internal/test-suites-sources/{organizationName}/{name}/get-test-suites")
+    @GetMapping("/internal/test-suites-sources/{organizationName}/{sourceName}/get-test-suites")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -376,7 +377,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
     @ApiResponse(
@@ -385,9 +386,9 @@ class TestSuitesSourceController(
     )
     fun getTestSuites(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
+        @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<TestSuiteList> = getTestSuitesSource(organizationName, name)
+    ): Mono<TestSuiteList> = getTestSuitesSource(organizationName, sourceName)
         .map { testSuitesSource ->
             testSuitesService.getBySourceAndVersion(
                 testSuitesSource,
@@ -395,7 +396,7 @@ class TestSuitesSourceController(
             )
         }
 
-    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{name}/get-test-suites")
+    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -405,7 +406,7 @@ class TestSuitesSourceController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
-        Parameter(name = "name", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully listed snapshots for requested test suites source.")
     @ApiResponse(
@@ -414,9 +415,9 @@ class TestSuitesSourceController(
     )
     fun getTestSuiteDtos(
         @PathVariable organizationName: String,
-        @PathVariable name: String,
+        @PathVariable sourceName: String,
         @RequestParam version: String,
-    ): Mono<List<TestSuiteDto>> = getTestSuitesSource(organizationName, name)
+    ): Mono<List<TestSuiteDto>> = getTestSuitesSource(organizationName, sourceName)
         .map { testSuitesSource ->
             testSuitesService.getBySourceAndVersion(
                 testSuitesSource,
@@ -477,6 +478,31 @@ class TestSuitesSourceController(
     fun getOrganizationNamesWithPublicTestSuiteSources(
         authentication: Authentication,
     ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
+
+    @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Post fetching of new tests from test suites source.",
+        description = "Post fetching of new tests from test suites source.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully trigger fetching new tests from requested test suites source.")
+    fun triggerFetch(
+        @PathVariable organizationName: String,
+        @PathVariable sourceName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
+        .flatMap { testSuitesSource ->
+            Mono.just(
+                ResponseEntity.ok()
+                    .body("Trigger fetching new tests from $sourceName in $organizationName")
+            ).doOnSuccess {
+                testSuitesSourceService.fetch(testSuitesSource.toDto())
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe()
+            }
+        }
 
     private fun TestSuitesSourceDto.downloadSnapshot(
         version: String

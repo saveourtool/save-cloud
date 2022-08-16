@@ -71,6 +71,20 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         }
     }
     fetchTestSuitesSources()
+    val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto?>(null)
+    val triggerFetchTestSuiteSource = useRequest(dependencies = arrayOf(testSuiteSourceToFetch)) {
+        testSuiteSourceToFetch?.let { testSuiteSource ->
+            post(
+                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+                loadingHandler = ::loadingHandler,
+                body = undefined
+            )
+        }
+    }
+
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
     val fetchTestSuitesSourcesSnapshotKeys = useRequest(dependencies = arrayOf(selectedTestSuitesSource)) {
@@ -93,7 +107,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             }
         }
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable {
+    val selectHandler: (TestSuitesSourceDto) -> Unit = {
         if (selectedTestSuitesSource == it) {
             setSelectedTestSuitesSource(null)
         } else {
@@ -101,6 +115,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
+    val fetchHandler: (TestSuitesSourceDto) -> Unit = {
+        setTestSuiteSourceToFetch(it)
+        triggerFetchTestSuiteSource()
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
+
     showTestSuiteSourceCreationModal(
         isTestSuiteSourceCreationModalOpen,
         props.organizationName,
@@ -162,9 +182,15 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     var isTestSuiteSourceCreated: Boolean
 }
 
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS", "TOO_LONG_FUNCTION")
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
+    fetchHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { this }) { cellProps ->
@@ -206,6 +232,20 @@ private fun prepareTestSuitesSourcesTable(
                     a {
                         href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
                         +"source"
+                    }
+                }
+            }
+        }
+        column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
+                        onClick = {
+                            fetchHandler(cellProps.value)
+                        }
+                        +"fetch"
                     }
                 }
             }

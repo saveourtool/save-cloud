@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -132,7 +133,7 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .zipWith(Mono.justOrEmpty(projectService.findUserByName(setRoleRequest.userName)))
+        .zipWith(projectService.findUserByName(setRoleRequest.userName).toMono())
         .switchIfEmpty {
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }
@@ -182,7 +183,7 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .zipWith(Mono.justOrEmpty(projectService.findUserByName(userName)))
+        .zipWith(projectService.findUserByName(userName).toMono())
         .switchIfEmpty {
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }

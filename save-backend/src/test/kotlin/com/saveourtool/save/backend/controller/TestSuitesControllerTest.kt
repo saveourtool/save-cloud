@@ -153,11 +153,12 @@ class TestSuitesControllerTest {
     @WithMockUser
     fun testAllStandardTestSuites() {
         val testSuitesSource = testSuitesSourceRepository.findById(STANDARD_TEST_SUITES_SOURCE_ID).get()
+        val version = "1"
         val testSuite = TestSuiteDto(
             "tester",
             null,
             testSuitesSource.toDto(),
-            "1",
+            version,
         )
         saveTestSuites(listOf(testSuite)) {
             expectBody<List<TestSuite>>().consumeWith {
@@ -175,7 +176,8 @@ class TestSuitesControllerTest {
         testSuitesSourceSnapshotStorage.upload(storageKey, tmpContent.toByteBufferFlux())
             .block()
         tmpContent.deleteExisting()
-        val allStandardTestSuite = testSuiteRepository.findAll().count { it.source.git.url == testSuitesSource.git.url }
+        val allStandardTestSuite = testSuiteRepository.findAll()
+            .count { it.source.git.url == testSuitesSource.git.url && it.version == version }
         webClient.get()
             .uri("/api/$v1/allStandardTestSuites")
             .exchange()

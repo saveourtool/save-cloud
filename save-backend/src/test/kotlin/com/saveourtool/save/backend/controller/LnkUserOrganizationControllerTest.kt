@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import java.util.Optional
 
 @WebFluxTest(controllers = [LnkUserOrganizationController::class])
 @Import(
@@ -99,9 +98,9 @@ class LnkUserOrganizationControllerTest {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
         }
-        given(userRepository.findByName(any())).willReturn(Optional.of(
+        given(userRepository.findByName(any())).willReturn(
             User("user", null, null, "").apply { id = 99 }
-        ))
+        )
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
@@ -213,7 +212,7 @@ class LnkUserOrganizationControllerTest {
             }
         }
         given(lnkUserOrganizationService.getUserByName(any())).willAnswer { invocationOnMock ->
-            Optional.of(user(invocationOnMock))
+            user(invocationOnMock)
         }
     }
 }
