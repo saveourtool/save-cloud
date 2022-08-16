@@ -504,12 +504,6 @@ class TestSuitesSourceController(
         authentication: Authentication,
     ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
 
-    /**
-     * @param organizationName
-     * @param sourceName
-     * @param authentication
-     * @return response from preprocessor
-     */
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

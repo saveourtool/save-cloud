@@ -18,7 +18,7 @@ import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.v1
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
@@ -93,7 +93,7 @@ class RunExecutionControllerTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(30_000)  // Time for request to create required entities
+        Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
@@ -143,7 +143,7 @@ class RunExecutionControllerTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(30_000)  // Time for request to create required entities
+        Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
@@ -192,6 +192,6 @@ class RunExecutionControllerTest(
 
     @TestConfiguration
     class AdditionalConfiguration {
-        @Bean fun meterRegistry() = SimpleMeterRegistry()
+        @Bean fun meterRegistry() = CompositeMeterRegistry()
     }
 }
