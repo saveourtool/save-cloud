@@ -71,6 +71,9 @@ enum class InputTypes(
     SOURCE_NAME("source name", placeholder = "name"),
     SOURCE_GIT("source git"),
     SOURCE_TEST_ROOT_PATH("test root path", placeholder = "leave empty if tests are in repository root"),
+
+    // ==== execution run
+    TEST_SUITE_IDS("test suites ids")
     ;
 }
 

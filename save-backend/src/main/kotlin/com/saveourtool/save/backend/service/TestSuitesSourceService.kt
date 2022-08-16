@@ -75,7 +75,29 @@ class TestSuitesSourceService(
     /**
      * @param entity
      */
+    @Transactional
     fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
+
+    /**
+     * @param entity
+     * @return saved [TestSuitesSource] with values from provided [entity]
+     */
+    @Transactional
+    fun save(
+        entity: TestSuitesSourceDto
+    ): TestSuitesSource = organizationService.getByName(entity.organizationName)
+        .let { organization ->
+            testSuitesSourceRepository.save(
+                TestSuitesSource(
+                    organization = organization,
+                    name = entity.name,
+                    description = entity.description,
+                    git = gitService.getByOrganizationAndUrl(organization, entity.gitDto.url),
+                    branch = entity.branch,
+                    testRootPath = entity.testRootPath,
+                )
+            )
+        }
 
     /**
      * @param organization
@@ -119,12 +141,12 @@ class TestSuitesSourceService(
         git: Git,
         testRootPath: String,
         branch: String,
-    ) = testSuitesSourceRepository.save(
-        TestSuitesSource(
-            organization = organization,
+    ) = save(
+        TestSuitesSourceDto(
+            organizationName = organization.name,
             name = generateDefaultName(organization.requiredId()),
             description = "auto created test suites source by git coordinates",
-            git = git,
+            gitDto = git.toDto(),
             branch = branch,
             testRootPath = testRootPath,
         )

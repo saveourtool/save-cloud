@@ -49,6 +49,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -152,19 +153,9 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
     var confirmationType: ConfirmationType
 
     /**
-     * Git credential to the custom tests
+     * List of IDs of [TestSuiteDto] for execution run
      */
-    var selectedGitCredential: GitDto
-
-    /**
-     * Available git credentials for the custom tests
-     */
-    var availableGitCredentials: List<GitDto>
-
-    /**
-     * Branch of commit in current repo
-     */
-    var gitBranchOrCommitFromInputField: String
+    var selectedTestSuiteIds: List<Long>
 
     /**
      * Execution command for standard mode
@@ -175,11 +166,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
      * Batch size for static analyzer tool in standard mode
      */
     var batchSizeForAnalyzer: String
-
-    /**
-     * Directory in the repository where tests are placed
-     */
-    var testRootPath: String
 
     /**
      * Selected languages in the list of standard tests
@@ -234,19 +220,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
     private val testResourcesSelection = testResourcesSelection(
-        updateGitUrlFromInputField = { selectedGitUrl ->
+        setTestSuiteIds = { selectedTestSuiteIds ->
             setState {
-                selectedGitCredential = availableGitCredentials.first { it.url == selectedGitUrl }
-            }
-        },
-        updateGitBranchOrCommitInputField = {
-            setState {
-                gitBranchOrCommitFromInputField = it
-            }
-        },
-        updateTestRootPath = {
-            setState {
-                testRootPath = it
+                this.selectedTestSuiteIds = selectedTestSuiteIds
             }
         },
         setExecCmd = {
@@ -301,12 +277,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             userId = -1,
             organization = Organization("stub", OrganizationStatus.CREATED, null, date)
         )
-        state.selectedGitCredential = GitDto("N/A")
-        state.availableGitCredentials = emptyList()
-        state.gitBranchOrCommitFromInputField = ""
+        state.selectedContest = ContestDto.empty
+        state.availableContests = emptyList()
+        state.selectedTestSuiteIds = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
-        state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
         state.selectedContest = ContestDto.empty
@@ -376,12 +351,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 this.availableFiles.addAll(availableFiles)
             }
 
-            val gitCredentials = getGitCredentials(project.organization.name)
-            setState {
-                availableGitCredentials = gitCredentials
-                gitCredentials.firstOrNull()?.let { selectedGitCredential = it }
-            }
-
             val contests = getContests()
             setState {
                 availableContests = contests
@@ -446,20 +415,18 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun submitExecutionRequestWithCustomTests() {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val formData = FormData()
-        val testRootPath = state.testRootPath.ifBlank { "." }
-        val executionRequest = ExecutionRequest(
-            state.project,
-            state.selectedGitCredential,
-            state.gitBranchOrCommitFromInputField,
-            testRootPath,
-            selectedSdk,
-            null)
-        formData.appendJson("executionRequest", executionRequest)
-        state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
-        }
-        submitRequest("/submitExecutionRequest", Headers(), formData)
+        val executionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = state.project.organization.name,
+                projectName = state.project.name
+            ),
+            testSuiteIds = state.selectedTestSuiteIds,
+            files = state.files.map { it.toStorageKey() },
+            sdk =  selectedSdk,
+            execCmd = state.execCmd,
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer
+        )
+        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
@@ -645,10 +612,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     selectedContest = state.selectedContest
                     availableContests = state.availableContests
                     // properties for CUSTOM_TESTS mode
-                    testRootPath = state.testRootPath
-                    selectedGitCredential = state.selectedGitCredential
-                    availableGitCredentials = state.availableGitCredentials
-                    gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
+                    selectedTestSuiteIds = state.selectedTestSuiteIds
                     // properties for STANDARD_BENCHMARKS mode
                     selectedStandardSuites = this@ProjectView.selectedStandardSuites
                     standardTestSuites = this@ProjectView.standardTestSuites
@@ -941,12 +905,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 setState {
                     latestExecutionId = executionIdFromResponse
                 }
-                getTestRootPathFromLatestExecution(executionIdFromResponse)
+                getTestSuiteIdsFromExecution(executionIdFromResponse)
             }
         }
     }
 
-    private suspend fun getTestRootPathFromLatestExecution(executionId: Long) {
+    private suspend fun getTestSuiteIdsFromExecution(executionId: Long) {
         val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/getTestRootPathByExecutionId?id=$executionId",
@@ -954,10 +918,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
-        val rootPath = response.text().await()
+        val testSuiteIds = response.text().await()
         when {
             response.ok -> setState {
-                testRootPath = rootPath
+                selectedTestSuiteIds = Json.decodeFromString(testSuiteIds)
             }
         }
     }

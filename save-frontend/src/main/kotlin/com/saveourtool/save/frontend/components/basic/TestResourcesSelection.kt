@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
 import com.saveourtool.save.frontend.components.views.ProjectView
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -54,12 +55,9 @@ external interface TestResourcesProps : PropsWithChildren {
     var selectedContest: ContestDto
 
     // properties for CUSTOM_TESTS mode
-    var availableGitCredentials: List<GitDto>
-    var selectedGitCredential: GitDto
-    var gitBranchOrCommitFromInputField: String
+    var selectedTestSuiteIds: List<Long>
     var execCmd: String
     var batchSizeForAnalyzer: String
-    var testRootPath: String
 
     // properties for STANDARD_BENCHMARKS mode
     var standardTestSuites: List<TestSuiteDto>
@@ -68,7 +66,7 @@ external interface TestResourcesProps : PropsWithChildren {
 }
 
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
-private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
+private fun ChildrenBuilder.addAdditionalProperty(
     value: String,
     placeholder: String,
     tooltipText: String,
@@ -114,9 +112,7 @@ private fun ChildrenBuilder.setAdditionalPropertiesForStandardMode(
 private fun ContestDto.label(): String = "$organizationName/$name"
 
 /**
- * @param updateGitUrlFromInputField
- * @param updateGitBranchOrCommitInputField
- * @param updateTestRootPath
+ * @param setTestSuiteIds
  * @param setSelectedLanguageForStandardTests
  * @param setExecCmd
  * @param setBatchSize
@@ -130,9 +126,7 @@ private fun ContestDto.label(): String = "$organizationName/$name"
     "LongParameterList",
 )
 fun testResourcesSelection(
-    updateGitUrlFromInputField: (String) -> Unit,
-    updateGitBranchOrCommitInputField: (String) -> Unit,
-    updateTestRootPath: (String) -> Unit,
+    setTestSuiteIds: (List<Long>) -> Unit,
     setExecCmd: (String) -> Unit,
     setBatchSize: (String) -> Unit,
     setSelectedLanguageForStandardTests: (String) -> Unit,
@@ -164,120 +158,55 @@ fun testResourcesSelection(
 
         div {
             className = ClassName("card-body ")
-            div {
-                className = ClassName("input-group-sm mb-3")
-                div {
-                    className = ClassName("row")
-                    sup {
-                        className = ClassName("tooltip-and-popover")
-                        tabIndex = 0
-                        fontAwesomeIcon(icon = faQuestionCircle)
-                        asDynamic()["tooltip-placement"] = "top"
-                        asDynamic()["tooltip-title"] = ""
-                        asDynamic()["popover-placement"] = "left"
-                        asDynamic()["popover-title"] =
-                                "Use the following link to read more about save format:"
-                        asDynamic()["popover-content"] =
-                                "<a href =\"https://github.com/saveourtool/save-cli/blob/main/README.md\" > SAVE core README </a>"
-                        asDynamic()["data-trigger"] = "focus"
-                    }
-                    h6 {
-                        className = ClassName("d-inline ml-2")
-                        +"Git Url of your test suites (in save format):"
-                    }
-                }
-                div {
-                    className = ClassName("input-group-prepend")
 
-                    select {
-                        className = ClassName("form-control")
-                        props.availableGitCredentials.forEach {
-                            option {
-                                +it.url
-                            }
-                        }
-                        required = true
-                        value = props.selectedGitCredential.url
-                        onChange = {
-                            updateGitUrlFromInputField(it.target.value)
-                        }
-                    }
-                }
-            }
+            addAdditionalProperty(
+                props.execCmd,
+                "Execution command",
+                "Execution command that will be used to run the tool and tests",
+                "",
+                InputType.text,
+                setExecCmd
+            )
+            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
+                    " To know more about batch size, please visit: https://github.com/saveourtool/save."
+            addAdditionalProperty(
+                props.batchSizeForAnalyzer,
+                "",
+                toolTipTextForBatchSize,
+                "Batch size (default: 1):",
+                InputType.number,
+                setBatchSize
+            )
 
-            div {
-                className = ClassName("input-group-sm")
-                div {
-                    className = ClassName("row")
-                    sup {
-                        className = ClassName("tooltip-and-popover")
-                        fontAwesomeIcon(icon = faQuestionCircle)
-                        tabIndex = 0
-                        asDynamic()["tooltip-placement"] = "top"
-                        asDynamic()["tooltip-title"] = ""
-                        asDynamic()["popover-placement"] = "left"
-                        asDynamic()["popover-title"] = "Keep in mind the following rules:"
-                        asDynamic()["popover-content"] = "Provide full name of your brach with `origin` prefix: origin/your_branch." +
-                                " Or in aim to use the concrete commit just provide hash of it."
-                        asDynamic()["data-trigger"] = "focus"
-                    }
-                    h6 {
-                        className = ClassName("d-inline ml-2")
-                        +"Git branch or specific commit in your repository:"
-                    }
+            val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
+            val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
+            showTestSuiteSelectorModal(
+                isTestSuiteSelectorOpen,
+                props.selectedTestSuiteIds,
+                onSubmit = {
+                    setTestSuiteIds(selectedTestSuiteIds)
+                    setIsTestSuiteSelectorOpen(false)
+                },
+                onTestSuiteIdUpdate = {
+                    setSelectedTestSuiteIds(it)
+                },
+                onCancel = {
+                    setSelectedTestSuiteIds(emptyList())
+                    setIsTestSuiteSelectorOpen(false)
                 }
-                div {
-                    className = ClassName("input-group-prepend")
-                    input {
-                        type = InputType.text
-                        name = "itemText"
-                        key = "itemText"
-                        className = ClassName("form-control")
-                        if (props.gitBranchOrCommitFromInputField.isNotBlank()) {
-                            defaultValue = props.gitBranchOrCommitFromInputField
-                        }
-                        placeholder = "leave empty if you would like to use default branch with latest commit"
-                        onChange = {
-                            updateGitBranchOrCommitInputField(it.target.value)
-                        }
-                    }
-                }
-            }
+            )
 
+            // ==== Contest test suites
             div {
-                className = ClassName("input-group-sm mt-3")
-                div {
-                    className = ClassName("row")
-                    sup {
-                        className = ClassName("tooltip-and-popover")
-                        tabIndex = 0
-                        fontAwesomeIcon(icon = faQuestionCircle)
-                        asDynamic()["tooltip-placement"] = "top"
-                        asDynamic()["tooltip-title"] = ""
-                        asDynamic()["popover-placement"] = "left"
-                        asDynamic()["popover-title"] = "Relative path to the root directory with tests"
-                        asDynamic()["popover-content"] = ProjectView.TEST_ROOT_DIR_HINT
-                        asDynamic()["data-trigger"] = "focus"
-                    }
-                    h6 {
-                        className = ClassName("d-inline ml-2")
-                        +"Relative path (to the root directory) of the test suites in the repo:"
-                    }
-                }
-                div {
-                    className = ClassName("input-group-prepend")
-                    input {
-                        type = InputType.text
-                        name = "itemText"
-                        key = "itemText"
-                        className = ClassName("form-control")
-                        value = props.testRootPath
-                        placeholder = "leave empty if tests are in the repository root"
-                        onChange = {
-                            updateTestRootPath(it.target.value)
-                        }
-                    }
-                }
+                className = ClassName("mt-2")
+                inputTextFormRequired(
+                    InputTypes.TEST_SUITE_IDS,
+                    selectedTestSuiteIds.joinToString(", "),
+                    true,
+                    "col-12 pl-2 pr-2",
+                    "Test Suite Ids",
+                    onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                )
             }
         }
     }
@@ -293,7 +222,7 @@ fun testResourcesSelection(
                 this.setSelectedLanguageForStandardTests = setSelectedLanguageForStandardTests
             }
 
-            setAdditionalPropertiesForStandardMode(
+            addAdditionalProperty(
                 props.execCmd,
                 "Execution command",
                 "Execution command that will be used to run the tool and tests",
@@ -303,7 +232,7 @@ fun testResourcesSelection(
             )
             val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
                     " To know more about batch size, please visit: https://github.com/saveourtool/save."
-            setAdditionalPropertiesForStandardMode(
+            addAdditionalProperty(
                 props.batchSizeForAnalyzer,
                 "",
                 toolTipTextForBatchSize,

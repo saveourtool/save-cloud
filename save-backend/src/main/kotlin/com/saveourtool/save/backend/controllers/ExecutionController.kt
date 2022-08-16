@@ -36,6 +36,8 @@ import reactor.kotlin.core.publisher.toMono
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+typealias IdList = List<Long>
+
 /**
  * Controller that accepts executions
  */
@@ -231,18 +233,13 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication auth provider
      * @return string with a test root path that is linked with this execution id
      */
-    @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
+    @GetMapping(path = ["/api/$v1/getTestSuiteIdsByExecutionId"])
     @Transactional
-    fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
+    fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<IdList> =
             executionService.findExecution(id)
                 .toMonoOrNotFound()
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .flatMap {
-                    it.getTestRootPathByTestSuites()
-                        .distinct()
-                        .singleOrNull()
-                        .toMono()
-                }
+                .flatMap { it.parseAndGetTestSuiteIds().toMono() }
                 .switchIfEmptyToNotFound()
 
     /**

@@ -497,8 +497,7 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully trigger fetching new tests from requested test suites source.")
     fun triggerFetch(
-        @PathVariable organizationName: String,
-        @PathVariable sourceName: String,
+        @PathVariable organizationName: String, @PathVariable sourceName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSource ->
