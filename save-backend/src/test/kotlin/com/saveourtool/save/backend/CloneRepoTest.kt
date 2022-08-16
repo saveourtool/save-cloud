@@ -88,7 +88,6 @@ class CloneRepoTest {
 
     @TempDir
     internal lateinit var tmpDir: Path
-
     private lateinit var project: Project
     private lateinit var git: Git
     private lateinit var testSuitesSource: TestSuitesSource
@@ -97,6 +96,7 @@ class CloneRepoTest {
     private lateinit var binFile: Path
     private lateinit var propertyFile: Path
 
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     @BeforeEach
     fun setup() {
         project = projectRepository.findAll()
