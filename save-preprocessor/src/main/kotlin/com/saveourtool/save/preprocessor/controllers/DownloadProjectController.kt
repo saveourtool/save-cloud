@@ -128,7 +128,7 @@ class DownloadProjectController(
                                 ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
                         }
                         .flatMapMany {
-                            testSuitesSource.getTestSuites(it).flatMapMany { Flux.fromIterable(it) }
+                            testSuitesSource.getTestSuites(it)
                         }
                 }
                 .saveOnExecutionAndExecute(executionRequestForStandardSuites)
@@ -139,34 +139,32 @@ class DownloadProjectController(
     private fun Mono<TestSuitesSourceDto>.mapToTestSuites(
         version: String,
     ): Flux<TestSuite> = flatMapMany {
-        println("\n\nmapToTestSuites")
         it.fetchAndGetTestSuites(version)
     }
 
     private fun TestSuitesSourceDto.fetchAndGetTestSuites(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
-        .zipWith(getTestSuites(version)).flatMapMany {
+        .zipWith(getTestSuites(version).collectList()).flatMapMany {
             val isFetched = it.t1
             val testSuites = it.t2
-            if (isFetched && testSuites.isEmpty()) {
+            if (!isFetched && testSuites.isEmpty()) {
                 println("\n\n\n====================TEST SUITES FOUND IN STORAGE BUT NOT IN DB, REMOVE FROM STORAGE")
                 testsPreprocessorToBackendBridge.removeTestSuitesSourceWithVersion(this, version)
             } else {
                 Mono.just(false)
-            }.flatMapMany{
+            }.flatMapMany {
                 Flux.fromIterable(testSuites)
             }
         }
 
     private fun TestSuitesSourceDto.getTestSuites(
         version: String,
-    ): Mono<List<TestSuite>> = testsPreprocessorToBackendBridge.getTestSuites(
+    ): Flux<TestSuite> = testsPreprocessorToBackendBridge.getTestSuites(
         organizationName,
         name,
         version
-    )
-        //.flatMapMany { Flux.fromIterable(it) }
+    ).flatMapMany { Flux.fromIterable(it) }
 
 
     private fun Flux<TestSuite>.saveOnExecutionAndExecute(

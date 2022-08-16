@@ -60,12 +60,10 @@ class TestSuitesPreprocessorController(
         @RequestParam version: String,
     ): Mono<Boolean> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
         .map {
-            println("\n\n\ndoesTestSuitesSourceContainVersion? ${it}")
             it
         }
         .filter(false::equals)
         .map {
-            println("\n\n\nfetchTestSuitesFromGit....")
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
                     with(testSuitesSourceDto) {

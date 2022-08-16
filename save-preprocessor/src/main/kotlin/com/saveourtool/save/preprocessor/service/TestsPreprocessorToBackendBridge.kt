@@ -68,7 +68,7 @@ class TestsPreprocessorToBackendBridge(
     /**
      * @param testSuitesSource
      * @param version
-     * @return true if backend knows [version], otherwise -- false
+     * @return true if backend removes corresponding test suite source
      */
     fun removeTestSuitesSourceWithVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Boolean> =
         webClientBackend.get()

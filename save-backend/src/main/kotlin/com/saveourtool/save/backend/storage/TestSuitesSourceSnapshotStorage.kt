@@ -69,16 +69,16 @@ class TestSuitesSourceSnapshotStorage(
      * @param organizationName
      * @param testSuitesSourceName
      * @param version
-     * @return true if storage contains snapshot with provided values, otherwise -- false
+     * @return true if backend removes corresponding test suite source
      */
     fun removeKey(
         organizationName: String,
         testSuitesSourceName: String,
         version: String,
     ): Mono<Boolean> = findKey(organizationName, testSuitesSourceName, version)
-        .flatMap {
-            delete(it).map {
-                it
+        .flatMap { key ->
+            delete(key).map { isRemoved ->
+                isRemoved
             }
         }
 
