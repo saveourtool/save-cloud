@@ -75,6 +75,7 @@ class TestSuitesPreprocessorController(
                 false
             }
         )
+
     /**
      * Detect latest version of TestSuitesSource
      *
@@ -93,10 +94,8 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto.branch,
         sha1
     ) { repositoryDirectory, creationTime ->
-        println("-----fetchTestSuitesFromGit")
         val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
         gitPreprocessorService.archiveToTar(testRootPath) { archive ->
-            println("archive ${archive}")
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSourceDto,
                 sha1,
