@@ -588,13 +588,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
-        topProject ?: return
         div {
             className = ClassName("col-3 mb-4")
-            scoreCard {
-                name = topProject.name
-                contestScore = topProject.contestRating.toDouble()
-                url = "#/${props.organizationName}/${topProject.name}"
+            topProject?.let {
+                scoreCard {
+                    name = it.name
+                    contestScore = it.contestRating.toDouble()
+                    url = "#/${props.organizationName}/${it.name}"
+                }
             }
         }
     }

@@ -220,11 +220,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
-
-    /**
-     * File for delete
-     */
-    var file: FileInfo
 }
 
 /**
@@ -308,14 +303,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         state.selectedGitCredential = GitDto("N/A")
         state.availableGitCredentials = emptyList()
-        state.selectedContest = ContestDto.empty
-        state.availableContests = emptyList()
         state.gitBranchOrCommitFromInputField = ""
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
         state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.CUSTOM_TESTS
+        state.selectedContest = ContestDto.empty
+        state.availableContests = emptyList()
         state.isErrorOpen = false
         state.isSubmitButtonPressed = false
         state.errorMessage = ""
@@ -332,7 +327,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.INFO
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
-        state.file = FileInfo("", 0, 0)
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -417,6 +411,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    private fun submitExecutionRequestByContest() {
+        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
+        val executionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
+            testSuiteIds = state.selectedContest.testSuiteIds,
+            files = state.files.map { it.toStorageKey() },
+            sdk = selectedSdk,
+            execCmd = state.execCmd,
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer,
+        )
+        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
+    }
+
     @Suppress("UnsafeCallOnNullableType")
     private fun submitExecutionRequestWithStandardTests() {
         val headers = Headers()
@@ -455,19 +462,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         submitRequest("/submitExecutionRequest", Headers(), formData)
     }
 
-    private fun submitExecutionRequestByContest() {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
-            testSuiteIds = state.selectedContest.testSuiteIds,
-            files = state.files.map { it.toStorageKey() },
-            sdk = selectedSdk,
-            execCmd = state.execCmd,
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer,
-        )
-        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
-    }
-
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
         scope.launch {
             val response = post(
@@ -492,23 +486,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         }
 
-        runConfirmWindowModal(
-            state.isConfirmWindowOpen,
-            state.confirmLabel,
-            state.confirmMessage,
-            "Ok",
-            "Cancel",
-            { setState { isConfirmWindowOpen = false } }) {
-            when (state.confirmationType) {
-                ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
-                ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
-                ConfirmationType.DELETE_FILE_CONFIRM -> fileDelete()
-                else -> {
-                    // this is a generated else block
-                }
-            }
-            setState { isConfirmWindowOpen = false }
-        }
         // Page Heading
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -607,7 +584,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     isSubmitButtonPressed = state.isSubmitButtonPressed
                     files = state.files
                     availableFiles = state.availableFiles
-                    confirmationType = state.confirmationType
                     suiteByteSize = state.suiteByteSize
                     bytesReceived = state.bytesReceived
                     isUploading = state.isUploading
@@ -782,12 +758,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun fileDelete() {
+    private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${state.file.uploadedMillis}",
+                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
                 jsonHeaders,
-                Json.encodeToString(state.file),
+                Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,
             )
 
@@ -802,12 +778,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun postFileDelete(fileForDelete: FileInfo) {
-        setState {
-            file = fileForDelete
-            confirmationType = ConfirmationType.DELETE_FILE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this file?"
+        val confirm = window.confirm(
+            "Are you sure you want to delete ${fileForDelete.name} file?"
+        )
+
+        if (confirm) {
+            fileDelete(fileForDelete)
         }
     }
 
