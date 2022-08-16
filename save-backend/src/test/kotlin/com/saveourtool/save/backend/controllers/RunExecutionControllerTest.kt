@@ -93,7 +93,7 @@ class RunExecutionControllerTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(15_000)  // Time for request to create required entities
+        Thread.sleep(30_000)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
@@ -143,7 +143,7 @@ class RunExecutionControllerTest(
             .exchange()
             .expectStatus()
             .isAccepted
-        Thread.sleep(15_000)  // Time for request to create required entities
+        Thread.sleep(30_000)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val newExecutions = executionRepository.findAll().toList()
