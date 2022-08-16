@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 
@@ -39,12 +38,12 @@ data class Organization(
 
     /**
      * @param userRoles map where keys are usernames and values are their roles
-     * @return [OrganizationInfo]
+     * @return [OrganizationDto]
      */
-    fun toOrganizationInfo(userRoles: Map<String, Role> = emptyMap()) = OrganizationInfo(
+    fun toDto(userRoles: Map<String, Role> = emptyMap()) = OrganizationDto(
         name,
-        userRoles,
-        avatar
+        userRoles = userRoles,
+        avatar = avatar,
     )
     
     /**
@@ -77,3 +76,23 @@ data class Organization(
         }
     }
 }
+
+/**
+ * @param dateCreated date when organization was created
+ * @param canCreateContests flag that defines whether an organization can create contests or not
+ * @param status
+ * @return [Organization] from [OrganizationDto]
+ */
+fun OrganizationDto.toOrganization(
+    dateCreated: LocalDateTime?,
+    canCreateContests: Boolean = false,
+    status: OrganizationStatus = OrganizationStatus.CREATED,
+) = Organization(
+    name,
+    status,
+    ownerId = 1,
+    dateCreated,
+    avatar,
+    description,
+    canCreateContests,
+)

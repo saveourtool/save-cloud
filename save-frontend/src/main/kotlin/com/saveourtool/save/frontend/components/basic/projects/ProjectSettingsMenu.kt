@@ -4,6 +4,8 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
@@ -130,14 +132,14 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-7 input-group pl-0")
-                        input {
-                            type = InputType.email
-                            className = ClassName("form-control")
-                            value = draftProject.email ?: ""
-                            placeholder = "email@example.com"
-                            onChange = {
-                                setDraftProject(draftProject.copy(email = it.target.value))
-                            }
+                        inputTextFormOptional(
+                            InputTypes.PROJECT_EMAIL,
+                            draftProject.email,
+                            "",
+                            null,
+                            draftProject.validateEmail(),
+                        ) {
+                            setDraftProject(draftProject.copy(email = it.target.value))
                         }
                     }
                 }

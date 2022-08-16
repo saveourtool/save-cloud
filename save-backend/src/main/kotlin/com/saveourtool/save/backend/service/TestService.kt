@@ -8,7 +8,6 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
@@ -38,6 +37,7 @@ class TestService(
     private val agentRepository: AgentRepository,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
+    private val testSuitesService: TestSuitesService,
     transactionManager: PlatformTransactionManager,
 ) {
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
@@ -62,16 +62,12 @@ class TestService(
                 }
                     .orElseGet {
                         log.trace("Test $testDto is not found in the DB, will save it")
-                        // FIXME: TestSuite should be found instead of creating a stub
-                        val testSuiteStub = TestSuite(testRootPath = "N/A").apply {
-                            id = testDto.testSuiteId
-                        }
                         Test(
                             testDto.hash,
                             testDto.filePath,
                             testDto.pluginName,
                             LocalDateTime.now(),
-                            testSuiteStub,
+                            testSuitesService.getById(testDto.testSuiteId),
                             additionalFiles = testDto.joinAdditionalFiles(),
                         )
                     }
@@ -98,11 +94,8 @@ class TestService(
                 val execution = executionRepository.getReferenceById(executionId)
                 getTestExecutionsBatchByExecutionIdAndUpdateStatus(execution)
             }!!
-            val testDtos = testExecutions.map { it.test.toDto() }
             Mono.fromCallable {
-                val testBatch = TestBatch(testDtos, testExecutions.map { it.test.testSuite }.associate {
-                    it.id!! to it.testRootPath
-                })
+                val testBatch = testExecutions.map { it.test.toDto() }
                 log.debug("Releasing lock for executionId=$executionId")
                 testBatch
             }

@@ -11,15 +11,18 @@ import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
+import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
 import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 import java.io.File
@@ -35,11 +38,13 @@ import kotlin.io.path.writeText
 @Component
 @Profile("!kubernetes")
 class DockerAgentRunner(
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     private val dockerClient: DockerClient,
     private val meterRegistry: MeterRegistry,
 ) : AgentRunner {
-    private val settings: DockerSettings = configProperties.docker
+    private val settings: DockerSettings = requireNotNull(configProperties.docker) {
+        "Properties under configProperties.docker are not set, but are required with active profiles."
+    }
 
     @Suppress("TYPE_ALIAS")
     private val agentIdsByExecution: ConcurrentMap<Long, MutableList<String>> = ConcurrentHashMap()
@@ -50,12 +55,19 @@ class DockerAgentRunner(
         replicas: Int,
         workingDir: String,
     ): List<String> {
-        val (baseImageId, agentRunCmd, pvId) = configuration
+        val (baseImageTag, agentRunCmd, pvId) = configuration
         require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
+
+        logger.debug { "Pulling image ${configuration.imageTag}" }
+        dockerClient.pullImageCmd(configuration.imageTag)
+            .withRegistry("https://ghcr.io")
+            .exec(PullImageResultCallback())
+            .awaitCompletion()
+
         return (1..replicas).map { number ->
-            logger.info("Building container #$number for execution.id=$executionId")
-            createContainerFromImage(baseImageId, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
-                logger.info("Built container id=$agentId for execution.id=$executionId")
+            logger.info("Creating a container #$number for execution.id=$executionId")
+            createContainerFromImage(baseImageTag, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+                logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
                     .add(agentId)
@@ -127,32 +139,52 @@ class DockerAgentRunner(
         }
     }
 
+    @Scheduled(cron = "0 0 4 * * MON")
+    override fun prune() {
+        var reclaimedBytes = 0L
+        // Release all old resources, except volumes,
+        // since there is no option --filter for `docker volume prune`, and also it could be quite dangerous to remove volumes,
+        // as it possible to lose some prepared data
+        for (type in PruneType.values().filterNot { it == PruneType.VOLUMES }) {
+            val pruneCmd = dockerClient.pruneCmd(type).withUntilFilter(configProperties.dockerResourcesLifetime).exec()
+            val currentReclaimedBytes = pruneCmd.spaceReclaimed ?: 0
+            logger.debug("Reclaimed $currentReclaimedBytes bytes after prune of docker $type")
+            reclaimedBytes += currentReclaimedBytes
+        }
+        logger.info("Reclaimed $reclaimedBytes bytes after prune command")
+    }
+
     /**
      * Creates a docker container
      *
      * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
-     * @param baseImageId id of the base docker image for this container
+     * @param baseImageTag tag of the base docker image for this container
      * @param workingDir working directory for [runCmd]
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(baseImageId: String,
+    private fun createContainerFromImage(baseImageTag: String,
                                          pvId: DockerPvId,
                                          workingDir: String,
-                                         runCmd: String,
+                                         runCmd: List<String>,
                                          containerName: String,
     ): String {
-        val baseImage = dockerClient.findImage(baseImageId, meterRegistry)
-            ?: error("Image with requested baseImageId=$baseImageId is not present in the system")
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
-        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImage.repoTags.first())
+        val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(workingDir)
-            // load environment variables required by save-agent and then run it
-            .withCmd("bash", "-c", "env \$(cat $envFileTargetPath | xargs) $runCmd")
+            // Load environment variables required by save-agent and then run it.
+            // Rely on `runCmd` format: last argument is parameter of the subshell.
+            .withCmd(
+                // this part is like `sh -c` with probably some other flags
+                runCmd.dropLast(1) + (
+                        // last element is an actual command that will be executed in a new shell
+                        "env \$(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
+                )
+            )
             .withName(containerName)
             .withUser("save-agent")
             .withHostConfig(

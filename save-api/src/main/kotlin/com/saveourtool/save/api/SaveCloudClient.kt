@@ -151,7 +151,6 @@ class SaveCloudClient(
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
             executionId = executionId,
-            version = null,
         )
     }
 

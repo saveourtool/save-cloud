@@ -16,9 +16,11 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 
-import kotlin.io.path.absolutePathString
+import kotlin.io.path.pathString
+import kotlin.io.path.relativeTo
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -31,26 +33,38 @@ class DockerPersistentVolumeService(
     private val dockerClient: DockerClient,
     private val configProperties: ConfigProperties,
 ) : PersistentVolumeService {
-    @Suppress("TOO_LONG_FUNCTION")
-    override fun createFromResources(resources: Collection<Path>): DockerPvId {
-        if (resources.size > 1) {
-            TODO("Not yet implemented")
-        }
+    private val settings: ConfigProperties.DockerSettings = requireNotNull(configProperties.docker) {
+        "Properties under configProperties.docker are not set, but are required with active profiles."
+    }
 
+    @Suppress("TOO_LONG_FUNCTION")
+    override fun createFromResources(resourcesDir: Path): DockerPvId {
         val createVolumeResponse = dockerClient.createVolumeCmd()
             .withName("save-execution-vol-${UUID.randomUUID()}")
             .exec()
         blockingPullImage("alpine", "latest")
 
+        val resourcesRelativePath = resourcesDir.relativeTo(
+            Paths.get(configProperties.testResources.tmpPath)
+        )
+        val intermediateResourcesPath = "$SAVE_AGENT_USER_HOME/tmp"
+        val sourceMount = when (settings.testResourcesVolumeType) {
+            "volume" -> Mount()
+                .withType(MountType.VOLUME)
+                .withSource(settings.testResourcesVolumeName)
+                .withTarget(intermediateResourcesPath)
+            "bind" -> Mount()
+                .withType(MountType.BIND)
+                .withSource(configProperties.testResources.tmpPath)
+                .withTarget(intermediateResourcesPath)
+            else -> error("Supported values are `volume` and `bind`")
+        }
         val createContainerResponse = dockerClient.createContainerCmd("alpine:latest")
             .withHostConfig(
                 HostConfig()
                     .withMounts(
                         listOf(
-                            Mount()
-                                .withType(MountType.BIND)
-                                .withSource(resources.single().absolutePathString())
-                                .withTarget("$SAVE_AGENT_USER_HOME/tmp"),
+                            sourceMount,
                             Mount()
                                 .withType(MountType.VOLUME)
                                 .withSource(createVolumeResponse.name)
@@ -60,14 +74,14 @@ class DockerPersistentVolumeService(
             )
             .withCmd(
                 "sh", "-c",
-                "cp -R $SAVE_AGENT_USER_HOME/tmp/* $EXECUTION_DIR" +
+                "cp -R $intermediateResourcesPath/${resourcesRelativePath.pathString}/* $EXECUTION_DIR" +
                         " && chown -R 1100:1100 $EXECUTION_DIR" +
                         " && echo Successfully copied"
             )
             .exec()
         val dataCopyingContainerId = createContainerResponse.id
 
-        logger.info("Starting container $dataCopyingContainerId to copy files from $resources into volume ${createVolumeResponse.name}")
+        logger.info("Starting container $dataCopyingContainerId to copy files from $resourcesDir into volume ${createVolumeResponse.name}")
         dockerClient.startContainerCmd(dataCopyingContainerId)
             .exec()
         waitForCompletionWithTimeout(dataCopyingContainerId)
@@ -81,7 +95,7 @@ class DockerPersistentVolumeService(
         repository: String,
         tag: String
     ) = dockerClient.pullImageCmd(repository)
-        .withRegistry(configProperties.docker.registry)
+        .withRegistry(settings.registry)
         .withTag(tag)
         .exec(PullImageResultCallback())
         .awaitCompletion()

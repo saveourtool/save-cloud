@@ -22,6 +22,8 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.sup
 import react.useEffect
 
+val suitesTable = prepareSuitesTable()
+
 /**
  * Props for CheckboxGrid component
  */
@@ -42,25 +44,23 @@ external interface CheckBoxGridProps : PropsWithChildren {
     var suites: List<TestSuiteDto>
 
     /**
+     * Setter for language
+     */
+    var setSelectedLanguageForStandardTests: (String) -> Unit
+
+    /**
      * Language selected for standard tests
      */
     var selectedLanguageForStandardTests: String?
 }
 
 /**
- * @param suites
- * @param selectedLanguageForStandardTests
- * @param setSelectedLanguageForStandardTests
  * @return functional interface with navigation menu
  */
-fun suitesTable(
-    suites: List<TestSuiteDto>,
-    selectedLanguageForStandardTests: String?,
-    setSelectedLanguageForStandardTests: (String) -> Unit,
-) = FC<CheckBoxGridProps> {
+fun prepareSuitesTable() = FC<CheckBoxGridProps> { props ->
     nav {
         className = ClassName("nav nav-tabs mb-4")
-        val (languagesWithoutNull, otherLanguages) = suites.map { it.language }
+        val (languagesWithoutNull, otherLanguages) = props.suites.map { it.language }
             .distinct()
             .sortedBy { it }
             .partition { it != null }
@@ -75,14 +75,14 @@ fun suitesTable(
                 p {
                     className = ClassName("nav-link")
                     onClick = {
-                        setSelectedLanguageForStandardTests(lang)
+                        props.setSelectedLanguageForStandardTests(lang)
                     }
 
-                    val languageWasNotSelected = (selectedLanguageForStandardTests.isNullOrBlank() && index == 0)
+                    val languageWasNotSelected = (props.selectedLanguageForStandardTests.isNullOrBlank() && index == 0)
                     if (languageWasNotSelected) {
-                        setSelectedLanguageForStandardTests(lang)
+                        props.setSelectedLanguageForStandardTests(lang)
                     }
-                    if (languageWasNotSelected || lang == selectedLanguageForStandardTests) {
+                    if (languageWasNotSelected || lang == props.selectedLanguageForStandardTests) {
                         className = ClassName("$className active font-weight-bold text-gray-800")
                     }
 

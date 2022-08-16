@@ -1,7 +1,9 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.isValidName
 
 /**
  * @property name organization
@@ -25,14 +27,7 @@ class Contest(
     var organization: Organization,
     var testSuiteIds: String = "",
     var description: String? = null,
-) {
-    /**
-     * id of contest
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+) : BaseEntity() {
     /**
      * Create Data Transfer Object in order to pass entity to frontend
      *
@@ -45,16 +40,28 @@ class Contest(
         endTime!!,
         description,
         organization.name,
+        getTestSuiteIds().toList(),
     )
 
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds.split(",")
+    fun getTestSuiteIds() = testSuiteIds.split(DATABASE_DELIMITER)
         .mapNotNull {
             it.toLongOrNull()
         }
-        .toSet()
+        .distinct()
+
+    private fun validateTestSuiteIds() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
+
+    private fun validateDateRange() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
+
+    /**
+     * Validate contest data
+     *
+     * @return true if contest data is valid, false otherwise
+     */
+    override fun validate() = name.isValidName() && validateTestSuiteIds() && validateDateRange()
 
     companion object {
         /**
@@ -77,17 +84,17 @@ class Contest(
             this.id = id
         }
 
+        private fun joinTestSuiteIds(testSuiteIds: List<Long>) = testSuiteIds.joinToString(DATABASE_DELIMITER)
+
         /**
          * Create [Contest] from [ContestDto]
          *
          * @param organization that created contest
-         * @param testSuiteIds list of test suite ids
          * @param status [ContestStatus]
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
-            testSuiteIds: String = "",
             status: ContestStatus = ContestStatus.CREATED,
         ) = Contest(
             name,
@@ -95,7 +102,7 @@ class Contest(
             startTime,
             endTime,
             organization,
-            testSuiteIds,
+            joinTestSuiteIds(testSuiteIds),
             description,
         )
     }

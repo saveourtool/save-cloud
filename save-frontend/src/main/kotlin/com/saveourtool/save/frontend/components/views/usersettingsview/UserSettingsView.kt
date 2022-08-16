@@ -5,19 +5,16 @@
 package com.saveourtool.save.frontend.components.views.usersettingsview
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.frontend.SETTINGS_EMAIL
-import com.saveourtool.save.frontend.SETTINGS_ORGANIZATIONS
-import com.saveourtool.save.frontend.SETTINGS_PROFILE
-import com.saveourtool.save.frontend.SETTINGS_TOKEN
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.OrganizationInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -80,7 +77,7 @@ external interface UserSettingsViewState : State {
     /**
      * Organizations connected to user
      */
-    var selfOrganizationInfos: List<OrganizationInfo>
+    var selfOrganizationDtos: List<OrganizationDto>
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -90,7 +87,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
 
     init {
         state.isUploading = false
-        state.selfOrganizationInfos = emptyList()
+        state.selfOrganizationDtos = emptyList()
     }
 
     /**
@@ -109,15 +106,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val user = props.userName
                 ?.let { getUser(it) }
-            val organizationInfos = getOrganizationInfos()
+            val organizationDtos = getOrganizationDtos()
             setState {
-                image = avatar
                 userInfo = user
+                image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationInfos = organizationInfos
+                selfOrganizationDtos = organizationDtos
             }
         }
     }
@@ -213,7 +209,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_PROFILE"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -224,7 +220,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_EMAIL"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -235,7 +231,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_ORGANIZATIONS"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -258,7 +254,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/$SETTINGS_TOKEN"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -337,20 +333,11 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 }
             }
 
-    private suspend fun getAvatar() = get(
-        "$apiUrl/users/${props.userName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ImageInfo>()
-        }
-
     @Suppress("TYPE_ALIAS")
-    private suspend fun getOrganizationInfos() = get(
+    private suspend fun getOrganizationDtos() = get(
         "$apiUrl/organizations/by-user/not-deleted",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap { it.decodeFromJsonString<List<OrganizationInfo>>() }
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
 }

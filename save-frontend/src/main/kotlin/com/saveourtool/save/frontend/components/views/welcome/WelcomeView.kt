@@ -6,10 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views.welcome
 
-import com.saveourtool.save.frontend.AWESOME_BENCHMARKS
-import com.saveourtool.save.frontend.CONTESTS
-import com.saveourtool.save.frontend.PROJECTS
-import com.saveourtool.save.frontend.SETTINGS_EMAIL
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
@@ -19,6 +15,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
+import csstype.*
 
 import csstype.*
 import org.w3c.fetch.Headers
@@ -247,8 +245,8 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                                 color = "#3075c0".unsafeCast<Color>()
                             }
                             a {
+                                href = "#/${FrontendRoutes.PROJECTS.path}"
                                 className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                                href = "#/$PROJECTS"
                                 +"Continue "
                                 fontAwesomeIcon(icon = faSignInAlt)
                             }
@@ -287,14 +285,13 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("card-body")
             div {
                 className = ClassName("text-sm")
-
-                menuTextAndLink("Contests", "/#/$CONTESTS", faBell)
+                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faBell)
                 hrNoMargin()
-                menuTextAndLink("List of Projects", "#/$PROJECTS", faExternalLinkAlt)
+                menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
                 hrNoMargin()
-                menuTextAndLink("Benchmarks Archive", "/#/$AWESOME_BENCHMARKS", faFolderOpen)
+                menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
-                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/$SETTINGS_EMAIL", faUser)
+                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}", faUser)
             }
         }
     }

@@ -14,9 +14,12 @@ import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+
+internal var areAgentsHaveStarted = AtomicBoolean(false)
 
 typealias AgentStateWithTimeStamp = Pair<String, Instant>
 
@@ -124,7 +127,7 @@ class HeartBeatInspector(
         }
     }
 
-    @Scheduled(cron = "*/\${orchestrator.heartBeatInspectorInterval} * * * * ?")
+    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
     private fun run() {
         determineCrashedAgents()
         processCrashedAgents()

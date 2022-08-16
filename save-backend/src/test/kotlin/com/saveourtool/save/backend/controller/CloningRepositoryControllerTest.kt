@@ -110,7 +110,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "JohnDoe")
     fun checkNewJobResponse() {
         mockServerPreprocessor.enqueue(
             "/upload",
@@ -138,7 +138,7 @@ class CloningRepositoryControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe")
+    @WithMockUser(username = "JohnDoe")
     fun checkNewJobResponseForBin() {
         val binFile = tmpDir.resolve("binFile").apply {
             createFile()
@@ -154,7 +154,7 @@ class CloningRepositoryControllerTest {
             property.toDataBufferFlux().map { it.asByteBuffer() }).subscribeOn(Schedulers.immediate()).block()
 
         val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null, "version")
+        val request = ExecutionRequestForStandardSuites(testProject, emptyList(), sdk, null, null, null)
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("execution", request)
         bodyBuilder.part("file", property.toFileInfo())

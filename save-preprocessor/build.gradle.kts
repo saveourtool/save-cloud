@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.commons.compress)
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
