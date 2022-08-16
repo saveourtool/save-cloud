@@ -390,9 +390,7 @@ internal class OrganizationController(
         }
         .flatMap { testSuitesList ->
             Flux.fromIterable(testSuitesList).map { testSuite ->
-                testSuite?.let {
-                    cleanupStorageData(it)
-                }
+                cleanupStorageData(testSuite)
             }.collectList()
         }
         .map {
