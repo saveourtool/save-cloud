@@ -146,6 +146,10 @@ class DownloadProjectController(
         version: String,
     ): Flux<TestSuite> = testSuitesPreprocessorController.fetch(this, version)
         .flatMap { isFetched ->
+            // Perform `fetch` first and zip with `getTestSuites`, in aim to detect, whether
+            // the data is exits in storage and not in DB at next step: if `fetch` was performed, but
+            // the list of test suites is not empty, that means, that data in storage exist, but in DB is absent
+            // `fetch` method should be called first, since `getTestSuites` should have the actual testsuites
             getTestSuites(version).collectList().map { testSuites ->
                 Mono.zip(
                     Mono.just(isFetched),
@@ -159,15 +163,22 @@ class DownloadProjectController(
         .flatMapMany {
             val isFetched = it.t1
             val testSuites = it.t2
-            if (!isFetched && testSuites.isEmpty()) {
-                log.warn("Set of test suites is found in storage, but doesn't exist in DB! Clean up corresponding test suite source...")
-                testsPreprocessorToBackendBridge.removeTestSuitesSourceWithVersion(this, version)
-            } else {
-                Mono.just(false)
-            }.flatMapMany {
+            removeTestSuiteSourceFromStorageIfNeeded(isFetched, testSuites, this, version).flatMapMany {
                 Flux.fromIterable(testSuites)
             }
         }
+
+    private fun removeTestSuiteSourceFromStorageIfNeeded(
+        isFetched: Boolean,
+        testSuites: List<TestSuite>,
+        testSuitesSource: TestSuitesSourceDto,
+        version: String
+    ): Mono<Boolean> = if (!isFetched && testSuites.isEmpty()) {
+        log.warn("Set of test suites is found in storage, but doesn't exist in DB! Clean up corresponding test suite source...")
+        testsPreprocessorToBackendBridge.removeTestSuitesSourceWithVersion(testSuitesSource, version)
+    } else {
+        Mono.just(false)
+    }
 
     private fun TestSuitesSourceDto.getTestSuites(
         version: String,

@@ -53,7 +53,7 @@ class TestSuitesPreprocessorController(
      *
      * @param testSuitesSourceDto source from which test suites need to be loaded
      * @param version version which needs to be loaded
-     * @return empty response
+     * @return true if fetching was performed, false otherwise
      */
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
