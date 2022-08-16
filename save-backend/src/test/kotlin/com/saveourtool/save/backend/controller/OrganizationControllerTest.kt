@@ -1,18 +1,12 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
+import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.backend.service.AgentStatusService
-import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.GitService
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.service.TestSuitesSourceService
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
@@ -49,6 +43,12 @@ import java.util.*
     ExecutionService::class,
     AgentStatusService::class,
     AgentService::class,
+    WebConfig::class,
+    ProjectService::class,
+    ProjectPermissionEvaluator::class,
+    LnkUserProjectService::class,
+    UserDetailsService::class,
+
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -110,6 +110,12 @@ class OrganizationControllerTest {
 
     @MockBean
     private lateinit var agentRepository: AgentRepository
+
+    @MockBean
+    private lateinit var projectRepository: ProjectRepository
+
+    @MockBean
+    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
 
     @BeforeEach
     internal fun setUp() {

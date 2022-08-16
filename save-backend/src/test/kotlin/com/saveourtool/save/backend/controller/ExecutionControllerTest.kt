@@ -77,40 +77,8 @@ class ExecutionControllerTest {
 
     @Test
     @WithMockUser("JohnDoe")
-    fun testDataSave() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution.stub(project).apply {
-            startTime = testLocalDateTime
-            endTime = testLocalDateTime
-        }
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        val databaseData = executionRepository.findAll()
-
-        assertTrue(databaseData.any { it.status == execution.status && it.startTime == testLocalDateTime })
-    }
-
-    @Test
-    @WithMockUser("JohnDoe")
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution.stub(project)
-
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
         val executionUpdateDto = ExecutionUpdateDto(1, ExecutionStatus.FINISHED)
 
         webClient.post()
