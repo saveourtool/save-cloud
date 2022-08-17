@@ -171,6 +171,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.REGISTRATION.path}"
+                                    element = RegistrationView::class.react.create() {
+                                        userName = state.userInfo?.name
+                                    }
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
@@ -209,11 +216,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                             userName = it
                                         }
                                     } ?: fallbackNode
-                                }
-
-                                Route {
-                                    path = "/registration"
-                                    element = RegistrationView::class.react.create()
                                 }
 
                                 Route {

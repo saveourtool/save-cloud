@@ -1,30 +1,34 @@
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.http.getUser
-import com.saveourtool.save.frontend.utils.apiUrl
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
+
 import csstype.ClassName
-import kotlinx.coroutines.launch
+import kotlinx.browser.window
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
 import react.ChildrenBuilder
-import com.saveourtool.save.v1
 import react.PropsWithChildren
 import react.State
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
+
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import react.dom.events.ChangeEvent
 
 /**
  * `Props` retrieved from router
@@ -61,7 +65,6 @@ external interface RegistrationViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>() {
-
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
 
     init {
@@ -81,61 +84,92 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         }
     }
 
-    private fun changeFields(fieldName: InputTypes, target: Event, isOrganization: Boolean = true) {
-        val tg = target.target as HTMLInputElement
-        if (isOrganization) fieldsMap[fieldName] = tg.value else fieldsMap[fieldName] = tg.value
+    private fun changeFields(
+        fieldName: InputTypes,
+        target: ChangeEvent<HTMLInputElement>,
+    ) {
+        val tg = target.target
+        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${tg.value}")
+        fieldsMap[fieldName] = tg.value
+        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${fieldsMap[InputTypes.USER_NAME]}")
     }
 
     private fun saveUser() {
+        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${fieldsMap[InputTypes.USER_NAME]}")
+            val newUserInfo = state.userInfo?.copy(
+                name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
+                oldNames = listOf(state.userInfo!!.name),
+                isActive = true,
+            )
 
+            scope.launch {
+                val response = post(
+                    "$apiUrl/users/save",
+                    jsonHeaders,
+                    Json.encodeToString(newUserInfo),
+                    loadingHandler = ::classLoadingHandler,
+                )
+                if (response.ok) {
+                    window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
+                }
+            }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
-        userInfo.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
+        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
     }
 
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "LongMethod",
+        "MAGIC_NUMBER"
+    )
     override fun ChildrenBuilder.render() {
-        ReactHTML.main {
-            className = ClassName("main-content mt-0 ps")
-            ReactHTML.div {
-                className = ClassName("page-header align-items-start min-vh-100")
-                ReactHTML.span {
-                    className = ClassName("mask bg-gradient-dark opacity-6")
-                }
+        println("userName - userName - userName - ${props.userName}")
+        println("active - active - active - ${state.userInfo?.isActive}")
+        if (state.userInfo?.isActive == false) {
+            ReactHTML.main {
+                className = ClassName("main-content mt-0 ps")
                 ReactHTML.div {
-                    className = ClassName("row justify-content-center")
+                    className = ClassName("page-header align-items-start min-vh-100")
+                    ReactHTML.span {
+                        className = ClassName("mask bg-gradient-dark opacity-6")
+                    }
                     ReactHTML.div {
-                        className = ClassName("col-sm-4")
+                        className = ClassName("row justify-content-center")
                         ReactHTML.div {
-                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            className = ClassName("col-sm-4")
                             ReactHTML.div {
-                                className = ClassName("p-5 text-center")
-                                ReactHTML.h1 {
-                                    className = ClassName("h4 text-gray-900 mb-4")
-                                    +"Registration new user"
-                                }
-                                ReactHTML.label {
-                                    ReactHTML.input {
-                                        type = InputType.file
-                                        hidden = true
-                                        onChange = { event ->
-                                            postImageUpload(event.target)
-                                        }
+                                className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                                ReactHTML.div {
+                                    className = ClassName("p-5 text-center")
+                                    ReactHTML.h1 {
+                                        className = ClassName("h4 text-gray-900 mb-4")
+                                        +"Registration new user"
                                     }
-                                    ariaLabel = "Change organization's avatar"
-                                    ReactHTML.img {
-                                        className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                        src = state.image?.path?.let {
-                                            "/api/$v1/avatar$it"
-                                        }
-                                            ?: run {
-                                                "img/user.svg"
+                                    ReactHTML.label {
+                                        ReactHTML.input {
+                                            type = InputType.file
+                                            hidden = true
+                                            onChange = { event ->
+                                                postImageUpload(event.target)
                                             }
-                                        height = 260.0
-                                        width = 260.0
+                                        }
+                                        ariaLabel = "Change organization's avatar"
+                                        ReactHTML.img {
+                                            className =
+                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                            src = state.image?.path?.let {
+                                                "/api/$v1/avatar$it"
+                                            }
+                                                ?: run {
+                                                    "img/user.svg"
+                                                }
+                                            height = 260.0
+                                            width = 260.0
+                                        }
                                     }
-                                }
                                     ReactHTML.form {
                                         className = ClassName("needs-validation")
                                         ReactHTML.label {
@@ -151,11 +185,11 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             ReactHTML.input {
                                                 type = InputType.text
                                                 className = ClassName("form-control")
-                                                state.userInfo?.location?.let {
+                                                state.userInfo?.name?.let {
                                                     defaultValue = it
                                                 }
                                                 onChange = {
-                                                    changeFields(InputTypes.ORGANIZATION_NAME, it as Event)
+                                                    changeFields(InputTypes.USER_NAME, it)
                                                 }
                                             }
                                         }
@@ -169,35 +203,37 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                         }
                                     }
                                 }
+                            }
                         }
                     }
                 }
             }
+        } else if (state.userInfo?.isActive == true) {
+            window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
         }
     }
 
     private fun postImageUpload(element: HTMLInputElement) =
-        scope.launch {
-            setState {
-                isUploading = true
-            }
-            element.files!!.asList().single().let { file ->
-                val response: ImageInfo? = post(
-                    "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    },
-                    loadingHandler = ::classLoadingHandler,
-                )
-                    .decodeFromJsonString()
+            scope.launch {
                 setState {
-                    image = response
+                    isUploading = true
+                }
+                element.files!!.asList().single().let { file ->
+                    val response: ImageInfo? = post(
+                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
+                        Headers(),
+                        FormData().apply {
+                            append("file", file)
+                        },
+                        loadingHandler = ::classLoadingHandler,
+                    )
+                        .decodeFromJsonString()
+                    setState {
+                        image = response
+                    }
+                }
+                setState {
+                    isUploading = false
                 }
             }
-            setState {
-                isUploading = false
-            }
-        }
-
 }

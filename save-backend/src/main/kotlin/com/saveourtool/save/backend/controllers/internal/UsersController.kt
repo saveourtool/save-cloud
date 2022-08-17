@@ -8,6 +8,7 @@ import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
@@ -29,6 +30,7 @@ typealias StringResponse = ResponseEntity<String>
 class UsersController(
     private val userRepository: UserRepository,
     private val userService: UserDetailsService,
+    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
@@ -47,8 +49,12 @@ class UsersController(
         userRepository.findByName(userName).ifPresentOrElse({
             logger.debug("User $userName is already present in the DB")
         }) {
-            logger.info("Saving user $userName to the DB")
-            userRepository.save(user)
+            originalLoginRepository.findByName(userName).map { it.user }.ifPresentOrElse({
+                logger.debug("User $userName is already present in the DB")
+            }) {
+                logger.info("Saving user $userName to the DB")
+                userRepository.save(user)
+            }
         }
     }
 

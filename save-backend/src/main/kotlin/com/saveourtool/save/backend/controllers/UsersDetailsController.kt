@@ -1,12 +1,15 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.justOrNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OriginalLogin
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
@@ -26,6 +29,7 @@ import reactor.core.publisher.Mono
 class UsersDetailsController(
     private val userRepository: UserRepository,
     private val userDetailsService: UserDetailsService,
+    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     /**
      * @param userName username
@@ -53,16 +57,25 @@ class UsersDetailsController(
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
-        val user = userRepository.findByName(newUserInfo.name).get()
+        val user: User = if (newUserInfo.isActive) {
+            userRepository.findByName(newUserInfo.oldNames.single() ?: newUserInfo.name).get()
+        } else {
+            userRepository.findByName(newUserInfo.name).get()
+        }
+        if (newUserInfo.isActive) {
+            originalLoginRepository.save(OriginalLogin(user.name, user))
+        }
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             userRepository.save(user.apply {
+                name = newUserInfo.name
                 email = newUserInfo.email
                 company = newUserInfo.company
                 location = newUserInfo.location
                 gitHub = newUserInfo.gitHub
                 linkedin = newUserInfo.linkedin
                 twitter = newUserInfo.twitter
+                isActive = newUserInfo.isActive
             })
             ResponseEntity.ok("User information saved successfully")
         } else {

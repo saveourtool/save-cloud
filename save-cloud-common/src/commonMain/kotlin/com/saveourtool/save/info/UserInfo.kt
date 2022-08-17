@@ -22,7 +22,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class UserInfo(
+    val id: Long? = null,
     val name: String,
+    val oldNames: List<String?> = emptyList(),
     val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),
     val organizations: Map<String, Role> = emptyMap(),
@@ -34,4 +36,5 @@ data class UserInfo(
     var gitHub: String? = null,
     var twitter: String? = null,
     val globalRole: Role? = null,
+    var isActive: Boolean = false,
 )

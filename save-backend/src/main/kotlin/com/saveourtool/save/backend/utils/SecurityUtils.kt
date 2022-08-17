@@ -24,6 +24,7 @@ fun Authentication.toUser(): User {
         email = null,
         role = (this as UsernamePasswordAuthenticationToken).authorities.joinToString(separator = ","),
         source = identitySource,
+        isActive = false,
     )
 }
 

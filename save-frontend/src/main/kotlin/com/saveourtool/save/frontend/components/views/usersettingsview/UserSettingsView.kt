@@ -284,6 +284,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     fun updateUser() {
         val newUserInfo = UserInfo(
             name = state.userInfo!!.name,
+            oldNames = state.userInfo!!.oldNames,
             source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
@@ -293,6 +294,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
             twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
             avatar = state.userInfo!!.avatar,
+            isActive = state.userInfo!!.isActive,
         )
 
         val headers = Headers().also {
