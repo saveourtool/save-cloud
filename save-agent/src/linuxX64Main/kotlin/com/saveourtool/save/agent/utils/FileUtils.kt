@@ -9,6 +9,11 @@ import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import platform.posix.S_IRGRP
+import platform.posix.S_IROTH
+import platform.posix.S_IRUSR
+import platform.posix.S_IWUSR
+import platform.posix.S_IXUSR
 
 /**
  * Read file as a list of strings
@@ -63,7 +68,7 @@ internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
 internal fun Path.tryMarkAsExecutable() {
     platform.posix.chmod(
         this.toString(),
-        755,
+        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
     )
 }
 
