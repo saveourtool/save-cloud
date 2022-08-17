@@ -143,7 +143,9 @@ fun Project.createStackDeployTask(profile: String) {
                 Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
             }
         }
-        finalizedBy("liquibaseUpdate")
+    }
+    tasks.named("liquibaseUpdate") {
+        mustRunAfter("startMysqlDb")
     }
 
     tasks.register<Exec>("restartMysqlDb") {
