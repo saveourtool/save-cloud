@@ -59,6 +59,11 @@ internal class KafkaConfiguration(
     lateinit var consumerGroup: String
 
     /**
+     * @property listenerPollTimeout
+     */
+    private val listenerPollTimeout = 500L
+
+    /**
      * @return kafka producer properties
      */
     @Bean
@@ -116,7 +121,7 @@ internal class KafkaConfiguration(
         val factory = ConcurrentKafkaListenerContainerFactory<Any, Any>()
         factory.setConsumerFactory(consumerFactory())
         factory.setConcurrency(1)
-        factory.getContainerProperties().setPollTimeout(500)
+        factory.getContainerProperties().setPollTimeout(listenerPollTimeout)
         factory.setErrorHandler(
             SeekToCurrentErrorHandler(
                 DeadLetterPublishingRecoverer(template)

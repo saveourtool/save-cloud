@@ -63,7 +63,7 @@ class KafkaSender<V : KafkaMsg>(
      * @param successCount
      * @param failedRecords
      */
-    @Suppress("TYPE_ALIAS")
+    @Suppress("TYPE_ALIAS", "TooGenericExceptionCaught")
     fun sendMessage(msg: V, successCount: AtomicLong, failedRecords: MutableSet<String?>) {
         val messageId = msg.messageId
         try {
