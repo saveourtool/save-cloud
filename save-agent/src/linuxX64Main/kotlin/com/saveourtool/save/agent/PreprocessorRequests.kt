@@ -2,6 +2,8 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.extractZipTo
 import com.saveourtool.save.agent.utils.logDebugCustom
+import com.saveourtool.save.agent.utils.tryMarkAsExecutable
+import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
@@ -10,9 +12,11 @@ import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.cinterop.toKString
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import platform.posix.getenv
 
 internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: Path, executionId: String) {
     val response = post {
@@ -41,20 +45,33 @@ internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: P
     logDebugCustom("Extracted archive into $target")
 }
 
-/*internal suspend fun HttpClient.downloadAdditionalResources(targetDirectory: Path, additionalResourcesAsString: String) {
-    additionalResourcesAsString.split().forEach { additionalResourceName ->
+internal suspend fun HttpClient.downloadAdditionalResources(
+    baseUrl: String,
+    targetDirectory: Path,
+    additionalResourcesAsString: String,
+) {
+    val organizationName = getenv("ORGANIZATION_NAME")!!.toKString()
+    val projectName = getenv("PROJECT_NAME")!!.toKString()
+    FileKey.parseList(additionalResourcesAsString).map { fileKey ->
         val fileContentBytes = post {
-            url("/files/{organizationName}/{projectName}/download")
+            url("$baseUrl/internal/files/$organizationName/$projectName/download")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.OctetStream)
-            setBody(FileKey())
+            setBody(fileKey)
         }
             .body<ByteArray>()
-        fs.write(
-            targetDirectory.resolve(),
-            mustCreate = true,
-        ) {
-            write(fileContentBytes)
-        }
+        fileContentBytes.writeToFile(
+            targetDirectory / fileKey.name
+        )
+        fileKey to targetDirectory / fileKey.name
     }
-}*/
+        .onEach { (fileKey, pathToFile) ->
+            pathToFile.tryMarkAsExecutable()
+            logDebugCustom(
+                 "Downloaded $fileKey to ${fs.canonicalize(pathToFile)}"
+            )
+        }
+        .map { (_, pathToFile) ->
+            unzipIfRequired(pathToFile)
+        }
+}

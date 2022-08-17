@@ -59,3 +59,27 @@ internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
         write(this@writeToFile).flush()
     }
 }
+
+internal fun Path.tryMarkAsExecutable() {
+    platform.posix.chmod(
+        this.toString(),
+        755,
+    )
+}
+
+internal fun unzipIfRequired(
+    pathToFile: Path,
+) {
+    // FixMe: for now support only .zip files
+    if (pathToFile.name.endsWith(".zip")) {
+//        val shouldBeExecutable = Files.getPosixFilePermissions(pathToFile).any { allExecute.contains(it) }
+        pathToFile.extractZipTo(pathToFile.parent!!)
+//        if (shouldBeExecutable) {
+//            log.info { "Marking files in ${pathToFile.parent} executable..." }
+//            Files.walk(pathToFile.parent)
+//                .filter { it.isRegularFile() }
+//                .forEach { with(loggingContext) { it.tryMarkAsExecutable() } }
+//        }
+        fs.delete(pathToFile, mustExist = true)
+    }
+}

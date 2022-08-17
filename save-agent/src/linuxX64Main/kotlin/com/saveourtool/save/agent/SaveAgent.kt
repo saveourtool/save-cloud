@@ -96,8 +96,10 @@ class SaveAgent(internal val config: AgentConfiguration,
             logDebugCustom("Will now download tests")
             httpClient.downloadTestResources(config.backend.url, targetDirectory, getenv("EXECUTION_ID")!!.toKString())
             logInfoCustom("Downloaded all tests for execution ${getenv("EXECUTION_ID")!!.toKString()} to $targetDirectory")
-//            logDebugCustom("Will now download additional resources")
-//            httpClient.downloadAdditionalResources(targetDirectory.toPath(), getenv("additional_files_list")!!.toKString())
+
+            logDebugCustom("Will now download additional resources")
+            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, getenv("ADDITIONAL_FILES_LIST")!!.toKString())
+
             state.value = AgentState.STARTING
         }
         return coroutineScope.launch { startHeartbeats(this) }
