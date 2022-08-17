@@ -1,5 +1,6 @@
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -25,16 +26,20 @@ internal suspend fun HttpClient.downloadTestResources(target: Path, executionId:
     // todo: unzip
 }
 
-internal suspend fun HttpClient.downloadAdditionalResources(targetDirectory: Path) {
-    val fileContentBytes = post {
-        url("/files/{organizationName}/{projectName}/download")
-        contentType(ContentType.Application.Json)
-        accept(ContentType.Application.OctetStream)
+/*internal suspend fun HttpClient.downloadAdditionalResources(targetDirectory: Path, additionalResourcesAsString: String) {
+    additionalResourcesAsString.split().forEach { additionalResourceName ->
+        val fileContentBytes = post {
+            url("/files/{organizationName}/{projectName}/download")
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.OctetStream)
+            setBody(FileKey())
+        }
+            .body<ByteArray>()
+        FileSystem.SYSTEM.write(
+            targetDirectory.resolve(),
+            mustCreate = true,
+        ) {
+            write(fileContentBytes)
+        }
     }
-        .body<ByteArray>()
-    FileSystem.SYSTEM.write(
-        targetDirectory.resolve()
-    ) {
-        write(fileContentBytes)
-    }
-}
+}*/
