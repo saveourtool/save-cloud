@@ -194,7 +194,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             "mb-2",
             "Description",
         ) {
-            setTestSuiteSource(testSuiteSource.copy(testRootPath = it.target.value))
+            setTestSuiteSource(testSuiteSource.copy(description = it.target.value))
         }
         div {
             className = ClassName("d-flex justify-content-center")
