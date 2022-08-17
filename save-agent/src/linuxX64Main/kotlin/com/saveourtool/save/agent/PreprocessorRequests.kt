@@ -5,6 +5,7 @@ import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.agent.utils.tryMarkAsExecutable
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.agent.utils.writeToFile
+import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -60,6 +61,9 @@ internal suspend fun HttpClient.downloadAdditionalResources(
             setBody(fileKey)
         }
             .body<ByteArray>()
+        if (fileContentBytes.isEmpty()) {
+            error("Couldn't download file $fileKey: content is empty")
+        }
         fileContentBytes.writeToFile(
             targetDirectory / fileKey.name
         )
@@ -73,5 +77,9 @@ internal suspend fun HttpClient.downloadAdditionalResources(
         }
         .map { (_, pathToFile) ->
             unzipIfRequired(pathToFile)
+        }
+        .ifEmpty {
+            logWarn("Not found any additional files for execution \$id")
+            emptyList()
         }
 }
