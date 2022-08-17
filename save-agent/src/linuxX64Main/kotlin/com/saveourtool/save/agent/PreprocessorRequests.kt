@@ -1,5 +1,6 @@
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -17,12 +18,14 @@ internal suspend fun HttpClient.downloadTestResources(target: Path, executionId:
     }
 //        .bodyAsChannel()
         .body<ByteArray>()
+    logDebugCustom("Writing downloaded archive into $target/archive.zip")
     FileSystem.SYSTEM.write(
         target.resolve("archive.zip"),
         mustCreate = true,
     ) {
         write(bytes)
     }
+    logDebugCustom("Downloaded archive into $target/archive.zip")
     // todo: unzip
 }
 
