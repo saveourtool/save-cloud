@@ -11,13 +11,16 @@ import okio.FileSystem
 import okio.Path
 
 internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: Path, executionId: String) {
-    val bytes = post {
+    val response = post {
         url("$baseUrl/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
     }
+    if (!response.status.isSuccess()) {
+        error("Error while downloading test resources: ${response.status}")
+    }
 //        .bodyAsChannel()
-        .body<ByteArray>()
+    val bytes = response.body<ByteArray>()
     logDebugCustom("Writing downloaded archive of size ${bytes.size} into $target/archive.zip")
     FileSystem.SYSTEM.createDirectories(target, mustCreate = false)
     FileSystem.SYSTEM.write(
