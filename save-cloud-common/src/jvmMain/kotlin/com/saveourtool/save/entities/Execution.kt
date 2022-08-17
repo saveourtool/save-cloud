@@ -2,7 +2,6 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.format
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -132,10 +131,7 @@ class Execution(
      * @param testSuiteIds list of TestSuite IDs
      */
     fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = testSuiteIds
-            .distinct()
-            .sorted()
-            .joinToString(DATABASE_DELIMITER)
+        this.testSuiteIds = formatTestSuiteIds(testSuiteIds)
     }
 
     /**
@@ -144,27 +140,6 @@ class Execution(
      * @return list of keys [FileKey] of additional files
      */
     fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
-
-    /**
-     * Appends additional file to existed formatted String
-     *
-     * @param fileKey a new key [FileKey] to additional file
-     */
-    fun appendAdditionalFile(fileKey: FileKey) {
-        if (additionalFiles.isNotEmpty()) {
-            additionalFiles += FileKey.OBJECT_DELIMITER
-        }
-        additionalFiles += fileKey.format()
-    }
-
-    /**
-     * Format and set provided list of [FileKey]
-     *
-     * @param fileKeys list of [FileKey]
-     */
-    fun formatAndSetAdditionalFiles(fileKeys: List<FileKey>) {
-        additionalFiles = fileKeys.format()
-    }
 
     companion object {
         /**
@@ -197,5 +172,14 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
+
+        /**
+         * @param testSuiteIds list of TestSuite IDs
+         * @return formatted string
+         */
+        fun formatTestSuiteIds(testSuiteIds: List<Long>): String = testSuiteIds
+            .distinct()
+            .sorted()
+            .joinToString(DATABASE_DELIMITER)
     }
 }

@@ -51,8 +51,3 @@ fun List<FileKey>.format(): String = this.joinToString(FileKey.OBJECT_DELIMITER)
  * @return formatted string
  */
 fun FileInfo.format(): String = "$name${FileKey.FIELD_DELIMITER}$uploadedMillis"
-
-/**
- * @return [FileKey] created from [FileInfo]
- */
-fun FileInfo.toFileKey(): FileKey = FileKey(this)

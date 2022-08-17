@@ -20,7 +20,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import java.util.Optional
 
 @ExtendWith(SpringExtension::class)
 @Import(PermissionService::class)
@@ -35,7 +34,6 @@ class PermissionServiceTest {
         given(userRepository.findByName(any())).willAnswer { invocationOnMock ->
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
-                .let { Optional.of(it) }
         }
         given(projectService.findByNameAndOrganizationName(any(), any())).willAnswer {
             Project.stub(id = 99)
@@ -50,7 +48,7 @@ class PermissionServiceTest {
 
     @Test
     fun `should return empty for non-existent projects or users`() {
-        given(userRepository.findByName(any())).willReturn(Optional.empty<User>())
+        given(userRepository.findByName(any())).willReturn(null)
         given(projectService.findByNameAndOrganizationName(any(), any())).willReturn(null)
 
         val role = permissionService.getRole(userName = "admin", projectName = "Example", organizationName = "Example Org")
@@ -65,7 +63,6 @@ class PermissionServiceTest {
         given(userRepository.findByName(any())).willAnswer { invocationOnMock ->
             User(invocationOnMock.arguments[0] as String, null, null, "basic")
                 .apply { id = 99 }
-                .let { Optional.of(it) }
         }
         given(projectService.findByNameAndOrganizationName(any(), any())).willAnswer {
             Project.stub(id = 99)

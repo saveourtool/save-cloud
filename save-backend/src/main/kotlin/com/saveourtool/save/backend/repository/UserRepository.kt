@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.User
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
-import java.util.Optional
 
 /**
  * Repository to access data about users
@@ -15,7 +14,7 @@ interface UserRepository : BaseEntityRepository<User> {
      * @param username
      * @return user or null if no results have been found
      */
-    fun findByName(username: String): Optional<User>
+    fun findByName(username: String): User?
 
     /**
      * @param username
@@ -37,5 +36,5 @@ interface UserRepository : BaseEntityRepository<User> {
      * @param source
      * @return user or null if no results have been found
      */
-    fun findByNameAndSource(name: String, source: String): Optional<User>
+    fun findByNameAndSource(name: String, source: String): User?
 }

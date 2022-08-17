@@ -114,14 +114,10 @@ class AgentsControllerTest {
         mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
-        }.build()
-
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromMultipartData(bodyBuilder))
+            .bodyValue(execution)
             .exchange()
             .expectStatus()
             .isAccepted
@@ -139,14 +135,11 @@ class AgentsControllerTest {
     fun checkPostResponseIsNotOk() {
         val project = Project.stub(null)
         val execution = Execution.stub(project)
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
-        }.build()
 
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromMultipartData(bodyBuilder))
+            .bodyValue(execution)
             .exchange()
             .expectStatus()
             .is4xxClientError
