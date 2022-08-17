@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
@@ -25,15 +26,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
-
-/**
- * External function to JS
- *
- * @param str
- * @return encoded [str]
- */
-@Suppress("FUNCTION_NAME_INCORRECT_CASE")
-external fun encodeURIComponent(str: String): String
 
 /**
  * TESTS tab in OrganizationView
@@ -58,9 +50,9 @@ external interface OrganizationTestsMenuProps : Props {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
-
+    val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
-    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName)) {
+    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
             url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
             headers = Headers().also {
@@ -69,11 +61,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            response.unsafeMap {
-                it.decodeFromJsonString<TestSuitesSourceDtoList>()
-            }.let {
-                setTestSuitesSources(it)
-            }
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
             setTestSuitesSources(emptyList())
         }
@@ -129,6 +117,16 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
 
+    showTestSuiteSourceCreationModal(
+        isTestSuiteSourceCreationModalOpen,
+        props.organizationName,
+        {
+            setIsTestSuitesSourceCreationModalOpen(false)
+            setIsSourceCreated { !it }
+        },
+    ) {
+        setIsTestSuitesSourceCreationModalOpen(false)
+    }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
         button {
