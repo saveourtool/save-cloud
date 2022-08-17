@@ -4,6 +4,7 @@ import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,6 +16,9 @@ internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: P
         url("$baseUrl/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
+        onDownload { bytesSentTotal, contentLength ->
+            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
+        }
     }
     if (!response.status.isSuccess()) {
         error("Error while downloading test resources: ${response.status}")
