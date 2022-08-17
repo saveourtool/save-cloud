@@ -1,6 +1,8 @@
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.extractZipTo
 import com.saveourtool.save.agent.utils.logDebugCustom
+import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -26,18 +28,16 @@ internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: P
     }
 //        .bodyAsChannel()
     val bytes = response.body<ByteArray>()
+    if (bytes.isEmpty()) {
+        error( "Not found any tests for execution $executionId")
+    }
     val pathToArchive = "archive.zip".toPath()
     logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
-    FileSystem.SYSTEM.createDirectories(target, mustCreate = false)
-    FileSystem.SYSTEM.write(
-        "archive.zip".toPath(),
-        mustCreate = true,
-    ) {
-        write(bytes).flush()
-    }
+    bytes.writeToFile(pathToArchive)
     logDebugCustom("Downloaded archive into $pathToArchive")
-    platform.posix.system("unzip $pathToArchive -d $target")
-    FileSystem.SYSTEM.delete(pathToArchive, mustExist = true)
+    fs.createDirectories(target, mustCreate = false)
+    pathToArchive.extractZipTo(target)
+    fs.delete(pathToArchive, mustExist = true)
     logDebugCustom("Extracted archive into $target")
 }
 
@@ -50,7 +50,7 @@ internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: P
             setBody(FileKey())
         }
             .body<ByteArray>()
-        FileSystem.SYSTEM.write(
+        fs.write(
             targetDirectory.resolve(),
             mustCreate = true,
         ) {

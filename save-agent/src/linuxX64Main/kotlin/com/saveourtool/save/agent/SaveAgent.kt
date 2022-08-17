@@ -92,9 +92,10 @@ class SaveAgent(internal val config: AgentConfiguration,
             state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
             // to be consistent with previous logic in orchestrator
-            val targetDirectory = "test-suites"
+            val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
-            httpClient.downloadTestResources(config.backend.url, targetDirectory.toPath(), getenv("EXECUTION_ID")!!.toKString())
+            httpClient.downloadTestResources(config.backend.url, targetDirectory, getenv("EXECUTION_ID")!!.toKString())
+            logInfoCustom("Downloaded all tests for execution ${getenv("EXECUTION_ID")!!.toKString()} to $targetDirectory")
 //            logDebugCustom("Will now download additional resources")
 //            httpClient.downloadAdditionalResources(targetDirectory.toPath(), getenv("additional_files_list")!!.toKString())
             state.value = AgentState.STARTING

@@ -4,8 +4,10 @@
 
 package com.saveourtool.save.agent.utils
 
+import com.saveourtool.save.agent.fs
 import okio.FileNotFoundException
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 
 /**
@@ -37,3 +39,23 @@ internal fun readProperties(filePath: String): Map<String, String> = readFile(fi
             it.first() to it.last()
         }
     }
+
+/**
+ * Extract path as ZIP archive to provided directory
+ *
+ * @param targetPath
+ */
+internal fun Path.extractZipTo(targetPath: Path) {
+    require(fs.metadata(targetPath).isDirectory)
+    logDebugCustom("Unzip ${fs.canonicalize(this)} into ${fs.canonicalize(targetPath)}")
+    platform.posix.system("unzip $this -d $targetPath")
+}
+
+internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
+    fs.write(
+        file = file,
+        mustCreate = mustCreate,
+    ) {
+        write(this@writeToFile).flush()
+    }
+}

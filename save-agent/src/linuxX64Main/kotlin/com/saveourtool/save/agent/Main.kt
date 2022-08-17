@@ -29,6 +29,7 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
+import okio.FileSystem
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -41,6 +42,8 @@ internal val json = Json {
         }
     }
 }
+
+internal val fs = FileSystem.SYSTEM
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
