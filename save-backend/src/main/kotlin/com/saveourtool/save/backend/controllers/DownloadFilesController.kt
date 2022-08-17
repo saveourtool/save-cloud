@@ -103,7 +103,7 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toFileKey(), organizationName, projectName)
+    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(), organizationName, projectName)
 
     /**
      * @param fileKey a key [FileKey] of requested file

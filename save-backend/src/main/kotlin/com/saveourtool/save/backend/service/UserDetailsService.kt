@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.util.*
 
 /**
@@ -23,18 +25,20 @@ class UserDetailsService(
 ) : ReactiveUserDetailsService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun findByUsername(username: String): Mono<UserDetails> = Mono.fromCallable {
-        userRepository.findByName(username)
-    }.getIdentitySourceAwareUserDetails(username)
+    override fun findByUsername(username: String): Mono<UserDetails> =
+            { userRepository.findByName(username) }
+                .toMono()
+                .getIdentitySourceAwareUserDetails(username)
 
     /**
      * @param username
      * @param source source (where the user identity is coming from)
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    fun findByUsernameAndSource(username: String, source: String) = Mono.fromCallable {
-        userRepository.findByNameAndSource(username, source)
-    }.getIdentitySourceAwareUserDetails(username, source)
+    fun findByUsernameAndSource(username: String, source: String) =
+            { userRepository.findByNameAndSource(username, source) }
+                .toMono()
+                .getIdentitySourceAwareUserDetails(username, source)
 
     /**
      * @param name
@@ -42,27 +46,27 @@ class UserDetailsService(
      * @throws NoSuchElementException
      */
     fun saveAvatar(name: String, relativePath: String) {
-        val user = userRepository.findByName(name).get().apply {
-            avatar = relativePath
-        }
+        val user = userRepository.findByName(name)
+            .orNotFound()
+            .apply {
+                avatar = relativePath
+            }
         user.let { userRepository.save(it) }
     }
 
-    private fun Mono<Optional<User>>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this.filter { user ->
-        if (!user.isPresent) {
-            val sourceMsg = source?.let {
-                " and source=$source"
-            }.orEmpty()
-            logger.warn("Couldn't find user with name=$username$sourceMsg in DB!")
-        }
-        user.isPresent
-    }
-        .map { it.get() }
+    private fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this
         .map<UserDetails> { user ->
             user.toIdentitySourceAwareUserDetails()
         }
         .switchIfEmpty {
-            Mono.error(UsernameNotFoundException(username))
+            Mono.fromCallable {
+                val sourceMsg = source?.let {
+                    " and source=$source"
+                }.orEmpty()
+                logger.warn("Couldn't find user with name=$username$sourceMsg in DB!")
+            }.flatMap {
+                Mono.error(UsernameNotFoundException(username))
+            }
         }
     @Suppress("UnsafeCallOnNullableType")
     private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(

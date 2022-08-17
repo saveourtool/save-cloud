@@ -5,12 +5,13 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -38,7 +39,7 @@ class UsersDetailsController(
     @GetMapping("/{userName}/avatar")
     @PreAuthorize("permitAll()")
     fun avatar(@PathVariable userName: String): Mono<ImageInfo> =
-            justOrNotFound(userRepository.findByName(userName)).map { ImageInfo(it.avatar) }
+            userRepository.findByName(userName).toMonoOrNotFound().map { ImageInfo(it.avatar) }
 
     /**
      * @param userName username
@@ -47,7 +48,7 @@ class UsersDetailsController(
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
     fun findByName(@PathVariable userName: String): Mono<UserInfo> =
-            justOrNotFound(userRepository.findByName(userName)).map { it.toUserInfo() }
+            userRepository.findByName(userName).toMonoOrNotFound().map { it.toUserInfo() }
 
     /**
      * @param newUserInfo
@@ -58,9 +59,9 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
         val user: User = if (newUserInfo.isActive) {
-            userRepository.findByName(newUserInfo.oldNames.single() ?: newUserInfo.name).get()
+            userRepository.findByName(newUserInfo.oldNames.single() ?: newUserInfo.name).orNotFound()
         } else {
-            userRepository.findByName(newUserInfo.name).get()
+            userRepository.findByName(newUserInfo.name).orNotFound()
         }
         if (newUserInfo.isActive) {
             originalLoginRepository.save(OriginalLogin(user.name, user))
@@ -93,7 +94,7 @@ class UsersDetailsController(
     @PostMapping("{userName}/save/token")
     @PreAuthorize("isAuthenticated()")
     fun saveUserToken(@PathVariable userName: String, @RequestBody token: String, authentication: Authentication): Mono<StringResponse> {
-        val user = userRepository.findByName(userName).get()
+        val user = userRepository.findByName(userName).orNotFound()
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             userRepository.save(user.apply {

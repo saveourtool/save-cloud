@@ -32,22 +32,24 @@ enum class InputTypes(
     val errorMessage: String? = null,
     val placeholder: String? = null,
 ) {
+    // ==== general
+    DESCRIPTION("description", null, "description"),
+
     // ==== new project view
-    DESCRIPTION("project description"),
-    GIT_BRANCH("git branch"),
-    GIT_TOKEN("git token"),
+    GIT_BRANCH("git branch", null, placeholder = "leave empty if you would like to use default branch"),
+    GIT_TOKEN("git token", null, "token"),
     GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
-    GIT_USER("git username"),
+    GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
 
     // ==== signIn view
-    LOGIN("login"),
-    PASSWORD("password"),
-    PROJECT_NAME("project name", NAME_ERROR_MESSAGE),
+    LOGIN("login", null, "login"),
+    PASSWORD("password", null, "*****"),
+    PROJECT_NAME("project name", NAME_ERROR_MESSAGE, "name"),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
 
     // ==== create organization view
-    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE),
+    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE, "name"),
 
     // ==== user setting view
     USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
@@ -59,12 +61,17 @@ enum class InputTypes(
     TWITTER("twitter"),
 
     // ==== contest creation component
-    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE),
+    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE, "name"),
     CONTEST_START_TIME("contest starting time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
     CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
     CONTEST_TEST_SUITE_IDS("contest test suite ids"),
+
+    // ==== test suite source creation
+    SOURCE_NAME("source name", placeholder = "name"),
+    SOURCE_GIT("source git"),
+    SOURCE_TEST_ROOT_PATH("test root path", placeholder = "leave empty if tests are in repository root"),
     ;
 }
 
@@ -76,6 +83,7 @@ enum class InputTypes(
  * @param errorText
  * @param onChangeFun
  * @param textValue
+ * @param onClickFun
  * @return div with an input form
  */
 @Suppress(
@@ -90,28 +98,27 @@ internal fun ChildrenBuilder.inputTextFormRequired(
     classes: String,
     name: String,
     errorText: String = "Please input a valid ${form.str}",
-    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
+    onClickFun: () -> Unit = { },
+    onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { }
 ) =
         div {
-            className = ClassName("$classes mt-1")
+            className = ClassName(classes)
             label {
                 className = ClassName("form-label")
                 htmlFor = form.name
                 +name
+                span {
+                    className = ClassName("text-red text-left")
+                    +"*"
+                }
             }
 
             div {
-                className = ClassName("input-group has-validation")
-                span {
-                    className = ClassName("input-group-text")
-                    id = "${form.name}Span"
-                    +"*"
-                }
-
                 val inputType = if (form == InputTypes.PASSWORD) InputType.password else InputType.text
                 input {
                     type = inputType
                     onChange = onChangeFun
+                    onClick = { onClickFun() }
                     id = form.name
                     required = true
                     value = textValue
@@ -125,7 +132,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                     }
                 }
 
-                if (!validInput) {
+                if (!validInput && !textValue.isNullOrEmpty()) {
                     div {
                         className = ClassName("invalid-feedback d-block")
                         +(form.errorMessage ?: errorText)
@@ -156,7 +163,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     onClickFun: () -> Unit = { },
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { },
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     name?.let { name ->
         label {
             className = ClassName("form-label")
@@ -181,7 +188,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
             ClassName("form-control is-invalid")
         }
     }
-    if (!validInput) {
+    if (!validInput && !textValue.isNullOrEmpty()) {
         div {
             className = ClassName("invalid-feedback d-block")
             +(form.errorMessage ?: errorText)
@@ -194,6 +201,7 @@ internal fun ChildrenBuilder.inputTextFormOptional(
  * @param classes
  * @param name
  * @param inputText
+ * @param isRequired
  * @return div with a disabled input form
  */
 internal fun ChildrenBuilder.inputTextDisabled(
@@ -201,12 +209,19 @@ internal fun ChildrenBuilder.inputTextDisabled(
     classes: String,
     name: String,
     inputText: String,
+    isRequired: Boolean = true,
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +name
+        if (isRequired) {
+            span {
+                className = ClassName("text-red text-left")
+                +"*"
+            }
+        }
     }
     input {
         type = InputType.text
@@ -232,7 +247,7 @@ internal fun ChildrenBuilder.inputDateFormOptional(
     text: String,
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes pl-2 pr-2")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
@@ -266,19 +281,18 @@ internal fun ChildrenBuilder.inputDateFormRequired(
     errorMessage: String = "Please input a valid ${form.str}",
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit
 ) = div {
-    className = ClassName("$classes mt-1")
+    className = ClassName(classes)
     label {
         className = ClassName("form-label")
         htmlFor = form.name
         +text
+        span {
+            className = ClassName("text-red text-left")
+            +"*"
+        }
     }
     div {
         className = ClassName("input-group has-validation")
-        span {
-            className = ClassName("input-group-text")
-            id = "${form.name}Span"
-            +"*"
-        }
         input {
             type = InputType.date
             onChange = onChangeFun

@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -65,8 +64,9 @@ class KubernetesManager(
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
+                            runtimeClassName = "gvisor"
                         }
-                        // FixMe: Orchestrator doesn't push images to a remote registry, so agents have to be run on the same host.
+                        // FixMe: Orchestrator uses hostPath mounts to copy resources, so agents have to be run on the same host.
                         nodeName = System.getenv("NODE_NAME")
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
@@ -229,12 +229,6 @@ class KubernetesManager(
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
-        if (!configProperties.docker.runtime.isNullOrEmpty()) {
-            logger.warn {
-                "Discarding property configProperties.docker.runtime=${configProperties.docker.runtime}, " +
-                        "because custom runtimes are not supported yet"
-            }
-        }
         env = listOf(
             EnvVar().apply {
                 name = "POD_NAME"

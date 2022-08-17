@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
@@ -14,6 +15,7 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
@@ -35,6 +37,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
@@ -74,9 +77,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     private val executionView: FC<Props> = withRouter { location, params ->
         ExecutionView::class.react {
             executionId = params["executionId"]!!
-            status = URLSearchParams(location.search).get("status")?.let(
-                TestResultStatus::valueOf
-            )
+            filters = URLSearchParams(location.search).let { params ->
+                TestExecutionFilters(
+                    status = params.get("status")?.let { TestResultStatus.valueOf(it) },
+                    fileName = params.get("fileName"),
+                    testSuite = params.get("testSuite"),
+                    tag = params.get("tag")
+                )
+            }
         }
     }
     private val contestView: FC<Props> = withRouter { _, params ->

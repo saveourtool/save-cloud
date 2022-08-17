@@ -87,16 +87,23 @@ internal class OrganizationController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get organizations by ownerId.",
-        description = "Get list of all organizations where user with ownerId is an owner.",
-        deprecated = true,
+        summary = "Get your organizations.",
+        description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    fun getOrganizationsByOwnerId(authentication: Authentication?): Flux<Organization> {
-        authentication ?: return Flux.empty()
-        val ownerId = (authentication.details as AuthenticationDetails).id
-        return Flux.fromIterable(organizationService.findByOwnerId(ownerId))
-    }
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationsByUser(
+        authentication: Authentication?,
+    ): Flux<Organization> = authentication.toMono()
+        .map { auth ->
+            (auth.details as AuthenticationDetails).id
+        }
+        .flatMapMany {
+            lnkUserOrganizationService.findAllByAuthentication(it)
+        }
+        .mapNotNull {
+            it.organization as Organization
+        }
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
@@ -390,9 +397,7 @@ internal class OrganizationController(
         }
         .flatMap { testSuitesList ->
             Flux.fromIterable(testSuitesList).map { testSuite ->
-                testSuite?.let {
-                    cleanupStorageData(it)
-                }
+                cleanupStorageData(testSuite)
             }.collectList()
         }
         .map {

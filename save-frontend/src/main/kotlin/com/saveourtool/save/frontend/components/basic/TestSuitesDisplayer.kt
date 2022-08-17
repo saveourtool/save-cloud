@@ -10,7 +10,11 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.testsuite.TestSuiteDto
 import csstype.ClassName
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.small
 
 /**
  * @param testSuites
@@ -22,7 +26,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
     selectedTestSuites: List<TestSuiteDto>,
     onTestSuiteClick: (TestSuiteDto) -> Unit,
 ) {
-    ReactHTML.div {
+    div {
         className = ClassName("list-group")
         testSuites.forEach { testSuite ->
             val active = if (testSuite in selectedTestSuites) {
@@ -30,25 +34,25 @@ fun ChildrenBuilder.showAvaliableTestSuites(
             } else {
                 ""
             }
-            ReactHTML.a {
+            a {
                 className = ClassName("list-group-item list-group-item-action $active")
                 onClick = {
                     onTestSuiteClick(testSuite)
                 }
-                ReactHTML.div {
+                div {
                     className = ClassName("d-flex w-100 justify-content-between")
-                    ReactHTML.h5 {
+                    h5 {
                         className = ClassName("mb-1")
                         +(testSuite.name)
                     }
-                    ReactHTML.small {
+                    small {
                         +(testSuite.language ?: "")
                     }
                 }
-                ReactHTML.p {
+                p {
                     +(testSuite.description ?: "")
                 }
-                ReactHTML.small {
+                small {
                     +(testSuite.tags?.joinToString(", ") ?: "")
                 }
             }

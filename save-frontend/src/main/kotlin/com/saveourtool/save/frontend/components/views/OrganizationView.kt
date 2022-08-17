@@ -69,7 +69,7 @@ external interface OrganizationProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : State {
+external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle uploading a file
      */
@@ -134,11 +134,6 @@ external interface OrganizationViewState : State {
      * Whether editing of organization info is disabled
      */
     var isEditDisabled: Boolean
-
-    /**
-     * Highest [Role] of a current user in organization or globally
-     */
-    var selfRole: Role
 
     /**
      * Users in organization
@@ -593,13 +588,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
-        topProject ?: return
         div {
             className = ClassName("col-3 mb-4")
-            scoreCard {
-                name = topProject.name
-                contestScore = topProject.contestRating.toDouble()
-                url = "#/${props.organizationName}/${topProject.name}"
+            topProject?.let {
+                scoreCard {
+                    name = it.name
+                    contestScore = it.contestRating.toDouble()
+                    url = "#/${props.organizationName}/${it.name}"
+                }
             }
         }
     }

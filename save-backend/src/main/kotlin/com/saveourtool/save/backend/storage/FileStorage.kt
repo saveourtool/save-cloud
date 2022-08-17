@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.countPartsTill
 import org.springframework.http.codec.multipart.FilePart
@@ -60,27 +59,6 @@ class FileStorage(
         .filter { it.name == name }
         .reduce { key1, key2 ->
             if (key1.uploadedMillis > key2.uploadedMillis) key1 else key2
-        }
-
-    /**
-     * @param projectCoordinates
-     * @param shortFileInfoFlux
-     * @return Flux of [FileInfo] found by [ShortFileInfo] with max uploadedMillis
-     */
-    fun convertToLatestFileInfo(projectCoordinates: ProjectCoordinates, shortFileInfoFlux: Flux<ShortFileInfo>): Flux<FileInfo> = shortFileInfoFlux
-        .flatMap { shortFileInfo ->
-            findLatestKeyByName(projectCoordinates, shortFileInfo.name)
-                .flatMap { fileKey ->
-                    contentSize(projectCoordinates, fileKey)
-                        .map { sizeBytes ->
-                            FileInfo(
-                                fileKey.name,
-                                fileKey.uploadedMillis,
-                                sizeBytes,
-                                shortFileInfo.isExecutable
-                            )
-                        }
-                }
         }
 
     /**

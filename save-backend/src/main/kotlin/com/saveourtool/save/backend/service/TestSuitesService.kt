@@ -8,15 +8,18 @@ import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -117,6 +120,34 @@ class TestSuitesService(
     }
 
     /**
+     * @param filters
+     * @return [Flux] of [TestSuite] that match [filters]
+     */
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+            ExampleMatcher.matchingAll()
+                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withIgnorePaths("description", "source", "version", "dateAdded")
+                .let {
+                    Example.of(
+                        TestSuite(
+                            filters.name,
+                            "",
+                            TestSuitesSource.empty,
+                            "",
+                            null,
+                            filters.language,
+                            filters.tags
+                        ),
+                        it
+                    )
+                }
+                .let { testSuiteRepository.findAll(it) }
+                .toFlux()
+
+    /**
      * @param id
      * @return test suite with [id]
      * @throws ResponseStatusException if [TestSuite] is not found by [id]
@@ -176,6 +207,32 @@ class TestSuitesService(
             log.debug { "Delete executions with ids $executionIds" }
             executionService.deleteExecutionByIds(executionIds)
         }
+    }
+
+    /**
+     * @param testSuiteIds IDs of [TestSuite]
+     * @return a single version got from test suites
+     */
+    fun getSingleVersionByIds(testSuiteIds: List<Long>): String {
+        require(testSuiteIds.isNotEmpty()) {
+            "No test suite is selected"
+        }
+        val testSuites = testSuiteIds.map { getById(it) }
+        testSuites.map { it.source }
+            .distinctBy { it.requiredId() }
+            .also { sources ->
+                require(sources.size == 1) {
+                    "Only a single test suites source is allowed for a run, but got: $sources"
+                }
+            }
+        return testSuites.map { it.version }
+            .distinct()
+            .also { versions ->
+                require(versions.size == 1) {
+                    "Only a single version is supported, but got: $versions"
+                }
+            }
+            .single()
     }
 
     private fun getSavedIdByDto(

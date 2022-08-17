@@ -45,4 +45,32 @@ class TestSuitesSource(
         branch = branch,
         testRootPath = testRootPath,
     )
+
+    companion object {
+        val empty = TestSuitesSource(
+            Organization.stub(-1),
+            "",
+            null,
+            Git.empty,
+            "",
+            "",
+        )
+
+        /**
+         * @param organization [Organization] from database
+         * @param git [Git] from database
+         * @return [TestSuitesSource] from [TestSuitesSourceDto]
+         */
+        fun TestSuitesSourceDto.toTestSuiteSource(
+            organization: Organization,
+            git: Git,
+        ) = TestSuitesSource(
+            organization,
+            name,
+            description,
+            git,
+            branch,
+            testRootPath,
+        )
+    }
 }

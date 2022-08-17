@@ -19,6 +19,8 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.useEffect
+
 import react.useState
 
 val testExecutionFiltersRow = testExecutionFiltersRow()
@@ -53,7 +55,13 @@ external interface FiltersRowProps : Props {
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 private fun testExecutionFiltersRow(
 ) = FC<FiltersRowProps> { props ->
-    val(filters, setFilters) = useState(props.filters)
+    // Store local copy of filters in order to perform searching only by the search button, and not by any change in the filter fields
+    val (filters, setFilters) = useState(props.filters)
+    useEffect(props.filters) {
+        if (filters !== props.filters) {
+            setFilters(props.filters)
+        }
+    }
     div {
         className = ClassName("container-fluid")
         div {
@@ -74,6 +82,7 @@ private fun testExecutionFiltersRow(
                         className = ClassName("form-control")
                         val elements = TestResultStatus.values().map { it.name }.toMutableList()
                         elements.add(0, ANY)
+                        value = filters.status?.name ?: ANY
                         elements.forEach { element ->
                             option {
                                 if (element == props.filters.status?.name) {

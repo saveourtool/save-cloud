@@ -26,6 +26,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import react.router.useParams
 
+import kotlinx.js.get
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
