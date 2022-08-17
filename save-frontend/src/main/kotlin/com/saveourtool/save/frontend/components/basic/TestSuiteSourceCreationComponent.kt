@@ -104,19 +104,18 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
     val onSubmitButtonPressed = useRequest {
-        post(
+        val response = post(
             url = "/api/$v1/test-suites-sources/create",
             headers = jsonHeaders,
             body = Json.encodeToString(testSuiteSource),
             loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation,
         )
-            .decodeFromJsonString<SourceSaveStatus>()
-            .let { saveStatus ->
-                when (saveStatus) {
-                    SourceSaveStatus.NEW -> props.onSuccess()
-                    else -> setSaveStatus(saveStatus)
-                }
-            }
+        if (response.ok) {
+            props.onSuccess()
+        } else {
+            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+        }
     }
 
     div {

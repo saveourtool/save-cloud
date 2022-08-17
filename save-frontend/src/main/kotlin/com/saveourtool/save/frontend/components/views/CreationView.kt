@@ -180,6 +180,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                         it.name
                                                     }
                                             }
+                                            dataToString = { it }
                                             onChangeFun = { value ->
                                                 setState {
                                                     projectCreationRequest =

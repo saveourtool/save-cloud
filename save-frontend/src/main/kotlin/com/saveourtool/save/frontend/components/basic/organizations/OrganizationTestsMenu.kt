@@ -61,11 +61,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            response.unsafeMap {
-                it.decodeFromJsonString<TestSuitesSourceDtoList>()
-            }.let {
-                setTestSuitesSources(it)
-            }
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
             setTestSuitesSources(emptyList())
         }
@@ -127,7 +123,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         {
             setIsTestSuitesSourceCreationModalOpen(false)
             setIsSourceCreated { !it }
-            fetchTestSuitesSources()
         },
     ) {
         setIsTestSuitesSourceCreationModalOpen(false)
@@ -175,11 +170,6 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
      * Signal to update table
      */
     var content: List<D>
-
-    /**
-     * Flag to update table
-     */
-    var isTestSuiteSourceCreated: Boolean
 }
 
 @Suppress(
@@ -255,7 +245,7 @@ private fun prepareTestSuitesSourcesTable(
     useServerPaging = false,
     usePageSelection = false,
     getAdditionalDependencies = {
-        arrayOf(it.content, it.isTestSuiteSourceCreated)
+        arrayOf(it.content)
     },
 )
 

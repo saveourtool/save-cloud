@@ -317,9 +317,10 @@ class TestSuitesSourceController(
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
     @ApiResponse(responseCode = "404", description = "Either git credentials were not found by provided url or organization was not found by provided name.")
     @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
+    @Suppress("TYPE_ALIAS")
     fun createTestSuitesSource(
         @RequestBody testSuiteRequest: TestSuitesSourceDto,
-    ): Mono<SourceSaveStatus> = getOrganization(testSuiteRequest.organizationName)
+    ): Mono<ResponseEntity<SourceSaveStatus>> = getOrganization(testSuiteRequest.organizationName)
         .zipWhen { organization ->
             gitService.findByOrganizationAndUrl(organization, testSuiteRequest.gitDto.url)
                 .toMono()
@@ -330,8 +331,15 @@ class TestSuitesSourceController(
         .map { (organization, git) ->
             testSuiteRequest.toTestSuiteSource(organization, git)
         }
-        .map {
-            testSuitesSourceService.createSourceIfNotPresent(it)
+        .map { testSuitesSource ->
+            when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
+                SourceSaveStatus.EXIST -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST)
+                SourceSaveStatus.CONFLICT -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT)
+                SourceSaveStatus.NEW -> {
+                    testSuitesSourceService.fetch(testSuitesSource.toDto())
+                    ResponseEntity.ok(SourceSaveStatus.NEW)
+                }
+            }
         }
 
     @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
