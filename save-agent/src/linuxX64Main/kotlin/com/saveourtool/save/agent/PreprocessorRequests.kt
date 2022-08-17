@@ -10,20 +10,21 @@ import io.ktor.http.*
 import okio.FileSystem
 import okio.Path
 
-internal suspend fun HttpClient.downloadTestResources(target: Path, executionId: String) {
+internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: Path, executionId: String) {
     val bytes = post {
-        url("/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
+        url("$baseUrl/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
     }
 //        .bodyAsChannel()
         .body<ByteArray>()
-    logDebugCustom("Writing downloaded archive into $target/archive.zip")
+    logDebugCustom("Writing downloaded archive of size ${bytes.size} into $target/archive.zip")
+    FileSystem.SYSTEM.createDirectories(target, mustCreate = false)
     FileSystem.SYSTEM.write(
         target.resolve("archive.zip"),
         mustCreate = true,
     ) {
-        write(bytes)
+        write(bytes).flush()
     }
     logDebugCustom("Downloaded archive into $target/archive.zip")
     // todo: unzip
