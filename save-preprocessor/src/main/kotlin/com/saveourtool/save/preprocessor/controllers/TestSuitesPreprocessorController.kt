@@ -61,7 +61,6 @@ class TestSuitesPreprocessorController(
                     with(testSuitesSourceDto) {
                         log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
                     }
-                    true
                 }
         }
 
