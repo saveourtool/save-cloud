@@ -129,10 +129,10 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
         description =
-            "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
+                "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
         // this command puts env variables into compose file
         val composeCmd =
-            "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
+                "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
         val stackCmd = "docker stack deploy --compose-file -" +
                 if (useOverride && composeOverride.exists()) {
                     " --compose-file ${composeOverride.canonicalPath}"
@@ -150,7 +150,7 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("stopDockerStack") {
         description =
-            "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
+                "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
         commandLine("docker", "stack", "rm", "save")
     }
 
@@ -214,12 +214,12 @@ fun Project.createStackDeployTask(profile: String) {
     if (componentName != null) {
         tasks.register<Exec>("buildAndDeployComponent") {
             description =
-                "Build and deploy a single component of save-cloud. Component name should be provided via `-Psave.component=<name> " +
-                        "and it should be a name of one of gradle subprojects. If component name is `save-backend`, then `save-frontend` will be built too" +
-                        " and bundled into save-backend image."
+                    "Build and deploy a single component of save-cloud. Component name should be provided via `-Psave.component=<name> " +
+                            "and it should be a name of one of gradle subprojects. If component name is `save-backend`, then `save-frontend` will be built too" +
+                            " and bundled into save-backend image."
             require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names, but was [$componentName]" }
             val buildTask: TaskProvider<BootBuildImage> =
-                project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
+                    project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
                 "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"

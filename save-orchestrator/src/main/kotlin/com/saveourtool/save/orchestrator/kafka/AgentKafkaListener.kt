@@ -8,15 +8,22 @@ import org.springframework.kafka.support.KafkaHeaders
 import org.springframework.messaging.handler.annotation.Header
 import org.springframework.messaging.handler.annotation.Payload
 
+/**
+ * @property topic
+ * @property groupId
+ */
 @KafkaListener(id = "#{__listener.topic}.listener", topics = ["#{__listener.topic}"], groupId = "#{__listener.groupId}")
 class AgentKafkaListener(
     val topic: String,
     val groupId: String
 ) {
-    companion object {
-        private val log = LoggerFactory.getLogger(AgentKafkaListener::class.java)
-    }
-
+    /**
+     * @param data
+     * @param messageId
+     * @param partition
+     * @param topic
+     * @param ts
+     */
     @KafkaHandler
     fun listen(
         @Payload data: TestExecutionTaskDto?,
@@ -33,5 +40,8 @@ class AgentKafkaListener(
             ts,
             data
         )
+    }
+    companion object {
+        private val log = LoggerFactory.getLogger(AgentKafkaListener::class.java)
     }
 }

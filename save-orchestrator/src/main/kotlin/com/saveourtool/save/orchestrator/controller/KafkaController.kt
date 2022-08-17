@@ -18,15 +18,12 @@ import org.springframework.web.bind.annotation.RestController
 internal class KafkaController(
     private val testExecutionSender: KafkaSender<TestExecutionTaskDto>
 ) {
-
-
     /**
-     * @param contestName
+     * @param task
      * @return Organization
      */
     @PostMapping("/sendTestExecutionTask")
     fun sendTestExecutionTask(@RequestBody task: TestExecutionTaskDto) {
         testExecutionSender.sendMessage(task)
     }
-
 }

@@ -25,46 +25,66 @@ import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
 import java.util.*
 
+/**
+ * Kafka producer and consumer configuration
+ *
+ * @property kafkaProperties
+ */
 @Configuration
 @Profile("dev & kafka")
 internal class KafkaConfiguration(
-    private val kafkaProperties: KafkaProperties){
-
+    private val kafkaProperties: KafkaProperties) {
+    /**
+     * @property requestTopicName
+     */
     @Value("\${kafka.test.execution.request.topic.name}")
     lateinit var requestTopicName: String
 
+    /**
+     * @property requestTopicNameDlt
+     */
     @Value("\${kafka.test.execution.request.topic.name}.DLT")
     lateinit var requestTopicNameDlt: String
 
+    /**
+     * @property responseTopicName
+     */
     @Value("\${kafka.test.execution.response.topic.name}")
     lateinit var responseTopicName: String
 
+    /**
+     * @property consumerGroup
+     */
     @Value("\${spring.kafka.consumer.group-id}")
     lateinit var consumerGroup: String
 
-    companion object {
-        private val log = LoggerFactory.getLogger(KafkaConfiguration::class.java)
-    }
-
+    /**
+     * @return kafka producer properties
+     */
     @Bean
     fun producerConfig(): Map<String, Any?> {
-        val producerProps = HashMap<String, Any>(kafkaProperties.buildProducerProperties())
+        val producerProps = HashMap(kafkaProperties.buildProducerProperties())
         producerProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java as Object
         producerProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = JsonSerializer::class.java as Object
         producerProps[ProducerConfig.PARTITIONER_CLASS_CONFIG] = DefaultPartitioner::class.java as Object
         return producerProps
     }
 
+    /**
+     * @return kafka producer factory
+     */
     @Bean
-    fun producerFactory(): ProducerFactory<Any,Any> {
-        return DefaultKafkaProducerFactory(producerConfig())
-    }
+    fun producerFactory(): ProducerFactory<Any, Any> = DefaultKafkaProducerFactory(producerConfig())
 
+    /**
+     * @return kafka template
+     */
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<Any,Any> {
-        return KafkaTemplate(producerFactory())
-    }
+    fun kafkaTemplate(): KafkaTemplate<Any, Any> = KafkaTemplate(producerFactory())
 
+    /**
+     * @return kafka consumer properties
+     */
     @Bean
     fun consumerConfig(): Map<String, Any?> {
         val consumerProps = HashMap(kafkaProperties.buildConsumerProperties())
@@ -80,14 +100,20 @@ internal class KafkaConfiguration(
         return consumerProps
     }
 
+    /**
+     * @return consumer factory
+     */
     @Bean
-    fun consumerFactory(): ConsumerFactory<Any,Any> {
-        return DefaultKafkaConsumerFactory(consumerConfig())
-    }
+    fun consumerFactory(): ConsumerFactory<Any, Any> = DefaultKafkaConsumerFactory(consumerConfig())
 
+    /**
+     * @param template
+     * @return kafka listener container factory
+     */
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     @Bean
-    fun kafkaListenerContainerFactory(template: KafkaTemplate<Any, Any>): ConcurrentKafkaListenerContainerFactory<Any,Any> {
-        val factory = ConcurrentKafkaListenerContainerFactory<Any,Any>()
+    fun kafkaListenerContainerFactory(template: KafkaTemplate<Any, Any>): ConcurrentKafkaListenerContainerFactory<Any, Any> {
+        val factory = ConcurrentKafkaListenerContainerFactory<Any, Any>()
         factory.setConsumerFactory(consumerFactory())
         factory.setConcurrency(1)
         factory.getContainerProperties().setPollTimeout(500)
@@ -99,23 +125,35 @@ internal class KafkaConfiguration(
         return factory
     }
 
+    /**
+     * @return kafka agent tasks topic bean
+     */
     @Bean
     fun saveAgentTasks(): NewTopic {
-        log.info("Create topic: {} of {} partitions with {} replicas.", requestTopicName /*, partitions, replicas*/)
+        log.info("Create topic: {} of {} partitions with {} replicas.", requestTopicName)
         return NewTopic(requestTopicName, Optional.empty(), Optional.empty())
     }
 
+    /**
+     * @param template
+     * @return test execution sender
+     */
     @Bean
     fun testExecutionSender(template: KafkaTemplate<Any, Any>): KafkaSender<TestExecutionTaskDto> {
         log.info("Create sender for {} topic.", requestTopicName)
         return KafkaSender(template as KafkaTemplate<String?, TestExecutionTaskDto>, requestTopicName)
     }
 
+    /**
+     * @return agentKafkaListener
+     */
     @Bean
     fun agentKafkaListener(): AgentKafkaListener {
         log.info("Create listener for {} topic.", responseTopicName)
         return AgentKafkaListener(requestTopicName, consumerGroup)
     }
 
+    companion object {
+        private val log = LoggerFactory.getLogger(KafkaConfiguration::class.java)
+    }
 }
-

@@ -12,15 +12,18 @@ import org.springframework.util.concurrent.ListenableFuture
 import org.springframework.util.concurrent.ListenableFutureCallback
 import java.util.concurrent.atomic.AtomicLong
 
+/**
+ * Kafka sender
+ */
 class KafkaSender<V : KafkaMsg>(
     private val template: KafkaTemplate<String?, V>,
     private val topic: String
 ) {
-
-    companion object {
-        private val log = LoggerFactory.getLogger(KafkaSender::class.java)
-    }
-
+    /**
+     * @param msg
+     * @return send result future
+     */
+    @Suppress("TYPE_ALIAS", "GENERIC_VARIABLE_WRONG_DECLARATION")
     fun sendMessage(msg: V): ListenableFuture<SendResult<String?, V>> {
         val messageId = msg.messageId
         log.info("Sending a message with id {} to topic: {}", messageId, topic)
@@ -29,6 +32,14 @@ class KafkaSender<V : KafkaMsg>(
         return template.send(kafkaRecord)
     }
 
+    /**
+     * @param topic
+     * @param partition
+     * @param corrKey
+     * @param msg
+     * @return send result future
+     */
+    @Suppress("TYPE_ALIAS")
     fun sendMessage(
         topic: String?,
         partition: Int,
@@ -40,13 +51,19 @@ class KafkaSender<V : KafkaMsg>(
             "Sending a message with id $messageId and correlation key to topic: $topic partition $partition"
         )
         log.debug("The message to be sent is: $msg")
-        val kafkaRecord: ProducerRecord<String?, V> = ProducerRecord<String?, V>(topic, partition, messageId, msg)
-        if (corrKey != null) {
+        val kafkaRecord: ProducerRecord<String?, V> = ProducerRecord(topic, partition, messageId, msg)
+        corrKey?.let {
             kafkaRecord.headers().add(RecordHeader(KafkaHeaders.CORRELATION_ID, corrKey.getCorrelationId()))
         }
         return template.send(kafkaRecord)
     }
 
+    /**
+     * @param msg
+     * @param successCount
+     * @param failedRecords
+     */
+    @Suppress("TYPE_ALIAS")
     fun sendMessage(msg: V, successCount: AtomicLong, failedRecords: MutableSet<String?>) {
         val messageId = msg.messageId
         try {
@@ -69,5 +86,9 @@ class KafkaSender<V : KafkaMsg>(
             log.error("Unable to send task: {}", messageId, e)
             failedRecords.add(messageId)
         }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(KafkaSender::class.java)
     }
 }
