@@ -118,7 +118,7 @@ class CloneRepositoryController(
                         val testSuiteList = testSuitesService.getBySourceAndVersion(testSuitesSource, version)
                         // In some cases of contradictions, when DB is empty, but storage is not, cleanup data from storage
                         if (testSuiteList.isEmpty()) {
-                            log.warn("Test suites for test suite source ${testSuitesSource.name} not found in DB! Require fetch for this test suite source")
+                            log.error("Test suites for test suite source ${testSuitesSource.name} not found in DB! Require fetch for this test suite source")
                             testSuitesSourceSnapshotStorage.removeKey(testSuitesSource.organization.name, testSuitesSource.name, version)
                         } else {
                             Mono.just(false)
