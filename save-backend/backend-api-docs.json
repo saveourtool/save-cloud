@@ -4890,7 +4890,7 @@
         }
       }
     },
-    "/api/v1/getTestRootPathByExecutionId": {
+    "/api/v1/getTestSuiteIdsByExecutionId": {
       "get": {
         "tags": [
           "execution-controller"
@@ -4913,7 +4913,11 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
                 }
               }
             }
