@@ -10,10 +10,11 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import okio.FileSystem
 import okio.Path
+import okio.Path.Companion.toPath
 
 internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: Path, executionId: String) {
     val response = post {
-        url("$baseUrl/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
+        url("$baseUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         onDownload { bytesSentTotal, contentLength ->
@@ -25,16 +26,19 @@ internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: P
     }
 //        .bodyAsChannel()
     val bytes = response.body<ByteArray>()
-    logDebugCustom("Writing downloaded archive of size ${bytes.size} into $target/archive.zip")
+    val pathToArchive = "archive.zip".toPath()
+    logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
     FileSystem.SYSTEM.createDirectories(target, mustCreate = false)
     FileSystem.SYSTEM.write(
-        target.resolve("archive.zip"),
+        "archive.zip".toPath(),
         mustCreate = true,
     ) {
         write(bytes).flush()
     }
-    logDebugCustom("Downloaded archive into $target/archive.zip")
-    // todo: unzip
+    logDebugCustom("Downloaded archive into $pathToArchive")
+    platform.posix.system("unzip $pathToArchive -d $target")
+    FileSystem.SYSTEM.delete(pathToArchive, mustExist = true)
+    logDebugCustom("Extracted archive into $target")
 }
 
 /*internal suspend fun HttpClient.downloadAdditionalResources(targetDirectory: Path, additionalResourcesAsString: String) {
