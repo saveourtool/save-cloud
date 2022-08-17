@@ -76,6 +76,8 @@ external interface ProjectSaveViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    private val organzationSelectForm = selectFormRequired<String>()
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
@@ -160,14 +162,29 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                     className = ClassName("needs-validation")
                                     div {
                                         className = ClassName("row-3")
-                                        selectFormRequired {
-                                            form = InputTypes.ORGANIZATION_NAME
+                                        organzationSelectForm {
+                                            formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
-                                            text = "Organization"
-                                            onChangeFun = {
+                                            formName = "Organization"
+                                            getData = {
+                                                get(
+                                                    url = "$apiUrl/organization/get/list",
+                                                    headers = jsonHeaders,
+                                                    loadingHandler = ::loadingHandler,
+                                                )
+                                                    .unsafeMap {
+                                                        it.decodeFromJsonString<List<Organization>>()
+                                                    }
+                                                    .map {
+                                                        it.name
+                                                    }
+                                            }
+                                            dataToString = { it }
+                                            onChangeFun = { value ->
                                                 setState {
-                                                    projectCreationRequest = projectCreationRequest.copy(organizationName = it.target.value)
+                                                    projectCreationRequest =
+                                                            projectCreationRequest.copy(organizationName = value?.let { value } ?: "")
                                                 }
                                             }
                                         }
