@@ -3529,9 +3529,9 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Get organizations by ownerId.",
-        "description": "Get list of all organizations where user with ownerId is an owner.",
-        "operationId": "getOrganizationsByOwnerId",
+        "summary": "Get your organizations.",
+        "description": "Get list of all organizations where current user is a participant.",
+        "operationId": "getOrganizationsByUser",
         "responses": {
           "200": {
             "description": "Successfully fetched list of organizations.",
@@ -3560,7 +3560,6 @@
             }
           }
         },
-        "deprecated": true,
         "security": [
           {
             "basic": []
@@ -3573,9 +3572,9 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Get organizations by ownerId.",
-        "description": "Get list of all organizations where user with ownerId is an owner.",
-        "operationId": "getOrganizationsByOwnerId_1",
+        "summary": "Get your organizations.",
+        "description": "Get list of all organizations where current user is a participant.",
+        "operationId": "getOrganizationsByUser_1",
         "responses": {
           "200": {
             "description": "Successfully fetched list of organizations.",
@@ -3604,7 +3603,6 @@
             }
           }
         },
-        "deprecated": true,
         "security": [
           {
             "basic": []
