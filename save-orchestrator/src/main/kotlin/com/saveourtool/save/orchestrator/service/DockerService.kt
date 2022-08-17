@@ -61,15 +61,14 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
-     * @param resourcesForExecution location to resources are required for [execution]
      * @param execution [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
         log.info("Preparing volume for execution.id=${execution.id}")
-        val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
+        val buildResult = prepareImageAndVolumeForExecution(execution)
         // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
         return buildResult
@@ -197,7 +196,7 @@ class DockerService(
         "UnsafeCallOnNullableType",
         "LongMethod",
     )
-    private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    private fun prepareImageAndVolumeForExecution(execution: Execution): RunConfiguration<PersistentVolumeId> {
         // collect test suite names, which were selected by user
         val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
@@ -238,7 +237,12 @@ class DockerService(
             imageTag = baseImage,
             runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
-            resourcesPath = resourcesForExecution,
+            resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
+                executionId = execution.requiredId(),
+                organizationName = execution.project.organization.name,
+                projectName = execution.project.name,
+                additionalFilesSting = execution.additionalFiles,
+            ),
         )
     }
 
@@ -268,8 +272,15 @@ class DockerService(
         val imageTag: String,
         val runCmd: List<String>,
         val pvId: I,
-        val resourcesPath: Path,
-    )
+        val resourcesConfiguration: ResourcesConfiguration,
+    ) {
+        data class ResourcesConfiguration(
+            val executionId: Long,
+            val organizationName: String,
+            val projectName: String,
+            val additionalFilesSting: String,
+        )
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)

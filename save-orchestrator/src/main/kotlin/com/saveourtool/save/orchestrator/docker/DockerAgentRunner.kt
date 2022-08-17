@@ -55,7 +55,7 @@ class DockerAgentRunner(
         replicas: Int,
         workingDir: String,
     ): List<String> {
-        val (baseImageTag, agentRunCmd, pvId) = configuration
+        val (baseImageTag, agentRunCmd, pvId, resourcesConfiguration) = configuration
         require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
 
         logger.debug { "Pulling image ${configuration.imageTag}" }
@@ -217,7 +217,7 @@ class DockerAgentRunner(
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
                 AGENT_ID=$containerId
-                EXECUTION_ID=$executionId
+                EXECUTION_ID=${/*executionId*/""}
                 """.trimIndent()
             )
         }
