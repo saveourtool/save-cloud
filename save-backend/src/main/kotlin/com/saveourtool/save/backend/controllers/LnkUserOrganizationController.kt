@@ -134,7 +134,7 @@ class LnkUserOrganizationController(
         .flatMap<Tuple2<User, Organization>> { organization ->
             userName?.let { userName ->
                 Mono.zip(
-                    Mono.justOrEmpty(lnkUserOrganizationService.getUserByName(userName)),
+                    lnkUserOrganizationService.getUserByName(userName).toMono(),
                     Mono.just(organization)
                 )
             } ?: Mono.zip(
@@ -184,7 +184,7 @@ class LnkUserOrganizationController(
         }
         .flatMap {
             Mono.zip(
-                Mono.justOrEmpty(lnkUserOrganizationService.getUserByName(setRoleRequest.userName)),
+                lnkUserOrganizationService.getUserByName(setRoleRequest.userName).toMono(),
                 Mono.just(it),
             )
         }
@@ -239,7 +239,7 @@ class LnkUserOrganizationController(
         }
         .flatMap {
             Mono.zip(
-                Mono.justOrEmpty(lnkUserOrganizationService.getUserByName(userName)),
+                lnkUserOrganizationService.getUserByName(userName).toMono(),
                 Mono.just(it)
             )
         }

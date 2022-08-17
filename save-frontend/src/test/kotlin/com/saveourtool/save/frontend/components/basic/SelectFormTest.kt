@@ -2,9 +2,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.externals.*
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.mockMswResponse
-import com.saveourtool.save.frontend.utils.wrapper
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLOptionElement
@@ -14,6 +12,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
+    private val selectFormRequired = selectFormRequired<Organization>()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organization/get/list") { _, res, _ ->
             res { response ->
@@ -35,10 +34,19 @@ class SelectFormTest {
             render(
                 wrapper.create {
                     selectFormRequired {
-                        form = InputTypes.ORGANIZATION_NAME
+                        getData = {
+                            get(
+                                "$apiUrl/organization/get/list",
+                                jsonHeaders,
+                                loadingHandler = ::noopLoadingHandler,
+                            )
+                                .decodeFromJsonString()
+                        }
+                        dataToString = { it.name }
+                        formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"
-                        text = "Organization"
+                        formName = "Organization"
                     }
                 }
             )
@@ -65,15 +73,24 @@ class SelectFormTest {
                 }
             }
         )
-
         return (worker.start() as Promise<*>).then {
             render(
                 wrapper.create {
                     selectFormRequired {
-                        form = InputTypes.ORGANIZATION_NAME
+                        getData = {
+                            get(
+                                "$apiUrl/organization/get/list",
+                                jsonHeaders,
+                                loadingHandler = ::noopLoadingHandler,
+                            )
+                                .decodeFromJsonString()
+                        }
+                        dataToString = { it.name }
+                        formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"
-                        text = "Organization"
+                        formName = "Organization"
+                        notFoundErrorMessage = "You don't have access to any organizations"
                     }
                 }
             )

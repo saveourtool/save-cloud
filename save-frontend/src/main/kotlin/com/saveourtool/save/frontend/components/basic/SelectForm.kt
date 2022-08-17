@@ -2,15 +2,11 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import org.w3c.dom.HTMLSelectElement
-import org.w3c.fetch.Headers
 import react.FC
 import react.Props
-import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
@@ -19,18 +15,13 @@ import react.dom.html.ReactHTML.span
 import react.useState
 
 /**
- * Component with required selection
- */
-val selectFormRequired = selectFormRequired()
-
-/**
  * SelectFormRequired component props
  */
-external interface SelectFormRequiredProps : Props {
+external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * Type of 'select'
      */
-    var form: InputTypes?
+    var formType: InputTypes
 
     /**
      * Flag to valid select
@@ -40,20 +31,48 @@ external interface SelectFormRequiredProps : Props {
     /**
      * classes of 'select'
      */
-    var classes: String?
+    var classes: String
 
     /**
      * select name
      */
-    var text: String?
+    var formName: String
+
+    /**
+     * lambda invoked once to fetch data for selection
+     */
+    var getData: suspend WithRequestStatusContext.() -> List<D>
+
+    /**
+     * Currently chosen field
+     */
+    var selectedValue: String
+
+    /**
+     * Method to get string that should be shown
+     */
+    var dataToString: (D) -> String
+
+    /**
+     * Message shown on invalid input
+     */
+    var errorMessage: String?
+
+    /**
+     * Message shown on no options fetched
+     */
+    var notFoundErrorMessage: String?
 
     /**
      * Callback invoked when form is changed
      */
     @Suppress("TYPE_ALIAS")
-    var onChangeFun: (ChangeEvent<HTMLSelectElement>) -> Unit
+    var onChangeFun: (D?) -> Unit
 }
 
+/**
+ * @return [FC] of required selection input form
+ */
 @Suppress(
     "TOO_MANY_PARAMETERS",
     "TOO_LONG_FUNCTION",
@@ -61,76 +80,67 @@ external interface SelectFormRequiredProps : Props {
     "TYPE_ALIAS",
     "LongMethod",
 )
-private fun selectFormRequired() = FC<SelectFormRequiredProps> { props ->
-
-    val (elements, setElements) = useState(listOf<String>())
+fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
+    val (elements, setElements) = useState(listOf<D>())
 
     useRequest(arrayOf(), isDeferred = false) {
-        val organizations =
-                get(
-                    url = "$apiUrl/organization/get/list",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::loadingHandler,
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<List<Organization>>()
-                    }
-
-        setElements(organizations.map { it.name })
+        setElements((props.getData)())
     }()
 
     div {
         className = ClassName("${props.classes} mt-1")
         label {
             className = ClassName("form-label")
-            props.form?.let {
+            props.formType.let {
                 htmlFor = it.name
             }
-            +"${props.text}"
+            +props.formName
+            span {
+                className = ClassName("text-red")
+                id = "${props.formType.name}Span"
+                +"*"
+            }
         }
 
         div {
             className = ClassName("input-group has-validation")
-            span {
-                className = ClassName("input-group-text")
-                id = "${props.form?.name}Span"
-                +"*"
-            }
-
             select {
                 className = ClassName("form-control")
-                id = "${props.form?.name}"
+                id = props.formType.name
                 required = true
-                if (props.validInput == true) {
-                    className = ClassName("form-control")
-                } else {
-                    className = ClassName("form-control is-invalid")
+                option {
+                    disabled = true
+                    +""
                 }
-
-                val newElements = elements.toMutableList()
-                newElements.add(0, "")
-                newElements.forEach { element ->
+                value = props.selectedValue
+                elements.forEach { element ->
                     option {
-                        +element
+                        +props.dataToString(element)
                     }
                 }
-
-                onChange = {
-                    props.onChangeFun(it)
+                className = when {
+                    value == "" || value == null -> ClassName("form-control")
+                    props.validInput == true -> ClassName("form-control is-valid")
+                    props.validInput == false -> ClassName("form-control is-invalid")
+                    else -> ClassName("form-control")
+                }
+                onChange = { event ->
+                    elements.find {
+                        props.dataToString(it) == event.target.value
+                    }?.let {
+                        props.onChangeFun(it)
+                    }
                 }
             }
 
             if (elements.isEmpty()) {
-                div {
-                    className = ClassName("invalid-feedback d-block")
-                    +"You don't have access to any organizations"
+                props.notFoundErrorMessage?.let {
+                    +it
                 }
             } else if (props.validInput == false) {
                 div {
                     className = ClassName("invalid-feedback d-block")
-                    +"Please input a valid ${props.form?.str}"
+                    +(props.errorMessage ?: "Please input a valid ${props.formType.str}")
                 }
             }
         }

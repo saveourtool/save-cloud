@@ -2,23 +2,23 @@
  * A view related to the sign-in view
  */
 
-@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "MAGIC_NUMBER")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.welcome.pagers.*
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 
 import csstype.*
-import org.w3c.dom.HTML.a
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML
@@ -101,10 +101,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         main {
             className = ClassName("main-content mt-0 ps")
             div {
-                className = ClassName("page-header align-items-start min-vh-100")
+                className = ClassName("page-header align-items-start")
                 style = jso {
+                    height = "100vh".unsafeCast<Height>()
                     background =
                             "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                    position = Position.relative
                 }
                 span {
                     className = ClassName("mask bg-gradient-dark opacity-6")
@@ -126,7 +128,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         marketingTitle("Evaluation")
                         h3 {
                             className = ClassName("mt-4")
-                            +"Advanced cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
+                            +"Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
                         }
                     }
 
@@ -145,34 +147,54 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         }
                     }
                 }
+                div {
+                    className = ClassName("row")
+                    style = jso {
+                        justifyContent = JustifyContent.center
+                        display = Display.flex
+                        flexDirection = FlexDirection.column
+                        alignItems = AlignItems.center
+                        position = Position.absolute
+                        bottom = 7.em
+                        left = "50%".unsafeCast<Left>()
+                    }
+                    h1 {
+                        className = ClassName("animate__animated animate__pulse animate__infinite")
+                        style = jso {
+                            fontSize = 5.rem
+                            color = "#ffffff".unsafeCast<Color>()
+                        }
+                        fontAwesomeIcon(faChevronDown)
+                    }
+                }
             }
 
             div {
                 className = ClassName("min-vh-100")
                 style = jso {
                     background =
-                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 194, 229))".unsafeCast<Background>()
+                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
                 }
 
-                span {
-                    className = ClassName("mask bg-gradient-dark opacity-6")
-                }
+                renderGeneralInfoPage()
 
-                div {
-                    className = ClassName("align-items-center justify-content-center")
-                    scrollContainer {
+                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                scrollContainer {
+                    scrollPage { }
+                    allWelcomePagers.forEach { pager ->
+                        scrollPage { }
                         scrollPage {
-                            animator {
-                                animation = fade
-                                span {
-                                    style = jso {
-                                        fontSize = "40px".unsafeCast<FontSize>()
-                                    }
+                            pager.forEach {
+                                animator {
+                                    animation = it.animation
+                                    it.renderPage(this)
                                 }
                             }
                         }
                     }
                 }
+
+                renderReadMorePage()
             }
         }
     }
@@ -216,8 +238,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                         +"Don't have an account?"
                     }
 
-                    // Fixme: validateDOMNesting(...): <h4> cannot appear as a descendant of <p>.
-                    p {
+                    div {
                         className = ClassName("text-sm text-center")
                         h4 {
                             style = jso {

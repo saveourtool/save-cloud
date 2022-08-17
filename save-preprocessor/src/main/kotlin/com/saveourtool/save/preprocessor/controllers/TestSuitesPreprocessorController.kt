@@ -29,38 +29,33 @@ class TestSuitesPreprocessorController(
     private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
 ) {
     /**
+     * Fetch new tests suites from provided source with specific version or latest if version is not provided
+     *
      * @param testSuitesSourceDto source from which test suites need to be loaded
+     * @param version version which needs to be loaded, null is latest
      * @return empty response
      */
     @PostMapping("/fetch")
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-    ): Mono<Unit> = detectLatestVersion(testSuitesSourceDto)
+        @RequestParam(required = false) version: String?,
+    ): Mono<Unit> = doFetch(
+        testSuitesSourceDto,
+        version?.let { Mono.just(it) } ?: detectLatestVersion(testSuitesSourceDto)
+    ).lazyDefaultIfEmpty {
+        with(testSuitesSourceDto) {
+            version?.also {
+                log.debug { "Test suites source $name in $organizationName already contains version $version" }
+            } ?: log.debug { "There is no new version for $name in $organizationName" }
+        }
+    }
+
+    private fun doFetch(
+        testSuitesSourceDto: TestSuitesSourceDto,
+        versionAsMono: Mono<String>,
+    ): Mono<Unit> = versionAsMono
         .filterWhen { testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
         .flatMap { version ->
-            fetchTestSuitesFromGit(testSuitesSourceDto, version)
-                .map {
-                    log.info { "Loaded ${it.size} test suites" }
-                }
-        }
-        .defaultIfEmpty(
-            log.debug { "There is no new version for ${testSuitesSourceDto.name} in ${testSuitesSourceDto.organizationName}" }
-        )
-
-    /**
-     * Fetch new tests suites from provided source with specific version
-     * TODO: Added for backward compatibility, can be removed after refactoring UI, it's not needed to be exposed as endpoint
-     *
-     * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param version version which needs to be loaded
-     * @return true if fetching was performed, false otherwise
-     */
-    fun fetch(
-        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-        @RequestParam version: String,
-    ): Mono<Boolean> = testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, version)
-        .filter(false::equals)
-        .flatMap {
             fetchTestSuitesFromGit(testSuitesSourceDto, version)
                 .map {
                     with(testSuitesSourceDto) {
@@ -69,12 +64,6 @@ class TestSuitesPreprocessorController(
                     true
                 }
         }
-        .defaultIfEmpty(
-            with(testSuitesSourceDto) {
-                log.info { "Test suites source $name in $organizationName already contains version $version" }
-                false
-            }
-        )
 
     /**
      * Detect latest version of TestSuitesSource

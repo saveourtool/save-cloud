@@ -76,18 +76,4 @@ internal class ExecutionTest {
             execution.parseAndGetAdditionalFiles()
         )
     }
-
-    @Test
-    fun appendAdditionalFile() {
-        execution.additionalFiles = ""
-
-        execution.appendAdditionalFile(FileKey("file1", 1))
-        assertEquals("file1:1", execution.additionalFiles)
-
-        execution.appendAdditionalFile(FileKey("file3", 3))
-        assertEquals("file1:1;file3:3", execution.additionalFiles)
-
-        execution.appendAdditionalFile(FileKey("file2", 2))
-        assertEquals("file1:1;file3:3;file2:2", execution.additionalFiles)
-    }
 }

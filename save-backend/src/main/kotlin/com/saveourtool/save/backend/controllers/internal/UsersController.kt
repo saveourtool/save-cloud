@@ -44,9 +44,9 @@ class UsersController(
     @PostMapping("/new")
     fun saveNewUser(@RequestBody user: User) {
         val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
-        userRepository.findByName(userName).ifPresentOrElse({
+        userRepository.findByName(userName)?.let {
             logger.debug("User $userName is already present in the DB")
-        }) {
+        } ?: run {
             logger.info("Saving user $userName to the DB")
             userRepository.save(user)
         }
