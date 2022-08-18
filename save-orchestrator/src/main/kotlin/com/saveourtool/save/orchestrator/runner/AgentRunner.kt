@@ -24,7 +24,6 @@ interface AgentRunner {
         executionId: Long,
         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
         replicas: Int,
-        workingDir: String,
     ): List<String>
 
     /**

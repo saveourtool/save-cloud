@@ -40,9 +40,11 @@ class KubernetesManager(
     override fun create(executionId: Long,
                         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
                         replicas: Int,
-                        workingDir: String,
     ): List<String> {
-        val (baseImageTag, agentRunCmd, pvId) = configuration
+        val baseImageTag = configuration.imageTag
+        val agentRunCmd = configuration.runCmd
+        val pvId = configuration.pvId
+        val workingDir = configuration.workingDir
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
@@ -79,7 +81,7 @@ class KubernetesManager(
                         restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageTag, agentRunCmd)
+                            agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.resourcesConfiguration)
                         )
                         volumes = listOf(
                             Volume().apply {
@@ -225,7 +227,12 @@ class KubernetesManager(
         )
     }
 
-    private fun agentContainerSpec(imageName: String, agentRunCmd: List<String>) = Container().apply {
+    private fun agentContainerSpec(
+        imageName: String,
+        agentRunCmd: List<String>,
+        workingDir: String,
+        resourcesConfiguration: DockerService.RunConfiguration.ResourcesConfiguration,
+    ) = Container().apply {
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
@@ -237,7 +244,23 @@ class KubernetesManager(
                         fieldPath = "metadata.name"
                     }
                 }
-            }
+            },
+            EnvVar().apply {
+                name = "EXECUTION_ID"
+                value = "${resourcesConfiguration.executionId}"
+            },
+            EnvVar().apply {
+                name = "ADDITIONAL_FILES_LIST"
+                value = resourcesConfiguration.additionalFilesSting
+            },
+            EnvVar().apply {
+                name = "ORGANIZATION_NAME"
+                value = resourcesConfiguration.organizationName
+            },
+            EnvVar().apply {
+                name = "PROJECT_NAME"
+                value = resourcesConfiguration.projectName
+            },
         )
 
         this.command = agentRunCmd.dropLast(1)

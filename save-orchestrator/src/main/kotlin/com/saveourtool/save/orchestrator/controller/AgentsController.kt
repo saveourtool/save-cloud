@@ -7,9 +7,11 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -31,7 +34,9 @@ import reactor.kotlin.core.publisher.doOnError
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
 
 /**
@@ -77,22 +82,28 @@ class AgentsController(
                         "status=${execution.status}]"
             }
             Mono.fromCallable {
-                // todo: pass SDK via request body
-                dockerService.prepareConfiguration(execution)
+                createTempDirectory(
+                    directory = tmpDir,
+                    prefix = "save-execution-${execution.id}"
+                )
             }
                 .subscribeOn(agentService.scheduler)
                 .publishOn(agentService.scheduler)
+                .map {
+                    // todo: pass SDK via request body
+                    dockerService.prepareConfiguration(it, execution)
+                }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(execution.id!!, configuration)
+                    dockerService.createContainers(execution.id!!, configuration) to configuration.resourcesPath
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create containers", ex)
                 }
-                .flatMap { agentIds ->
+                .flatMap { (agentIds, resourcesPath) ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
                             Agent(id, execution)
@@ -102,10 +113,13 @@ class AgentsController(
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
                             dockerService.cleanup(execution.id!!)
                         }
-                        .thenReturn(agentIds)
+                        .thenReturn(agentIds to resourcesPath)
                 }
-                .flatMapMany { agentIds ->
-                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
+                .flatMapMany { (agentIds, resourcesPath) ->
+                    dockerService.startContainersAndUpdateExecution(execution, agentIds).doOnTerminate {
+                        log.debug { "Removing temporary directory ${resourcesPath.absolutePathString()}" }
+                        FileSystemUtils.deleteRecursively(resourcesPath)
+                    }
                 }
                 .subscribe()
         }
