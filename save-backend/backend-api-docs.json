@@ -3987,6 +3987,57 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/public-list": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "List of public test suites sources.",
+        "description": "List of public test suites sources.",
+        "operationId": "publicList",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched list of public test suites sources.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-suites-sources/organizations-list": {
       "get": {
         "tags": [
