@@ -19,6 +19,9 @@ import kotlinx.serialization.Serializable
  * @property twitter
  * @property organizations
  * @property globalRole
+ * @property id
+ * @property oldNames
+ * @property isActive
  */
 @Serializable
 data class UserInfo(

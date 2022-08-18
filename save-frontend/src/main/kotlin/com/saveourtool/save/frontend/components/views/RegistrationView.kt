@@ -1,3 +1,9 @@
+/**
+ * A view for registration
+ */
+
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
@@ -11,24 +17,23 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import kotlinx.browser.window
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
-import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
 import react.ChildrenBuilder
 import react.PropsWithChildren
 import react.State
 import react.dom.aria.ariaLabel
+import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.events.ChangeEvent
 
 /**
  * `Props` retrieved from router
@@ -40,6 +45,9 @@ external interface RegistrationProps : PropsWithChildren {
     var userName: String?
 }
 
+/**
+ * [State] of registration view component
+ */
 external interface RegistrationViewState : State {
     /**
      * Flag to handle uploading a file
@@ -62,6 +70,9 @@ external interface RegistrationViewState : State {
     var isValidUserName: Boolean?
 }
 
+/**
+ * A Component for registration view
+ */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>() {
@@ -93,23 +104,23 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     private fun saveUser() {
-            val newUserInfo = state.userInfo?.copy(
-                name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
-                oldNames = listOf(state.userInfo!!.name),
-                isActive = true,
-            )
+        val newUserInfo = state.userInfo?.copy(
+            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
+            oldNames = listOf(state.userInfo!!.name),
+            isActive = true,
+        )
 
-            scope.launch {
-                val response = post(
-                    "$apiUrl/users/save",
-                    jsonHeaders,
-                    Json.encodeToString(newUserInfo),
-                    loadingHandler = ::classLoadingHandler,
-                )
-                if (response.ok) {
-                    window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
-                }
+        scope.launch {
+            val response = post(
+                "$apiUrl/users/save",
+                jsonHeaders,
+                Json.encodeToString(newUserInfo),
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
             }
+        }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
@@ -154,7 +165,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                         ariaLabel = "Change organization's avatar"
                                         ReactHTML.img {
                                             className =
-                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                             src = state.image?.path?.let {
                                                 "/api/$v1/avatar$it"
                                             }

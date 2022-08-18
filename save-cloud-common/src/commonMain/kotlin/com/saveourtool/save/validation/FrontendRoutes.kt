@@ -12,11 +12,11 @@ import com.saveourtool.save.utils.URL_PATH_DELIMITER
  */
 enum class FrontendRoutes(val path: String) {
     AWESOME_BENCHMARKS("awesome-benchmarks"),
-    REGISTRATION("registration"),
     CONTESTS("contests"),
     CREATE_ORGANIZATION("create-organization"),
     CREATE_PROJECT("create-project"),
     PROJECTS("projects"),
+    REGISTRATION("registration"),
     SETTINGS_EMAIL("settings/email"),
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),

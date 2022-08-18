@@ -1,15 +1,15 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.entities.OriginalLogin
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module

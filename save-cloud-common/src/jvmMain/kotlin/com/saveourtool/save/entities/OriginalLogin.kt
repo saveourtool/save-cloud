@@ -5,6 +5,11 @@ import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
+/**
+ * @property name
+ * @property user
+ * @property source
+ */
 @Entity
 class OriginalLogin(
     var name: String?,

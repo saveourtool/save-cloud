@@ -32,7 +32,9 @@ class UserDetailsService(
                 it.toMono()
                     .getIdentitySourceAwareUserDetails(username)
             } ?: run {
-                originalLoginRepository.findByName(username).toMono().map { it.user }
+                originalLoginRepository.findByName(username)
+                    .toMono()
+                    .map { it.user }
                     .getIdentitySourceAwareUserDetails(username)
             }
 

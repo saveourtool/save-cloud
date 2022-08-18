@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
 import javax.persistence.Entity
 import javax.persistence.FetchType
-import javax.persistence.JoinColumn
 import javax.persistence.OneToMany
 
 /**
@@ -19,6 +18,8 @@ import javax.persistence.OneToMany
  * @property linkedin
  * @property gitHub
  * @property twitter
+ * @property isActive
+ * @property originalLogins
  */
 @Entity
 @Suppress("LongParameterList")
