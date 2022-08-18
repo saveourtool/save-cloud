@@ -76,9 +76,7 @@ class TestSuitesSourceSnapshotStorage(
         version: String,
     ): Mono<Boolean> = findKey(organizationName, testSuitesSourceName, version)
         .flatMap { key ->
-            delete(key).map { isRemoved ->
-                isRemoved
-            }
+            delete(key)
         }
 
     /**
