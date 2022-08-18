@@ -11,6 +11,7 @@ import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
+import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
@@ -88,21 +89,23 @@ class SaveAgent(internal val config: AgentConfiguration,
             val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv("EXECUTION_ID")
-            httpClient.downloadTestResources(config.backend, targetDirectory, executionId)
+            httpClient.downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+                logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
             logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")
             val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
-            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList)
+            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList).runIf({ isFailure }) {
+                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
 
             state.value = AgentState.STARTING
         }
-            .invokeOnCompletion { cause ->
-                if (cause != null && cause !is CancellationException) {
-                    // job has failed
-                    state.value = AgentState.CRASHED
-                }
-            }
         return coroutineScope.launch { startHeartbeats(this) }
     }
 

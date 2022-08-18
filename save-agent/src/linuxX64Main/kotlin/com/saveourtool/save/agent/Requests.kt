@@ -18,7 +18,7 @@ import io.ktor.http.*
 import okio.Path
 import okio.Path.Companion.toPath
 
-internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) {
+internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) = runCatching {
     val response = post {
         url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
         contentType(ContentType.Application.Json)
@@ -48,7 +48,7 @@ internal suspend fun HttpClient.downloadAdditionalResources(
     baseUrl: String,
     targetDirectory: Path,
     additionalResourcesAsString: String,
-) {
+) = runCatching {
     val organizationName = requiredEnv("ORGANIZATION_NAME")
     val projectName = requiredEnv("PROJECT_NAME")
     FileKey.parseList(additionalResourcesAsString).map { fileKey ->
