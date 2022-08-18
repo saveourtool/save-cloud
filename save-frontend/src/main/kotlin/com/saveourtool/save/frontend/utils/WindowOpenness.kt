@@ -5,6 +5,7 @@ import react.useState
 
 /**
  * Util class which stores state about window openness
+ *
  * @param isOpenState [StateInstance] with [Boolean] value
  */
 class WindowOpenness(
@@ -51,8 +52,6 @@ class WindowOpenness(
         /**
          * @return [WindowOpenness] with closed state by default
          */
-        fun create(): WindowOpenness {
-            return WindowOpenness(useState(false))
-        }
+        fun create() = WindowOpenness(useState(false))
     }
 }

@@ -144,15 +144,15 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 TestingType.PRIVATE_TESTS -> showPrivateTestSuitesSelectorModal(
                     props.organizationName,
                     selectedTestSuiteIds,
-                    setSelectedTestSuiteIds,
                     testSuiteSelectorWindowOpenness,
-                    useState(emptyList())
+                    useState(emptyList()),
+                    setSelectedTestSuiteIds
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
                     selectedTestSuiteIds,
-                    setSelectedTestSuiteIds,
                     testSuiteSelectorWindowOpenness,
-                    useState(emptyList())
+                    useState(emptyList()),
+                    setSelectedTestSuiteIds
                 )
                 else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
             }

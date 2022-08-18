@@ -152,10 +152,11 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         contestCreationCard {
             showPublicTestSuitesSelectorModal(
                 contestDto.testSuiteIds,
-                { selectedTestSuiteIds -> setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds)) },
                 testSuitesSelectorWindowOpenness,
-                useState(emptyList<Long>())
-            )
+                useState(emptyList())
+            ) {
+                setContestDto(contestDto.copy(testSuiteIds = it))
+            }
             div {
                 className = ClassName("")
                 form {

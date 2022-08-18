@@ -53,42 +53,42 @@ enum class TestSuiteSelectorMode {
 
 /**
  * @param initTestSuiteIds initial value
- * @param setSelectedTestSuiteIds consumer for result
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
  */
 fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
     initTestSuiteIds: List<Long>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, initTestSuiteIds, setSelectedTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState)
+    showTestSuitesSelectorModal(null, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
  * @param organizationName
  * @param initTestSuiteIds initial value
- * @param setSelectedTestSuiteIds consumer for result
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
  */
 fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
     organizationName: String,
     initTestSuiteIds: List<Long>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(organizationName, initTestSuiteIds, setSelectedTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState)
+    showTestSuitesSelectorModal(organizationName, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     specificOrganizationName: String?,
     initTestSuiteIds: List<Long>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
     var currentlySelectedTestSuiteIds by testSuiteIdsInSelectorState
     val onSubmit: () -> Unit = {
@@ -105,7 +105,12 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
     showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
 }
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList"
+)
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
     specificOrganizationName: String?,
