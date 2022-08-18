@@ -37,7 +37,7 @@ data class Project(
         foreignKey = ForeignKey(),
         referencedColumnName = "",
         unique = false,
-        nullable = true,
+        nullable = false,
         insertable = true,
         updatable = true,
         columnDefinition = "",

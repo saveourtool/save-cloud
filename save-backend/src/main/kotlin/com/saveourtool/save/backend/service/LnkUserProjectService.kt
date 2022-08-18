@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
@@ -117,7 +118,7 @@ class LnkUserProjectService(
      * @param userId
      * @return list of [Project]s that are connected to user with [userId]
      */
-    fun getAllProjectsByUserId(userId: Long): List<Project> = lnkUserProjectRepository.findByUserId(userId)
+    fun getNonDeletedProjectsByUserId(userId: Long): List<Project> = lnkUserProjectRepository.findByUserIdAndProjectStatus(userId, ProjectStatus.CREATED)
         .mapNotNull { it.project }
 
     /**

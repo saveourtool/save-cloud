@@ -20,6 +20,18 @@ private val defaultModalStyle = Styles(
     ).unsafeCast<CssProperties>()
 )
 
+val transparentModalStyle = Styles(
+    content = json(
+        "top" to "5%",
+        "left" to "5%",
+        "right" to "5%",
+        "bottom" to "5%",
+        "overflow" to "hide",
+        "background-color" to "transparent",
+        "border" to "1px solid rgba(255, 255, 255, 0.01)"
+    ).unsafeCast<CssProperties>()
+)
+
 val loaderModalStyle = Styles(
     content = json(
         "top" to "25%",
