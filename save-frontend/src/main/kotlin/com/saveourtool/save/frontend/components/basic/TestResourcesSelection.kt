@@ -142,6 +142,7 @@ fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     }
 }
 
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
     selectedTestSuiteIds: List<Long>,
@@ -208,6 +209,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     }
 }
 
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForContestMode(props: TestResourcesProps) {
     val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
     showContestEnrollerModal(

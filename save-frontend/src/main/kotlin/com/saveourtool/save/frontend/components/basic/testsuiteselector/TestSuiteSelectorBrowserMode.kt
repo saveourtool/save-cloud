@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import csstype.ClassName
 import react.ChildrenBuilder
@@ -159,7 +159,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
     val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
     useRequest {
-        val testSuitesSourcesResponse = props.specificOrganizationName?.let { organizationName ->
+        val response = props.specificOrganizationName?.let { organizationName ->
             get(
                 url = "$apiUrl/test-suites-sources/$organizationName/list",
                 headers = jsonHeaders,
@@ -174,8 +174,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 responseHandler = ::noopResponseHandler,
             )
         }
-        val testSuitesSources = testSuitesSourcesResponse
-            .decodeFromJsonString<List<TestSuitesSourceDto>>()
+        val testSuitesSources: TestSuitesSourceDtoList = response.decodeFromJsonString()
         setAvailableOrganizations(testSuitesSources.map { it.organizationName }.distinct())
         setAvailableTestSuiteSources(testSuitesSources.map { it.name })
     }()
