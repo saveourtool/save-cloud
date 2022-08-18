@@ -180,7 +180,7 @@ class DockerAgentRunner(
                 // this part is like `sh -c` with probably some other flags
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
-                        "env \$(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
+                        """env $(cat $envFileTargetPath | xargs) sh -c "cp $SAVE_AGENT_USER_HOME/resources/* . && ${runCmd.last()}""""
                 )
             )
             .withName(containerName)
@@ -189,7 +189,7 @@ class DockerAgentRunner(
                 HostConfig.newHostConfig()
                     .withBinds(Bind(
                         // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
-                        pvId.volumeName, Volume(EXECUTION_DIR)
+                        pvId.volumeName, Volume("$SAVE_AGENT_USER_HOME/resources")
                     ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
