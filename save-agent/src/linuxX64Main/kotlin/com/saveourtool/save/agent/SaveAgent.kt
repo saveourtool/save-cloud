@@ -2,10 +2,9 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.logErrorCustom
-import com.saveourtool.save.agent.utils.logInfoCustom
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
@@ -28,26 +27,20 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.cinterop.toKString
+import kotlinx.coroutines.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import platform.posix.__environ
 import platform.posix.getenv
 
 /**
@@ -88,20 +81,28 @@ class SaveAgent(internal val config: AgentConfiguration,
     fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
-            // fixme: which state?
             state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
+
             // to be consistent with previous logic in orchestrator
             val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
-            httpClient.downloadTestResources(config.backend, targetDirectory, getenv("EXECUTION_ID")!!.toKString())
-            logInfoCustom("Downloaded all tests for execution ${getenv("EXECUTION_ID")!!.toKString()} to $targetDirectory")
+            val executionId = requiredEnv("EXECUTION_ID")
+            httpClient.downloadTestResources(config.backend, targetDirectory, executionId)
+            logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")
-            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, getenv("ADDITIONAL_FILES_LIST")!!.toKString())
+            val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
+            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList)
 
             state.value = AgentState.STARTING
         }
+            .invokeOnCompletion { cause ->
+                if (cause != null && cause !is CancellationException) {
+                    // job has failed
+                    state.value = AgentState.CRASHED
+                }
+            }
         return coroutineScope.launch { startHeartbeats(this) }
     }
 

@@ -65,7 +65,7 @@ internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
     }
 }
 
-internal fun Path.tryMarkAsExecutable() {
+internal fun Path.markAsExecutable() {
     platform.posix.chmod(
         this.toString(),
         (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()

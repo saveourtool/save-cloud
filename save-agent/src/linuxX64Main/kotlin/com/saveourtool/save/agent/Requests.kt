@@ -1,11 +1,13 @@
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.extractZipTo
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.tryMarkAsExecutable
+import com.saveourtool.save.agent.utils.requiredEnv
+import com.saveourtool.save.agent.utils.markAsExecutable
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.core.logging.logWarn
+import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.FileKey
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -13,19 +15,12 @@ import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.cinterop.toKString
 import okio.Path
 import okio.Path.Companion.toPath
-import platform.posix.getenv
 
 internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) {
     val response = post {
         url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
-        /*url {
-            host = config.url
-            path(config.testSourceSnapshotEndpoint)
-            parameters.append("executionId", executionId)
-        }*/
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         onDownload { bytesSentTotal, contentLength ->
@@ -36,23 +31,17 @@ internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, tar
         logDebugCustom("Error during request to ${response.request.url}: ${response.status}")
         error("Error while downloading test resources: ${response.status}")
     }
-//        .bodyAsChannel()
-    val bytes = response.body<ByteArray>()
-    if (bytes.isEmpty()) {
+
+    val bytes = response.body<ByteArray>().runIf({ isEmpty() }) {
         error( "Not found any tests for execution $executionId")
     }
     val pathToArchive = "archive.zip".toPath()
-    if (fs.exists(pathToArchive)) {
-        logDebugCustom("Skipping unpacking, because $pathToArchive already exists in $target")
-    } else {
-        logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
-        bytes.writeToFile(pathToArchive)
-        logDebugCustom("Downloaded archive into $pathToArchive")
-        fs.createDirectories(target, mustCreate = false)
-        pathToArchive.extractZipTo(target)
-        fs.delete(pathToArchive, mustExist = true)
-        logDebugCustom("Extracted archive into $target")
-    }
+    logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
+    bytes.writeToFile(pathToArchive)
+    fs.createDirectories(target, mustCreate = false)
+    pathToArchive.extractZipTo(target)
+    fs.delete(pathToArchive, mustExist = true)
+    logDebugCustom("Extracted archive into $target and deleted $pathToArchive")
 }
 
 internal suspend fun HttpClient.downloadAdditionalResources(
@@ -60,32 +49,31 @@ internal suspend fun HttpClient.downloadAdditionalResources(
     targetDirectory: Path,
     additionalResourcesAsString: String,
 ) {
-    val organizationName = getenv("ORGANIZATION_NAME")!!.toKString()
-    val projectName = getenv("PROJECT_NAME")!!.toKString()
+    val organizationName = requiredEnv("ORGANIZATION_NAME")
+    val projectName = requiredEnv("PROJECT_NAME")
     FileKey.parseList(additionalResourcesAsString).map { fileKey ->
         val fileContentBytes = post {
             url("$baseUrl/internal/files/$organizationName/$projectName/download")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.OctetStream)
             setBody(fileKey)
+            onDownload { bytesSentTotal, contentLength ->
+                logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
+            }
         }
             .body<ByteArray>()
-        if (fileContentBytes.isEmpty()) {
-            error("Couldn't download file $fileKey: content is empty")
-        }
-        if (fs.exists(targetDirectory / fileKey.name)) {
-            logDebugCustom("Skipping saving of ${fileKey.name} into $targetDirectory because file already exists")
-            return
-        }
-        fileContentBytes.writeToFile(
-            targetDirectory / fileKey.name
-        )
-        fileKey to targetDirectory / fileKey.name
+            .runIf({ isEmpty() }) {
+                error("Couldn't download file $fileKey: content is empty")
+            }
+
+        val targetFile = targetDirectory / fileKey.name
+        fileContentBytes.writeToFile(targetFile)
+        fileKey to targetFile
     }
         .onEach { (fileKey, pathToFile) ->
-            pathToFile.tryMarkAsExecutable()
+            pathToFile.markAsExecutable()
             logDebugCustom(
-                 "Downloaded $fileKey to ${fs.canonicalize(pathToFile)}"
+                 "Downloaded $fileKey into ${fs.canonicalize(pathToFile)}"
             )
         }
         .map { (_, pathToFile) ->
