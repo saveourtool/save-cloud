@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
@@ -22,13 +23,18 @@ import java.util.*
 @Service
 class UserDetailsService(
     private val userRepository: UserRepository,
+    private val originalLoginRepository: OriginalLoginRepository,
 ) : ReactiveUserDetailsService {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun findByUsername(username: String): Mono<UserDetails> =
-            { userRepository.findByName(username) }
-                .toMono()
-                .getIdentitySourceAwareUserDetails(username)
+            userRepository.findByName(username)?.let {
+                it.toMono()
+                    .getIdentitySourceAwareUserDetails(username)
+            } ?: run {
+                originalLoginRepository.findByName(username).toMono().map { it.user }
+                    .getIdentitySourceAwareUserDetails(username)
+            }
 
     /**
      * @param username

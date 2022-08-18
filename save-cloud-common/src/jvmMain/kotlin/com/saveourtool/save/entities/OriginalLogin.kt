@@ -11,4 +11,5 @@ class OriginalLogin(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     var user: User,
+    var source: String?,
 ) : BaseEntity()

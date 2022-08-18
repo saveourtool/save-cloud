@@ -48,7 +48,11 @@ class UsersDetailsController(
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
     fun findByName(@PathVariable userName: String): Mono<UserInfo> =
-            userRepository.findByName(userName).toMonoOrNotFound().map { it.toUserInfo() }
+            userRepository.findByName(userName)?.let {
+               it.toMonoOrNotFound().map { it.toUserInfo() }
+            } ?: run {
+                originalLoginRepository.findByName(userName).toMonoOrNotFound().map { it.user }.map { it.toUserInfo() }
+            }
 
     /**
      * @param newUserInfo
@@ -64,7 +68,7 @@ class UsersDetailsController(
             userRepository.findByName(newUserInfo.name).orNotFound()
         }
         if (newUserInfo.isActive) {
-            originalLoginRepository.save(OriginalLogin(user.name, user))
+            originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
         }
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {

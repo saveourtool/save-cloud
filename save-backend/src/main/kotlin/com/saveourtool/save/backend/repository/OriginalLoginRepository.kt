@@ -10,5 +10,5 @@ interface OriginalLoginRepository: BaseEntityRepository<OriginalLogin> {
      * @param username
      * @return OriginalLogin or null if no results have been found
      */
-    fun findByName(username: String): Optional<OriginalLogin>
+    fun findByName(username: String): OriginalLogin?
 }

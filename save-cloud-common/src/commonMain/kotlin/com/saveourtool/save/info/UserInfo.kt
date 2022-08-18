@@ -22,8 +22,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class UserInfo(
-    val id: Long? = null,
     val name: String,
+    val id: Long? = null,
     val oldNames: List<String?> = emptyList(),
     val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),

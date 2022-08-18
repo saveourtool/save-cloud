@@ -89,13 +89,10 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         target: ChangeEvent<HTMLInputElement>,
     ) {
         val tg = target.target
-        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${tg.value}")
         fieldsMap[fieldName] = tg.value
-        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${fieldsMap[InputTypes.USER_NAME]}")
     }
 
     private fun saveUser() {
-        println("fieldsMap[InputTypes.USER_NAME] - fieldsMap[InputTypes.USER_NAME] - ${fieldsMap[InputTypes.USER_NAME]}")
             val newUserInfo = state.userInfo?.copy(
                 name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
                 oldNames = listOf(state.userInfo!!.name),
@@ -126,8 +123,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "MAGIC_NUMBER"
     )
     override fun ChildrenBuilder.render() {
-        println("userName - userName - userName - ${props.userName}")
-        println("active - active - active - ${state.userInfo?.isActive}")
         if (state.userInfo?.isActive == false) {
             ReactHTML.main {
                 className = ClassName("main-content mt-0 ps")

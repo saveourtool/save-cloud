@@ -9,6 +9,7 @@ import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
+import com.saveourtool.save.entities.OriginalLogin
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
@@ -49,11 +50,12 @@ class UsersController(
         userRepository.findByName(userName)?.let {
             logger.debug("User $userName is already present in the DB")
         } ?: run {
-            originalLoginRepository.findByName(userName).map { it.user }?.let {
+            originalLoginRepository.findByName(userName)?.user?.let {
                 logger.debug("User $userName is already present in the DB")
             } ?: run {
                 logger.info("Saving user $userName to the DB")
-                userRepository.save(user)
+                val newUser = userRepository.save(user)
+                originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
             }
         }
     }
