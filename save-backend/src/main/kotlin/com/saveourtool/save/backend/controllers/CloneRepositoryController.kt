@@ -114,20 +114,13 @@ class CloneRepositoryController(
                         keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
                             ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
                     }
-                    .flatMap { version ->
+                    .flatMapIterable { version ->
                         val testSuiteList = testSuitesService.getBySourceAndVersion(testSuitesSource, version)
-                        // In some cases of contradictions, when DB is empty, but storage is not, cleanup data from storage
+                        // Situation in some cases of contradictions, when DB is empty, but storage is not
                         if (testSuiteList.isEmpty()) {
                             log.error("Test suites for test suite source ${testSuitesSource.name} not found in DB! Require fetch for this test suite source")
-                            testSuitesSourceSnapshotStorage.removeKey(testSuitesSource.organization.name, testSuitesSource.name, version)
-                        } else {
-                            Mono.just(false)
-                        }.map {
-                            testSuiteList
                         }
-                    }
-                    .flatMapIterable {
-                        it
+                        testSuiteList
                     }
                     .filter(testSuitesFilter)
                     .map { it.requiredId() }
