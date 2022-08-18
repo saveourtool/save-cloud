@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.orNotFound
 
@@ -87,16 +88,8 @@ class TestSuitesSourceService(
         entity: TestSuitesSourceDto
     ): TestSuitesSource = organizationService.getByName(entity.organizationName)
         .let { organization ->
-            testSuitesSourceRepository.save(
-                TestSuitesSource(
-                    organization = organization,
-                    name = entity.name,
-                    description = entity.description,
-                    git = gitService.getByOrganizationAndUrl(organization, entity.gitDto.url),
-                    branch = entity.branch,
-                    testRootPath = entity.testRootPath,
-                )
-            )
+            val git = gitService.getByOrganizationAndUrl(organization, entity.gitDto.url)
+            testSuitesSourceRepository.save(entity.toTestSuiteSource(organization, git))
         }
 
     /**

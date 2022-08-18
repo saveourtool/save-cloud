@@ -111,6 +111,8 @@ private fun ContestDto.label(): String = "$organizationName/$name"
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
+    testSuiteSelectorWindowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     selectedTestSuiteIds: List<Long>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
@@ -139,19 +141,18 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 props.setBatchSizeForAnalyzer
             )
 
-            val testSuiteSelectorWindowOpenness = WindowOpenness.create()
             when (props.testingType) {
                 TestingType.PRIVATE_TESTS -> showPrivateTestSuitesSelectorModal(
                     props.organizationName,
                     selectedTestSuiteIds,
                     testSuiteSelectorWindowOpenness,
-                    useState(emptyList()),
+                    testSuiteIdsInSelectorState,
                     setSelectedTestSuiteIds
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
                     selectedTestSuiteIds,
                     testSuiteSelectorWindowOpenness,
-                    useState(emptyList()),
+                    testSuiteIdsInSelectorState,
                     setSelectedTestSuiteIds
                 )
                 else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
@@ -175,9 +176,9 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForContestMode(
-    props: TestResourcesProps
+    props: TestResourcesProps,
+    contestEnrollerWindowOpenness: WindowOpenness,
 ) {
-    val contestEnrollerWindowOpenness = WindowOpenness.create()
     showContestEnrollerModal(
         contestEnrollerWindowOpenness.isOpen(),
         ProjectNameProps(props.organizationName, props.projectName),
@@ -237,6 +238,15 @@ private fun ChildrenBuilder.renderForContestMode(
     "TOO_LONG_FUNCTION",
 )
 fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
+    // states for private mode
+    val testSuiteSelectorWindowOpennessPrivateMode = WindowOpenness.create()
+    val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<Long>())
+    // states for public mode
+    val testSuiteSelectorWindowOpennessPublicMode = WindowOpenness.create()
+    val testSuiteIdsInSelectorStatePublicMode = useState(emptyList<Long>())
+    // states for contest mode
+    val contestEnrollerWindowOpenness = WindowOpenness.create()
+
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {
             className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
@@ -252,14 +262,21 @@ fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     when (props.testingType) {
         TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
             props,
+            testSuiteSelectorWindowOpennessPrivateMode,
+            testSuiteIdsInSelectorStatePrivateMode,
             props.selectedPrivateTestSuiteIds,
             props.setSelectedPrivateTestSuiteIds
         )
         TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
             props,
+            testSuiteSelectorWindowOpennessPublicMode,
+            testSuiteIdsInSelectorStatePublicMode,
             props.selectedPublicTestSuiteIds,
             props.setSelectedPublicTestSuiteIds
         )
-        TestingType.CONTEST_MODE -> renderForContestMode(props)
+        TestingType.CONTEST_MODE -> renderForContestMode(
+            props,
+            contestEnrollerWindowOpenness
+        )
     }
 }
