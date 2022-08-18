@@ -106,7 +106,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     private fun saveUser() {
         val newUserInfo = state.userInfo?.copy(
             name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
-            oldNames = listOf(state.userInfo!!.name),
+            oldName = state.userInfo!!.name,
             isActive = true,
         )
 

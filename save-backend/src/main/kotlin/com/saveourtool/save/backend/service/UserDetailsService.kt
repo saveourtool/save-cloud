@@ -44,8 +44,9 @@ class UserDetailsService(
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
     fun findByUsernameAndSource(username: String, source: String) =
-            { userRepository.findByNameAndSource(username, source) }
+            { originalLoginRepository.findByNameAndSource(username, source) }
                 .toMono()
+                .map { it.user }
                 .getIdentitySourceAwareUserDetails(username, source)
 
     /**

@@ -65,11 +65,7 @@ class UsersDetailsController(
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
-        val user: User = if (newUserInfo.isActive) {
-            userRepository.findByName(newUserInfo.oldNames.single() ?: newUserInfo.name).orNotFound()
-        } else {
-            userRepository.findByName(newUserInfo.name).orNotFound()
-        }
+        val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
         if (newUserInfo.isActive) {
             originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
         }
@@ -122,4 +118,9 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
             Mono.just(userDetailsService.getGlobalRole(authentication))
+
+    fun getByName(name: String): User? =
+        userRepository.findByName(name) ?: run {
+            originalLoginRepository.findByName(name)?.user
+        }
 }
