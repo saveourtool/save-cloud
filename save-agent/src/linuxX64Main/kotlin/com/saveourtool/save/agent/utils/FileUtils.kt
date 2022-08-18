@@ -5,6 +5,7 @@
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.fs
+import com.saveourtool.save.core.files.findAllFilesMatching
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
@@ -80,14 +81,14 @@ internal fun unzipIfRequired(
 ) {
     // FixMe: for now support only .zip files
     if (pathToFile.name.endsWith(".zip")) {
-//        val shouldBeExecutable = Files.getPosixFilePermissions(pathToFile).any { allExecute.contains(it) }
         pathToFile.extractZipTo(pathToFile.parent!!)
-//        if (shouldBeExecutable) {
-//            log.info { "Marking files in ${pathToFile.parent} executable..." }
-//            Files.walk(pathToFile.parent)
-//                .filter { it.isRegularFile() }
-//                .forEach { with(loggingContext) { it.tryMarkAsExecutable() } }
-//        }
+        // fixme: need to store information about isExecutable in Execution (FileKey)
+        pathToFile.parent!!.findAllFilesMatching {
+            if (fs.metadata(it).isRegularFile) {
+                it.markAsExecutable()
+            }
+            true
+        }
         fs.delete(pathToFile, mustExist = true)
     }
 }
