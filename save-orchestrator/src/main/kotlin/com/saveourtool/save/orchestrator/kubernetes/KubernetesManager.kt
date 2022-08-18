@@ -264,7 +264,7 @@ class KubernetesManager(
         )
 
         this.command = agentRunCmd.dropLast(1)
-        this.args = listOf(agentRunCmd.last())
+        this.args = listOf("cp ${configProperties.kubernetes!!.pvcMountPath}/* . && ${agentRunCmd.last()}")
 
         this.workingDir = workingDir
         volumeMounts = listOf(
