@@ -43,6 +43,24 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.register<Exec>("cleanupDbAndStorage") {
+    dependsOn(":liquibaseDropAll")
+    val profile = properties.get("save.profile") as String?
+
+    val storagePath = when (profile) {
+        "win" -> "${System.getProperty("user.home")}/.save-cloud/cnb/files"
+        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
+        else -> "/home/cnb/files"
+    }
+
+    val args = if (profile != "win") {
+        arrayOf("rm", "-rf")
+    } else {
+        arrayOf("rmdir", "/s", "/q")
+    }
+    commandLine(*args, storagePath)
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
     runtimeOnly(projects.saveFrontend) {
