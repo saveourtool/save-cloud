@@ -11,6 +11,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.cinterop.toKString
 import okio.Path
@@ -19,7 +20,7 @@ import platform.posix.getenv
 
 internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) {
     val response = post {
-        url("${config.url}/${config.testSourceSnapshotEndpoint}?executionId=$executionId")
+        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
         /*url {
             host = config.url
             path(config.testSourceSnapshotEndpoint)
@@ -32,6 +33,7 @@ internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, tar
         }
     }
     if (!response.status.isSuccess()) {
+        logDebugCustom("Error during request to ${response.request.url}: ${response.status}")
         error("Error while downloading test resources: ${response.status}")
     }
 //        .bodyAsChannel()
@@ -40,13 +42,17 @@ internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, tar
         error( "Not found any tests for execution $executionId")
     }
     val pathToArchive = "archive.zip".toPath()
-    logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
-    bytes.writeToFile(pathToArchive)
-    logDebugCustom("Downloaded archive into $pathToArchive")
-    fs.createDirectories(target, mustCreate = false)
-    pathToArchive.extractZipTo(target)
-    fs.delete(pathToArchive, mustExist = true)
-    logDebugCustom("Extracted archive into $target")
+    if (fs.exists(pathToArchive)) {
+        logDebugCustom("Skipping unpacking, because $pathToArchive already exists in $target")
+    } else {
+        logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
+        bytes.writeToFile(pathToArchive)
+        logDebugCustom("Downloaded archive into $pathToArchive")
+        fs.createDirectories(target, mustCreate = false)
+        pathToArchive.extractZipTo(target)
+        fs.delete(pathToArchive, mustExist = true)
+        logDebugCustom("Extracted archive into $target")
+    }
 }
 
 internal suspend fun HttpClient.downloadAdditionalResources(
@@ -66,6 +72,10 @@ internal suspend fun HttpClient.downloadAdditionalResources(
             .body<ByteArray>()
         if (fileContentBytes.isEmpty()) {
             error("Couldn't download file $fileKey: content is empty")
+        }
+        if (fs.exists(targetDirectory / fileKey.name)) {
+            logDebugCustom("Skipping saving of ${fileKey.name} into $targetDirectory because file already exists")
+            return
         }
         fileContentBytes.writeToFile(
             targetDirectory / fileKey.name
