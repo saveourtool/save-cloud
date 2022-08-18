@@ -175,16 +175,15 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForContestMode(
-    props: TestResourcesProps,
-    isContestEnrollerOpen: Boolean,
-    setIsContestEnrollerOpen: StateSetter<Boolean>,
+    props: TestResourcesProps
 ) {
+    val contestEnrollerWindowOpenness = WindowOpenness.create()
     showContestEnrollerModal(
-        isContestEnrollerOpen,
+        contestEnrollerWindowOpenness.isOpen(),
         ProjectNameProps(props.organizationName, props.projectName),
-        { setIsContestEnrollerOpen(false) },
+        contestEnrollerWindowOpenness.closeWindowAction(),
     ) {
-        setIsContestEnrollerOpen(false)
+        contestEnrollerWindowOpenness.closeWindow()
         props.onContestEnrollerResponse(it)
     }
     div {
@@ -195,7 +194,7 @@ private fun ChildrenBuilder.renderForContestMode(
                 className = ClassName("d-flex justify-content-center btn btn-primary")
                 +"Enroll for a contest"
                 onClick = {
-                    setIsContestEnrollerOpen(true)
+                    contestEnrollerWindowOpenness.openWindow()
                 }
             }
         }
@@ -238,7 +237,6 @@ private fun ChildrenBuilder.renderForContestMode(
     "TOO_LONG_FUNCTION",
 )
 fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
-    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {
             className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
@@ -262,10 +260,6 @@ fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
             props.selectedPublicTestSuiteIds,
             props.setSelectedPublicTestSuiteIds
         )
-        TestingType.CONTEST_MODE -> renderForContestMode(
-            props,
-            isContestEnrollerOpen,
-            setIsContestEnrollerOpen
-        )
+        TestingType.CONTEST_MODE -> renderForContestMode(props)
     }
 }
