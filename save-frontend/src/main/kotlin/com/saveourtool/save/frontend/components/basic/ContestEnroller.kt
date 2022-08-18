@@ -8,8 +8,8 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
 import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.transparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
@@ -90,9 +90,9 @@ fun ChildrenBuilder.showContestEnrollerModal(
 ) {
     modal { props ->
         props.isOpen = isModalOpen
-        props.style = loaderModalStyle
+        props.style = transparentModalStyle
         div {
-            className = ClassName("modal-dialog")
+            className = ClassName("modal-dialog modal-dialog-centered")
             div {
                 className = ClassName("modal-content")
                 div {

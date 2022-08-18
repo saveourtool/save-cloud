@@ -114,7 +114,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getCreatedProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
