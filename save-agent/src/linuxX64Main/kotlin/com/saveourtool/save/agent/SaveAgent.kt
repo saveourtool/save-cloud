@@ -25,29 +25,26 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
-import kotlinx.cinterop.toKString
-import kotlinx.coroutines.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
+import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import platform.posix.__environ
-import platform.posix.getenv
 
 /**
  * A main class for SAVE Agent
  * @property config
  * @property coroutineScope a [CoroutineScope] to launch other jobs
+ * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")
 class SaveAgent(internal val config: AgentConfiguration,

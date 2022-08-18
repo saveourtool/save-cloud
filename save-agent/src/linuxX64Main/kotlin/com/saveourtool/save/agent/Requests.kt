@@ -2,13 +2,14 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.extractZipTo
-import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.markAsExecutable
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.FileKey
+
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.onDownload
@@ -26,7 +27,7 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
 
     val response = result.getOrThrow()
     val bytes = response.body<ByteArray>().runIf({ isEmpty() }) {
-        error( "Not found any tests for execution $executionId")
+        error("Not found any tests for execution $executionId")
     }
     val pathToArchive = "archive.zip".toPath()
     logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
@@ -55,28 +56,29 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
 ) = runCatching {
     val organizationName = requiredEnv("ORGANIZATION_NAME")
     val projectName = requiredEnv("PROJECT_NAME")
-    FileKey.parseList(additionalResourcesAsString).map { fileKey ->
-        val result = httpClient.downloadFile(
-            "$baseUrl/internal/files/$organizationName/$projectName/download",
-            fileKey
-        )
-        if (updateState(result)) {
-            return@runCatching
-        }
-
-        val fileContentBytes = result.getOrThrow()
-            .body<ByteArray>()
-            .runIf({ isEmpty() }) {
-                error("Couldn't download file $fileKey: content is empty")
+    FileKey.parseList(additionalResourcesAsString)
+        .map { fileKey ->
+            val result = httpClient.downloadFile(
+                "$baseUrl/internal/files/$organizationName/$projectName/download",
+                fileKey
+            )
+            if (updateState(result)) {
+                return@runCatching
             }
-        val targetFile = targetDirectory / fileKey.name
-        fileContentBytes.writeToFile(targetFile)
-        fileKey to targetFile
-    }
+
+            val fileContentBytes = result.getOrThrow()
+                .body<ByteArray>()
+                .runIf({ isEmpty() }) {
+                    error("Couldn't download file $fileKey: content is empty")
+                }
+            val targetFile = targetDirectory / fileKey.name
+            fileContentBytes.writeToFile(targetFile)
+            fileKey to targetFile
+        }
         .onEach { (fileKey, pathToFile) ->
             pathToFile.markAsExecutable()
             logDebugCustom(
-                 "Downloaded $fileKey into ${fs.canonicalize(pathToFile)}"
+                "Downloaded $fileKey into ${fs.canonicalize(pathToFile)}"
             )
         }
         .map { (_, pathToFile) ->

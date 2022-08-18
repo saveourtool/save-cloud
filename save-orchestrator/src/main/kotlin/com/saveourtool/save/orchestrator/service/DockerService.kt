@@ -62,6 +62,7 @@ class DockerService(
      * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
+     * @param resourcesForExecution
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
@@ -267,6 +268,8 @@ class DockerService(
      * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
      * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
+     * @property workingDir
+     * @property resourcesConfiguration
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageTag: String,
@@ -276,6 +279,12 @@ class DockerService(
         val resourcesPath: Path,
         val resourcesConfiguration: ResourcesConfiguration,
     ) {
+        /**
+         * @property executionId
+         * @property organizationName
+         * @property projectName
+         * @property additionalFilesSting
+         */
         data class ResourcesConfiguration(
             val executionId: Long,
             val organizationName: String,

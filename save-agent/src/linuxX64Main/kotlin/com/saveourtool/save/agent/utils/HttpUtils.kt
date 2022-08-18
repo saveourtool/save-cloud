@@ -14,17 +14,21 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
+/**
+ * @param result
+ * @return true if [this] agent's state has been updated to reflect problems with [result]
+ */
 internal fun SaveAgent.updateState(
     result: Result<HttpResponse>
 ) = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
-        state.value = AgentState.BACKEND_FAILURE
-        true
-    } else if (result.isFailure) {
-        state.value = AgentState.BACKEND_UNREACHABLE
-        true
-    } else {
-        false
-    }
+    state.value = AgentState.BACKEND_FAILURE
+    true
+} else if (result.isFailure) {
+    state.value = AgentState.BACKEND_UNREACHABLE
+    true
+} else {
+    false
+}
 
 /**
  * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.

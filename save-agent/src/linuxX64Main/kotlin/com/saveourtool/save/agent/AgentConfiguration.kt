@@ -68,6 +68,7 @@ data class HeartbeatConfig(
  * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
  * @property filesEndpoint endpoint to post debug info to
+ * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
  */
 @Serializable
 data class BackendConfig(
@@ -75,7 +76,6 @@ data class BackendConfig(
     val additionalDataEndpoint: String = "internal/saveAgentVersion",
     val executionDataEndpoint: String = "internal/saveTestResult",
     val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
-//    val additionalFilesDownloadEndpoint: String,
     val filesEndpoint: String = "internal/files",
 )
 

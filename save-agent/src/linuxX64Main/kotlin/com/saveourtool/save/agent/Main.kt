@@ -17,6 +17,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.json.JsonPlugin
 import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import platform.posix.*
 
 import kotlinx.cinterop.staticCFunction
@@ -30,8 +32,6 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
-import okio.FileSystem
-import okio.Path.Companion.toPath
 
 internal val json = Json {
     serializersModule = SerializersModule {

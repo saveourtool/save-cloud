@@ -16,6 +16,33 @@ import platform.posix.S_IWUSR
 import platform.posix.S_IXUSR
 
 /**
+ * Extract path as ZIP archive to provided directory
+ *
+ * @param targetPath
+ */
+internal fun Path.extractZipTo(targetPath: Path) {
+    require(fs.metadata(targetPath).isDirectory)
+    logDebugCustom("Unzip ${fs.canonicalize(this)} into ${fs.canonicalize(targetPath)}")
+    platform.posix.system("unzip $this -d $targetPath")
+}
+
+internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
+    fs.write(
+        file = file,
+        mustCreate = mustCreate,
+    ) {
+        write(this@writeToFile).flush()
+    }
+}
+
+internal fun Path.markAsExecutable() {
+    platform.posix.chmod(
+        this.toString(),
+        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
+    )
+}
+
+/**
  * Read file as a list of strings
  *
  * @param filePath a file to read
@@ -46,32 +73,8 @@ internal fun readProperties(filePath: String): Map<String, String> = readFile(fi
     }
 
 /**
- * Extract path as ZIP archive to provided directory
- *
- * @param targetPath
+ * @param pathToFile
  */
-internal fun Path.extractZipTo(targetPath: Path) {
-    require(fs.metadata(targetPath).isDirectory)
-    logDebugCustom("Unzip ${fs.canonicalize(this)} into ${fs.canonicalize(targetPath)}")
-    platform.posix.system("unzip $this -d $targetPath")
-}
-
-internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
-    fs.write(
-        file = file,
-        mustCreate = mustCreate,
-    ) {
-        write(this@writeToFile).flush()
-    }
-}
-
-internal fun Path.markAsExecutable() {
-    platform.posix.chmod(
-        this.toString(),
-        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
-    )
-}
-
 internal fun unzipIfRequired(
     pathToFile: Path,
 ) {
