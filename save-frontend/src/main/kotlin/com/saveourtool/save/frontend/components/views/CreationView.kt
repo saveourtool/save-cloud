@@ -181,10 +181,10 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                     }
                                             }
                                             dataToString = { it }
+                                            selectedValue = state.projectCreationRequest.organizationName
                                             onChangeFun = { value ->
                                                 setState {
-                                                    projectCreationRequest =
-                                                            projectCreationRequest.copy(organizationName = value?.let { value } ?: "")
+                                                    projectCreationRequest = projectCreationRequest.copy(organizationName = value ?: "")
                                                 }
                                             }
                                         }
