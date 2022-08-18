@@ -153,9 +153,14 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
     var confirmationType: ConfirmationType
 
     /**
-     * List of IDs of [TestSuiteDto] for execution run
+     * List of IDs of private [TestSuiteDto] for execution run
      */
-    var selectedTestSuiteIds: List<Long>
+    var selectedPrivateTestSuiteIds: List<Long>
+
+    /**
+     * List of IDs of public [TestSuiteDto] for execution run
+     */
+    var selectedPublicTestSuiteIds: List<Long>
 
     /**
      * Execution command for standard mode
@@ -166,11 +171,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
      * Batch size for static analyzer tool in standard mode
      */
     var batchSizeForAnalyzer: String
-
-    /**
-     * Selected languages in the list of standard tests
-     */
-    var selectedLanguageForStandardTests: String
 
     /**
      * General size of test suite in bytes
@@ -216,36 +216,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private var standardTestSuites: List<TestSuiteDto> = emptyList()
-    private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-    private val testResourcesSelection = testResourcesSelection(
-        setTestSuiteIds = { selectedTestSuiteIds ->
-            setState {
-                this.selectedTestSuiteIds = selectedTestSuiteIds
-            }
-        },
-        setExecCmd = {
-            setState {
-                execCmd = it
-            }
-        },
-        setBatchSize = {
-            setState {
-                batchSizeForAnalyzer = it
-            }
-        },
-        setSelectedLanguageForStandardTests = {
-            setState {
-                selectedLanguageForStandardTests = it
-            }
-        },
-        updateContestFromInputField = {
-            setState {
-                selectedContest = it
-            }
-        }
-    )
     private val projectInfo = projectInfo(
         turnEditMode = ::turnEditMode,
         onProjectSave = { draftProject, setDraftProject ->
@@ -279,11 +250,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
-        state.selectedTestSuiteIds = emptyList()
+        state.selectedPrivateTestSuiteIds = emptyList()
+        state.selectedPublicTestSuiteIds = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
-        state.testingType = TestingType.CUSTOM_TESTS
+        state.testingType = TestingType.PRIVATE_TESTS
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
         state.isErrorOpen = false
@@ -294,7 +266,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
-        state.selectedLanguageForStandardTests = ""
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
@@ -340,11 +311,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             }
 
-            standardTestSuites = get(
-                "$apiUrl/allStandardTestSuites",
-                headers, loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
-
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
                 this.availableFiles.clear()
@@ -364,63 +330,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.CUSTOM_TESTS -> submitExecutionRequestWithCustomTests()
-            TestingType.CONTEST_MODE -> submitExecutionRequestByContest()
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
             else -> {
-                if (selectedStandardSuites.isEmpty()) {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "Both type of project"
-                        errorMessage = "Please choose at least one test suite"
-                    }
-                    return
-                }
-                submitExecutionRequestWithStandardTests()
+                throw IllegalStateException("Not supported testing type: ${state.testingType}")
             }
         }
     }
 
-    private fun submitExecutionRequestByContest() {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(state.project.organization.name, state.project.name),
-            testSuiteIds = state.selectedContest.testSuiteIds,
-            files = state.files.map { it.toStorageKey() },
-            sdk = selectedSdk,
-            execCmd = state.execCmd,
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer,
-        )
-        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
-    }
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun submitExecutionRequestWithStandardTests() {
-        val headers = Headers()
-        val formData = FormData()
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(
-            state.project,
-            selectedStandardSuites,
-            selectedSdk,
-            state.execCmd,
-            state.batchSizeForAnalyzer,
-            null,
-        )
-        formData.appendJson("execution", request)
-        state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
-        }
-        submitRequest("/executionRequestStandardTests", headers, formData)
-    }
-
-    private fun submitExecutionRequestWithCustomTests() {
+    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
                 projectName = state.project.name
             ),
-            testSuiteIds = state.selectedTestSuiteIds,
+            testSuiteIds = selectedTestSuiteIds,
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
             execCmd = state.execCmd,
@@ -519,13 +445,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div {
                         className = ClassName("text-left")
                         testingTypeButton(
-                            TestingType.CUSTOM_TESTS,
-                            "Evaluate your tool with your own tests from git",
+                            TestingType.PRIVATE_TESTS,
+                            "Evaluate your tool with your own tests",
                             "mr-2"
                         )
                         testingTypeButton(
-                            TestingType.STANDARD_BENCHMARKS,
-                            "Evaluate your tool with standard test suites",
+                            TestingType.PUBLIC_TESTS,
+                            "Evaluate your tool with public test suites",
                             "mt-3 mr-2"
                         )
                         if (state.project.public) {
@@ -598,7 +524,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 testResourcesSelection {
                     testingType = state.testingType
                     isSubmitButtonPressed = state.isSubmitButtonPressed
-                    gitDto = gitDto
                     // properties for CONTEST_TESTS mode
                     projectName = props.name
                     organizationName = props.owner
@@ -610,15 +535,39 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         }
                     }
                     selectedContest = state.selectedContest
+                    setSelectedContest = { selectedContest ->
+                        setState {
+                            this.selectedContest = selectedContest
+                        }
+                    }
                     availableContests = state.availableContests
-                    // properties for CUSTOM_TESTS mode
-                    selectedTestSuiteIds = state.selectedTestSuiteIds
-                    // properties for STANDARD_BENCHMARKS mode
-                    selectedStandardSuites = this@ProjectView.selectedStandardSuites
-                    standardTestSuites = this@ProjectView.standardTestSuites
-                    selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    // properties for PRIVATE_TESTS mode
+                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuiteIds
+                    setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
+                        setState {
+                            this.selectedPrivateTestSuiteIds = selectedTestSuiteIds
+                        }
+                    }
+                    // properties for PUBLIC_TESTS mode
+                    selectedPublicTestSuiteIds = state.selectedPublicTestSuiteIds
+                    setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
+                        setState {
+                            this.selectedPublicTestSuiteIds = selectedTestSuiteIds
+                        }
+                    }
+                    // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
                     execCmd = state.execCmd
+                    setExecCmd = { execCmd ->
+                        setState {
+                            this.execCmd = execCmd
+                        }
+                    }
                     batchSizeForAnalyzer = state.batchSizeForAnalyzer
+                    setBatchSizeForAnalyzer = { batchSizeForAnalyzer ->
+                        setState {
+                            this.batchSizeForAnalyzer = batchSizeForAnalyzer
+                        }
+                    }
                 }
 
                 div {
@@ -921,7 +870,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val testSuiteIds = response.text().await()
         when {
             response.ok -> setState {
-                selectedTestSuiteIds = Json.decodeFromString(testSuiteIds)
+                selectedPrivateTestSuiteIds = Json.decodeFromString(testSuiteIds)
             }
         }
     }

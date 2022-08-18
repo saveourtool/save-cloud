@@ -154,6 +154,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         contestCreationCard {
             showTestSuiteSelectorModal(
                 isTestSuiteSelectorOpen,
+                null,
                 contestDto.testSuiteIds,
                 {
                     setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds))

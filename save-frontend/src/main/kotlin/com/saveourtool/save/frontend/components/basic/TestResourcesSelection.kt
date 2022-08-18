@@ -7,10 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
-import com.saveourtool.save.frontend.components.views.ProjectView
-import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
 import react.*
@@ -22,15 +19,15 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
-private val checkBox = checkBoxGrid()
+val testResourcesSelection = prepareTestResourcesSelection()
 
 /**
  * Types of testing (that can be selected by user)
  */
 enum class TestingType {
     CONTEST_MODE,
-    CUSTOM_TESTS,
-    STANDARD_BENCHMARKS,
+    PRIVATE_TESTS,
+    PUBLIC_TESTS,
     ;
 }
 
@@ -41,7 +38,6 @@ enum class TestingType {
 external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
     var isSubmitButtonPressed: Boolean?
-    var gitDto: GitDto?
 
     // properties for CONTEST_MODE
     var projectName: String
@@ -49,16 +45,20 @@ external interface TestResourcesProps : PropsWithChildren {
     var onContestEnrollerResponse: (String) -> Unit
     var availableContests: List<ContestDto>
     var selectedContest: ContestDto
+    var setSelectedContest: (ContestDto) -> Unit
 
-    // properties for CUSTOM_TESTS mode
-    var selectedTestSuiteIds: List<Long>
+    // properties for PRIVATE_TESTS mode
+    var selectedPrivateTestSuiteIds: List<Long>
+    var setSelectedPrivateTestSuiteIds: (List<Long>) -> Unit
+
+    // properties for PUBLIC_TESTS mode
+    var selectedPublicTestSuiteIds: List<Long>
+    var setSelectedPublicTestSuiteIds: (List<Long>) -> Unit
+
     var execCmd: String
+    var setExecCmd: (String) -> Unit
     var batchSizeForAnalyzer: String
-
-    // properties for STANDARD_BENCHMARKS mode
-    var standardTestSuites: List<TestSuiteDto>
-    var selectedStandardSuites: MutableList<String>
-    var selectedLanguageForStandardTests: String?
+    var setBatchSizeForAnalyzer: (String) -> Unit
 }
 
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
@@ -108,35 +108,13 @@ private fun ChildrenBuilder.addAdditionalProperty(
 private fun ContestDto.label(): String = "$organizationName/$name"
 
 /**
- * @param setTestSuiteIds
- * @param setSelectedLanguageForStandardTests
- * @param setExecCmd
- * @param setBatchSize
- * @param updateContestFromInputField
- * @return an Component
+ * @return a Component
  */
 @Suppress(
     "LongMethod",
     "TOO_LONG_FUNCTION",
-    "TOO_MANY_PARAMETERS",
-    "LongParameterList",
 )
-fun testResourcesSelection(
-    setTestSuiteIds: (List<Long>) -> Unit,
-    setExecCmd: (String) -> Unit,
-    setBatchSize: (String) -> Unit,
-    setSelectedLanguageForStandardTests: (String) -> Unit,
-    updateContestFromInputField: (ContestDto) -> Unit,
-) = FC<TestResourcesProps> { props ->
-    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
-    showContestEnrollerModal(
-        isContestEnrollerOpen,
-        ProjectNameProps(props.organizationName, props.projectName),
-        { setIsContestEnrollerOpen(false) },
-    ) {
-        setIsContestEnrollerOpen(false)
-        props.onContestEnrollerResponse(it)
-    }
+fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {
             className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
@@ -149,8 +127,28 @@ fun testResourcesSelection(
         }
     }
 
+    when (props.testingType) {
+        TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
+            props,
+            props.selectedPrivateTestSuiteIds,
+            props.setSelectedPrivateTestSuiteIds
+        )
+        TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
+            props,
+            props.selectedPublicTestSuiteIds,
+            props.setSelectedPublicTestSuiteIds
+        )
+        TestingType.CONTEST_MODE -> renderForContestMode(props)
+    }
+}
+
+private fun ChildrenBuilder.renderForPublicAndPrivateTests(
+    props: TestResourcesProps,
+    selectedTestSuiteIds: List<Long>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
     div {
-        className = ClassName(cardStyleByTestingType(props, TestingType.CUSTOM_TESTS))
+        className = ClassName("card shadow mb-4 w-100")
 
         div {
             className = ClassName("card-body ")
@@ -161,7 +159,7 @@ fun testResourcesSelection(
                 "Execution command that will be used to run the tool and tests",
                 "",
                 InputType.text,
-                setExecCmd
+                props.setExecCmd
             )
             val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
                     " To know more about batch size, please visit: https://github.com/saveourtool/save."
@@ -171,33 +169,35 @@ fun testResourcesSelection(
                 toolTipTextForBatchSize,
                 "Batch size (default: 1):",
                 InputType.number,
-                setBatchSize
+                props.setBatchSizeForAnalyzer
             )
 
+            val specificOrganizationName = if (props.testingType == TestingType.PRIVATE_TESTS) props.organizationName else null
             val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
-            val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
+            val (currentlySelectedTestSuiteIds, setCurrentlySelectedTestSuiteIds) = useState(emptyList<Long>())
             showTestSuiteSelectorModal(
                 isTestSuiteSelectorOpen,
-                props.selectedTestSuiteIds,
+                specificOrganizationName,
+                selectedTestSuiteIds,
                 onSubmit = {
-                    setTestSuiteIds(selectedTestSuiteIds)
+                    setSelectedTestSuiteIds(currentlySelectedTestSuiteIds)
                     setIsTestSuiteSelectorOpen(false)
                 },
                 onTestSuiteIdUpdate = {
-                    setSelectedTestSuiteIds(it)
+                    setCurrentlySelectedTestSuiteIds(it)
                 },
                 onCancel = {
-                    setSelectedTestSuiteIds(emptyList())
+                    setCurrentlySelectedTestSuiteIds(emptyList())
                     setIsTestSuiteSelectorOpen(false)
                 }
             )
 
-            // ==== Contest test suites
+            // ==== test suite ids selector
             div {
                 className = ClassName("mt-2")
                 inputTextFormRequired(
                     InputTypes.TEST_SUITE_IDS,
-                    selectedTestSuiteIds.joinToString(", "),
+                    currentlySelectedTestSuiteIds.joinToString(", "),
                     true,
                     "col-12 pl-2 pr-2",
                     "Test Suite Ids",
@@ -206,48 +206,20 @@ fun testResourcesSelection(
             }
         }
     }
+}
 
-    div {
-        className = ClassName(cardStyleByTestingType(props, TestingType.STANDARD_BENCHMARKS))
-        div {
-            className = ClassName("card-body")
-            suitesTable {
-                selectedStandardSuites = props.selectedStandardSuites
-                suites = props.standardTestSuites
-                selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
-                this.setSelectedLanguageForStandardTests = setSelectedLanguageForStandardTests
-            }
-
-            addAdditionalProperty(
-                props.execCmd,
-                "Execution command",
-                "Execution command that will be used to run the tool and tests",
-                "",
-                InputType.text,
-                setExecCmd
-            )
-            val toolTipTextForBatchSize = "Batch size controls how many files will be processed at the same time." +
-                    " To know more about batch size, please visit: https://github.com/saveourtool/save."
-            addAdditionalProperty(
-                props.batchSizeForAnalyzer,
-                "",
-                toolTipTextForBatchSize,
-                "Batch size (default: 1):",
-                InputType.number,
-                setBatchSize
-            )
-
-            checkBox {
-                selectedStandardSuites = props.selectedStandardSuites
-                rowSize = ProjectView.TEST_SUITE_ROW
-                suites = props.standardTestSuites
-                selectedLanguageForStandardTests = props.selectedLanguageForStandardTests
-            }
-        }
+private fun ChildrenBuilder.renderForContestMode(props: TestResourcesProps) {
+    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
+    showContestEnrollerModal(
+        isContestEnrollerOpen,
+        ProjectNameProps(props.organizationName, props.projectName),
+        { setIsContestEnrollerOpen(false) },
+    ) {
+        setIsContestEnrollerOpen(false)
+        props.onContestEnrollerResponse(it)
     }
-
     div {
-        className = ClassName(cardStyleByTestingType(props, TestingType.CONTEST_MODE))
+        className = ClassName("card shadow mb-4 w-100")
         div {
             className = ClassName("card-body d-flex justify-content-center")
             button {
@@ -259,14 +231,12 @@ fun testResourcesSelection(
             }
         }
     }
-    if (props.testingType == TestingType.CONTEST_MODE) {
-        label {
-            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
-            +"4. Run your tool on private tests and see your score"
-        }
+    label {
+        className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
+        +"4. Run your tool on private tests and see your score"
     }
     div {
-        className = ClassName(cardStyleByTestingType(props, TestingType.CONTEST_MODE))
+        className = ClassName("card shadow mb-4 w-100")
         div {
             className = ClassName("input-group-prepend")
 
@@ -284,12 +254,9 @@ fun testResourcesSelection(
                     val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
                         "Invalid contest is selected $selectedContestLabel"
                     }
-                    updateContestFromInputField(selectedContest)
+                    props.setSelectedContest(selectedContest)
                 }
             }
         }
     }
 }
-
-private fun cardStyleByTestingType(props: TestResourcesProps, testingType: TestingType) =
-        if (props.testingType == testingType) "card shadow mb-4 w-100" else "d-none"

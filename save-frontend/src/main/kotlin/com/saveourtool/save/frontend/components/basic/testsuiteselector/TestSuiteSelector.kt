@@ -32,6 +32,12 @@ external interface TestSuiteSelectorProps : Props {
      * List of test suite ids that should be preselected
      */
     var preselectedTestSuiteIds: List<Long>
+
+    /**
+     * Specific organization name which reduces list of test suites source.
+     * If it's null we show public tests
+     */
+    var specificOrganizationName: String?
 }
 
 /**
@@ -54,6 +60,7 @@ enum class TestSuiteSelectorMode {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.showTestSuiteSelectorModal(
     isOpen: Boolean,
+    specificOrganizationName: String?,
     preselectedTestSuiteIds: List<Long>,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<Long>) -> Unit,
@@ -89,6 +96,7 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                     testSuiteSelector {
                         this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuiteIds = preselectedTestSuiteIds
+                        this.specificOrganizationName = specificOrganizationName
                     }
                 }
 
@@ -171,6 +179,7 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
         TestSuiteSelectorMode.BROWSER -> testSuiteSelectorBrowserMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.specificOrganizationName = props.specificOrganizationName
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate

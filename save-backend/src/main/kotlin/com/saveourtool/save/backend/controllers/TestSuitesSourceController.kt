@@ -80,6 +80,22 @@ class TestSuitesSourceController(
 
     @GetMapping(
         path = [
+            "/api/$v1/test-suites-sources/public-list",
+        ],
+    )
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "List of public test suites sources.",
+        description = "List of public test suites sources.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of public test suites sources.")
+    fun publicList(): Mono<TestSuitesSourceDtoList> = blockingToMono { testSuitesSourceService.getStandardTestSuitesSources() }
+        .map { testSuitesSources -> testSuitesSources.map { it.toDto() } }
+
+    @GetMapping(
+        path = [
             "/internal/test-suites-sources/{organizationName}/{sourceName}",
             "/api/$v1/test-suites-sources/{organizationName}/{sourceName}",
         ],
@@ -331,13 +347,13 @@ class TestSuitesSourceController(
         .map { (organization, git) ->
             testSuiteRequest.toTestSuiteSource(organization, git)
         }
-        .map { testSuitesSource ->
+        .flatMap { testSuitesSource ->
             when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                SourceSaveStatus.EXIST -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST)
-                SourceSaveStatus.CONFLICT -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT)
+                SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
+                SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
                 SourceSaveStatus.NEW -> {
                     testSuitesSourceService.fetch(testSuitesSource.toDto())
-                    ResponseEntity.ok(SourceSaveStatus.NEW)
+                        .map { ResponseEntity.ok(SourceSaveStatus.NEW) }
                 }
             }
         }
