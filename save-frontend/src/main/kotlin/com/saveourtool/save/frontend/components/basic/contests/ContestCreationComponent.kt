@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
@@ -146,27 +146,16 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         }
     }
 
-    val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
-
-    val (selectedTestSuiteIds, setSelectedTestSuiteIds) = useState(emptyList<Long>())
+    val testSuitesSelectorWindowOpenness = WindowOpenness.create()
     div {
         className = ClassName("card")
         contestCreationCard {
-            showTestSuiteSelectorModal(
-                isTestSuiteSelectorOpen,
-                null,
+            showPublicTestSuitesSelectorModal(
                 contestDto.testSuiteIds,
-                {
-                    setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds))
-                    setIsTestSuiteSelectorOpen(false)
-                },
-                {
-                    setSelectedTestSuiteIds(it)
-                },
-            ) {
-                setSelectedTestSuiteIds(contestDto.testSuiteIds)
-                setIsTestSuiteSelectorOpen(false)
-            }
+                { selectedTestSuiteIds -> setContestDto(contestDto.copy(testSuiteIds = selectedTestSuiteIds)) },
+                testSuitesSelectorWindowOpenness,
+                useState(emptyList<Long>())
+            )
             div {
                 className = ClassName("")
                 form {
@@ -224,7 +213,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             true,
                             "col-12 pl-2 pr-2",
                             "Test Suite Ids",
-                            onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                            onClickFun = testSuitesSelectorWindowOpenness.openWindowAction()
                         )
                     }
                     // ==== Contest description

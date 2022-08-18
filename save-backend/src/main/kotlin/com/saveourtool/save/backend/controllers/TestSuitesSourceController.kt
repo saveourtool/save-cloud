@@ -351,10 +351,8 @@ class TestSuitesSourceController(
             when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
                 SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
                 SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
-                SourceSaveStatus.NEW -> {
-                    testSuitesSourceService.fetch(testSuitesSource.toDto())
-                        .map { ResponseEntity.ok(SourceSaveStatus.NEW) }
-                }
+                SourceSaveStatus.NEW -> testSuitesSourceService.fetch(testSuitesSource.toDto())
+                    .map { ResponseEntity.ok(SourceSaveStatus.NEW) }
             }
         }
 
@@ -490,19 +488,6 @@ class TestSuitesSourceController(
                     "TestSuitesSource not found by name $name for organization $organizationName"
                 }
 
-    @GetMapping("/api/$v1/test-suites-sources/organizations-list")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get organizations with public test suite sources.",
-        description = "Get list of organizations with public test suite sources",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
-    fun getOrganizationNamesWithPublicTestSuiteSources(
-        authentication: Authentication,
-    ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
-
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -513,7 +498,8 @@ class TestSuitesSourceController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully trigger fetching new tests from requested test suites source.")
     fun triggerFetch(
-        @PathVariable organizationName: String, @PathVariable sourceName: String,
+        @PathVariable organizationName: String,
+        @PathVariable sourceName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSource ->

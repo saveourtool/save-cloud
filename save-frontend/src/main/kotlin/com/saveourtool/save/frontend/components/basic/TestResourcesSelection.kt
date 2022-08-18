@@ -7,7 +7,9 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
+import com.saveourtool.save.frontend.utils.WindowOpenness
 
 import csstype.ClassName
 import react.*
@@ -54,7 +56,6 @@ external interface TestResourcesProps : PropsWithChildren {
     // properties for PUBLIC_TESTS mode
     var selectedPublicTestSuiteIds: List<Long>
     var setSelectedPublicTestSuiteIds: (List<Long>) -> Unit
-
     var execCmd: String
     var setExecCmd: (String) -> Unit
     var batchSizeForAnalyzer: String
@@ -107,41 +108,6 @@ private fun ChildrenBuilder.addAdditionalProperty(
 
 private fun ContestDto.label(): String = "$organizationName/$name"
 
-/**
- * @return a Component
- */
-@Suppress(
-    "LongMethod",
-    "TOO_LONG_FUNCTION",
-)
-fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
-    if (props.testingType == TestingType.CONTEST_MODE) {
-        label {
-            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
-            +"3. Enroll for a contest"
-        }
-    } else {
-        label {
-            className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0")
-            +"3. Specify test-resources that will be used for testing:"
-        }
-    }
-
-    when (props.testingType) {
-        TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
-            props,
-            props.selectedPrivateTestSuiteIds,
-            props.setSelectedPrivateTestSuiteIds
-        )
-        TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
-            props,
-            props.selectedPublicTestSuiteIds,
-            props.setSelectedPublicTestSuiteIds
-        )
-        TestingType.CONTEST_MODE -> renderForContestMode(props)
-    }
-}
-
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
@@ -173,36 +139,34 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 props.setBatchSizeForAnalyzer
             )
 
-            val specificOrganizationName = if (props.testingType == TestingType.PRIVATE_TESTS) props.organizationName else null
-            val (isTestSuiteSelectorOpen, setIsTestSuiteSelectorOpen) = useState(false)
-            val (currentlySelectedTestSuiteIds, setCurrentlySelectedTestSuiteIds) = useState(emptyList<Long>())
-            showTestSuiteSelectorModal(
-                isTestSuiteSelectorOpen,
-                specificOrganizationName,
-                selectedTestSuiteIds,
-                onSubmit = {
-                    setSelectedTestSuiteIds(currentlySelectedTestSuiteIds)
-                    setIsTestSuiteSelectorOpen(false)
-                },
-                onTestSuiteIdUpdate = {
-                    setCurrentlySelectedTestSuiteIds(it)
-                },
-                onCancel = {
-                    setCurrentlySelectedTestSuiteIds(emptyList())
-                    setIsTestSuiteSelectorOpen(false)
-                }
-            )
+            val testSuiteSelectorWindowOpenness = WindowOpenness.create()
+            when (props.testingType) {
+                TestingType.PRIVATE_TESTS -> showPrivateTestSuitesSelectorModal(
+                    props.organizationName,
+                    selectedTestSuiteIds,
+                    setSelectedTestSuiteIds,
+                    testSuiteSelectorWindowOpenness,
+                    useState(emptyList())
+                )
+                TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
+                    selectedTestSuiteIds,
+                    setSelectedTestSuiteIds,
+                    testSuiteSelectorWindowOpenness,
+                    useState(emptyList())
+                )
+                else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
+            }
 
             // ==== test suite ids selector
             div {
                 className = ClassName("mt-2")
                 inputTextFormRequired(
                     InputTypes.TEST_SUITE_IDS,
-                    currentlySelectedTestSuiteIds.joinToString(", "),
+                    selectedTestSuiteIds.joinToString(", "),
                     true,
                     "col-12 pl-2 pr-2",
                     "Test Suite Ids",
-                    onClickFun = { setIsTestSuiteSelectorOpen(true) }
+                    onClickFun = testSuiteSelectorWindowOpenness.openWindowAction()
                 )
             }
         }
@@ -210,8 +174,11 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun ChildrenBuilder.renderForContestMode(props: TestResourcesProps) {
-    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
+private fun ChildrenBuilder.renderForContestMode(
+    props: TestResourcesProps,
+    isContestEnrollerOpen: Boolean,
+    setIsContestEnrollerOpen: StateSetter<Boolean>,
+) {
     showContestEnrollerModal(
         isContestEnrollerOpen,
         ProjectNameProps(props.organizationName, props.projectName),
@@ -260,5 +227,45 @@ private fun ChildrenBuilder.renderForContestMode(props: TestResourcesProps) {
                 }
             }
         }
+    }
+}
+
+/**
+ * @return a Component
+ */
+@Suppress(
+    "LongMethod",
+    "TOO_LONG_FUNCTION",
+)
+fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
+    val (isContestEnrollerOpen, setIsContestEnrollerOpen) = useState(false)
+    if (props.testingType == TestingType.CONTEST_MODE) {
+        label {
+            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
+            +"3. Enroll for a contest"
+        }
+    } else {
+        label {
+            className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-4 pl-0")
+            +"3. Specify test-resources that will be used for testing:"
+        }
+    }
+
+    when (props.testingType) {
+        TestingType.PRIVATE_TESTS -> renderForPublicAndPrivateTests(
+            props,
+            props.selectedPrivateTestSuiteIds,
+            props.setSelectedPrivateTestSuiteIds
+        )
+        TestingType.PUBLIC_TESTS -> renderForPublicAndPrivateTests(
+            props,
+            props.selectedPublicTestSuiteIds,
+            props.setSelectedPublicTestSuiteIds
+        )
+        TestingType.CONTEST_MODE -> renderForContestMode(
+            props,
+            isContestEnrollerOpen,
+            setIsContestEnrollerOpen
+        )
     }
 }

@@ -65,7 +65,7 @@ enum class InputTypes(
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
     CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
-    CONTEST_TEST_SUITE_IDS("contest test suite ids"),
+    CONTEST_TEST_SUITE_IDS("contest test suite ids", placeholder = "click to open selector"),
 
     // ==== test suite source creation
     SOURCE_NAME("source name", placeholder = "name"),
@@ -73,7 +73,7 @@ enum class InputTypes(
     SOURCE_TEST_ROOT_PATH("test root path", placeholder = "leave empty if tests are in repository root"),
 
     // ==== execution run
-    TEST_SUITE_IDS("test suites ids"),
+    TEST_SUITE_IDS("test suites ids", placeholder = "click to open selector"),
     ;
 }
 

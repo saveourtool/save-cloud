@@ -399,7 +399,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                     onClick = { event ->
                                         scope.launch {
                                             val response = post(
-                                                "$apiUrl/rerunExecution?id=${props.executionId}",
+                                                "$apiUrl/run/re-trigger?executionId=${props.executionId}",
                                                 Headers(),
                                                 body = undefined,
                                                 loadingHandler = ::classLoadingHandler,

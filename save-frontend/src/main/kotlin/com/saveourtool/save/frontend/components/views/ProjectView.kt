@@ -333,9 +333,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
             TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
             TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
-            else -> {
-                throw IllegalStateException("Not supported testing type: ${state.testingType}")
-            }
+            else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
