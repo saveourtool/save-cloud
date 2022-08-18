@@ -7,9 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.modal.CssProperties
-import com.saveourtool.save.frontend.externals.modal.Styles
-import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.*
 
 import csstype.ClassName
 import react.*
@@ -18,8 +16,6 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
-
-import kotlin.js.json
 
 val testSuiteSelector = testSuiteSelector()
 
@@ -65,18 +61,9 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
 ) {
     modal { props ->
         props.isOpen = isOpen
-        props.style = Styles(
-            content = json(
-                "top" to "15%",
-                "left" to "30%",
-                "right" to "30%",
-                "bottom" to "5%",
-                "position" to "absolute",
-                "overflow" to "hide"
-            ).unsafeCast<CssProperties>()
-        )
+        props.style = transparentModalStyle
         div {
-            className = ClassName("modal-dialog modal-dialog-scrollable")
+            className = ClassName("modal-dialog modal-lg modal-dialog-scrollable")
             div {
                 className = ClassName("modal-content")
                 div {
