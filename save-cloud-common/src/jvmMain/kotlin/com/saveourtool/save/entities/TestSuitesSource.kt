@@ -55,5 +55,22 @@ class TestSuitesSource(
             "",
             "",
         )
+
+        /**
+         * @param organization [Organization] from database
+         * @param git [Git] from database
+         * @return [TestSuitesSource] from [TestSuitesSourceDto]
+         */
+        fun TestSuitesSourceDto.toTestSuiteSource(
+            organization: Organization,
+            git: Git,
+        ) = TestSuitesSource(
+            organization,
+            name,
+            description,
+            git,
+            branch,
+            testRootPath,
+        )
     }
 }

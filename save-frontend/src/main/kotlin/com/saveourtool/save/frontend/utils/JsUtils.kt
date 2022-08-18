@@ -56,3 +56,12 @@ fun spread(jsObject: Any, handler: (key: String, value: Any) -> Unit) {
             handler(key, value)
         }
 }
+
+/**
+ * External function to JS
+ *
+ * @param str
+ * @return encoded [str]
+ */
+@Suppress("FUNCTION_NAME_INCORRECT_CASE")
+external fun encodeURIComponent(str: String): String
