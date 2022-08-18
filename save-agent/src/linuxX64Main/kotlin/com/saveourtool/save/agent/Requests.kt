@@ -18,20 +18,13 @@ import io.ktor.http.*
 import okio.Path
 import okio.Path.Companion.toPath
 
-internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) = runCatching {
-    val response = post {
-        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
-        contentType(ContentType.Application.Json)
-        accept(ContentType.Application.OctetStream)
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
-    }
-    if (!response.status.isSuccess()) {
-        logDebugCustom("Error during request to ${response.request.url}: ${response.status}")
-        error("Error while downloading test resources: ${response.status}")
+internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String) = runCatching {
+    val result = httpClient.downloadTestResources(config, executionId)
+    if (updateState(result)) {
+        return@runCatching
     }
 
+    val response = result.getOrThrow()
     val bytes = response.body<ByteArray>().runIf({ isEmpty() }) {
         error( "Not found any tests for execution $executionId")
     }
@@ -44,7 +37,18 @@ internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, tar
     logDebugCustom("Extracted archive into $target and deleted $pathToArchive")
 }
 
-internal suspend fun HttpClient.downloadAdditionalResources(
+internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = runCatching {
+    post {
+        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
+        contentType(ContentType.Application.Json)
+        accept(ContentType.Application.OctetStream)
+        onDownload { bytesSentTotal, contentLength ->
+            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
+        }
+    }
+}
+
+internal suspend fun SaveAgent.downloadAdditionalResources(
     baseUrl: String,
     targetDirectory: Path,
     additionalResourcesAsString: String,
@@ -52,20 +56,19 @@ internal suspend fun HttpClient.downloadAdditionalResources(
     val organizationName = requiredEnv("ORGANIZATION_NAME")
     val projectName = requiredEnv("PROJECT_NAME")
     FileKey.parseList(additionalResourcesAsString).map { fileKey ->
-        val fileContentBytes = post {
-            url("$baseUrl/internal/files/$organizationName/$projectName/download")
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.OctetStream)
-            setBody(fileKey)
-            onDownload { bytesSentTotal, contentLength ->
-                logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-            }
+        val result = httpClient.downloadFile(
+            "$baseUrl/internal/files/$organizationName/$projectName/download",
+            fileKey
+        )
+        if (updateState(result)) {
+            return@runCatching
         }
+
+        val fileContentBytes = result.getOrThrow()
             .body<ByteArray>()
             .runIf({ isEmpty() }) {
                 error("Couldn't download file $fileKey: content is empty")
             }
-
         val targetFile = targetDirectory / fileKey.name
         fileContentBytes.writeToFile(targetFile)
         fileKey to targetFile
@@ -83,4 +86,16 @@ internal suspend fun HttpClient.downloadAdditionalResources(
             logWarn("Not found any additional files for execution \$id")
             emptyList()
         }
+}
+
+internal suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = runCatching {
+    post {
+        url(url)
+        contentType(ContentType.Application.Json)
+        accept(ContentType.Application.OctetStream)
+        setBody(fileKey)
+        onDownload { bytesSentTotal, contentLength ->
+            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
+        }
+    }
 }

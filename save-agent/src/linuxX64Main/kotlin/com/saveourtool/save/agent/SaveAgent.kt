@@ -51,7 +51,7 @@ import platform.posix.getenv
  */
 @Suppress("AVOID_NULL_CHECKS")
 class SaveAgent(internal val config: AgentConfiguration,
-                private val httpClient: HttpClient,
+                internal val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
 ) {
     /**
@@ -89,7 +89,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv("EXECUTION_ID")
-            httpClient.downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -98,7 +98,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 
             logDebugCustom("Will now download additional resources")
             val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
-            httpClient.downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList).runIf({ isFailure }) {
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList).runIf({ isFailure }) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -307,7 +307,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
      */
-    @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
             httpClient.post {
                 url("${config.orchestratorUrl}/executionLogs")
