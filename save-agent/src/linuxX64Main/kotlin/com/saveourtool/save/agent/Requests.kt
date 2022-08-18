@@ -11,17 +11,20 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.cinterop.toKString
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import platform.posix.getenv
 
-internal suspend fun HttpClient.downloadTestResources(baseUrl: String, target: Path, executionId: String) {
+internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, target: Path, executionId: String) {
     val response = post {
-        url("$baseUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=$executionId")
+        url("${config.url}/${config.testSourceSnapshotEndpoint}?executionId=$executionId")
+        /*url {
+            host = config.url
+            path(config.testSourceSnapshotEndpoint)
+            parameters.append("executionId", executionId)
+        }*/
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         onDownload { bytesSentTotal, contentLength ->

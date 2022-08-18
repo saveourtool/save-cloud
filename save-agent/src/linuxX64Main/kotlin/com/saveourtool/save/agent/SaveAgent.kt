@@ -94,7 +94,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             // to be consistent with previous logic in orchestrator
             val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
-            httpClient.downloadTestResources(config.backend.url, targetDirectory, getenv("EXECUTION_ID")!!.toKString())
+            httpClient.downloadTestResources(config.backend, targetDirectory, getenv("EXECUTION_ID")!!.toKString())
             logInfoCustom("Downloaded all tests for execution ${getenv("EXECUTION_ID")!!.toKString()} to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")

@@ -74,6 +74,8 @@ data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "internal/saveAgentVersion",
     val executionDataEndpoint: String = "internal/saveTestResult",
+    val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
+//    val additionalFilesDownloadEndpoint: String,
     val filesEndpoint: String = "internal/files",
 )
 
