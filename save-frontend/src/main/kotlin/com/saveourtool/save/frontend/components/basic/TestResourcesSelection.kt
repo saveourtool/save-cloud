@@ -10,8 +10,6 @@ import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showTestSuiteSelectorModal
 import com.saveourtool.save.frontend.components.views.ProjectView
-import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
@@ -19,12 +17,10 @@ import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
-import react.dom.html.ReactHTML.sup
 
 private val checkBox = checkBoxGrid()
 

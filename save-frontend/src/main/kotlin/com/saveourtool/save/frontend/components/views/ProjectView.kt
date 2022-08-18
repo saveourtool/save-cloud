@@ -422,7 +422,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             ),
             testSuiteIds = state.selectedTestSuiteIds,
             files = state.files.map { it.toStorageKey() },
-            sdk =  selectedSdk,
+            sdk = selectedSdk,
             execCmd = state.execCmd,
             batchSizeForAnalyzer = state.batchSizeForAnalyzer
         )
