@@ -6569,7 +6569,9 @@
       },
       "UserInfo": {
         "required": [
+          "isActive",
           "name",
+          "oldNames",
           "organizations",
           "projects"
         ],
@@ -6577,6 +6579,16 @@
         "properties": {
           "name": {
             "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "oldNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "source": {
             "type": "string"
@@ -6637,6 +6649,9 @@
               "SUPER_ADMIN",
               "VIEWER"
             ]
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -7310,8 +7325,31 @@
           }
         }
       },
+      "OriginalLogin": {
+        "required": [
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "source": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "User": {
         "required": [
+          "isActive",
+          "originalLogins",
           "source"
         ],
         "type": "object",
@@ -7348,6 +7386,15 @@
           },
           "twitter": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "originalLogins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OriginalLogin"
+            }
           },
           "id": {
             "type": "integer",
