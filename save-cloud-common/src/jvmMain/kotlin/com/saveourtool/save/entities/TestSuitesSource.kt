@@ -64,13 +64,21 @@ class TestSuitesSource(
         fun TestSuitesSourceDto.toTestSuiteSource(
             organization: Organization,
             git: Git,
-        ) = TestSuitesSource(
-            organization,
-            name,
-            description,
-            git,
-            branch,
-            testRootPath,
-        )
+        ): TestSuitesSource {
+            require(organizationName == organization.name) {
+                "Provided another organization: $organization"
+            }
+            require(gitDto == git.toDto()) {
+                "Provided another git: $git"
+            }
+            return TestSuitesSource(
+                organization,
+                name,
+                description,
+                git,
+                branch,
+                testRootPath,
+            )
+        }
     }
 }

@@ -7,8 +7,10 @@ import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
+import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
+import org.slf4j.Logger
 
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.PostMapping
@@ -92,7 +94,7 @@ class CloneRepositoryController(
                 testSuitesSourceService.getStandardTestSuitesSources()
             }
 
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
     private fun <T : ExecutionRequestBase> sendToTrigger(
         executionRequest: T,
         authentication: Authentication,
@@ -112,7 +114,14 @@ class CloneRepositoryController(
                         keys.maxByOrNull(TestSuitesSourceSnapshotKey::creationTimeInMills)?.version
                             ?: throw IllegalStateException("Failed to detect latest version for $testSuitesSource")
                     }
-                    .flatMapIterable { testSuitesService.getBySourceAndVersion(testSuitesSource, it) }
+                    .flatMapIterable { version ->
+                        val testSuiteList = testSuitesService.getBySourceAndVersion(testSuitesSource, version)
+                        // Situation in some cases of contradictions, when DB is empty, but storage is not
+                        if (testSuiteList.isEmpty()) {
+                            log.error("Test suites for test suite source ${testSuitesSource.name} not found in DB! Require fetch for this test suite source")
+                        }
+                        testSuiteList
+                    }
                     .filter(testSuitesFilter)
                     .map { it.requiredId() }
             }
@@ -136,5 +145,9 @@ class CloneRepositoryController(
             .flatMap {
                 runExecutionController.trigger(it, authentication)
             }
+    }
+
+    companion object {
+        private val log: Logger = getLogger<CloneRepositoryController>()
     }
 }

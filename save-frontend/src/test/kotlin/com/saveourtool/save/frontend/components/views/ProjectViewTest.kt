@@ -85,14 +85,6 @@ class ProjectViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/getTestRootPathByExecutionId") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    ""
-                )
-            }
-        },
     )
 
     @Test
