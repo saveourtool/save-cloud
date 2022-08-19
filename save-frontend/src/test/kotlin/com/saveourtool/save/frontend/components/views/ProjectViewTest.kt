@@ -53,14 +53,6 @@ class ProjectViewTest {
                 )
             }
         },
-        rest.post("$apiUrl/projects/git") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    GitDto("")
-                )
-            }
-        },
         rest.get("$apiUrl/projects/${testOrganization.name}/${testProject.name}/users/roles") { _, res, _ ->
             res { response ->
                 mockMswResponse(
@@ -119,40 +111,6 @@ class ProjectViewTest {
             }
             .then {
                 assertNotNull(it, "Should show project name")
-            }
-            .then {
-                worker.stop()
-            }
-    }
-
-    @Test
-    fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<*> {
-        val worker = createWorker()
-        return (worker.start() as Promise<*>).then {
-            renderProjectView()
-        }
-            .then {
-                screen.findByText(
-                    "SETTINGS",
-                    waitForOptions = jso {
-                        timeout = 15000
-                    }
-                )
-            }
-            .then {
-                userEvent.click(it)
-            }
-            .then { _: Unit ->
-                screen.findByText("Delete project")
-            }
-            .then {
-                userEvent.click(it)
-            }
-            .then { _: Unit ->
-                screen.findByText("Ok")
-            }
-            .then {
-                assertNotNull(it, "Should show confirmation window")
             }
             .then {
                 worker.stop()

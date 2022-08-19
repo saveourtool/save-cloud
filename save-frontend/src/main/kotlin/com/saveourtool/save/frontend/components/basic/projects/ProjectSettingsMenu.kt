@@ -3,11 +3,11 @@
 package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.components.basic.gitWindow
+import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -48,11 +48,6 @@ external interface ProjectSettingsMenuProps : Props {
     var currentUserInfo: UserInfo
 
     /**
-     * Git data for project
-     */
-    var gitInitDto: GitDto?
-
-    /**
      * Role of a current user
      */
     var selfRole: Role
@@ -66,11 +61,6 @@ external interface ProjectSettingsMenuProps : Props {
      * Callback to update project settings
      */
     var updateProjectSettings: (Project) -> Unit
-
-    /**
-     * Callback to update git
-     */
-    var updateGit: (GitDto) -> Unit
 
     /**
      * Callback to show error message
@@ -94,7 +84,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
-    val (isOpenGitWindow, setOpenGitWindow) = useState(false)
 
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
@@ -105,18 +94,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
-    val (wasConfirmationModalShown, setWasConfirmationModalShown) = useState(false)
-
-    gitWindow {
-        this.isOpenGitWindow = isOpenGitWindow
-        project = props.project
-        gitDto = props.gitInitDto
-        handlerCancel = { setOpenGitWindow(false) }
-        onGitUpdate = {
-            props.updateGit(it)
-            setOpenGitWindow(false)
-        }
-    }
+    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
 
     div {
         className = ClassName("row justify-content-center mb-2")
@@ -134,13 +112,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 this.wasConfirmationModalShown = wasConfirmationModalShown
                 updateErrorMessage = props.updateErrorMessage
                 getUserGroups = { it.projects }
-                showGlobalRoleWarning = {
-                    props.updateNotificationMessage(
-                        "Super admin message",
-                        "Keep in mind that you are super admin, so you are able to manage projects regardless of your organization permissions.",
-                    )
-                    setWasConfirmationModalShown(true)
-                }
+                this.showGlobalRoleWarning = showGlobalRoleWarning
             }
         }
         // ===================== RIGHT COLUMN ======================================================================
@@ -160,14 +132,14 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-7 input-group pl-0")
-                        input {
-                            type = InputType.email
-                            className = ClassName("form-control")
-                            value = draftProject.email ?: ""
-                            placeholder = "email@example.com"
-                            onChange = {
-                                setDraftProject(draftProject.copy(email = it.target.value))
-                            }
+                        inputTextFormOptional(
+                            InputTypes.PROJECT_EMAIL,
+                            draftProject.email,
+                            "",
+                            null,
+                            draftProject.validateEmail(),
+                        ) {
+                            setDraftProject(draftProject.copy(email = it.target.value))
                         }
                     }
                 }
@@ -242,24 +214,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                                     }
                                 }
                             }
-                        }
-                    }
-                }
-                div {
-                    className = ClassName("row d-flex align-items-center mt-2 mr-2 ml-2")
-                    div {
-                        className = ClassName("col-5 text-left")
-                        +"User settings:"
-                    }
-                    div {
-                        className = ClassName("col-7 row")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                setOpenGitWindow(true)
-                            }
-                            +"Add git credentials"
                         }
                     }
                 }

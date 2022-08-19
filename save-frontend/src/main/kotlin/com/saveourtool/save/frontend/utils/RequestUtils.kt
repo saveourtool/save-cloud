@@ -26,6 +26,11 @@ import kotlinx.serialization.json.Json
 
 val apiUrl = "${window.location.origin}/api/$v1"
 
+val jsonHeaders = Headers().apply {
+    set("Accept", "application/json")
+    set("Content-Type", "application/json")
+}
+
 /**
  * Interface for objects that have access to [requestStatusContext]
  */
@@ -41,10 +46,23 @@ interface WithRequestStatusContext {
     fun setResponse(response: Response)
 
     /**
+     * @param isNeedRedirect
+     * @param response
+     */
+    fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response)
+
+    /**
      * @param transform
      */
     fun setLoadingCounter(transform: (oldValue: Int) -> Int)
 }
+
+/**
+ * Get errors from backend (Spring Boot returns errors in message part of json)
+ *
+ * @return message part of json response
+ */
+suspend fun Response.unpackMessage(): String = json().await().asDynamic()["message"].toString()
 
 /**
  * Perform a mapping operation on a [Response] if it's status is OK or throw an exception otherwise.
@@ -165,6 +183,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 }
 
 /**
+ * @return true if given [Response] has 409 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isConflict(): Boolean = this.status == 409.toShort()
+
+/**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
  *
  * @param response
@@ -175,7 +199,19 @@ internal fun ComponentWithScope<*, *>.classComponentResponseHandler(
 ) {
     val hasResponseContext = this.asDynamic().context is RequestStatusContext
     if (hasResponseContext) {
-        this.withModalResponseHandler(response)
+        this.withModalResponseHandler(response, false)
+    }
+}
+
+/**
+ * @param response
+ */
+internal fun ComponentWithScope<*, *>.classComponentRedirectOnFallbackResponseHandler(
+    response: Response,
+) {
+    val hasResponseContext = this.asDynamic().context is RequestStatusContext
+    if (hasResponseContext) {
+        this.withModalResponseHandler(response, true)
     }
 }
 
@@ -195,6 +231,33 @@ internal suspend fun ComponentWithScope<*, *>.classLoadingHandler(request: suspe
 }
 
 /**
+ * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
+ *
+ * @param response
+ */
+@Suppress("MAGIC_NUMBER")
+internal fun ComponentWithScope<*, *>.classComponentResponseHandlerWithValidation(
+    response: Response,
+) {
+    val hasResponseContext = this.asDynamic().context is RequestStatusContext
+    if (hasResponseContext) {
+        this.responseHandlerWithValidation(response)
+    }
+}
+
+/**
+ * @param response
+ */
+@Suppress("EXTENSION_FUNCTION_WITH_CLASS", "MAGIC_NUMBER")
+internal fun WithRequestStatusContext.responseHandlerWithValidation(
+    response: Response,
+) {
+    if (!response.ok && !response.isConflict()) {
+        setResponse(response)
+    }
+}
+
+/**
  * Handler that allows to show loading modal
  *
  * @param request REST API method
@@ -210,11 +273,14 @@ private suspend fun ComponentWithScope<*, *>.loadingHandler(request: suspend () 
     deferred.await()
 }
 
+@Suppress("MAGIC_NUMBER")
 private fun ComponentWithScope<*, *>.withModalResponseHandler(
     response: Response,
+    isNeedRedirect: Boolean
 ) {
     if (!response.ok) {
         val statusContext: RequestStatusContext = this.asDynamic().context
+        statusContext.setRedirectToFallbackView(isNeedRedirect && response.status == 404.toShort())
         statusContext.setResponse.invoke(response)
     }
 }
@@ -228,6 +294,15 @@ private fun WithRequestStatusContext.withModalResponseHandler(
     }
 }
 
+private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
+    response: Response,
+) {
+    if (!response.ok && !response.isConflict()) {
+        val statusContext: RequestStatusContext = this.asDynamic().context
+        statusContext.setResponse.invoke(response)
+    }
+}
+
 /**
  * Hook to perform requests in functional components.
  *
@@ -237,7 +312,7 @@ private fun WithRequestStatusContext.withModalResponseHandler(
  * @param request
  * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
 fun <R> useRequest(
     dependencies: Array<dynamic> = emptyArray(),
     isDeferred: Boolean = true,
@@ -249,6 +324,9 @@ fun <R> useRequest(
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
 

@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
@@ -102,7 +103,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     }()
 
     div {
-        className = ClassName("d-flex justify-content-between")
+        className = ClassName("d-flex justify-content-center")
         div {
             className = ClassName("col-3")
             div {
@@ -116,7 +117,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                         li {
                             className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
                             a {
-                                href = "#/contests/${it.contestName}"
+                                href = "#/${FrontendRoutes.CONTESTS.path}/${it.contestName}"
                                 className = ClassName("stretched-link")
                             }
                             scoreCard {

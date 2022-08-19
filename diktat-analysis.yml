@@ -51,6 +51,7 @@
     extendedIndentBeforeDot: false
     # The indentation size for each file
     indentationSize: 4
+    extendedIndentForExpressionBodies: true
 - name: EMPTY_BLOCK_STRUCTURE_ERROR
   enabled: true
   configuration:
@@ -113,3 +114,17 @@
 - name: USE_DATA_CLASS
   ignoreAnnotated:
     - Entity
+- name: MISSING_KDOC_CLASS_ELEMENTS
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter
+    - JsName
+- name: MISSING_KDOC_ON_FUNCTION
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter
+- name: MISSING_KDOC_TOP_LEVEL
+  ignoreAnnotated:
+    - JsName

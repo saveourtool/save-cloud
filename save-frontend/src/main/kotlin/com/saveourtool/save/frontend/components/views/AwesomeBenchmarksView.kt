@@ -12,8 +12,12 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
+import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import csstype.Cursor
+import csstype.FontWeight
 import csstype.rem
 import org.w3c.fetch.Headers
 import react.*
@@ -42,6 +46,8 @@ import react.dom.html.ReactHTML.ul
 
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+
+const val ALL_LANGS = "all"
 
 /**
  * [RState] of project creation view component
@@ -78,6 +84,8 @@ external interface AwesomeBenchmarksState : State {
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
+        state.selectedMenuBench = BenchmarkCategoryEnum.ALL
+        state.lang = ALL_LANGS
         state.benchmarks = emptyList()
         getBenchmarks()
     }
@@ -238,6 +246,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             }
                                                         }
                                                     }
+                                                    style = jso<CSSProperties> {
+                                                        cursor = "pointer".unsafeCast<Cursor>()
+                                                    }
+
                                                     +value.name
                                                 }
                                             }
@@ -249,13 +261,17 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     className = ClassName("row mt-3")
                                     div {
                                         className = ClassName("col-lg-8")
-                                        // https://devicon.dev
+                                        var matchingBenchmarksCount = 0
+                                        // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if (state.selectedMenuBench == benchmark.category && benchmark.language == state.lang) {
+                                            if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
+                                                    (state.lang == ALL_LANGS || state.lang == benchmark.language)
+                                            ) {
+                                                ++matchingBenchmarksCount
                                                 div {
-                                                    className = ClassName("media text-muted ${if (i != 0) "pt-3" else ""}")
+                                                    className = ClassName("media text-muted pb-3")
                                                     img {
-                                                        className = ClassName("rounded mt-1")
+                                                        className = ClassName("rounded")
 
                                                         asDynamic()["data-src"] =
                                                                 "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
@@ -276,9 +292,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                         div {
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
-                                                            benchmark.tags.split(",").map { " #$it " }.forEach {
+                                                            benchmark.tags.split(DATABASE_DELIMITER).map { " #$it " }.forEach {
                                                                 a {
-                                                                    className = ClassName("/#/awesome-benchmarks")
+                                                                    className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
                                                                     +it
                                                                 }
                                                             }
@@ -306,6 +322,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                 }
                                             }
                                         }
+
+                                        if (matchingBenchmarksCount == 0) {
+                                            p {
+                                                className = ClassName("media-body font-weight-bold mb-0 small lh-125 text-left")
+                                                +"No matching data was found - please select different filters"
+                                            }
+                                        }
                                     }
                                     div {
                                         className = ClassName("col-lg-4")
@@ -322,11 +345,21 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             setState {
                                                                 lang = language
                                                             }
+                                                        } else {
+                                                            setState {
+                                                                lang = ALL_LANGS
+                                                            }
+                                                        }
+                                                    }
+
+                                                    style = jso {
+                                                        cursor = "pointer".unsafeCast<Cursor>()
+                                                        if (state.lang == language) {
+                                                            fontWeight = "bold".unsafeCast<FontWeight>()
                                                         }
                                                     }
 
                                                     +language.replace(
-
                                                         "language independent",
                                                         "lang independent"
                                                     )
@@ -411,7 +444,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         +""" Go to the"""
                                         a {
                                             className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
-                                            +""" awesome-benchmarks """
+                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS.path} """
                                         }
                                         +"""repository"""
                                     }
@@ -461,7 +494,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
         scope.launch {
             val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/awesome-benchmarks",
+                "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()

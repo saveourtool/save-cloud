@@ -10,10 +10,10 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.basic.privacySpan
-import com.saveourtool.save.frontend.components.basic.scoreCard
-import com.saveourtool.save.frontend.components.basic.userBoard
+import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -23,6 +23,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import org.w3c.dom.HTMLInputElement
@@ -68,7 +69,7 @@ external interface OrganizationProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : State {
+external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle uploading a file
      */
@@ -135,11 +136,6 @@ external interface OrganizationViewState : State {
     var isEditDisabled: Boolean
 
     /**
-     * Highest [Role] of a current user in organization or globally
-     */
-    var selfRole: Role
-
-    /**
      * Users in organization
      */
     var usersInOrganization: List<UserInfo>?
@@ -159,7 +155,7 @@ external interface OrganizationViewState : State {
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val table = tableComponent(
+    private val tableWithProjects = tableComponent(
         columns = columns<Project> {
             column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
                 Fragment.create {
@@ -227,14 +223,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val avatar = getAvatar()
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
             val users = getUsers()
             setState {
-                image = avatar
                 organization = organizationLoaded
+                image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
                 isEditDisabled = true
@@ -271,10 +266,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu!!) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
+            OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
-            else -> {
-                // this is a generated else block
-            }
+            OrganizationMenuBar.CONTESTS -> renderContests()
         }
     }
 
@@ -320,7 +314,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         @Suppress("MAGIC_NUMBER")
         div {
             className = ClassName("row")
-            style = jso<CSSProperties> {
+            style = jso {
                 justifyContent = JustifyContent.center
             }
             renderTopProject(topProjects?.getOrNull(2))
@@ -410,7 +404,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderTools() {
         div {
             className = ClassName("row justify-content-center")
-            // ===================== RIGHT COLUMN =======================================================================
             div {
                 className = ClassName("col-6")
                 div {
@@ -418,7 +411,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     +"Projects"
                 }
 
-                table {
+                tableWithProjects {
                     getData = { _, _ ->
                         getProjectsFromCache()
                     }
@@ -457,6 +450,27 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun ChildrenBuilder.renderTests() {
+        organizationTestsMenu {
+            organizationName = props.organizationName
+            selfRole = state.selfRole
+        }
+    }
+
+    private fun ChildrenBuilder.renderContests() {
+        organizationContestsMenu {
+            organizationName = props.organizationName
+            selfRole = state.selfRole
+            updateErrorMessage = {
+                setState {
+                    isErrorOpen = true
+                    errorLabel = ""
+                    errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
+                }
+            }
+        }
+    }
+
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
@@ -478,10 +492,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     isErrorOpen = true
                     errorLabel = ""
-                    errorMessage = "Failed to save organization info: ${it.status} ${it.statusText}"
+                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
                 }
             }
             updateNotificationMessage = ::showNotification
+            organization = state.organization ?: Organization.stub(-1)
+            onCanCreateContestsChange = ::onCanCreateContestsChange
         }
     }
 
@@ -506,6 +522,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         .unsafeMap {
             it.decodeFromJsonString()
         }
+
+    private fun onCanCreateContestsChange(canCreateContests: Boolean) {
+        val headers = jsonHeaders
+        scope.launch {
+            val response = post(
+                "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
+                headers,
+                undefined,
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                setState {
+                    organization = organization?.copy(canCreateContests = canCreateContests)
+                }
+            }
+        }
+    }
 
     private suspend fun getRoleInOrganization(): Role = get(
         url = "$apiUrl/organizations/${props.organizationName}/users/roles",
@@ -554,21 +587,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
             }
 
-    private suspend fun getAvatar() = get(
-        "$apiUrl/organization/${props.organizationName}/avatar",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    ).unsafeMap {
-        it.decodeFromJsonString<ImageInfo>()
-    }
-
     private fun ChildrenBuilder.renderTopProject(topProject: Project?) {
-        topProject ?: return
         div {
             className = ClassName("col-3 mb-4")
-            scoreCard {
-                name = topProject.name
-                contestScore = topProject.contestRating.toDouble()
+            topProject?.let {
+                scoreCard {
+                    name = it.name
+                    contestScore = it.contestRating.toDouble()
+                    url = "#/${props.organizationName}/${it.name}"
+                }
             }
         }
     }
@@ -576,7 +603,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
         div {
-            className = ClassName("row")
+            className = ClassName("row d-flex justify-content-between")
             div {
                 className = ClassName("col-3 ml-auto")
                 style = jso {
@@ -613,7 +640,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mx-0")
+                className = ClassName("col-auto mx-0")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
@@ -623,7 +650,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 nav {
                     className = ClassName("nav nav-tabs")
                     OrganizationMenuBar.values()
-                        .filter { it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN) }
+                        .filter {
+                            it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                        }
+                        .filter {
+                            it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
+                        }
                         .forEachIndexed { i, projectMenu ->
                             li {
                                 className = ClassName("nav-item")
@@ -641,7 +673,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             }
                                         }
                                     }
-                                    +projectMenu.name
+                                    +projectMenu.getTitle()
                                 }
                             }
                         }
@@ -649,7 +681,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3 mr-auto")
+                className = ClassName("col-2 mr-auto")
                 style = jso {
                     justifyContent = JustifyContent.center
                     display = Display.flex
@@ -662,7 +694,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         className = ClassName("btn btn-primary")
                         a {
                             className = ClassName("text-light")
-                            href = "#/creation/"
+                            href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
                             +"+ New Tool"
                         }
                     }

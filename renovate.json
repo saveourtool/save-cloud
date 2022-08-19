@@ -4,6 +4,9 @@
   "schedule": [
     "before 4am on Monday"
   ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "managers": ["github-actions"],
@@ -41,7 +44,10 @@
     {
       "managers": ["helmv3", "helm-values"],
       "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies"
+      "groupSlug": "helm-dependencies",
+      "lockFileMaintenance": {
+          "enabled": true
+      }
     }
   ]
 }

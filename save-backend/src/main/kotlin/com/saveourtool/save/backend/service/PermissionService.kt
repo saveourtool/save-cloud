@@ -7,10 +7,10 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.SetRoleRequest
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import reactor.util.function.Tuple2
-import java.util.Optional
 
 /**
  * Service for managing user permissions
@@ -62,11 +62,7 @@ class PermissionService(
                                     organizationName: String,
                                     projectName: String
     ): Mono<Tuple2<User, Project>> = Mono.zip(
-        Mono.justOrEmpty(userRepository.findByName(userName)),
-        Mono.justOrEmpty(
-            Optional.ofNullable(
-                projectService.findByNameAndOrganizationName(projectName, organizationName)
-            )
-        ),
+        userRepository.findByName(userName).toMono(),
+        projectService.findByNameAndOrganizationName(projectName, organizationName).toMono(),
     )
 }

@@ -9,10 +9,12 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto
@@ -39,7 +41,9 @@ import java.math.BigInteger
  * @param testExecutionService service for test execution
  */
 @ApiSwaggerSupport
-@Tags(Tag(name = "test-executions"))
+@Tags(
+    Tag(name = "test-executions"),
+)
 @RestController
 @Transactional
 class TestExecutionController(private val testExecutionService: TestExecutionService,
@@ -53,34 +57,34 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param executionId an ID of Execution to group TestExecutions
      * @param page a zero-based index of page of data
      * @param size size of page
-     * @param status
-     * @param testSuite
+     * @param filters
      * @param authentication
      * @param checkDebugInfo if true, response will contain information about whether debug info data is available for this test execution
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping("/api/$v1/test-executions")
     @RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
         @RequestParam page: Int,
         @RequestParam size: Int,
-        @RequestParam(required = false) status: TestResultStatus?,
-        @RequestParam(required = false) testSuite: String?,
+        @RequestBody(required = false) filters: TestExecutionFilters?,
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
-        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-    }
+    ): Flux<TestExecutionDto> = executionService.findExecution(executionId)
+        .toMonoOrNotFound()
+        .filterWhen {
+            projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+        }
         .flatMapIterable {
             log.debug("Request to get test executions on page $page with size $size for execution $executionId")
-            testExecutionService.getTestExecutions(executionId, page, size, status, testSuite)
+            testExecutionService.getTestExecutions(executionId, page, size, filters ?: TestExecutionFilters.empty)
         }
         .map { it.toDto() }
         .runIf({ checkDebugInfo }) {
             flatMap { testExecutionDto ->
-                debugInfoStorage.doesExist(Pair(executionId, TestResultLocation.from(testExecutionDto)))
+                debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
                     .map { testExecutionDto.copy(hasDebugInfo = it) }
             }
         }
@@ -103,19 +107,22 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false) size: Int?,
         authentication: Authentication,
     ): Mono<List<TestSuiteExecutionStatisticDto>> =
-            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
-                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-            }.mapNotNull {
-                if (page == null || size == null) {
-                    testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
-                        TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
-                    }
-                } else {
-                    testExecutionService.getByExecutionIdGroupByTestSuite(executionId, status, page, size)?.map {
-                        TestSuiteExecutionStatisticDto(it[0] as String, (it[1] as BigInteger).toInt(), (it[2] as BigInteger).toInt(), TestResultStatus.valueOf(it[3] as String))
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
+                .filterWhen {
+                    projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+                }
+                .mapNotNull {
+                    if (page == null || size == null) {
+                        testExecutionService.getTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
+                            TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
+                        }
+                    } else {
+                        testExecutionService.getByExecutionIdGroupByTestSuite(executionId, status, page, size)?.map {
+                            TestSuiteExecutionStatisticDto(it[0] as String, (it[1] as BigInteger).toInt(), (it[2] as BigInteger).toInt(), TestResultStatus.valueOf(it[3] as String))
+                        }
                     }
                 }
-            }
 
     /**
      * @param agentContainerId id of agent's container
@@ -136,14 +143,16 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping(path = ["/api/$v1/testExecutions"])
+    @PostMapping(path = ["/api/$v1/test-execution"])
     @RequiresAuthorizationSourceHeader
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
-    ): Mono<TestExecutionDto> = justOrNotFound(executionService.findExecution(executionId)).filterWhen {
-        projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-    }
+    ): Mono<TestExecutionDto> = executionService.findExecution(executionId)
+        .toMonoOrNotFound()
+        .filterWhen {
+            projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+        }
         .map {
             testExecutionService.getTestExecution(executionId, testResultLocation)
                 .map { it.toDto() }
@@ -171,11 +180,14 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         @RequestParam(required = false) testSuite: String?,
         authentication: Authentication,
     ) =
-            justOrNotFound(executionService.findExecution(executionId)).filterWhen {
-                projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
-            }.map {
-                testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
-            }
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
+                .filterWhen {
+                    projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
+                }
+                .map {
+                    testExecutionService.getTestExecutionsCount(executionId, status, testSuite)
+                }
 
     /**
      * @param agentContainerId id of an agent
@@ -214,12 +226,15 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
      */
     @PostMapping(value = ["/internal/saveTestResult"])
     fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
-        if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
+        if (testExecutionsDto.isEmpty()) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
+        } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {
             ResponseEntity.status(HttpStatus.OK).body("Saved")
         } else {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some ids don't exist or cannot be updated")
         }
     } catch (exception: DataAccessException) {
+        log.warn("Unable to save test results", exception)
         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error to save")
     }
 

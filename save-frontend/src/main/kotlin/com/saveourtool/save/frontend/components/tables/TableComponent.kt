@@ -11,8 +11,8 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.utils.spread
-
 import csstype.ClassName
+
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
@@ -38,7 +38,6 @@ import kotlin.js.json
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -80,7 +79,6 @@ external interface TableProps<D : Any> : Props {
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TOO_MANY_PARAMETERS",
@@ -89,7 +87,8 @@ external interface TableProps<D : Any> : Props {
     "ForbiddenComment",
     "LongMethod",
     "LongParameterList",
-    "TooGenericExceptionCaught"
+    "TooGenericExceptionCaught",
+    "MAGIC_NUMBER",
 )
 fun <D : Any, P : TableProps<D>> tableComponent(
     columns: Array<out Column<D, *>>,
@@ -106,7 +105,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     require(useServerPaging xor (props.getPageCount == null)) {
         "Either use client-side paging or provide a function to get page count"
     }
-
     val (data, setData) = useState<Array<out D>>(emptyArray())
     val (pageCount, setPageCount) = useState(1)
     val (pageIndex, setPageIndex) = useState(0)
@@ -128,7 +126,15 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         additionalOptions()
     }, plugins = plugins)
 
-    useEffect(tableInstance.state.pageSize) {
+    // list of entities, updates of which will cause update of the data retrieving effect
+    val dependencies: Array<dynamic> = if (useServerPaging) {
+        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
+    } else {
+        // when all data is already available, we don't need to repeat `getData` calls
+        emptyArray()
+    } + getAdditionalDependencies(props)
+
+    useEffect(*dependencies) {
         if (useServerPaging) {
             scope.launch {
                 val newPageCount = props.getPageCount!!.invoke(tableInstance.state.pageSize)
@@ -139,17 +145,13 @@ fun <D : Any, P : TableProps<D>> tableComponent(
         }
     }
 
-    // list of entities, updates of which will cause update of the data retrieving effect
-    val dependencies: Array<dynamic> = if (useServerPaging) {
-        arrayOf(tableInstance.state.pageIndex, tableInstance.state.pageSize, pageCount)
-    } else {
-        // when all data is already available, we don't need to repeat `getData` calls
-        emptyArray()
-    } + getAdditionalDependencies(props)
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
         override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
     useEffect(*dependencies) {
@@ -267,8 +269,6 @@ fun <D : Any, P : TableProps<D>> tableComponent(
                         }
                     }
                 }
-
-                // }
             }
         }
     }

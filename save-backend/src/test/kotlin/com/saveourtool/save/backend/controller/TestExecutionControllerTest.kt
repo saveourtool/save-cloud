@@ -13,7 +13,7 @@ import com.saveourtool.save.backend.utils.secondsToLocalDateTime
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.v1
 
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -78,12 +78,12 @@ class TestExecutionControllerTest {
             details = AuthenticationDetails(id = 99)
         }
 
-        webClient.get()
-            .uri("/api/$v1/testExecutions?executionId=1&page=0&size=20")
+        webClient.post()
+            .uri("/api/$v1/test-executions?executionId=1&page=0&size=20")
             .exchange()
             .expectBody<List<TestExecutionDto>>()
             .consumeWith {
-                Assertions.assertEquals(20, it.responseBody!!.size)
+                assertEquals(20, it.responseBody!!.size)
             }
     }
 
@@ -99,7 +99,7 @@ class TestExecutionControllerTest {
             .exchange()
             .expectBody<List<TestSuiteExecutionStatisticDto>>()
             .consumeWith {
-                Assertions.assertEquals(1, it.responseBody!!.size)
+                assertEquals(1, it.responseBody!!.size)
             }
     }
 
@@ -150,8 +150,8 @@ class TestExecutionControllerTest {
         val failedTestsAfter = getExecutionsTestsResultByAgentContainerId(testExecutionDtoFirst.agentContainerId!!, false)
         assertTrue(tests.any { it.startTime == testExecutionDtoFirst.startTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
         assertTrue(tests.any { it.endTime == testExecutionDtoFirst.endTimeSeconds!!.secondsToLocalDateTime().withNano(0) })
-        Assertions.assertEquals(passedTestsBefore, passedTestsAfter - 1)
-        Assertions.assertEquals(failedTestsBefore, failedTestsAfter - 1)
+        assertEquals(passedTestsBefore, passedTestsAfter - 1)
+        assertEquals(failedTestsBefore, failedTestsAfter - 1)
         assertTrue(tests.any {
             it.unmatched == testExecutionDtoFirst.unmatched &&
                     it.matched == testExecutionDtoFirst.matched &&
@@ -168,7 +168,6 @@ class TestExecutionControllerTest {
 
     @Test
     @WithMockUser
-    @Suppress("UnsafeCallOnNullableType")
     fun `should not save data if provided fields are invalid`() {
         val testExecutionDto = TestExecutionDto(
             "test-not-exists",
@@ -193,6 +192,22 @@ class TestExecutionControllerTest {
             .isEqualTo("Some ids don't exist or cannot be updated")
         val testExecutions = testExecutionRepository.findAll()
         assertTrue(testExecutions.none { it.test.filePath == "test-not-exists" })
+    }
+
+    @Test
+    @WithMockUser
+    fun `should return error if provided empty result`() {
+        val countBefore = testExecutionRepository.findAll().size
+        webClient.post()
+            .uri("/internal/saveTestResult")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(emptyList<TestExecutionDto>()))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.BAD_REQUEST)
+            .expectBody<String>()
+            .isEqualTo("Empty result cannot be saved")
+        assertEquals(countBefore, testExecutionRepository.findAll().size)
     }
 
     @Suppress("UnsafeCallOnNullableType")

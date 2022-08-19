@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.ConfirmationType
 import com.saveourtool.save.frontend.utils.toPrettyString
 import com.saveourtool.save.v1
 
@@ -18,7 +17,6 @@ import csstype.Width
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLSelectElement
 import react.*
-import react.dom.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -99,11 +97,6 @@ external interface UploaderProps : PropsWithChildren {
      * Submit button was pressed
      */
     var isSubmitButtonPressed: Boolean?
-
-    /**
-     * state for the creation of unified confirmation logic
-     */
-    var confirmationType: ConfirmationType
 
     /**
      * General size of test suite in bytes
@@ -223,15 +216,8 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 }
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
-                    val wasSubmitted = props.isSubmitButtonPressed ?: false
-                    val form = if (props.files.isEmpty() && wasSubmitted && props.confirmationType == ConfirmationType.NO_BINARY_CONFIRM) {
-                        "form-control is-invalid"
-                    } else {
-                        "form-control"
-                    }
-
                     select {
-                        className = ClassName(form)
+                        className = ClassName("form-control")
                         value = "default"
                         option {
                             value = "default"

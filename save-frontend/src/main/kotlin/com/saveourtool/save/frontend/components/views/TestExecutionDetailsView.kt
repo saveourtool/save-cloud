@@ -26,6 +26,7 @@ import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import react.router.useParams
 
+import kotlinx.js.get
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -113,7 +114,7 @@ fun testExecutionDetailsView() = FC<Props> {
     // fixme: after https://github.com/saveourtool/save-cloud/issues/364 can be passed via history state to avoid requests
     useRequest(arrayOf(params), isDeferred = false) {
         val testExecutionDtoResponse = post(
-            "$apiUrl/testExecutions?executionId=$executionId&checkDebugInfo=true",
+            "$apiUrl/test-execution?executionId=$executionId&checkDebugInfo=true",
             Headers().apply {
                 set("Content-Type", "application/json")
             },

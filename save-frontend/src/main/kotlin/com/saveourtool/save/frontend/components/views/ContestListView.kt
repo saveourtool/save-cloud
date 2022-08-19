@@ -11,13 +11,11 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
+import com.saveourtool.save.validation.FrontendRoutes
 
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
@@ -60,53 +58,56 @@ external interface ContestListViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>(false) {
+    private val openParticipateModal: (String) -> Unit = { contestName ->
+        setState {
+            selectedContestName = contestName
+            isProjectSelectorModalOpen = true
+        }
+    }
+
     @Suppress("MAGIC_NUMBER")
     private val contestsTable = tableComponent(
         columns = columns<ContestDto> {
-            column(id = "name", header = "Contest Name", { name }) { cellProps ->
+            column(id = "name", header = "Contest Name", { this }) { cellProps ->
                 Fragment.create {
                     td {
+                        onClick = {
+                            openParticipateModal(cellProps.value.name)
+                        }
                         a {
-                            href = "#/contests/${cellProps.row.original.name}"
-                            +cellProps.value
+                            href = "#/${FrontendRoutes.CONTESTS.path}/${cellProps.row.original.name}"
+                            +cellProps.value.name
                         }
                     }
                 }
             }
-            column(id = "description", header = "Description", { description }) { cellProps ->
+            column(id = "description", header = "Description", { this }) { cellProps ->
                 Fragment.create {
                     td {
-                        +(cellProps.value ?: "Description is not provided")
-                    }
-                }
-            }
-            column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value.replace("T", " ")
-                    }
-                }
-            }
-            column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +cellProps.value.replace("T", " ")
-                    }
-                }
-            }
-            column(id = "enroll_button", header = "Registration", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            className = ClassName("btn btn-primary")
-                            onClick = {
-                                setState {
-                                    selectedContestName = cellProps.value
-                                    isProjectSelectorModalOpen = true
-                                }
-                            }
-                            +"Participate"
+                        onClick = {
+                            openParticipateModal(cellProps.value.name)
                         }
+                        +(cellProps.value.description ?: "Description is not provided")
+                    }
+                }
+            }
+            column(id = "start_time", header = "Start Time", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            openParticipateModal(cellProps.value.name)
+                        }
+                        +cellProps.value.startTime.toString().replace("T", " ")
+                    }
+                }
+            }
+            column(id = "end_time", header = "End Time", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            openParticipateModal(cellProps.value.name)
+                        }
+                        +cellProps.value.endTime.toString().replace("T", " ")
                     }
                 }
             }

@@ -59,14 +59,14 @@ fun Project.configureVersioning() {
 }
 
 /**
- * Docker tags cannot contain `+`, so we change it. Also can be specified explicitly.
+ * Image reference must be in the form '[domainHost:port/][path/]name[:tag][@digest]', with 'path' and 'name' containing
+ * only [a-z0-9][.][_][-].
  *
  * @return correctly formatted version
  */
 fun Project.versionForDockerImages(): String =
         (project.findProperty("dockerTag") as String? ?: version.toString())
-            .replace("+", "-")
-            .replace("/", "-")
+            .replace(Regex("[^._\\-a-z0-9]"), "-")
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest

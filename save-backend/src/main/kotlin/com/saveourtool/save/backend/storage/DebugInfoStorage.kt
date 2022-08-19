@@ -2,11 +2,14 @@ package com.saveourtool.save.backend.storage
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.utils.toFluxByteBufferAsJson
+import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.pathNamesTill
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
@@ -27,36 +30,28 @@ class DebugInfoStorage(
     configProperties: ConfigProperties,
     private val objectMapper: ObjectMapper,
 ) :
-    AbstractFileBasedStorage<Pair<Long, TestResultLocation>>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
+    AbstractFileBasedStorage<DebugInfoStorageKey>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
     /**
      * @param rootDir
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
+            pathToContent.name.endsWith(SUFFIX_FILE_NAME) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     /**
      * @param rootDir
      * @param pathToContent
      * @return [Pair] of executionId and [TestResultLocation] object is built by [Path]
      */
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
-    override fun buildKey(rootDir: Path, pathToContent: Path): Pair<Long, TestResultLocation> {
-        val folderNames = generateSequence(pathToContent, Path::getParent)
-            .takeWhile { it != rootDir }
-            .map { it.name }
-            .toList()
-        require(folderNames.size == 5) {
-            "Invalid path to debugInfo: $pathToContent"
-        }
-        val testName = folderNames[0].dropLast(SUFFIX_FILE_NAME.length)
-        val testLocation = folderNames[1]
-        val testSuiteName = folderNames[2]
-        val pluginName = folderNames[3]
-        val executionId = folderNames[4].toLong()
-        return Pair(
-            executionId,
-            TestResultLocation(testSuiteName, pluginName, testLocation, testName)
+    @Suppress("DestructuringDeclarationWithTooManyEntries")
+    override fun buildKey(rootDir: Path, pathToContent: Path): DebugInfoStorageKey {
+        val pathNames = pathToContent.pathNamesTill(rootDir)
+
+        val (testName, testLocation, testSuiteName, pluginName, executionId) = pathNames
+        return DebugInfoStorageKey(
+            executionId.toLong(),
+            TestResultLocation(testSuiteName, pluginName, testLocation, testName.dropLast(SUFFIX_FILE_NAME.length))
         )
     }
 
@@ -65,11 +60,8 @@ class DebugInfoStorage(
      * @param key
      * @return [Path] is built by executionId and [TestResultLocation] object
      */
-    override fun buildPathToContent(rootDir: Path, key: Pair<Long, TestResultLocation>): Path {
-        val (executionId, testResultLocation) = key
-        return with(testResultLocation) {
-            rootDir / executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_FILE_NAME"
-        }
+    override fun buildPathToContent(rootDir: Path, key: DebugInfoStorageKey): Path = with(key.testResultLocation) {
+        rootDir / key.executionId.toString() / pluginName / sanitizePathName(testSuiteName) / testLocation / "$testName$SUFFIX_FILE_NAME"
     }
 
     /**
@@ -85,7 +77,7 @@ class DebugInfoStorage(
     ): Mono<Long> {
         with(testResultDebugInfo) {
             log.debug { "Writing debug info for $executionId to $testResultLocation" }
-            return upload(Pair(executionId, testResultLocation), testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
+            return upload(DebugInfoStorageKey(executionId, testResultLocation), testResultDebugInfo.toFluxByteBufferAsJson(objectMapper))
         }
     }
 
@@ -97,6 +89,7 @@ class DebugInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
+        private const val PATH_PARTS_COUNT = 5
         private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

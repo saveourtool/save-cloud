@@ -162,7 +162,7 @@ private fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
     "LongMethod",
     "ComplexMethod"
 )
-private fun executionStatistics(classes: String = "") = FC<ExecutionStatisticsProps> { props ->
+private fun executionStatistics() = FC<ExecutionStatisticsProps> { props ->
     val values = ExecutionStatisticsValues(props.executionDto)
 
     div {

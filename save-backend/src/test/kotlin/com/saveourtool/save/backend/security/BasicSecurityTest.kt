@@ -17,7 +17,6 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.Optional
 
 @ExtendWith(SpringExtension::class)
 @Import(
@@ -33,9 +32,9 @@ class BasicSecurityTest {
     @BeforeEach
     fun setUp() {
         whenever(userRepository.findByName("user")).thenReturn(
-            Optional.of(User("user", null, "ROLE_USER", "basic").apply {
+            User("user", null, "ROLE_USER", "basic").apply {
                 id = 99
-            })
+            }
         )
     }
 

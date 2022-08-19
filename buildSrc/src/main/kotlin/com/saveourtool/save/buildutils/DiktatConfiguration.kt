@@ -6,7 +6,6 @@ package com.saveourtool.save.buildutils
 
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
-import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 import org.cqfn.diktat.plugin.gradle.DiktatExtension
 import org.cqfn.diktat.plugin.gradle.DiktatGradlePlugin
 import org.cqfn.diktat.plugin.gradle.DiktatJavaExecTaskBase
@@ -30,21 +29,11 @@ fun Project.configureDiktat() {
                 include("buildSrc/src/**/*.kt", "*.kts", "buildSrc/**/*.kts")
             } else {
                 include("src/**/*.kt", "**/*.kts")
+                exclude("src/test/**/*.kt", "src/*Test/**/*.kt")
             }
         }
     }
     fixDiktatTasks()
-
-    if (path == rootProject.path) {
-        tasks.register("mergeDiktatReports", ReportMergeTask::class) {
-            input.from(
-                *fileTree(buildDir.resolve("diktat-sarif-reports"))
-                    .toList()
-                    .toTypedArray()
-            )
-            output.set(buildDir.resolve("diktat-sarif-reports/diktat-merged.sarif"))
-        }
-    }
 }
 
 /**
@@ -81,7 +70,5 @@ private fun Project.fixDiktatTasks() {
         javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
             languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
         })
-        // https://github.com/saveourtool/diktat/issues/1269
-        systemProperty("user.home", rootDir.toString())
     }
 }

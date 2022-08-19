@@ -4,8 +4,8 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.countPartsTill
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -48,13 +48,7 @@ class FileStorage(
      * @param pathToContent
      * @return true if there is 4 parts between pathToContent and rootDir
      */
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean {
-        val partsCount = generateSequence(pathToContent, Path::getParent)
-            .takeWhile { it != rootDir }
-            .count()
-        return partsCount == 4  // organization + project + uploadedMills + fileName
-    }
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     /**
      * @param projectCoordinates
@@ -65,27 +59,6 @@ class FileStorage(
         .filter { it.name == name }
         .reduce { key1, key2 ->
             if (key1.uploadedMillis > key2.uploadedMillis) key1 else key2
-        }
-
-    /**
-     * @param projectCoordinates
-     * @param shortFileInfoFlux
-     * @return Flux of [FileInfo] found by [ShortFileInfo] with max uploadedMillis
-     */
-    fun convertToLatestFileInfo(projectCoordinates: ProjectCoordinates, shortFileInfoFlux: Flux<ShortFileInfo>): Flux<FileInfo> = shortFileInfoFlux
-        .flatMap { shortFileInfo ->
-            findLatestKeyByName(projectCoordinates, shortFileInfo.name)
-                .flatMap { fileKey ->
-                    contentSize(projectCoordinates, fileKey)
-                        .map { sizeBytes ->
-                            FileInfo(
-                                fileKey.name,
-                                fileKey.uploadedMillis,
-                                sizeBytes,
-                                shortFileInfo.isExecutable
-                            )
-                        }
-                }
         }
 
     /**
@@ -143,5 +116,9 @@ class FileStorage(
                     it
                 )
             }
+    }
+
+    companion object {
+        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
     }
 }

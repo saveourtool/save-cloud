@@ -2,10 +2,10 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.format
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.persistence.Entity
@@ -21,7 +21,6 @@ import javax.persistence.ManyToOne
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
  * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
- * @property resourcesRootPath path to test resources, relative to shared volume mount point
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
@@ -56,8 +55,6 @@ class Execution(
     var status: ExecutionStatus,
 
     var testSuiteIds: String?,
-
-    var resourcesRootPath: String?,
 
     var batchSize: Int?,
 
@@ -125,8 +122,8 @@ class Execution(
      * @return list of TestSuite IDs
      */
     fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
-        ?.split(TEST_SUITE_IDS_DELIMITER)
-        ?.map { it.toLong() }
+        ?.split(DATABASE_DELIMITER)
+        ?.map { it.trim().toLong() }
 
     /**
      * Format and set provided list of TestSuite IDs
@@ -134,10 +131,7 @@ class Execution(
      * @param testSuiteIds list of TestSuite IDs
      */
     fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = testSuiteIds
-            .distinct()
-            .sorted()
-            .joinToString(TEST_SUITE_IDS_DELIMITER)
+        this.testSuiteIds = formatTestSuiteIds(testSuiteIds)
     }
 
     /**
@@ -147,30 +141,7 @@ class Execution(
      */
     fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
 
-    /**
-     * Appends additional file to existed formatted String
-     *
-     * @param fileKey a new key [FileKey] to additional file
-     */
-    fun appendAdditionalFile(fileKey: FileKey) {
-        if (additionalFiles.isNotEmpty()) {
-            additionalFiles += FileKey.OBJECT_DELIMITER
-        }
-        additionalFiles += fileKey.format()
-    }
-
-    /**
-     * Format and set provided list of [FileKey]
-     *
-     * @param fileKeys list of [FileKey]
-     */
-    fun formatAndSetAdditionalFiles(fileKeys: List<FileKey>) {
-        additionalFiles = fileKeys.format()
-    }
-
     companion object {
-        private const val TEST_SUITE_IDS_DELIMITER = ", "
-
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
          *
@@ -183,7 +154,6 @@ class Execution(
             endTime = null,
             status = ExecutionStatus.RUNNING,
             testSuiteIds = null,
-            resourcesRootPath = null,
             batchSize = 20,
             type = ExecutionType.GIT,
             version = null,
@@ -202,5 +172,14 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
         )
+
+        /**
+         * @param testSuiteIds list of TestSuite IDs
+         * @return formatted string
+         */
+        fun formatTestSuiteIds(testSuiteIds: List<Long>): String = testSuiteIds
+            .distinct()
+            .sorted()
+            .joinToString(DATABASE_DELIMITER)
     }
 }

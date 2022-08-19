@@ -19,17 +19,17 @@ startupProbe:
   # give spring-boot enough time to start
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
-  failureThreshold: 10
+    port: {{ or .managementPort .containerPort }}
+  failureThreshold: 30
   periodSeconds: 10
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 readinessProbe:
   httpGet:
     path: /actuator/health/readiness
-    port:  {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 lifecycle:
   preStop:
     exec:
@@ -40,7 +40,7 @@ lifecycle:
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
 image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
-imagePullPolicy: Always
+imagePullPolicy: {{ .Values.pullPolicy }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}

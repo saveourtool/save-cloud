@@ -1,4 +1,4 @@
-# Save Cloud API
+# Save Cloud API CLI
 
 ### General information
 

@@ -2,19 +2,16 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.docker.AgentRunner
+import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.testsuite.TestSuiteType
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -29,6 +26,7 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -112,21 +110,8 @@ class HeartbeatControllerTest {
         mockServer.enqueue(
             "/getTestBatches\\?agentId=.*",
             MockResponse()
-                .setBody(Json.encodeToString(TestBatch(list, mapOf(0L to ""))))
+                .setBody(Json.encodeToString(list))
                 .addHeader("Content-Type", "application/json")
-        )
-
-        val testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-            id = 0
-        }
-
-        // /testSuite/{id}
-        mockServer.enqueue(
-            "/testSuite/(\\d)+",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(testSuite))
         )
 
         val monoResponse = agentService.getNewTestsIds("container-1").block() as NewJobResponse
@@ -143,8 +128,7 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now() + 30.seconds)),
-            testBatch = TestBatch(emptyList(), emptyMap()),
-            testSuite = null,
+            testBatch = emptyList(),
             mockAgentStatuses = true,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(anyCollection())
@@ -160,17 +144,11 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "test-2"),
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now() + 30.seconds)),
-            testBatch = TestBatch(
-                listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-                ),
-                mapOf(1L to "")
+            testBatch = listOf(
+                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-                id = 0
-            },
             mockAgentStatuses = false,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(anyCollection())
@@ -189,8 +167,7 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
-            testBatch = TestBatch(emptyList(), emptyMap()),
-            testSuite = null,
+            testBatch = emptyList(),
             mockAgentStatuses = true,
             {
                 // /updateExecutionByDto
@@ -216,17 +193,11 @@ class HeartbeatControllerTest {
                 AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-2"),
             ),
             heartbeats = listOf(Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0), Clock.System.now() + 30.seconds)),
-            testBatch = TestBatch(
-                listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-                ),
-                mapOf(1L to "")
+            testBatch = listOf(
+                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-                id = 0
-            },
             mockAgentStatuses = false,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(anyCollection())
@@ -255,17 +226,11 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(10.seconds)),
             ),
             heartBeatInterval = 1_000,
-            testBatch = TestBatch(
-                listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-                ),
-                mapOf(1L to "")
+            testBatch = listOf(
+                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-                id = 0
-            },
             mockAgentStatuses = false,
         ) {
             heartBeatInspector.crashedAgents.shouldContainExactly(
@@ -294,17 +259,11 @@ class HeartbeatControllerTest {
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0), currTime.plus(10.seconds)),
             ),
             heartBeatInterval = 1_000,
-            testBatch = TestBatch(
-                listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-                ),
-                mapOf(1L to "")
+            testBatch = listOf(
+                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-                id = 0
-            },
             mockAgentStatuses = false,
         ) {
             heartBeatInspector.crashedAgents.shouldContainExactly(
@@ -326,17 +285,11 @@ class HeartbeatControllerTest {
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0), Clock.System.now() - 1.minutes),
             ),
             heartBeatInterval = 0,
-            testBatch = TestBatch(
-                listOf(
-                    TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                    TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                    TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-                ),
-                mapOf(1L to "")
+            testBatch = listOf(
+                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
+                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
+                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            testSuite = TestSuite(TestSuiteType.PROJECT, "", null, null, LocalDateTime.now(), ".", ".").apply {
-                id = 0
-            },
             mockAgentStatuses = false,
         ) {
             heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
@@ -355,8 +308,7 @@ class HeartbeatControllerTest {
             agentStatusDtos = agentStatusDtos,
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100), Clock.System.now() + 30.seconds)),
             heartBeatInterval = 0,
-            testBatch = TestBatch(emptyList(), emptyMap()),
-            testSuite = null,
+            testBatch = emptyList(),
             mockAgentStatuses = true,
             {
                 mockServer.enqueue(
@@ -424,7 +376,6 @@ class HeartbeatControllerTest {
             ),
             heartBeatInterval = 0,
             testBatch = null,
-            testSuite = null,
             mockAgentStatuses = false,
         ) {
             // not interested in any checks for heartbeats
@@ -459,7 +410,6 @@ class HeartbeatControllerTest {
         heartbeats: List<Heartbeat>,
         heartBeatInterval: Long = 0,
         testBatch: TestBatch?,
-        testSuite: TestSuite?,
         mockAgentStatuses: Boolean = false,
         additionalSetup: () -> Unit = {},
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
@@ -471,17 +421,6 @@ class HeartbeatControllerTest {
                 MockResponse()
                     .setBody(Json.encodeToString(testBatch))
                     .addHeader("Content-Type", "application/json")
-            )
-        }
-
-        // /testSuite/{id}
-        testSuite?.let {
-            mockServer.enqueue(
-                "/testSuite/(\\d)+",
-                MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(objectMapper.writeValueAsString(testSuite))
             )
         }
 

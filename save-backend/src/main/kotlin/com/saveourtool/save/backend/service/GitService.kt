@@ -3,7 +3,8 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.Organization
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 /**
@@ -12,29 +13,54 @@ import org.springframework.stereotype.Service
 @Service
 class GitService(private val gitRepository: GitRepository) {
     /**
-     * @param project
-     * @return git dto by project if exists
+     * @param organization
+     * @return list of gits by organization if exists
      */
-    fun getRepositoryDtoByProject(project: Project) = gitRepository.findByProject(project)?.toDto()
+    fun getAllByOrganization(organization: Organization): List<Git> = gitRepository.findAllByOrganizationId(organization.requiredId())
 
     /**
+     * @param organization
+     * @param url
+     * @return list of gits by organization if exists or null
+     */
+    fun findByOrganizationAndUrl(organization: Organization, url: String): Git? = gitRepository.findByOrganizationAndUrl(organization, url)
+
+    /**
+     * @param organization
+     * @param url
+     * @return list of gits by organization if exists
+     * @throws NoSuchElementException
+     */
+    fun getByOrganizationAndUrl(organization: Organization, url: String): Git = findByOrganizationAndUrl(organization, url)
+        ?: throw NoSuchElementException("There is no git credential with url $url in ${organization.name}")
+
+    /**
+     * @param organization associate Git with this organization
      * @param gitDto
-     * @param projectId associate Git with this project
-     * @return saved git dto
+     * @return saved or updated git
      */
-    fun saveGit(gitDto: GitDto, projectId: Long) = gitRepository.save(
-        Git(gitDto.url, gitDto.username, gitDto.password, gitDto.branch, Project.stub(projectId))
-    )
+    fun upsert(organization: Organization, gitDto: GitDto): Git =
+            Git(
+                url = gitDto.url,
+                username = gitDto.username,
+                password = gitDto.password,
+                organization = organization,
+            ).also {
+                it.id = gitRepository.findByOrganizationAndUrl(organization, gitDto.url)?.id
+            }.let { gitRepository.save(it) }
 
     /**
-     * @param git
-     * @return saved git dto
+     * @param organization
+     * @param url git url
+     * @throws NoSuchElementException
      */
-    fun save(git: Git) = gitRepository.save(git)
+    fun delete(organization: Organization, url: String) {
+        gitRepository.delete(getByOrganizationAndUrl(organization, url))
+    }
 
     /**
-     * @param projectId
-     * @return git by project id if exists
+     * @param id
+     * @return [GitDto] found by provided values or null
      */
-    fun findByProjectId(projectId: Long) = gitRepository.findByProjectId(projectId)
+    fun findById(id: Long): GitDto? = gitRepository.findByIdOrNull(id)?.toDto()
 }

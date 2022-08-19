@@ -18,7 +18,7 @@ class AppTest {
         )
 
         return screen.findByTextAndCast<HTMLHeadingElement>(
-            "Advanced eco-system for continuous integration, evaluation and benchmarking of software tools."
+            "Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
         ).then { htmlHeadingElement ->
             assertNotNull(htmlHeadingElement)
         }

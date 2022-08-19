@@ -103,7 +103,7 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toFileKey(), organizationName, projectName)
+    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(), organizationName, projectName)
 
     /**
      * @param fileKey a key [FileKey] of requested file
@@ -192,7 +192,7 @@ class DownloadFilesController(
             part.filename()
         )
         val content = part.content().map { it.asByteBuffer() }
-        avatarStorage.upload(avatarKey, content).map {
+        avatarStorage.upsert(avatarKey, content).map {
             logger.info("Saved $it bytes of $avatarKey")
             ImageInfo(avatarKey.getRelativePath())
         }
@@ -228,7 +228,7 @@ class DownloadFilesController(
         val executionId = getExecutionId(testExecutionDto)
         val testResultLocation = TestResultLocation.from(testExecutionDto)
 
-        return debugInfoStorage.download(Pair(executionId, testResultLocation))
+        return debugInfoStorage.download(DebugInfoStorageKey(executionId, testResultLocation))
             .switchIfEmpty(
                 Mono.fromCallable {
                     logger.warn("Additional file for $executionId and $testResultLocation not found")

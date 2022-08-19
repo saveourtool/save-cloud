@@ -8,13 +8,19 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     // this plugin will generate generateOpenApiDocs task
-    // running this task, it will writes the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
-    id("org.springdoc.openapi-gradle-plugin") version "1.3.4"
+    // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
+    id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
 }
 
 openApi {
     apiDocsUrl.set("http://localhost:5800/internal/v3/api-docs/latest")
-    outputFileName.set("$rootDir/save-backend/backend-api-docs.json")
+    outputDir.set(file(projectDir))
+    outputFileName.set("backend-api-docs.json")
+    waitTimeInSeconds.set(120)
+
+    customBootRun {
+        jvmArgs.add("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
+    }
 }
 
 configureSpringBoot(true)
@@ -37,6 +43,24 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.register<Exec>("cleanupDbAndStorage") {
+    dependsOn(":liquibaseDropAll")
+    val profile = properties.get("save.profile") as String?
+
+    val storagePath = when (profile) {
+        "win" -> "${System.getProperty("user.home")}/.save-cloud/cnb/files"
+        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
+        else -> "/home/cnb/files"
+    }
+
+    val args = if (profile != "win") {
+        arrayOf("rm", "-rf")
+    } else {
+        arrayOf("rmdir", "/s", "/q")
+    }
+    commandLine(*args, storagePath)
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
     runtimeOnly(projects.saveFrontend) {
@@ -48,6 +72,7 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation("io.projectreactor.addons:reactor-extra")
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }

@@ -6,22 +6,25 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
 import org.w3c.dom.HTMLButtonElement
 import react.*
-import react.dom.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
@@ -95,13 +98,15 @@ fun topBar() = FC<TopBarProps> { props ->
                     ariaCurrent = "page".unsafeCast<AriaCurrent>()
                     a {
                         href = "#/"
-                        className = ClassName("text-light")
+                        // if we are on welcome page right now - need to highlight SAVE in menu
+                        val textColor = if (location.pathname == "/") "text-warning" else "text-light"
+                        className = ClassName(textColor)
                         +"SAVE"
                     }
                 }
                 location.pathname
                     .substringBeforeLast("?")
-                    .split("/")
+                    .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
                         foldIndexed("#") { index: Int, acc: String, pathPart: String ->
@@ -137,11 +142,12 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 12.rem
                     }
-                    href = "#/awesome-benchmarks"
+                    href = "#/$hrefAnchor"
                     +"Awesome Benchmarks"
                 }
             }
@@ -170,33 +176,36 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = FrontendRoutes.PROJECTS.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active ")
                     style = jso {
                         width = 8.rem
                     }
-                    href = "#/projects"
+                    href = "#/$hrefAnchor"
                     +"Projects board"
                 }
             }
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = FrontendRoutes.CONTESTS.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem
                     }
-                    href = "#/contests"
+                    href = "#/$hrefAnchor"
                     +"Contests"
                 }
             }
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = "about"
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 6.rem
                     }
-                    href = "https://github.com/saveourtool/save-cloud"
+                    href = "#/$hrefAnchor"
                     +"About"
                 }
             }
@@ -220,22 +229,31 @@ fun topBar() = FC<TopBarProps> { props ->
                     asDynamic()["data-toggle"] = "dropdown"
 
                     div {
-                        className = ClassName("row")
+                        className = ClassName("d-flex flex-row")
                         div {
+                            className = ClassName("d-flex flex-column")
                             span {
                                 className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
                                 +(props.userInfo?.name ?: "")
                             }
-                            fontAwesomeIcon(icon = faUser) {
-                                it.className = "fas fa-lg fa-fw mr-2 text-gray-400"
+                            val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
+                            if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                                small {
+                                    className = ClassName("text-gray-400 text-justify")
+                                    +globalRole.formattedName
+                                }
                             }
                         }
-                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                        if (globalRole.priority >= Role.ADMIN.priority) {
-                            small {
-                                className = ClassName("text-gray-400 text-justify")
-                                +globalRole.formattedName
+                        props.userInfo?.avatar?.let {
+                            img {
+                                className =
+                                        ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
+                                src = "/api/$v1/avatar$it"
+                                height = 45.0
+                                width = 45.0
                             }
+                        } ?: fontAwesomeIcon(icon = faUser) {
+                            it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
                         }
                     }
                 }
@@ -246,12 +264,12 @@ fun topBar() = FC<TopBarProps> { props ->
                     props.userInfo?.name?.let { name ->
                         dropdownEntry(faCog, "Settings") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/settings/email"
+                                window.location.href = "#/$name/${FrontendRoutes.SETTINGS_EMAIL.path}"
                             }
                         }
                         dropdownEntry(faCity, "My organizations") { attrs ->
                             attrs.onClick = {
-                                window.location.href = "#/$name/settings/organizations"
+                                window.location.href = "#/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
                             }
                         }
                     }
@@ -270,3 +288,6 @@ fun topBar() = FC<TopBarProps> { props ->
         isOpen = isLogoutModalOpen
     }
 }
+
+private fun textColor(hrefAnchor: String, location: history.Location) =
+        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"

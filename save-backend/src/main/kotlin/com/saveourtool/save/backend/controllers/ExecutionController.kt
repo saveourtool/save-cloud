@@ -1,48 +1,38 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
-import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
-import com.saveourtool.save.backend.utils.username
+import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.ExecutionRequest
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionInitializationDto
-import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -52,7 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 @RestController
 @Suppress("LongParameterList")
 class ExecutionController(private val executionService: ExecutionService,
-                          private val gitService: GitService,
                           private val testSuitesService: TestSuitesService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
@@ -61,21 +50,9 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
-                          config: ConfigProperties,
-                          jackson2WebClientCustomizer: WebClientCustomizer,
+                          private val runExecutionController: RunExecutionController,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
-    private val preprocessorWebClient = WebClient.builder()
-        .apply(jackson2WebClientCustomizer::customize)
-        .baseUrl(config.preprocessorUrl)
-        .build()
-
-    /**
-     * @param execution
-     * @return id of created [Execution]
-     */
-    @PostMapping("/internal/createExecution")
-    fun createExecution(@RequestBody execution: Execution): Long = executionService.saveExecutionAndReturnId(execution)
 
     /**
      * @param executionUpdateDto
@@ -83,7 +60,10 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @PostMapping("/internal/updateExecutionByDto")
     fun updateExecution(@RequestBody executionUpdateDto: ExecutionUpdateDto): Mono<Unit> = Mono.fromCallable {
-        executionService.updateExecutionStatusById(executionUpdateDto.id, executionUpdateDto.status)
+        executionService.updateExecutionStatus(
+            executionService.findExecution(executionUpdateDto.id).orNotFound(),
+            executionUpdateDto.status
+        )
     }.flatMap {
         executionInfoStorage.upsertIfRequired(executionUpdateDto)
     }
@@ -101,20 +81,10 @@ class ExecutionController(private val executionService: ExecutionService,
     fun getExecution(
         @RequestParam id: Long,
         authentication: Authentication?
-    ): Mono<Execution> = justOrNotFound(executionService.findExecution(id), "Execution with id=$id is not found")
+    ): Mono<Execution> = executionService.findExecution(id).toMonoOrNotFound("Execution with id=$id is not found")
         .runIf({ authentication != null }) {
             filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication!!, execution, Permission.READ) }
         }
-
-    /**
-     * @param executionInitializationDto
-     * @return execution
-     */
-    @PostMapping("/internal/updateNewExecution")
-    fun updateNewExecution(@RequestBody executionInitializationDto: ExecutionInitializationDto): ResponseEntity<Execution> =
-            executionService.updateNewExecution(executionInitializationDto)?.let {
-                ResponseEntity.status(HttpStatus.OK).body(it)
-            } ?: ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
     /**
      * @param executionId
@@ -123,7 +93,8 @@ class ExecutionController(private val executionService: ExecutionService,
      */
     @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
-            justOrNotFound(executionService.findExecution(executionId))
+            executionService.findExecution(executionId)
+                .toMonoOrNotFound()
                 .filterWhen { execution -> projectPermissionEvaluator.checkPermissions(authentication, execution, Permission.READ) }
                 .map { it.toDto() }
 
@@ -263,17 +234,16 @@ class ExecutionController(private val executionService: ExecutionService,
     @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
     @Transactional
     fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-            Mono.justOrEmpty(executionService.findExecution(id))
-                .switchIfEmpty() {
-                    Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
-                }
+            executionService.findExecution(id)
+                .toMonoOrNotFound()
                 .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .map {
-                    it.status.toString()
+                .flatMap {
                     it.getTestRootPathByTestSuites()
                         .distinct()
-                        .single()
+                        .singleOrNull()
+                        .toMono()
                 }
+                .switchIfEmptyToNotFound()
 
     /**
      * Accepts a request to rerun an existing execution
@@ -282,80 +252,36 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication [Authentication] representing an authenticated request
      * @return bodiless response
      * @throws ResponseStatusException
+     * @throws IllegalArgumentException
      */
     @PostMapping(path = ["/api/$v1/rerunExecution"])
     @Transactional
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<String> {
-        val execution = executionService.findExecution(id).orElseThrow {
-            IllegalArgumentException("Can't rerun execution $id, because it does not exist")
-        }
-        if (!projectPermissionEvaluator.hasPermission(
-            authentication, execution.project, Permission.WRITE
-        )) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
-        val executionType = execution.type
-        val git = requireNotNull(gitService.getRepositoryDtoByProject(execution.project)) {
-            "Can't rerun execution $id, project ${execution.project.name} has no associated git address"
-        }
-        val testRootPath = if (executionType == ExecutionType.GIT) {
-            execution.getTestRootPathByTestSuites()
-                .distinct()
-                .single()
-        } else {
-            // for standard suites there is no need for a testRootPath
-            "N/A"
-        }
-
-        executionService.resetMetrics(execution)
-        executionService.updateExecutionWithUser(execution, authentication.username())
-        val executionRequest = ExecutionRequest(
-            project = execution.project,
-            gitDto = git.copy(hash = execution.version),
-            testRootPath = testRootPath,
-            sdk = execution.sdk.toSdk(),
-            executionId = execution.id,
-        )
-        return preprocessorWebClient.post()
-            .uri("/rerunExecution")
-            .bodyValue(executionRequest)
-            .retrieve()
-            .bodyToMono()
-    }
+    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> = runExecutionController.reTrigger(id, authentication)
 
     @Suppress("UnsafeCallOnNullableType")
     private fun Execution.getTestRootPathByTestSuites(): List<String> = this
         .parseAndGetTestSuiteIds()
         ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orElseThrow {
-                log.error("Can't find test suite with id=$testSuiteId for executionId=$id")
-                NoSuchElementException()
+            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
+                "Can't find test suite with id=$testSuiteId for executionId=$id"
             }
         }
-        ?.map {
-            it.testRootPath
-        }
+        ?.map { it.source }
+        ?.map { it.testRootPath }
         .orEmpty()
-
-    /**
-     * @param execution
-     * @return the list of the testRootPaths for current execution; size of the list could be >1 only in standard mode
-     */
-    @PostMapping("/internal/findTestRootPathForExecutionByTestSuites")
-    fun findTestRootPathByTestSuites(@RequestBody execution: Execution): List<String> = execution.getTestRootPathByTestSuites()
 
     /**
      * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing
      */
     private fun Flux<Long>.findPresentExecutions(): Flux<Execution> = collectMap({ id -> id }) { id -> executionService.findExecution(id) }
         .flatMapMany { idsToExecutions ->
-            idsToExecutions.filterValues { it.isEmpty }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
+            idsToExecutions.filterValues { it == null }.takeIf { it.isNotEmpty() }?.let { missingExecutions ->
                 log.warn("Cannot delete executions with ids=${missingExecutions.keys} because they are missing in the DB")
                 if (missingExecutions.size == idsToExecutions.size) {
                     return@flatMapMany Flux.error(ResponseStatusException(HttpStatus.NOT_FOUND, "All executions are missing"))
                 }
             }
-            Flux.fromIterable(idsToExecutions.mapValues { it.value.get() }.values)
+            Flux.fromIterable(idsToExecutions.mapValues { it.value }.values)
         }
 }

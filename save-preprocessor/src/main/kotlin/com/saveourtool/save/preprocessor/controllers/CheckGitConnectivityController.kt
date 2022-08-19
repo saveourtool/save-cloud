@@ -1,8 +1,7 @@
 package com.saveourtool.save.preprocessor.controllers
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.TransportException
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.preprocessor.utils.detectDefaultBranchName
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -29,20 +28,18 @@ class CheckGitConnectivityController {
         @RequestParam user: String,
         @RequestParam token: String,
         @RequestParam url: String,
-    ): Mono<Boolean> {
+    ): Mono<Boolean> = Mono.fromCallable {
         log.info("Received a request to check git connectivity for $user: with $url")
-        return Mono.just(
-            try {
-                Git.lsRemoteRepository()
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider(user, token))
-                    .setHeads(true)
-                    .setTags(true)
-                    .setRemote(url)
-                    .call()
-                true
-            } catch (e: TransportException) {
-                false
-            }
-        )
+        try {
+            // a simple operation by detecting a default branch
+            GitDto(
+                url,
+                user,
+                token,
+            ).detectDefaultBranchName()
+            true
+        } catch (e: IllegalStateException) {
+            false
+        }
     }
 }

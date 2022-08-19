@@ -5,14 +5,15 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -40,7 +41,9 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -53,9 +56,9 @@ external interface ExecutionProps : PropsWithChildren {
     var executionId: String
 
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -68,14 +71,9 @@ external interface ExecutionState : State {
     var executionDto: ExecutionDto?
 
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -83,14 +81,9 @@ external interface ExecutionState : State {
  */
 external interface StatusProps<D : Any> : TableProps<D> {
     /**
-     * Test Result Status to filter by
+     * All filters in one value [filters]
      */
-    var status: TestResultStatus?
-
-    /**
-     * Name of test suite
-     */
-    var testSuite: String?
+    var filters: TestExecutionFilters
 }
 
 /**
@@ -100,32 +93,8 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "GENERIC_VARIABLE_WRONG_DECLARATION")
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
-    private val testExecutionFiltersRow = testExecutionFiltersRow(
-        initialValueStatus = state.status?.name ?: ANY,
-        initialValueTestSuite = state.testSuite ?: "",
-        onChangeStatus = { value ->
-            if (value == "ANY") {
-                setState {
-                    status = null
-                }
-            } else {
-                setState {
-                    status = TestResultStatus.valueOf(value)
-                }
-            }
-        },
-        onChangeTestSuite = { testSuiteValue ->
-            if (testSuiteValue == "") {
-                setState {
-                    testSuite = null
-                }
-            } else {
-                setState {
-                    testSuite = testSuiteValue
-                }
-            }
-        }
-    )
+    @Suppress("TYPE_ALIAS")
+    private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
         columns = columns {
             column(id = "index", header = "#") {
@@ -176,11 +145,9 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-            column(id = "path", header = "Test file path") { cellProps ->
+            column(id = "path", header = "Test Name") { cellProps ->
                 Fragment.create {
                     td {
-                        spread(cellProps.row.getToggleRowExpandedProps())
-
                         val testName = cellProps.value.filePath
                         val shortTestName = if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
                         +shortTestName
@@ -188,6 +155,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         // debug info is provided by agent after the execution
                         // possibly there can be cases when this info is not available
                         if (cellProps.value.hasDebugInfo == true) {
+                            spread(cellProps.row.getToggleRowExpandedProps())
                             style = jso {
                                 textDecoration = "underline".unsafeCast<TextDecoration>()
                                 color = "blue".unsafeCast<Color>()
@@ -196,16 +164,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
                             onClick = {
                                 this@ExecutionView.scope.launch {
-                                    val testExecution = cellProps.value
-                                    val trDebugInfoRequest = getDebugInfoFor(testExecution)
-                                    if (trDebugInfoRequest.ok) {
-                                        cellProps.row.original.asDynamic().debugInfo =
-                                                trDebugInfoRequest.decodeFromJsonString<TestResultDebugInfo>()
-                                    }
-                                    val trExecutionInfo = getExecutionInfoFor(testExecution)
-                                    if (trExecutionInfo.ok) {
-                                        cellProps.row.original.asDynamic().executionInfo =
-                                                trExecutionInfo.decodeFromJsonString<ExecutionUpdateDto>()
+                                    if (!cellProps.row.isExpanded) {
+                                        getAdditionalInfoFor(cellProps.value, cellProps.row.id)
                                     }
                                     cellProps.row.toggleRowExpanded()
                                 }
@@ -252,15 +212,17 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             usePagination,
         ),
         renderExpandedRow = { tableInstance, row ->
-            val trei = row.original.asDynamic().executionInfo as ExecutionUpdateDto?
-            trei?.failReason?.let {
-                executionStatusComponent(it, tableInstance)
-            }
-            val trdi = row.original.asDynamic().debugInfo as TestResultDebugInfo?
-            trdi?.let {
-                testStatusComponent(trdi, tableInstance)
-            } ?: trei ?: run {
-                tr {
+            val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
+            when {
+                errorDescription != null -> tr {
+                    td {
+                        colSpan = tableInstance.columns.size
+                        +"Error retrieving additional information: $errorDescription"
+                    }
+                }
+                trei?.failReason != null -> executionStatusComponent(trei.failReason!!, tableInstance)()
+                trdi != null -> testStatusComponent(trdi, tableInstance)()
+                else -> tr {
                     td {
                         colSpan = tableInstance.columns.size
                         +"No info available yet for this test execution"
@@ -275,7 +237,48 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             tr {
                 th {
                     colSpan = tableInstance.columns.size
-                    testExecutionFiltersRow()
+                    testExecutionFiltersRow {
+                        filters = state.filters
+                        onChangeFilters = { filterValue ->
+                            if (filterValue.status == null || filterValue.status?.name == "ANY") {
+                                setState {
+                                    filters = filters.copy(status = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(status = filterValue.status)
+                                }
+                            }
+                            if (filterValue.fileName?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(fileName = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(fileName = filterValue.fileName)
+                                }
+                            }
+                            if (filterValue.testSuite?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(testSuite = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(testSuite = filterValue.testSuite)
+                                }
+                            }
+                            if (filterValue.tag?.isEmpty() == true) {
+                                setState {
+                                    filters = filters.copy(tag = null)
+                                }
+                            } else {
+                                setState {
+                                    filters = filters.copy(tag = filterValue.tag)
+                                }
+                            }
+                            window.location.href = getUrlWithFiltersParams(filterValue)
+                        }
+                    }
                 }
             }
         },
@@ -294,14 +297,33 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         getAdditionalDependencies = {
-            arrayOf(it.status, it.testSuite)
+            arrayOf(it.filters)
         }
     )
 
     init {
         state.executionDto = null
-        state.status = null
-        state.testSuite = null
+        state.filters = TestExecutionFilters.empty
+    }
+
+    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
+        val trDebugInfoResponse = getDebugInfoFor(testExecution)
+        val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
+        // there may be errors during deserialization, which will otherwise be silently ignored
+        try {
+            additionalInfo[id] = AdditionalRowInfo()
+            if (trDebugInfoResponse.ok) {
+                additionalInfo[id] = additionalInfo[id]!!
+                    .copy(testResultDebugInfo = trDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>())
+            }
+            if (trExecutionInfoResponse.ok) {
+                additionalInfo[id] = additionalInfo[id]!!
+                    .copy(executionInfo = trExecutionInfoResponse.decodeFromJsonString<ExecutionUpdateDto>())
+            }
+        } catch (ex: SerializationException) {
+            additionalInfo[id] = additionalInfo[id]!!
+                .copy(errorDescription = ex.describe())
+        }
     }
 
     override fun componentDidMount() {
@@ -318,7 +340,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         .decodeFromJsonString()
             setState {
                 executionDto = executionDtoFromBackend
-                status = props.status
+                filters = props.filters
             }
         }
     }
@@ -361,7 +383,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 executionStatistics {
                     executionDto = state.executionDto
                 }
-
                 div {
                     className = ClassName("col-md-3 mb-4")
                     div {
@@ -380,7 +401,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                                             val response = post(
                                                 "$apiUrl/rerunExecution?id=${props.executionId}",
                                                 Headers(),
-                                                undefined,
+                                                body = undefined,
                                                 loadingHandler = ::classLoadingHandler,
                                             )
                                             if (response.ok) {
@@ -400,51 +421,37 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
 
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
-            status = state.status
-            testSuite = state.testSuite
+            filters = state.filters
             getData = { page, size ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
-                }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
-                get(
-                    url = "$apiUrl/testExecutions?executionId=${props.executionId}&page=$page&size=$size$status$testSuite&checkDebugInfo=true",
+                post(
+                    url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
                     headers = Headers().apply {
                         set("Accept", "application/json")
+                        set("Content-Type", "application/json")
                     },
+                    body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
                     Json.decodeFromString<Array<TestExecutionDto>>(
                         it.text().await()
                     )
+                }.apply {
+                    asDynamic().debugInfo = null
                 }
-                    .apply {
-                        asDynamic().debugInfo = null
-                    }
             }
             getPageCount = { pageSize ->
-                val status = state.status?.let {
-                    "&status=${state.status}"
+                val filtersQueryString = buildString {
+                    filters.status?.let {
+                        append("&status=${filters.status}")
+                    } ?: append("")
+
+                    filters.testSuite?.let {
+                        append("&testSuite=${filters.testSuite}")
+                    } ?: append("")
                 }
-                    ?: run {
-                        ""
-                    }
-                val testSuite = state.testSuite?.let {
-                    "&testSuite=${state.testSuite}"
-                }
-                    ?: run {
-                        ""
-                    }
+
                 val count: Int = get(
-                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$status$testSuite",
+                    url = "$apiUrl/testExecution/count?executionId=${props.executionId}$filtersQueryString",
                     headers = Headers().also {
                         it.set("Accept", "application/json")
                     },
@@ -461,9 +468,22 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
+    private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"
+
     companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
         init {
             contextType = requestStatusContext
         }
     }
 }
+
+/**
+ * @property errorDescription if retrieved data can't be parsed, this field should contain description of the error
+ * @property testResultDebugInfo
+ * @property executionInfo
+ */
+private data class AdditionalRowInfo(
+    val errorDescription: String? = null,
+    val testResultDebugInfo: TestResultDebugInfo? = null,
+    val executionInfo: ExecutionUpdateDto? = null,
+)

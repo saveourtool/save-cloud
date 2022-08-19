@@ -1,22 +1,22 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.scheduling.UpdateJob
+import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.testsuite.TestSuiteFilters
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
 import org.quartz.Scheduler
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
@@ -28,6 +28,7 @@ typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 class TestSuitesController(
     private val testSuitesService: TestSuitesService,
     private val quartzScheduler: Scheduler,
+    private val testSuitePermissionEvaluator: TestSuitePermissionEvaluator,
 ) {
     /**
      * Save new test suites into DB
@@ -43,26 +44,49 @@ class TestSuitesController(
      * @return response with list of test suite dtos
      */
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
-    fun getAllStandardTestSuites(): ResponseListTestSuites =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.getStandardTestSuites())
+    fun getAllStandardTestSuites(): Mono<ResponseListTestSuites> =
+            testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }
 
     /**
-     * @param name name of the test suite
-     * @return response with list of test suite with specific name
+     * @param testSuiteIds
+     * @param authentication
+     * @return [Flux] of [TestSuiteDto]s
      */
-    @GetMapping("/internal/standardTestSuitesWithName")
-    fun getAllStandardTestSuitesWithSpecificName(@RequestParam name: String) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findStandardTestSuitesByName(name))
+    @PostMapping("/api/$v1/test-suites/get-by-ids")
+    fun getTestSuitesByIds(
+        @RequestBody testSuiteIds: List<Long>,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = testSuitesService.findTestSuitesByIds(testSuiteIds)
+        .filter { testSuite ->
+            testSuitePermissionEvaluator.canAccessTestSuite(testSuite, authentication)
+        }
+        .map { testSuite ->
+            testSuite.toDto(testSuite.requiredId())
+        }
 
     /**
-     * @param names list of test suite names
-     * @return response with IDs of standard test suites with name from provided list
+     * @param tags
+     * @param name
+     * @param language
+     * @param authentication
+     * @return [Flux] of [TestSuiteDto]s
      */
-    @PostMapping("/internal/test-suites/standard/ids-by-name")
-    fun findAllStandardTestSuiteIdsByName(@RequestBody names: List<String>) =
-            ResponseEntity.status(HttpStatus.OK)
-                .body(names.flatMap { name -> testSuitesService.findStandardTestSuitesByName(name) }
-                    .map { it.requiredId() })
+    @GetMapping("/api/$v1/test-suites/filtered")
+    fun getFilteredTestSuites(
+        @RequestParam(required = false, defaultValue = "") tags: String,
+        @RequestParam(required = false, defaultValue = "") name: String,
+        @RequestParam(required = false, defaultValue = "") language: String,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = Mono.just(TestSuiteFilters(name, language, tags))
+        .flatMapMany {
+            testSuitesService.findTestSuitesMatchingFilters(it)
+        }
+        .filter {
+            testSuitePermissionEvaluator.canAccessTestSuite(it, authentication)
+        }
+        .map {
+            it.toDto(it.requiredId())
+        }
 
     /**
      * @param id id of the test suite
@@ -74,12 +98,21 @@ class TestSuitesController(
 
     /**
      * @param ids list of test suite ID
-     * @return response with test suites with id from provided list
+     * @return response with names of test suite with id from provided list
      */
-    @PostMapping("/internal/findAllTestSuiteDtoByIds")
-    fun findAllTestSuiteDtoByIds(@RequestBody ids: List<Long>) =
-            ResponseEntity.status(HttpStatus.OK)
-                .body(ids.map { id -> testSuitesService.findTestSuiteById(id).map { it.toDto() } })
+    @PostMapping("/internal/test-suite/names-by-ids")
+    fun findAllTestSuiteNamesByIds(@RequestBody ids: List<Long>) = ids
+        .map { id ->
+            testSuitesService.findTestSuiteById(id)
+                .orNotFound {
+                    "TestSuite (id=$id) not found"
+                }
+                .name
+        }
+        .distinct()
+        .let {
+            ResponseEntity.status(HttpStatus.OK).body(it)
+        }
 
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.
@@ -94,15 +127,6 @@ class TestSuitesController(
                 UpdateJob.jobKey
             )
         }
-
-    /**
-     * @param testSuiteDtos suites, which need to be marked as obsolete
-     * @return response entity
-     */
-    @PostMapping("/internal/markObsoleteTestSuites")
-    @Transactional
-    fun markObsoleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>) =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.markObsoleteTestSuites(testSuiteDtos))
 
     /**
      * @param testSuiteDtos suites, which need to be deleted

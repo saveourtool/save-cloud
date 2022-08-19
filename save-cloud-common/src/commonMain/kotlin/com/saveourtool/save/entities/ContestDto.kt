@@ -1,6 +1,8 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.Validatable
+import com.saveourtool.save.validation.isValidName
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
@@ -11,13 +13,23 @@ import kotlinx.serialization.Serializable
  * @property description info about contest
  * @property startTime start time of a contest
  * @property endTime end time of a contest
+ * @property organizationName
+ * @property testSuiteIds
  */
 @Serializable
 data class ContestDto(
     val name: String,
     @Contextual
-    val startTime: LocalDateTime,
+    val startTime: LocalDateTime?,
     @Contextual
-    val endTime: LocalDateTime,
+    val endTime: LocalDateTime?,
     val description: String?,
-)
+    val organizationName: String,
+    val testSuiteIds: List<Long>,
+) : Validatable {
+    override fun validate(): Boolean = name.isValidName()
+
+    companion object {
+        val empty = ContestDto("", null, null, null, "", emptyList())
+    }
+}

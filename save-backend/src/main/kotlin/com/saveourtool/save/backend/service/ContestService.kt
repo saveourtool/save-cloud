@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * Service for contests
@@ -73,13 +72,28 @@ class ContestService(
     }
 
     /**
-     * @param contest
-     * @return test suite that has public test as its part
+     * @param organizationName
+     * @param pageable
+     * @return page of contests
      */
-    @Suppress("COMPLEX_EXPRESSION")
-    fun getTestSuiteForPublicTest(contest: Contest) = contest.getTestSuiteIds()
-        .firstOrNull()
-        ?.let {
-            testSuitesService.findTestSuiteById(it)?.getOrNull()
-        }
+    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findByOrganizationName(organizationName, pageable)
+
+    /**
+     * @param newContest
+     * @return [Contest]
+     */
+    fun updateContest(newContest: Contest) = contestRepository.save(newContest)
+
+    /**
+     * @param newContest
+     * @return true if contest was saved, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun createContestIfNotPresent(newContest: Contest): Boolean =
+            if (contestRepository.findByName(newContest.name).isEmpty) {
+                contestRepository.save(newContest)
+                true
+            } else {
+                false
+            }
 }

@@ -125,8 +125,8 @@ class TestInitializeControllerTest {
             .consumeWith { entityExchangeResult ->
                 val batch = entityExchangeResult.responseBody!!
                 log.debug { batch.toString() }
-                assertTrue(batch.tests.isNotEmpty())
-                assertEquals(10, batch.tests.size)
+                assertTrue(batch.isNotEmpty())
+                assertEquals(10, batch.size)
             }
 
         webClient.get()
@@ -137,7 +137,7 @@ class TestInitializeControllerTest {
             .expectBody<TestBatch>()
             .consumeWith { entityExchangeResult ->
                 val body = entityExchangeResult.responseBody!!
-                assertTrue(body.tests.size == 3) { "Expected 3 tests, but got ${body.tests} instead" }
+                assertTrue(body.size == 3) { "Expected 3 tests, but got $body instead" }
             }
     }
 

@@ -15,14 +15,12 @@ import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
-import com.saveourtool.save.utils.adjustLocation
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -35,7 +33,6 @@ import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlin.text.String
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -158,7 +155,8 @@ class SaveAgent(internal val config: AgentConfiguration,
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        logInfoCustom("Starting SAVE with provided args $cliArgs")
+        val pwd = FileSystem.SYSTEM.canonicalize(".".toPath())
+        logInfoCustom("Starting SAVE in $pwd with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
         val saveCliLogFilePath = config.logFilePath
@@ -216,7 +214,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     val debugInfo = tr.toTestResultDebugInfo(report.testSuite, pluginExecution.plugin)
                     val testResultStatus = tr.status.toTestResultStatus()
                     debugInfo to TestExecutionDto(
-                        adjustLocation(tr.resources.test.toString()),
+                        tr.resources.test.toString(),
                         pluginExecution.plugin,
                         config.resolvedId(),
                         testResultStatus,

@@ -81,13 +81,13 @@ class ProjectControllerTest {
                 .expectBody<Project>()
                 .consumeWith {
                     requireNotNull(it.responseBody)
-                    Assertions.assertEquals(it.responseBody!!.url, "huawei.com")
+                    Assertions.assertEquals(it.responseBody!!.url, "https://huawei.com")
                 }
         }
     }
 
     @Test
-    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
@@ -99,38 +99,15 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "Mr. Bruh", roles = ["VIEWER"])
+    @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 99)
         }
 
-        getProjectAndAssert("The Project", "Example.com") {
+        getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
         }
-    }
-
-    @Test
-    @WithMockUser(username = "Tester", roles = ["VIEWER"])
-    fun `check git from project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-
-        val project = projectRepository.findById(1).get()
-        webClient
-            .post()
-            .uri("/api/$v1/projects/git")
-            .body(BodyInserters.fromValue(project))
-            .accept(MediaType.APPLICATION_JSON)
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<GitDto>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                Assertions.assertEquals("github", it.responseBody!!.url)
-            }
     }
 
     @Test
@@ -140,7 +117,7 @@ class ProjectControllerTest {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete", "url", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project("ToDelete", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
@@ -157,13 +134,13 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithUserDetails(value = "John Doe")
+    @WithUserDetails(value = "JohnDoe")
     fun `delete project without owner permission`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("ToDelete1", "url", "", ProjectStatus.CREATED, organization = organization)
+        val project = Project("ToDelete1", "http://test.com", "", ProjectStatus.CREATED, organization = organization)
 
         projectRepository.save(project)
 
@@ -180,23 +157,17 @@ class ProjectControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "John Doe", roles = ["VIEWER"])
+    @WithMockUser(username = "JohnDoe", roles = ["VIEWER"])
     fun `check save new project`() {
         mutateMockedUser {
             details = AuthenticationDetails(id = 2)
         }
 
-        val gitDto = GitDto("qweqwe")
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
-        val project = Project("I", "Name", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
-        val newProject = NewProjectDto(
-            project,
-            "Huawei",
-            gitDto,
-        )
+        val project = Project("I", "http://test.com", "uurl", ProjectStatus.CREATED, userId = 2, organization = organization)
         saveProjectAndAssert(
-            newProject,
+            project,
             { expectStatus().isOk }
         ) {
             expectStatus()
@@ -207,8 +178,6 @@ class ProjectControllerTest {
                     Assertions.assertEquals(it.responseBody!!.url, project.url)
                 }
         }
-
-        Assertions.assertNotNull(gitRepository.findAll().find { it.url == gitDto.url })
     }
 
     @Test
@@ -225,7 +194,7 @@ class ProjectControllerTest {
 
         webClient.post()
             .uri("/api/$v1/projects/update")
-            .bodyValue(project)
+            .bodyValue(project.toDto())
             .exchange()
             .expectStatus()
             .isForbidden
@@ -243,22 +212,21 @@ class ProjectControllerTest {
         .let { assertion(it) }
 
     private fun saveProjectAndAssert(
-        newProject: NewProjectDto,
+        newProject: Project,
         saveAssertion: WebTestClient.ResponseSpec.() -> Unit,
         getAssertion: WebTestClient.ResponseSpec.() -> Unit,
     ) {
         webClient
             .post()
             .uri("/api/$v1/projects/save")
-            .body(BodyInserters.fromValue(newProject))
+            .body(BodyInserters.fromValue(newProject.toDto()))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { saveAssertion(it) }
 
-        val project = newProject.project
         webClient
             .get()
-            .uri("/api/$v1/projects/get/organization-name?name=${project.name}&organizationName=${project.organization.name}")
+            .uri("/api/$v1/projects/get/organization-name?name=${newProject.name}&organizationName=${newProject.organization.name}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

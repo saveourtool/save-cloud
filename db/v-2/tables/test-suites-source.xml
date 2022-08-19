@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-test-suites-source-table" author="nulls">
+        <createTable tableName="test_suites_source">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_test_suites_source_organization" references="organization(id)" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="git_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_test_suites_source_git" references="git(id)" nullable="false"/>
+            </column>
+            <column name="branch" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="test_root_path" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="test_suites_source" columnNames="organization_id,name" constraintName="test_suites_source_name"/>
+        <addUniqueConstraint tableName="test_suites_source" columnNames="git_id,test_root_path,branch" constraintName="test_suites_source_git_location"/>
+    </changeSet>
+</databaseChangeLog>

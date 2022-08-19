@@ -3,8 +3,11 @@
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.components.views.FallbackView
+import com.saveourtool.save.frontend.externals.animations.ringLoader
+import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
 import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.topBarComponent
+import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
 import org.w3c.fetch.Response
@@ -16,6 +19,17 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
+import kotlinx.js.jso
+
+/**
+ * Loader animation
+ */
+@Suppress("MAGIC_NUMBER")
+val ringLoader = ringLoader(jso {
+    this.size = 70
+    this.loading = true
+    this.color = "#3a00c2"
+})
 
 /**
  * Context to store data about current request such as errors and isLoading flag.
@@ -28,10 +42,11 @@ val requestStatusContext: Context<RequestStatusContext> = createContext()
  * Also renders its `children`.
  */
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
-val requestModalHandler: FC<PropsWithChildren> = FC { props ->
+val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (loadingCounter, setLoadingCounter) = useState(0)
-    val statusContext = RequestStatusContext(setResponse, setLoadingCounter)
+    val (redirectToFallbackView, setRedirectToFallbackView) = useState(false)
+    val statusContext = RequestStatusContext(setResponse, setRedirectToFallbackView, setLoadingCounter)
     val (modalState, setModalState) = useState(ErrorModalState(
         isErrorModalOpen = false,
         errorMessage = "",
@@ -56,6 +71,7 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,
+                redirectToFallbackView = redirectToFallbackView,
             )
             else -> ErrorModalState(
                 isErrorModalOpen = response != null,
@@ -104,12 +120,12 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         }
     }
 
-    modal { modalProps ->
+    modal(loaderModalStyle) { modalProps ->
         modalProps.isOpen = loadingState.isLoadingModalOpen
         div {
             className = ClassName("d-flex justify-content-center mt-4")
             div {
-                className = ClassName("spinner-border text-primary spinner-border-lg")
+                child(ringLoader)
                 span {
                     className = ClassName("sr-only")
                     +"Loading..."
@@ -122,15 +138,17 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
         arrayOf(statusContext)
     ) { statusContext }
 
-    val reactNode = if (modalState.status == 404.toShort()) {
+    val reactNode = if (modalState.redirectToFallbackView) {
         div.create {
             className = ClassName("d-flex flex-column")
             id = "content-wrapper"
-            topBarComponent()
+            topBarComponent {
+                userInfo = props.userInfo
+            }
             div {
                 className = ClassName("container-fluid")
                 FallbackView::class.react {
-                    bigText = "404"
+                    bigText = "${response?.status}"
                     smallText = "Page not found"
                     withRouterLink = false
                 }
@@ -148,11 +166,23 @@ val requestModalHandler: FC<PropsWithChildren> = FC { props ->
 }
 
 /**
+ * [State] of request modal component
+ */
+external interface RequestModalProps : PropsWithChildren {
+    /**
+     * Currently logged in user or null
+     */
+    var userInfo: UserInfo?
+}
+
+/**
  * @property setResponse [StateSetter] for response error handler
  * @property setLoadingCounter [StateSetter] for active request counter
+ * @property setRedirectToFallbackView
  */
 data class RequestStatusContext(
     val setResponse: StateSetter<Response?>,
+    val setRedirectToFallbackView: StateSetter<Boolean>,
     val setLoadingCounter: StateSetter<Int>,
 )
 
@@ -162,6 +192,7 @@ data class RequestStatusContext(
  * @property errorLabel
  * @property confirmationText text that will be displayed on modal dismiss button
  * @property status
+ * @property redirectToFallbackView
  */
 data class ErrorModalState(
     val isErrorModalOpen: Boolean?,
@@ -169,6 +200,7 @@ data class ErrorModalState(
     val errorLabel: String,
     val confirmationText: String = "Close",
     val status: Short?,
+    val redirectToFallbackView: Boolean = false,
 )
 
 /**

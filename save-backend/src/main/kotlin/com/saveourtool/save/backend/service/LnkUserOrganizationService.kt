@@ -3,12 +3,15 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.getHighestRole
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import java.util.*
+import kotlin.NoSuchElementException
 
 /**
  * Service of lnkUserOrganization
@@ -84,7 +87,7 @@ class LnkUserOrganizationService(
      * @param userName
      * @return user with [userName]
      */
-    fun getUserByName(userName: String) = userRepository.findByName(userName)
+    fun getUserByName(userName: String): User? = userRepository.findByName(userName)
 
     /**
      * @param userId
@@ -138,6 +141,22 @@ class LnkUserOrganizationService(
         ?: Role.NONE
 
     /**
+     * @param userId
+     * @param organizationName
+     * @return role for user in organization by user ID and organization name
+     */
+    fun findByAuthenticationAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserIdAndOrganizationName(userId, organizationName)
+
+    /**
+     * @param userId
+     * @return Flux of [Organization]s in which user is in
+     */
+    fun findAllByAuthentication(userId: Long) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserId(userId)
+    }
+
+    /**
      * @param authentication
      * @param organization
      * @return the highest of two roles: the one in [organization] and global one.
@@ -160,12 +179,25 @@ class LnkUserOrganizationService(
         val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
-    
+
+    /**
+     * @param userId
+     * @param requestedRole role that user with id [userId] should have in organization
+     * @return list of organizations that can create contests
+     */
+    fun getSuperOrganizationsWithRole(userId: Long, requestedRole: Role = Role.OWNER): List<Organization> = Role.values()
+        .filter {
+            it.isHigherOrEqualThan(requestedRole)
+        }
+        .let {
+            lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
+        }
+        .mapNotNull { it.organization }
+
     /**
      * @param user
      * @return [Organization]s that are connected to the [user]
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
-            lnkUserOrganizationRepository.findByUserId(user.id!!)
+            lnkUserOrganizationRepository.findByUserId(user.requiredId())
 }

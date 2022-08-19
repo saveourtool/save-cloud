@@ -94,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: save-agent-distribution
-          path: 'save-agent/build/libs/save-agent-*-distribution.jar'
+          path: 'save-cloud/save-agent/build/libs/save-agent-*-distribution.jar'
           retention-days: 5
       - name: Upload gradle reports
         if: ${{ always() }}

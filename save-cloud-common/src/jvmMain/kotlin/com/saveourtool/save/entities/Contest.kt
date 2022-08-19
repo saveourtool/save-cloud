@@ -1,33 +1,33 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.validation.isValidName
 
 /**
  * @property name organization
  * @property status
  * @property startTime the time contest starts
  * @property endTime the time contest ends
+ * @property organization organization that created this contest
  * @property description
  * @property testSuiteIds
  */
 @Entity
+@Suppress("LongParameterList")
 class Contest(
     var name: String,
     @Enumerated(EnumType.STRING)
     var status: ContestStatus,
     var startTime: LocalDateTime?,
     var endTime: LocalDateTime?,
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    var organization: Organization,
     var testSuiteIds: String = "",
     var description: String? = null,
-) {
-    /**
-     * id of contest
-     */
-    @Id
-    @GeneratedValue
-    var id: Long? = null
-
+) : BaseEntity() {
     /**
      * Create Data Transfer Object in order to pass entity to frontend
      *
@@ -39,16 +39,29 @@ class Contest(
         startTime!!,
         endTime!!,
         description,
+        organization.name,
+        getTestSuiteIds().toList(),
     )
 
     /**
      * @return set of testSuiteIds
      */
-    fun getTestSuiteIds() = testSuiteIds.split(",")
+    fun getTestSuiteIds() = testSuiteIds.split(DATABASE_DELIMITER)
         .mapNotNull {
             it.toLongOrNull()
         }
-        .toSet()
+        .distinct()
+
+    private fun validateTestSuiteIds() = testSuiteIds.isEmpty() || testSuiteIds.all { it.isDigit() || it.toString() == DATABASE_DELIMITER }
+
+    private fun validateDateRange() = startTime != null && endTime != null && (startTime as LocalDateTime) < endTime
+
+    /**
+     * Validate contest data
+     *
+     * @return true if contest data is valid, false otherwise
+     */
+    override fun validate() = name.isValidName() && validateTestSuiteIds() && validateDateRange()
 
     companion object {
         /**
@@ -66,8 +79,31 @@ class Contest(
             status = status,
             startTime = null,
             endTime = null,
+            organization = Organization.stub(1)
         ).apply {
             this.id = id
         }
+
+        private fun joinTestSuiteIds(testSuiteIds: List<Long>) = testSuiteIds.joinToString(DATABASE_DELIMITER)
+
+        /**
+         * Create [Contest] from [ContestDto]
+         *
+         * @param organization that created contest
+         * @param status [ContestStatus]
+         * @return [Contest] entity
+         */
+        fun ContestDto.toContest(
+            organization: Organization,
+            status: ContestStatus = ContestStatus.CREATED,
+        ) = Contest(
+            name,
+            status,
+            startTime,
+            endTime,
+            organization,
+            joinTestSuiteIds(testSuiteIds),
+            description,
+        )
     }
 }

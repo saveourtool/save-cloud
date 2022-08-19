@@ -46,17 +46,17 @@ internal class ExecutionTest {
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
         execution.formatAndSetTestSuiteIds(listOf(4L))
         assertEquals("4", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(3L, 2L, 1L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
 
         execution.testSuiteIds = null
         execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
-        assertEquals("1, 2, 3", execution.testSuiteIds)
+        assertEquals("1,2,3", execution.testSuiteIds)
     }
 
     @Test
@@ -75,19 +75,5 @@ internal class ExecutionTest {
             listOf(FileKey("file3", 3), FileKey("file2", 2), FileKey("file1", 1)),
             execution.parseAndGetAdditionalFiles()
         )
-    }
-
-    @Test
-    fun appendAdditionalFile() {
-        execution.additionalFiles = ""
-
-        execution.appendAdditionalFile(FileKey("file1", 1))
-        assertEquals("file1:1", execution.additionalFiles)
-
-        execution.appendAdditionalFile(FileKey("file3", 3))
-        assertEquals("file1:1;file3:3", execution.additionalFiles)
-
-        execution.appendAdditionalFile(FileKey("file2", 2))
-        assertEquals("file1:1;file3:3;file2:2", execution.additionalFiles)
     }
 }

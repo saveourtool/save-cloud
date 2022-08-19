@@ -43,7 +43,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
         add("implementation", libs.jackson.module.kotlin)
         add("implementation", libs.slf4j.api)
         add("implementation", libs.logback.core)
-        add("implementation", libs.reactor.kotlin.extensions)
+        add("implementation", "io.projectreactor.kotlin:reactor-kotlin-extensions")
 
         add("implementation", libs.springdoc.openapi.ui)
         add("runtimeOnly", libs.springdoc.openapi.webflux.ui)

@@ -28,7 +28,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
 
             ul {
                 className = ClassName("list-group list-group-flush")
-                for (organizationInfo in state.selfOrganizationInfos) {
+                for (organizationDto in state.selfOrganizationDtos) {
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -37,7 +37,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("align-items-center ml-3")
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = organizationInfo.avatar?.let {
+                                    src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     height = 60.0
@@ -45,14 +45,14 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 }
                                 a {
                                     className = ClassName("ml-2")
-                                    href = "#/${organizationInfo.name}"
-                                    +organizationInfo.name
+                                    href = "#/${organizationDto.name}"
+                                    +organizationDto.name
                                 }
                             }
                             div {
                                 className = ClassName("mr-3")
                                 val role = state.userInfo?.name?.let {
-                                    organizationInfo.userRoles[it]
+                                    organizationDto.userRoles[it]
                                 } ?: Role.NONE
                                 +role.formattedName
                             }

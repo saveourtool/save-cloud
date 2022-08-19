@@ -16,6 +16,9 @@ import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.Parameters
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -33,16 +36,20 @@ import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.util.Optional
 
 @ApiSwaggerSupport
-@Tags(Tag(name = "api"), Tag(name = "permissions"))
+@Tags(
+    Tag(name = "projects"),
+    Tag(name = "roles"),
+)
 @RestController
 @RequestMapping(path = ["/api/$v1"])
-@Suppress("MISSING_KDOC_ON_FUNCTION", "MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS")
+@Suppress("MISSING_KDOC_TOP_LEVEL")
 class PermissionController(
     private val projectService: ProjectService,
     private val permissionService: PermissionService,
@@ -51,22 +58,30 @@ class PermissionController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     @GetMapping("/projects/{organizationName}/{projectName}/users/roles")
-    @Operation(
-        description = "Get role for a user on a particular project. Returns self role if no userName is set.",
-    )
     @RequiresAuthorizationSourceHeader
+    @Operation(
+        method = "GET",
+        summary = "Get role for a user on a particular project.",
+        description = "If userName is not present, then will return the role of current user in given project, " +
+                "otherwise will return role of user with name userName in project with name projectName.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization in which given project is in", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "name of a user that is being requested", required = false)
+    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched user's role")
     @ApiResponse(
         responseCode = "404", description = "Requested user or project doesn't exist or the user doesn't have enough permissions " +
                 "(i.e. project is hidden from the current user)"
     )
     @Suppress("UnsafeCallOnNullableType")
-    fun getRole(@PathVariable organizationName: String,
-                @PathVariable projectName: String,
-                // fixme: userName should be like that: ${user.source}:${user.name}
-                @RequestParam(required = false) userName: String?,
-                authentication: Authentication,
-    ): Mono<Role?> = permissionService.findUserAndProject(
+    fun getRole(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false) userName: String?,
+        authentication: Authentication,
+    ): Mono<Role> = permissionService.findUserAndProject(
         userName ?: authentication.toUser().name!!,
         organizationName,
         projectName,
@@ -87,17 +102,25 @@ class PermissionController(
         }
 
     @PostMapping("/projects/{organizationName}/{projectName}/users/roles")
+    @RequiresAuthorizationSourceHeader
     @Operation(
+        method = "POST",
+        summary = "Set role for a user on a particular project",
         description = "Set role for a user on a particular project",
     )
-    @RequiresAuthorizationSourceHeader
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization in which given project is in", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+        Parameter(name = "setRoleRequest", `in` = ParameterIn.PATH, description = "setRoleRequest passed through body", required = true),
+    )
     @ApiResponse(responseCode = "200", description = "Permission added")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
-    fun setRole(@PathVariable organizationName: String,
-                @PathVariable projectName: String,
-                @RequestBody setRoleRequest: SetRoleRequest,
-                authentication: Authentication,
+    fun setRole(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestBody setRoleRequest: SetRoleRequest,
+        authentication: Authentication,
     ) = Mono.justOrEmpty(
         projectService.findByNameAndOrganizationName(projectName, organizationName)
             .let { Optional.ofNullable(it) }
@@ -110,7 +133,7 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .zipWith(Mono.justOrEmpty(projectService.findUserByName(setRoleRequest.userName)))
+        .zipWith(projectService.findUserByName(setRoleRequest.userName).toMono())
         .switchIfEmpty {
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }
@@ -131,17 +154,25 @@ class PermissionController(
         }
 
     @DeleteMapping("/projects/{organizationName}/{projectName}/users/roles/{userName}")
+    @RequiresAuthorizationSourceHeader
     @Operation(
+        method = "DELETE",
+        summary = "Removes user's role on a particular project",
         description = "Removes user's role on a particular project",
     )
-    @RequiresAuthorizationSourceHeader
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization in which given project is in", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+        Parameter(name = "userName", `in` = ParameterIn.PATH, description = "username", required = true),
+    )
     @ApiResponse(responseCode = "200", description = "Permission removed")
     @ApiResponse(responseCode = "403", description = "User doesn't have permissions to manage this members")
     @ApiResponse(responseCode = "404", description = "Requested user or project doesn't exist")
-    fun removeRole(@PathVariable organizationName: String,
-                   @PathVariable projectName: String,
-                   @PathVariable userName: String,
-                   authentication: Authentication,
+    fun removeRole(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @PathVariable userName: String,
+        authentication: Authentication,
     ) = Mono.justOrEmpty(
         projectService.findByNameAndOrganizationName(projectName, organizationName)
             .let { Optional.ofNullable(it) }
@@ -152,7 +183,7 @@ class PermissionController(
         .switchIfEmpty {
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-        .zipWith(Mono.justOrEmpty(projectService.findUserByName(userName)))
+        .zipWith(projectService.findUserByName(userName).toMono())
         .switchIfEmpty {
             Mono.error((ResponseStatusException(HttpStatus.NOT_FOUND)))
         }

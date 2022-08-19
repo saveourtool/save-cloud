@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.ManyToOne
@@ -12,7 +13,6 @@ import javax.persistence.ManyToOne
  * @property dateAdded
  * @property testSuite
  * @property pluginName name of a plugin which this test belongs to
- * @property tags list of tags of current test
  */
 @Entity
 @Suppress("LongParameterList")
@@ -30,19 +30,12 @@ class Test(
     @JoinColumn(name = "test_suite_id")
     var testSuite: TestSuite,
 
-    var tags: String?,
-
     var additionalFiles: String,
 ) : BaseEntity() {
     /**
-     * @return [tags] as a list of strings
-     */
-    fun tagsAsList() = tags?.split(";")?.filter { it.isNotBlank() }
-
-    /**
      * @return [additionalFiles] as a list of strings
      */
-    fun additionalFilesAsList() = additionalFiles.split(",").filter { it.isNotBlank() }
+    fun additionalFilesAsList() = additionalFiles.split(DATABASE_DELIMITER).filter { it.isNotBlank() }
 
     /**
      * @return [TestDto] constructed from `this`
@@ -53,7 +46,6 @@ class Test(
         pluginName,
         testSuite.id!!,
         hash,
-        tagsAsList().orEmpty(),
         additionalFilesAsList(),
     )
 }

@@ -8,6 +8,7 @@
 @import "mixins.scss";
 @import "global.scss";
 @import "utilities.scss";
+@import "animate.css";
 
 // Custom Components
 @import "dropdowns.scss";
@@ -19,6 +20,8 @@
 @import "error.scss";
 @import "footer.scss";
 @import "team.scss";
+
+
 
 .tooltip-and-popover {
   cursor: pointer;
