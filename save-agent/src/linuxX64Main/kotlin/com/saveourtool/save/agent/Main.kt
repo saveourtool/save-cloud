@@ -14,8 +14,8 @@ import generated.SAVE_CLOUD_VERSION
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.json.JsonPlugin
-import io.ktor.client.plugins.kotlinx.serializer.KotlinxSerializer
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import platform.posix.*
 
 import kotlinx.cinterop.staticCFunction
@@ -61,8 +61,8 @@ fun main() {
     })
 
     val httpClient = HttpClient {
-        install(JsonPlugin) {
-            serializer = KotlinxSerializer(json)
+        install(ContentNegotiation) {
+            json(json = json)
         }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeoutMillis
