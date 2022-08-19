@@ -5,6 +5,7 @@
 package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -12,7 +13,6 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer

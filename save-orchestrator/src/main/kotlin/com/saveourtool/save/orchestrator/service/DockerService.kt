@@ -31,6 +31,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -39,7 +40,6 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
-import java.nio.file.Paths
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.

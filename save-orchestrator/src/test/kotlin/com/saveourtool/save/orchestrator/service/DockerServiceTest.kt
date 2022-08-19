@@ -84,12 +84,7 @@ class DockerServiceTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("Test1", "Test2")))
         )
-        val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
-        val resourcesForExecution = createTempDirectory(
-            directory = tmpDir,
-            prefix = "save-execution-${testExecution.requiredId()}"
-        )
-        val configuration = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
+        val configuration = dockerService.prepareConfiguration(testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration

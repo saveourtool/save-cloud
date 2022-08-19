@@ -93,7 +93,7 @@ class AgentsControllerTest {
                 .addHeader("Content-Type", "application/octet-stream")
                 .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
-        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
+        whenever(dockerService.prepareConfiguration(any())).thenReturn(
             DockerService.RunConfiguration(
                 imageTag = "test-image-id",
                 runCmd = listOf("sh", "-c", "test-exec-cmd"),
@@ -128,7 +128,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
 
