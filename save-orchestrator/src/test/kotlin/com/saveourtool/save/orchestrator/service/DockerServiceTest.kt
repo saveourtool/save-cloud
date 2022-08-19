@@ -91,7 +91,6 @@ class DockerServiceTest {
             directory = tmpDir,
             prefix = "save-execution-${testExecution.requiredId()}"
         )
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
         val configuration = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
