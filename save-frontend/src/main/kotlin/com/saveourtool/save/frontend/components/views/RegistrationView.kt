@@ -123,6 +123,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 jsonHeaders,
                 Json.encodeToString(newUserInfo),
                 loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
             )
             println("response - response - response - ${response.status}")
             if (response.ok) {

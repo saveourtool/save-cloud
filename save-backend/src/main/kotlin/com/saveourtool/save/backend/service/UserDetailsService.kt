@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
@@ -99,6 +100,7 @@ class UserDetailsService(
         .lastOrNull()
         ?: Role.VIEWER
 
+    @Transactional
     fun saveUser(user: User): UserSaveStatus {
         val userName = user.name
         return  if (userName != null && userRepository.validateName(userName) != 0L) {

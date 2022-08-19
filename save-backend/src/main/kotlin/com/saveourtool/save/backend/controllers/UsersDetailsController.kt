@@ -85,7 +85,7 @@ class UsersDetailsController(
                 }
                 ResponseEntity.ok(UserSaveStatus.UPDATE.message)
             } else {
-                ResponseEntity.status(HttpStatus.FORBIDDEN).body(UserSaveStatus.CONFLICT.message)
+                ResponseEntity.status(HttpStatus.CONFLICT).body(UserSaveStatus.CONFLICT.message)
             }
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
