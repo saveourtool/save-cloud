@@ -256,4 +256,5 @@ class DockerAgentRunner(
 /**
  * @param id
  */
+@Suppress("MAGIC_NUMBER", "MagicNumber")
 private fun containerName(id: String) = "save-execution-$id-${abs(Random.nextInt(100, 999))}"
