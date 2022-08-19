@@ -45,11 +45,9 @@ import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -852,23 +850,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 setState {
                     latestExecutionId = executionIdFromResponse
                 }
-                getTestSuiteIdsFromExecution(executionIdFromResponse)
-            }
-        }
-    }
-
-    private suspend fun getTestSuiteIdsFromExecution(executionId: Long) {
-        val headers = Headers().apply { set("Accept", "application/json") }
-        val response = get(
-            "$apiUrl/getTestRootPathByExecutionId?id=$executionId",
-            headers,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        val testSuiteIds = response.text().await()
-        when {
-            response.ok -> setState {
-                selectedPrivateTestSuiteIds = Json.decodeFromString(testSuiteIds)
             }
         }
     }
@@ -883,17 +864,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     )
         .unsafeMap {
             it.decodeFromJsonString<List<FileInfo>>()
-        }
-
-    private suspend fun getGitCredentials(
-        organizationName: String,
-    ) = get(
-        "$apiUrl/organization/$organizationName/list-git",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<List<GitDto>>()
         }
 
     private suspend fun getContests() = get(
@@ -918,7 +888,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
-        const val TEST_SUITE_ROW = 4
 
         init {
             contextType = requestStatusContext
