@@ -1,3 +1,7 @@
+/**
+ * InputForms additionally contains data class Popover
+ */
+
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic
@@ -23,6 +27,7 @@ import react.useEffect
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
+
 // language=JS
 private const val ENABLE_TOOLTIP_AND_POPOVER_JS: String = """
     var jQuery = require("jquery")
@@ -46,6 +51,8 @@ private const val ENABLE_TOOLTIP_AND_POPOVER_JS: String = """
  * @property str
  * @property placeholder
  * @property errorMessage
+ * @property tooltip
+ * @property popover
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class InputTypes(
@@ -119,8 +126,8 @@ enum class InputTypes(
 /**
  * Data class to store popover values in a single object
  *
- * @param title
- * @param content
+ * @property title
+ * @property content
  */
 data class Popover(
     val title: String,
@@ -204,7 +211,12 @@ internal fun ChildrenBuilder.inputTextFormRequired(
  * @param onClickFun
  * @return div with an input form
  */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 internal fun ChildrenBuilder.inputTextFormOptional(
     form: InputTypes,
     textValue: String?,
