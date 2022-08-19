@@ -9,6 +9,7 @@ package com.saveourtool.save.agent.utils
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
+import io.ktor.client.plugins.logging.*
 
 import platform.linux.__NR_gettid
 import platform.posix.syscall
@@ -24,3 +25,9 @@ fun logInfoCustom(msg: String) = logInfo(
 fun logDebugCustom(msg: String) = logDebug(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
+
+internal val ktorLogger = object : Logger {
+    override fun log(message: String) {
+        logInfoCustom("[HTTP Client] $message")
+    }
+}

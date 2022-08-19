@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.agent.utils.logInfoCustom
 import com.saveourtool.save.agent.utils.readProperties
@@ -13,8 +14,9 @@ import com.saveourtool.save.core.logging.logType
 import generated.SAVE_CLOUD_VERSION
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import platform.posix.*
 
@@ -66,6 +68,15 @@ fun main() {
         }
         install(HttpTimeout) {
             requestTimeoutMillis = config.requestTimeoutMillis
+        }
+        install(HttpRequestRetry) {
+            retryOnException(maxRetries = config.retry.attempts)
+            retryOnServerErrors(maxRetries = config.retry.attempts)
+            exponentialDelay(base = config.retry.initialRetryMillis / 1000.0)
+        }
+        install(Logging) {
+            logger = ktorLogger
+            level = if (config.debug) LogLevel.ALL else LogLevel.INFO
         }
     }
 
