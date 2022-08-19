@@ -1,3 +1,7 @@
+/**
+ * Utilities to perform requests to other services of save-cloud
+ */
+
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
@@ -19,7 +23,15 @@ import io.ktor.http.*
 import okio.Path
 import okio.Path.Companion.toPath
 
-internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String) = runCatching {
+/**
+ * Download test source snapshots for execution [executionId] into [target]
+ *
+ * @param config
+ * @param target
+ * @param executionId
+ * @return result
+ */
+internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
     val result = httpClient.downloadTestResources(config, executionId)
     if (updateState(result)) {
         return@runCatching
@@ -38,17 +50,14 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
     logDebugCustom("Extracted archive into $target and deleted $pathToArchive")
 }
 
-internal suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = runCatching {
-    post {
-        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
-        contentType(ContentType.Application.Json)
-        accept(ContentType.Application.OctetStream)
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
-    }
-}
-
+/**
+ * Download additional resources from [additionalResourcesAsString] into [targetDirectory]
+ *
+ * @param baseUrl
+ * @param targetDirectory
+ * @param additionalResourcesAsString
+ * @return result
+ */
 internal suspend fun SaveAgent.downloadAdditionalResources(
     baseUrl: String,
     targetDirectory: Path,
@@ -90,7 +99,18 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
         }
 }
 
-internal suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = runCatching {
+private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = runCatching {
+    post {
+        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
+        contentType(ContentType.Application.Json)
+        accept(ContentType.Application.OctetStream)
+        onDownload { bytesSentTotal, contentLength ->
+            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
+        }
+    }
+}
+
+private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = runCatching {
     post {
         url(url)
         contentType(ContentType.Application.Json)

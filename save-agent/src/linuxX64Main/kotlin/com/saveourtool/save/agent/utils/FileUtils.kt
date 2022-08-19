@@ -27,6 +27,13 @@ internal fun Path.extractZipTo(targetPath: Path) {
     platform.posix.system("unzip $this -d $targetPath")
 }
 
+/**
+ * Write content of [this] into a file [file]
+ *
+ * @receiver [ByteArray] to be written into a file
+ * @param file target [Path]
+ * @param mustCreate will be passed to Okio's [FileSystem.write]
+ */
 internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
     fs.write(
         file = file,
@@ -36,6 +43,9 @@ internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
     }
 }
 
+/**
+ * Mark [this] file as executable. Sets permissions to rwxr--r--
+ */
 internal fun Path.markAsExecutable() {
     platform.posix.chmod(
         this.toString(),

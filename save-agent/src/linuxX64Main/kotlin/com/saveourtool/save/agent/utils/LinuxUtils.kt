@@ -1,3 +1,7 @@
+/**
+ * Utilities to work with Linux-specific calls
+ */
+
 package com.saveourtool.save.agent.utils
 
 import platform.posix.getenv

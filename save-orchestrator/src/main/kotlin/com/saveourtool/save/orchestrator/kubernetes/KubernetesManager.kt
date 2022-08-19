@@ -228,6 +228,7 @@ class KubernetesManager(
         )
     }
 
+    @Suppress("TOO_LONG_FUNCTION")
     private fun agentContainerSpec(
         imageName: String,
         agentRunCmd: List<String>,
@@ -264,14 +265,15 @@ class KubernetesManager(
             },
         )
 
+        val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
-        this.args = listOf("cp ${configProperties.kubernetes!!.pvcMountPath}/* . && ${agentRunCmd.last()}")
+        this.args = listOf("cp $resourcesPath/* . && ${agentRunCmd.last()}")
 
         this.workingDir = workingDir
         volumeMounts = listOf(
             VolumeMount().apply {
                 name = "save-execution-pvc"
-                mountPath = requireNotNull(configProperties.kubernetes).pvcMountPath
+                mountPath = resourcesPath
             }
         )
     }

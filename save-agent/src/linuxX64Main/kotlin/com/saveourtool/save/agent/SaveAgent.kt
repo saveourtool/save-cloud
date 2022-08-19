@@ -83,9 +83,9 @@ class SaveAgent(internal val config: AgentConfiguration,
             sendDataToBackend { saveAdditionalData() }
 
             // to be consistent with previous logic in orchestrator
-            val targetDirectory = "test-suites".toPath()
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv("EXECUTION_ID")
+            val targetDirectory = "test-suites".toPath()
             downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
