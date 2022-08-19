@@ -282,10 +282,10 @@ The response format will look like:
 ```
 
 
-If you would like to rerun some of your executions, you can use `/rerunExecution` endpoint:
+If you would like to rerun some of your executions, you can use `/run/re-trigger` endpoint:
 
 ```bash
-curl -X POST "${SAVE_CLOUD_URL}/api/v1/rerunExecution?id=${executionId}" \
+curl -X POST "${SAVE_CLOUD_URL}/api/v1/run/re-trigger?executionId=${executionId}" \
 -H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
