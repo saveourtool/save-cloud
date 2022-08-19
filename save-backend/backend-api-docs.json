@@ -6571,8 +6571,8 @@
         "required": [
           "isActive",
           "name",
-          "oldNames",
           "organizations",
+          "originalLogins",
           "projects"
         ],
         "type": "object",
@@ -6584,7 +6584,10 @@
             "type": "integer",
             "format": "int64"
           },
-          "oldNames": {
+          "oldName": {
+            "type": "string"
+          },
+          "originalLogins": {
             "type": "array",
             "items": {
               "type": "string"
