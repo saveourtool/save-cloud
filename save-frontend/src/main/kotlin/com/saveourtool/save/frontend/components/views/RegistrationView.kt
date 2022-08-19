@@ -125,8 +125,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 loadingHandler = ::classLoadingHandler,
                 responseHandler = ::classComponentResponseHandlerWithValidation,
             )
-            println("response - response - response - ${response.status}")
-            println("response - response - response - ${response.unpackMessage()}")
             if (response.ok) {
                 window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
                 window.location.reload()

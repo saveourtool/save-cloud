@@ -66,7 +66,7 @@ class UsersDetailsController(
         .map {
             val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
             val userId = (authentication.details as AuthenticationDetails).id
-            if (user.id == userId) {
+            val response = if (user.id == userId) {
                 userDetailsService.saveUser(user.apply {
                     name = newUserInfo.name
                     email = newUserInfo.email
@@ -80,6 +80,10 @@ class UsersDetailsController(
             } else {
                 UserSaveStatus.CONFLICT
             }
+            if (response == UserSaveStatus.UPDATE && newUserInfo.isActive) {
+                originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
+            }
+            response
         }
         .filter { status ->
             status == UserSaveStatus.UPDATE
