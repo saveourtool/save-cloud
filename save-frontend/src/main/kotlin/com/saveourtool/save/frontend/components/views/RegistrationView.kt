@@ -69,7 +69,7 @@ external interface RegistrationViewState : State {
     /**
      * Currently logged in user or null
      */
-    var userInfo: UserInfo
+    var userInfo: UserInfo?
 
     /**
      * Validation of input fields
@@ -96,8 +96,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             val user = props.userName
                 ?.let { getUser(it) }
             setState {
-                userInfo = user ?: UserInfo("")
-                userInfo.let { updateFieldsMap(it) }
+                userInfo = user
+                userInfo?.let { updateFieldsMap(it) }
             }
         }
     }
@@ -111,9 +111,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     private fun saveUser() {
-        val newUserInfo = state.userInfo.copy(
-            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo.name,
-            oldName = state.userInfo.name,
+        val newUserInfo = state.userInfo?.copy(
+            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
+            oldName = state.userInfo!!.name,
             isActive = true,
         )
 
@@ -126,6 +126,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 responseHandler = ::classComponentResponseHandlerWithValidation,
             )
             println("response - response - response - ${response.status}")
+            println("response - response - response - ${response.unpackMessage()}")
             if (response.ok) {
                 window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
                 window.location.reload()
@@ -193,11 +194,12 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                     }
                                     ReactHTML.form {
                                         className = ClassName("needs-validation")
+                                        val input = fieldsMap[InputTypes.USER_NAME] ?: ""
                                         ReactHTML.div {
                                             inputTextFormRequired(
                                                 InputTypes.USER_NAME,
-                                                fieldsMap[InputTypes.USER_NAME],
-                                                (fieldsMap[InputTypes.USER_NAME]!!.isEmpty() || fieldsMap[InputTypes.USER_NAME]!!.isValidName()) && state.conflictErrorMessage == null,
+                                                input,
+                                                (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
                                                 "",
                                                 "User name",
                                             ) {
@@ -228,7 +230,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                     }
                 }
             }
-        } else if (state.userInfo.isActive == true) {
+        } else if (state.userInfo?.isActive == true) {
             window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
         }
     }

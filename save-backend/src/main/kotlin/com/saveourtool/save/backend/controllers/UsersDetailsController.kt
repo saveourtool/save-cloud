@@ -7,12 +7,14 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
+import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -58,40 +60,36 @@ class UsersDetailsController(
                     .map { it.toUserInfo() }
             }
 
-    /**
-     * @param newUserInfo
-     * @param authentication an [Authentication] representing an authenticated request
-     * @return response
-     */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
-        val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-        val userId = (authentication.details as AuthenticationDetails).id
-        val response = if (user.id == userId) {
-            val status = userDetailsService.saveUser(user.apply {
-                name = newUserInfo.name
-                email = newUserInfo.email
-                company = newUserInfo.company
-                location = newUserInfo.location
-                gitHub = newUserInfo.gitHub
-                linkedin = newUserInfo.linkedin
-                twitter = newUserInfo.twitter
-                isActive = newUserInfo.isActive
-            })
-            if (status == UserSaveStatus.UPDATE) {
-                if (newUserInfo.isActive) {
-                    originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
-                }
-                ResponseEntity.ok(UserSaveStatus.UPDATE.message)
+    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
+        .map {
+            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            val userId = (authentication.details as AuthenticationDetails).id
+            if (user.id == userId) {
+                userDetailsService.saveUser(user.apply {
+                    name = newUserInfo.name
+                    email = newUserInfo.email
+                    company = newUserInfo.company
+                    location = newUserInfo.location
+                    gitHub = newUserInfo.gitHub
+                    linkedin = newUserInfo.linkedin
+                    twitter = newUserInfo.twitter
+                    isActive = newUserInfo.isActive
+                })
             } else {
-                ResponseEntity.status(HttpStatus.CONFLICT).body(UserSaveStatus.CONFLICT.message)
+                UserSaveStatus.CONFLICT
             }
-        } else {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
-        return Mono.just(response)
-    }
+        .filter { status ->
+            status == UserSaveStatus.UPDATE
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
 
     /**
      * @param userName
