@@ -60,7 +60,9 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     }
 
     configure<SpringBootExtension> {
-        buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+        if (name == "save-backend") {
+            buildInfo()  // configures `bootBuildInfo` task, which creates META-INF/build-info.properties file
+        }
     }
 
     apply<SpringGradleSubplugin>()
