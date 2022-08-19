@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.kubernetes
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId

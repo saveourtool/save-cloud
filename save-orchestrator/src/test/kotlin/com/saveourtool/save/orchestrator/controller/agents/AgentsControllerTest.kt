@@ -9,6 +9,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
@@ -94,10 +95,17 @@ class AgentsControllerTest {
         )
         whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
             DockerService.RunConfiguration(
-                "test-image-id",
-                listOf("sh", "-c", "test-exec-cmd"),
-                DockerPvId("test-pv-id"),
-                Path.of("test-resources-path"),
+                imageTag = "test-image-id",
+                runCmd = listOf("sh", "-c", "test-exec-cmd"),
+                pvId = DockerPvId("test-pv-id"),
+                workingDir = EXECUTION_DIR,
+                resourcesPath = Path.of("test-resources-path"),
+                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
+                    executionId = execution.id!!,
+                    organizationName = project.organization.name,
+                    projectName = project.name,
+                    additionalFilesSting = "",
+                )
             )
         )
         whenever(dockerService.createContainers(any(), any()))
