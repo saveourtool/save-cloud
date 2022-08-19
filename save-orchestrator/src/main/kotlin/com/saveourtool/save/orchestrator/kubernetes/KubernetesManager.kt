@@ -254,14 +254,6 @@ class KubernetesManager(
                 name = "ADDITIONAL_FILES_LIST"
                 value = resourcesConfiguration.additionalFilesString
             },
-            EnvVar().apply {
-                name = "ORGANIZATION_NAME"
-                value = resourcesConfiguration.organizationName
-            },
-            EnvVar().apply {
-                name = "PROJECT_NAME"
-                value = resourcesConfiguration.projectName
-            },
         )
 
         val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath

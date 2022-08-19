@@ -95,7 +95,7 @@ class SaveAgent(internal val config: AgentConfiguration,
 
             logDebugCustom("Will now download additional resources")
             val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
-            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList).runIf({ isFailure }) {
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList, executionId).runIf({ isFailure }) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch

@@ -65,8 +65,6 @@ class DockerContainerManagerTest {
                 resourcesPath = Path.of("test-resources-path"),
                 resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
                     executionId = 99L,
-                    organizationName = "test.org",
-                    projectName = "test",
                     additionalFilesString = "",
                 )
             ),

@@ -102,8 +102,6 @@ class AgentsControllerTest {
                 resourcesPath = Path.of("test-resources-path"),
                 resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
                     executionId = execution.id!!,
-                    organizationName = project.organization.name,
-                    projectName = project.name,
                     additionalFilesString = "",
                 )
             )

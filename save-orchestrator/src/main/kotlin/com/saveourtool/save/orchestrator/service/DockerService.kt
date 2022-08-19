@@ -240,8 +240,6 @@ class DockerService(
             resourcesPath = resourcesForExecution,
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
-                organizationName = execution.project.organization.name,
-                projectName = execution.project.name,
                 additionalFilesString = execution.additionalFiles,
             ),
         )
@@ -281,14 +279,10 @@ class DockerService(
     ) {
         /**
          * @property executionId
-         * @property organizationName
-         * @property projectName
          * @property additionalFilesString
          */
         data class ResourcesConfiguration(
             val executionId: Long,
-            val organizationName: String,
-            val projectName: String,
             val additionalFilesString: String,
         )
     }

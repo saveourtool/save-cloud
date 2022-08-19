@@ -62,13 +62,12 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
     baseUrl: String,
     targetDirectory: Path,
     additionalResourcesAsString: String,
+    executionId: String,
 ) = runCatching {
-    val organizationName = requiredEnv("ORGANIZATION_NAME")
-    val projectName = requiredEnv("PROJECT_NAME")
     FileKey.parseList(additionalResourcesAsString)
         .map { fileKey ->
             val result = httpClient.downloadFile(
-                "$baseUrl/internal/files/$organizationName/$projectName/download",
+                "$baseUrl/internal/files/download?executionId=$executionId",
                 fileKey
             )
             if (updateStateBasedOnBackendResponse(result)) {
