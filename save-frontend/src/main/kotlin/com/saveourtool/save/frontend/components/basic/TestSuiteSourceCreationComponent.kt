@@ -113,7 +113,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
         )
         if (response.ok) {
             props.onSuccess()
-        } else {
+        } else if (response.isConflict()) {
             setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
         }
     }

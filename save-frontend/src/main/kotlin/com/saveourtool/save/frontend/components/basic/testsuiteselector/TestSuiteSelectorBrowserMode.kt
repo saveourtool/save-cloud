@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import csstype.ClassName
 import react.ChildrenBuilder
@@ -45,6 +45,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      * List of test suite ids that should be preselected
      */
     var preselectedTestSuiteIds: List<Long>
+
+    /**
+     * Specific organization name which reduces list of test suites source.
+     * If it's null we show public tests
+     */
+    var specificOrganizationName: String?
 }
 
 @Suppress(
@@ -150,34 +156,30 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
 
-    val (avaliableOrganizations, setAvaliableOrganizations) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
-        val organizations: List<String> = get(
-            url = "$apiUrl/test-suites-sources/organizations-list",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setAvaliableOrganizations(organizations)
-    }()
-
-    val (avaliableTestSuiteSources, setAvaliableTestSuiteSources) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
-        selectedOrganization?.let { selectedOrganization ->
-            val testSuiteSources = get(
-                url = "$apiUrl/test-suites-sources/$selectedOrganization/list",
+    val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
+    val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
+    useRequest {
+        val response = props.specificOrganizationName?.let { organizationName ->
+            get(
+                url = "$apiUrl/test-suites-sources/$organizationName/list",
                 headers = jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
-                .decodeFromJsonString<List<TestSuitesSourceDto>>()
-                .map { it.name }
-            setAvaliableTestSuiteSources(testSuiteSources)
+        } ?: run {
+            get(
+                url = "$apiUrl/test-suites-sources/public-list",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
         }
+        val testSuitesSources: TestSuitesSourceDtoList = response.decodeFromJsonString()
+        setAvailableOrganizations(testSuitesSources.map { it.organizationName }.distinct())
+        setAvailableTestSuiteSources(testSuitesSources.map { it.name })
     }()
 
-    val (avaliableTestSuitesVersions, setAvaliableTestSuitesVersions) = useState<List<String>>(emptyList())
+    val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
         selectedTestSuiteSource?.let { selectedTestSuiteSource ->
             val testSuiteSourcesVersions: List<String> = get(
@@ -188,12 +190,12 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             )
                 .decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
                 .map { it.version }
-            setAvaliableTestSuitesVersions(testSuiteSourcesVersions)
+            setAvailableTestSuitesVersions(testSuiteSourcesVersions)
             setSelectedTestSuiteVersion(testSuiteSourcesVersions.singleOrNull())
         }
     }()
 
-    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
         selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
             selectedTestSuiteSource?.let { selectedTestSuiteSource ->
@@ -209,7 +211,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     responseHandler = ::noopResponseHandler,
                 )
                     .decodeFromJsonString()
-                setAvaliableTestSuites(testSuites)
+                setAvailableTestSuites(testSuites)
                 testSuites.filter {
                     it.id in props.preselectedTestSuiteIds
                 }
@@ -228,7 +230,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             selectedOrganization,
             selectedTestSuiteSource,
             selectedTestSuiteVersion,
-            avaliableTestSuitesVersions.size > 1,
+            availableTestSuitesVersions.size > 1,
             {
                 setSelectedOrganization(null)
                 setSelectedTestSuiteSource(null)
@@ -262,7 +264,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 }
             }
             selectedTestSuiteVersion?.let {
-                val active = if (selectedTestSuites.containsAll(avaliableTestSuites)) {
+                val active = if (selectedTestSuites.containsAll(availableTestSuites)) {
                     "active"
                 } else {
                     ""
@@ -271,12 +273,12 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     className = ClassName("btn btn-outline-secondary $active")
                     onClick = {
                         setSelectedTestSuites { selectedTestSuites ->
-                            if (selectedTestSuites.containsAll(avaliableTestSuites)) {
-                                selectedTestSuites.filter { it !in avaliableTestSuites }
+                            if (selectedTestSuites.containsAll(availableTestSuites)) {
+                                selectedTestSuites.filter { it !in availableTestSuites }
                             } else {
                                 selectedTestSuites.toMutableList()
                                     .apply {
-                                        addAll(avaliableTestSuites)
+                                        addAll(availableTestSuites)
                                     }
                                     .distinctBy { it.id }
                             }
@@ -295,22 +297,22 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             className = ClassName("")
             when {
                 selectedOrganization == null -> showAvaliableOptions(
-                    avaliableOrganizations.filter { it.contains(namePrefix, true) }
+                    availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                 }
                 selectedTestSuiteSource == null -> showAvaliableOptions(
-                    avaliableTestSuiteSources.filter { it.contains(namePrefix, true) }
+                    availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                 }
                 selectedTestSuiteVersion == null -> showAvaliableOptions(
-                    avaliableTestSuitesVersions.filter { it.contains(namePrefix, true) }
+                    availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                 }
                 else -> showAvaliableTestSuites(
-                    avaliableTestSuites.filter { it.name.contains(namePrefix, true) },
+                    availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
                 ) { testSuite ->
                     setSelectedTestSuites { selectedTestSuites ->

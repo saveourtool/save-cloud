@@ -1481,37 +1481,6 @@
         }
       }
     },
-    "/api/v1/rerunExecution": {
-      "post": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "rerunExecution",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/projects/{organizationName}/{projectName}/users/roles": {
       "get": {
         "tags": [
@@ -3987,14 +3956,14 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/organizations-list": {
+    "/api/v1/test-suites-sources/public-list": {
       "get": {
         "tags": [
           "test-suites-source"
         ],
-        "summary": "Get organizations with public test suite sources.",
-        "description": "Get list of organizations with public test suite sources",
-        "operationId": "getOrganizationNamesWithPublicTestSuiteSources",
+        "summary": "List of public test suites sources.",
+        "description": "List of public test suites sources.",
+        "operationId": "publicList",
         "parameters": [
           {
             "name": "X-Authorization-Source",
@@ -4005,13 +3974,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully fetched organizations with public test suite sources.",
+            "description": "Successfully fetched list of public test suites sources.",
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
                   }
                 }
               }
@@ -4024,7 +3993,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
                   }
                 }
               }
@@ -4883,37 +4852,6 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/getTestRootPathByExecutionId": {
-      "get": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "getTestRootPathByExecutionId",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
                 }
               }
             }
