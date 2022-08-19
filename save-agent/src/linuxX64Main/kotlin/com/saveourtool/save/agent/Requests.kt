@@ -15,7 +15,6 @@ import com.saveourtool.save.domain.FileKey
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -97,28 +96,15 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
         }
 }
 
-private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = runCatching {
-    post {
-        url("${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId")
-        contentType(ContentType.Application.Json)
-        accept(ContentType.Application.OctetStream)
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
-    }
-}
+private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = download(
+    url = "${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId",
+    body = null,
+)
 
-private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = runCatching {
-    post {
-        url(url)
-        contentType(ContentType.Application.Json)
-        accept(ContentType.Application.OctetStream)
-        setBody(fileKey)
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
-    }
-}
+private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = download(
+    url = url,
+    body = fileKey,
+)
 
 private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
         body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)
