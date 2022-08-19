@@ -130,7 +130,7 @@ internal class KafkaConfiguration(
      */
     @Bean
     fun saveAgentTasks(): NewTopic {
-        log.info("Create topic: {} of {} partitions with {} replicas.", requestTopicName)
+        log.info("Create topic: ${requestTopicName}.")
         return NewTopic(requestTopicName, Optional.empty(), Optional.empty())
     }
 
