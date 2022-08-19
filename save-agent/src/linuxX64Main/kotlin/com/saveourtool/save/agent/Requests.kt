@@ -7,7 +7,6 @@ package com.saveourtool.save.agent
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.extractZipTo
 import com.saveourtool.save.agent.utils.markAsExecutable
-import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.unzipIfRequired
 import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.core.logging.logWarn
@@ -56,6 +55,7 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
  * @param baseUrl
  * @param targetDirectory
  * @param additionalResourcesAsString
+ * @param executionId
  * @return result
  */
 internal suspend fun SaveAgent.downloadAdditionalResources(
@@ -121,4 +121,4 @@ private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Resu
 }
 
 private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
-    body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)
+        body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)
