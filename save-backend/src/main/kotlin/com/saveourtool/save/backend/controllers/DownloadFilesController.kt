@@ -122,8 +122,7 @@ class DownloadFilesController(
         @PathVariable projectName: String,
     ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(), organizationName, projectName)
 
-    @PostMapping(path = ["/api/$v1/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @RequiresAuthorizationSourceHeader
+    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     @Operation(
         method = "POST",
         summary = "Download a file by execution ID and FileKey.",
