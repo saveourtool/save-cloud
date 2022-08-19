@@ -252,7 +252,7 @@ class KubernetesManager(
             },
             EnvVar().apply {
                 name = "ADDITIONAL_FILES_LIST"
-                value = resourcesConfiguration.additionalFilesSting
+                value = resourcesConfiguration.additionalFilesString
             },
             EnvVar().apply {
                 name = "ORGANIZATION_NAME"

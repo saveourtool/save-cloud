@@ -33,14 +33,14 @@ import okio.Path.Companion.toPath
  */
 internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
     val result = httpClient.downloadTestResources(config, executionId)
-    if (updateState(result)) {
+    if (updateStateBasedOnBackendResponse(result)) {
         return@runCatching
     }
 
-    val response = result.getOrThrow()
-    val bytes = response.body<ByteArray>().runIf({ isEmpty() }) {
-        error("Not found any tests for execution $executionId")
-    }
+    val bytes = result.getOrThrow()
+        .readByteArrayOrThrowIfEmpty {
+            error("Not found any tests for execution $executionId")
+        }
     val pathToArchive = "archive.zip".toPath()
     logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
     bytes.writeToFile(pathToArchive)
@@ -71,13 +71,12 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
                 "$baseUrl/internal/files/$organizationName/$projectName/download",
                 fileKey
             )
-            if (updateState(result)) {
+            if (updateStateBasedOnBackendResponse(result)) {
                 return@runCatching
             }
 
             val fileContentBytes = result.getOrThrow()
-                .body<ByteArray>()
-                .runIf({ isEmpty() }) {
+                .readByteArrayOrThrowIfEmpty {
                     error("Couldn't download file $fileKey: content is empty")
                 }
             val targetFile = targetDirectory / fileKey.name
@@ -121,3 +120,6 @@ private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Resu
         }
     }
 }
+
+private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =
+    body<ByteArray>().runIf({ isEmpty() }, exceptionSupplier)

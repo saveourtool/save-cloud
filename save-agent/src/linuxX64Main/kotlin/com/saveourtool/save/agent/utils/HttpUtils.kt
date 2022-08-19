@@ -18,7 +18,7 @@ import kotlinx.coroutines.delay
  * @param result
  * @return true if [this] agent's state has been updated to reflect problems with [result]
  */
-internal fun SaveAgent.updateState(
+internal fun SaveAgent.updateStateBasedOnBackendResponse(
     result: Result<HttpResponse>
 ) = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
     state.value = AgentState.BACKEND_FAILURE

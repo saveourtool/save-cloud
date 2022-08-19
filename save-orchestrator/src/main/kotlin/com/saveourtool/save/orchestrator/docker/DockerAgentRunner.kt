@@ -216,7 +216,7 @@ class DockerAgentRunner(
             writeText("""
                 AGENT_ID=$containerId
                 EXECUTION_ID=${configuration.resourcesConfiguration.executionId}
-                ADDITIONAL_FILES_LIST=${configuration.resourcesConfiguration.additionalFilesSting}
+                ADDITIONAL_FILES_LIST=${configuration.resourcesConfiguration.additionalFilesString}
                 ORGANIZATION_NAME=${configuration.resourcesConfiguration.organizationName}
                 PROJECT_NAME=${configuration.resourcesConfiguration.projectName}
                 """.trimIndent()

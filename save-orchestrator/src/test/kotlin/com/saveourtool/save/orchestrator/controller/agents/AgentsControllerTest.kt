@@ -104,7 +104,7 @@ class AgentsControllerTest {
                     executionId = execution.id!!,
                     organizationName = project.organization.name,
                     projectName = project.name,
-                    additionalFilesSting = "",
+                    additionalFilesString = "",
                 )
             )
         )
