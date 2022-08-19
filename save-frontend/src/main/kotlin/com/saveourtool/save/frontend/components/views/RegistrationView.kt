@@ -16,6 +16,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
@@ -190,37 +191,16 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                     }
                                     ReactHTML.form {
                                         className = ClassName("needs-validation")
-                                        ReactHTML.label {
-                                            className = ClassName("form-label")
-                                            +"User name"
-                                        }
-/*                                        ReactHTML.div {
-                                            ReactHTML.span {
-                                                className = ClassName("input-group-text")
-                                                +"*"
-                                            }
-                                            className = ClassName("mt-2 input-group pl-0")
-                                            ReactHTML.input {
-                                                type = InputType.text
-                                                className = ClassName("form-control")
-                                                state.userInfo.name?.let {
-                                                    defaultValue = it
-                                                }
-                                                onChange = {
-                                                    changeFields(InputTypes.USER_NAME, it)
-                                                }
-                                            }
-                                        }*/
                                         ReactHTML.div {
                                             inputTextFormRequired(
                                                 InputTypes.USER_NAME,
-                                                state.userInfo.name,
-                                                (state.userInfo.name.isEmpty() || state.userInfo.validateName()) && state.conflictErrorMessage == null,
+                                                fieldsMap[InputTypes.USER_NAME],
+                                                (fieldsMap[InputTypes.USER_NAME]!!.isEmpty() || fieldsMap[InputTypes.USER_NAME]!!.isValidName()) && state.conflictErrorMessage == null,
                                                 "",
                                                 "User name",
                                             ) {
+                                                changeFields(InputTypes.USER_NAME, it)
                                                 setState {
-                                                    userInfo = userInfo.copy(name = it.target.value)
                                                     conflictErrorMessage = null
                                                 }
                                             }

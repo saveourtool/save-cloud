@@ -67,9 +67,6 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> {
         val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-        if (newUserInfo.isActive) {
-            originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
-        }
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
             val status = userDetailsService.saveUser(user.apply {
@@ -83,6 +80,9 @@ class UsersDetailsController(
                 isActive = newUserInfo.isActive
             })
             if (status == UserSaveStatus.UPDATE) {
+                if (newUserInfo.isActive) {
+                    originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
+                }
                 ResponseEntity.ok(UserSaveStatus.UPDATE.message)
             } else {
                 ResponseEntity.status(HttpStatus.FORBIDDEN).body(UserSaveStatus.CONFLICT.message)
