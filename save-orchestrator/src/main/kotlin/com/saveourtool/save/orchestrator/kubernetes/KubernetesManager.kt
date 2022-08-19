@@ -205,12 +205,13 @@ class KubernetesManager(
             Container().apply {
                 name = "save-vol-copier"
                 image = "alpine:latest"
+                val targetDir = configProperties.kubernetes.pvcMountPath
                 command = listOf(
                     "sh", "-c",
-                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
-                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                    "if [ -z \"$(ls -A $targetDir)\" ];" +
+                            " then mkdir -p $targetDir && cp -R ${pvId.sourcePath}/* $targetDir" +
+                            " && chown -R 1100:1100 $targetDir && echo Successfully copied;" +
+                            " else echo Copying already in progress && ls -A $targetDir && sleep $waitForCopySeconds;" +
                             " fi"
                 )
                 volumeMounts = listOf(
