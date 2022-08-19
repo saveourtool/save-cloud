@@ -12,7 +12,6 @@ spring-boot = "2.7.2"
 spring-security = "5.7.2"
 spring-cloud = "3.1.3"
 spring-cloud-kubernetes = "2.1.3"
-spring-kafka = "2.8.7"
 kafka-client = "3.2.0"
 junit = "5.9.0"
 diktat = "1.2.3"
@@ -94,8 +93,8 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-context-indexer = { module = "org.springframework:spring-context-indexer", version.ref = "spring" }
-spring-kafka = {module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka"}
-spring-kafka-test = {module = "org.springframework.kafka:spring-kafka-test", version.ref = "spring-kafka"}
+spring-kafka = {module = "org.springframework.kafka:spring-kafka"}
+spring-kafka-test = {module = "org.springframework.kafka:spring-kafka-test"}
 spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 
