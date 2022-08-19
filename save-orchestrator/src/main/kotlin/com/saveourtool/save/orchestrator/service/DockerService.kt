@@ -39,6 +39,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
+import java.nio.file.Paths
 
 /**
  * A service that uses [DockerContainerManager] to build and start containers for test execution.
@@ -51,6 +52,15 @@ class DockerService(
     private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
 ) {
+    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
+    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
+        if (it.exists()) {
+            it
+        } else {
+            it.createDirectories()
+        }
+    }
+
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
@@ -62,12 +72,15 @@ class DockerService(
      * Function that builds a base image with test resources
      *
      * @param execution [Execution] from which this workflow is started
-     * @param resourcesForExecution
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
+        val resourcesForExecution = createTempDirectory(
+            directory = tmpDir,
+            prefix = "save-execution-${execution.id}"
+        )
         log.info("Preparing volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         // todo (k8s): need to also push it so that other nodes will have access to it

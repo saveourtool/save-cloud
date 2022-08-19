@@ -12,6 +12,7 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -113,6 +114,7 @@ internal fun fillAgentPropertiesFromConfiguration(
                     "backend.url=${agentSettings.backendUrl}"
                 line.startsWith("orchestratorUrl=") && agentSettings.orchestratorUrl != null ->
                     "orchestratorUrl=${agentSettings.orchestratorUrl}"
+                line.startsWith("testSuitesDir=") -> "testSuitesDir=$TEST_SUITES_DIR_NAME"
                 else -> line
             }
         }

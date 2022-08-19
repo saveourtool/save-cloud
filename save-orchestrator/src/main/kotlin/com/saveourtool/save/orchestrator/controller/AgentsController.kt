@@ -51,15 +51,6 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
-    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
-    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
-        if (it.exists()) {
-            it
-        } else {
-            it.createDirectories()
-        }
-    }
-
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
      *
@@ -84,17 +75,10 @@ class AgentsController(
                         "status=${execution.status}]"
             }
             Mono.fromCallable {
-                createTempDirectory(
-                    directory = tmpDir,
-                    prefix = "save-execution-${execution.id}"
-                )
+                // todo: pass SDK via request body
+                dockerService.prepareConfiguration(execution)
             }
                 .subscribeOn(agentService.scheduler)
-                .publishOn(agentService.scheduler)
-                .map {
-                    // todo: pass SDK via request body
-                    dockerService.prepareConfiguration(it, execution)
-                }
                 .onErrorResume({ it is DockerException || it is DockerClientException }) { dex ->
                     reportExecutionError(execution, "Unable to build image and containers", dex)
                 }
