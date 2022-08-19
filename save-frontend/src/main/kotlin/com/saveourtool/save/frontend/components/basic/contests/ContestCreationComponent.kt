@@ -146,7 +146,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         }
     }
 
-    val testSuitesSelectorWindowOpenness = WindowOpenness.create()
+    val testSuitesSelectorWindowOpenness = useWindowOpenness()
     div {
         className = ClassName("card")
         contestCreationCard {

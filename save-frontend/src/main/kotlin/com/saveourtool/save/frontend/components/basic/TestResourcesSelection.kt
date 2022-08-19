@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.useWindowOpenness
 
 import csstype.ClassName
 import react.*
@@ -239,13 +240,13 @@ private fun ChildrenBuilder.renderForContestMode(
 )
 fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     // states for private mode
-    val testSuiteSelectorWindowOpennessPrivateMode = WindowOpenness.create()
+    val testSuiteSelectorWindowOpennessPrivateMode = useWindowOpenness()
     val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<Long>())
     // states for public mode
-    val testSuiteSelectorWindowOpennessPublicMode = WindowOpenness.create()
+    val testSuiteSelectorWindowOpennessPublicMode = useWindowOpenness()
     val testSuiteIdsInSelectorStatePublicMode = useState(emptyList<Long>())
     // states for contest mode
-    val contestEnrollerWindowOpenness = WindowOpenness.create()
+    val contestEnrollerWindowOpenness = useWindowOpenness()
 
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {

@@ -47,11 +47,9 @@ class WindowOpenness(
         val (_, setIsOpenState) = isOpenState
         setIsOpenState(value)
     }
-
-    companion object {
-        /**
-         * @return [WindowOpenness] with closed state by default
-         */
-        fun create() = WindowOpenness(useState(false))
-    }
 }
+
+/**
+ * @return [WindowOpenness] with closed state by default
+ */
+fun useWindowOpenness() = WindowOpenness(useState(false))
