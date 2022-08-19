@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface OrganizationRepository : JpaRepository<Organization, Long>, QueryByExampleExecutor<Organization>,
-JpaSpecificationExecutor<Organization> {
+JpaSpecificationExecutor<Organization>, ValidateRepository {
     /**
      * @param name
      * @return organization by name
@@ -34,17 +34,4 @@ JpaSpecificationExecutor<Organization> {
      */
     fun findByOwnerId(ownerId: Long): List<Organization>
 
-    /**
-     * @param organizationName
-     * @return 1 if [organizationName] is valid, 0 otherwise
-     */
-    @Query("""select if (count(*) = 0, true, false) from save_cloud.high_level_names where name = :org_name""", nativeQuery = true)
-    fun validateOrganizationName(@Param("org_name") organizationName: String): Long
-
-    /**
-     * @param organizationName
-     */
-    @Query("""insert into save_cloud.high_level_names set name = :org_name""", nativeQuery = true)
-    @Modifying
-    fun saveOrganizationName(@Param("org_name") organizationName: String)
 }

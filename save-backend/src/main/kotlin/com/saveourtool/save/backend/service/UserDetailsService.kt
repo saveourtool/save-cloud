@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.orNotFound
@@ -97,4 +98,16 @@ class UserDetailsService(
         .sortedBy { it?.priority }
         .lastOrNull()
         ?: Role.VIEWER
+
+    fun saveUser(user: User): UserSaveStatus {
+        val userName = user.name
+        return  if (userName != null && userRepository.validateName(userName) != 0L) {
+            userRepository.saveHighName(userName)
+            userRepository.save(user)
+            UserSaveStatus.UPDATE
+        } else {
+            UserSaveStatus.CONFLICT
+        }
+    }
+
 }

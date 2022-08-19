@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
@@ -71,7 +72,7 @@ class UsersDetailsController(
         }
         val userId = (authentication.details as AuthenticationDetails).id
         val response = if (user.id == userId) {
-            userRepository.save(user.apply {
+            val status = userDetailsService.saveUser(user.apply {
                 name = newUserInfo.name
                 email = newUserInfo.email
                 company = newUserInfo.company
@@ -81,7 +82,11 @@ class UsersDetailsController(
                 twitter = newUserInfo.twitter
                 isActive = newUserInfo.isActive
             })
-            ResponseEntity.ok("User information saved successfully")
+            if (status == UserSaveStatus.UPDATE) {
+                ResponseEntity.ok(UserSaveStatus.UPDATE.message)
+            } else {
+                ResponseEntity.status(HttpStatus.FORBIDDEN).body(UserSaveStatus.CONFLICT.message)
+            }
         } else {
             ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }

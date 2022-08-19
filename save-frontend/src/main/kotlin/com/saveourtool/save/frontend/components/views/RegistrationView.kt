@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -50,6 +51,11 @@ external interface RegistrationProps : PropsWithChildren {
  */
 external interface RegistrationViewState : State {
     /**
+     * Conflict error message
+     */
+    var conflictErrorMessage: String?
+
+    /**
      * Flag to handle uploading a file
      */
     var isUploading: Boolean
@@ -62,7 +68,7 @@ external interface RegistrationViewState : State {
     /**
      * Currently logged in user or null
      */
-    var userInfo: UserInfo?
+    var userInfo: UserInfo
 
     /**
      * Validation of input fields
@@ -89,8 +95,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             val user = props.userName
                 ?.let { getUser(it) }
             setState {
-                userInfo = user
-                userInfo?.let { updateFieldsMap(it) }
+                userInfo = user ?: UserInfo("")
+                userInfo.let { updateFieldsMap(it) }
             }
         }
     }
@@ -104,9 +110,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     private fun saveUser() {
-        val newUserInfo = state.userInfo?.copy(
-            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
-            oldName = state.userInfo!!.name,
+        val newUserInfo = state.userInfo.copy(
+            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo.name,
+            oldName = state.userInfo.name,
             isActive = true,
         )
 
@@ -119,6 +125,12 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             )
             if (response.ok) {
                 window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
+                window.location.reload()
+            } else if (response.isConflict()) {
+                val responseText = response.unpackMessage()
+                setState {
+                    conflictErrorMessage = responseText
+                }
             }
         }
     }
@@ -182,7 +194,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             className = ClassName("form-label")
                                             +"User name"
                                         }
-                                        ReactHTML.div {
+/*                                        ReactHTML.div {
                                             ReactHTML.span {
                                                 className = ClassName("input-group-text")
                                                 +"*"
@@ -191,11 +203,25 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             ReactHTML.input {
                                                 type = InputType.text
                                                 className = ClassName("form-control")
-                                                state.userInfo?.name?.let {
+                                                state.userInfo.name?.let {
                                                     defaultValue = it
                                                 }
                                                 onChange = {
                                                     changeFields(InputTypes.USER_NAME, it)
+                                                }
+                                            }
+                                        }*/
+                                        ReactHTML.div {
+                                            inputTextFormRequired(
+                                                InputTypes.USER_NAME,
+                                                state.userInfo.name,
+                                                (state.userInfo.name.isEmpty() || state.userInfo.validateName()) && state.conflictErrorMessage == null,
+                                                "",
+                                                "User name",
+                                            ) {
+                                                setState {
+                                                    userInfo = userInfo.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
                                                 }
                                             }
                                         }
@@ -205,6 +231,12 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             +"Registration"
                                             onClick = {
                                                 saveUser()
+                                            }
+                                        }
+                                        state.conflictErrorMessage?.let {
+                                            ReactHTML.div {
+                                                className = ClassName("invalid-feedback d-block")
+                                                +it
                                             }
                                         }
                                     }
