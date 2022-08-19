@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.orNotFound
 
@@ -75,7 +76,21 @@ class TestSuitesSourceService(
     /**
      * @param entity
      */
+    @Transactional
     fun delete(entity: TestSuitesSource) = testSuitesSourceRepository.delete(entity)
+
+    /**
+     * @param entity
+     * @return saved [TestSuitesSource] with values from provided [entity]
+     */
+    @Transactional
+    fun save(
+        entity: TestSuitesSourceDto
+    ): TestSuitesSource = organizationService.getByName(entity.organizationName)
+        .let { organization ->
+            val git = gitService.getByOrganizationAndUrl(organization, entity.gitDto.url)
+            testSuitesSourceRepository.save(entity.toTestSuiteSource(organization, git))
+        }
 
     /**
      * @param organization
@@ -119,12 +134,12 @@ class TestSuitesSourceService(
         git: Git,
         testRootPath: String,
         branch: String,
-    ) = testSuitesSourceRepository.save(
-        TestSuitesSource(
-            organization = organization,
+    ) = save(
+        TestSuitesSourceDto(
+            organizationName = organization.name,
             name = generateDefaultName(organization.requiredId()),
             description = "auto created test suites source by git coordinates",
-            git = git,
+            gitDto = git.toDto(),
             branch = branch,
             testRootPath = testRootPath,
         )
@@ -150,15 +165,6 @@ class TestSuitesSourceService(
             )
         }
     }
-
-    /**
-     * @return list of organizations that have open public test suite sources
-     */
-    fun getOrganizationsWithPublicTestSuiteSources() = testSuitesSourceRepository.findAll()
-        .map {
-            it.organization.name
-        }
-        .distinct()
 
     /**
      * @param testSuitesSource test suites source which requested to be fetched

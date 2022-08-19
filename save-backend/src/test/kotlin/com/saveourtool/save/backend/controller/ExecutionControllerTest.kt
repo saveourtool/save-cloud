@@ -6,9 +6,6 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.entities.Git
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
@@ -32,9 +29,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
 
-import java.time.LocalDateTime
-import java.time.Month
-
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
@@ -42,8 +36,6 @@ import java.time.Month
     MockBean(ProjectController::class),
 )
 class ExecutionControllerTest {
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -52,15 +44,6 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
-
-    @Autowired
-    lateinit var testSuiteRepository: TestSuiteRepository
-
-    @Autowired
-    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
-
-    @Autowired
-    lateinit var gitRepository: GitRepository
 
     @Test
     @WithMockUser("JohnDoe")
@@ -137,105 +120,6 @@ class ExecutionControllerTest {
                 requireNotNull(it.responseBody)
                 assertEquals(executionCounts, it.responseBody!!.size)
             }
-    }
-
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    @Test
-    @WithMockUser(username = "admin")
-    fun `test testSuiteIds`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-        val execution = executionRepository.findById(6).get()
-        val executionEmptyTestSuiteIds = executionRepository.save(execution.apply {
-            testSuiteIds = null
-        })
-
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", executionEmptyTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isNotFound
-
-        val organization = execution.project.organization
-        val git = gitRepository.save(
-            Git(
-                url = "test",
-                username = null,
-                password = null,
-                organization = organization,
-            )
-        )
-        val source1 = testSuitesSourceRepository.save(
-            TestSuitesSource(
-                organization = organization,
-                name = "test1",
-                description = null,
-                git = git,
-                branch = "main",
-                testRootPath = "testRootPath"
-            )
-        )
-        val testSuite1 = testSuiteRepository.save(
-            TestSuite(
-                name = "test1",
-                description = null,
-                source = source1,
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-        val testSuite2 = testSuiteRepository.save(
-            TestSuite(
-                name = "test2",
-                description = null,
-                source = source1,
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-
-        val validExecutionTestSuiteIds = executionRepository.save(execution.apply {
-            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId()))
-        })
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", validExecutionTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<String>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertEquals("testRootPath", responseBody)
-            }
-
-        val testSuite3 = testSuiteRepository.save(
-            TestSuite(
-                name = "test3",
-                description = null,
-                source = testSuitesSourceRepository.save(
-                    TestSuitesSource(
-                        organization = organization,
-                        name = "test3",
-                        description = null,
-                        git = git,
-                        branch = "main",
-                        testRootPath = "anotherTestRootPath"
-                    )
-                ),
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-        val invalidExecutionTestSuiteIds = executionRepository.save(execution.apply {
-            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId(), testSuite3.requiredId()))
-        })
-
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", invalidExecutionTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isNotFound
     }
 
     companion object {

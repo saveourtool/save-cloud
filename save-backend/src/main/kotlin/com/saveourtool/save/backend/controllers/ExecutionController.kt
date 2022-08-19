@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
@@ -8,7 +7,6 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
-import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
@@ -18,7 +16,6 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 
 import org.slf4j.LoggerFactory
@@ -32,7 +29,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,7 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 @RestController
 @Suppress("LongParameterList")
 class ExecutionController(private val executionService: ExecutionService,
-                          private val testSuitesService: TestSuitesService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
                           private val testExecutionService: TestExecutionService,
@@ -50,7 +45,6 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
-                          private val runExecutionController: RunExecutionController,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -225,51 +219,6 @@ class ExecutionController(private val executionService: ExecutionService,
                 }
             }
     }
-
-    /**
-     * @param id requested execution ID
-     * @param authentication auth provider
-     * @return string with a test root path that is linked with this execution id
-     */
-    @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
-    @Transactional
-    fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-            executionService.findExecution(id)
-                .toMonoOrNotFound()
-                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .flatMap {
-                    it.getTestRootPathByTestSuites()
-                        .distinct()
-                        .singleOrNull()
-                        .toMono()
-                }
-                .switchIfEmptyToNotFound()
-
-    /**
-     * Accepts a request to rerun an existing execution
-     *
-     * @param id id of an existing execution
-     * @param authentication [Authentication] representing an authenticated request
-     * @return bodiless response
-     * @throws ResponseStatusException
-     * @throws IllegalArgumentException
-     */
-    @PostMapping(path = ["/api/$v1/rerunExecution"])
-    @Transactional
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> = runExecutionController.reTrigger(id, authentication)
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun Execution.getTestRootPathByTestSuites(): List<String> = this
-        .parseAndGetTestSuiteIds()
-        ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
-                "Can't find test suite with id=$testSuiteId for executionId=$id"
-            }
-        }
-        ?.map { it.source }
-        ?.map { it.testRootPath }
-        .orEmpty()
 
     /**
      * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing
