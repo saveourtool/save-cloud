@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
+import kotlin.math.abs
+import kotlin.random.Random
 
 /**
  * [AgentRunner] that uses Docker Daemon API to run save-agents
@@ -255,4 +257,5 @@ class DockerAgentRunner(
 /**
  * @param id
  */
-private fun containerName(id: String) = "save-execution-$id"
+@Suppress("MAGIC_NUMBER", "MagicNumber")
+private fun containerName(id: String) = "save-execution-$id-${abs(Random.nextInt(100, 999))}"
