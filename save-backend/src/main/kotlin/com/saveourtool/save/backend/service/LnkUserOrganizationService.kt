@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.getHighestRole
@@ -148,6 +149,14 @@ class LnkUserOrganizationService(
         .findByUserIdAndOrganizationName(userId, organizationName)
 
     /**
+     * @param userId
+     * @return Flux of [Organization]s in which user is in
+     */
+    fun findAllByAuthentication(userId: Long) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserId(userId)
+    }
+
+    /**
      * @param authentication
      * @param organization
      * @return the highest of two roles: the one in [organization] and global one.
@@ -189,7 +198,6 @@ class LnkUserOrganizationService(
      * @param user
      * @return [Organization]s that are connected to the [user]
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun getOrganizationsAndRolesByUser(user: User): List<LnkUserOrganization> =
-            lnkUserOrganizationRepository.findByUserId(user.id!!)
+            lnkUserOrganizationRepository.findByUserId(user.requiredId())
 }

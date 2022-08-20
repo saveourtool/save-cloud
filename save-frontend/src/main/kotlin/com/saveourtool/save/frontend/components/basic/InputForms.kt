@@ -1,7 +1,13 @@
+/**
+ * InputForms additionally contains data class Popover
+ */
+
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.validation.DATE_RANGE_ERROR_MESSAGE
 import com.saveourtool.save.validation.EMAIL_ERROR_MESSAGE
 import com.saveourtool.save.validation.NAME_ERROR_MESSAGE
@@ -9,7 +15,6 @@ import com.saveourtool.save.validation.URL_ERROR_MESSAGE
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.ChildrenBuilder
-import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType
@@ -17,37 +22,64 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.sup
+import react.useEffect
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
+
+// language=JS
+private const val ENABLE_TOOLTIP_AND_POPOVER_JS: String = """
+    var jQuery = require("jquery")
+    require("popper.js")
+    require("bootstrap")
+    jQuery('.form-popover').each(function() {
+        jQuery(this).popover({
+            placement: jQuery(this).attr("popover-placement"),
+            title: jQuery(this).attr("popover-title"),
+            content: jQuery(this).attr("popover-content"),
+            html: true
+        }).on('show.bs.popover', function() {
+            jQuery(this).tooltip('hide')
+        }).on('hide.bs.popover', function() {
+            jQuery(this).tooltip('show')
+        })
+    })
+"""
 
 /**
  * @property str
  * @property placeholder
  * @property errorMessage
+ * @property tooltip
+ * @property popover
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class InputTypes(
     val str: String,
     val errorMessage: String? = null,
     val placeholder: String? = null,
+    val tooltip: String? = null,
+    val popover: Popover? = null,
 ) {
+    // ==== general
+    DESCRIPTION("description", null, "description"),
+
     // ==== new project view
-    DESCRIPTION("project description"),
-    GIT_BRANCH("git branch"),
-    GIT_TOKEN("git token"),
+    GIT_BRANCH("git branch", null, placeholder = "leave empty if you would like to use default branch"),
+    GIT_TOKEN("git token", null, "token"),
     GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
-    GIT_USER("git username"),
+    GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
 
     // ==== signIn view
-    LOGIN("login"),
-    PASSWORD("password"),
-    PROJECT_NAME("project name", NAME_ERROR_MESSAGE),
+    LOGIN("login", null, "login"),
+    PASSWORD("password", null, "*****"),
+    PROJECT_NAME("project name", NAME_ERROR_MESSAGE, "name"),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
 
     // ==== create organization view
-    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE),
+    ORGANIZATION_NAME("organization name", NAME_ERROR_MESSAGE, "name"),
 
     // ==== user setting view
     USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
@@ -58,14 +90,49 @@ enum class InputTypes(
     TWITTER("twitter"),
 
     // ==== contest creation component
-    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE),
+    CONTEST_NAME("contest name", NAME_ERROR_MESSAGE, "name"),
     CONTEST_START_TIME("contest starting time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_END_TIME("contest ending time", DATE_RANGE_ERROR_MESSAGE),
     CONTEST_DESCRIPTION("contest description"),
     CONTEST_SUPER_ORGANIZATION_NAME("contest's super organization's name", NAME_ERROR_MESSAGE),
-    CONTEST_TEST_SUITE_IDS("contest test suite ids"),
+    CONTEST_TEST_SUITE_IDS("contest test suite ids", placeholder = "click to open selector"),
+
+    // ==== test suite source creation
+    SOURCE_NAME("source name", placeholder = "name"),
+    SOURCE_GIT("source git"),
+    SOURCE_TEST_ROOT_PATH(
+        "test root path",
+        placeholder = "leave empty if tests are in repository root",
+        tooltip = "Relative path to the root directory with tests",
+        popover = Popover(
+            title = "Relative path to the root directory with tests",
+            content = """
+                The path you are providing should be relative to the root directory of your repository.
+                This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>
+                or <a href = "https://github.com/saveourtool/save-cli#-savetoml-configuration-file">save.toml</a> files.
+                For example, if the URL to your repo with tests is: 
+                <a href ="https://github.com/saveourtool/save-cli/">https://github.com/saveourtool/save</a>, then
+                you need to specify the following directory with 'save.toml': 
+                <a href ="https://github.com/saveourtool/save-cli/tree/main/examples/kotlin-diktat">examples/kotlin-diktat/</a>.
+            """
+        )
+    ),
+
+    // ==== execution run
+    TEST_SUITE_IDS("test suite ids", placeholder = "click to open selector"),
     ;
 }
+
+/**
+ * Data class to store popover values in a single object
+ *
+ * @property title
+ * @property content
+ */
+data class Popover(
+    val title: String,
+    val content: String,
+)
 
 /**
  * @param form
@@ -124,7 +191,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                     }
                 }
 
-                if (!validInput) {
+                if (!validInput && !textValue.isNullOrEmpty()) {
                     div {
                         className = ClassName("invalid-feedback d-block")
                         +(form.errorMessage ?: errorText)
@@ -144,7 +211,12 @@ internal fun ChildrenBuilder.inputTextFormRequired(
  * @param onClickFun
  * @return div with an input form
  */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 internal fun ChildrenBuilder.inputTextFormOptional(
     form: InputTypes,
     textValue: String?,
@@ -156,11 +228,26 @@ internal fun ChildrenBuilder.inputTextFormOptional(
     onChangeFun: (ChangeEvent<HTMLInputElement>) -> Unit = { },
 ) = div {
     className = ClassName(classes)
-    name?.let { name ->
-        label {
-            className = ClassName("form-label")
-            htmlFor = form.name
-            +name
+    div {
+        className = ClassName("row")
+        name?.let { name ->
+            label {
+                className = ClassName("form-label")
+                htmlFor = form.name
+                +name
+            }
+        }
+
+        form.popover?.let {
+            sup {
+                className = ClassName("form-popover")
+                fontAwesomeIcon(icon = faQuestionCircle)
+                tabIndex = 0
+                asDynamic()["popover-placement"] = "left"
+                asDynamic()["popover-content"] = it.content
+                asDynamic()["popover-title"] = it.title
+                asDynamic()["data-trigger"] = "focus"
+            }
         }
     }
     input {
@@ -172,6 +259,10 @@ internal fun ChildrenBuilder.inputTextFormOptional(
         required = false
         value = textValue
         placeholder = form.placeholder
+        form.tooltip?.let {
+            title = it
+            asDynamic()["tooltip-placement"] = "right"
+        }
         className = if (textValue.isNullOrEmpty()) {
             ClassName("form-control")
         } else if (validInput) {
@@ -180,11 +271,16 @@ internal fun ChildrenBuilder.inputTextFormOptional(
             ClassName("form-control is-invalid")
         }
     }
-    if (!validInput) {
+    if (!validInput && !textValue.isNullOrEmpty()) {
         div {
             className = ClassName("invalid-feedback d-block")
             +(form.errorMessage ?: errorText)
         }
+    }
+
+    useEffect {
+        js(ENABLE_TOOLTIP_AND_POPOVER_JS)
+        return@useEffect
     }
 }
 

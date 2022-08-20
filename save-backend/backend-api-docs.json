@@ -107,18 +107,8 @@
           }
         },
         "responses": {
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
@@ -199,52 +189,8 @@
           }
         ],
         "responses": {
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "char": {
-                        "type": "string"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -371,97 +317,6 @@
                       }
                     }
                   }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/{organizationName}/get-or-create": {
-      "post": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "Get or create a new test suite source by provided values.",
-        "description": "Get or create a new test suite source by provided values.",
-        "operationId": "getOrCreate",
-        "parameters": [
-          {
-            "name": "organizationName",
-            "in": "query",
-            "description": "name of organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "gitUrl",
-            "in": "query",
-            "description": "git url of test suites source",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "testRootPath",
-            "in": "query",
-            "description": "test root path of test suites source",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "branch",
-            "in": "query",
-            "description": "branch of test suites source",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully get or create test suites source with requested values.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestSuitesSourceDto"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestSuitesSourceDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestSuitesSourceDto"
                 }
               }
             }
@@ -1294,6 +1149,101 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/create": {
+      "post": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get or create a new test suite source by provided values.",
+        "description": "Get or create a new test suite source by provided values.",
+        "operationId": "createTestSuitesSource",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestSuitesSourceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully get or create test suites source with requested values.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either git credentials were not found by provided url or organization was not found by provided name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Test suite name is already taken.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-execution": {
       "post": {
         "tags": [
@@ -1509,37 +1459,6 @@
         "parameters": [
           {
             "name": "executionId",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/rerunExecution": {
-      "post": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "rerunExecution",
-        "parameters": [
-          {
-            "name": "id",
             "in": "query",
             "required": true,
             "schema": {
@@ -2776,21 +2695,8 @@
               }
             }
           },
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceSnapshotKey"
-                  }
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
@@ -2867,18 +2773,8 @@
           }
         ],
         "responses": {
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
@@ -2920,8 +2816,8 @@
         "tags": [
           "test-suites-source"
         ],
-        "summary": "Get test suites source by organization name and it\u0027s name.",
-        "description": "Get test suites source by organization name and it\u0027s name.",
+        "summary": "Get test suites source by organization name and source name.",
+        "description": "Get test suites source by organization name and test suites source name.",
         "operationId": "findAsDtoByName",
         "parameters": [
           {
@@ -2950,8 +2846,8 @@
           }
         ],
         "responses": {
-          "409": {
-            "description": "Organization was not found by provided name.",
+          "200": {
+            "description": "Successfully fetched list of test suites sources by organization name.",
             "content": {
               "*/*": {
                 "schema": {
@@ -2961,17 +2857,7 @@
             }
           },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestSuitesSourceDto"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Successfully fetched list of test suites sources by organization name.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
@@ -3024,8 +2910,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successfully listed snapshots for all test suites sources in requested organization.",
+          "404": {
+            "description": "Organization was not found by provided name.",
             "content": {
               "*/*": {
                 "schema": {
@@ -3037,8 +2923,8 @@
               }
             }
           },
-          "409": {
-            "description": "Organization was not found by provided name.",
+          "200": {
+            "description": "Successfully listed snapshots for all test suites sources in requested organization.",
             "content": {
               "*/*": {
                 "schema": {
@@ -3097,7 +2983,7 @@
           }
         ],
         "responses": {
-          "409": {
+          "404": {
             "description": "Organization was not found by provided name.",
             "content": {
               "*/*": {
@@ -3612,9 +3498,9 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Get organizations by ownerId.",
-        "description": "Get list of all organizations where user with ownerId is an owner.",
-        "operationId": "getOrganizationsByOwnerId",
+        "summary": "Get your organizations.",
+        "description": "Get list of all organizations where current user is a participant.",
+        "operationId": "getOrganizationsByUser",
         "responses": {
           "200": {
             "description": "Successfully fetched list of organizations.",
@@ -3643,7 +3529,6 @@
             }
           }
         },
-        "deprecated": true,
         "security": [
           {
             "basic": []
@@ -3656,9 +3541,9 @@
         "tags": [
           "organizations"
         ],
-        "summary": "Get organizations by ownerId.",
-        "description": "Get list of all organizations where user with ownerId is an owner.",
-        "operationId": "getOrganizationsByOwnerId_1",
+        "summary": "Get your organizations.",
+        "description": "Get list of all organizations where current user is a participant.",
+        "operationId": "getOrganizationsByUser_1",
         "responses": {
           "200": {
             "description": "Successfully fetched list of organizations.",
@@ -3687,7 +3572,6 @@
             }
           }
         },
-        "deprecated": true,
         "security": [
           {
             "basic": []
@@ -4038,21 +3922,8 @@
               }
             }
           },
-          "409": {
-            "description": "Organization was not found by provided name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          },
           "404": {
-            "description": "Test suites source with such name in organization name was not found.",
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
@@ -4085,14 +3956,14 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/organizations-list": {
+    "/api/v1/test-suites-sources/public-list": {
       "get": {
         "tags": [
           "test-suites-source"
         ],
-        "summary": "Get organizations with public test suite sources.",
-        "description": "Get list of organizations with public test suite sources",
-        "operationId": "getOrganizationNamesWithPublicTestSuiteSources",
+        "summary": "List of public test suites sources.",
+        "description": "List of public test suites sources.",
+        "operationId": "publicList",
         "parameters": [
           {
             "name": "X-Authorization-Source",
@@ -4103,13 +3974,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully fetched organizations with public test suite sources.",
+            "description": "Successfully fetched list of public test suites sources.",
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
                   }
                 }
               }
@@ -4122,7 +3993,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
                   }
                 }
               }
@@ -4981,37 +4852,6 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/getTestRootPathByExecutionId": {
-      "get": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "getTestRootPathByExecutionId",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -6584,36 +6424,6 @@
           }
         }
       },
-      "TestSuitesSourceDto": {
-        "required": [
-          "branch",
-          "gitDto",
-          "name",
-          "organizationName",
-          "testRootPath"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "gitDto": {
-            "$ref": "#/components/schemas/GitDto"
-          },
-          "branch": {
-            "type": "string"
-          },
-          "testRootPath": {
-            "type": "string"
-          }
-        }
-      },
       "Organization": {
         "required": [
           "canCreateContests",
@@ -6800,6 +6610,36 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "TestSuitesSourceDto": {
+        "required": [
+          "branch",
+          "gitDto",
+          "name",
+          "organizationName",
+          "testRootPath"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "gitDto": {
+            "$ref": "#/components/schemas/GitDto"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "testRootPath": {
+            "type": "string"
           }
         }
       },
