@@ -159,3 +159,7 @@ external val faChevronDown: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faCheckDouble")
 @JsNonModule
 external val faCheckDouble: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faTrophy")
+@JsNonModule
+external val faTrophy: FontAwesomeIconModule

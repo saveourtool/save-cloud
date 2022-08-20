@@ -92,21 +92,19 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
     override fun ChildrenBuilder.render() {
         div {
             hidden = (props.currentUserInfo == null)
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-primary mb-2 mr-2")
-                a {
-                    className = ClassName("text-light")
-                    href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+            a {
+                href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+                button {
+                    type = ButtonType.button
+                    className = ClassName("btn btn-outline-primary mb-2 mr-2")
                     +"Add new tested tool"
                 }
             }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-primary mb-2")
-                a {
-                    className = ClassName("text-light")
-                    href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
+            a {
+                href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
+                button {
+                    type = ButtonType.button
+                    className = ClassName("btn btn-outline-primary mb-2")
                     +"Add new organization"
                 }
             }
