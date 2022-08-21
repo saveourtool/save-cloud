@@ -285,7 +285,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("card-body")
             div {
                 className = ClassName("text-sm")
-                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faBell)
+                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faCode)
                 hrNoMargin()
                 menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
                 hrNoMargin()

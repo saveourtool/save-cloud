@@ -9,16 +9,9 @@ val countDownFc = countDown()
 
 external interface CountDownProps : Props {
     var contests: Array<ContestDto>
-    // var countDownUpdate:  Unit = console.log()
 }
 
 fun countDown() = FC<CountDownProps> {props ->
-    console.log(props.contests)
-    props.contests.forEach {
-        /*span {
-          +it.name
-        }*/
-    }
-    console.log("========")
     console.log(Date().toLocaleString())
+    TODO("This will be finished in phaze 2: this countdown timer should be in a featured contest")
 }

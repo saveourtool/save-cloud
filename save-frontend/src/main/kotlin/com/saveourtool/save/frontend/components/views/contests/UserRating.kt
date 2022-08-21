@@ -1,12 +1,14 @@
 package com.saveourtool.save.frontend.components.views.contests
 
-
+import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
+import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.*
 import kotlinx.js.jso
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-
 
 val userRatingFc = userRating()
 
@@ -16,7 +18,7 @@ enum class UserRatingTab {
 
 external interface UserRatingProps : Props {
     var selectedTab: String?
-    var updateTabState: Unit
+    var updateTabState: (String) -> Unit
 }
 
 fun userRating() = FC<UserRatingProps> { props ->
@@ -30,13 +32,16 @@ fun userRating() = FC<UserRatingProps> { props ->
 
             div {
                 className = ClassName("col")
-
-                title(" Global Rating")
-                tab(props.selectedTab, UserRatingTab.values().map { it.name })
+                title(" Global Rating", faTrophy)
+                tab(props.selectedTab, UserRatingTab.values().map { it.name }, props.updateTabState)
+                // FixMe: user rating here
+                a {
+                    // FixMe: new view on this link
+                    href =""
+                    +"View more "
+                    fontAwesomeIcon(faArrowRight)
+                }
             }
-
         }
     }
 }
-
-

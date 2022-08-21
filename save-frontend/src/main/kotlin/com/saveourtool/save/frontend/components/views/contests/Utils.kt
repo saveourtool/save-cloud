@@ -1,15 +1,14 @@
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
+import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.*
 import kotlinx.js.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML
-import react.Props
 
 
-fun ChildrenBuilder.title(title: String) {
+fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
     ReactHTML.div {
         className = ClassName("row")
         style = jso {
@@ -20,7 +19,7 @@ fun ChildrenBuilder.title(title: String) {
             style = jso {
                 color = "#5a5c69".unsafeCast<Color>()
             }
-            fontAwesomeIcon(icon = faTrophy)
+            fontAwesomeIcon(icon = icon)
 
             className = ClassName("mt-2 mb-4")
             +title
@@ -28,7 +27,7 @@ fun ChildrenBuilder.title(title: String) {
     }
 }
 
- fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, /*stateSetter: Unit*/) {
+ fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, updateTabState: (String) -> Unit) {
     ReactHTML.div {
         className = ClassName("row")
         style = jso {
@@ -50,8 +49,10 @@ fun ChildrenBuilder.title(title: String) {
                     ReactHTML.p {
                         className = ClassName("nav-link $classVal text-gray-800")
                         onClick = {
+                            kotlinx.js.console.log(value)
+                            kotlinx.js.console.log(selectedTab)
                             if (selectedTab != value) {
-                                // TODO: set state here
+                                updateTabState(value)
                             }
                         }
                         style = jso {

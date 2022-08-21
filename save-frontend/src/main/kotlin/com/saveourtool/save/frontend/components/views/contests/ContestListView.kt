@@ -3,16 +3,19 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.ContestNameProps
+import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
-import com.saveourtool.save.frontend.utils.unsafeMap
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 import kotlinx.coroutines.launch
 import org.w3c.fetch.Headers
-import com.saveourtool.save.frontend.utils.classLoadingHandler
+import com.saveourtool.save.utils.LocalDateTime
+import com.saveourtool.save.utils.getCurrentLocalDateTime
 import csstype.rem
 import kotlinx.js.jso
 
@@ -33,7 +36,15 @@ external interface ContestListViewProps : Props {
  * [State] of [ContestListView] component
  */
 external interface ContestListViewState : State {
-    var contests: Array<ContestDto>
+    var activeContests: Set<ContestDto>
+
+    var finishedContests: Set<ContestDto>
+
+    var currentDateTime: LocalDateTime
+
+    var selectedContestsTab: String?
+
+    var selectedRatingTab: String?
 
     /**
      * Flag to show project selector modal
@@ -63,24 +74,49 @@ external interface ContestListViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>() {
     init {
-        state.contests = emptyArray()
+        state.selectedRatingTab = UserRatingTab.ORGANIZATIONS.name
+        state.selectedContestsTab = ContestTypesTab.ACTIVE.name
+        state.finishedContests = emptySet()
+        state.activeContests = emptySet()
+        state.currentDateTime = getCurrentLocalDateTime()
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            getAndInitContests()
+            getAndInitActiveContests()
+            getAndInitFinishedContests()
         }
     }
 
-/*    private val openParticipateModal: (String) -> Unit = { contestName ->
+    private val openParticipateModal: (String) -> Unit = { contestName ->
         setState {
             selectedContestName = contestName
             isProjectSelectorModalOpen = true
         }
-    }*/
+    }
 
     override fun ChildrenBuilder.render() {
+        showContestEnrollerModal(
+            state.isProjectSelectorModalOpen,
+            ContestNameProps(state.selectedContestName ?: ""),
+            { setState { isProjectSelectorModalOpen = false } }
+        ) {
+            setState {
+                enrollmentResponse = it
+                isConfirmationWindowOpen = true
+                isProjectSelectorModalOpen = false
+            }
+        }
+        runErrorModal(
+            state.isConfirmationWindowOpen,
+            "Contest Registration",
+            state.enrollmentResponse ?: "",
+            "Ok"
+        ) {
+            setState { isConfirmationWindowOpen = false }
+        }
+
         ReactHTML.main {
             className = ClassName("main-content mt-0 ps")
             div {
@@ -93,10 +129,6 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             className = ClassName("row mb-2")
                             featuredContest()
                             newContestsCard()
-
-                            countDownFc {
-                                contests = state.contests
-                            }
                         }
 
                         div {
@@ -119,170 +151,74 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                                     }
                                 }
                             }
-                            div {
-                                className = ClassName("col-lg-2")
-                                div {
-                                    className = ClassName("card flex-md-row mb-1 box-shadow")
-                                    style = jso {
-                                        minHeight = 7.rem
-                                    }
-                                }
-                            }
+
+                            proposeContest()
                         }
 
                         div {
                             className = ClassName("row mb-2")
-                            userRatingFc {}
-                            contestListFc {}
+                            userRatingFc {
+                                selectedTab = state.selectedRatingTab
+                                updateTabState = { setState { selectedRatingTab = it } }
+                            }
+
+                            contestListFc {
+                                activeContests = state.activeContests
+                                finishedContests = state.finishedContests
+                                selectedTab = state.selectedContestsTab
+                                updateTabState = { setState { selectedContestsTab = it } }
+                                updateSelectedContestName = { setState { selectedContestName = it } }
+                            }
                         }
                     }
-
-
-                    /*div {
-                        className = ClassName("col-lg-4 mb-4")
-                        div {
-                            className = ClassName("card shadow mb-4")
-
-                        }
-                        div {
-                            className = ClassName("card shadow mb-4")
-
-                        }
-                    }*/
                 }
             }
         }
     }
 
-    /*   @Suppress("MAGIC_NUMBER")
-       private val contestsTable = tableComponent(
-           columns = columns<ContestDto> {
-               column(id = "name", header = "Contest Name", { this }) { cellProps ->
-                   Fragment.create {
-                       td {
-                           onClick = {
-                               openParticipateModal(cellProps.value.name)
-                           }
-                           a {
-                               href = "#/${FrontendRoutes.CONTESTS.path}/${cellProps.row.original.name}"
-                               +cellProps.value.name
-                           }
-                       }
-                   }
-               }
-               column(id = "description", header = "Description", { this }) { cellProps ->
-                   Fragment.create {
-                       td {
-                           onClick = {
-                               openParticipateModal(cellProps.value.name)
-                           }
-                           +(cellProps.value.description ?: "Description is not provided")
-                       }
-                   }
-               }
-               column(id = "start_time", header = "Start Time", { this }) { cellProps ->
-                   Fragment.create {
-                       td {
-                           onClick = {
-                               openParticipateModal(cellProps.value.name)
-                           }
-                           +cellProps.value.startTime.toString().replace("T", " ")
-                       }
-                   }
-               }
-               column(id = "end_time", header = "End Time", { this }) { cellProps ->
-                   Fragment.create {
-                       td {
-                           onClick = {
-                               openParticipateModal(cellProps.value.name)
-                           }
-                           +cellProps.value.endTime.toString().replace("T", " ")
-                       }
-                   }
-               }
-           },
-           initialPageSize = 10,
-           useServerPaging = false,
-           usePageSelection = false,
-       )
-       init {
-           state.selectedContestName = null
-           state.isProjectSelectorModalOpen = false
-           state.enrollmentResponse = null
-           state.isConfirmationWindowOpen = false
-       }
-       @Suppress(
-           "EMPTY_BLOCK_STRUCTURE_ERROR",
-           "TOO_LONG_FUNCTION",
-           "MAGIC_NUMBER",
-           "LongMethod",
-       )
-       override fun ChildrenBuilder.render() {
-           showContestEnrollerModal(
-               state.isProjectSelectorModalOpen,
-               ContestNameProps(state.selectedContestName ?: ""),
-               { setState { isProjectSelectorModalOpen = false } }
-           ) {
-               setState {
-                   enrollmentResponse = it
-                   isConfirmationWindowOpen = true
-                   isProjectSelectorModalOpen = false
-               }
-           }
-           runErrorModal(
-               state.isConfirmationWindowOpen,
-               "Contest Registration",
-               state.enrollmentResponse ?: "",
-               "Ok"
-           ) {
-               setState { isConfirmationWindowOpen = false }
-           }
-           contestsTable {
-               getData = { _, _ ->
-                   val response = get(
-                       url = "$apiUrl/contests/active",
-                       headers = Headers().also {
-                           it.set("Accept", "application/json")
-                       },
-                       loadingHandler = ::classLoadingHandler,
-                   )
-                   if (response.ok) {
-                       response.unsafeMap {
-                           it.decodeFromJsonString<List<ContestDto>>()
-                       }
-                           .toTypedArray()
-                   } else {
-                       emptyArray()
-                   }
-               }
-           }
-       }*/
+    private suspend fun getAndInitActiveContests() {
+        getAndInitContests("active") {
+            setState {
+                activeContests = it
+            }
+        }
+    }
 
-    private suspend fun getAndInitContests() {
+    private suspend fun getAndInitFinishedContests() {
+        getAndInitContests("finished") {
+            setState {
+                finishedContests = it
+            }
+        }
+    }
+
+    private suspend fun getAndInitContests(url: String, setState: (Set<ContestDto>) -> Unit) {
         val response = get(
-            url = "$apiUrl/contests/active",
+            url = "$apiUrl/contests/$url",
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
             loadingHandler = ::classLoadingHandler,
         )
-        val contestsList = if (response.ok) {
+        val contestsUpdate = if (response.ok) {
             response.unsafeMap {
                 it.decodeFromJsonString<List<ContestDto>>()
             }
                 .toTypedArray()
         } else {
             emptyArray()
-        }
+        }.toSet()
 
-        setState { contests = contestsList }
+        setState(contestsUpdate)
     }
 
 
-/*       companion object : RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext>>(
-           ContestListView::class) {
-           init {
-               contextType = requestStatusContext
-           }
-       }*/
+    companion object :
+        RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext>>(
+            ContestListView::class
+        ) {
+        init {
+            contextType = requestStatusContext
+        }
+    }
 }

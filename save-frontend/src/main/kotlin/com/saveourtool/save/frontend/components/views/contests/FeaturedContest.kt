@@ -55,7 +55,7 @@ fun ChildrenBuilder.featuredContest() {
                             onClick = {
 
                             }
-                            +"Register"
+                            +"Enroll"
                         }
 
                         ReactHTML.button {

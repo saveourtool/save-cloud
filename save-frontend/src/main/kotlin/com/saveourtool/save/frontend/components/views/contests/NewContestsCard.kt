@@ -27,20 +27,20 @@ fun ChildrenBuilder.newContestsCard() {
                     ReactHTML.a {
                         className = ClassName("text-dark")
                         href = "#"
-                        +"SAVE"
+                        +"Hurry up!"
                     }
                 }
                 ReactHTML.p {
                     className = ClassName("card-text mb-auto")
-                    +"Checkout latest news about SAVE project."
+                    +"Checkout and participate in newest contests!"
                 }
                 ReactHTML.a {
                     href = "https://github.com/saveourtool/save-cloud"
-                    +"SAVE-cloud "
+                    +"Link "
                 }
                 ReactHTML.a {
                     href = "https://github.com/saveourtool/save"
-                    +" SAVE-cli"
+                    +" Other link"
                 }
             }
 
