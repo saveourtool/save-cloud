@@ -17,14 +17,12 @@ interface AgentRunner {
      * @param executionId and ID of execution for which agents will run tests
      * @param configuration [DockerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
-     * @param workingDir execution directory inside the container
      * @return unique identifier of created instances that can be used to manipulate them later
      */
     fun create(
         executionId: Long,
         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
         replicas: Int,
-        workingDir: String,
     ): List<String>
 
     /**
