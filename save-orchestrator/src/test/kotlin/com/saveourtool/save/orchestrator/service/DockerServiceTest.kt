@@ -6,7 +6,6 @@ import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
 import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -58,7 +57,6 @@ class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
     @Autowired private lateinit var configProperties: ConfigProperties
-    private lateinit var testImageId: String
     private lateinit var testContainerId: String
 
     @BeforeEach
@@ -86,13 +84,7 @@ class DockerServiceTest {
                 .setHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf("Test1", "Test2")))
         )
-        val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
-        val resourcesForExecution = createTempDirectory(
-            directory = tmpDir,
-            prefix = "save-execution-${testExecution.requiredId()}"
-        )
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
-        val configuration = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
+        val configuration = dockerService.prepareConfiguration(testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -111,7 +103,6 @@ class DockerServiceTest {
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerClient.inspectContainerCmd(testContainerId).exec()
-        testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) {
             dockerClient.logContainerCmd(testContainerId)
                 .withStdOut(true)
@@ -136,9 +127,6 @@ class DockerServiceTest {
         )
         if (::testContainerId.isInitialized) {
             dockerClient.removeContainerCmd(testContainerId).exec()
-        }
-        if (::testImageId.isInitialized) {
-            dockerClient.removeImageCmd(testImageId).exec()
         }
         mockServer.checkQueues()
         mockServer.cleanup()

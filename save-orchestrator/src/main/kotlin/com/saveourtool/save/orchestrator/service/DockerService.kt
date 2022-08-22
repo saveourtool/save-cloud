@@ -31,6 +31,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -51,6 +52,15 @@ class DockerService(
     private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
 ) {
+    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
+    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
+        if (it.exists()) {
+            it
+        } else {
+            it.createDirectories()
+        }
+    }
+
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
@@ -61,13 +71,16 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
-     * @param resourcesForExecution location to resources are required for [execution]
      * @param execution [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
+        val resourcesForExecution = createTempDirectory(
+            directory = tmpDir,
+            prefix = "save-execution-${execution.id}"
+        )
         log.info("Preparing volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
         log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
@@ -88,7 +101,6 @@ class DockerService(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
-        workingDir = EXECUTION_DIR,
     )
 
     /**
@@ -238,6 +250,10 @@ class DockerService(
             runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
+            resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
+                executionId = execution.requiredId(),
+                additionalFilesString = execution.additionalFiles,
+            ),
         )
     }
 
@@ -262,13 +278,26 @@ class DockerService(
      * Usually looks like `sh -c "rest of the command"`.
      * @property pvId ID of a persistent volume that should be attached to a container
      * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
+     * @property workingDir
+     * @property resourcesConfiguration
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageTag: String,
         val runCmd: List<String>,
         val pvId: I,
+        val workingDir: String = EXECUTION_DIR,
         val resourcesPath: Path,
-    )
+        val resourcesConfiguration: ResourcesConfiguration,
+    ) {
+        /**
+         * @property executionId
+         * @property additionalFilesString
+         */
+        data class ResourcesConfiguration(
+            val executionId: Long,
+            val additionalFilesString: String,
+        )
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)

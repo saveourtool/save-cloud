@@ -19,7 +19,9 @@ orchestrator:
     orchestrator.kubernetes.pvcAnnotations=
     orchestrator.kubernetes.pvcSize=5Gi
     orchestrator.kubernetes.pvcStorageSpec=hostPath:\n\
-    \  path: /tmp/save/volumes
+    \  path: /tmp/save/volumes\n\
+    \accessModes:\n\
+    \- ReadWriteMany
 mysql:
   external: false
   ip: nil

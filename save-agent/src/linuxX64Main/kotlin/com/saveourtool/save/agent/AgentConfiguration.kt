@@ -24,6 +24,7 @@ import kotlinx.serialization.Serializable
  * @property cliCommand a command that agent will use to run SAVE cli
  * @property debug whether debug logging should be enabled
  * @property retry configuration for HTTP request retries
+ * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
  * @property save additional configuration for save-cli
  */
@@ -37,6 +38,7 @@ data class AgentConfiguration(
     val retry: RetryConfig,
     val debug: Boolean = false,
     val cliCommand: String,
+    val testSuitesDir: String,
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
@@ -68,12 +70,14 @@ data class HeartbeatConfig(
  * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
  * @property filesEndpoint endpoint to post debug info to
+ * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
  */
 @Serializable
 data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "internal/saveAgentVersion",
     val executionDataEndpoint: String = "internal/saveTestResult",
+    val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
     val filesEndpoint: String = "internal/files",
 )
 

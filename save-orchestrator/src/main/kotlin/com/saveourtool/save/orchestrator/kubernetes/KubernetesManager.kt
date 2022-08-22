@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.kubernetes
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.PersistentVolumeId
@@ -40,9 +39,11 @@ class KubernetesManager(
     override fun create(executionId: Long,
                         configuration: DockerService.RunConfiguration<PersistentVolumeId>,
                         replicas: Int,
-                        workingDir: String,
     ): List<String> {
-        val (baseImageTag, agentRunCmd, pvId) = configuration
+        val baseImageTag = configuration.imageTag
+        val agentRunCmd = configuration.runCmd
+        val pvId = configuration.pvId
+        val workingDir = configuration.workingDir
         require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
         requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
@@ -79,7 +80,7 @@ class KubernetesManager(
                         restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageTag, agentRunCmd)
+                            agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.resourcesConfiguration)
                         )
                         volumes = listOf(
                             Volume().apply {
@@ -203,12 +204,13 @@ class KubernetesManager(
             Container().apply {
                 name = "save-vol-copier"
                 image = "alpine:latest"
+                val targetDir = configProperties.kubernetes.pvcMountPath
                 command = listOf(
                     "sh", "-c",
-                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
-                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
+                    "if [ -z \"$(ls -A $targetDir)\" ];" +
+                            " then mkdir -p $targetDir && cp -R ${pvId.sourcePath}/* $targetDir" +
+                            " && chown -R 1100:1100 $targetDir && echo Successfully copied;" +
+                            " else echo Copying already in progress && ls -A $targetDir && sleep $waitForCopySeconds;" +
                             " fi"
                 )
                 volumeMounts = listOf(
@@ -225,7 +227,13 @@ class KubernetesManager(
         )
     }
 
-    private fun agentContainerSpec(imageName: String, agentRunCmd: List<String>) = Container().apply {
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun agentContainerSpec(
+        imageName: String,
+        agentRunCmd: List<String>,
+        workingDir: String,
+        resourcesConfiguration: DockerService.RunConfiguration.ResourcesConfiguration,
+    ) = Container().apply {
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
@@ -237,17 +245,26 @@ class KubernetesManager(
                         fieldPath = "metadata.name"
                     }
                 }
-            }
+            },
+            EnvVar().apply {
+                name = "EXECUTION_ID"
+                value = "${resourcesConfiguration.executionId}"
+            },
+            EnvVar().apply {
+                name = "ADDITIONAL_FILES_LIST"
+                value = resourcesConfiguration.additionalFilesString
+            },
         )
 
+        val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
-        this.args = listOf(agentRunCmd.last())
+        this.args = listOf("cp $resourcesPath/* . && ${agentRunCmd.last()}")
 
         this.workingDir = workingDir
         volumeMounts = listOf(
             VolumeMount().apply {
                 name = "save-execution-pvc"
-                mountPath = requireNotNull(configProperties.kubernetes).pvcMountPath
+                mountPath = resourcesPath
             }
         )
     }

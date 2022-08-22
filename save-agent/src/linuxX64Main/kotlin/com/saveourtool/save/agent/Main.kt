@@ -7,6 +7,7 @@ package com.saveourtool.save.agent
 import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.agent.utils.logInfoCustom
+import com.saveourtool.save.agent.utils.markAsExecutable
 import com.saveourtool.save.agent.utils.readProperties
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.logType
@@ -18,6 +19,8 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import platform.posix.*
 
 import kotlinx.cinterop.staticCFunction
@@ -44,6 +47,8 @@ internal val json = Json {
     }
 }
 
+internal val fs = FileSystem.SYSTEM
+
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap(
@@ -52,10 +57,7 @@ fun main() {
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
-    platform.posix.chmod(
-        "save-$SAVE_CORE_VERSION-linuxX64.kexe",
-        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
-    )
+    "save-$SAVE_CORE_VERSION-linuxX64.kexe".toPath().markAsExecutable()
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
