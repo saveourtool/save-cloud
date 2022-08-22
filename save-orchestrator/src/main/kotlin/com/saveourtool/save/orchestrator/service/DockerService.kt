@@ -212,29 +212,7 @@ class DockerService(
         // collect test suite names, which were selected by user
         val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
-        // include save-agent into the image
-        PathUtils.copyFile(
-            ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).url,
-            resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME)
-        )
-
-        // include save-cli into the image
-        PathUtils.copyFile(
-            ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).url,
-            resourcesForExecution.resolve(SAVE_CLI_EXECUTABLE_NAME)
-        )
-
-        if (configProperties.adjustResourceOwner) {
-            // orchestrator is executed as root (to access docker socket), but files are in a shared volume
-            // todo: set it to `save-agent` (by ID returned from Docker build?)
-            resourcesForExecution.changeOwnerRecursively("cnb")
-
-            with(loggingContext) {
-                resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME).tryMarkAsExecutable()
-                resourcesForExecution.resolve(SAVE_CLI_EXECUTABLE_NAME).tryMarkAsExecutable()
-            }
-        }
-
+        // todo: pass all these as env
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
         fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
 
@@ -247,12 +225,14 @@ class DockerService(
         val baseImage = baseImageName(sdk)
         return RunConfiguration(
             imageTag = baseImage,
+            // fixme: should it still contain chmod?
             runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
+                propertiesFilePath = agentPropertiesFile,
             ),
         )
     }
@@ -296,12 +276,12 @@ class DockerService(
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
+            val propertiesFilePath: Path,
         )
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
-        private val loggingContext = LoggingContextImpl(log)
         private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }

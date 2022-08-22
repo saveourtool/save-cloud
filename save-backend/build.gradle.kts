@@ -1,9 +1,11 @@
-import com.saveourtool.save.buildutils.configureJacoco
-import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.*
+import de.undercouch.gradle.tasks.download.Download
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("jvm")
@@ -61,10 +63,42 @@ tasks.register<Exec>("cleanupDbAndStorage") {
     commandLine(*args, storagePath)
 }
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
+    enabled = findProperty("saveAgentDistroFilepath") != null
+    src(KotlinClosure0(function = { findProperty("saveAgentDistroFilepath") ?: "file:\\\\" }))
+    File("$buildDir/agentDistro/").mkdirs()
+    dest("$buildDir/agentDistro")
+    outputs.dir("$buildDir/agentDistro")
+    overwrite(false)
+}
+
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    inputs.file(pathToSaveCliVersion)
+
+    src(KotlinClosure0(function = { getSaveCliPath() }))
+    dest("$buildDir/download")
+    outputs.file("$buildDir/download/${getSaveCliPath().substringAfterLast("/")}")
+    overwrite(false)
+}
+
 dependencies {
     implementation(projects.saveCloudCommon)
     runtimeOnly(projects.saveFrontend) {
         targetConfiguration = "distribution"  // static resources packed as a jar, will be accessed from classpath
+    }
+    runtimeOnly(files("$buildDir/download/${getSaveCliPath().substringAfterLast("/")}"))
+    if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
+        logger.warn("Dependency `save-agent` is omitted on Windows and Mac because of problems with linking in cross-compilation." +
+                " Task `:save-agent:copyAgentDistribution` would fail without correct libcurl.so. If your changes are about " +
+                "save-agent, please test them on Linux " +
+                "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
+        )
+        runtimeOnly(fileTree("$buildDir/agentDistro"))
+    } else {
+        runtimeOnly(project(":save-agent", "distribution"))
     }
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
@@ -85,3 +119,15 @@ tasks.withType<Test> {
     }
 }
 configureSpotless()
+
+// since we store save-cli in resources directory, a lot of tasks start using it
+// and gradle complains about missing dependency
+tasks.named("jar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<BootJar>("bootJar") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<BootRun>("bootRun") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("bootJarMainClassName") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named<KotlinCompile>("compileTestKotlin") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("test") { dependsOn(downloadSaveCliTaskProvider) }
+tasks.named("jacocoTestReport") { dependsOn(downloadSaveCliTaskProvider) }
+// hack, because Gradle smh doesn't infer dependencies on tasks that produce `files(...)` dependencies
+downloadSaveCliTaskProvider.configure { dependsOn(downloadSaveAgentDistroTaskProvider) }
