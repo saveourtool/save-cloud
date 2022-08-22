@@ -1,4 +1,8 @@
-@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+/**
+ * Contests "market" - showcase for users, where they can navigate and check contests
+ */
+
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "MAGIC_NUMBER")
 
 package com.saveourtool.save.frontend.components.views.contests
 
@@ -11,18 +15,18 @@ import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
-import kotlinx.coroutines.launch
-import org.w3c.fetch.Headers
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.utils.getCurrentLocalDateTime
+
+import csstype.ClassName
 import csstype.rem
-import kotlinx.js.jso
-
-
+import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.main
+
+import kotlinx.coroutines.launch
+import kotlinx.js.jso
 
 /**
  * [Props] retrieved from router
@@ -36,14 +40,29 @@ external interface ContestListViewProps : Props {
  * [State] of [ContestListView] component
  */
 external interface ContestListViewState : State {
+    /**
+     * list of contests that are not expired yet (deadline is not reached)
+     */
     var activeContests: Set<ContestDto>
 
+    /**
+     * list of contests that are expired  (deadline has reached)
+     */
     var finishedContests: Set<ContestDto>
 
+    /**
+     * current time
+     */
     var currentDateTime: LocalDateTime
 
+    /**
+     * selected tab
+     */
     var selectedContestsTab: String?
 
+    /**
+     * selected tab
+     */
     var selectedRatingTab: String?
 
     /**
@@ -73,6 +92,13 @@ external interface ContestListViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>() {
+    private val openParticipateModal: (String) -> Unit = { contestName ->
+        setState {
+            selectedContestName = contestName
+            isProjectSelectorModalOpen = true
+        }
+    }
+
     init {
         state.selectedRatingTab = UserRatingTab.ORGANIZATIONS.name
         state.selectedContestsTab = ContestTypesTab.ACTIVE.name
@@ -89,13 +115,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         }
     }
 
-    private val openParticipateModal: (String) -> Unit = { contestName ->
-        setState {
-            selectedContestName = contestName
-            isProjectSelectorModalOpen = true
-        }
-    }
-
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     override fun ChildrenBuilder.render() {
         showContestEnrollerModal(
             state.isProjectSelectorModalOpen,
@@ -117,7 +137,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
             setState { isConfirmationWindowOpen = false }
         }
 
-        ReactHTML.main {
+        main {
             className = ClassName("main-content mt-0 ps")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
@@ -212,11 +232,10 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         setState(contestsUpdate)
     }
 
-
     companion object :
         RStatics<ContestListViewProps, ContestListViewState, ContestListView, Context<RequestStatusContext>>(
-            ContestListView::class
-        ) {
+        ContestListView::class
+    ) {
         init {
             contextType = requestStatusContext
         }

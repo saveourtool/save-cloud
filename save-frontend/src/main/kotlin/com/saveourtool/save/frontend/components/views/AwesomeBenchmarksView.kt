@@ -497,16 +497,16 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
-            val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                headers,
-                loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
+        val response: List<AwesomeBenchmarks> = get(
+            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+            headers,
+            loadingHandler = ::classLoadingHandler,
+        ).decodeFromJsonString()
 
-            setState {
-                benchmarks = response
-            }
+        setState {
+            benchmarks = response
         }
+    }
 
     companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
         init {
