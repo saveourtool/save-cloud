@@ -144,6 +144,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
+            column("testSuiteSource", "Test Suite Source", {
+                42
+            }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            +"${cellProps.value}"
+                        }
+                    }
+                }
+            }
             column("running", "Running", { runningTests }) { cellProps ->
                 Fragment.create {
                     td {

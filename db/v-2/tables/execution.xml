@@ -44,4 +44,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add-testSuiteSourceName" author="kgevorkyan" context="dev or prod">
+        <addColumn tableName="execution">
+            <column name="test_suite_source_name" type="varchar(255)" defaultValue="NULL"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -204,8 +204,8 @@ class TestSuitesService(
             val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
             agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
             agentService.deleteAgentByExecutionIds(executionIds)
-            log.debug { "Delete executions with ids $executionIds" }
-            executionService.deleteExecutionByIds(executionIds)
+            //log.debug { "Delete executions with ids $executionIds" }
+            //executionService.deleteExecutionByIds(executionIds)
         }
     }
 
