@@ -178,14 +178,7 @@ class LnkContestProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,
-    ): Flux<ExecutionDto> = Mono.justOrEmpty(contestService.findByName(contestName))
-        .switchIfEmptyToNotFound {
-            "Could not find contest with name $contestName."
-        }
-        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
-        .switchIfEmptyToNotFound {
-            "Could not find project with name $organizationName/$projectName."
-        }
+    ): Flux<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMapMany { (contest, project) ->
             lnkContestExecutionService.getPageExecutionsByContestAndProject(
                 contest,
@@ -217,14 +210,7 @@ class LnkContestProjectController(
         @PathVariable projectName: String,
         @PathVariable contestName: String,
         authentication: Authentication
-    ): Mono<ExecutionDto> = Mono.justOrEmpty(contestService.findByName(contestName))
-        .switchIfEmptyToNotFound {
-            "Could not find contest with name $contestName."
-        }
-        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
-        .switchIfEmptyToNotFound {
-            "Could not find project with name $organizationName/$projectName."
-        }
+    ): Mono<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMap { (contest, project) ->
             lnkContestExecutionService.getLatestExecutionByContestAndProject(contest, project).toMono()
         }
@@ -233,6 +219,15 @@ class LnkContestProjectController(
         }
         .map {
             it.execution.toDto()
+        }
+
+    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = Mono.justOrEmpty(contestService.findByName(contestName))
+        .switchIfEmptyToNotFound {
+            "Could not find contest with name $contestName."
+        }
+        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
+        .switchIfEmptyToNotFound {
+            "Could not find project with name $organizationName/$projectName."
         }
 
     @GetMapping("/{contestName}/enroll")
