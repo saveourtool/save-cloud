@@ -6,7 +6,8 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import csstype.*
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.p
 
 import kotlinx.js.jso
@@ -53,7 +54,7 @@ private const val CONTESTS_TEXT = """
  * rendering of 4 paragraphs with info about SAVE
  */
 fun ChildrenBuilder.renderGeneralInfoPage() {
-    ReactHTML.div {
+    div {
         style = jso {
             justifyContent = JustifyContent.center
             display = Display.flex
@@ -63,7 +64,7 @@ fun ChildrenBuilder.renderGeneralInfoPage() {
         }
         className = ClassName("row")
 
-        ReactHTML.div {
+        div {
             style = jso {
                 justifyContent = JustifyContent.center
                 display = Display.flex
@@ -75,7 +76,7 @@ fun ChildrenBuilder.renderGeneralInfoPage() {
             text("Easy CI", EASY_CI_TEXT)
         }
 
-        ReactHTML.div {
+        div {
             style = jso {
                 justifyContent = JustifyContent.center
                 display = Display.flex
@@ -90,9 +91,9 @@ fun ChildrenBuilder.renderGeneralInfoPage() {
 }
 
 private fun ChildrenBuilder.text(title: String, textStr: String) {
-    ReactHTML.div {
+    div {
         className = ClassName("col-3  mx-3")
-        ReactHTML.h1 {
+        h1 {
             style = jso {
                 textAlign = TextAlign.center
             }

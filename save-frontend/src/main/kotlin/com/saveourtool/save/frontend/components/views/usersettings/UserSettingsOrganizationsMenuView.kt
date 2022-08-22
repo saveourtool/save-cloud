@@ -1,4 +1,4 @@
-package com.saveourtool.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.cardComponent

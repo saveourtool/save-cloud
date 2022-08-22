@@ -15,7 +15,6 @@ import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1

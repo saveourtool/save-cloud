@@ -9,7 +9,7 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 
@@ -95,7 +95,7 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                 }
 
                                 props.url?.let {
-                                    ReactHTML.a {
+                                    a {
                                         href = props.url
                                         +props.name
                                     }

@@ -9,8 +9,8 @@ import com.saveourtool.save.frontend.externals.animations.*
 import csstype.Color
 import csstype.Width
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
 
@@ -30,7 +30,7 @@ object GeneralInfoFirstPicture : WelcomePager {
             }
             +"Easy to start"
         }
-        ReactHTML.img {
+        img {
             style = jso {
                 width = "65%".unsafeCast<Width>()
             }
@@ -55,7 +55,7 @@ object GeneralInfoSecondPicture : WelcomePager {
             }
             +"User-friendly dashboards"
         }
-        ReactHTML.img {
+        img {
             style = jso {
                 width = "130%".unsafeCast<Width>()
             }
@@ -80,7 +80,7 @@ object GeneralInfoThirdPicture : WelcomePager {
             }
             +"Statistics for your tool"
         }
-        ReactHTML.img {
+        img {
             style = jso {
                 width = "65%".unsafeCast<Width>()
             }
@@ -105,7 +105,7 @@ object GeneralInfoFourthPicture : WelcomePager {
             }
             +"Build a team"
         }
-        ReactHTML.img {
+        img {
             style = jso {
                 width = "135%".unsafeCast<Width>()
             }
