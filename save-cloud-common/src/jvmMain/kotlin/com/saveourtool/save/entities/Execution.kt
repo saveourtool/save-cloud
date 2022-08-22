@@ -43,7 +43,7 @@ import javax.persistence.ManyToOne
 @Entity
 class Execution(
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "project_id")
     var project: Project,
 

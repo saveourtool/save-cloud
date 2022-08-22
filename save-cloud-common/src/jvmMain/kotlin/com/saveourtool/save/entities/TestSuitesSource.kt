@@ -21,14 +21,14 @@ import javax.persistence.ManyToOne
  */
 @Entity
 class TestSuitesSource(
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
 
     var name: String,
     var description: String?,
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "git_id")
     var git: Git,
     var branch: String,
