@@ -26,7 +26,6 @@ import react.dom.html.ReactHTML.p
  * Enum that defines the bar that is chosen
  */
 enum class ContestMenuBar {
-    EXECUTION,
     INFO,
     SUBMISSIONS,
     SUMMARY,
@@ -98,36 +97,33 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     private fun ChildrenBuilder.renderContestMenuBar() {
-        if (state.selectedMenu != ContestMenuBar.EXECUTION) {
-            div {
-                className = ClassName("row align-items-center justify-content-center")
-                nav {
-                    className = ClassName("nav nav-tabs mb-4")
-                    ContestMenuBar.values()
-                        .filter { it != ContestMenuBar.EXECUTION }
-                        .forEachIndexed { i, contestMenu ->
-                            li {
-                                className = ClassName("nav-item")
-                                val classVal =
-                                        if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) {
-                                            " active font-weight-bold"
-                                        } else {
-                                            ""
-                                        }
-                                p {
-                                    className = ClassName("nav-link $classVal text-gray-800")
-                                    onClick = {
-                                        if (state.selectedMenu != contestMenu) {
-                                            setState {
-                                                selectedMenu = contestMenu
-                                            }
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            nav {
+                className = ClassName("nav nav-tabs mb-4")
+                ContestMenuBar.values()
+                    .forEachIndexed { i, contestMenu ->
+                        li {
+                            className = ClassName("nav-item")
+                            val classVal =
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) {
+                                        " active font-weight-bold"
+                                    } else {
+                                        ""
+                                    }
+                            p {
+                                className = ClassName("nav-link $classVal text-gray-800")
+                                onClick = {
+                                    if (state.selectedMenu != contestMenu) {
+                                        setState {
+                                            selectedMenu = contestMenu
                                         }
                                     }
-                                    +contestMenu.name
                                 }
+                                +contestMenu.name
                             }
                         }
-                }
+                    }
             }
         }
     }
