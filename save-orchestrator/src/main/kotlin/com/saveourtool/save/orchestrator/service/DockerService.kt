@@ -209,9 +209,27 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // collect test suite names, which were selected by user
-        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
-
+        val saveCliExecFlags = buildString {
+            // collect test suite names, which were selected by user
+            append(" --include-suites ")
+            append('"')
+            execution.getTestSuiteNames().forEachIndexed { index, testSuiteName ->
+                if (index != 0) {
+                    append(DATABASE_DELIMITER)
+                }
+                append(testSuiteName)
+            }
+            append('"')
+            // set override for execCmd
+            execution.execCmd?.let {
+                append(" --override-exec-cmd \"$it\"")
+            }
+            // set batchSize for analyzer
+            execution.batchSizeForAnalyzer?.let {
+                append(" --batch-size $it")
+            }
+            append(" ").append(TEST_SUITES_DIR_NAME)
+        }
         // include save-agent into the image
         PathUtils.copyFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).url,
