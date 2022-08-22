@@ -13,9 +13,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-
 /**
  * @param result
  * @return true if [this] agent's state has been updated to reflect problems with [result]
@@ -36,6 +33,7 @@ internal fun SaveAgent.updateStateBasedOnBackendResponse(
  * Attempt to send execution data to backend.
  *
  * @param requestToBackend
+ * @return a [Result] wrapping response
  */
 internal suspend fun SaveAgent.sendDataToBackend(
     requestToBackend: suspend () -> HttpResponse

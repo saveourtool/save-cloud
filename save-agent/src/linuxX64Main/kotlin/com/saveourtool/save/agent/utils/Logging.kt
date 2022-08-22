@@ -14,6 +14,12 @@ import io.ktor.client.plugins.logging.*
 import platform.linux.__NR_gettid
 import platform.posix.syscall
 
+internal val ktorLogger = object : Logger {
+    override fun log(message: String) {
+        logInfoCustom("[HTTP Client] $message")
+    }
+}
+
 fun logErrorCustom(msg: String) = logError(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
@@ -25,9 +31,3 @@ fun logInfoCustom(msg: String) = logInfo(
 fun logDebugCustom(msg: String) = logDebug(
     "[tid ${syscall(__NR_gettid.toLong())}] $msg"
 )
-
-internal val ktorLogger = object : Logger {
-    override fun log(message: String) {
-        logInfoCustom("[HTTP Client] $message")
-    }
-}

@@ -64,23 +64,7 @@ fun main() {
         exit(1)
     })
 
-    val httpClient = HttpClient {
-        install(ContentNegotiation) {
-            json(json = json)
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = config.requestTimeoutMillis
-        }
-        install(HttpRequestRetry) {
-            retryOnException(maxRetries = config.retry.attempts)
-            retryOnServerErrors(maxRetries = config.retry.attempts)
-            exponentialDelay(base = config.retry.initialRetryMillis / 1000.0)
-        }
-        install(Logging) {
-            logger = ktorLogger
-            level = if (config.debug) LogLevel.ALL else LogLevel.INFO
-        }
-    }
+    val httpClient = configureHttpClient(config)
 
     runBlocking {
         // Launch in a new scope, because we cancel the scope on graceful termination,
@@ -93,4 +77,23 @@ fun main() {
         }
     }
     logInfoCustom("Agent is shutting down")
+}
+
+@Suppress("FLOAT_IN_ACCURATE_CALCULATIONS", "MagicNumber")
+private fun configureHttpClient(agentConfiguration: AgentConfiguration) = HttpClient {
+    install(ContentNegotiation) {
+        json(json = json)
+    }
+    install(HttpTimeout) {
+        requestTimeoutMillis = agentConfiguration.requestTimeoutMillis
+    }
+    install(HttpRequestRetry) {
+        retryOnException(maxRetries = agentConfiguration.retry.attempts)
+        retryOnServerErrors(maxRetries = agentConfiguration.retry.attempts)
+        exponentialDelay(base = agentConfiguration.retry.initialRetryMillis / 1000.0)
+    }
+    install(Logging) {
+        logger = ktorLogger
+        level = if (agentConfiguration.debug) LogLevel.ALL else LogLevel.INFO
+    }
 }
