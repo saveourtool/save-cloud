@@ -28,8 +28,6 @@ internal fun requiredEnv(envName: AgentEnvName): String = requireNotNull(getenv(
  */
 internal fun optionalEnv(envName: AgentEnvName): String? = getenv(envName.name)
     .also {
-        if (it == null) {
-            logDebug("Optional environment variable $envName is not provided")
-        }
+        it ?: logDebug("Optional environment variable $envName is not provided")
     }
     ?.toKString()

@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -19,7 +20,6 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
-import com.saveourtool.save.agent.AgentEnvName
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile

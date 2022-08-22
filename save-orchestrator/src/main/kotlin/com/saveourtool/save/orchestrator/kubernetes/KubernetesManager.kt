@@ -263,16 +263,14 @@ class KubernetesManager(
             }
         )
     }
-    private fun Map<AgentEnvName, Any?>.mapToEnvs(): List<EnvVar> = map { entry ->
-        entry.let { (envName, nullableEnvValue) ->
-            nullableEnvValue?.let { envValue ->
-                EnvVar().apply {
-                    name = envName.name
-                    value = "$envValue"
-                }
+    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { entry ->
+        entry.let { (envName, envValue) ->
+            EnvVar().apply {
+                name = envName.name
+                value = envValue.toString()
             }
         }
-    }.filterNotNull()
+    }
 
     private fun kcJobsWithName(name: String) = kc.batch()
         .v1()
