@@ -179,12 +179,12 @@ class LnkContestProjectController(
         @PathVariable projectName: String,
         authentication: Authentication,
     ): Flux<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
-        .flatMapMany { (contest, project) ->
+        .flatMapIterable { (contest, project) ->
             lnkContestExecutionService.getPageExecutionsByContestAndProject(
                 contest,
                 project,
                 PageRequest.ofSize(MAX_AMOUNT)
-            ).toFlux()
+            )
         }
         .map {
             it.execution.toDto()
