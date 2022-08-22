@@ -2029,7 +2029,7 @@
     "/api/v1/image/upload": {
       "post": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "uploadImage",
         "parameters": [
@@ -2073,8 +2073,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2083,13 +2083,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "upload",
         "parameters": [
@@ -2138,8 +2143,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2148,13 +2153,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/download": {
       "post": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "download",
         "parameters": [
@@ -2186,8 +2196,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -2230,13 +2240,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/files/get-execution-info": {
       "post": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "getExecutionInfo",
         "requestBody": {
@@ -2250,8 +2265,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2294,13 +2309,18 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/files/get-debug-info": {
       "post": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "getDebugInfo",
         "requestBody": {
@@ -2314,8 +2334,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2358,7 +2378,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/executionRequestStandardTests": {
@@ -4862,7 +4887,7 @@
     "/api/v1/files/{organizationName}/{projectName}/list": {
       "get": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "list_1",
         "parameters": [
@@ -4884,8 +4909,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -4897,7 +4922,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/executionDto": {
@@ -6355,7 +6385,7 @@
     "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
       "delete": {
         "tags": [
-          "download-files-controller"
+          "files"
         ],
         "operationId": "delete",
         "parameters": [
@@ -6385,8 +6415,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -6395,7 +6425,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     }
   },

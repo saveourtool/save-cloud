@@ -5,6 +5,7 @@
 package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
+import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -113,6 +114,7 @@ internal fun fillAgentPropertiesFromConfiguration(
                     "backend.url=${agentSettings.backendUrl}"
                 line.startsWith("orchestratorUrl=") && agentSettings.orchestratorUrl != null ->
                     "orchestratorUrl=${agentSettings.orchestratorUrl}"
+                line.startsWith("testSuitesDir=") -> "testSuitesDir=$TEST_SUITES_DIR_NAME"
                 else -> line
             }
         }
