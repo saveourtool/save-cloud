@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
@@ -254,7 +255,7 @@ class DockerService(
         }
 
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
-        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
+        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
@@ -271,6 +272,8 @@ class DockerService(
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
+                execCmd = execution.execCmd,
+                batchSize = execution.batchSizeForAnalyzer?.toInt(),
             ),
         )
     }
@@ -310,11 +313,25 @@ class DockerService(
         /**
          * @property executionId
          * @property additionalFilesString
+         * @property execCmd
+         * @property batchSize
          */
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
-        )
+            val execCmd: String?,
+            val batchSize: Int?,
+        ) {
+            /**
+             * @return map of values with env name as key
+             */
+            fun toEnvsMap(): Map<AgentEnvName, Any?> = mapOf(
+                AgentEnvName.EXECUTION_ID to executionId,
+                AgentEnvName.ADDITIONAL_FILES_LIST to additionalFilesString,
+                AgentEnvName.OVERRIDE_EXEC_CMD to execCmd,
+                AgentEnvName.BATCH_SIZE to batchSize,
+            )
+        }
     }
 
     companion object {
