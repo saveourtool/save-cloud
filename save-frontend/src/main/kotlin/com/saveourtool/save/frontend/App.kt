@@ -94,6 +94,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             currentContestName = params["contestName"]
         }
     }
+    private val contestExecutionView: FC<Props> = withRouter { _, params ->
+        ContestExecutionView::class.react {
+            currentUserInfo = state.userInfo
+            contestName = params["contestName"]!!
+            organizationName = params["organizationName"]!!
+            projectName = params["projectName"]!!
+        }
+    }
     private val organizationView: FC<Props> = withRouter { _, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
@@ -182,6 +190,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
+                                    element = contestExecutionView.create()
                                 }
 
                                 Route {
