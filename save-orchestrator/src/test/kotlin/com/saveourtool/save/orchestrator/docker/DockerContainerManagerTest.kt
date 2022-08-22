@@ -80,7 +80,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42-1"))
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")
