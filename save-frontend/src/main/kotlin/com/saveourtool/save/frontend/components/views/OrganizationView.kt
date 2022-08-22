@@ -689,13 +689,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-primary")
-                        a {
-                            className = ClassName("text-light")
-                            href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
-                            +"+ New Tool"
+                    a {
+                        href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-outline-info")
+                            +"Add Tool"
                         }
                     }
                 }

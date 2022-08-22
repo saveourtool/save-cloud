@@ -1,4 +1,4 @@
-package com.saveourtool.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.utils.apiUrl
@@ -9,7 +9,6 @@ import csstype.ClassName
 import kotlinext.js.assign
 import org.w3c.fetch.Headers
 import react.FC
-import react.dom.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
