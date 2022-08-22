@@ -216,8 +216,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         +"Error retrieving additional information: $errorDescription"
                     }
                 }
-                trei?.failReason != null -> executionStatusComponent(trei.failReason!!, tableInstance)()
-                trdi != null -> testStatusComponent(trdi, tableInstance)()
+                trei?.failReason != null || trdi != null -> {
+                    trei?.failReason?.let { executionStatusComponent(trei.failReason!!, tableInstance)() }
+                    trdi?.let { testStatusComponent(it, tableInstance)() }
+                }
                 else -> tr {
                     td {
                         colSpan = tableInstance.columns.size
