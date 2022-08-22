@@ -87,7 +87,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         state.selectedMenuBench = BenchmarkCategoryEnum.ALL
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
-        getBenchmarks()
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        scope.launch {
+            getBenchmarks()
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
@@ -246,7 +252,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             }
                                                         }
                                                     }
-                                                    style = jso<CSSProperties> {
+                                                    style = jso {
                                                         cursor = "pointer".unsafeCast<Cursor>()
                                                     }
 
@@ -486,22 +492,19 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    private fun getBenchmarks() {
+    private suspend fun getBenchmarks() {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
+        val response: List<AwesomeBenchmarks> = get(
+            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+            headers,
+            loadingHandler = ::classLoadingHandler,
+        ).decodeFromJsonString()
 
-        scope.launch {
-            val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                headers,
-                loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
-
-            setState {
-                benchmarks = response
-            }
+        setState {
+            benchmarks = response
         }
     }
 

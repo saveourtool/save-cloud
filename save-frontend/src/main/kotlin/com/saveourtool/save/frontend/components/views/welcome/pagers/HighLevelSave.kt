@@ -2,7 +2,7 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 
 import com.saveourtool.save.frontend.externals.animations.*
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.img
 
 @Suppress("CUSTOM_GETTERS_SETTERS")
 object HighLevelSave : WelcomePager {
@@ -14,7 +14,7 @@ object HighLevelSave : WelcomePager {
     }
 
     private fun ChildrenBuilder.renderAnimatedPage() {
-        ReactHTML.img {
+        img {
             src = "img/save_hl.png"
         }
     }

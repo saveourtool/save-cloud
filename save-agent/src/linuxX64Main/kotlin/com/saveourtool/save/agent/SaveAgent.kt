@@ -2,16 +2,16 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.logErrorCustom
-import com.saveourtool.save.agent.utils.logInfoCustom
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
+import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
@@ -25,7 +25,6 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -33,14 +32,7 @@ import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -52,16 +44,17 @@ import kotlinx.serialization.modules.subclass
  * A main class for SAVE Agent
  * @property config
  * @property coroutineScope a [CoroutineScope] to launch other jobs
+ * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")
-class SaveAgent(internal val config: AgentConfiguration,
-                private val httpClient: HttpClient,
+class SaveAgent(private val config: AgentConfiguration,
+                internal val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
 ) {
     /**
-     * The current [AgentState] of this agent
+     * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
      */
-    val state = AtomicReference(AgentState.STARTING)
+    val state = AtomicReference(AgentState.BUSY)
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
@@ -86,7 +79,28 @@ class SaveAgent(internal val config: AgentConfiguration,
     fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
+            state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
+
+            logDebugCustom("Will now download tests")
+            val executionId = requiredEnv("EXECUTION_ID")
+            val targetDirectory = config.testSuitesDir.toPath()
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+                logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+            logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
+
+            logDebugCustom("Will now download additional resources")
+            val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList, executionId).runIf({ isFailure }) {
+                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+
+            state.value = AgentState.STARTING
         }
         return coroutineScope.launch { startHeartbeats(this) }
     }
@@ -289,7 +303,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
      */
-    @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
             httpClient.post {
                 url("${config.orchestratorUrl}/executionLogs")

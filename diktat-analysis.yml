@@ -92,7 +92,7 @@
 - name: TOO_LONG_FUNCTION
   enabled: true
   configuration:
-    maxFunctionLength: 35 # max length of function
+    maxFunctionLength: 55 # max length of function
     isIncludeHeader: false # count function's header
 - name: TOO_MANY_PARAMETERS
   enabled: true
