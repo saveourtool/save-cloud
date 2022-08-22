@@ -2,11 +2,23 @@
  * kotlin-react builders for PieChart components
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.externals.chart
 
 import react.ChildrenBuilder
 import react.react
 import kotlin.random.Random
+
+/**
+ * @property hex
+ */
+enum class PieChartColors(val hex: String) {
+    GREEN("#89E894"),
+    GREY("#CCCCC4"),
+    RED("#FF8989"),
+    ;
+}
 
 /**
  * @param data dataset for pie chart

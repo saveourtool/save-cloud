@@ -5,8 +5,8 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
-import com.saveourtool.save.frontend.components.basic.contests.contestParticipantsMenu
-import com.saveourtool.save.frontend.components.basic.contests.contestResultsMenu
+import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
+import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -15,7 +15,6 @@ import csstype.ClassName
 
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -27,9 +26,10 @@ import react.dom.html.ReactHTML.p
  * Enum that defines the bar that is chosen
  */
 enum class ContestMenuBar {
+    EXECUTION,
     INFO,
-    PARTICIPANTS,
-    RESULTS,
+    SUBMISSIONS,
+    SUMMARY,
     ;
 }
 
@@ -73,20 +73,20 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
         when (state.selectedMenu) {
             ContestMenuBar.INFO -> renderInfo()
-            ContestMenuBar.RESULTS -> renderResults()
-            ContestMenuBar.PARTICIPANTS -> renderParticipants()
+            ContestMenuBar.SUBMISSIONS -> renderSubmissions()
+            ContestMenuBar.SUMMARY -> renderSummary()
             else -> throw NotImplementedError()
         }
     }
 
-    private fun ChildrenBuilder.renderResults() {
-        contestResultsMenu {
+    private fun ChildrenBuilder.renderSubmissions() {
+        contestSubmissionsMenu {
             contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
 
-    private fun ChildrenBuilder.renderParticipants() {
-        contestParticipantsMenu {
+    private fun ChildrenBuilder.renderSummary() {
+        contestSummaryMenu {
             contestName = props.currentContestName ?: "UNDEFINED"
         }
     }
@@ -98,27 +98,35 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     private fun ChildrenBuilder.renderContestMenuBar() {
-        div {
-            className = ClassName("row align-items-center justify-content-center")
-            nav {
-                className = ClassName("nav nav-tabs mb-4")
-                ContestMenuBar.values().forEachIndexed { i, contestMenu ->
-                    li {
-                        className = ClassName("nav-item")
-                        val classVal =
-                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
-                        p {
-                            className = ClassName("nav-link $classVal text-gray-800")
-                            onClick = {
-                                if (state.selectedMenu != contestMenu) {
-                                    setState {
-                                        selectedMenu = contestMenu
+        if (state.selectedMenu != ContestMenuBar.EXECUTION) {
+            div {
+                className = ClassName("row align-items-center justify-content-center")
+                nav {
+                    className = ClassName("nav nav-tabs mb-4")
+                    ContestMenuBar.values()
+                        .filter { it != ContestMenuBar.EXECUTION }
+                        .forEachIndexed { i, contestMenu ->
+                            li {
+                                className = ClassName("nav-item")
+                                val classVal =
+                                        if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) {
+                                            " active font-weight-bold"
+                                        } else {
+                                            ""
+                                        }
+                                p {
+                                    className = ClassName("nav-link $classVal text-gray-800")
+                                    onClick = {
+                                        if (state.selectedMenu != contestMenu) {
+                                            setState {
+                                                selectedMenu = contestMenu
+                                            }
+                                        }
                                     }
+                                    +contestMenu.name
                                 }
                             }
-                            +contestMenu.name
                         }
-                    }
                 }
             }
         }
