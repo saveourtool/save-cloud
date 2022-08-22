@@ -238,14 +238,18 @@ class KubernetesManager(
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
-        env = resourcesConfiguration.toEnvsMap().mapToEnvs() + EnvVar().apply {
-            name = "POD_NAME"
-            valueFrom = EnvVarSource().apply {
-                fieldRef = ObjectFieldSelector().apply {
-                    fieldPath = "metadata.name"
+
+        val staticEnvs = resourcesConfiguration.toEnvsMap().mapToEnvs()
+        env = configProperties.agentSettings.agentIdEnv?.let { agentIdEnv ->
+            staticEnvs + EnvVar().apply {
+                name = agentIdEnv
+                valueFrom = EnvVarSource().apply {
+                    fieldRef = ObjectFieldSelector().apply {
+                        fieldPath = "metadata.name"
+                    }
                 }
             }
-        }
+        } ?: staticEnvs
 
         val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)

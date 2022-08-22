@@ -216,9 +216,10 @@ class DockerAgentRunner(
 
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
-            (configuration.resourcesConfiguration.toEnvsMap() + (AgentEnvName.AGENT_ID to containerId))
+            val staticEnvs = configuration.resourcesConfiguration
+                .toEnvsMap()
                 .mapToEnvLines()
-                .let { writeLines(it) }
+            writeLines((staticEnvs + "${configProperties.agentSettings.agentIdEnv}=$containerId"))
         }
         copyResourcesIntoContainer(
             containerId,
@@ -247,13 +248,7 @@ class DockerAgentRunner(
         }
     }
 
-    private fun Map<AgentEnvName, Any?>.mapToEnvLines(): List<String> = map { entry ->
-        entry.let { (envName, nullableEnvValue) ->
-            nullableEnvValue?.let { envValue ->
-                "${envName.name}=$envValue"
-            }
-        }
-    }.filterNotNull()
+    private fun Map<AgentEnvName, Any>.mapToEnvLines(): List<String> = map { (key, value) -> "${key.name}=$value" }
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)

@@ -323,14 +323,14 @@ class DockerService(
             val batchSize: Int?,
         ) {
             /**
-             * @return map of values with env name as key
+             * @return map of provided values with env name as key
              */
-            fun toEnvsMap(): Map<AgentEnvName, Any?> = mapOf(
-                AgentEnvName.EXECUTION_ID to executionId,
-                AgentEnvName.ADDITIONAL_FILES_LIST to additionalFilesString,
-                AgentEnvName.OVERRIDE_EXEC_CMD to execCmd,
-                AgentEnvName.BATCH_SIZE to batchSize,
-            )
+            fun toEnvsMap(): Map<AgentEnvName, Any> = buildMap {
+                put(AgentEnvName.EXECUTION_ID, executionId)
+                put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
+                execCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+                batchSize?.let { put(AgentEnvName.BATCH_SIZE, it) }
+            }
         }
     }
 

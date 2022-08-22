@@ -10,8 +10,4 @@ enum class AgentEnvName {
     OVERRIDE_EXEC_FLAGS,
     BATCH_SIZE,
     BATCH_SEPARATOR,
-    // docker use-case
-    AGENT_ID,
-    // k8s use-case
-    POD_NAME,
 }
