@@ -5389,6 +5389,246 @@
         ]
       }
     },
+    "/api/v1/contests/{contestName}/my-results": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get your best results in contest.",
+        "description": "Get list of best results of your projects in a given contest.",
+        "operationId": "getBestResultsInUserProjects",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched your best results.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either given project or given contest was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/{contestName}/executions/{organizationName}/{projectName}": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get project executions in contest.",
+        "description": "Get list of execution of a project with given name in contest with given name.",
+        "operationId": "getContestExecutionsForProject",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "name of a project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Either contest is not found or project is not found or execution is not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched latest project execution in contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/{contestName}/executions/{organizationName}/{projectName}/latest": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get latest project execution in contest.",
+        "description": "Get latest execution of a project with given name in contest with given name.",
+        "operationId": "getLatestExecutionOfProjectInContest",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "name of a project",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Either contest is not found or project is not found or execution is not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched latest project execution in contest.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/{contestName}/enroll": {
       "get": {
         "tags": [
@@ -7219,6 +7459,7 @@
           "type": {
             "type": "string",
             "enum": [
+              "CONTEST",
               "GIT",
               "STANDARD"
             ]
@@ -7396,6 +7637,7 @@
           "type": {
             "type": "string",
             "enum": [
+              "CONTEST",
               "GIT",
               "STANDARD"
             ]
@@ -7452,8 +7694,11 @@
       "ContestResult": {
         "required": [
           "contestName",
+          "hasFailedTest",
           "organizationName",
-          "projectName"
+          "projectName",
+          "sdk",
+          "submissionStatus"
         ],
         "type": "object",
         "properties": {
@@ -7469,6 +7714,25 @@
           "score": {
             "type": "number",
             "format": "double"
+          },
+          "submissionTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionStatus": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "FINISHED",
+              "PENDING",
+              "RUNNING"
+            ]
+          },
+          "sdk": {
+            "type": "string"
+          },
+          "hasFailedTest": {
+            "type": "boolean"
           }
         }
       },
