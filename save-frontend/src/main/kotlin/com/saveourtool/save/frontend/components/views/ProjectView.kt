@@ -314,7 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = null
+        state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.file = FileInfo("", 0, 0)
@@ -332,33 +332,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         console.log("Mount")
-
         super.componentDidMount()
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            ProjectMenuBar.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                changeUrl(null)
-            } else {
-                changeUrl(tab)
-                setState { selectedMenu = tab }
-            }
-        }
 
         scope.launch {
             val result = getProject(props.name, props.owner)
-            val project = if (result.isFailure) {
-                return@launch
-            } else {
-                result.getOrThrow()
-            }
-            setState {
-                this.project = project
-            }
+            val project = if (result.isFailure) { return@launch } else { result.getOrThrow() }
+            setState { this.project = project }
+
             val headers = Headers().apply {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
@@ -368,9 +348,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 headers,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+            val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
-                selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
+                selfRole = role
             }
+            urlAnalysis(role)
 
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
@@ -503,7 +485,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         renderProjectMenuBar()
 
-        console.log("render something")
+        console.log("render something ${state.selectedMenu}")
         when (state.selectedMenu) {
             ProjectMenuBar.RUN -> renderRun()
             ProjectMenuBar.STATISTICS -> renderStatistics()
@@ -525,6 +507,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         } ?: let {
             window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
             window.location.reload()
+        }
+    }
+
+    private fun urlAnalysis(role: Role) {
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            ProjectMenuBar.defaultTab
+        }
+        if (state.selectedMenu != tab) {
+            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
+                changeUrl(null)
+            } else {
+                changeUrl(tab)
+                setState { selectedMenu = tab }
+            }
         }
     }
 

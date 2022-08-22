@@ -197,7 +197,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
-        state.selectedMenu = null
+        state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = emptyArray()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -231,36 +231,23 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         console.log("Mount")
 
         super.componentDidMount()
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/organization/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { OrganizationMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            OrganizationMenuBar.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            if (((tab == OrganizationMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)) ||
-                ((tab == OrganizationMenuBar.CONTESTS) && !state.selfRole.isHigherOrEqualThan(Role.OWNER))) {
-                changeUrl(null)
-            } else {
-                changeUrl(tab)
-                setState { selectedMenu = tab }
-            }
-        }
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
             val users = getUsers()
+            val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
                 isEditDisabled = true
-                selfRole = getHighestRole(role, props.currentUserInfo?.globalRole)
+                selfRole = highestRole
                 usersInOrganization = users
             }
+            urlAnalysis(highestRole)
         }
     }
 
@@ -289,7 +276,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         renderOrganizationMenuBar()
 
-        console.log("${state.selectedMenu}")
+        console.log("render something ${state.selectedMenu}")
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
@@ -301,6 +288,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
         }
     }
+
+    private fun urlAnalysis(role: Role) {
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/organization/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { OrganizationMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            OrganizationMenuBar.defaultTab
+        }
+        if (state.selectedMenu != tab) {
+            if (((tab == OrganizationMenuBar.SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
+                ((tab == OrganizationMenuBar.CONTESTS) && !role.isHigherOrEqualThan(Role.OWNER))) {
+                changeUrl(null)
+            } else {
+                changeUrl(tab)
+                setState { selectedMenu = tab }
+            }
+        }
+    }
+
 
     private fun changeUrl(selectedMenu: OrganizationMenuBar?) {
         selectedMenu ?. let {
