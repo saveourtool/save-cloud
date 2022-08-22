@@ -61,10 +61,14 @@ class DockerContainerManagerTest {
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
                 DockerPvId("test-volume"),
-                Path.of("test-resources-path"),
+                workingDir = "/",
+                resourcesPath = Path.of("test-resources-path"),
+                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
+                    executionId = 99L,
+                    additionalFilesString = "",
+                )
             ),
             replicas = 1,
-            workingDir = "/",
         ).single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
@@ -72,7 +76,7 @@ class DockerContainerManagerTest {
 
         Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertArrayEquals(
-            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
+            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"cp /home/save-agent/resources/* . && ./script.sh\""),
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
