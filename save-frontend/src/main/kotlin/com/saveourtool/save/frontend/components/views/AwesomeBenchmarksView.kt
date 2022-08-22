@@ -6,19 +6,23 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
+import kotlinx.browser.window
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -84,10 +88,25 @@ external interface AwesomeBenchmarksState : State {
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
-        state.selectedMenuBench = BenchmarkCategoryEnum.ALL
+        state.selectedMenuBench = null
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
         getBenchmarks()
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/archive/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { BenchmarkCategoryEnum.values().find { it.name.lowercase() == this } }
+        } else {
+            BenchmarkCategoryEnum.defaultTab
+        }
+        if (state.selectedMenuBench != tab) {
+            changeUrl(tab)
+            setState { selectedMenuBench = tab }
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
@@ -232,7 +251,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li {
                                                 className = ClassName("nav-item")
-                                                val classVal = if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) {
+                                                val classVal = if (state.selectedMenuBench == value) {
                                                     " active font-weight-bold"
                                                 } else {
                                                     ""
@@ -241,9 +260,8 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
                                                         if (state.selectedMenuBench != value) {
-                                                            setState {
-                                                                selectedMenuBench = value
-                                                            }
+                                                            changeUrl(value)
+                                                            setState { selectedMenuBench = value }
                                                         }
                                                     }
                                                     style = jso<CSSProperties> {
@@ -483,6 +501,19 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                     }
                 }
             }
+        }
+    }
+
+    private fun changeUrl(selectedMenu: BenchmarkCategoryEnum?) {
+        selectedMenu ?. let {
+            window.location.href = if (selectedMenu == BenchmarkCategoryEnum.defaultTab) {
+                "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+            } else {
+                "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}/${it.name.lowercase()}"
+            }
+        } ?: let {
+            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
+            window.location.reload()
         }
     }
 

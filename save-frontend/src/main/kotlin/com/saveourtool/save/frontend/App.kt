@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -15,6 +16,7 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
@@ -39,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import react.router.useHref
 
 internal val topBarComponent = topBar()
 
@@ -64,6 +67,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
+            console.log("$owner $name")
             currentUserInfo = state.userInfo
         }
     }
@@ -177,10 +181,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
+                                routeUtils(BenchmarkCategoryEnum.listOfStringEnumElements, "archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}", routeElement = AwesomeBenchmarksView::class.react.create())
+
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
+
+                                routeUtils(ContestMenuBar.listOfStringEnumElements, "contests/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
 
                                 Route {
                                     path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
@@ -247,15 +255,19 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                Route {
-                                    path = "/:owner/:name"
-                                    element = projectView.create()
-                                }
+                                routeUtils(OrganizationMenuBar.listOfStringEnumElements, "/organization/:owner", organizationView.create())
 
                                 Route {
                                     path = "/:owner/:name/history"
                                     element = historyView.create()
                                 }
+
+                                Route {
+                                    path = "/:owner/:name"
+                                    element = projectView.create()
+                                }
+
+                                routeUtils(ProjectMenuBar.listOfStringEnumElements, "/project/:owner/:name", projectView.create())
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -276,6 +288,15 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         withRouterLink = true
                                     }
                                 }
+
+                                Route {
+                                    path = "/${FrontendRoutes.NOT_FOUND.path}"
+                                    element = FallbackView::class.react.create{
+                                        bigText = "404"
+                                        smallText = "Page not found"
+                                        withRouterLink = true
+                                    }
+                                }
                             }
                         }
                         Footer::class.react()
@@ -283,6 +304,15 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 }
             }
             scrollToTopButton()
+        }
+    }
+}
+
+fun ChildrenBuilder.routeUtils(listOfUrlParams: List<String>, href: String, routeElement: ReactNode?){
+    listOfUrlParams.forEach { item->
+        Route {
+            path = "$href/$item"
+            element = routeElement
         }
     }
 }

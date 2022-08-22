@@ -11,7 +11,10 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
+import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
+import kotlinx.browser.window
 
 import org.w3c.fetch.Headers
 import react.*
@@ -31,6 +34,12 @@ enum class ContestMenuBar {
     PARTICIPANTS,
     RESULTS,
     ;
+
+    companion object {
+        val defaultTab: ContestMenuBar = INFO
+
+        val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
+    }
 }
 
 /**
@@ -59,8 +68,23 @@ external interface ContestViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
-        state.selectedMenu = ContestMenuBar.INFO
+        state.selectedMenu = null
     }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/organization/[^/]*/[^/]*/[^/]*"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { ContestMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            ContestMenuBar.defaultTab
+        }
+        if (state.selectedMenu != tab) {
+            changeUrl(tab)
+            setState { selectedMenu = tab }
+        }
+    }
+
 
     override fun ChildrenBuilder.render() {
         div {
@@ -76,6 +100,19 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             ContestMenuBar.RESULTS -> renderResults()
             ContestMenuBar.PARTICIPANTS -> renderParticipants()
             else -> throw NotImplementedError()
+        }
+    }
+
+    private fun changeUrl(selectedMenu : ContestMenuBar?) {
+        selectedMenu ?. let {
+            window.location.href = if (selectedMenu == ContestMenuBar.defaultTab) {
+                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}"
+            } else {
+                "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}/${it.name.lowercase()}"
+            }
+        } ?: let {
+            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
+            window.location.reload()
         }
     }
 
@@ -105,15 +142,13 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                 ContestMenuBar.values().forEachIndexed { i, contestMenu ->
                     li {
                         className = ClassName("nav-item")
-                        val classVal =
-                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
+                        val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
                         p {
                             className = ClassName("nav-link $classVal text-gray-800")
                             onClick = {
                                 if (state.selectedMenu != contestMenu) {
-                                    setState {
-                                        selectedMenu = contestMenu
-                                    }
+                                    changeUrl(contestMenu)
+                                    setState { selectedMenu = contestMenu }
                                 }
                             }
                             +contestMenu.name

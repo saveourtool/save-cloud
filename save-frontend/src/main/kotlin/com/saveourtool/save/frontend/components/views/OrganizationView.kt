@@ -21,6 +21,7 @@ import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
@@ -196,11 +197,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
-        state.selectedMenu = OrganizationMenuBar.INFO
+        state.selectedMenu = null
         state.projects = emptyArray()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
+        console.log("init")
     }
 
     private fun deleteOrganization() {
@@ -226,7 +228,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidMount() {
+        console.log("Mount")
+
         super.componentDidMount()
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/organization/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { OrganizationMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            OrganizationMenuBar.defaultTab
+        }
+        if (state.selectedMenu != tab) {
+            if (((tab == OrganizationMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)) ||
+                ((tab == OrganizationMenuBar.CONTESTS) && !state.selfRole.isHigherOrEqualThan(Role.OWNER))) {
+                changeUrl(null)
+            } else {
+                changeUrl(tab)
+                setState { selectedMenu = tab }
+            }
+        }
+
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
@@ -246,6 +266,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
+        console.log("render")
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
                 isErrorOpen = false
@@ -268,12 +289,29 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         renderOrganizationMenuBar()
 
-        when (state.selectedMenu!!) {
+        console.log("${state.selectedMenu}")
+        when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
             OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
+            else -> {
+                // this is a generated else block
+            }
+        }
+    }
+
+    private fun changeUrl(selectedMenu: OrganizationMenuBar?) {
+        selectedMenu ?. let {
+            window.location.href = if (selectedMenu == OrganizationMenuBar.defaultTab) {
+                "#/${props.organizationName}"
+            } else {
+                "#/organization/${props.organizationName}/${it.name.lowercase()}"
+            }
+        } ?: let {
+            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
+            window.location.reload()
         }
     }
 
@@ -660,24 +698,20 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .filter {
                             it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
                         }
-                        .forEachIndexed { i, projectMenu ->
+                        .forEachIndexed { i, organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
-                                val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) {
-                                    " active font-weight-bold"
-                                } else {
-                                    ""
-                                }
+                                val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold"  else ""
                                 p {
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {
-                                        if (state.selectedMenu != projectMenu) {
-                                            setState {
-                                                selectedMenu = projectMenu
-                                            }
+                                        if (state.selectedMenu != organizationMenu) {
+                                            changeUrl(organizationMenu)
+                                            setState { selectedMenu = organizationMenu }
                                         }
+                                        console.log("click $organizationMenu")
                                     }
-                                    +projectMenu.getTitle()
+                                    +organizationMenu.getTitle()
                                 }
                             }
                         }

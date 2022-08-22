@@ -12,6 +12,12 @@ enum class OrganizationMenuBar(private val title: String? = null) {
     SETTINGS,
     ;
 
+    companion object {
+        val defaultTab: OrganizationMenuBar = INFO
+
+        val listOfStringEnumElements = OrganizationMenuBar.values().map { it.name.lowercase() }
+    }
+
     /**
      * @return title or name if title is not specified
      */

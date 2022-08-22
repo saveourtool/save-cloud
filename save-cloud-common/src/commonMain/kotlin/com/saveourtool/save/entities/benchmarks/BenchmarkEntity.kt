@@ -19,6 +19,12 @@ enum class BenchmarkCategoryEnum {
     PERFORMANCE,
     STATIC_ANALYSIS,
     ;
+
+    companion object {
+        val defaultTab = ALL
+
+        val listOfStringEnumElements = BenchmarkCategoryEnum.values().map { it.name.lowercase() }
+    }
 }
 
 /**

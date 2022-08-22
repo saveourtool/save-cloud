@@ -24,7 +24,9 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.HTMLButtonElement
@@ -312,7 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.INFO
+        state.selectedMenu = null
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.file = FileInfo("", 0, 0)
@@ -329,7 +331,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
+        console.log("Mount")
+
         super.componentDidMount()
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            ProjectMenuBar.defaultTab
+        }
+        if (state.selectedMenu != tab) {
+            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
+                changeUrl(null)
+            } else {
+                changeUrl(tab)
+                setState { selectedMenu = tab }
+            }
+        }
 
         scope.launch {
             val result = getProject(props.name, props.owner)
@@ -446,6 +464,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun ChildrenBuilder.render() {
+        console.log("render")
+
         // modal windows are initially hidden
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
@@ -481,6 +501,35 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             privacySpan(state.project)
         }
 
+        renderProjectMenuBar()
+
+        console.log("render something")
+        when (state.selectedMenu) {
+            ProjectMenuBar.RUN -> renderRun()
+            ProjectMenuBar.STATISTICS -> renderStatistics()
+            ProjectMenuBar.SETTINGS -> renderSettings()
+            ProjectMenuBar.INFO -> renderInfo()
+            else -> {
+                // this is a generated else block
+            }
+        }
+    }
+
+    private fun changeUrl(selectedMenu: ProjectMenuBar?) {
+        selectedMenu ?. let {
+            window.location.href = if (selectedMenu == ProjectMenuBar.defaultTab) {
+                "#/${props.owner}/${props.name}"
+            } else {
+                "#/project/${props.owner}/${props.name}/${it.name.lowercase()}"
+            }
+        } ?: let {
+            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
+            window.location.reload()
+        }
+    }
+
+
+    private fun ChildrenBuilder.renderProjectMenuBar() {
         div {
             className = ClassName("row align-items-center justify-content-center")
             nav {
@@ -492,16 +541,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .forEachIndexed { i, projectMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
-                                        }
+                                        changeUrl(projectMenu)
+                                        setState { selectedMenu = projectMenu }
                                     }
+                                    console.log("click $projectMenu")
                                 }
                                 +projectMenu.name
                             }
@@ -509,20 +557,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
             }
         }
-
-        when (state.selectedMenu!!) {
-            ProjectMenuBar.RUN -> renderRun()
-            ProjectMenuBar.STATISTICS -> renderStatistics()
-            ProjectMenuBar.SETTINGS -> renderSettings()
-            ProjectMenuBar.INFO -> renderInfo()
-            else -> {
-                // this is a generated else block
-            }
-        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun ChildrenBuilder.renderRun() {
+        console.log("renderRun  ${window.location}")
         div {
             className = ClassName("row justify-content-center ml-5")
             // ===================== LEFT COLUMN =======================================================================
@@ -701,12 +740,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun ChildrenBuilder.renderStatistics() {
+        console.log("renderStatistics")
         projectStatisticMenu {
             executionId = state.latestExecutionId
         }
     }
 
     private fun ChildrenBuilder.renderInfo() {
+        console.log("render info")
         projectInfoMenu {
             projectName = props.name
             organizationName = props.owner
@@ -715,6 +756,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun ChildrenBuilder.renderSettings() {
+        console.log("render settings")
         projectSettingsMenu {
             project = state.project
             currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")

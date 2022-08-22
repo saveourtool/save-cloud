@@ -20,6 +20,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),
     SETTINGS_TOKEN("settings/token"),
+    NOT_FOUND("not-found"),
     ;
 
     companion object {

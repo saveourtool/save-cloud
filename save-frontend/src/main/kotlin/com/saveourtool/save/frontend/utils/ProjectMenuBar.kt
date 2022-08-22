@@ -10,4 +10,10 @@ enum class ProjectMenuBar {
     STATISTICS,
     SETTINGS,
     ;
+
+    companion object  {
+        val defaultTab: ProjectMenuBar = INFO
+
+        val listOfStringEnumElements = ProjectMenuBar.values().map { it.name.lowercase() }
+    }
 }
