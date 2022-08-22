@@ -47,14 +47,14 @@ import kotlinx.serialization.modules.subclass
  * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")
-class SaveAgent(internal val config: AgentConfiguration,
+class SaveAgent(private val config: AgentConfiguration,
                 internal val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
 ) {
     /**
-     * The current [AgentState] of this agent
+     * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
      */
-    val state = AtomicReference(AgentState.STARTING)
+    val state = AtomicReference(AgentState.BUSY)
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`

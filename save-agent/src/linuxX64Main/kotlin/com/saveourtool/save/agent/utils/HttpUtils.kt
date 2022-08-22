@@ -7,7 +7,6 @@ package com.saveourtool.save.agent.utils
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
 import io.ktor.client.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
@@ -62,8 +61,5 @@ internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpRe
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         body?.let { setBody(it) }
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
     }
 }
