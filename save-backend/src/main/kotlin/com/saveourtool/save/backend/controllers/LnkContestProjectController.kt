@@ -186,12 +186,12 @@ class LnkContestProjectController(
         .switchIfEmptyToNotFound {
             "Could not find project with name $organizationName/$projectName."
         }
-        .flatMapMany { (contest, project) ->
+        .flatMapIterable { (contest, project) ->
             lnkContestExecutionService.getPageExecutionsByContestAndProject(
                 contest,
                 project,
                 PageRequest.ofSize(MAX_AMOUNT)
-            ).toFlux()
+            )
         }
         .map {
             it.execution.toDto()
