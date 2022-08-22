@@ -10,6 +10,7 @@ import com.saveourtool.save.agent.utils.logInfoCustom
 import com.saveourtool.save.agent.utils.markAsExecutable
 import com.saveourtool.save.agent.utils.readProperties
 import com.saveourtool.save.core.config.LogType
+import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
@@ -91,6 +92,12 @@ private fun configureHttpClient(agentConfiguration: AgentConfiguration) = HttpCl
         retryOnException(maxRetries = agentConfiguration.retry.attempts)
         retryOnServerErrors(maxRetries = agentConfiguration.retry.attempts)
         exponentialDelay(base = agentConfiguration.retry.initialRetryMillis / 1000.0)
+        modifyRequest {
+            if (retryCount > 1) {
+                val reason = response?.status ?: cause?.describe() ?: "Unknown reason"
+                logDebugCustom("Retrying request: attempt #$retryCount, reason: $reason")
+            }
+        }
     }
     install(Logging) {
         logger = ktorLogger
