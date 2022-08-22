@@ -197,7 +197,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
-        state.selectedMenu = OrganizationMenuBar.defaultTab
+        state.selectedMenu = null
         state.projects = emptyArray()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -299,7 +299,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         if (state.selectedMenu != tab) {
             if (((tab == OrganizationMenuBar.SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
                 ((tab == OrganizationMenuBar.CONTESTS) && !role.isHigherOrEqualThan(Role.OWNER))) {
-                changeUrl(null)
+                changeUrl(OrganizationMenuBar.defaultTab)
             } else {
                 changeUrl(tab)
                 setState { selectedMenu = tab }

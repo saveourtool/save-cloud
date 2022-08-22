@@ -314,7 +314,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.defaultTab
+        state.selectedMenu = null
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.file = FileInfo("", 0, 0)
@@ -517,9 +517,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         } else {
             ProjectMenuBar.defaultTab
         }
+        console.log("$role  =  ${role.isHigherOrEqualThan(Role.ADMIN)}")
         if (state.selectedMenu != tab) {
             if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
-                changeUrl(null)
+                changeUrl(ProjectMenuBar.defaultTab)
             } else {
                 changeUrl(tab)
                 setState { selectedMenu = tab }

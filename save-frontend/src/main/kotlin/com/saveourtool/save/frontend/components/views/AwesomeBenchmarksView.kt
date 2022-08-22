@@ -88,7 +88,7 @@ external interface AwesomeBenchmarksState : State {
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
-        state.selectedMenuBench = BenchmarkCategoryEnum.defaultTab
+        state.selectedMenuBench = null
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
         getBenchmarks()

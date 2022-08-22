@@ -68,7 +68,7 @@ external interface ContestViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
-        state.selectedMenu = ContestMenuBar.defaultTab
+        state.selectedMenu = null
     }
 
     override fun componentDidMount() {
