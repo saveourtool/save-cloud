@@ -81,7 +81,7 @@ class UsersDetailsController(
                 UserSaveStatus.CONFLICT
             }
             if (response == UserSaveStatus.UPDATE && newUserInfo.isActive) {
-                originalLoginRepository.save(OriginalLogin(user.name, user, user.source))
+                originalLoginRepository.save(OriginalLogin(newUserInfo.oldName, user, user.source))
             }
             response
         }
