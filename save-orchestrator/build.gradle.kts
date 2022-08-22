@@ -85,6 +85,7 @@ dependencies {
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
+    implementation(libs.spring.kafka)
     testImplementation(libs.fabric8.kubernetes.server.mock)
 }
 
