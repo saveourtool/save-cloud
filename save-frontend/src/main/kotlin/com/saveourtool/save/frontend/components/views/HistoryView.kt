@@ -144,9 +144,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
-            column("testSuiteSource", "Test Suite Source", {
-                42
-            }) { cellProps ->
+            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName}) { cellProps ->
                 Fragment.create {
                     td {
                         a {

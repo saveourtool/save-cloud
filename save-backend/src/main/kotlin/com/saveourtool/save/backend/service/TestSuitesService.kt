@@ -194,19 +194,21 @@ class TestSuitesService(
                 // Delete tests
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
+                // Delete agents
+                val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+                agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+                agentService.deleteAgentByExecutionIds(executionIds)
             }
             log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
         }
         // Delete executions and agents, which related to the test suites
         // All test executions should be removed at this moment, that's why iterate one more time
-        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
-            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
-            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-            agentService.deleteAgentByExecutionIds(executionIds)
-            //log.debug { "Delete executions with ids $executionIds" }
-            //executionService.deleteExecutionByIds(executionIds)
-        }
+//        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
+//            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+//            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+//            agentService.deleteAgentByExecutionIds(executionIds)
+//        }
     }
 
     /**

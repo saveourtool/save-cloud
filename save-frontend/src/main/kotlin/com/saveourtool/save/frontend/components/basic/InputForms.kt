@@ -237,18 +237,18 @@ internal fun ChildrenBuilder.inputTextFormOptional(
                 +name
             }
         }
-
-        form.popover?.let {
-            sup {
-                className = ClassName("form-popover")
-                fontAwesomeIcon(icon = faQuestionCircle)
-                tabIndex = 0
-                asDynamic()["popover-placement"] = "left"
-                asDynamic()["popover-content"] = it.content
-                asDynamic()["popover-title"] = it.title
-                asDynamic()["data-trigger"] = "focus"
-            }
-        }
+//
+//        form.popover?.let {
+//            sup {
+//                className = ClassName("form-popover")
+//                fontAwesomeIcon(icon = faQuestionCircle)
+//                tabIndex = 0
+//                asDynamic()["popover-placement"] = "left"
+//                asDynamic()["popover-content"] = it.content
+//                asDynamic()["popover-title"] = it.title
+//                asDynamic()["data-trigger"] = "focus"
+//            }
+//        }
     }
     input {
         type = InputType.text
@@ -259,10 +259,10 @@ internal fun ChildrenBuilder.inputTextFormOptional(
         required = false
         value = textValue
         placeholder = form.placeholder
-        form.tooltip?.let {
-            title = it
-            asDynamic()["tooltip-placement"] = "right"
-        }
+//        form.tooltip?.let {
+//            title = it
+//            asDynamic()["tooltip-placement"] = "right"
+//        }
         className = if (textValue.isNullOrEmpty()) {
             ClassName("form-control")
         } else if (validInput) {
@@ -277,11 +277,11 @@ internal fun ChildrenBuilder.inputTextFormOptional(
             +(form.errorMessage ?: errorText)
         }
     }
-
-    useEffect {
-        js(ENABLE_TOOLTIP_AND_POPOVER_JS)
-        return@useEffect
-    }
+//
+//    useEffect {
+//        js(ENABLE_TOOLTIP_AND_POPOVER_JS)
+//        return@useEffect
+//    }
 }
 
 /**
