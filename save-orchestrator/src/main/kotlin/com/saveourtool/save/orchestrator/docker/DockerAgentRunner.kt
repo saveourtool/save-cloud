@@ -19,6 +19,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
+import com.saveourtool.save.orchestrator.service.DockerService.Companion.SAVE_AGENT_EXECUTABLE_NAME
 import generated.SAVE_CLOUD_VERSION
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
@@ -184,8 +185,8 @@ class DockerAgentRunner(
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
 //                        "SAVE_AGENT=\$(curl --remote-name -w '%{filename_effective}' \$GET_AGENT_LINK | awk {'print \$1'})" +
-                        "curl --remote-name \$GET_AGENT_LINK" +
-                                " && curl --remote-name \$GET_SAVE_CLI_LINK" +
+                        "curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                                " && curl -vvv -X POST \$GET_SAVE_CLI_LINK --output $SAVE_CLI_EXECUTABLE_NAME" +
 //                                " && chmod +x \$SAVE_AGENT" +
                                 " && env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
                 )

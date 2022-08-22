@@ -282,7 +282,7 @@ class DockerService(
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
-        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+        internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }
 
