@@ -13,11 +13,9 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.orConflict
 
 import org.apache.commons.io.file.PathUtils
@@ -251,8 +249,10 @@ class DockerService(
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
-                execCmd = execution.execCmd,
+                overrideExecCmd = execution.execCmd,
+                overrideExecFlags = null,
                 batchSize = execution.batchSizeForAnalyzer?.toInt(),
+                batchSeparator = null,
             ),
         )
     }
@@ -292,14 +292,16 @@ class DockerService(
         /**
          * @property executionId
          * @property additionalFilesString
-         * @property execCmd
+         * @property overrideExecCmd
          * @property batchSize
          */
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
-            val execCmd: String?,
+            val overrideExecCmd: String?,
+            val overrideExecFlags: String?,
             val batchSize: Int?,
+            val batchSeparator: String?
         ) {
             /**
              * @return map of provided values with env name as key
@@ -307,8 +309,10 @@ class DockerService(
             fun toEnvsMap(): Map<AgentEnvName, Any> = buildMap {
                 put(AgentEnvName.EXECUTION_ID, executionId)
                 put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
-                execCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+                overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+                overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
                 batchSize?.let { put(AgentEnvName.BATCH_SIZE, it) }
+                batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
             }
         }
     }
