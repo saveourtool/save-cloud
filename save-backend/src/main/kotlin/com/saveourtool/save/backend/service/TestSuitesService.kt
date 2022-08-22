@@ -180,22 +180,33 @@ class TestSuitesService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
+        println("\n\n\ndeleteTestSuiteDto ")
         val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
         testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
+            println("\n\n\ntestSuitesNamesAndIds ")
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
+                println("\n\n\ntestIds ")
                 testExecutionRepository.findByTestId(testId).forEach { testExecution ->
+                    println("\n\n\nfindByTestId ")
                     // Delete test executions
                     val testExecutionId = testExecution.requiredId()
+                    println("\n\n\nfindByTestId 2")
                     log.debug { "Delete test execution with id $testExecutionId" }
+                    println("\n\n\nfindByTestId 3")
                     testExecutionRepository.deleteById(testExecutionId)
+                    println("\n\n\nfindByTestId 4")
                 }
+                println("\n\n\n1 ")
                 // Delete tests
                 log.debug { "Delete test with id $testId" }
+                println("\n\n\n2")
                 testRepository.deleteById(testId)
+                println("\n\n\n3")
                 // Delete agents
                 val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+                println("\n\n\n===============================executionIds = ${executionIds}")
                 agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
                 agentService.deleteAgentByExecutionIds(executionIds)
             }
