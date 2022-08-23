@@ -257,19 +257,6 @@ class DockerService(
         )
     }
 
-    private fun Execution.getTestSuiteNames(): List<String> = this
-        .parseAndGetTestSuiteIds()
-        ?.let {
-            webClientBackend.post()
-                .uri("/test-suite/names-by-ids")
-                .bodyValue(it)
-                .retrieve()
-                .bodyToMono<List<String>>()
-                .block()!!
-        }.orConflict {
-            "Execution (id=$id) doesn't contain testSuiteIds"
-        }
-
     /**
      * Information required to start containers with save-agent
      *
