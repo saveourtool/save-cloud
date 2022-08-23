@@ -96,7 +96,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         columns = columns<ExecutionDto> {
             column("result", "", { status }) { cellProps ->
                 val result = when (cellProps.row.original.status) {
-                    ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                    ExecutionStatus.ERROR, ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-danger", faExclamationTriangle)
                     ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
@@ -211,7 +211,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         },
         getRowProps = { row ->
             val color = when (row.original.status) {
-                ExecutionStatus.ERROR -> Colors.RED
+                ExecutionStatus.ERROR, ExecutionStatus.OBSOLETE -> Colors.RED
                 ExecutionStatus.PENDING -> Colors.GREY
                 ExecutionStatus.RUNNING -> Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
