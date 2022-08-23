@@ -217,7 +217,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
                 trei?.failReason != null || trdi != null -> {
-                    trei?.failReason?.let { executionStatusComponent(trei.failReason!!, tableInstance)() }
+                    trei?.failReason?.let { executionStatusComponent(it, tableInstance)() }
                     trdi?.let { testStatusComponent(it, tableInstance)() }
                 }
                 else -> tr {
