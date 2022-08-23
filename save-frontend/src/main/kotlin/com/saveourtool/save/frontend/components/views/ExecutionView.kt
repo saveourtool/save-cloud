@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
@@ -130,14 +131,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             column(id = "missing", header = "Missing", { unmatched }) {
                 Fragment.create {
                     td {
-                        +"${it.value ?: ""}"
+                        +formatCounter(it.value)
                     }
                 }
             }
             column(id = "matched", header = "Matched", { matched }) {
                 Fragment.create {
                     td {
-                        +"${it.value ?: ""}"
+                        +formatCounter(it.value)
                     }
                 }
             }
@@ -298,6 +299,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             arrayOf(it.filters)
         }
     )
+
+    private fun formatCounter(count: Long?): String = count?.let {
+        if (CountWarnings.isNotApplicable(it.toInt())) {
+            "N/A"
+        } else {
+            it.toString()
+        }
+    } ?: ""
 
     init {
         state.executionDto = null
