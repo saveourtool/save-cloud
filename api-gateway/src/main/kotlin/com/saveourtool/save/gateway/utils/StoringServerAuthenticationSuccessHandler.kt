@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jdk.nashorn.internal.runtime.regexp.joni.Config.log
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
@@ -42,6 +43,7 @@ class StoringServerAuthenticationSuccessHandler(
             // roles to save-cloud roles.
             role = Role.VIEWER.asSpringSecurityRole()
         }
+        logger.warn("writeValueAsString - writeValueAsString ${objectMapper.writeValueAsString(user)}")
         return webClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)

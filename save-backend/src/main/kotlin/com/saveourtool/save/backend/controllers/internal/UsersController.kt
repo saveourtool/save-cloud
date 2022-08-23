@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
 typealias StringResponse = ResponseEntity<String>
@@ -45,9 +46,15 @@ class UsersController(
      * @param user user to store
      */
     @PostMapping("/new")
+    @Transactional
     fun saveNewUser(@RequestBody user: User) {
         val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
-        originalLoginRepository.findByName(userName)?.user?.let {
+
+        val userFind = originalLoginRepository.findByName(userName)
+        logger.warn("userFind - userFind $userFind")
+        logger.warn("userFind - userFind - user $userFind?.user")
+
+        userFind?.user?.let {
             logger.debug("User $userName is already present in the DB")
         } ?: run {
             logger.info("Saving user $userName to the DB")
