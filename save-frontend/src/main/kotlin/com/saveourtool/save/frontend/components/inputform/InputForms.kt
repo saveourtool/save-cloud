@@ -6,8 +6,6 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
-import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.validation.DATE_RANGE_ERROR_MESSAGE
 import com.saveourtool.save.validation.EMAIL_ERROR_MESSAGE
 import com.saveourtool.save.validation.NAME_ERROR_MESSAGE
@@ -15,7 +13,6 @@ import com.saveourtool.save.validation.URL_ERROR_MESSAGE
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.ChildrenBuilder
-import react.FC
 import react.dom.aria.ariaDescribedBy
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType

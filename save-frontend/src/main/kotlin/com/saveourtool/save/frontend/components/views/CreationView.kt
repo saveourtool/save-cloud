@@ -9,10 +9,10 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -193,7 +193,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             state.projectCreationRequest.name,
                                             (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
                                                     state.conflictErrorMessage == null,
-                                            "col-md-12 pl-2 pr-2",
+                                            "col-md-12 pl-2 pr-2 mt-3",
                                             "Tested tool name",
                                         ) {
                                             setState {
@@ -208,11 +208,11 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             classes = "col-md-12 pl-2 pr-2 mt-3"
                                             name = "Contact e-mail"
                                             validInput =
-                                                state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail()
+                                                    state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail()
                                             onChangeFun = {
                                                 setState {
                                                     projectCreationRequest =
-                                                        projectCreationRequest.copy(email = it.target.value)
+                                                            projectCreationRequest.copy(email = it.target.value)
                                                 }
                                             }
                                         }

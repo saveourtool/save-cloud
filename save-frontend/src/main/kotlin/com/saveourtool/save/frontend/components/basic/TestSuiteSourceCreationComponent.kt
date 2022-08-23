@@ -144,7 +144,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
         inputTextFormOptionalWrapperConst {
             form = InputTypes.GIT_BRANCH
             textValue = testSuiteSource.branch
-            classes =  "mb-2"
+            classes = "mb-2"
             name = "Branch"
             validInput = saveStatus != SourceSaveStatus.CONFLICT
             onChangeFun = {

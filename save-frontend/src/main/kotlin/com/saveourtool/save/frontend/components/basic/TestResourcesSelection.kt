@@ -168,8 +168,8 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                     InputTypes.TEST_SUITE_IDS,
                     selectedTestSuiteIds.joinToString(", "),
                     true,
-                    "col-12 pl-2 pr-2",
-                    "Test Suite Ids",
+                    "col-12 pl-2 pr-2 text-center",
+                    "Test Suites:",
                     onClickFun = testSuiteSelectorWindowOpenness.openWindowAction()
                 )
             }

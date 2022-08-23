@@ -4,9 +4,9 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
-import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
@@ -134,7 +134,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                         inputTextFormOptionalWrapperConst {
                             form = InputTypes.PROJECT_EMAIL
                             textValue = draftProject.email
-                            classes =  ""
+                            classes = ""
                             name = null
                             validInput = draftProject.validateEmail()
                             onChangeFun = {

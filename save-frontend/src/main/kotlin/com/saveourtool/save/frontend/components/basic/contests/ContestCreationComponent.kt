@@ -216,8 +216,8 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             InputTypes.CONTEST_TEST_SUITE_IDS,
                             contestDto.testSuiteIds.joinToString(", "),
                             true,
-                            "col-12 pl-2 pr-2",
-                            "Test Suite Ids",
+                            "col-12 pl-2 pr-2 text-center",
+                            "Test Suites:",
                             onClickFun = testSuitesSelectorWindowOpenness.openWindowAction()
                         )
                     }
@@ -227,8 +227,8 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormOptionalWrapperConst {
                             form = InputTypes.CONTEST_DESCRIPTION
                             textValue = contestDto.description
-                            classes =  "col-12 pl-2 pr-2"
-                            name =  "Contest description"
+                            classes = "col-12 pl-2 pr-2"
+                            name = "Contest description"
                             onChangeFun = {
                                 setContestDto(contestDto.copy(description = it.target.value))
                             }
