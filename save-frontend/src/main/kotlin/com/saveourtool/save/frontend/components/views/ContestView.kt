@@ -139,18 +139,20 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             nav {
                 className = ClassName("nav nav-tabs mb-4")
                 ContestMenuBar.values()
-                  .forEachIndexed { i, contestMenu ->
-                      li {
-                          className = ClassName("nav-item")
-                          val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
-                          p {
-                              className = ClassName("nav-link $classVal text-gray-800")
-                              onClick = {
-                                  if (state.selectedMenu != contestMenu) {
-                                      changeUrl(contestMenu)
-                                      setState { selectedMenu = contestMenu }
+                    .forEachIndexed { i, contestMenu ->
+                        li {
+                            className = ClassName("nav-item")
+                            val classVal =
+                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
+                            p {
+                                className = ClassName("nav-link $classVal text-gray-800")
+                                onClick = {
+                                    if (state.selectedMenu != contestMenu) {
+                                        changeUrl(contestMenu)
+                                        setState { selectedMenu = contestMenu }
+                                    }
+                                    +contestMenu.name
                                 }
-                                +contestMenu.name
                             }
                         }
                     }

@@ -93,14 +93,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
     override fun componentDidMount() {
         super.componentDidMount()
+        urlAnalysis()
         scope.launch {
             getBenchmarks()
         }
     }
 
-    override fun componentDidMount() {
-        super.componentDidMount()
-
+    private fun urlAnalysis() {
         val href = window.location.href
         val tab = if (href.contains(Regex("/archive/[^/]+/[^/]+"))) {
             href.substringAfterLast(URL_PATH_DELIMITER).run { BenchmarkCategoryEnum.values().find { it.name.lowercase() == this } }

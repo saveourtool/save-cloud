@@ -312,7 +312,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             urlAnalysis(role)
 
-            standardTestSuites = get(
+            val standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
