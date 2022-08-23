@@ -53,18 +53,9 @@ internal val fs = FileSystem.SYSTEM
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val configFromFile: AgentConfiguration = Properties.decodeFromStringMap(
+    val config: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(
         readProperties("agent.properties")
     ).updateFromEnv()
-    // override with values from env
-    val config: AgentConfiguration = configFromFile.copy(
-        save = configFromFile.save.copy(
-            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
-            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
-            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
-            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
-        )
-    )
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 

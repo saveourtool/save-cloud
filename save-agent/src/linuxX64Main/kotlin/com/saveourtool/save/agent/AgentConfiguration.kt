@@ -119,12 +119,18 @@ data class SaveCliConfig(
 internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
-        id = requiredEnv(AgentEnvName.AGENT_ID.name),
+        id = requiredEnv(AgentEnvName.AGENT_ID),
         cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
         backend = backend.copy(
             url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
         ),
         orchestratorUrl = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestratorUrl,
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
+        save = save.copy(
+            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
+            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
+            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
+            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
+        )
     )
 }
