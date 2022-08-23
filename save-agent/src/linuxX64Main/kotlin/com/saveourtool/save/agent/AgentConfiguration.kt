@@ -5,6 +5,7 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.optionalEnv
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
@@ -36,7 +37,7 @@ data class AgentConfiguration(
     val backend: BackendConfig,
     val orchestratorUrl: String,
     val heartbeat: HeartbeatConfig,
-    val requestTimeoutMillis: Long,
+    val requestTimeoutMillis: Long = 60000,
     val retry: RetryConfig,
     val debug: Boolean = false,
     val cliCommand: String,
@@ -110,6 +111,7 @@ data class SaveCliConfig(
 internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
+        id = requiredEnv(AgentEnvName.AGENT_ID.name),
         cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
         backend = backend.copy(
             url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
