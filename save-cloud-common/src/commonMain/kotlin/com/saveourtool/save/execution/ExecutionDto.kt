@@ -38,7 +38,7 @@ data class ExecutionDto(
     val matchedChecks: Long,
     val expectedChecks: Long,
     val unexpectedChecks: Long,
-    val testSuiteSourceName: String,
+    val testSuiteSourceName: String?,
 ) {
     companion object {
         val empty = ExecutionDto(

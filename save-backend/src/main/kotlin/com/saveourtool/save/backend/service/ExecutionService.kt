@@ -189,7 +189,7 @@ class ExecutionService(
         batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
     )
 
-    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
         formattedTestSuiteIds: String?,

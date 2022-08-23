@@ -94,7 +94,7 @@ class Execution(
 
     var batchSizeForAnalyzer: String?,
 
-    var testSuiteSourceName: String,
+    var testSuiteSourceName: String?,
 
 ) : BaseEntity() {
     /**
