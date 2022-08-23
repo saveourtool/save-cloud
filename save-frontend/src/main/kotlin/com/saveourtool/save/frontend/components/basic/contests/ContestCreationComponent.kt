@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showGeneralTestSuitesSelectorModal
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
@@ -150,10 +150,10 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
     div {
         className = ClassName("card")
         contestCreationCard {
-            showPublicTestSuitesSelectorModal(
+            showGeneralTestSuitesSelectorModal(
                 contestDto.testSuiteIds,
                 testSuitesSelectorWindowOpenness,
-                useState(emptyList())
+                useState(emptyList()),
             ) {
                 setContestDto(contestDto.copy(testSuiteIds = it))
             }
