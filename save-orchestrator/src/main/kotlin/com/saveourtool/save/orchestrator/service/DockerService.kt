@@ -138,7 +138,7 @@ class DockerService(
                             log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
-                                "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
+                                "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
                             ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
                                 .subscribe()
                         }
@@ -207,7 +207,13 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings)
+        val saveCliExtraArgs = SaveCliExtraArgs(
+            overrideExecCmd = execution.execCmd,
+            overrideExecFlags = null,
+            batchSize = execution.batchSizeForAnalyzer?.toInt(),
+            batchSeparator = null,
+        )
+        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings, saveCliExtraArgs)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
@@ -232,10 +238,6 @@ class DockerService(
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
-                overrideExecCmd = execution.execCmd,
-                overrideExecFlags = null,
-                batchSize = execution.batchSizeForAnalyzer?.toInt(),
-                batchSeparator = null,
                 env = env,
             ),
         )
@@ -263,33 +265,26 @@ class DockerService(
         /**
          * @property executionId
          * @property additionalFilesString
-         * @property overrideExecCmd
-         * @property overrideExecFlags
-         * @property batchSize
-         * @property batchSeparator
          */
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
-            val overrideExecCmd: String?,
-            val overrideExecFlags: String?,
-            val batchSize: Int?,
-            val batchSeparator: String?,
             val env: Map<AgentEnvName, String>,
-        ) {
-            /**
-             * @return map of provided values with env name as key
-             */
-            fun toEnvsMap(): Map<AgentEnvName, Any> = buildMap {
-                put(AgentEnvName.EXECUTION_ID, executionId)
-                put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
-                overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
-                overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
-                batchSize?.let { put(AgentEnvName.BATCH_SIZE, it) }
-                batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
-            }
-        }
+        )
     }
+
+    /**
+     * @property overrideExecCmd
+     * @property overrideExecFlags
+     * @property batchSize
+     * @property batchSeparator
+     */
+    internal data class SaveCliExtraArgs(
+        val overrideExecCmd: String?,
+        val overrideExecFlags: String?,
+        val batchSize: Int?,
+        val batchSeparator: String?,
+    )
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)

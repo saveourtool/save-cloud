@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.writeLines
+import kotlin.io.path.writeText
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -223,10 +223,10 @@ class DockerAgentRunner(
 
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
-            val staticEnvs = configuration.resourcesConfiguration
-                .toEnvsMap()
-                .mapToEnvLines()
-            writeLines((staticEnvs + "${configProperties.agentSettings.agentIdEnv}=$containerId"))
+            writeText("""
+                AGENT_ID=$containerId
+                """.trimIndent()
+            )
         }
         copyResourcesIntoContainer(
             containerId,

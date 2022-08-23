@@ -103,10 +103,6 @@ class AgentsControllerTest {
                 resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
                     executionId = execution.id!!,
                     additionalFilesString = "",
-                    overrideExecCmd = null,
-                    overrideExecFlags = null,
-                    batchSize = null,
-                    batchSeparator = null,
                     env = emptyMap(),
                 )
             )

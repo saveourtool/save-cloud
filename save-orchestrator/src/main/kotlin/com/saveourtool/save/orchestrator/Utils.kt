@@ -14,6 +14,7 @@ import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
 import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.save.orchestrator.service.DockerService
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -93,14 +94,25 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
+    saveCliExtraArgs: DockerService.SaveCliExtraArgs,
 ): Map<AgentEnvName, String> {
     val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
     return buildMap {
-        agentSettings.agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
         put(AgentEnvName.CLI_COMMAND, cliCommand)
-        agentSettings.backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-        agentSettings.orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
         put(AgentEnvName.TEST_SUITES_DIR, TEST_SUITES_DIR_NAME)
+
+        with (agentSettings) {
+            agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
+            backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
+            orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        }
+
+        with(saveCliExtraArgs) {
+            overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+            overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
+            batchSize?.let { put(AgentEnvName.BATCH_SIZE, "$it") }
+            batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
+        }
     }
 }
 
