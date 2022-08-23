@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
+import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.DebugInfoStorageKey
@@ -46,10 +47,12 @@ import java.math.BigInteger
 )
 @RestController
 @Transactional
-class TestExecutionController(private val testExecutionService: TestExecutionService,
-                              private val executionService: ExecutionService,
-                              private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-                              private val debugInfoStorage: DebugInfoStorage,
+class TestExecutionController(
+    private val testExecutionService: TestExecutionService,
+    private val executionService: ExecutionService,
+    private val projectPermissionEvaluator: ProjectPermissionEvaluator,
+    private val debugInfoStorage: DebugInfoStorage,
+    private val executionInfoStorage: ExecutionInfoStorage
 ) {
     /**
      * Returns a page of [TestExecutionDto]s with [executionId]
@@ -85,7 +88,8 @@ class TestExecutionController(private val testExecutionService: TestExecutionSer
         .runIf({ checkDebugInfo }) {
             flatMap { testExecutionDto ->
                 debugInfoStorage.doesExist(DebugInfoStorageKey(executionId, TestResultLocation.from(testExecutionDto)))
-                    .map { testExecutionDto.copy(hasDebugInfo = it) }
+                    .zipWith(executionInfoStorage.doesExist(executionId))
+                    .map { testExecutionDto.copy(hasDebugInfo = (it.t1 || it.t2)) }
             }
         }
 
