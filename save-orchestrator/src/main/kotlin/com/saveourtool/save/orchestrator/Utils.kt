@@ -90,13 +90,11 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  * Build map of env variables that can be read by save-agent to override settings from properties file
  *
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
- * @param saveCliExecFlags flags for save-cli
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
-    saveCliExecFlags: String
 ): Map<AgentEnvName, String> {
-    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
     return buildMap {
         agentSettings.agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
         put(AgentEnvName.CLI_COMMAND, cliCommand)

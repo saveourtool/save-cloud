@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
-import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.v1
 
 import org.quartz.Scheduler
@@ -95,24 +94,6 @@ class TestSuitesController(
     @GetMapping("/internal/testSuite/{id}")
     fun getTestSuiteById(@PathVariable id: Long) =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
-
-    /**
-     * @param ids list of test suite ID
-     * @return response with names of test suite with id from provided list
-     */
-    @PostMapping("/internal/test-suite/names-by-ids")
-    fun findAllTestSuiteNamesByIds(@RequestBody ids: List<Long>) = ids
-        .map { id ->
-            testSuitesService.findTestSuiteById(id)
-                .orNotFound {
-                    "TestSuite (id=$id) not found"
-                }
-                .name
-        }
-        .distinct()
-        .let {
-            ResponseEntity.status(HttpStatus.OK).body(it)
-        }
 
     /**
      * Trigger update of standard test suites. Can be called only by superadmins externally.

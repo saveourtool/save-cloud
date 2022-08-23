@@ -8,6 +8,7 @@ import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.agent.utils.logDebugCustom
 import com.saveourtool.save.agent.utils.logInfoCustom
 import com.saveourtool.save.agent.utils.markAsExecutable
+import com.saveourtool.save.agent.utils.optionalEnv
 import com.saveourtool.save.agent.utils.readProperties
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
@@ -52,9 +53,18 @@ internal val fs = FileSystem.SYSTEM
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val config: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(
+    val configFromFile: AgentConfiguration = Properties.decodeFromStringMap(
         readProperties("agent.properties")
     ).updateFromEnv()
+    // override with values from env
+    val config: AgentConfiguration = configFromFile.copy(
+        save = configFromFile.save.copy(
+            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
+            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
+            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
+            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
+        )
+    )
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 

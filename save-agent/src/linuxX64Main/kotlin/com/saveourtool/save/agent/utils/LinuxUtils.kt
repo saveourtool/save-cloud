@@ -11,15 +11,21 @@ import platform.posix.getenv
 import kotlinx.cinterop.toKString
 
 /**
- * Get value of environment variable [name] or throw if it is not set.
+ * Get value of environment variable [envName] or throw if it is not set.
  *
- * @param name name of the environment variable
+ * @param envName name of the environment variable
  * @return value of the environment variable
  */
-internal fun requiredEnv(name: String): String = requireNotNull(getenv(name)) {
-    "Environment variable $name is not set but is required"
+internal fun requiredEnv(envName: AgentEnvName): String = requireNotNull(getenv(envName.name)) {
+    "Environment variable $envName is not set but is required"
 }.toKString()
 
+/**
+ * Get value of environment variable [envName] or null.
+ *
+ * @param envName name of the optional environment variable
+ * @return value of the optional environment variable or null
+ */
 internal fun optionalEnv(envName: AgentEnvName): String? = getenv(envName.name)
     .also {
         it ?: logDebug("Optional environment variable $envName is not provided")

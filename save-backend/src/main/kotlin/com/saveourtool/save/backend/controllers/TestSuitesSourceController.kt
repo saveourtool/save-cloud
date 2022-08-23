@@ -351,8 +351,7 @@ class TestSuitesSourceController(
             when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
                 SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
                 SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
-                SourceSaveStatus.NEW -> testSuitesSourceService.fetch(testSuitesSource.toDto())
-                    .map { ResponseEntity.ok(SourceSaveStatus.NEW) }
+                SourceSaveStatus.NEW -> Mono.just(ResponseEntity.ok(SourceSaveStatus.NEW))
             }
         }
 
@@ -511,6 +510,22 @@ class TestSuitesSourceController(
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
+        }
+
+    @GetMapping("/api/$v1/test-suites-sources/avaliable")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organizations with public test suite sources.",
+        description = "Get list of organizations with public test suite sources",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
+    fun getOrganizationNamesWithPublicTestSuiteSources(
+        authentication: Authentication,
+    ): Mono<TestSuitesSourceDtoList> = testSuitesSourceService.getAvaliableTestSuiteSources().toMono()
+        .map {testSuitesSourceList ->
+            testSuitesSourceList.map { it.toDto() }
         }
 
     private fun TestSuitesSourceDto.downloadSnapshot(

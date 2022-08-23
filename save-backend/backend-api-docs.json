@@ -57,36 +57,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "version of uploading snapshot",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "creationTime",
-            "in": "query",
-            "description": "creationTime of uploading snapshot",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "content",
-            "description": "content of uploading snapshot",
-            "required": true
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "requestBody": {
@@ -99,7 +69,16 @@
                 "type": "object",
                 "properties": {
                   "content": {
-                    "$ref": "#/components/schemas/Part"
+                    "description": "content of uploading snapshot"
+                  },
+                  "version": {
+                    "description": "version of uploading snapshot"
+                  },
+                  "creationTime": {
+                    "description": "creationTime of uploading snapshot"
+                  },
+                  "X-Authorization-Source": {
+                    "example": "basic"
                   }
                 }
               }
@@ -2032,28 +2011,6 @@
           "files"
         ],
         "operationId": "uploadImage",
-        "parameters": [
-          {
-            "name": "owner",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ORGANIZATION",
-                "USER"
-              ]
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -2066,7 +2023,9 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  }
+                  },
+                  "owner": {},
+                  "type": {}
                 }
               }
             }
@@ -2113,15 +2072,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "returnShortFileInfo",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": true
-            }
           }
         ],
         "requestBody": {
@@ -2136,7 +2086,8 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  }
+                  },
+                  "returnShortFileInfo": {}
                 }
               }
             }
@@ -4000,6 +3951,57 @@
         "responses": {
           "200": {
             "description": "Successfully fetched list of public test suites sources.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites-sources/avaliable": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get organizations with public test suite sources.",
+        "description": "Get list of organizations with public test suite sources",
+        "operationId": "getOrganizationNamesWithPublicTestSuiteSources",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched organizations with public test suite sources.",
             "content": {
               "*/*": {
                 "schema": {
@@ -6677,9 +6679,6 @@
   "components": {
     "schemas": {
       "Unit": {
-        "type": "object"
-      },
-      "Part": {
         "type": "object"
       },
       "GitDto": {
