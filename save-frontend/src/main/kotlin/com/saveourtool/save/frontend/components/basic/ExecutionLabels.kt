@@ -98,7 +98,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                if (allApplicable(it.matchedChecks, it.unexpectedChecks)) {
+                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
                     calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks)
                 } else {
                     "N/A"
@@ -107,7 +107,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                if (allApplicable(it.matchedChecks, it.unmatchedChecks)) {
+                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
                     calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks)
                 } else {
                     "N/A"
@@ -116,9 +116,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
     }
 
-    private fun allApplicable(vararg values: Long): Boolean {
-        return values.all { !CountWarnings.isNotApplicable(it.toInt()) }
-    }
+    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
 
     private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
         ?.run { numerator.toDouble() / denominator }

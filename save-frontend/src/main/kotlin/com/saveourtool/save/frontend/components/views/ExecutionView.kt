@@ -300,6 +300,11 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     )
 
+    init {
+        state.executionDto = null
+        state.filters = TestExecutionFilters.empty
+    }
+
     private fun formatCounter(count: Long?): String = count?.let {
         if (CountWarnings.isNotApplicable(it.toInt())) {
             "N/A"
@@ -307,11 +312,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             it.toString()
         }
     } ?: ""
-
-    init {
-        state.executionDto = null
-        state.filters = TestExecutionFilters.empty
-    }
 
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution)
