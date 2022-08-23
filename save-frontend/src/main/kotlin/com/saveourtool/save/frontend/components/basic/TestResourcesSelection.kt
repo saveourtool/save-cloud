@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 
@@ -166,8 +168,8 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                     InputTypes.TEST_SUITE_IDS,
                     selectedTestSuiteIds.joinToString(", "),
                     true,
-                    "col-12 pl-2 pr-2",
-                    "Test Suite Ids",
+                    "col-12 pl-2 pr-2 text-center",
+                    "Test Suites:",
                     onClickFun = testSuiteSelectorWindowOpenness.openWindowAction()
                 )
             }
