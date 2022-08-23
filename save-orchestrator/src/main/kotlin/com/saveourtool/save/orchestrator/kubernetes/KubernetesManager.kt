@@ -265,12 +265,10 @@ class KubernetesManager(
         }
     }
 
-    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { entry ->
-        entry.let { (envName, envValue) ->
-            EnvVar().apply {
-                name = envName.name
-                value = envValue.toString()
-            }
+    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { (envName, envValue) ->
+        EnvVar().apply {
+            name = envName.name
+            value = envValue.toString()
         }
     }
 
