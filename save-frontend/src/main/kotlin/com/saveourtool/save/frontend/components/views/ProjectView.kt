@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
@@ -311,11 +312,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 selfRole = role
             }
             urlAnalysis(role)
-
             val standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
                 this.availableFiles.clear()
@@ -933,6 +934,27 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         init {
             contextType = requestStatusContext
+        }
+    }
+
+    fun urlAnalysis(menuBar: MenuBar, role: Role, isThisPrivateTab: (MenuBar) -> Boolean) {
+        val href = window.location.href
+        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
+            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
+        } else {
+            ProjectMenuBar.defaultTab
+        }
+        val tab = if(href.contains(menuBar.))
+        if (state.selectedMenu != tab) {
+            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
+                changeUrl(ProjectMenuBar.defaultTab)
+                window.alert("Your role is not suitable for opening this page")
+                window.location.reload()
+                setState { selectedMenu = ProjectMenuBar.defaultTab }
+            } else {
+                changeUrl(tab)
+                setState { selectedMenu = tab }
+            }
         }
     }
 }
