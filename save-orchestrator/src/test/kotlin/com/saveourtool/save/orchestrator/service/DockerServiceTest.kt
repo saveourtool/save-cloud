@@ -76,14 +76,6 @@ class DockerServiceTest {
             testSuiteIds = "1,2,3"
             sdk = "Java:11"
         }
-        mockServer.enqueue(
-            "/test-suite/names-by-ids",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Accept", "application/json")
-                .setHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(listOf("Test1", "Test2")))
-        )
         val configuration = dockerService.prepareConfiguration(testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,

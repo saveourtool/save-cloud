@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
@@ -237,24 +238,10 @@ class KubernetesManager(
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
-        env = listOf(
-            EnvVar().apply {
-                name = "POD_NAME"
-                valueFrom = EnvVarSource().apply {
-                    fieldRef = ObjectFieldSelector().apply {
-                        fieldPath = "metadata.name"
-                    }
-                }
-            },
-            EnvVar().apply {
-                name = "EXECUTION_ID"
-                value = "${resourcesConfiguration.executionId}"
-            },
-            EnvVar().apply {
-                name = "ADDITIONAL_FILES_LIST"
-                value = resourcesConfiguration.additionalFilesString
-            },
-        )
+
+        val staticEnvs = resourcesConfiguration.toEnvsMap().mapToEnvs()
+        env = configProperties.agentSettings.agentIdEnv?.let { staticEnvs + agentIdEnv(it) }
+            ?: staticEnvs
 
         val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
@@ -267,6 +254,22 @@ class KubernetesManager(
                 mountPath = resourcesPath
             }
         )
+    }
+
+    private fun agentIdEnv(agentIdEnvName: String) = EnvVar().apply {
+        name = agentIdEnvName
+        valueFrom = EnvVarSource().apply {
+            fieldRef = ObjectFieldSelector().apply {
+                fieldPath = "metadata.name"
+            }
+        }
+    }
+
+    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { (envName, envValue) ->
+        EnvVar().apply {
+            name = envName.name
+            value = envValue.toString()
+        }
     }
 
     private fun kcJobsWithName(name: String) = kc.batch()

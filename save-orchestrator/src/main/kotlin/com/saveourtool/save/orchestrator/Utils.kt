@@ -92,19 +92,17 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  *
  * @param agentPropertiesFile target file
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
- * @param saveCliExecFlags flags for save-cli
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentPropertiesFile: File,
     agentSettings: AgentSettings,
-    saveCliExecFlags: String
 ) {
     FileUtils.copyInputStreamToFile(
         ClassPathResource("agent.properties").inputStream,
         agentPropertiesFile
     )
 
-    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
+    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
     agentPropertiesFile.writeText(
         agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
             when {
