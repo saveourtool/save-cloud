@@ -97,7 +97,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
             }
             +props.formName
             span {
-                className = ClassName("text-red")
+                className = ClassName("text-danger")
                 id = "${props.formType.name}Span"
                 +"*"
             }

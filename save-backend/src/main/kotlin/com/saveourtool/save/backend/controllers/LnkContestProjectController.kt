@@ -12,9 +12,12 @@ import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
+import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -24,6 +27,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.springframework.data.domain.PageRequest
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,6 +38,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -45,7 +50,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "contests"),
 )
 @RestController
-@RequestMapping("/api/$v1/contests/")
+@RequestMapping("/api/$v1/contests")
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
@@ -153,6 +158,77 @@ class LnkContestProjectController(
             }
         }
 
+    @GetMapping("/{contestName}/executions/{organizationName}/{projectName}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "GET",
+        summary = "Get project executions in contest.",
+        description = "Get list of execution of a project with given name in contest with given name.",
+    )
+    @Parameters(
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched latest project execution in contest.")
+    @ApiResponse(responseCode = "404", description = "Either contest is not found or project is not found or execution is not found.")
+    fun getContestExecutionsForProject(
+        @PathVariable contestName: String,
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication,
+    ): Flux<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
+        .flatMapIterable { (contest, project) ->
+            lnkContestExecutionService.getPageExecutionsByContestAndProject(
+                contest,
+                project,
+                PageRequest.ofSize(MAX_AMOUNT)
+            )
+        }
+        .map {
+            it.execution.toDto()
+        }
+
+    @GetMapping("/{contestName}/executions/{organizationName}/{projectName}/latest")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "GET",
+        summary = "Get latest project execution in contest.",
+        description = "Get latest execution of a project with given name in contest with given name.",
+    )
+    @Parameters(
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched latest project execution in contest.")
+    @ApiResponse(responseCode = "404", description = "Either contest is not found or project is not found or execution is not found.")
+    fun getLatestExecutionOfProjectInContest(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @PathVariable contestName: String,
+        authentication: Authentication
+    ): Mono<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
+        .flatMap { (contest, project) ->
+            lnkContestExecutionService.getLatestExecutionByContestAndProject(contest, project).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "No executions found for project $organizationName/$projectName in contest $contestName."
+        }
+        .map {
+            it.execution.toDto()
+        }
+
+    private fun getContestAndProject(contestName: String, organizationName: String, projectName: String) = Mono.justOrEmpty(contestService.findByName(contestName))
+        .switchIfEmptyToNotFound {
+            "Could not find contest with name $contestName."
+        }
+        .zipWith(projectService.findByNameAndOrganizationName(projectName, organizationName).toMono())
+        .switchIfEmptyToNotFound {
+            "Could not find project with name $organizationName/$projectName."
+        }
+
     @GetMapping("/{contestName}/enroll")
     @PreAuthorize("isAuthenticated()")
     @RequiresAuthorizationSourceHeader
@@ -205,6 +281,38 @@ class LnkContestProjectController(
             } else {
                 ResponseEntity.ok("You are already enrolled for this contest.")
             }
+        }
+
+    @GetMapping("/{contestName}/my-results")
+    @PreAuthorize("isAuthenticated()")
+    @RequiresAuthorizationSourceHeader
+    @Operation(
+        method = "GET",
+        summary = "Get your best results in contest.",
+        description = "Get list of best results of your projects in a given contest.",
+    )
+    @Parameters(
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched your best results.")
+    @ApiResponse(responseCode = "404", description = "Either given project or given contest was not found.")
+    fun getBestResultsInUserProjects(
+        @PathVariable contestName: String,
+        authentication: Authentication,
+    ): Flux<ContestResult> = Mono.justOrEmpty(contestService.findByName(contestName))
+        .switchIfEmptyToNotFound {
+            "Contest with name $contestName was not found."
+        }
+        .map { contest ->
+            contest to lnkUserProjectService.getNonDeletedProjectsByUserId((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
+        }
+        .flatMapMany { (contest, projectIds) ->
+            blockingToFlux {
+                lnkContestExecutionService.getLatestExecutionByContestAndProjectIds(contest, projectIds)
+            }
+        }
+        .map {
+            it.toContestResult()
         }
 
     companion object {
