@@ -1,5 +1,8 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.utils.LocalDateTime
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,11 +11,20 @@ import kotlinx.serialization.Serializable
  * @property organizationName name of an organization in which given project is
  * @property score that project got in contest
  * @property contestName
+ * @property submissionTime
+ * @property submissionStatus
+ * @property sdk
+ * @property hasFailedTest
  */
 @Serializable
 data class ContestResult(
     val projectName: String,
     val organizationName: String,
     val contestName: String,
-    val score: Double?,
+    val score: Double? = null,
+    @Contextual
+    val submissionTime: LocalDateTime? = null,
+    val submissionStatus: ExecutionStatus = ExecutionStatus.PENDING,
+    val sdk: String = "",
+    val hasFailedTest: Boolean = false,
 )
