@@ -48,7 +48,7 @@ import java.util.*
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
     UserDetailsService::class,
-
+    OriginalLoginRepository::class,
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
