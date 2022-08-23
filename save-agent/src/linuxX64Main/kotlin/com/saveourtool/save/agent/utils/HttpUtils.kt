@@ -6,6 +6,7 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
+import com.saveourtool.save.core.utils.runIf
 import io.ktor.client.*
 import io.ktor.client.request.*
 
@@ -18,7 +19,7 @@ import io.ktor.http.*
  */
 internal fun SaveAgent.updateStateBasedOnBackendResponse(
     result: Result<HttpResponse>
-) = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
+) = if (result.notOk()) {
     state.value = AgentState.BACKEND_FAILURE
     true
 } else if (result.isFailure) {
@@ -36,8 +37,8 @@ internal fun SaveAgent.updateStateBasedOnBackendResponse(
  */
 internal suspend fun SaveAgent.sendDataToBackend(
     requestToBackend: suspend () -> HttpResponse
-): Result<HttpResponse> = runCatching { requestToBackend() }.apply {
-    val reason = if (isSuccess && getOrNull()?.status != HttpStatusCode.OK) {
+): Result<HttpResponse> = runCatching { requestToBackend() }.runIf({ failureOrNotOk() }) {
+    val reason = if (notOk()) {
         state.value = AgentState.BACKEND_FAILURE
         "Backend returned status ${getOrNull()?.status}"
     } else {
@@ -45,6 +46,7 @@ internal suspend fun SaveAgent.sendDataToBackend(
         "Backend is unreachable, ${exceptionOrNull()?.message}"
     }
     logErrorCustom("Cannot send data to backed: $reason")
+    this
 }
 
 /**
@@ -63,3 +65,7 @@ internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpRe
         body?.let { setBody(it) }
     }
 }
+
+private fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
+
+private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()

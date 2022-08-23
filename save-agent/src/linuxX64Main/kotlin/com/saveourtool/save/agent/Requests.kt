@@ -32,7 +32,7 @@ import okio.Path.Companion.toPath
 internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
     val result = httpClient.downloadTestResources(config, executionId)
     if (updateStateBasedOnBackendResponse(result)) {
-        return@runCatching
+        throw IllegalStateException("Couldn't download test resources")
     }
 
     val bytes = result.getOrThrow()
@@ -70,7 +70,7 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
                 fileKey
             )
             if (updateStateBasedOnBackendResponse(result)) {
-                return@runCatching
+                throw IllegalStateException("Couldn't download file $fileKey")
             }
 
             val fileContentBytes = result.getOrThrow()
