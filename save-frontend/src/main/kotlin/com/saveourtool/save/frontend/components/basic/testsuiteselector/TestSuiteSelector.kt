@@ -36,9 +36,14 @@ external interface TestSuiteSelectorProps : Props {
 
     /**
      * Specific organization name which reduces list of test suites source.
-     * If it's null we show public tests
+     * If null, all the test suites are shown
      */
     var specificOrganizationName: String?
+
+    /**
+     * If this flag is true public tests will be shown
+     */
+    var isStandardMode: Boolean
 }
 
 /**
@@ -52,6 +57,8 @@ enum class TestSuiteSelectorMode {
 }
 
 /**
+ * Browse standard test suites
+ *
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
@@ -63,10 +70,29 @@ fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(null, true, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
+ * Browse all the avaliable test suites.
+ *
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showGeneralTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, false, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * Browse test suites of a given organization
+ *
  * @param organizationName
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
@@ -80,11 +106,13 @@ fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(organizationName, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(organizationName, false, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     specificOrganizationName: String?,
+    isStandardMode: Boolean,
     initTestSuiteIds: List<Long>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
@@ -102,7 +130,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
         currentlySelectedTestSuiteIds = initTestSuiteIds
         windowOpenness.closeWindow()
     }
-    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, isStandardMode, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
 }
 
 @Suppress(
@@ -114,6 +142,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
     specificOrganizationName: String?,
+    isStandardMode: Boolean,
     preselectedTestSuiteIds: List<Long>,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<Long>) -> Unit,
@@ -150,6 +179,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                         this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuiteIds = preselectedTestSuiteIds
                         this.specificOrganizationName = specificOrganizationName
+                        this.isStandardMode = isStandardMode
                     }
                 }
 
@@ -233,6 +263,7 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
             this.specificOrganizationName = props.specificOrganizationName
+            this.isStandardMode = props.isStandardMode
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
