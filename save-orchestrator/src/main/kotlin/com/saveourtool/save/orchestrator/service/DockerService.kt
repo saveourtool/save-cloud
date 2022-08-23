@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
@@ -13,17 +14,12 @@ import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
-import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
-import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.orConflict
 
-import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
@@ -212,9 +208,7 @@ class DockerService(
         // collect test suite names, which were selected by user
         val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
 
-        // todo: pass all these as env
-        val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
-        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
+        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings, saveCliExecFlags)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
@@ -239,7 +233,7 @@ class DockerService(
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
-                propertiesFilePath = agentPropertiesFile,
+                env = env,
             ),
         )
     }
@@ -283,7 +277,7 @@ class DockerService(
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
-            val propertiesFilePath: Path,
+            val env: Map<AgentEnvName, String>,
         )
     }
 

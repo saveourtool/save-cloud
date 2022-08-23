@@ -4,9 +4,11 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.optionalEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.core.logging.logTrace
 
 import platform.posix.getenv
 
@@ -104,3 +106,15 @@ data class SaveCliConfig(
     val reportDir: String = "save-reports",
     val logType: LogType = LogType.ALL,
 )
+
+internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
+    logTrace("Initial agent config: $this; applying overrides from env")
+    return copy(
+        cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
+        backend = backend.copy(
+            url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
+        ),
+        orchestratorUrl = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestratorUrl,
+        testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
+    )
+}

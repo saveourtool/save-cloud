@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.agent.utils
 
+import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.save.core.logging.logDebug
 import platform.posix.getenv
 
 import kotlinx.cinterop.toKString
@@ -17,3 +19,9 @@ import kotlinx.cinterop.toKString
 internal fun requiredEnv(name: String): String = requireNotNull(getenv(name)) {
     "Environment variable $name is not set but is required"
 }.toKString()
+
+internal fun optionalEnv(envName: AgentEnvName): String? = getenv(envName.name)
+    .also {
+        it ?: logDebug("Optional environment variable $envName is not provided")
+    }
+    ?.toKString()

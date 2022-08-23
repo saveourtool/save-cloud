@@ -103,6 +103,7 @@ class AgentsControllerTest {
                 resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
                     executionId = execution.id!!,
                     additionalFilesString = "",
+                    env = emptyMap(),
                 )
             )
         )

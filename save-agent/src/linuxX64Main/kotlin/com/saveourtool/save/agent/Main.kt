@@ -52,9 +52,9 @@ internal val fs = FileSystem.SYSTEM
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val config: AgentConfiguration = Properties.decodeFromStringMap(
+    val config: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(
         readProperties("agent.properties")
-    )
+    ).updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 

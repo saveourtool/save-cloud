@@ -66,6 +66,7 @@ class DockerContainerManagerTest {
                 resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
                     executionId = 99L,
                     additionalFilesString = "",
+                    env = emptyMap(),
                 )
             ),
             replicas = 1,

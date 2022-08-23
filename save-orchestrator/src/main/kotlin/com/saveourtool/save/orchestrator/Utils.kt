@@ -13,13 +13,12 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.agent.AgentEnvName
 import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.apache.commons.io.FileUtils
-import org.springframework.core.io.ClassPathResource
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
@@ -88,37 +87,23 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
     }
 
 /**
- * Load default agent.properties from classpath, get properties values using configuration and store into [agentPropertiesFile].
+ * Build map of env variables that can be read by save-agent to override settings from properties file
  *
- * @param agentPropertiesFile target file
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
  * @param saveCliExecFlags flags for save-cli
  */
 internal fun fillAgentPropertiesFromConfiguration(
-    agentPropertiesFile: File,
     agentSettings: AgentSettings,
     saveCliExecFlags: String
-) {
-    FileUtils.copyInputStreamToFile(
-        ClassPathResource("agent.properties").inputStream,
-        agentPropertiesFile
-    )
-
+): Map<AgentEnvName, String> {
     val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME$saveCliExecFlags"
-    agentPropertiesFile.writeText(
-        agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
-            when {
-                line.startsWith("id=") -> "id=\${${agentSettings.agentIdEnv}}"
-                line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
-                line.startsWith("backend.url=") && agentSettings.backendUrl != null ->
-                    "backend.url=${agentSettings.backendUrl}"
-                line.startsWith("orchestratorUrl=") && agentSettings.orchestratorUrl != null ->
-                    "orchestratorUrl=${agentSettings.orchestratorUrl}"
-                line.startsWith("testSuitesDir=") -> "testSuitesDir=$TEST_SUITES_DIR_NAME"
-                else -> line
-            }
-        }
-    )
+    return buildMap {
+        agentSettings.agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
+        put(AgentEnvName.CLI_COMMAND, cliCommand)
+        agentSettings.backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
+        agentSettings.orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        put(AgentEnvName.TEST_SUITES_DIR, TEST_SUITES_DIR_NAME)
+    }
 }
 
 /**
