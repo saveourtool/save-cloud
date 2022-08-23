@@ -293,7 +293,9 @@ class DockerService(
          * @property executionId
          * @property additionalFilesString
          * @property overrideExecCmd
+         * @property overrideExecFlags
          * @property batchSize
+         * @property batchSeparator
          */
         data class ResourcesConfiguration(
             val executionId: Long,
