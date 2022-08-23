@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.OriginalLogin
-import com.saveourtool.save.entities.User
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -15,7 +14,6 @@ interface OriginalLoginRepository : BaseEntityRepository<OriginalLogin> {
      * @return OriginalLogin or null if no results have been found
      */
     fun findByName(username: String): OriginalLogin?
-
 
     /**
      * @param name

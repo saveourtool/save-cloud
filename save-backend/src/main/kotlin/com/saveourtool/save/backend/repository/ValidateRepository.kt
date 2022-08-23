@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
+/**
+ * Controller that handles operation with validate
+ */
 interface ValidateRepository {
-
     /**
      * @param name of organization or user
      * @return 1 if [name] is valid, 0 otherwise

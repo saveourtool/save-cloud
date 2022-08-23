@@ -22,8 +22,9 @@ import kotlinx.serialization.Serializable
  * @property organizations
  * @property globalRole
  * @property id
- * @property oldNames
  * @property isActive
+ * @property oldName
+ * @property originalLogins
  */
 @Serializable
 data class UserInfo(
@@ -59,5 +60,4 @@ data class UserInfo(
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     override fun validate(): Boolean = validateName()
-
 }

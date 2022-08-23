@@ -3,9 +3,6 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Organization
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
 
@@ -13,8 +10,10 @@ import org.springframework.stereotype.Repository
  * The repository of organization entities
  */
 @Repository
-interface OrganizationRepository : JpaRepository<Organization, Long>, QueryByExampleExecutor<Organization>,
-JpaSpecificationExecutor<Organization>, ValidateRepository {
+interface OrganizationRepository : JpaRepository<Organization, Long>,
+QueryByExampleExecutor<Organization>,
+JpaSpecificationExecutor<Organization>,
+ValidateRepository {
     /**
      * @param name
      * @return organization by name
@@ -33,5 +32,4 @@ JpaSpecificationExecutor<Organization>, ValidateRepository {
      * @return list of organization by owner id
      */
     fun findByOwnerId(ownerId: Long): List<Organization>
-
 }

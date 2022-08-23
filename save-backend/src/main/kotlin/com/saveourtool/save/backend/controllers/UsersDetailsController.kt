@@ -7,7 +7,6 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
@@ -21,7 +20,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -61,6 +59,10 @@ class UsersDetailsController(
                     .map { it.toUserInfo() }
             }
 
+    /**
+     * @param newUserInfo
+     * @param authentication
+     */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
@@ -127,8 +129,12 @@ class UsersDetailsController(
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
             Mono.just(userDetailsService.getGlobalRole(authentication))
 
+    /**
+     * @param name
+     * @return user
+     */
     fun getByName(name: String): User? =
-        userRepository.findByName(name) ?: run {
-            originalLoginRepository.findByName(name)?.user
-        }
+            userRepository.findByName(name) ?: run {
+                originalLoginRepository.findByName(name)?.user
+            }
 }

@@ -7,10 +7,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.InputTypes
 import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
-import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -25,6 +23,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
+import react.*
 import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
@@ -35,7 +34,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.*
 
 /**
  * `Props` retrieved from router
@@ -145,7 +143,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "TOO_LONG_FUNCTION",
         "EMPTY_BLOCK_STRUCTURE_ERROR",
         "LongMethod",
-        "MAGIC_NUMBER"
+        "MAGIC_NUMBER",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     override fun ChildrenBuilder.render() {
         if (state.userInfo?.isActive == false) {
@@ -257,7 +256,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 }
             }
 
-/*    companion object :
+    /* companion object :
         RStatics<RegistrationProps, RegistrationViewState, RegistrationView, Context<RequestStatusContext>>(
             RegistrationView::class
         ) {

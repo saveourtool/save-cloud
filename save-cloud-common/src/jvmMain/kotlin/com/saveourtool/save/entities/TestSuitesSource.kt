@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 

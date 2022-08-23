@@ -11,4 +11,4 @@ import org.springframework.data.repository.query.QueryByExampleExecutor
  */
 @NoRepositoryBean
 interface BaseEntityRepository<T : BaseEntity> : JpaRepository<T, Long>, JpaSpecificationExecutor<T>,
-    QueryByExampleExecutor<T>
+QueryByExampleExecutor<T>
