@@ -67,7 +67,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
-            console.log("$owner $name")
             currentUserInfo = state.userInfo
         }
     }

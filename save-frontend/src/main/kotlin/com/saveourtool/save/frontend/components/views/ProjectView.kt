@@ -521,6 +521,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         if (state.selectedMenu != tab) {
             if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
                 changeUrl(ProjectMenuBar.defaultTab)
+                window.alert("Your role is not suitable for opening this page")
+                window.location.reload()
+                setState { selectedMenu = ProjectMenuBar.defaultTab }
             } else {
                 changeUrl(tab)
                 setState { selectedMenu = tab }

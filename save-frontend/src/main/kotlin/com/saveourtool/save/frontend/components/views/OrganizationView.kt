@@ -298,8 +298,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         if (state.selectedMenu != tab) {
             if (((tab == OrganizationMenuBar.SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
-                ((tab == OrganizationMenuBar.CONTESTS) && !role.isHigherOrEqualThan(Role.OWNER))) {
+                ((tab == OrganizationMenuBar.CONTESTS) && (!role.isHigherOrEqualThan(Role.OWNER) || state.organization?.canCreateContests == false))) {
                 changeUrl(OrganizationMenuBar.defaultTab)
+                window.alert("Your role is not suitable for opening this page")
+                window.location.reload()
+                setState { selectedMenu = OrganizationMenuBar.defaultTab }
             } else {
                 changeUrl(tab)
                 setState { selectedMenu = tab }
