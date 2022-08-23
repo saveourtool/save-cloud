@@ -107,6 +107,15 @@ fun ChildrenBuilder.showTestSuiteSourceCreationModal(
 private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
+    val fetchTestSuiteSource = useRequest {
+        post(
+            url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${testSuiteSource.name}/fetch",
+            headers = jsonHeaders,
+            body = undefined,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+    }
     val onSubmitButtonPressed = useRequest {
         val response = post(
             url = "/api/$v1/test-suites-sources/create",
@@ -116,6 +125,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             responseHandler = ::responseHandlerWithValidation,
         )
         if (response.ok) {
+            fetchTestSuiteSource()
             props.onSuccess()
         } else if (response.isConflict()) {
             setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())

@@ -83,7 +83,7 @@ class SaveAgent(private val config: AgentConfiguration,
             sendDataToBackend { saveAdditionalData() }
 
             logDebugCustom("Will now download tests")
-            val executionId = requiredEnv("EXECUTION_ID")
+            val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
             val targetDirectory = config.testSuitesDir.toPath()
             downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
@@ -93,7 +93,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")
-            val additionalFilesList = requiredEnv("ADDITIONAL_FILES_LIST")
+            val additionalFilesList = requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST)
             downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList, executionId).runIf({ isFailure }) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
@@ -203,11 +203,26 @@ class SaveAgent(private val config: AgentConfiguration,
     private fun runSave(cliArgs: String): ExecutionResult {
         val fullCliCommand = buildString {
             append(config.cliCommand)
+            append(" ${config.testSuitesDir}")
             append(" $cliArgs")
-            append(" --report-type ${config.save.reportType.name.lowercase()}")
-            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
-            append(" --report-dir ${config.save.reportDir}")
-            append(" --log ${config.save.logType.name.lowercase()}")
+            with(config.save) {
+                batchSize?.let {
+                    append(" --batch-size $it")
+                }
+                batchSeparator?.let {
+                    append(" --batch-separator \"$it\"")
+                }
+                overrideExecCmd?.let {
+                    append(" --override-exec-cmd \"$it\"")
+                }
+                overrideExecFlags?.let {
+                    append(" --override-exec-flags \"$it\"")
+                }
+                append(" --report-type ${reportType.name.lowercase()}")
+                append(" --result-output ${resultOutput.name.lowercase()}")
+                append(" --report-dir $reportDir")
+                append(" --log ${logType.name.lowercase()}")
+            }
         }
         return ProcessBuilder(true, FileSystem.SYSTEM)
             .exec(
@@ -245,12 +260,10 @@ class SaveAgent(private val config: AgentConfiguration,
             .unzip()
     }
 
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
     private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) = this.debugInfo
         ?.countWarnings
         ?.let { getter(it) }
         ?.toLong()
-        ?: 0L
 
     private fun readExecutionReportFromFile(jsonFile: String): List<Report> {
         val jsonFileContent = readFile(jsonFile).joinToString(separator = "")

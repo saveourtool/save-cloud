@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
@@ -12,12 +13,9 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
 import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.orConflict
 
 import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
@@ -27,7 +25,6 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 
 import java.nio.file.Path
@@ -209,9 +206,6 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // collect test suite names, which were selected by user
-        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
-
         // include save-agent into the image
         PathUtils.copyFile(
             ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).url,
@@ -236,7 +230,7 @@ class DockerService(
         }
 
         val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
-        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
+        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
@@ -253,22 +247,13 @@ class DockerService(
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
                 executionId = execution.requiredId(),
                 additionalFilesString = execution.additionalFiles,
+                overrideExecCmd = execution.execCmd,
+                overrideExecFlags = null,
+                batchSize = execution.batchSizeForAnalyzer?.toInt(),
+                batchSeparator = null,
             ),
         )
     }
-
-    private fun Execution.getTestSuiteNames(): List<String> = this
-        .parseAndGetTestSuiteIds()
-        ?.let {
-            webClientBackend.post()
-                .uri("/test-suite/names-by-ids")
-                .bodyValue(it)
-                .retrieve()
-                .bodyToMono<List<String>>()
-                .block()!!
-        }.orConflict {
-            "Execution (id=$id) doesn't contain testSuiteIds"
-        }
 
     /**
      * Information required to start containers with save-agent
@@ -292,11 +277,31 @@ class DockerService(
         /**
          * @property executionId
          * @property additionalFilesString
+         * @property overrideExecCmd
+         * @property overrideExecFlags
+         * @property batchSize
+         * @property batchSeparator
          */
         data class ResourcesConfiguration(
             val executionId: Long,
             val additionalFilesString: String,
-        )
+            val overrideExecCmd: String?,
+            val overrideExecFlags: String?,
+            val batchSize: Int?,
+            val batchSeparator: String?
+        ) {
+            /**
+             * @return map of provided values with env name as key
+             */
+            fun toEnvsMap(): Map<AgentEnvName, Any> = buildMap {
+                put(AgentEnvName.EXECUTION_ID, executionId)
+                put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
+                overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+                overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
+                batchSize?.let { put(AgentEnvName.BATCH_SIZE, it) }
+                batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
+            }
+        }
     }
 
     companion object {
