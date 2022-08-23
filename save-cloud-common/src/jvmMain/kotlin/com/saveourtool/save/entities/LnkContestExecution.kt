@@ -23,4 +23,18 @@ class LnkContestExecution(
     var contest: Contest,
 
     var score: Double
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return [ContestResult] from [LnkContestExecution]
+     */
+    fun toContestResult() = ContestResult(
+        execution.project.name,
+        execution.project.organization.name,
+        contest.name,
+        score,
+        execution.startTime,
+        execution.status,
+        execution.sdk,
+        execution.failedTests != 0L,
+    )
+}

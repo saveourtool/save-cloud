@@ -4,7 +4,7 @@ import com.saveourtool.save.frontend.externals.animations.*
 
 import csstype.Width
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
 
@@ -18,7 +18,7 @@ object AwesomeBenchmarks : WelcomePager {
     }
 
     private fun ChildrenBuilder.renderAnimatedPage() {
-        ReactHTML.img {
+        img {
             style = jso {
                 width = "140%".unsafeCast<Width>()
             }

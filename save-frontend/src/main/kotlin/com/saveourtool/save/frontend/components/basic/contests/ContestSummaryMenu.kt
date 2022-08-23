@@ -16,14 +16,14 @@ import react.dom.html.ReactHTML.h6
 import kotlinx.js.jso
 
 /**
- * PARTICIPANTS tab in ContestView
+ * SUMMARY tab in ContestView
  */
-val contestParticipantsMenu = contestParticipantsMenu()
+val contestSummaryMenu = contestSummaryMenu()
 
 /**
- * ContestParticipantsMenu component props
+ * ContestSummaryMenu component [Props]
  */
-external interface ContestParticipantsMenuProps : Props {
+external interface ContestSummaryMenuProps : Props {
     /**
      * Name of a current contest
      */
@@ -39,7 +39,7 @@ external interface ContestParticipantsMenuProps : Props {
     "MAGIC_NUMBER",
     "AVOID_NULL_CHECKS"
 )
-private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props ->
+private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
     val (results, setResults) = useState<List<ContestResult>>(emptyList())
     useRequest(isDeferred = false) {
         val projectResults = get(
@@ -55,7 +55,6 @@ private fun contestParticipantsMenu() = FC<ContestParticipantsMenuProps> { props
             .sortedByDescending { it.score }
         setResults(projectResults)
     }()
-
     div {
         className = ClassName("mb-3")
         style = jso {
