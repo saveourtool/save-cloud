@@ -207,10 +207,7 @@ class DockerService(
         "LongMethod",
     )
     private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // collect test suite names, which were selected by user
-        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
-
-        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings, saveCliExecFlags)
+        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings)
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
