@@ -387,11 +387,8 @@ internal class OrganizationController(
             // List of test suites for removing data from storage at next step
             val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
-                println("\n\n\n========== start remove deleteTestSuiteDto")
                 testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
-                println("\n\n\n========== finish remove deleteTestSuiteDto")
                 testSuitesSourceService.delete(testSuitesSource)
-                println("\n\n\n========== finish remove deleteTestSuiteDto 2")
                 // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
                 testSuites.firstOrNull()
             }

@@ -26,5 +26,10 @@ enum class ExecutionStatus {
      * Status running
      */
     RUNNING,
+
+    /**
+     * Test executions were removed and execution is saved only for history
+     */
+    OBSOLETE,
     ;
 }

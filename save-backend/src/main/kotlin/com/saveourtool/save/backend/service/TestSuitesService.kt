@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
@@ -180,46 +181,36 @@ class TestSuitesService(
      */
     @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
-        println("\n\n\ndeleteTestSuiteDto ")
         val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
         testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
-            println("\n\n\ntestSuitesNamesAndIds ")
             // Get test ids related to the current testSuiteId
             val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
             testIds.forEach { testId ->
-                println("\n\n\ntestIds ")
                 testExecutionRepository.findByTestId(testId).forEach { testExecution ->
-                    println("\n\n\nfindByTestId ")
                     // Delete test executions
                     val testExecutionId = testExecution.requiredId()
-                    println("\n\n\nfindByTestId 2")
                     log.debug { "Delete test execution with id $testExecutionId" }
-                    println("\n\n\nfindByTestId 3")
                     testExecutionRepository.deleteById(testExecutionId)
-                    println("\n\n\nfindByTestId 4")
                 }
-                println("\n\n\n1 ")
                 // Delete tests
                 log.debug { "Delete test with id $testId" }
-                println("\n\n\n2")
                 testRepository.deleteById(testId)
-                println("\n\n\n3")
-                // Delete agents
-                val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
-                println("\n\n\n===============================executionIds = ${executionIds}")
-                agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-                agentService.deleteAgentByExecutionIds(executionIds)
             }
             log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
         }
-        // Delete executions and agents, which related to the test suites
-        // All test executions should be removed at this moment, that's why iterate one more time
-//        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
-//            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
-//            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-//            agentService.deleteAgentByExecutionIds(executionIds)
-//        }
+
+        // Delete agents, which related to the test suites
+        val executionIds = testSuitesNamesAndIds.flatMap { (_, testSuiteId) ->
+            executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+        }.distinct()
+
+        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+        agentService.deleteAgentByExecutionIds(executionIds)
+
+        executionIds.forEach {
+            executionService.updateExecutionStatus(executionService.findExecution(it)!!, ExecutionStatus.OBSOLETE)
+        }
     }
 
     /**

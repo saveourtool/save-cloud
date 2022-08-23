@@ -57,6 +57,7 @@ data class ExecutionDto(
             matchedChecks = 0,
             expectedChecks = 0,
             unexpectedChecks = 0,
+            testSuiteSourceName = "",
         )
     }
 }
