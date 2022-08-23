@@ -82,6 +82,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidMount() {
         super.componentDidMount()
+
+        ContestMenuBar.setPath("#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}/")
         urlAnalysis(ContestMenuBar, Role.NONE, false)
 //        val href = window.location.href
 //        val tab = if (href.contains(Regex("/organization/[^/]*/[^/]*/[^/]*"))) {

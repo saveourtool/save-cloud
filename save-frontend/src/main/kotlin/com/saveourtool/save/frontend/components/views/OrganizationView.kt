@@ -235,6 +235,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 selfRole = highestRole
                 usersInOrganization = users
             }
+            OrganizationMenuBar.setPath("#/${props.organizationName}", "#/organization/${props.organizationName}/")
             urlAnalysis(OrganizationMenuBar, highestRole, state.organization?.canCreateContests)
             //urlAnalysis(highestRole)
         }

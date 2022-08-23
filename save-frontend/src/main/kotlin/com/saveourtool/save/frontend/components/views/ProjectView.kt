@@ -307,6 +307,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 selfRole = role
             }
 
+            ProjectMenuBar.setPath("/#${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}/")
             urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)

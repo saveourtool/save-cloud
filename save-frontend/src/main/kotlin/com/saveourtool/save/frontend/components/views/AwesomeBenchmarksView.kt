@@ -91,6 +91,8 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
     override fun componentDidMount() {
         super.componentDidMount()
+
+        BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}/")
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         //urlAnalysis()
         scope.launch {
@@ -552,9 +554,9 @@ fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
 {
     selectedMenu?.let {
         window.location.href = if (selectedMenu == Enum.defaultTab) {
-            Enum.paths.first//"#/${props.owner}/${props.name}"
+            Enum.paths.first
         } else {
-            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu)}"//"#/project/${props.owner}/${props.name}/${it.name.lowercase()}"
+            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu)}"
         }
     } ?: run {
         window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
