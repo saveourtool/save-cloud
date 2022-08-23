@@ -291,7 +291,9 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 hrNoMargin()
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
-                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}", faUser)
+                menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                hrNoMargin()
+                menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }
         }
     }
