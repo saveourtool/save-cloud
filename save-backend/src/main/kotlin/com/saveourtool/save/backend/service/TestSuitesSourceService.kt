@@ -167,6 +167,11 @@ class TestSuitesSourceService(
     }
 
     /**
+     * @return list of organizations that have open public test suite sources
+     */
+    fun getAvaliableTestSuiteSources(): List<TestSuitesSource> = testSuitesSourceRepository.findAll()
+
+    /**
      * @param testSuitesSource test suites source which requested to be fetched
      * @return empty response
      */
