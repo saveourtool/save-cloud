@@ -3983,6 +3983,57 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/avaliable": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get organizations with public test suite sources.",
+        "description": "Get list of organizations with public test suite sources",
+        "operationId": "getOrganizationNamesWithPublicTestSuiteSources",
+        "parameters": [
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched organizations with public test suite sources.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/projects/": {
       "get": {
         "tags": [

@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
@@ -96,12 +97,26 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?.let { calculateRate(it.passedTests, it.allTests) }
             ?: "0"
         this.precisionRate = executionDto
-            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks) }
+            ?.let {
+                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
+                    calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks)
+                } else {
+                    "N/A"
+                }
+            }
             ?: "0"
         this.recallRate = executionDto
-            ?.let { calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks) }
+            ?.let {
+                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
+                    calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks)
+                } else {
+                    "N/A"
+                }
+            }
             ?: "0"
     }
+
+    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
 
     private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
         ?.run { numerator.toDouble() / denominator }
