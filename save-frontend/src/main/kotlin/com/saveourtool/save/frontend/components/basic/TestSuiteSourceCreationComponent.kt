@@ -4,6 +4,10 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.CssProperties
@@ -137,28 +141,30 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             "Organization name",
             testSuiteSource.organizationName
         )
-        inputTextFormOptional(
-            InputTypes.GIT_BRANCH,
-            testSuiteSource.branch,
-            "mb-2",
-            "Branch",
-            saveStatus != SourceSaveStatus.CONFLICT,
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(branch = it.target.value))
-            if (saveStatus == SourceSaveStatus.CONFLICT) {
-                setSaveStatus(null)
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.GIT_BRANCH
+            textValue = testSuiteSource.branch
+            classes =  "mb-2"
+            name = "Branch"
+            validInput = saveStatus != SourceSaveStatus.CONFLICT
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(branch = it.target.value))
+                if (saveStatus == SourceSaveStatus.CONFLICT) {
+                    setSaveStatus(null)
+                }
             }
         }
-        inputTextFormOptional(
-            InputTypes.SOURCE_TEST_ROOT_PATH,
-            testSuiteSource.testRootPath,
-            "mb-2",
-            "Test root path",
-            testSuiteSource.validateTestRootPath() && saveStatus != SourceSaveStatus.CONFLICT,
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(testRootPath = it.target.value))
-            if (saveStatus == SourceSaveStatus.CONFLICT) {
-                setSaveStatus(null)
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.SOURCE_TEST_ROOT_PATH
+            textValue = testSuiteSource.testRootPath
+            classes = "mb-2"
+            name = "Test root path"
+            validInput = testSuiteSource.validateTestRootPath() && saveStatus != SourceSaveStatus.CONFLICT
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(testRootPath = it.target.value))
+                if (saveStatus == SourceSaveStatus.CONFLICT) {
+                    setSaveStatus(null)
+                }
             }
         }
         gitSelectionForm {
@@ -188,13 +194,15 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                 }
             }
         }
-        inputTextFormOptional(
-            InputTypes.DESCRIPTION,
-            testSuiteSource.description,
-            "mb-2",
-            "Description",
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(description = it.target.value))
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.DESCRIPTION
+            textValue = testSuiteSource.description
+            classes = "mb-2"
+            name = "Description"
+            validInput = true
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(description = it.target.value))
+            }
         }
         div {
             className = ClassName("d-flex justify-content-center")

@@ -4,8 +4,8 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
@@ -16,7 +16,6 @@ import org.w3c.fetch.Response
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -132,14 +131,15 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-7 input-group pl-0")
-                        inputTextFormOptional(
-                            InputTypes.PROJECT_EMAIL,
-                            draftProject.email,
-                            "",
-                            null,
-                            draftProject.validateEmail(),
-                        ) {
-                            setDraftProject(draftProject.copy(email = it.target.value))
+                        inputTextFormOptionalWrapperConst {
+                            form = InputTypes.PROJECT_EMAIL
+                            textValue = draftProject.email
+                            classes =  ""
+                            name = null
+                            validInput = draftProject.validateEmail()
+                            onChangeFun = {
+                                setDraftProject(draftProject.copy(email = it.target.value))
+                            }
                         }
                     }
                 }

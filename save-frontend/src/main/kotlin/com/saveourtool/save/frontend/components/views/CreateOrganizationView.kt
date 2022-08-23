@@ -7,8 +7,8 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName

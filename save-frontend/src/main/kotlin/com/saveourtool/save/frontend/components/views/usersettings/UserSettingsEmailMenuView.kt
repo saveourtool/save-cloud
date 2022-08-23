@@ -1,6 +1,6 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import csstype.ClassName
 

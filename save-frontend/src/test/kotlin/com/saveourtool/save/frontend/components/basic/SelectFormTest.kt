@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
