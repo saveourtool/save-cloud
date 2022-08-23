@@ -21,6 +21,6 @@ enum class UserSaveStatus(val message: String) {
     /**
      * Update user
      */
-    UPDATE("User update successfully"),
+    UPDATE("User successfully updated"),
     ;
 }

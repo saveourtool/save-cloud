@@ -28,7 +28,15 @@ import react.dom.aria.ariaLabel
 import react.dom.events.ChangeEvent
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.main
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.input
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -148,27 +156,27 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     )
     override fun ChildrenBuilder.render() {
         if (state.userInfo?.isActive == false) {
-            ReactHTML.main {
+            main {
                 className = ClassName("main-content mt-0 ps")
-                ReactHTML.div {
+                div {
                     className = ClassName("page-header align-items-start min-vh-100")
-                    ReactHTML.span {
+                    span {
                         className = ClassName("mask bg-gradient-dark opacity-6")
                     }
-                    ReactHTML.div {
+                    div {
                         className = ClassName("row justify-content-center")
-                        ReactHTML.div {
+                        div {
                             className = ClassName("col-sm-4")
-                            ReactHTML.div {
+                            div {
                                 className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
-                                ReactHTML.div {
+                                div {
                                     className = ClassName("p-5 text-center")
-                                    ReactHTML.h1 {
+                                    h1 {
                                         className = ClassName("h4 text-gray-900 mb-4")
                                         +"Registration new user"
                                     }
-                                    ReactHTML.label {
-                                        ReactHTML.input {
+                                    label {
+                                        input {
                                             type = InputType.file
                                             hidden = true
                                             onChange = { event ->
@@ -176,7 +184,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             }
                                         }
                                         ariaLabel = "Change organization's avatar"
-                                        ReactHTML.img {
+                                        img {
                                             className =
                                                     ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                             src = state.image?.path?.let {
@@ -189,10 +197,10 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             width = 260.0
                                         }
                                     }
-                                    ReactHTML.form {
+                                    form {
                                         className = ClassName("needs-validation")
                                         val input = fieldsMap[InputTypes.USER_NAME] ?: ""
-                                        ReactHTML.div {
+                                        div {
                                             inputTextFormRequired(
                                                 InputTypes.USER_NAME,
                                                 input,
@@ -206,7 +214,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                                 }
                                             }
                                         }
-                                        ReactHTML.button {
+                                        button {
                                             type = ButtonType.button
                                             className = ClassName("btn btn-info mt-4 mr-3")
                                             +"Registration"
@@ -215,7 +223,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                             }
                                         }
                                         state.conflictErrorMessage?.let {
-                                            ReactHTML.div {
+                                            div {
                                                 className = ClassName("invalid-feedback d-block")
                                                 +it
                                             }
@@ -256,12 +264,4 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 }
             }
 
-    /* companion object :
-        RStatics<RegistrationProps, RegistrationViewState, RegistrationView, Context<RequestStatusContext>>(
-            RegistrationView::class
-        ) {
-        init {
-            RegistrationView.contextType = requestStatusContext
-        }
-    }*/
 }

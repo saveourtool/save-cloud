@@ -117,6 +117,9 @@ class OrganizationControllerTest {
     @MockBean
     private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
 
+    @MockBean
+    private lateinit var originalLoginRepository: OriginalLoginRepository
+
     @BeforeEach
     internal fun setUp() {
         whenever(gitRepository.save(any())).then {
