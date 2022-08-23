@@ -144,7 +144,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
-            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName}) { cellProps ->
+            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
                 Fragment.create {
                     td {
                         a {
@@ -333,14 +333,15 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun getHrefToExecution(id: Long, executionStatus: ExecutionStatus, status: TestResultStatus?,): String {
-        return if (executionStatus == ExecutionStatus.OBSOLETE) {
-            "${window.location}"
-        } else {
-            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
-        }
+    private fun getHrefToExecution(
+        id: Long,
+        executionStatus: ExecutionStatus,
+        status: TestResultStatus?,
+    ): String = if (executionStatus == ExecutionStatus.OBSOLETE) {
+        "${window.location}"
+    } else {
+        "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
     }
-
 
     /**
      * @property resColor

@@ -18,6 +18,11 @@ enum class ExecutionStatus {
     FINISHED,
 
     /**
+     * Test executions were removed and execution is saved only for history
+     */
+    OBSOLETE,
+
+    /**
      * Status pending
      */
     PENDING,
@@ -26,10 +31,5 @@ enum class ExecutionStatus {
      * Status running
      */
     RUNNING,
-
-    /**
-     * Test executions were removed and execution is saved only for history
-     */
-    OBSOLETE,
     ;
 }
