@@ -184,7 +184,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                                 "/api/$v1/avatar$it"
                                             }
                                                 ?: run {
-                                                    "img/user.svg"
+                                                    "img/undraw_profile.svg"
                                                 }
                                             height = 260.0
                                             width = 260.0
