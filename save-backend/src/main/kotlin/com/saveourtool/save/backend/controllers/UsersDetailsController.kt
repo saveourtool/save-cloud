@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
@@ -76,7 +77,7 @@ class UsersDetailsController(
                     linkedin = newUserInfo.linkedin
                     twitter = newUserInfo.twitter
                     isActive = newUserInfo.isActive
-                })
+                }, newUserInfo.oldName)
             } else {
                 UserSaveStatus.CONFLICT
             }

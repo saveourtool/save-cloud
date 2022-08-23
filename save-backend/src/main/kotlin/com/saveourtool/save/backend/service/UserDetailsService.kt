@@ -101,10 +101,15 @@ class UserDetailsService(
         ?: Role.VIEWER
 
     @Transactional
-    fun saveUser(user: User): UserSaveStatus {
+    fun saveUser(user: User, oldName: String?): UserSaveStatus {
         val userName = user.name
         return  if (userName != null && userRepository.validateName(userName) != 0L) {
-            userRepository.saveHighName(userName)
+            oldName?.let {
+                if (oldName != userName) {
+                    userRepository.deleteHighName(it)
+                    userRepository.saveHighName(userName)
+                }
+            }
             userRepository.save(user)
             UserSaveStatus.UPDATE
         } else {
