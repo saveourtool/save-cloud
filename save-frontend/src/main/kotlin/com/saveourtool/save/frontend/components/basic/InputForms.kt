@@ -168,7 +168,7 @@ internal fun ChildrenBuilder.inputTextFormRequired(
                 htmlFor = form.name
                 +name
                 span {
-                    className = ClassName("text-red text-left")
+                    className = ClassName("text-danger text-left")
                     +"*"
                 }
             }
@@ -307,7 +307,7 @@ internal fun ChildrenBuilder.inputTextDisabled(
         +name
         if (isRequired) {
             span {
-                className = ClassName("text-red text-left")
+                className = ClassName("text-danger text-left")
                 +"*"
             }
         }
@@ -376,7 +376,7 @@ internal fun ChildrenBuilder.inputDateFormRequired(
         htmlFor = form.name
         +text
         span {
-            className = ClassName("text-red text-left")
+            className = ClassName("text-danger text-left")
             +"*"
         }
     }

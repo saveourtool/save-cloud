@@ -5,17 +5,12 @@
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.RetryConfig
 import com.saveourtool.save.agent.SaveAgent
 import io.ktor.client.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
-
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 
 /**
  * @param result
@@ -34,21 +29,22 @@ internal fun SaveAgent.updateStateBasedOnBackendResponse(
 }
 
 /**
- * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
+ * Attempt to send execution data to backend.
  *
  * @param requestToBackend
+ * @return a [Result] wrapping response
  */
 internal suspend fun SaveAgent.sendDataToBackend(
     requestToBackend: suspend () -> HttpResponse
-): Unit = sendWithRetries(config.retry, requestToBackend) { result, attempt ->
-    val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
+): Result<HttpResponse> = runCatching { requestToBackend() }.apply {
+    val reason = if (isSuccess && getOrNull()?.status != HttpStatusCode.OK) {
         state.value = AgentState.BACKEND_FAILURE
-        "Backend returned status ${result.getOrNull()?.status}"
+        "Backend returned status ${getOrNull()?.status}"
     } else {
         state.value = AgentState.BACKEND_UNREACHABLE
-        "Backend is unreachable, ${result.exceptionOrNull()?.message}"
+        "Backend is unreachable, ${exceptionOrNull()?.message}"
     }
-    logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
+    logErrorCustom("Cannot send data to backed: $reason")
 }
 
 /**
@@ -65,34 +61,5 @@ internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpRe
         contentType(ContentType.Application.Json)
         accept(ContentType.Application.OctetStream)
         body?.let { setBody(it) }
-        onDownload { bytesSentTotal, contentLength ->
-            logDebugCustom("Received $bytesSentTotal bytes from $contentLength")
-        }
-    }
-}
-
-/**
- * @param retryConfig
- * @param request
- * @param onError
- */
-@Suppress("TYPE_ALIAS")
-internal suspend fun sendWithRetries(
-    retryConfig: RetryConfig,
-    request: suspend () -> HttpResponse,
-    onError: (Result<HttpResponse>, attempt: Int) -> Unit,
-): Unit = coroutineScope {
-    var retryInterval = retryConfig.initialRetryMillis
-    repeat(retryConfig.attempts) { attempt ->
-        val result = runCatching {
-            request()
-        }
-        if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
-            return@coroutineScope
-        } else {
-            onError(result, attempt)
-            delay(retryInterval)
-            retryInterval *= 2
-        }
     }
 }

@@ -2,7 +2,7 @@
  * A view with settings user
  */
 
-package com.saveourtool.save.frontend.components.views.usersettingsview
+package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationDto
@@ -168,7 +168,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                     "/api/$v1/avatar$it"
                                                 }
                                                     ?: run {
-                                                        "img/user.svg"
+                                                        "img/undraw_profile.svg"
                                                     }
                                                 height = 60.0
                                                 width = 60.0

@@ -9,41 +9,25 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.frontend.externals.fontawesome.faRedo
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
 import csstype.ClassName
 import csstype.Width
-import react.FC
-import react.Props
+import org.w3c.dom.HTMLAnchorElement
+import react.ChildrenBuilder
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
+import react.dom.events.MouseEvent
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
-
-/**
- * A component which displays statistics about an execution from its props
- */
-val executionStatistics = executionStatistics()
-
-/**
- * A component which displays a GIF if tests not found
- */
-val executionTestsNotFound = executionTestsNotFound()
-
-/**
- * [Props] for execution statistics component
- */
-external interface ExecutionStatisticsProps : Props {
-    /**
-     * And instance of [ExecutionDto], which should be passed from parent component
-     */
-    var executionDto: ExecutionDto?
-}
 
 /**
  * Class contains all execution statistics values for rending
@@ -92,14 +76,17 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
     val recallRate: String
 
     init {
-        val isInProgress = executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: true
+        val isRunning = executionDto?.run { status == ExecutionStatus.RUNNING || status == ExecutionStatus.PENDING } ?: false
         val isSuccess = executionDto?.run { passedTests == allTests } ?: false
-        this.style = if (isInProgress) {
-            "info"
+        val hasFailingTests = executionDto?.run { failedTests != 0L } ?: false
+        this.style = if (hasFailingTests) {
+            "danger"
         } else if (isSuccess) {
             "success"
+        } else if (isRunning) {
+            "info"
         } else {
-            "danger"
+            "secondary"
         }
         this.allTests = executionDto?.allTests?.toString() ?: "0"
         this.passedTests = executionDto?.passedTests?.toString() ?: "0"
@@ -124,13 +111,118 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
 }
 
 /**
- * A component which displays a GIF if tests not found
+ * Function that renders Project version label, execution statistics label, pass rate label and rerun button.
+ * Rerun button is rendered only if [onRerunExecution] is provided.
  *
- * @return a functional react component
+ * @param executionDto
+ * @param classes [ClassName]s that will be applied to highest div
+ * @param innerClasses [ClassName]s that will be applied to each label
+ * @param height height of label
+ * @param onRerunExecution
  */
-private fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
-    val count = props.executionDto?.allTests
-    val status = props.executionDto?.status
+fun ChildrenBuilder.displayExecutionInfoHeader(
+    executionDto: ExecutionDto?,
+    classes: String = "",
+    innerClasses: String = "col flex-wrap m-2",
+    height: String = "h-100",
+    onRerunExecution: ((MouseEvent<HTMLAnchorElement, *>) -> Unit)? = null,
+) {
+    val relativeWidth = onRerunExecution?.let { "min-vw-25" } ?: "min-vw-33"
+    div {
+        className = ClassName(classes)
+        displayProjectVersion(executionDto, "$relativeWidth $innerClasses", height)
+        displayPassRate(executionDto, "$relativeWidth $innerClasses", height)
+        displayStatistics(executionDto, "$relativeWidth $innerClasses", height)
+        displayRerunExecutionButton(executionDto, "$relativeWidth $innerClasses", height, onRerunExecution)
+    }
+}
+
+/**
+ * Function that renders Rerun execution button
+ *
+ * @param executionDto
+ * @param classes [ClassName]s that will be applied to highest div
+ * @param height height of label
+ * @param onRerunExecution onClick callback
+ */
+fun ChildrenBuilder.displayRerunExecutionButton(
+    executionDto: ExecutionDto?,
+    classes: String = "",
+    height: String = "h-100",
+    onRerunExecution: ((MouseEvent<HTMLAnchorElement, *>) -> Unit)?,
+) {
+    onRerunExecution?.let {
+        val borderColor = when {
+            executionDto == null -> "secondary"
+            executionDto.status == ExecutionStatus.ERROR || executionDto.failedTests != 0L -> "danger"
+            executionDto.status == ExecutionStatus.RUNNING || executionDto.status == ExecutionStatus.PENDING -> "info"
+            executionDto.status == ExecutionStatus.FINISHED -> "success"
+            else -> "secondary"
+        }
+        div {
+            className = ClassName(classes)
+            div {
+                className = ClassName("card border-left-$borderColor shadow $height py-2")
+                div {
+                    className = ClassName("card-body d-flex justify-content-start align-items-center")
+                    div {
+                        className = ClassName("row no-gutters mx-auto justify-content-start")
+                        a {
+                            href = ""
+                            +"Rerun execution"
+                            fontAwesomeIcon(icon = faRedo, classes = "ml-2")
+                            onClick = onRerunExecution
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Function that renders label with project version
+ *
+ * @param executionDto
+ * @param classes [ClassName]s that will be applied to highest div
+ * @param height height of label
+ */
+fun ChildrenBuilder.displayProjectVersion(
+    executionDto: ExecutionDto?,
+    classes: String = "",
+    height: String = "h-100",
+) {
+    val statusColor = when {
+        executionDto == null -> "bg-secondary"
+        executionDto.status == ExecutionStatus.ERROR || executionDto.failedTests != 0L -> "bg-danger"
+        executionDto.status == ExecutionStatus.RUNNING || executionDto.status == ExecutionStatus.PENDING -> "bg-info"
+        executionDto.status == ExecutionStatus.FINISHED -> "bg-success"
+        else -> "bg-secondary"
+    }
+    div {
+        className = ClassName(classes)
+        div {
+            className = ClassName("card $statusColor text-white $height shadow py-2")
+            div {
+                className = ClassName("card-body")
+                +(executionDto?.status?.name ?: "N/A")
+                div {
+                    className = ClassName("text-white-50 small")
+                    +"Project version: ${executionDto?.version ?: "N/A"}"
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A function that displays a GIF if tests not found
+ *
+ * @param executionDto
+ */
+fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
+    val count = executionDto?.allTests
+    val status = executionDto?.status
     if (count == 0L && status != ExecutionStatus.PENDING) {
         div {
             className = ClassName("d-flex justify-content-center")
@@ -156,19 +248,24 @@ private fun executionTestsNotFound() = FC<ExecutionStatisticsProps> { props ->
     }
 }
 
-@Suppress(
-    "MAGIC_NUMBER",
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "ComplexMethod"
-)
-private fun executionStatistics() = FC<ExecutionStatisticsProps> { props ->
-    val values = ExecutionStatisticsValues(props.executionDto)
-
+/**
+ * Function that renders pass rate label
+ *
+ * @param executionDto
+ * @param classes [ClassName]s that will be applied to highest div
+ * @param height height of label
+ */
+@Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION")
+fun ChildrenBuilder.displayPassRate(
+    executionDto: ExecutionDto?,
+    classes: String = "",
+    height: String = "h-100",
+) {
+    val values = ExecutionStatisticsValues(executionDto)
     div {
-        className = ClassName("col-xl-3 col-md-6 mb-4")
+        className = ClassName(classes)
         div {
-            className = ClassName("card border-left-info shadow h-100 py-2")
+            className = ClassName("card border-left-${values.style} shadow $height py-2")
             div {
                 className = ClassName("card-body")
                 div {
@@ -216,14 +313,29 @@ private fun executionStatistics() = FC<ExecutionStatisticsProps> { props ->
             }
         }
     }
+}
 
+/**
+ * Function that renders execution statistics label
+ *
+ * @param executionDto
+ * @param classes [ClassName]s that will be applied to highest div
+ * @param height height of label
+ */
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+fun ChildrenBuilder.displayStatistics(
+    executionDto: ExecutionDto?,
+    classes: String = "",
+    height: String = "h-100",
+) {
+    val values = ExecutionStatisticsValues(executionDto)
     div {
-        className = ClassName("col-xl-4 col-md-6 mb-4")
+        className = ClassName(classes)
         div {
-            className = ClassName("card border-left-${values.style} shadow h-100 py-2")
+            className = ClassName("card border-left-${values.style} shadow $height py-2")
             div {
                 className = ClassName("card-body")
-                div() {
+                div {
                     className = ClassName("row no-gutters align-items-center")
                     div {
                         className = ClassName("col mr-2")

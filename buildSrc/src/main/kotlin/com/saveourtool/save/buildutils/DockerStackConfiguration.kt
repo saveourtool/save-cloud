@@ -17,6 +17,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 const val MYSQL_STARTUP_DELAY_MILLIS = 30_000L
+const val KAFKA_STARTUP_DELAY_MILLIS = 5_000L
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
@@ -53,7 +54,28 @@ fun Project.createStackDeployTask(profile: String) {
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
                            |      - "MYSQL_DATABASE=save_cloud"
-                        """.trimMargin()
+                           |  zookeeper:
+                           |    image: confluentinc/cp-zookeeper:latest
+                           |    environment:
+                           |      ZOOKEEPER_CLIENT_PORT: 2181
+                           |      ZOOKEEPER_TICK_TIME: 2000
+                           |    ports:
+                           |      - 22181:2181
+                           |  
+                           |  kafka:
+                           |    image: confluentinc/cp-kafka:latest
+                           |    depends_on:
+                           |      - zookeeper
+                           |    ports:
+                           |      - 29092:29092
+                           |    environment:
+                           |      KAFKA_BROKER_ID: 1
+                           |      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                           |      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+                           |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+                           |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+                           |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                           """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
                     } else {
@@ -106,9 +128,11 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("orchestrator"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
-        description = "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
+        description =
+                "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
         // this command puts env variables into compose file
-        val composeCmd = "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
+        val composeCmd =
+                "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
         val stackCmd = "docker stack deploy --compose-file -" +
                 if (useOverride && composeOverride.exists()) {
                     " --compose-file ${composeOverride.canonicalPath}"
@@ -125,7 +149,8 @@ fun Project.createStackDeployTask(profile: String) {
     }
 
     tasks.register<Exec>("stopDockerStack") {
-        description = "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
+        description =
+                "Completely stop all services in docker swarm. NOT NEEDED FOR REDEPLOYING! Use only to explicitly stop everything."
         commandLine("docker", "stack", "rm", "save")
     }
 
@@ -138,10 +163,8 @@ fun Project.createStackDeployTask(profile: String) {
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         doLast {
-            if (!errorOutput.toString().contains(" is up-to-date")) {
-                logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
-                Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
-            }
+            logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
+            Thread.sleep(MYSQL_STARTUP_DELAY_MILLIS)  // wait for mysql to start, can be manually increased when needed
         }
     }
     tasks.named("liquibaseUpdate") {
@@ -152,16 +175,45 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn("startMysqlDbService")
     }
 
+    tasks.register<Exec>("startKafka") {
+        dependsOn("generateComposeFile")
+        doFirst {
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d kafka]")
+        }
+        errorOutput = ByteArrayOutputStream()
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "kafka")
+        doLast {
+            logger.lifecycle("Waiting $KAFKA_STARTUP_DELAY_MILLIS millis for kafka to start")
+            Thread.sleep(KAFKA_STARTUP_DELAY_MILLIS)  // wait for kafka to start, can be manually increased when needed
+        }
+    }
+
     tasks.register<Exec>("restartMysqlDb") {
         dependsOn("generateComposeFile")
         commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
         finalizedBy("startMysqlDb")
     }
 
+    tasks.register<Exec>("restartKafka") {
+        dependsOn("generateComposeFile")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
+        finalizedBy("startKafka")
+    }
+
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
-        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "orchestrator", "backend", "preprocessor")
+        commandLine(
+            "docker-compose",
+            "--file",
+            "$buildDir/docker-compose.yaml",
+            "up",
+            "-d",
+            "orchestrator",
+            "backend",
+            "preprocessor"
+        )
     }
 
     val componentName = findProperty("save.component") as String?
@@ -172,7 +224,8 @@ fun Project.createStackDeployTask(profile: String) {
                             "and it should be a name of one of gradle subprojects. If component name is `save-backend`, then `save-frontend` will be built too" +
                             " and bundled into save-backend image."
             require(componentName in allprojects.map { it.name }) { "Component name should be one of gradle subproject names, but was [$componentName]" }
-            val buildTask: TaskProvider<BootBuildImage> = project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
+            val buildTask: TaskProvider<BootBuildImage> =
+                    project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
                 "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"

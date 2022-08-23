@@ -97,15 +97,22 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @param organizationName
      * @return list of execution dtos
-     * @throws NoSuchElementException
      */
     @GetMapping(path = ["/api/$v1/executionDtoList"])
-    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
-        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
-        return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-            executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+    fun getExecutionByProject(
+        @RequestParam name: String,
+        @RequestParam organizationName: String,
+        authentication: Authentication,
+    ): Mono<List<ExecutionDto>> = organizationService.findByName(organizationName)
+        .toMono()
+        .switchIfEmptyToNotFound {
+            "Organization with name [$organizationName] was not found."
         }
-    }
+        .flatMap { organization ->
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
+                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+            }
+        }
 
     /**
      * Get latest (by start time an) execution by project name and organization

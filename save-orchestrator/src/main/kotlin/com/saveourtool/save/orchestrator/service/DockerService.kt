@@ -83,7 +83,6 @@ class DockerService(
         )
         log.info("Preparing volume for execution.id=${execution.id}")
         val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
-        // todo (k8s): need to also push it so that other nodes will have access to it
         log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
         return buildResult
     }

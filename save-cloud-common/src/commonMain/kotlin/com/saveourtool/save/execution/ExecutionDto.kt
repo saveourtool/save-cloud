@@ -37,4 +37,24 @@ data class ExecutionDto(
     val matchedChecks: Long,
     val expectedChecks: Long,
     val unexpectedChecks: Long,
-)
+) {
+    companion object {
+        val empty = ExecutionDto(
+            id = -1,
+            status = ExecutionStatus.PENDING,
+            type = ExecutionType.STANDARD,
+            version = null,
+            startTime = -1,
+            endTime = null,
+            allTests = 0,
+            runningTests = 0,
+            passedTests = 0,
+            failedTests = 0,
+            skippedTests = 0,
+            unmatchedChecks = 0,
+            matchedChecks = 0,
+            expectedChecks = 0,
+            unexpectedChecks = 0,
+        )
+    }
+}
