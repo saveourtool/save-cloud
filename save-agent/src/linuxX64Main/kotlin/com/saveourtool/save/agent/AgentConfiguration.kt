@@ -96,6 +96,10 @@ data class RetryConfig(
  * @property reportDir corresponds to flag `--report-dir` of save-cli
  * @property logType corresponds to flag `--log` of save-cli
  * @property resultOutput corresponds to flag `--result-output` of save-cli
+ * @property batchSize corresponds to flag `--batch-size` of save-cli (optional)
+ * @property batchSeparator corresponds to flag `--batch-separator` of save-cli (optional)
+ * @property overrideExecCmd corresponds to flag `--override-exec-cmd` of save-cli (optional)
+ * @property overrideExecFlags corresponds to flag `--override-exec-flags` of save-cli (optional)
  */
 @Serializable
 data class SaveCliConfig(
@@ -103,4 +107,8 @@ data class SaveCliConfig(
     val resultOutput: OutputStreamType = OutputStreamType.FILE,
     val reportDir: String = "save-reports",
     val logType: LogType = LogType.ALL,
+    val batchSize: Int? = null,
+    val batchSeparator: String? = null,
+    val overrideExecCmd: String? = null,
+    val overrideExecFlags: String? = null,
 )

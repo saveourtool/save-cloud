@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.writeText
+import kotlin.io.path.writeLines
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -215,12 +216,10 @@ class DockerAgentRunner(
 
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
-            writeText("""
-                AGENT_ID=$containerId
-                EXECUTION_ID=${configuration.resourcesConfiguration.executionId}
-                ADDITIONAL_FILES_LIST=${configuration.resourcesConfiguration.additionalFilesString}
-                """.trimIndent()
-            )
+            val staticEnvs = configuration.resourcesConfiguration
+                .toEnvsMap()
+                .mapToEnvLines()
+            writeLines((staticEnvs + "${configProperties.agentSettings.agentIdEnv}=$containerId"))
         }
         copyResourcesIntoContainer(
             containerId,
@@ -248,6 +247,8 @@ class DockerAgentRunner(
                 .execTimed<CopyArchiveToContainerCmd, Void?>(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
+
+    private fun Map<AgentEnvName, Any>.mapToEnvLines(): List<String> = map { (key, value) -> "${key.name}=$value" }
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
