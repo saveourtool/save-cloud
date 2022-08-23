@@ -70,7 +70,7 @@ external interface OrganizationProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : StateWithRole, State {
+external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
     /**
      * Flag to handle uploading a file
      */
@@ -86,10 +86,6 @@ external interface OrganizationViewState : StateWithRole, State {
      */
     var organization: Organization?
 
-    /**
-     * project selected menu
-     */
-    var selectedMenu: OrganizationMenuBar?
 
     /**
      * List of projects for `this` organization
@@ -239,7 +235,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 selfRole = highestRole
                 usersInOrganization = users
             }
-            urlAnalysis(highestRole)
+            urlAnalysis(OrganizationMenuBar, highestRole, state.organization?.canCreateContests)
+            //urlAnalysis(highestRole)
         }
     }
 
@@ -705,7 +702,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {
                                         if (state.selectedMenu != organizationMenu) {
-                                            changeUrl(organizationMenu)
+                                            //changeUrl(organizationMenu)
+                                            changeUrl(organizationMenu, OrganizationMenuBar)
                                             setState { selectedMenu = organizationMenu }
                                         }
                                     }

@@ -301,15 +301,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                         withRouterLink = true
                                     }
                                 }
-
-                                Route {
-                                    path = "/${FrontendRoutes.NOT_FOUND.path}"
-                                    element = FallbackView::class.react.create {
-                                        bigText = "404"
-                                        smallText = "Page not found"
-                                        withRouterLink = true
-                                    }
-                                }
                             }
                         }
                         Footer::class.react()

@@ -6,7 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
+import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -55,16 +58,11 @@ const val ALL_LANGS = "all"
  * [RState] of project creation view component
  *
  */
-external interface AwesomeBenchmarksState : State {
+external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCategoryEnum> {
     /**
      * list of benchmarks from DB
      */
     var benchmarks: List<AwesomeBenchmarks>
-
-    /**
-     * list of buttons from DB
-     */
-    var selectedMenuBench: BenchmarkCategoryEnum?
 
     /**
      * list of unique languages from benchmarks
@@ -86,14 +84,15 @@ external interface AwesomeBenchmarksState : State {
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
-        state.selectedMenuBench = null
+        state.selectedMenu = null
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
-        urlAnalysis()
+        urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
+        //urlAnalysis()
         scope.launch {
             getBenchmarks()
         }
@@ -106,9 +105,9 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         } else {
             BenchmarkCategoryEnum.defaultTab
         }
-        if (state.selectedMenuBench != tab) {
+        if (state.selectedMenu != tab) {
             changeUrl(tab)
-            setState { selectedMenuBench = tab }
+            setState { selectedMenu = tab }
         }
     }
 
@@ -254,7 +253,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li {
                                                 className = ClassName("nav-item")
-                                                val classVal = if (state.selectedMenuBench == value) {
+                                                val classVal = if (state.selectedMenu == value) {
                                                     " active font-weight-bold"
                                                 } else {
                                                     ""
@@ -262,9 +261,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                 p {
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
-                                                        if (state.selectedMenuBench != value) {
-                                                            changeUrl(value)
-                                                            setState { selectedMenuBench = value }
+                                                        if (state.selectedMenu != value) {
+                                                            //changeUrl(value)
+                                                            changeUrl(value, BenchmarkCategoryEnum)
+                                                            setState { selectedMenu = value }
                                                         }
                                                     }
                                                     style = jso {
@@ -285,7 +285,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
+                                            if ((state.selectedMenu == BenchmarkCategoryEnum.ALL || state.selectedMenu == benchmark.category) &&
                                                     (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {
                                                 ++matchingBenchmarksCount
@@ -539,6 +539,48 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
         init {
             contextType = requestStatusContext
+        }
+    }
+}
+
+interface HasSelectedMenu<T> {
+    var selectedMenu: T?
+}
+
+fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
+        where S: HasSelectedMenu<T>
+{
+    selectedMenu?.let {
+        window.location.href = if (selectedMenu == Enum.defaultTab) {
+            Enum.paths.first//"#/${props.owner}/${props.name}"
+        } else {
+            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu)}"//"#/project/${props.owner}/${props.name}/${it.name.lowercase()}"
+        }
+    } ?: run {
+        window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
+        window.location.reload()
+    }
+}
+
+
+fun <T, S> CComponent<*, S>.urlAnalysis(menu: MenuBar<T>, role: Role, flag: Boolean?)
+        where S: State, S: HasSelectedMenu<T>
+{
+    val href = window.location.href
+    val tab = if (href.contains(menu.regex)) {
+        href.substringAfterLast(URL_PATH_DELIMITER).run { menu.findEnumElements(this) }
+    } else {
+        menu.defaultTab
+    }
+    if (state.selectedMenu != tab) {
+        if ( menu.isAvailableWithThisRole(role, tab, flag)) {
+            changeUrl(menu.defaultTab, menu)
+            window.alert("Your role is not suitable for opening this page")
+            window.location.reload()
+            setState { selectedMenu = menu.defaultTab }
+        } else {
+            changeUrl(tab, menu)
+            setState { selectedMenu = tab }
         }
     }
 }

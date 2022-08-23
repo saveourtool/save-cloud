@@ -82,7 +82,7 @@ external interface ContestRunState : State {
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole, ContestRunState {
+external interface ProjectViewState : StateWithRole, ContestRunState, HasSelectedMenu<ProjectMenuBar> {
     /**
      * Currently loaded for display Project
      */
@@ -192,11 +192,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
      * Whether editing of project info is disabled
      */
     var isEditDisabled: Boolean?
-
-    /**
-     * project selected menu
-     */
-    var selectedMenu: ProjectMenuBar?
 
     /**
      * latest execution id for this project
@@ -311,11 +306,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             setState {
                 selfRole = role
             }
-            urlAnalysis(role)
-            val standardTestSuites = get(
-                "$apiUrl/allStandardTestSuites",
-                headers, loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
+
+            urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
@@ -419,6 +411,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+
     private fun urlAnalysis(role: Role) {
         val href = window.location.href
         val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
@@ -456,7 +449,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        changeUrl(projectMenu)
+                                        //changeUrl(projectMenu)
+                                        changeUrl(projectMenu, ProjectMenuBar)
                                         setState { selectedMenu = projectMenu }
                                     }
                                 }
@@ -934,27 +928,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         init {
             contextType = requestStatusContext
-        }
-    }
-
-    fun urlAnalysis(menuBar: MenuBar, role: Role, isThisPrivateTab: (MenuBar) -> Boolean) {
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            ProjectMenuBar.defaultTab
-        }
-        val tab = if(href.contains(menuBar.))
-        if (state.selectedMenu != tab) {
-            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
-                changeUrl(ProjectMenuBar.defaultTab)
-                window.alert("Your role is not suitable for opening this page")
-                window.location.reload()
-                setState { selectedMenu = ProjectMenuBar.defaultTab }
-            } else {
-                changeUrl(tab)
-                setState { selectedMenu = tab }
-            }
         }
     }
 }

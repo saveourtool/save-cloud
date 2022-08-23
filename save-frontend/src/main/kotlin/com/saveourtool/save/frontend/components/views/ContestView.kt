@@ -2,7 +2,9 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
@@ -17,7 +19,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.li
@@ -35,9 +36,22 @@ enum class ContestMenuBar {
     SUMMARY,
     ;
 
-    companion object {
-        val defaultTab: ContestMenuBar = INFO
+    companion object  : MenuBar<ContestMenuBar> {
+        override fun valueOf(): ContestMenuBar = ContestMenuBar.valueOf()
+        override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
+        override val defaultTab: ContestMenuBar = INFO
         val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
+        override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
+        override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
+
+        override var paths: Pair<String, String> = "" to ""
+        override fun setPath(shortPath: String, longPath: String) {
+            paths = shortPath to longPath
+        }
+
+        override fun returnStringOneOfElements(elem: ContestMenuBar): String = elem.name
+
+        override fun isAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = true
     }
 }
 
@@ -53,12 +67,8 @@ external interface ContestViewProps : Props {
 /**
  * [State] for [ContestView]
  */
-external interface ContestViewState : State {
-    /**
-     * Current selected menu
-     */
-    var selectedMenu: ContestMenuBar?
-}
+external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar>
+
 
 /**
  * A view with collection of projects
@@ -72,16 +82,17 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/organization/[^/]*/[^/]*/[^/]*"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { ContestMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            ContestMenuBar.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            changeUrl(tab)
-            setState { selectedMenu = tab }
-        }
+        urlAnalysis(ContestMenuBar, Role.NONE, false)
+//        val href = window.location.href
+//        val tab = if (href.contains(Regex("/organization/[^/]*/[^/]*/[^/]*"))) {
+//            href.substringAfterLast(URL_PATH_DELIMITER).run { ContestMenuBar.values().find { it.name.lowercase() == this } }
+//        } else {
+//            ContestMenuBar.defaultTab
+//        }
+//        if (state.selectedMenu != tab) {
+//            changeUrl(tab)
+//            setState { selectedMenu = tab }
+//        }
     }
 
     override fun ChildrenBuilder.render() {
@@ -148,7 +159,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != contestMenu) {
-                                        changeUrl(contestMenu)
+                                        //changeUrl(contestMenu)
+                                        changeUrl(contestMenu, ContestMenuBar)
                                         setState { selectedMenu = contestMenu }
                                     }
                                     +contestMenu.name
