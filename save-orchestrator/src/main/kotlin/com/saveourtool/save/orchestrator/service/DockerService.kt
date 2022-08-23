@@ -226,7 +226,14 @@ class DockerService(
         return RunConfiguration(
             imageTag = baseImage,
             // fixme: should it still contain chmod?
-            runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
+            runCmd = listOf(
+                "sh", "-c",
+                "set -o xtrace" +
+                        " && curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && curl -vvv -X POST \$GET_SAVE_CLI_LINK --output $SAVE_CLI_EXECUTABLE_NAME" +
+                        " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && ./$SAVE_AGENT_EXECUTABLE_NAME"
+            ),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
             resourcesConfiguration = RunConfiguration.ResourcesConfiguration(

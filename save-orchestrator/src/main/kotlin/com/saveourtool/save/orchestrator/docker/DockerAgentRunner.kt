@@ -184,11 +184,7 @@ class DockerAgentRunner(
                 // this part is like `sh -c` with probably some other flags
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
-//                        "SAVE_AGENT=\$(curl --remote-name -w '%{filename_effective}' \$GET_AGENT_LINK | awk {'print \$1'})" +
-                        "curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
-                                " && curl -vvv -X POST \$GET_SAVE_CLI_LINK --output $SAVE_CLI_EXECUTABLE_NAME" +
-//                                " && chmod +x \$SAVE_AGENT" +
-                                " && env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
+                        "env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
                 )
             )
             .withName(containerName)
