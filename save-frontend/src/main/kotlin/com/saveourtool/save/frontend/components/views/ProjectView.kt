@@ -331,7 +331,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
-        console.log("Mount")
         super.componentDidMount()
 
         scope.launch {
@@ -354,7 +353,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             urlAnalysis(role)
 
-            console.log("allStandardTestSuites")
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
@@ -447,7 +445,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun ChildrenBuilder.render() {
-        console.log("render")
 
         // modal windows are initially hidden
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
@@ -486,7 +483,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         renderProjectMenuBar()
 
-        console.log("render something ${state.selectedMenu}")
         when (state.selectedMenu) {
             ProjectMenuBar.RUN -> renderRun()
             ProjectMenuBar.STATISTICS -> renderStatistics()
@@ -518,7 +514,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         } else {
             ProjectMenuBar.defaultTab
         }
-        console.log("$role  =  ${role.isHigherOrEqualThan(Role.ADMIN)}")
         if (state.selectedMenu != tab) {
             if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
                 changeUrl(ProjectMenuBar.defaultTab)
@@ -553,7 +548,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                         changeUrl(projectMenu)
                                         setState { selectedMenu = projectMenu }
                                     }
-                                    console.log("click $projectMenu")
                                 }
                                 +projectMenu.name
                             }
@@ -565,7 +559,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod")
     private fun ChildrenBuilder.renderRun() {
-        console.log("renderRun  ${window.location}")
         div {
             className = ClassName("row justify-content-center ml-5")
             // ===================== LEFT COLUMN =======================================================================
@@ -744,14 +737,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun ChildrenBuilder.renderStatistics() {
-        console.log("renderStatistics")
         projectStatisticMenu {
             executionId = state.latestExecutionId
         }
     }
 
     private fun ChildrenBuilder.renderInfo() {
-        console.log("render info")
         projectInfoMenu {
             projectName = props.name
             organizationName = props.owner
@@ -760,7 +751,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun ChildrenBuilder.renderSettings() {
-        console.log("render settings")
         projectSettingsMenu {
             project = state.project
             currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")

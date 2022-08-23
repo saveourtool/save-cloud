@@ -45,7 +45,7 @@ class TestSuitesController(
      */
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
     fun getAllStandardTestSuites(): Mono<ResponseListTestSuites> =
-            testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }.also { println("allStandardTestSuites") }
+            testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }
 
     /**
      * @param testSuiteIds

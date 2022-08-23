@@ -86,7 +86,7 @@ class LnkContestProjectController(
         @RequestParam(defaultValue = "4") amount: Int,
     ): Flux<ContestResult> = Flux.fromIterable(
         lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, amount)
-    ).getScores().also { println("best") }
+    ).getScores()
 
     private fun Flux<LnkContestProject>.getScores() = map {
         it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)

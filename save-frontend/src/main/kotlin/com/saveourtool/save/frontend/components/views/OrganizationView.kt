@@ -202,7 +202,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
-        console.log("init")
     }
 
     private fun deleteOrganization() {
@@ -228,8 +227,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidMount() {
-        console.log("Mount")
-
         super.componentDidMount()
 
         scope.launch {
@@ -253,7 +250,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
-        console.log("render")
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
                 isErrorOpen = false
@@ -276,7 +272,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         renderOrganizationMenuBar()
 
-        console.log("render something ${state.selectedMenu}")
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
@@ -718,7 +713,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                             changeUrl(organizationMenu)
                                             setState { selectedMenu = organizationMenu }
                                         }
-                                        console.log("click $organizationMenu")
                                     }
                                     +organizationMenu.getTitle()
                                 }
