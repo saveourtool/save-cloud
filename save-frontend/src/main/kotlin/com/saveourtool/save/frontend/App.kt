@@ -16,7 +16,6 @@ import com.saveourtool.save.frontend.components.views.usersettingsview.UserSetti
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
@@ -41,7 +40,6 @@ import kotlinx.coroutines.launch
 import kotlinx.js.get
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import react.router.useHref
 
 internal val topBarComponent = topBar()
 
@@ -180,7 +178,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
-                                routeUtils(BenchmarkCategoryEnum.listOfStringEnumElements, "archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}", routeElement = AwesomeBenchmarksView::class.react.create())
+                                routeUtils(BenchmarkCategoryEnum.listOfStringEnumElements, "archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+                                    routeElement = AwesomeBenchmarksView::class.react.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
@@ -290,7 +289,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${FrontendRoutes.NOT_FOUND.path}"
-                                    element = FallbackView::class.react.create{
+                                    element = FallbackView::class.react.create {
                                         bigText = "404"
                                         smallText = "Page not found"
                                         withRouterLink = true
@@ -307,8 +306,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
     }
 }
 
-fun ChildrenBuilder.routeUtils(listOfUrlParams: List<String>, href: String, routeElement: ReactNode?){
-    listOfUrlParams.forEach { item->
+/**
+ * @param listOfUrlParams
+ * @param href
+ * @param routeElement
+ */
+fun ChildrenBuilder.routeUtils(listOfUrlParams: List<String>, href: String, routeElement: ReactNode?) {
+    listOfUrlParams.forEach { item ->
         Route {
             path = "$href/$item"
             element = routeElement

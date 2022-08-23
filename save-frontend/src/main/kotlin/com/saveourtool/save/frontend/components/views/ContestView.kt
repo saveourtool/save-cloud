@@ -13,18 +13,18 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
-import csstype.ClassName
-import kotlinx.browser.window
 
+import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
-
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+
+import kotlinx.browser.window
 
 /**
  * Enum that defines the bar that is chosen
@@ -37,7 +37,6 @@ enum class ContestMenuBar {
 
     companion object {
         val defaultTab: ContestMenuBar = INFO
-
         val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
     }
 }
@@ -85,7 +84,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-
     override fun ChildrenBuilder.render() {
         div {
             className = ClassName("d-flex justify-content-around")
@@ -103,8 +101,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    private fun changeUrl(selectedMenu : ContestMenuBar?) {
-        selectedMenu ?. let {
+    private fun changeUrl(selectedMenu: ContestMenuBar?) {
+        selectedMenu?.let {
             window.location.href = if (selectedMenu == ContestMenuBar.defaultTab) {
                 "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}"
             } else {

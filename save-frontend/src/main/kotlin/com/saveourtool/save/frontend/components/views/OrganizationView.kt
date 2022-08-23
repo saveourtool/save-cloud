@@ -293,7 +293,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         if (state.selectedMenu != tab) {
             if (((tab == OrganizationMenuBar.SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
-                ((tab == OrganizationMenuBar.CONTESTS) && (!role.isHigherOrEqualThan(Role.OWNER) || state.organization?.canCreateContests == false))) {
+                    ((tab == OrganizationMenuBar.CONTESTS) && (!role.isHigherOrEqualThan(Role.OWNER) || state.organization?.canCreateContests == false))) {
                 changeUrl(OrganizationMenuBar.defaultTab)
                 window.alert("Your role is not suitable for opening this page")
                 window.location.reload()
@@ -305,9 +305,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-
     private fun changeUrl(selectedMenu: OrganizationMenuBar?) {
-        selectedMenu ?. let {
+        selectedMenu?.let {
             window.location.href = if (selectedMenu == OrganizationMenuBar.defaultTab) {
                 "#/${props.organizationName}"
             } else {
@@ -705,7 +704,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .forEachIndexed { i, organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
-                                val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold"  else ""
+                                val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold" else ""
                                 p {
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {

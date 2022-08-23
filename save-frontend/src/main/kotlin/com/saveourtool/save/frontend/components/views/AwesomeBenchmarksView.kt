@@ -6,9 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -22,7 +20,6 @@ import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
-import kotlinx.browser.window
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -48,6 +45,7 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
@@ -505,7 +503,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     }
 
     private fun changeUrl(selectedMenu: BenchmarkCategoryEnum?) {
-        selectedMenu ?. let {
+        selectedMenu?.let {
             window.location.href = if (selectedMenu == BenchmarkCategoryEnum.defaultTab) {
                 "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
             } else {

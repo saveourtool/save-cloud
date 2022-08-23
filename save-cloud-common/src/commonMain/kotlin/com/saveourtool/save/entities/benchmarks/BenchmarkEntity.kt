@@ -22,7 +22,6 @@ enum class BenchmarkCategoryEnum {
 
     companion object {
         val defaultTab = ALL
-
         val listOfStringEnumElements = BenchmarkCategoryEnum.values().map { it.name.lowercase() }
     }
 }

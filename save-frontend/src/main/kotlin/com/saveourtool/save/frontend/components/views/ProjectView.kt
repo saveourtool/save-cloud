@@ -335,7 +335,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
         scope.launch {
             val result = getProject(props.name, props.owner)
-            val project = if (result.isFailure) { return@launch } else { result.getOrThrow() }
+            val project = if (result.isFailure) {
+                return@launch
+            } else {
+                result.getOrThrow()
+            }
             setState { this.project = project }
 
             val headers = Headers().apply {
@@ -356,7 +360,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString<List<TestSuiteDto>>() . also { println(it.size) }
+            ).decodeFromJsonString<List<TestSuiteDto>>()
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
@@ -445,7 +449,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun ChildrenBuilder.render() {
-
         // modal windows are initially hidden
         runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
             setState {
@@ -495,7 +498,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun changeUrl(selectedMenu: ProjectMenuBar?) {
-        selectedMenu ?. let {
+        selectedMenu?.let {
             window.location.href = if (selectedMenu == ProjectMenuBar.defaultTab) {
                 "#/${props.owner}/${props.name}"
             } else {
@@ -526,7 +529,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         }
     }
-
 
     private fun ChildrenBuilder.renderProjectMenuBar() {
         div {
