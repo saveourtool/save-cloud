@@ -28,20 +28,18 @@ class CheckGitConnectivityController {
         @RequestParam user: String,
         @RequestParam token: String,
         @RequestParam url: String,
-    ): Mono<Boolean> {
+    ): Mono<Boolean> = Mono.fromCallable {
         log.info("Received a request to check git connectivity for $user: with $url")
-        return Mono.just(
-            try {
-                // a simple operation by detecting a default branch
-                GitDto(
-                    url,
-                    user,
-                    token,
-                ).detectDefaultBranchName()
-                true
-            } catch (e: IllegalStateException) {
-                false
-            }
-        )
+        try {
+            // a simple operation by detecting a default branch
+            GitDto(
+                url,
+                user,
+                token,
+            ).detectDefaultBranchName()
+            true
+        } catch (e: IllegalStateException) {
+            false
+        }
     }
 }

@@ -7,9 +7,8 @@
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.modal.CssProperties
-import com.saveourtool.save.frontend.externals.modal.Styles
-import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.*
+import com.saveourtool.save.frontend.utils.WindowOpenness
 
 import csstype.ClassName
 import react.*
@@ -18,8 +17,6 @@ import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
-
-import kotlin.js.json
 
 val testSuiteSelector = testSuiteSelector()
 
@@ -36,6 +33,12 @@ external interface TestSuiteSelectorProps : Props {
      * List of test suite ids that should be preselected
      */
     var preselectedTestSuiteIds: List<Long>
+
+    /**
+     * Specific organization name which reduces list of test suites source.
+     * If it's null we show public tests
+     */
+    var specificOrganizationName: String?
 }
 
 /**
@@ -49,15 +52,68 @@ enum class TestSuiteSelectorMode {
 }
 
 /**
- * @param isOpen
- * @param preselectedTestSuiteIds
- * @param onSubmit
- * @param onTestSuiteIdUpdate
- * @param onCancel
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun ChildrenBuilder.showTestSuiteSelectorModal(
+fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * @param organizationName
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
+    organizationName: String,
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(organizationName, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+private fun ChildrenBuilder.showTestSuitesSelectorModal(
+    specificOrganizationName: String?,
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    var currentlySelectedTestSuiteIds by testSuiteIdsInSelectorState
+    val onSubmit: () -> Unit = {
+        setSelectedTestSuiteIds(currentlySelectedTestSuiteIds)
+        windowOpenness.closeWindow()
+    }
+    val onTestSuiteIdUpdate: (List<Long>) -> Unit = {
+        currentlySelectedTestSuiteIds = it
+    }
+    val onCancel: () -> Unit = {
+        currentlySelectedTestSuiteIds = initTestSuiteIds
+        windowOpenness.closeWindow()
+    }
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
+}
+
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList"
+)
+private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
+    specificOrganizationName: String?,
     preselectedTestSuiteIds: List<Long>,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<Long>) -> Unit,
@@ -65,18 +121,9 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
 ) {
     modal { props ->
         props.isOpen = isOpen
-        props.style = Styles(
-            content = json(
-                "top" to "15%",
-                "left" to "30%",
-                "right" to "30%",
-                "bottom" to "5%",
-                "position" to "absolute",
-                "overflow" to "hide"
-            ).unsafeCast<CssProperties>()
-        )
+        props.style = transparentModalStyle
         div {
-            className = ClassName("modal-dialog modal-dialog-scrollable")
+            className = ClassName("modal-dialog modal-lg modal-dialog-scrollable")
             div {
                 className = ClassName("modal-content")
                 div {
@@ -102,6 +149,7 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                     testSuiteSelector {
                         this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuiteIds = preselectedTestSuiteIds
+                        this.specificOrganizationName = specificOrganizationName
                     }
                 }
 
@@ -184,6 +232,7 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
         TestSuiteSelectorMode.BROWSER -> testSuiteSelectorBrowserMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.specificOrganizationName = props.specificOrganizationName
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate

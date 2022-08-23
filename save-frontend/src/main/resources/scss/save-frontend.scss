@@ -8,6 +8,7 @@
 @import "mixins.scss";
 @import "global.scss";
 @import "utilities.scss";
+@import "animate.css";
 
 // Custom Components
 @import "dropdowns.scss";
@@ -21,7 +22,8 @@
 @import "team.scss";
 
 
-.tooltip-and-popover {
+// do not use name `.popover`, because it's used in popover library and it breaks position
+.form-popover {
   cursor: pointer;
 }
 

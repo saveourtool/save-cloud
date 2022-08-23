@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -79,6 +80,7 @@ import kotlin.io.path.*
 @MockBeans(
     MockBean(OrganizationService::class),
     MockBean(UserDetailsService::class),
+    MockBean(ExecutionService::class),
 )
 class DownloadFilesTest {
     private val organization = Organization("Example.com", OrganizationStatus.CREATED, 1, null).apply { id = 2 }
@@ -209,10 +211,11 @@ class DownloadFilesTest {
             .expectStatus()
             .isOk
             .expectBody<ShortFileInfo>()
-            .consumeWith {
+            .consumeWith { result ->
                 Assertions.assertTrue(
-                    fileStorage.convertToLatestFileInfo(ProjectCoordinates("Huawei", "huaweiName"), Flux.just(it.responseBody!!))
-                        .map(FileInfo::sizeBytes)
+                    Flux.just(result.responseBody!!)
+                        .map { it.toStorageKey() }
+                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
                         .toFuture()

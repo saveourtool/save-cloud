@@ -8,13 +8,16 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
+
+import csstype.BorderRadius
 import csstype.ClassName
 import react.FC
 import react.Props
-
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import react.dom.html.ReactHTML.img
+
+import kotlinx.js.jso
 
 /**
  * React element type that represents user board and can be rendered
@@ -44,15 +47,18 @@ private fun userBoard() = FC<UserBoardProps> { props ->
             className = ClassName("row")
             props.users.forEach { user ->
                 div {
-                    className = ClassName("col-md-4")
+                    className = ClassName("col-md-4 px-0")
                     figure {
                         img {
                             className = ClassName("img-fluid px-sm-3")
+                            style = jso {
+                                borderRadius = "50%;".unsafeCast<BorderRadius>()
+                            }
                             src = user.avatar?.let { path ->
                                 "/api/$v1/avatar$path"
                             }
                                 ?: run {
-                                    "img/user.svg"
+                                    "img/undraw_profile.svg"
                                 }
                             alt = ""
                         }

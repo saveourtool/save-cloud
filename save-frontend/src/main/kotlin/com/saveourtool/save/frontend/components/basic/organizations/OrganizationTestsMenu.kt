@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
@@ -25,15 +26,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
-
-/**
- * External function to JS
- *
- * @param str
- * @return encoded [str]
- */
-@Suppress("FUNCTION_NAME_INCORRECT_CASE")
-external fun encodeURIComponent(str: String): String
 
 /**
  * TESTS tab in OrganizationView
@@ -58,9 +50,9 @@ external interface OrganizationTestsMenuProps : Props {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
-
+    val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
-    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName)) {
+    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
             url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
             headers = Headers().also {
@@ -69,16 +61,25 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            response.unsafeMap {
-                it.decodeFromJsonString<TestSuitesSourceDtoList>()
-            }.let {
-                setTestSuitesSources(it)
-            }
+            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
         } else {
             setTestSuitesSources(emptyList())
         }
     }
     fetchTestSuitesSources()
+    val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto?>(null)
+    val triggerFetchTestSuiteSource = useRequest(dependencies = arrayOf(testSuiteSourceToFetch)) {
+        testSuiteSourceToFetch?.let { testSuiteSource ->
+            post(
+                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+                loadingHandler = ::loadingHandler,
+                body = undefined
+            )
+        }
+    }
 
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
@@ -102,7 +103,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             }
         }
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable {
+    val selectHandler: (TestSuitesSourceDto) -> Unit = {
         if (selectedTestSuitesSource == it) {
             setSelectedTestSuitesSource(null)
         } else {
@@ -110,7 +111,22 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
+    val fetchHandler: (TestSuitesSourceDto) -> Unit = {
+        setTestSuiteSourceToFetch(it)
+        triggerFetchTestSuiteSource()
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
 
+    showTestSuiteSourceCreationModal(
+        isTestSuiteSourceCreationModalOpen,
+        props.organizationName,
+        {
+            setIsTestSuitesSourceCreationModalOpen(false)
+            setIsSourceCreated { !it }
+        },
+    ) {
+        setIsTestSuitesSourceCreationModalOpen(false)
+    }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
         button {
@@ -156,9 +172,15 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     var content: List<D>
 }
 
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS", "TOO_LONG_FUNCTION")
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 private fun prepareTestSuitesSourcesTable(
-    selectHandler: (TestSuitesSourceDto) -> Unit
+    selectHandler: (TestSuitesSourceDto) -> Unit,
+    fetchHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { this }) { cellProps ->
@@ -200,6 +222,20 @@ private fun prepareTestSuitesSourcesTable(
                     a {
                         href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
                         +"source"
+                    }
+                }
+            }
+        }
+        column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
+                        onClick = {
+                            fetchHandler(cellProps.value)
+                        }
+                        +"fetch"
                     }
                 }
             }

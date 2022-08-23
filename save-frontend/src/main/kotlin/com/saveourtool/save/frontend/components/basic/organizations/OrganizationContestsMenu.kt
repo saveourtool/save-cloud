@@ -19,9 +19,10 @@ import org.w3c.fetch.Response
 import react.*
 
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.td
 import react.table.columns
 
 /**
@@ -34,8 +35,8 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
     columns = columns {
         column(id = "name", header = "Contest Name", { name }) { cellProps ->
             Fragment.create {
-                ReactHTML.td {
-                    ReactHTML.a {
+                td {
+                    a {
                         href = "#/contests/${cellProps.row.original.name}"
                         +cellProps.value
                     }
@@ -44,21 +45,21 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
         }
         column(id = "description", header = "Description", { description }) { cellProps ->
             Fragment.create {
-                ReactHTML.td {
+                td {
                     +(cellProps.value ?: "Description is not provided")
                 }
             }
         }
         column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
             Fragment.create {
-                ReactHTML.td {
+                td {
                     +cellProps.value.replace("T", " ")
                 }
             }
         }
         column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
             Fragment.create {
-                ReactHTML.td {
+                td {
                     +cellProps.value.replace("T", " ")
                 }
             }

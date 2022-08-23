@@ -2,16 +2,27 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.repository.AgentRepository
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
+import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.Parameters
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.Tags
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -32,6 +43,10 @@ import java.nio.ByteBuffer
  * A Spring controller for file downloading
  */
 @RestController
+@ApiSwaggerSupport
+@Tags(
+    Tag(name = "files"),
+)
 @Suppress("LongParameterList")
 class DownloadFilesController(
     private val fileStorage: FileStorage,
@@ -39,6 +54,7 @@ class DownloadFilesController(
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val agentRepository: AgentRepository,
+    private val executionService: ExecutionService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
@@ -103,7 +119,29 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toFileKey(), organizationName, projectName)
+    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(), organizationName, projectName)
+
+    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @Operation(
+        method = "POST",
+        summary = "Download a file by execution ID and FileKey.",
+        description = "Download a file by execution ID and FileKey.",
+    )
+    @Parameters(
+        Parameter(name = "executionId", `in` = ParameterIn.QUERY, description = "ID of an execution", required = true)
+    )
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
+    fun downloadByExecutionId(
+        @RequestBody fileKey: FileKey,
+        @RequestParam executionId: Long,
+    ): Mono<ByteBufferFluxResponse> = blockingToMono {
+        executionService.findExecution(executionId)
+    }
+        .switchIfEmptyToNotFound()
+        .flatMap { execution ->
+            downloadByFileKey(fileKey, execution.project.organization.name, execution.project.name)
+        }
 
     /**
      * @param fileKey a key [FileKey] of requested file

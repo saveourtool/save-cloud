@@ -85,14 +85,6 @@ class ProjectViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/getTestRootPathByExecutionId") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    ""
-                )
-            }
-        },
     )
 
     @Test
@@ -111,40 +103,6 @@ class ProjectViewTest {
             }
             .then {
                 assertNotNull(it, "Should show project name")
-            }
-            .then {
-                worker.stop()
-            }
-    }
-
-    @Test
-    fun shouldShowConfirmationWindowWhenDeletingProject(): Promise<*> {
-        val worker = createWorker()
-        return (worker.start() as Promise<*>).then {
-            renderProjectView()
-        }
-            .then {
-                screen.findByText(
-                    "SETTINGS",
-                    waitForOptions = jso {
-                        timeout = 15000
-                    }
-                )
-            }
-            .then {
-                userEvent.click(it)
-            }
-            .then { _: Unit ->
-                screen.findByText("Delete project")
-            }
-            .then {
-                userEvent.click(it)
-            }
-            .then { _: Unit ->
-                screen.findByText("Ok")
-            }
-            .then {
-                assertNotNull(it, "Should show confirmation window")
             }
             .then {
                 worker.stop()

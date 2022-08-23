@@ -20,6 +20,20 @@ fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
 }
 
 /**
+ * Check if path is valid.
+ *
+ * @param isRelative if true, check is done for relative paths, otherwise checking absolute paths
+ * @return true if path is valid, false otherwise
+ */
+fun String.isValidPath(isRelative: Boolean = true) = run {
+    isNotBlank() && if (isRelative) {
+        first() != '/' && ValidationRegularExpressions.RELATIVE_PATH_VALIDATOR.value.matches(this)
+    } else {
+        first() == '/' && ValidationRegularExpressions.ABSOLUTE_PATH_VALIDATOR.value.matches(this)
+    }
+}
+
+/**
  * Check if url is valid.
  *
  * @return true if url is valid, false otherwise

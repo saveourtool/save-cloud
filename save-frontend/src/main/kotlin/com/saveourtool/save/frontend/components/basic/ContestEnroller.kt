@@ -6,16 +6,21 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.externals.modal.transparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
+import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
@@ -76,7 +81,7 @@ external interface ContestEnrollerProps : Props {
  * @param onResponse callback invoked when enrollment response is received
  * @param onCloseButtonPressed callback invoked when close button was clicked
  */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION")
 fun ChildrenBuilder.showContestEnrollerModal(
     isModalOpen: Boolean,
     selectedNameProps: NameProps,
@@ -85,19 +90,35 @@ fun ChildrenBuilder.showContestEnrollerModal(
 ) {
     modal { props ->
         props.isOpen = isModalOpen
-        contestEnrollerComponent {
-            nameProps = selectedNameProps
-            onResponseChanged = onResponse
-        }
+        props.style = transparentModalStyle
         div {
-            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
-            button {
-                className = ClassName("btn btn-primary")
-                type = ButtonType.button
-                onClick = {
-                    onCloseButtonPressed()
+            className = ClassName("modal-dialog modal-dialog-centered")
+            div {
+                className = ClassName("modal-content")
+                div {
+                    className = ClassName("modal-header")
+                    h5 {
+                        className = ClassName("modal-title")
+                        +"Enroll for a contest"
+                    }
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("close")
+                        asDynamic()["data-dismiss"] = "modal"
+                        ariaLabel = "Close"
+                        fontAwesomeIcon(icon = faTimesCircle)
+                        onClick = {
+                            onCloseButtonPressed()
+                        }
+                    }
                 }
-                +"Cancel"
+                div {
+                    className = ClassName("modal-body")
+                    contestEnrollerComponent {
+                        nameProps = selectedNameProps
+                        onResponseChanged = onResponse
+                    }
+                }
             }
         }
     }
@@ -143,10 +164,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
             } else {
                 "$apiUrl/contests/$contestName/eligible-projects"
             },
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-                it.set("Content-Type", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
             .unsafeMap {
@@ -203,7 +221,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
             }
         }
         div {
-            className = ClassName("d-flex justify-content-center")
+            className = ClassName("d-flex justify-content-center mt-3")
             button {
                 className = ClassName("btn btn-primary d-flex justify-content-center")
                 +"Participate"

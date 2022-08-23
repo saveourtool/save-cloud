@@ -6,27 +6,14 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Git
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionInitializationDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.testutils.checkQueues
-import com.saveourtool.save.testutils.cleanup
-import com.saveourtool.save.testutils.createMockWebServer
-import com.saveourtool.save.testutils.enqueue
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.v1
 
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -38,16 +25,9 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
-import java.time.LocalDateTime
-import java.time.Month
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -56,8 +36,6 @@ import java.util.concurrent.TimeUnit
     MockBean(ProjectController::class),
 )
 class ExecutionControllerTest {
-    private val testLocalDateTime = LocalDateTime.of(2020, Month.APRIL, 10, 16, 30, 20)
-
     @Autowired
     lateinit var webClient: WebTestClient
 
@@ -67,51 +45,10 @@ class ExecutionControllerTest {
     @Autowired
     lateinit var projectRepository: ProjectRepository
 
-    @Autowired
-    lateinit var testSuiteRepository: TestSuiteRepository
-
-    @Autowired
-    lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
-
-    @Autowired
-    lateinit var gitRepository: GitRepository
-
-    @Test
-    @WithMockUser("JohnDoe")
-    fun testDataSave() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution.stub(project).apply {
-            startTime = testLocalDateTime
-            endTime = testLocalDateTime
-        }
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        val databaseData = executionRepository.findAll()
-
-        assertTrue(databaseData.any { it.status == execution.status && it.startTime == testLocalDateTime })
-    }
-
     @Test
     @WithMockUser("JohnDoe")
     @Suppress("TOO_LONG_FUNCTION")
     fun testUpdateExecution() {
-        val project = projectRepository.findById(1).get()
-        val execution = Execution.stub(project)
-
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
         val executionUpdateDto = ExecutionUpdateDto(1, ExecutionStatus.FINISHED)
 
         webClient.post()
@@ -185,192 +122,7 @@ class ExecutionControllerTest {
             }
     }
 
-    @Test
-    @WithMockUser("JohnDoe")
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun checkUpdateNewExecution() {
-        val execution = Execution.stub(projectRepository.findAll().first())
-        webClient.post()
-            .uri("/internal/createExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(execution))
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        val executionUpdate = ExecutionInitializationDto(execution.project, listOf(1, 2, 3), "executionVersion", null, null)
-        webClient.post()
-            .uri("/internal/updateNewExecution")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(executionUpdate))
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<Execution>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertEquals("1,2,3", responseBody.testSuiteIds)
-                assertEquals(20, responseBody.batchSize)
-                assertEquals("executionVersion", responseBody.version)
-            }
-        val isUpdatedExecution = executionRepository.findAll().any {
-            it.testSuiteIds == "1,2,3" &&
-                    it.batchSize == 20 &&
-                    it.version == "executionVersion"
-        }
-        assertTrue(isUpdatedExecution)
-    }
-
-    @Test
-    @WithMockUser("JohnDoe")
-    fun `should send request to preprocessor to rerun execution`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
-        }
-
-        mockServerPreprocessor.enqueue(
-            "/rerunExecution.*",
-            MockResponse().setResponseCode(202)
-                .setHeader("Accept", "application/json")
-                .setHeader("Content-Type", "application/json")
-                .setBody("Clone pending")
-        )
-        val assertions = CompletableFuture.supplyAsync {
-            listOf(
-                mockServerPreprocessor.takeRequest(60, TimeUnit.SECONDS),
-            )
-        }
-
-        webClient.post()
-            .uri("/api/$v1/rerunExecution?id=5")
-            .exchange()
-            .expectStatus()
-            .isOk
-        assertions.orTimeout(60, TimeUnit.SECONDS).join().forEach {
-            assertNotNull(it)
-        }
-    }
-
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    @Test
-    @WithMockUser(username = "admin")
-    fun `test testSuiteIds`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-        val execution = executionRepository.findById(6).get()
-        val executionEmptyTestSuiteIds = executionRepository.save(execution.apply {
-            testSuiteIds = null
-        })
-
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", executionEmptyTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isNotFound
-
-        val organization = execution.project.organization
-        val git = gitRepository.save(
-            Git(
-                url = "test",
-                username = null,
-                password = null,
-                organization = organization,
-            )
-        )
-        val source1 = testSuitesSourceRepository.save(
-            TestSuitesSource(
-                organization = organization,
-                name = "test1",
-                description = null,
-                git = git,
-                branch = "main",
-                testRootPath = "testRootPath"
-            )
-        )
-        val testSuite1 = testSuiteRepository.save(
-            TestSuite(
-                name = "test1",
-                description = null,
-                source = source1,
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-        val testSuite2 = testSuiteRepository.save(
-            TestSuite(
-                name = "test2",
-                description = null,
-                source = source1,
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-
-        val validExecutionTestSuiteIds = executionRepository.save(execution.apply {
-            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId()))
-        })
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", validExecutionTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<String>()
-            .consumeWith {
-                val responseBody = requireNotNull(it.responseBody)
-                assertEquals("testRootPath", responseBody)
-            }
-
-        val testSuite3 = testSuiteRepository.save(
-            TestSuite(
-                name = "test3",
-                description = null,
-                source = testSuitesSourceRepository.save(
-                    TestSuitesSource(
-                        organization = organization,
-                        name = "test3",
-                        description = null,
-                        git = git,
-                        branch = "main",
-                        testRootPath = "anotherTestRootPath"
-                    )
-                ),
-                version = "1",
-                dateAdded = testLocalDateTime,
-            )
-        )
-        val invalidExecutionTestSuiteIds = executionRepository.save(execution.apply {
-            formatAndSetTestSuiteIds(listOf(testSuite1.requiredId(), testSuite2.requiredId(), testSuite3.requiredId()))
-        })
-
-        webClient.get()
-            .uri("/api/$v1/getTestRootPathByExecutionId?id={id}", invalidExecutionTestSuiteIds.requiredId())
-            .exchange()
-            .expectStatus()
-            .isNotFound
-    }
-
     companion object {
         private val log: Logger = getLogger<ExecutionControllerTest>()
-        @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
-
-        @AfterEach
-        fun cleanup() {
-            mockServerPreprocessor.checkQueues()
-            mockServerPreprocessor.cleanup()
-        }
-
-        @AfterAll
-        fun tearDown() {
-            mockServerPreprocessor.shutdown()
-        }
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            mockServerPreprocessor = createMockWebServer()
-            mockServerPreprocessor.start()
-            registry.add("backend.preprocessorUrl") { "http://localhost:${mockServerPreprocessor.port}" }
-        }
     }
 }

@@ -47,7 +47,6 @@ import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
@@ -65,9 +64,24 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
 }
 
 /**
+ * [State] of project view component for CONTEST run
+ */
+external interface ContestRunState : State {
+    /**
+     * Currently selected contest
+     */
+    var selectedContest: ContestDto
+
+    /**
+     * All available contest
+     */
+    var availableContests: List<ContestDto>
+}
+
+/**
  * [State] of project view component
  */
-external interface ProjectViewState : State {
+external interface ProjectViewState : StateWithRole, ContestRunState {
     /**
      * Currently loaded for display Project
      */
@@ -139,19 +153,14 @@ external interface ProjectViewState : State {
     var confirmationType: ConfirmationType
 
     /**
-     * Git credential to the custom tests
+     * List of IDs of private [TestSuiteDto] for execution run
      */
-    var selectedGitCredential: GitDto
+    var selectedPrivateTestSuiteIds: List<Long>
 
     /**
-     * Available git credentials for the custom tests
+     * List of IDs of public [TestSuiteDto] for execution run
      */
-    var availableGitCredentials: List<GitDto>
-
-    /**
-     * Branch of commit in current repo
-     */
-    var gitBranchOrCommitFromInputField: String
+    var selectedPublicTestSuiteIds: List<Long>
 
     /**
      * Execution command for standard mode
@@ -162,16 +171,6 @@ external interface ProjectViewState : State {
      * Batch size for static analyzer tool in standard mode
      */
     var batchSizeForAnalyzer: String
-
-    /**
-     * Directory in the repository where tests are placed
-     */
-    var testRootPath: String
-
-    /**
-     * Selected languages in the list of standard tests
-     */
-    var selectedLanguageForStandardTests: String
 
     /**
      * General size of test suite in bytes
@@ -207,16 +206,6 @@ external interface ProjectViewState : State {
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
-
-    /**
-     * Role of a user that is seeing this view
-     */
-    var selfRole: Role
-
-    /**
-     * File for delete
-     */
-    var file: FileInfo
 }
 
 /**
@@ -227,41 +216,7 @@ external interface ProjectViewState : State {
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private var standardTestSuites: List<TestSuiteDto> = emptyList()
-    private val selectedStandardSuites: MutableList<String> = mutableListOf()
     private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-    private val testResourcesSelection = testResourcesSelection(
-        updateGitUrlFromInputField = { selectedGitUrl ->
-            setState {
-                selectedGitCredential = availableGitCredentials.first { it.url == selectedGitUrl }
-            }
-        },
-        updateGitBranchOrCommitInputField = {
-            setState {
-                gitBranchOrCommitFromInputField = it
-            }
-        },
-        updateTestRootPath = {
-            setState {
-                testRootPath = it
-            }
-        },
-        setExecCmd = {
-            setState {
-                execCmd = it
-            }
-        },
-        setBatchSize = {
-            setState {
-                batchSizeForAnalyzer = it
-            }
-        },
-        setSelectedLanguageForStandardTests = {
-            setState {
-                selectedLanguageForStandardTests = it
-            }
-        }
-    )
     private val projectInfo = projectInfo(
         turnEditMode = ::turnEditMode,
         onProjectSave = { draftProject, setDraftProject ->
@@ -293,14 +248,16 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             userId = -1,
             organization = Organization("stub", OrganizationStatus.CREATED, null, date)
         )
-        state.selectedGitCredential = GitDto("N/A")
-        state.availableGitCredentials = emptyList()
-        state.gitBranchOrCommitFromInputField = ""
+        state.selectedContest = ContestDto.empty
+        state.availableContests = emptyList()
+        state.selectedPrivateTestSuiteIds = emptyList()
+        state.selectedPublicTestSuiteIds = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
-        state.testRootPath = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
-        state.testingType = TestingType.CUSTOM_TESTS
+        state.testingType = TestingType.PRIVATE_TESTS
+        state.selectedContest = ContestDto.empty
+        state.availableContests = emptyList()
         state.isErrorOpen = false
         state.isSubmitButtonPressed = false
         state.errorMessage = ""
@@ -309,7 +266,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
-        state.selectedLanguageForStandardTests = ""
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
@@ -317,7 +273,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = null
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
-        state.file = FileInfo("", 0, 0)
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -360,19 +315,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString<List<TestSuiteDto>>()
-
+            ).decodeFromJsonString()
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
                 this.availableFiles.clear()
                 this.availableFiles.addAll(availableFiles)
             }
 
-            val gitCredentials = getGitCredentials(project.organization.name)
+            val contests = getContests()
             setState {
-                availableGitCredentials = gitCredentials
-                gitCredentials.firstOrNull()?.let { selectedGitCredential = it }
+                availableContests = contests
+                contests.firstOrNull()?.let { selectedContest = it }
             }
+
             fetchLatestExecutionId()
         }
     }
@@ -380,57 +335,27 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.CUSTOM_TESTS -> submitExecutionRequestWithCustomTests()
-            else -> {
-                if (selectedStandardSuites.isEmpty()) {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = "Both type of project"
-                        errorMessage = "Please choose at least one test suite"
-                    }
-                    return
-                }
-                submitExecutionRequestWithStandardTests()
-            }
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
+            else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    @Suppress("UnsafeCallOnNullableType")
-    private fun submitExecutionRequestWithStandardTests() {
-        val headers = Headers()
-        val formData = FormData()
+    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val request = ExecutionRequestForStandardSuites(
-            state.project,
-            selectedStandardSuites,
-            selectedSdk,
-            state.execCmd,
-            state.batchSizeForAnalyzer,
-            null,
+        val executionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = state.project.organization.name,
+                projectName = state.project.name
+            ),
+            testSuiteIds = selectedTestSuiteIds,
+            files = state.files.map { it.toStorageKey() },
+            sdk = selectedSdk,
+            execCmd = state.execCmd,
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer
         )
-        formData.appendJson("execution", request)
-        state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
-        }
-        submitRequest("/executionRequestStandardTests", headers, formData)
-    }
-
-    private fun submitExecutionRequestWithCustomTests() {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val formData = FormData()
-        val testRootPath = state.testRootPath.ifBlank { "." }
-        val executionRequest = ExecutionRequest(
-            state.project,
-            state.selectedGitCredential,
-            state.gitBranchOrCommitFromInputField,
-            testRootPath,
-            selectedSdk,
-            null)
-        formData.appendJson("executionRequest", executionRequest)
-        state.files.forEach {
-            formData.appendJson("file", it.toShortFileInfo())
-        }
-        submitRequest("/submitExecutionRequest", Headers(), formData)
+        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
@@ -457,23 +382,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
         }
 
-        runConfirmWindowModal(
-            state.isConfirmWindowOpen,
-            state.confirmLabel,
-            state.confirmMessage,
-            "Ok",
-            "Cancel",
-            { setState { isConfirmWindowOpen = false } }) {
-            when (state.confirmationType) {
-                ConfirmationType.NO_BINARY_CONFIRM, ConfirmationType.NO_CONFIRM -> submitExecutionRequest()
-                ConfirmationType.DELETE_CONFIRM -> deleteProjectBuilder()
-                ConfirmationType.DELETE_FILE_CONFIRM -> fileDelete()
-                else -> {
-                    // this is a generated else block
-                }
-            }
-            setState { isConfirmWindowOpen = false }
-        }
         // Page Heading
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -575,13 +483,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div {
                         className = ClassName("text-left")
                         testingTypeButton(
-                            TestingType.CUSTOM_TESTS,
-                            "Evaluate your tool with your own tests from git",
+                            TestingType.PRIVATE_TESTS,
+                            "Evaluate your tool with your own tests",
                             "mr-2"
                         )
                         testingTypeButton(
-                            TestingType.STANDARD_BENCHMARKS,
-                            "Evaluate your tool with standard test suites",
+                            TestingType.PUBLIC_TESTS,
+                            "Evaluate your tool with public test suites",
                             "mt-3 mr-2"
                         )
                         if (state.project.public) {
@@ -607,7 +515,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     isSubmitButtonPressed = state.isSubmitButtonPressed
                     files = state.files
                     availableFiles = state.availableFiles
-                    confirmationType = state.confirmationType
                     suiteByteSize = state.suiteByteSize
                     bytesReceived = state.bytesReceived
                     isUploading = state.isUploading
@@ -655,7 +562,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 testResourcesSelection {
                     testingType = state.testingType
                     isSubmitButtonPressed = state.isSubmitButtonPressed
-                    gitDto = gitDto
+                    // properties for CONTEST_TESTS mode
                     projectName = props.name
                     organizationName = props.owner
                     onContestEnrollerResponse = {
@@ -665,17 +572,40 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                             errorLabel = "Contest enrollment"
                         }
                     }
-                    // properties for CUSTOM_TESTS mode
-                    testRootPath = state.testRootPath
-                    selectedGitCredential = state.selectedGitCredential
-                    availableGitCredentials = state.availableGitCredentials
-                    gitBranchOrCommitFromInputField = state.gitBranchOrCommitFromInputField
-                    // properties for STANDARD_BENCHMARKS mode
-                    selectedStandardSuites = this@ProjectView.selectedStandardSuites
-                    standardTestSuites = this@ProjectView.standardTestSuites
-                    selectedLanguageForStandardTests = state.selectedLanguageForStandardTests
+                    selectedContest = state.selectedContest
+                    setSelectedContest = { selectedContest ->
+                        setState {
+                            this.selectedContest = selectedContest
+                        }
+                    }
+                    availableContests = state.availableContests
+                    // properties for PRIVATE_TESTS mode
+                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuiteIds
+                    setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
+                        setState {
+                            this.selectedPrivateTestSuiteIds = selectedTestSuiteIds
+                        }
+                    }
+                    // properties for PUBLIC_TESTS mode
+                    selectedPublicTestSuiteIds = state.selectedPublicTestSuiteIds
+                    setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
+                        setState {
+                            this.selectedPublicTestSuiteIds = selectedTestSuiteIds
+                        }
+                    }
+                    // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
                     execCmd = state.execCmd
+                    setExecCmd = { execCmd ->
+                        setState {
+                            this.execCmd = execCmd
+                        }
+                    }
                     batchSizeForAnalyzer = state.batchSizeForAnalyzer
+                    setBatchSizeForAnalyzer = { batchSizeForAnalyzer ->
+                        setState {
+                            this.batchSizeForAnalyzer = batchSizeForAnalyzer
+                        }
+                    }
                 }
 
                 div {
@@ -779,12 +709,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun fileDelete() {
+    private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${state.file.uploadedMillis}",
+                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
                 jsonHeaders,
-                Json.encodeToString(state.file),
+                Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,
             )
 
@@ -799,12 +729,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun postFileDelete(fileForDelete: FileInfo) {
-        setState {
-            file = fileForDelete
-            confirmationType = ConfirmationType.DELETE_FILE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this file?"
+        val confirm = window.confirm(
+            "Are you sure you want to delete ${fileForDelete.name} file?"
+        )
+
+        if (confirm) {
+            fileDelete(fileForDelete)
         }
     }
 
@@ -962,23 +892,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 setState {
                     latestExecutionId = executionIdFromResponse
                 }
-                getTestRootPathFromLatestExecution(executionIdFromResponse)
-            }
-        }
-    }
-
-    private suspend fun getTestRootPathFromLatestExecution(executionId: Long) {
-        val headers = Headers().apply { set("Accept", "application/json") }
-        val response = get(
-            "$apiUrl/getTestRootPathByExecutionId?id=$executionId",
-            headers,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        val rootPath = response.text().await()
-        when {
-            response.ok -> setState {
-                testRootPath = rootPath
             }
         }
     }
@@ -995,15 +908,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             it.decodeFromJsonString<List<FileInfo>>()
         }
 
-    private suspend fun getGitCredentials(
-        organizationName: String,
-    ) = get(
-        "$apiUrl/organization/$organizationName/list-git",
+    private suspend fun getContests() = get(
+        "$apiUrl/contests/active",
         Headers(),
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
-            it.decodeFromJsonString<List<GitDto>>()
+            it.decodeFromJsonString<List<ContestDto>>()
         }
 
     companion object :
@@ -1019,7 +930,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
  
             Please note, that the tested tool and it's resources will be copied to this directory before the run.
             """
-        const val TEST_SUITE_ROW = 4
 
         init {
             contextType = requestStatusContext

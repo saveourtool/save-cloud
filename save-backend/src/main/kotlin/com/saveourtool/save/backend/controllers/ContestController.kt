@@ -256,7 +256,7 @@ internal class ContestController(
             contestService.createContestIfNotPresent(it)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "Contest with name ${contestDto.name} is already present"
+            "Contest with name [${contestDto.name}] already exists!"
         }
         .map {
             ResponseEntity.ok("Contest has been successfully created!")

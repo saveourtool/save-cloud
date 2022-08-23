@@ -89,7 +89,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         state.selectedMenuBench = null
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
-        getBenchmarks()
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        scope.launch {
+            getBenchmarks()
+        }
     }
 
     override fun componentDidMount() {
@@ -262,7 +268,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                             setState { selectedMenuBench = value }
                                                         }
                                                     }
-                                                    style = jso<CSSProperties> {
+                                                    style = jso {
                                                         cursor = "pointer".unsafeCast<Cursor>()
                                                     }
 
@@ -515,22 +521,19 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    private fun getBenchmarks() {
+    private suspend fun getBenchmarks() {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         }
+        val response: List<AwesomeBenchmarks> = get(
+            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+            headers,
+            loadingHandler = ::classLoadingHandler,
+        ).decodeFromJsonString()
 
-        scope.launch {
-            val response: List<AwesomeBenchmarks> = get(
-                "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                headers,
-                loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
-
-            setState {
-                benchmarks = response
-            }
+        setState {
+            benchmarks = response
         }
     }
 

@@ -9,6 +9,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
@@ -71,7 +72,7 @@ class AgentsControllerTest {
     }
 
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
@@ -92,12 +93,17 @@ class AgentsControllerTest {
                 .addHeader("Content-Type", "application/octet-stream")
                 .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
-        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
+        whenever(dockerService.prepareConfiguration(any())).thenReturn(
             DockerService.RunConfiguration(
-                "test-image-id",
-                listOf("sh", "-c", "test-exec-cmd"),
-                DockerPvId("test-pv-id"),
-                Path.of("test-resources-path"),
+                imageTag = "test-image-id",
+                runCmd = listOf("sh", "-c", "test-exec-cmd"),
+                pvId = DockerPvId("test-pv-id"),
+                workingDir = EXECUTION_DIR,
+                resourcesPath = Path.of("test-resources-path"),
+                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
+                    executionId = execution.id!!,
+                    additionalFilesString = "",
+                )
             )
         )
         whenever(dockerService.createContainers(any(), any()))
@@ -114,19 +120,15 @@ class AgentsControllerTest {
         mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
-        }.build()
-
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromMultipartData(bodyBuilder))
+            .bodyValue(execution)
             .exchange()
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
 
@@ -139,14 +141,11 @@ class AgentsControllerTest {
     fun checkPostResponseIsNotOk() {
         val project = Project.stub(null)
         val execution = Execution.stub(project)
-        val bodyBuilder = MultipartBodyBuilder().apply {
-            part("execution", execution)
-        }.build()
 
         webClient
             .post()
             .uri("/initializeAgents")
-            .body(BodyInserters.fromMultipartData(bodyBuilder))
+            .bodyValue(execution)
             .exchange()
             .expectStatus()
             .is4xxClientError

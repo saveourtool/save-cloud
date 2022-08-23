@@ -152,10 +152,18 @@ external val faTrash: FontAwesomeIconModule
 @JsNonModule
 external val faBell: FontAwesomeIconModule
 
-@JsModule("@fortawesome/free-solid-svg-icons/faArrowDown")
+@JsModule("@fortawesome/free-solid-svg-icons/faChevronDown")
 @JsNonModule
-external val faArrowDown: FontAwesomeIconModule
+external val faChevronDown: FontAwesomeIconModule
 
 @JsModule("@fortawesome/free-solid-svg-icons/faCheckDouble")
 @JsNonModule
 external val faCheckDouble: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faTrophy")
+@JsNonModule
+external val faTrophy: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faCode")
+@JsNonModule
+external val faCode: FontAwesomeIconModule
