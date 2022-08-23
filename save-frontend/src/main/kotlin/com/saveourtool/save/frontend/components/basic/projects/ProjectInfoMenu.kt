@@ -74,6 +74,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
 
     val (bestResults, setBestResults) = useState(emptyList<ContestResult>())
     useRequest(isDeferred = false) {
+        console.log("best query")
         val results: List<ContestResult> = get(
             url = "$apiUrl/contests/${props.organizationName}/${props.projectName}/best",
             headers = Headers().also {

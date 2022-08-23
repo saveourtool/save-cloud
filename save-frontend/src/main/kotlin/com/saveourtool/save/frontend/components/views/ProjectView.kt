@@ -354,10 +354,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             urlAnalysis(role)
 
+            console.log("allStandardTestSuites")
             standardTestSuites = get(
                 "$apiUrl/allStandardTestSuites",
                 headers, loadingHandler = ::classLoadingHandler,
-            ).decodeFromJsonString()
+            ).decodeFromJsonString<List<TestSuiteDto>>() . also { println(it.size) }
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
