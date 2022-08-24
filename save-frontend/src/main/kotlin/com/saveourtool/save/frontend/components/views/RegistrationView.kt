@@ -51,7 +51,7 @@ external interface RegistrationProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 /**
@@ -104,7 +104,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     override fun componentDidMount() {
         super.componentDidMount()
         scope.launch {
-            val user = props.userName
+            val user = props.userInfo?.name
                 ?.let { getUser(it) }
             setState {
                 userInfo = user
@@ -113,6 +113,14 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         }
     }
 
+    override fun componentDidUpdate(prevProps: RegistrationProps, prevState: RegistrationViewState, snapshot: Any) {
+        if (props.userInfo != prevProps.userInfo) {
+            setState {
+                userInfo = props.userInfo
+                userInfo?.let { updateFieldsMap(it) }
+            }
+        }
+    }
     private fun changeFields(
         fieldName: InputTypes,
         target: ChangeEvent<HTMLInputElement>,
@@ -184,7 +192,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                     className = ClassName("p-5 text-center")
                                     h1 {
                                         className = ClassName("h4 text-gray-900 mb-4")
-                                        +"Registration new user"
+                                        +"Registration of a new user"
                                     }
                                     label {
                                         input {
@@ -194,16 +202,14 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                                 postImageUpload(event.target)
                                             }
                                         }
-                                        ariaLabel = "Change organization's avatar"
+                                        ariaLabel = "Change user's avatar"
                                         img {
                                             className =
                                                     ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                             src = state.image?.path?.let {
                                                 "/api/$v1/avatar$it"
                                             }
-                                                ?: run {
-                                                    "img/undraw_profile.svg"
-                                                }
+                                                ?: "img/undraw_profile.svg"
                                             height = 260.0
                                             width = 260.0
                                         }
@@ -257,7 +263,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
-                        "$apiUrl/image/upload?owner=${props.userName}&type=${AvatarType.USER}",
+                        "$apiUrl/image/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
                         Headers(),
                         FormData().apply {
                             append("file", file)
