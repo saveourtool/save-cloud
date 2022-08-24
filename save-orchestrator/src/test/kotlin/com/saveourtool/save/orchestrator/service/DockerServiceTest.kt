@@ -39,7 +39,7 @@ import java.nio.file.Paths
 
 import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import java.net.InetSocketAddress
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -146,7 +146,10 @@ class DockerServiceTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
-            mockServer.start()
+            mockServer.start(
+                InetSocketAddress(0).address,
+                0
+            )
             registry.add("orchestrator.backendUrl") {
                 "http://localhost:${mockServer.port}"
             }
