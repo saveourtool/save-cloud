@@ -15,6 +15,7 @@ import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -26,9 +27,6 @@ import io.swagger.v3.oas.annotations.tags.Tags
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
-import org.springframework.core.io.buffer.DataBuffer
-import org.springframework.core.io.buffer.DataBufferUtils
-import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -39,7 +37,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -183,52 +180,38 @@ class DownloadFilesController(
         description = "Download save-agent with current save-cloud version.",
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(): Mono<ByteBufferFluxResponse> {
-        val resource = ClassPathResource("save-agent.kexe")
-        val content = DataBufferUtils.read(
-            resource,
-            DefaultDataBufferFactory.sharedInstance,
-            4096,
-        )
-            .cast(DataBuffer::class.java)
-            .map { it.asByteBuffer() }
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(content)
-            .toMono()
-    }
+    fun downloadSaveAgent(): Flux<ByteBuffer> =
+            Mono.just(ClassPathResource("save-agent.kexe"))
+                .flatMapMany { resource ->
+                    resource.toByteBufferFlux()
+                }
+                .switchIfEmptyToNotFound()
 
     @Operation(
         method = "POST",
         summary = "Download save-cli by version.",
         description = "Download save-cli by version.",
     )
-    @Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of save-cli", required = true)
+    @Parameter(
+        name = "version",
+        `in` = ParameterIn.QUERY,
+        description = "version of save-cli",
+        required = true
+    )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
-    ): Mono<ByteBufferFluxResponse> {
-        val resource = ClassPathResource("save-$version-linuxX64.kexe")
-        if (!resource.exists()) {
-            throw ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Can't find save-$version-linuxX64.kexe with the requested version $version"
-            )
-        }
-        val content = DataBufferUtils.read(
-            resource,
-            DefaultDataBufferFactory.sharedInstance,
-            4096,
-        )
-            .cast(DataBuffer::class.java)
-            .map { it.asByteBuffer() }
-        return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(content)
-            .toMono()
-    }
+    ): Flux<ByteBuffer> =
+            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
+                .flatMapMany { resource ->
+                    resource.toByteBufferFlux()
+                }
+                .switchIfEmptyToNotFound {
+                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+                }
 
     /**
      * @param file a file to be uploaded
