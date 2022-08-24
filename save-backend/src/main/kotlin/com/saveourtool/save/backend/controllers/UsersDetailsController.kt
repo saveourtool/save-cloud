@@ -50,9 +50,9 @@ class UsersDetailsController(
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
     fun findByName(@PathVariable userName: String): Mono<UserInfo> =
-            userRepository.findByName(userName)?.let { user ->
-                user.toMonoOrNotFound().map { it.toUserInfo() }
-            } ?: run {
+            userRepository.findByName(userName)
+                ?.toMonoOrNotFound()?.map { it.toUserInfo() }
+                ?: run {
                 originalLoginRepository.findByName(userName)
                     .toMonoOrNotFound()
                     .map { it.user }
