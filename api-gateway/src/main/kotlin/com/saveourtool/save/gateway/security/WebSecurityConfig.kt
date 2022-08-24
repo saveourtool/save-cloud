@@ -128,7 +128,7 @@ class WebSecurityConfig(
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
                     StoringServerAuthenticationSuccessHandler(configurationProperties),
-                    RedirectServerAuthenticationSuccessHandler("/#/registration"),
+                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
                 )
             )
             it.authenticationFailureHandler(
