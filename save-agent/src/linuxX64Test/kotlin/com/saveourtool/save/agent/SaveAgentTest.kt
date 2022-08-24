@@ -22,6 +22,13 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.PolymorphicSerializer
 
 class SaveAgentTest {
+    init {
+        setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
+        setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
+        setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
+        setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
+    }
+
     private val configuration: AgentConfiguration = AgentConfiguration.initializeFromEnv().let {
         if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
     }
@@ -50,10 +57,6 @@ class SaveAgentTest {
         if (Platform.osFamily != OsFamily.WINDOWS) {
             platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.kexe")
             platform.posix.system("chmod +x save-$SAVE_CORE_VERSION-linuxX64.kexe")
-            setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
-            setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
-            setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
-            setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
         } else {
             platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.bat")
         }
