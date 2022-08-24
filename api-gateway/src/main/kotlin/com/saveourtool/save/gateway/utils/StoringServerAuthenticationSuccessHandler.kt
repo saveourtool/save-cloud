@@ -5,7 +5,6 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jdk.nashorn.internal.runtime.regexp.joni.Config.log
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
