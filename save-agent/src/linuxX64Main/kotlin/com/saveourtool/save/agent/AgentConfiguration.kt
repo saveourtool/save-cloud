@@ -85,6 +85,7 @@ data class HeartbeatConfig(
  * @property executionDataEndpoint endpoint to post execution data to
  * @property filesEndpoint endpoint to post debug info to
  * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
+ * @property saveCliDownloadEndpoint endpoint to download save-cli binary from
  */
 @Serializable
 data class BackendConfig(
@@ -128,6 +129,9 @@ data class SaveCliConfig(
     val overrideExecFlags: String? = null,
 )
 
+/**
+ * @return [AgentConfiguration] with some values overridden from env variables
+ */
 internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
