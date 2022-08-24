@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tags
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -182,11 +183,9 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(): Flux<ByteBuffer> =
+    fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
-                .flatMapMany { resource ->
-                    resource.toByteBufferFlux()
-                }
+                .filter { it.exists() }
                 .switchIfEmptyToNotFound()
 
     @Operation(
@@ -204,11 +203,9 @@ class DownloadFilesController(
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,
-    ): Flux<ByteBuffer> =
+    ): Mono<out Resource> =
             Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
-                .flatMapMany { resource ->
-                    resource.toByteBufferFlux()
-                }
+                .filter { it.exists() }
                 .switchIfEmptyToNotFound {
                     "Can't find save-$version-linuxX64.kexe with the requested version $version"
                 }

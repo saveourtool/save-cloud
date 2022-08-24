@@ -6,7 +6,6 @@ package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.service.DockerService
 
 import com.github.dockerjava.api.DockerClient
@@ -15,7 +14,6 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
-import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
@@ -29,8 +27,6 @@ import java.util.function.Supplier
 import java.util.zip.GZIPOutputStream
 
 internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
-
-internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
 
 /**
  * Execute this async docker command while recording its execution duration.
@@ -101,28 +97,23 @@ internal fun fillAgentPropertiesFromConfiguration(
     saveCliExtraArgs: DockerService.SaveCliExtraArgs,
     executionId: Long,
     additionalFilesString: String,
-): Map<AgentEnvName, String> {
-    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
-    return buildMap {
-        put(AgentEnvName.CLI_COMMAND, cliCommand)
-        put(AgentEnvName.TEST_SUITES_DIR, TEST_SUITES_DIR_NAME)
-        put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
-        put(AgentEnvName.EXECUTION_ID, executionId.toString())
-        put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
+): Map<AgentEnvName, String> = buildMap {
+    put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
+    put(AgentEnvName.EXECUTION_ID, executionId.toString())
+    put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
 
-        with(agentSettings) {
-            agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
-            backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-            orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
-            debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
-        }
+    with(agentSettings) {
+        agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
+        backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
+        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
+    }
 
-        with(saveCliExtraArgs) {
-            overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
-            overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
-            batchSize?.let { put(AgentEnvName.BATCH_SIZE, it.toString()) }
-            batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
-        }
+    with(saveCliExtraArgs) {
+        overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+        overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
+        batchSize?.let { put(AgentEnvName.BATCH_SIZE, it.toString()) }
+        batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
     }
 }
 

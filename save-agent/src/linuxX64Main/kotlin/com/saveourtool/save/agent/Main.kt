@@ -12,7 +12,6 @@ import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
-import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -34,8 +33,6 @@ import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
-internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
-
 internal val json = Json {
     serializersModule = SerializersModule {
         contextual(HeartbeatResponse::class, PolymorphicSerializer(HeartbeatResponse::class))
@@ -55,7 +52,7 @@ fun main() {
     val propertiesFile = "agent.properties".toPath()
     val config: AgentConfiguration = if (fs.exists(propertiesFile)) {
         Properties.decodeFromStringMap(
-            readProperties("agent.properties")
+            readProperties(propertiesFile.name)
         )
     } else {
         AgentConfiguration.initializeFromEnv()

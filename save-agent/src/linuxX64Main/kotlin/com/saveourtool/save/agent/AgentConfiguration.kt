@@ -4,14 +4,13 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.SAVE_CLI_EXECUTABLE_NAME
+import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
 
-import platform.posix.getenv
-
-import kotlinx.cinterop.toKString
 import kotlinx.serialization.Serializable
 
 /**
@@ -34,12 +33,12 @@ data class AgentConfiguration(
     val id: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
-    val cliCommand: String,
+    val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
     val heartbeat: HeartbeatConfig = HeartbeatConfig(),
     val requestTimeoutMillis: Long = 60000,
     val retry: RetryConfig = RetryConfig(),
     val debug: Boolean = false,
-    val testSuitesDir: String = ".",
+    val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
@@ -53,7 +52,6 @@ data class AgentConfiguration(
                 url = requiredEnv(AgentEnvName.BACKEND_URL),
             ),
             orchestratorUrl = requiredEnv(AgentEnvName.ORCHESTRATOR_URL),
-            cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
         )
     }
 }
