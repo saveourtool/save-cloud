@@ -22,9 +22,11 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
     retry {
+        // There once were flaky tests in orchestrator, but it seems like they became stable.
+        // Settings can be restored or removed, as required.
         failOnPassedAfterRetry.set(false)
-        maxFailures.set(20)
-        maxRetries.set(5)
+        maxFailures.set(5)
+        maxRetries.set(1)
     }
 }
 

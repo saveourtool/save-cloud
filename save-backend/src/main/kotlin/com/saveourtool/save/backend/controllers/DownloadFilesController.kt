@@ -15,7 +15,6 @@ import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.toByteBufferFlux
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
