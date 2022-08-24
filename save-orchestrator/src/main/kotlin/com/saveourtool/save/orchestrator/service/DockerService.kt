@@ -213,7 +213,12 @@ class DockerService(
             batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
             batchSeparator = null,
         )
-        val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings, saveCliExtraArgs)
+        val env = fillAgentPropertiesFromConfiguration(
+            configProperties.agentSettings,
+            saveCliExtraArgs,
+            executionId = execution.requiredId(),
+            additionalFilesString = execution.additionalFiles,
+        )
 
         val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
         log.info("Built persistent volume with tests and additional files by id $pvId")
@@ -224,21 +229,16 @@ class DockerService(
         val baseImage = baseImageName(sdk)
         return RunConfiguration(
             imageTag = baseImage,
-            // fixme: should it still contain chmod?
             runCmd = listOf(
                 "sh", "-c",
                 "set -o xtrace" +
-                        " && curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && curl -vvv -X POST \$${AgentEnvName.GET_AGENT_LINK.name} --output $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && ./$SAVE_AGENT_EXECUTABLE_NAME"
             ),
             pvId = pvId,
             resourcesPath = resourcesForExecution,
-            resourcesConfiguration = RunConfiguration.ResourcesConfiguration(
-                executionId = execution.requiredId(),
-                additionalFilesString = execution.additionalFiles,
-                env = env,
-            ),
+            env = env,
         )
     }
 
@@ -259,18 +259,8 @@ class DockerService(
         val pvId: I,
         val workingDir: String = EXECUTION_DIR,
         val resourcesPath: Path,
-        val resourcesConfiguration: ResourcesConfiguration,
-    ) {
-        /**
-         * @property executionId
-         * @property additionalFilesString
-         */
-        data class ResourcesConfiguration(
-            val executionId: Long,
-            val additionalFilesString: String,
-            val env: Map<AgentEnvName, String>,
-        )
-    }
+        val env: Map<AgentEnvName, String>,
+    )
 
     /**
      * @property overrideExecCmd

@@ -1,6 +1,10 @@
 package com.saveourtool.save.agent
 
+/**
+ * Env names which agent supports and expects
+ */
 enum class AgentEnvName {
+    GET_AGENT_LINK,
     AGENT_ID,
     CLI_COMMAND,
     DEBUG,

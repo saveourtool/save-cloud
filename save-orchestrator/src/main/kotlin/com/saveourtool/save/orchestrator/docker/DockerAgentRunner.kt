@@ -191,10 +191,7 @@ class DockerAgentRunner(
             .withName(containerName)
             .withUser("save-agent")
             .withEnv(
-                "GET_AGENT_LINK=${configProperties.agentSettings.backendUrl}/internal/files/download-save-agent",
-                "EXECUTION_ID=${configuration.resourcesConfiguration.executionId}",
-                "ADDITIONAL_FILES_LIST=${configuration.resourcesConfiguration.additionalFilesString}",
-                *configuration.resourcesConfiguration.env.map { (key, value) ->
+                *configuration.env.map { (key, value) ->
                     "$key=$value"
                 }.toTypedArray()
             )

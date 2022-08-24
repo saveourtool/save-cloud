@@ -95,11 +95,16 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
     saveCliExtraArgs: DockerService.SaveCliExtraArgs,
+    executionId: Long,
+    additionalFilesString: String,
 ): Map<AgentEnvName, String> {
     val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
     return buildMap {
         put(AgentEnvName.CLI_COMMAND, cliCommand)
         put(AgentEnvName.TEST_SUITES_DIR, TEST_SUITES_DIR_NAME)
+        put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
+        put(AgentEnvName.EXECUTION_ID, "$executionId")
+        put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
 
         with (agentSettings) {
             agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
