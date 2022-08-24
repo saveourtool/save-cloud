@@ -240,8 +240,7 @@ class KubernetesManager(
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
 
         val staticEnvs = env.mapToEnvs()
-        this.env = configProperties.agentSettings.agentIdEnv?.let { staticEnvs + agentIdEnv(it) }
-            ?: staticEnvs
+        this.env = staticEnvs + agentIdEnv(AgentEnvName.AGENT_ID)
 
         val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
@@ -256,8 +255,8 @@ class KubernetesManager(
         )
     }
 
-    private fun agentIdEnv(agentIdEnvName: String) = EnvVar().apply {
-        name = agentIdEnvName
+    private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
+        name = agentIdEnv.name
         valueFrom = EnvVarSource().apply {
             fieldRef = ObjectFieldSelector().apply {
                 fieldPath = "metadata.name"

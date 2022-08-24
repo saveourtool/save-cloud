@@ -250,7 +250,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     debugInfo to TestExecutionDto(
                         tr.resources.test.toString(),
                         pluginExecution.plugin,
-                        config.resolvedId(),
+                        config.id,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
@@ -330,14 +330,14 @@ class SaveAgent(private val config: AgentConfiguration,
                         byteArray,
                         Headers.build {
                             append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                            append(HttpHeaders.ContentDisposition, "filename=${config.resolvedId()}")
+                            append(HttpHeaders.ContentDisposition, "filename=${config.id}")
                         }
                     )
                 }))
             }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.resolvedId()}")
+        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }
@@ -353,7 +353,7 @@ class SaveAgent(private val config: AgentConfiguration,
             url("${config.orchestratorUrl}/heartbeat")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.resolvedId(), state.value, executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
         }
             .body()
     }
@@ -369,6 +369,6 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Posting additional data to backend")
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
-        setBody(AgentVersion(config.resolvedId(), SAVE_CLOUD_VERSION))
+        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
 }

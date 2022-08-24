@@ -13,7 +13,6 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    orchestrator.agent-settings.agent-id-env=POD_NAME
     orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
     orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
 

@@ -31,7 +31,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AgentConfiguration(
-    private val id: String,
+    val id: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
     val cliCommand: String,
@@ -43,18 +43,6 @@ data class AgentConfiguration(
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
-    /**
-     * If [id] references an environment variable, reads its value and returns the actual ID of the agent.
-     */
-    fun resolvedId() = if (id.startsWith("\${")) {
-        val varName = id.drop(2).dropLast(1)
-        val envVar = getenv(varName)
-        requireNotNull(envVar) { "Config references env variable [$varName] but it was not found" }
-        envVar.toKString()
-    } else {
-        id
-    }
-
     companion object {
         /**
          * @return [AgentConfiguration] with required fields initialized from env
