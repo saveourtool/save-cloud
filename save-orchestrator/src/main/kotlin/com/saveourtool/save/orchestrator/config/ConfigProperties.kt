@@ -106,6 +106,7 @@ data class ConfigProperties(
         val agentIdEnv: String? = null,
         val backendUrl: String? = null,
         val orchestratorUrl: String? = null,
+        val debug: Boolean? = null,
     )
 
     /**
