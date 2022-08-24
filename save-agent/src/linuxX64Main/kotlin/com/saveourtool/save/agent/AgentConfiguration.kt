@@ -4,12 +4,10 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.optionalEnv
 import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
-import com.saveourtool.save.core.logging.logTrace
 
 import platform.posix.getenv
 
@@ -131,26 +129,3 @@ data class SaveCliConfig(
     val overrideExecCmd: String? = null,
     val overrideExecFlags: String? = null,
 )
-
-/**
- * @return [AgentConfiguration] with some values overridden from env variables
- */
-internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
-    logTrace("Initial agent config: $this; applying overrides from env")
-    return copy(
-        id = requiredEnv(AgentEnvName.AGENT_ID),
-        cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
-        debug = optionalEnv(AgentEnvName.DEBUG)?.toBoolean() ?: debug,
-        backend = backend.copy(
-            url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
-        ),
-        orchestratorUrl = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestratorUrl,
-        testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
-        save = save.copy(
-            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
-            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
-            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
-            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
-        )
-    )
-}
