@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
@@ -30,7 +28,6 @@ typealias StringResponse = ResponseEntity<String>
 @RestController
 @RequestMapping("/internal/users")
 class UsersController(
-    private val userRepository: UserRepository,
     private val userService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
@@ -58,8 +55,7 @@ class UsersController(
             logger.debug("User $userName is already present in the DB")
         } ?: run {
             logger.info("Saving user $userName to the DB")
-            val newUser = userRepository.save(user)
-            originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
+            userService.saveNewUser(user)
         }
     }
 

@@ -82,6 +82,11 @@ external interface RegistrationViewState : State {
      * Validation of input fields
      */
     var isValidUserName: Boolean?
+
+    /**
+     * Map for input fields
+     */
+    var fieldsMap: MutableMap<InputTypes, String>
 }
 
 /**
@@ -90,11 +95,10 @@ external interface RegistrationViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>() {
-    private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
-
     init {
         state.isValidUserName = true
         state.isUploading = false
+        state.fieldsMap = mutableMapOf()
     }
 
     override fun componentDidMount() {
@@ -114,12 +118,14 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         target: ChangeEvent<HTMLInputElement>,
     ) {
         val tg = target.target
-        fieldsMap[fieldName] = tg.value
+        setState {
+            fieldsMap[fieldName] = tg.value
+        }
     }
 
     private fun saveUser() {
         val newUserInfo = state.userInfo?.copy(
-            name = fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
+            name = state.fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
             oldName = state.userInfo!!.name,
             isActive = true,
         )
@@ -145,7 +151,11 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
-        userInfo.name.let { fieldsMap[InputTypes.USER_NAME] = it }
+        userInfo.name.let {
+            setState {
+                fieldsMap[InputTypes.USER_NAME] = it
+            }
+        }
     }
 
     @Suppress(
@@ -199,7 +209,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                         }
                                     }
                                     form {
-                                        val input = fieldsMap[InputTypes.USER_NAME] ?: ""
+                                        val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
                                         div {
                                             inputTextFormRequired(
                                                 InputTypes.USER_NAME,

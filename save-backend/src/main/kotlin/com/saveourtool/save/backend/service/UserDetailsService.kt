@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
+import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.orNotFound
@@ -120,5 +121,16 @@ class UserDetailsService(
         } else {
             UserSaveStatus.CONFLICT
         }
+    }
+
+    /**
+     * @param user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun saveNewUser(user: User) {
+        val newUser = userRepository.save(user)
+        originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
+        user.name?.let { userRepository.saveHighLevelName(it) }
     }
 }

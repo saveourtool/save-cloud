@@ -53,11 +53,11 @@ class UsersDetailsController(
             userRepository.findByName(userName)
                 ?.toMonoOrNotFound()?.map { it.toUserInfo() }
                 ?: run {
-                originalLoginRepository.findByName(userName)
-                    .toMonoOrNotFound()
-                    .map { it.user }
-                    .map { it.toUserInfo() }
-            }
+                    originalLoginRepository.findByName(userName)
+                        .toMonoOrNotFound()
+                        .map { it.user }
+                        .map { it.toUserInfo() }
+                }
 
     /**
      * @param newUserInfo
