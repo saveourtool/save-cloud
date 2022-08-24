@@ -1036,6 +1036,17 @@
           "test-suites-controller"
         ],
         "operationId": "getTestSuitesByIds",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -3790,6 +3801,82 @@
         ]
       }
     },
+    "/api/v1/test-suites/get-standard": {
+      "get": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getStandardTestSuites",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites/get-by-organization": {
+      "get": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getTestSuitesByOrganizationName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isContest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/test-suites/filtered": {
       "get": {
         "tags": [
@@ -3822,6 +3909,49 @@
             "schema": {
               "type": "string",
               "default": ""
+            }
+          },
+          {
+            "name": "isContest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/test-suites/available": {
+      "get": {
+        "tags": [
+          "test-suites-controller"
+        ],
+        "operationId": "getPublicTestSuites",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
             }
           }
         ],
@@ -6855,6 +6985,7 @@
       "TestSuiteDto": {
         "required": [
           "name",
+          "plugins",
           "source",
           "version"
         ],
@@ -6884,6 +7015,17 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "plugins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "FIX",
+                "FIX_AND_WARN",
+                "WARN"
+              ]
+            }
           }
         }
       },
