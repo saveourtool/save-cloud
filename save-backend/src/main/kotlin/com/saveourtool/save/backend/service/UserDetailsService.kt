@@ -111,10 +111,8 @@ class UserDetailsService(
         val userName = user.name
         return if (userName != null && userRepository.validateName(userName) != 0L) {
             oldName?.let {
-                if (oldName != userName) {
-                    userRepository.deleteHighLevelName(it)
-                    userRepository.saveHighLevelName(userName)
-                }
+                userRepository.deleteHighLevelName(it)
+                userRepository.saveHighLevelName(userName)
             }
             userRepository.save(user)
             UserSaveStatus.UPDATE
@@ -131,6 +129,5 @@ class UserDetailsService(
     fun saveNewUser(user: User) {
         val newUser = userRepository.save(user)
         originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
-        user.name?.let { userRepository.saveHighLevelName(it) }
     }
 }
