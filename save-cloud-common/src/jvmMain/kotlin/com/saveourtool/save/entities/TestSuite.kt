@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
@@ -16,6 +17,7 @@ import javax.persistence.ManyToOne
  * @property dateAdded date and time, when this test suite was added to the project
  * @property language
  * @property tags
+ * @property plugins
  */
 @Suppress("LongParameterList")
 @Entity
@@ -35,7 +37,24 @@ class TestSuite(
     var language: String? = null,
 
     var tags: String? = null,
+
+    var plugins: String = ""
 ) : BaseEntity() {
+    /**
+     * @return [plugins] as a list of string
+     */
+    fun pluginsAsListOfPluginType() = plugins.split(DATABASE_DELIMITER)
+        .mapNotNull { plugin ->
+            PluginType.values().find { it.pluginName == plugin }
+        }
+
+    /**
+     * Update [plugins] by list of strings
+     */
+    fun setPlugins(pluginsAsList: List<String>) {
+        plugins = pluginsAsList.joinToString(DATABASE_DELIMITER)
+    }
+
     /**
      * @return [tags] as a list of strings
      */
@@ -53,7 +72,8 @@ class TestSuite(
                 this.version,
                 this.language,
                 this.tagsAsList(),
-                id
+                id,
+                this.pluginsAsListOfPluginType(),
             )
 
     companion object {

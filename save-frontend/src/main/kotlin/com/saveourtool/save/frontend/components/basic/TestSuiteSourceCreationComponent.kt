@@ -49,7 +49,7 @@ external interface TestSuiteSourceCreationProps : Props {
     /**
      * Callback invoked on successful save
      */
-    var onSuccess: () -> Unit
+    var onSuccess: (TestSuitesSourceDto) -> Unit
 }
 
 /**
@@ -62,7 +62,7 @@ external interface TestSuiteSourceCreationProps : Props {
 fun ChildrenBuilder.showTestSuiteSourceCreationModal(
     isOpen: Boolean,
     organizationName: String,
-    onSuccess: () -> Unit,
+    onSuccess: (TestSuitesSourceDto) -> Unit,
     onClose: () -> Unit,
 ) {
     modal { props ->
@@ -107,28 +107,21 @@ fun ChildrenBuilder.showTestSuiteSourceCreationModal(
 private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
-    val fetchTestSuiteSource = useRequest {
-        post(
-            url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${testSuiteSource.name}/fetch",
-            headers = jsonHeaders,
-            body = undefined,
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-    }
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val onSubmitButtonPressed = useRequest {
-        val response = post(
-            url = "/api/$v1/test-suites-sources/create",
-            headers = jsonHeaders,
-            body = Json.encodeToString(testSuiteSource),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::responseHandlerWithValidation,
-        )
-        if (response.ok) {
-            fetchTestSuiteSource()
-            props.onSuccess()
-        } else if (response.isConflict()) {
-            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+        testSuiteSource.let {
+            val response = post(
+                url = "/api/$v1/test-suites-sources/create",
+                headers = jsonHeaders,
+                body = Json.encodeToString(it),
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::responseHandlerWithValidation,
+            )
+            if (response.ok) {
+                props.onSuccess(it)
+            } else if (response.isConflict()) {
+                setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+            }
         }
     }
 

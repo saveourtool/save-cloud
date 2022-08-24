@@ -120,6 +120,21 @@ class TestSuitesService(
     }
 
     /**
+     * @param organizationName
+     * @return [Flux] of [TestSuite]s by [organizationName]
+     */
+    fun findTestSuitesByOrganizationName(organizationName: String): Flux<TestSuite> = blockingToFlux {
+        testSuiteRepository.findBySourceOrganizationName(organizationName)
+    }
+
+    /**
+     * @return [Flux] of ALL [TestSuite]s
+     */
+    fun findAllTestSuites(): Flux<TestSuite> = blockingToFlux {
+        testSuiteRepository.findAll()
+    }
+
+    /**
      * @param filters
      * @return [Flux] of [TestSuite] that match [filters]
      */
@@ -129,7 +144,7 @@ class TestSuitesService(
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("description", "source", "version", "dateAdded")
+                .withIgnorePaths("description", "source", "version", "dateAdded", "plugins")
                 .let {
                     Example.of(
                         TestSuite(
@@ -245,6 +260,15 @@ class TestSuitesService(
     )
         ?.requiredId()
         .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+
+    /**
+     * @param testSuiteId
+     * @param listOfPluginNames
+     * @return [TestSuite] if plugins column is updated, null otherwise
+     */
+    fun updateTestSuitePlugins(testSuiteId: Long, listOfPluginNames: List<String>) = testSuiteRepository.findByIdOrNull(testSuiteId)
+        ?.apply { setPlugins(listOfPluginNames) }
+        ?.let { testSuiteRepository.save(it) }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)

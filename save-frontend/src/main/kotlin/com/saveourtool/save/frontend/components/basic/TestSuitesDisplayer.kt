@@ -52,8 +52,15 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                 p {
                     +(testSuite.description ?: "")
                 }
-                small {
-                    +(testSuite.tags?.joinToString(", ") ?: "")
+                div {
+                    className = ClassName("d-flex justify-content-between")
+                    small {
+                        +(testSuite.tags?.joinToString(", ") ?: "")
+                    }
+
+                    small {
+                        +(testSuite.plugins.joinToString(", ") { it.pluginName })
+                    }
                 }
             }
         }

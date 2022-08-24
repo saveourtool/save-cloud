@@ -2,7 +2,9 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
+import com.saveourtool.save.backend.service.TestSuiteDtoList
 import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.domain.PluginType
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
@@ -49,15 +51,72 @@ class TestSuitesController(
     /**
      * @param testSuiteIds
      * @param authentication
+     * @param isContest
      * @return [Flux] of [TestSuiteDto]s
      */
     @PostMapping("/api/$v1/test-suites/get-by-ids")
     fun getTestSuitesByIds(
         @RequestBody testSuiteIds: List<Long>,
+        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteDto> = testSuitesService.findTestSuitesByIds(testSuiteIds)
+        .mapToDtoFiltered(authentication, isContest)
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @param isContest
+     * @return [Flux] of [TestSuiteDto]s
+     */
+    @GetMapping("/api/$v1/test-suites/get-by-organization")
+    fun getTestSuitesByOrganizationName(
+        @RequestParam organizationName: String,
+        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = testSuitesService.findTestSuitesByOrganizationName(organizationName)
+        .mapToDtoFiltered(authentication, isContest)
+
+    /**
+     * @param authentication
+     * @param isContest
+     * @return [Flux] of [TestSuiteDto]s
+     */
+    @GetMapping("/api/$v1/test-suites/get-standard")
+    fun getStandardTestSuites(
+        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
+        authentication: Authentication,
+    ): Mono<TestSuiteDtoList> = testSuitesService.getStandardTestSuites()
+        .map { testSuites ->
+            testSuites.filter {
+                if (isContest) {
+                    it.plugins == PluginType.contestAllowedPlugins
+                } else {
+                    it.plugins.isNotEmpty()
+                }
+            }
+        }
+
+    /**
+     * @param authentication
+     * @param isContest
+     * @return [Flux] of [TestSuiteDto]s
+     */
+    @GetMapping("/api/$v1/test-suites/available")
+    fun getPublicTestSuites(
+        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
+        authentication: Authentication,
+    ): Flux<TestSuiteDto> = testSuitesService.findAllTestSuites()
+        .mapToDtoFiltered(authentication, isContest)
+
+    private fun Flux<TestSuite>.mapToDtoFiltered(authentication: Authentication, isContest: Boolean): Flux<TestSuiteDto> = filter { testSuite ->
+        testSuitePermissionEvaluator.canAccessTestSuite(testSuite, authentication)
+    }
         .filter { testSuite ->
-            testSuitePermissionEvaluator.canAccessTestSuite(testSuite, authentication)
+            if (isContest) {
+                testSuite.pluginsAsListOfPluginType() == PluginType.contestAllowedPlugins
+            } else {
+                testSuite.pluginsAsListOfPluginType().isNotEmpty()
+            }
         }
         .map { testSuite ->
             testSuite.toDto(testSuite.requiredId())
@@ -68,6 +127,7 @@ class TestSuitesController(
      * @param name
      * @param language
      * @param authentication
+     * @param isContest
      * @return [Flux] of [TestSuiteDto]s
      */
     @GetMapping("/api/$v1/test-suites/filtered")
@@ -75,17 +135,13 @@ class TestSuitesController(
         @RequestParam(required = false, defaultValue = "") tags: String,
         @RequestParam(required = false, defaultValue = "") name: String,
         @RequestParam(required = false, defaultValue = "") language: String,
+        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteDto> = Mono.just(TestSuiteFilters(name, language, tags))
         .flatMapMany {
             testSuitesService.findTestSuitesMatchingFilters(it)
         }
-        .filter {
-            testSuitePermissionEvaluator.canAccessTestSuite(it, authentication)
-        }
-        .map {
-            it.toDto(it.requiredId())
-        }
+        .mapToDtoFiltered(authentication, isContest)
 
     /**
      * @param id id of the test suite
