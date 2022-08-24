@@ -7,18 +7,11 @@ import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
-import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
-import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.orConflict
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -251,7 +244,7 @@ class DockerService(
      * @property pvId ID of a persistent volume that should be attached to a container
      * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      * @property workingDir
-     * @property resourcesConfiguration
+     * @property env environment variables for the container
      */
     data class RunConfiguration<I : PersistentVolumeId>(
         val imageTag: String,

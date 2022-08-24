@@ -7,7 +7,6 @@ package com.saveourtool.save.agent
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.agent.utils.readProperties
-import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
@@ -35,6 +34,8 @@ import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.decodeFromStringMap
 
+internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
+
 internal val json = Json {
     serializersModule = SerializersModule {
         contextual(HeartbeatResponse::class, PolymorphicSerializer(HeartbeatResponse::class))
@@ -49,8 +50,6 @@ internal val json = Json {
 
 internal val fs = FileSystem.SYSTEM
 
-internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
-
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val propertiesFile = "agent.properties".toPath()
@@ -59,14 +58,7 @@ fun main() {
             readProperties("agent.properties")
         )
     } else {
-        AgentConfiguration(
-            id = requiredEnv(AgentEnvName.AGENT_ID),
-            backend = BackendConfig(
-                url = requiredEnv(AgentEnvName.BACKEND_URL),
-            ),
-            orchestratorUrl = requiredEnv(AgentEnvName.ORCHESTRATOR_URL),
-            cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
-        )
+        AgentConfiguration.initializeFromEnv()
     }
         .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)

@@ -101,6 +101,7 @@ data class ConfigProperties(
      * @property backendUrl url of save-backend that will be used by save-agent
      * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
      * @property agentIdEnv name of an environment variable that can be used by save-agent to read its ID
+     * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
         val agentIdEnv: String? = null,

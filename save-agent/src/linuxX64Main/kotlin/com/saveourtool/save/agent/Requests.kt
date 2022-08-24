@@ -98,6 +98,9 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
 
 /**
  * Downloads binary of save-cli into the current directory
+ *
+ * @param url
+ * @throws IllegalStateException
  */
 internal suspend fun SaveAgent.downloadSaveCli(url: String) {
     val result = httpClient.download(

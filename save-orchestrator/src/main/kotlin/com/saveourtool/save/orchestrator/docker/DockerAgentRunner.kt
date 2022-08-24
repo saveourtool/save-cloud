@@ -20,9 +20,6 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
-import com.saveourtool.save.orchestrator.service.DockerService.Companion.SAVE_AGENT_EXECUTABLE_NAME
-import generated.SAVE_CLOUD_VERSION
-import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile

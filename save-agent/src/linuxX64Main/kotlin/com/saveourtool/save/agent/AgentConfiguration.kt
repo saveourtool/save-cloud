@@ -56,6 +56,17 @@ data class AgentConfiguration(
     } else {
         id
     }
+
+    companion object {
+        fun initializeFromEnv() = AgentConfiguration(
+            id = requiredEnv(AgentEnvName.AGENT_ID),
+            backend = BackendConfig(
+                url = requiredEnv(AgentEnvName.BACKEND_URL),
+            ),
+            orchestratorUrl = requiredEnv(AgentEnvName.ORCHESTRATOR_URL),
+            cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
+        )
+    }
 }
 
 /**
