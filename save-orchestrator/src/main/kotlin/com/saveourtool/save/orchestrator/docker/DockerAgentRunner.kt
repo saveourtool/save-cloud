@@ -188,9 +188,9 @@ class DockerAgentRunner(
             .withName(containerName)
             .withUser("save-agent")
             .withEnv(
-                *configuration.env.map { (key, value) ->
+                configuration.env.map { (key, value) ->
                     "$key=$value"
-                }.toTypedArray()
+                }
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
@@ -217,7 +217,7 @@ class DockerAgentRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
-                AGENT_ID=$containerId
+                ${AgentEnvName.AGENT_ID.name}=$containerId
                 """.trimIndent()
             )
         }
@@ -247,8 +247,6 @@ class DockerAgentRunner(
                 .execTimed<CopyArchiveToContainerCmd, Void?>(meterRegistry, "$DOCKER_METRIC_PREFIX.container.copy.archive")
         }
     }
-
-    private fun Map<AgentEnvName, Any>.mapToEnvLines(): List<String> = map { (key, value) -> "${key.name}=$value" }
 
     companion object {
         private val logger = LoggerFactory.getLogger(DockerAgentRunner::class.java)
