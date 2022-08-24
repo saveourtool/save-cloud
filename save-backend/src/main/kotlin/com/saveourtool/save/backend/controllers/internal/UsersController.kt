@@ -47,7 +47,7 @@ class UsersController(
     fun saveNewUser(@RequestBody user: User) {
         val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
 
-        val userFind = originalLoginRepository.findByName(userName)
+        val userFind = originalLoginRepository.findByNameAndSource(userName, user.source)
         logger.warn("userFind - userFind $userFind")
         logger.warn("userFind - userFind - user $userFind?.user")
 
