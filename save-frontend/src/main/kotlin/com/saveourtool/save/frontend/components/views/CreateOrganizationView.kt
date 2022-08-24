@@ -7,11 +7,12 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
+import csstype.Width
 import react.*
 import react.dom.*
 import react.dom.html.ButtonType
@@ -25,6 +26,7 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -133,10 +135,11 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                     +"Create new organization"
                                 }
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mb-4")
                                     src = "img/company.svg"
-                                    height = 260.0
-                                    width = 260.0
+                                    style = jso {
+                                        width = "40%".unsafeCast<Width>()
+                                    }
                                 }
                                 form {
                                     className = ClassName("needs-validation")
