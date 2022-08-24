@@ -51,6 +51,8 @@ internal val json = Json {
 
 internal val fs = FileSystem.SYSTEM
 
+internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
+
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val config: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(
@@ -58,8 +60,6 @@ fun main() {
     ).updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
-
-    "save-$SAVE_CORE_VERSION-linuxX64.kexe".toPath().markAsExecutable()
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")

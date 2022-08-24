@@ -96,6 +96,25 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
         }
 }
 
+/**
+ * Downloads binary of save-cli into the current directory
+ */
+internal suspend fun SaveAgent.downloadSaveCli(url: String) {
+    val result = httpClient.download(
+        url = url,
+        body = null,
+    )
+    if (updateStateBasedOnBackendResponse(result)) {
+        throw IllegalStateException("Couldn't download save-cli")
+    }
+
+    val bytes = result.getOrThrow()
+        .readByteArrayOrThrowIfEmpty {
+            error("Downloaded file is empty")
+        }
+    bytes.writeToFile(SAVE_CLI_EXECUTABLE_NAME.toPath())
+}
+
 private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = download(
     url = "${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId",
     body = null,

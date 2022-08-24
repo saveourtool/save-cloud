@@ -229,7 +229,7 @@ class DockerService(
                 "sh", "-c",
                 "set -o xtrace" +
                         " && curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
-                        " && curl -vvv -X POST \$GET_SAVE_CLI_LINK --output $SAVE_CLI_EXECUTABLE_NAME" +
+                        " && curl -vvv -X POST \$GET_AGENT_PROPS_LINK --output agent.properties" +
                         " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && ./$SAVE_AGENT_EXECUTABLE_NAME"
             ),

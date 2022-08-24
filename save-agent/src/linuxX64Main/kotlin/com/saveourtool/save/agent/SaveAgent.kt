@@ -19,6 +19,7 @@ import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
@@ -81,6 +82,10 @@ class SaveAgent(private val config: AgentConfiguration,
         coroutineScope.launch(backgroundContext) {
             state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
+
+            logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
+            downloadSaveCli("${config.backend.saveCliDownloadEndpoint}?version=$SAVE_CORE_VERSION")
+            SAVE_CLI_EXECUTABLE_NAME.toPath().markAsExecutable()
 
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)

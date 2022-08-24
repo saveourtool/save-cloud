@@ -198,8 +198,11 @@ class DownloadFilesController(
         @RequestParam version: String,
     ): Mono<ByteBufferFluxResponse> {
         val resource = ClassPathResource("save-$version-linuxX64.kexe")
-        require(resource.exists()) {
-            "Can't find save-agent.kexe with the requested version $version"
+        if (!resource.exists()) {
+            throw ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Can't find save-$version-linuxX64.kexe with the requested version $version"
+            )
         }
         val content = DataBufferUtils.read(
             resource,
