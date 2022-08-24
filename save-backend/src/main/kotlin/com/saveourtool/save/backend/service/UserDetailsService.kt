@@ -111,8 +111,8 @@ class UserDetailsService(
         return if (userName != null && userRepository.validateName(userName) != 0L) {
             oldName?.let {
                 if (oldName != userName) {
-                    userRepository.deleteHighName(it)
-                    userRepository.saveHighName(userName)
+                    userRepository.deleteHighLevelName(it)
+                    userRepository.saveHighLevelName(userName)
                 }
             }
             userRepository.save(user)

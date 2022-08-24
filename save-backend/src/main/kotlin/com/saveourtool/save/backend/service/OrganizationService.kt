@@ -26,7 +26,7 @@ class OrganizationService(
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
         val (organizationId, organizationSaveStatus) = if (organizationRepository.validateName(organization.name) != 0L) {
-            organizationRepository.saveHighName(organization.name)
+            organizationRepository.saveHighLevelName(organization.name)
             Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
         } else {
             Pair(0L, OrganizationSaveStatus.CONFLICT)

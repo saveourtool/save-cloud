@@ -20,12 +20,12 @@ interface ValidateRepository {
      */
     @Query("""insert into save_cloud.high_level_names set name = :name""", nativeQuery = true)
     @Modifying
-    fun saveHighName(@Param("name") name: String)
+    fun saveHighLevelName(@Param("name") name: String)
 
     /**
      * @param name
      */
     @Query("""delete from save_cloud.high_level_names where name = :name""", nativeQuery = true)
     @Modifying
-    fun deleteHighName(@Param("name") name: String)
+    fun deleteHighLevelName(@Param("name") name: String)
 }
