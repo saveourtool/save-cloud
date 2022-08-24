@@ -36,7 +36,7 @@ class OrganizationViewTest {
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun createWorker() = setupWorker(
-        rest.get("$apiUrl/organization/${testOrganization.name}/avatar") { _, res, _ ->
+        rest.get("$apiUrl/organizations/${testOrganization.name}/avatar") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
@@ -44,7 +44,7 @@ class OrganizationViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/organization/${testOrganization.name}") { _, res, _ ->
+        rest.get("$apiUrl/organizations/${testOrganization.name}") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response,
