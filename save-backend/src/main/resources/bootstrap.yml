@@ -18,12 +18,12 @@ spring:
     kubernetes:
       enabled: true
       config:
-        # don't look up any ConfigMaps
         enabled: false
       secrets:
-        enabled: false
+        enabled: true
+        paths: ${DATABASE_SECRETS_PATH}
 kubernetes:
   informer:
-    enabled: true
+    enabled: false
   manifests:
-    enabled: true
+    enabled: false
