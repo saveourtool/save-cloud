@@ -198,7 +198,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                         }
                                     }
                                     form {
-                                        className = ClassName("needs-validation")
                                         val input = fieldsMap[InputTypes.USER_NAME] ?: ""
                                         div {
                                             inputTextFormRequired(
