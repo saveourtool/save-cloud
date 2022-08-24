@@ -63,11 +63,7 @@ class DockerContainerManagerTest {
                 DockerPvId("test-volume"),
                 workingDir = "/",
                 resourcesPath = Path.of("test-resources-path"),
-                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
-                    executionId = 99L,
-                    additionalFilesString = "",
-                    env = emptyMap(),
-                )
+                env = emptyMap(),
             ),
             replicas = 1,
         ).single()
@@ -77,7 +73,7 @@ class DockerContainerManagerTest {
 
         Assertions.assertEquals("bash", inspectContainerResponse.path)
         Assertions.assertArrayEquals(
-            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"cp /home/save-agent/resources/* . && ./script.sh\""),
+            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705

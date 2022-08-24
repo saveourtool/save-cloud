@@ -58,7 +58,10 @@ data class AgentConfiguration(
     }
 
     companion object {
-        fun initializeFromEnv() = AgentConfiguration(
+        /**
+         * @return [AgentConfiguration] with required fields initialized from env
+         */
+        internal fun initializeFromEnv() = AgentConfiguration(
             id = requiredEnv(AgentEnvName.AGENT_ID),
             backend = BackendConfig(
                 url = requiredEnv(AgentEnvName.BACKEND_URL),

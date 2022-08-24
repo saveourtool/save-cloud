@@ -100,11 +100,7 @@ class AgentsControllerTest {
                 pvId = DockerPvId("test-pv-id"),
                 workingDir = EXECUTION_DIR,
                 resourcesPath = Path.of("test-resources-path"),
-                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
-                    executionId = execution.id!!,
-                    additionalFilesString = "",
-                    env = emptyMap(),
-                )
+                env = emptyMap(),
             )
         )
         whenever(dockerService.createContainers(any(), any()))
