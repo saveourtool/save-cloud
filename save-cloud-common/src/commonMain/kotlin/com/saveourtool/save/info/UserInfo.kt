@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
  * @property globalRole
  * @property id
  * @property isActive
- * @property oldName
+ * @property oldName is always null except for the process of renaming the user.
  * @property originalLogins
  */
 @Serializable
