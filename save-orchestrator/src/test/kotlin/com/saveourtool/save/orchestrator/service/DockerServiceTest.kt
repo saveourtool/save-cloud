@@ -89,6 +89,13 @@ class DockerServiceTest {
             MockResponse()
                 .setResponseCode(200)
         )
+        mockServer.enqueue(
+            "/internal/files/download-save-agent",
+            MockResponse()
+                .setHeader("Content-Type", "application/octet-stream")
+                .setResponseCode(200)
+                .setBody("sleep 200")
+        )
         dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
             .subscribe()
 
@@ -139,9 +146,12 @@ class DockerServiceTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
+            mockServer.start()
             registry.add("orchestrator.backendUrl") {
-                mockServer.start()
                 "http://localhost:${mockServer.port}"
+            }
+            registry.add("orchestrator.agentSettings.backendUrl") {
+                "http://host.docker.internal:${mockServer.port}"
             }
         }
     }
