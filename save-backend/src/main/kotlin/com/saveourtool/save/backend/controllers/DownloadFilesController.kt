@@ -177,6 +177,13 @@ class DownloadFilesController(
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .build()
         )
+
+    @Operation(
+        method = "POST",
+        summary = "Download save-agent with current save-cloud version.",
+        description = "Download save-agent with current save-cloud version.",
+    )
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<ByteBufferFluxResponse> {
         val resource = ClassPathResource("save-agent.kexe")
@@ -193,6 +200,13 @@ class DownloadFilesController(
             .toMono()
     }
 
+    @Operation(
+        method = "POST",
+        summary = "Download save-cli by version.",
+        description = "Download save-cli by version.",
+    )
+    @Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version of save-cli", required = true)
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCliByVersion(
         @RequestParam version: String,

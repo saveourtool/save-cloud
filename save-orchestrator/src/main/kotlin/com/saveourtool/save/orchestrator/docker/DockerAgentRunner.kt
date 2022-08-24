@@ -70,7 +70,7 @@ class DockerAgentRunner(
 
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration as DockerService.RunConfiguration<DockerPvId>, containerName("$executionId")).also { agentId ->
+            createContainerFromImage(configuration as DockerService.RunConfiguration<DockerPvId>, containerName(executionId.toString())).also { agentId ->
                 logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
