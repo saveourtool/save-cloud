@@ -36,12 +36,12 @@ data class AgentConfiguration(
     private val id: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
-    val heartbeat: HeartbeatConfig,
-    val requestTimeoutMillis: Long = 60000,
-    val retry: RetryConfig,
-    val debug: Boolean = false,
     val cliCommand: String,
-    val testSuitesDir: String,
+    val heartbeat: HeartbeatConfig = HeartbeatConfig(),
+    val requestTimeoutMillis: Long = 60000,
+    val retry: RetryConfig = RetryConfig(),
+    val debug: Boolean = false,
+    val testSuitesDir: String = ".",
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
@@ -63,7 +63,7 @@ data class AgentConfiguration(
  */
 @Serializable
 data class HeartbeatConfig(
-    val intervalMillis: Long,
+    val intervalMillis: Long = 15000,
 )
 
 /**
@@ -91,8 +91,8 @@ data class BackendConfig(
  */
 @Serializable
 data class RetryConfig(
-    val attempts: Int,
-    val initialRetryMillis: Long,
+    val attempts: Int = 5,
+    val initialRetryMillis: Long = 2000,
 )
 
 /**
@@ -121,7 +121,8 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
         id = requiredEnv(AgentEnvName.AGENT_ID),
-        cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
+        cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
+        debug = optionalEnv(AgentEnvName.DEBUG)?.toBoolean() ?: debug,
         backend = backend.copy(
             url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
         ),

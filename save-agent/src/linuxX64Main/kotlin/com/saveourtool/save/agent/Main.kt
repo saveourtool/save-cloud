@@ -4,12 +4,10 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.ktorLogger
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.logInfoCustom
-import com.saveourtool.save.agent.utils.markAsExecutable
-import com.saveourtool.save.agent.utils.optionalEnv
 import com.saveourtool.save.agent.utils.readProperties
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
@@ -55,9 +53,22 @@ internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val config: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(
-        readProperties("agent.properties")
-    ).updateFromEnv()
+    val propertiesFile = "agent.properties".toPath()
+    val config: AgentConfiguration = if (fs.exists(propertiesFile)) {
+        Properties.decodeFromStringMap(
+            readProperties("agent.properties")
+        )
+    } else {
+        AgentConfiguration(
+            id = requiredEnv(AgentEnvName.AGENT_ID),
+            backend = BackendConfig(
+                url = requiredEnv(AgentEnvName.BACKEND_URL),
+            ),
+            orchestratorUrl = requiredEnv(AgentEnvName.ORCHESTRATOR_URL),
+            cliCommand = requiredEnv(AgentEnvName.CLI_COMMAND),
+        )
+    }
+        .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
