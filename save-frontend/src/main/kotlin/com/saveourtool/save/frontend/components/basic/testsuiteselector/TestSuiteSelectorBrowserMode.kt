@@ -167,7 +167,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     useRequest {
         val url = when {
             props.isStandardMode -> "$apiUrl/test-suites-sources/public-list"
-            props.specificOrganizationName != null -> "$apiUrl/test-suites-sources/avaliable"
+            props.specificOrganizationName == null -> "$apiUrl/test-suites-sources/avaliable"
             else -> "$apiUrl/test-suites-sources/${props.specificOrganizationName}/list"
         }
         val response = get(
