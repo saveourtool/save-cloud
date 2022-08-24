@@ -210,7 +210,7 @@ class DockerService(
         val saveCliExtraArgs = SaveCliExtraArgs(
             overrideExecCmd = execution.execCmd,
             overrideExecFlags = null,
-            batchSize = execution.batchSizeForAnalyzer?.toInt(),
+            batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
             batchSeparator = null,
         )
         val env = fillAgentPropertiesFromConfiguration(configProperties.agentSettings, saveCliExtraArgs)
@@ -229,7 +229,6 @@ class DockerService(
                 "sh", "-c",
                 "set -o xtrace" +
                         " && curl -vvv -X POST \$GET_AGENT_LINK --output $SAVE_AGENT_EXECUTABLE_NAME" +
-                        " && curl -vvv -X POST \$GET_AGENT_PROPS_LINK --output agent.properties" +
                         " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && ./$SAVE_AGENT_EXECUTABLE_NAME"
             ),
