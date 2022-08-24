@@ -94,5 +94,8 @@ class OrganizationService(
      */
     fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
 
+    /**
+     * @return all organizations that were registered in SAVE
+     */
     fun findAll(): List<Organization> = organizationRepository.findAll()
 }
