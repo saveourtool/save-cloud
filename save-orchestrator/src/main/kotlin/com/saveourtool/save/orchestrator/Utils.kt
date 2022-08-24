@@ -105,6 +105,7 @@ internal fun fillAgentPropertiesFromConfiguration(
             agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
             backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
             orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+            debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
         }
 
         with(saveCliExtraArgs) {
