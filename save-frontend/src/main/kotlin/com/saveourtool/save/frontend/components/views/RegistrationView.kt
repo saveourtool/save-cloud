@@ -7,8 +7,9 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
-import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
+
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
