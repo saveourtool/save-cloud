@@ -93,4 +93,6 @@ class OrganizationService(
      * @return list of organization by owner id
      */
     fun findByOwnerId(ownerId: Long) = organizationRepository.findByOwnerId(ownerId)
+
+    fun findAll(): List<Organization> = organizationRepository.findAll()
 }
