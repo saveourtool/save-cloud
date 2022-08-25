@@ -4,7 +4,11 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.showGeneralTestSuitesSelectorModal
+import com.saveourtool.save.frontend.components.inputform.*
+import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.externals.modal.modal
@@ -129,7 +133,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
-    val onSaveButtonPressed = useRequest {
+    val onSaveButtonPressed = useDeferredRequest {
         val response = post(
             "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
             jsonHeaders,
@@ -150,10 +154,10 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
     div {
         className = ClassName("card")
         contestCreationCard {
-            showPublicTestSuitesSelectorModal(
+            showGeneralTestSuitesSelectorModal(
                 contestDto.testSuiteIds,
                 testSuitesSelectorWindowOpenness,
-                useState(emptyList())
+                useState(emptyList()),
             ) {
                 setContestDto(contestDto.copy(testSuiteIds = it))
             }
@@ -212,21 +216,22 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                             InputTypes.CONTEST_TEST_SUITE_IDS,
                             contestDto.testSuiteIds.joinToString(", "),
                             true,
-                            "col-12 pl-2 pr-2",
-                            "Test Suite Ids",
+                            "col-12 pl-2 pr-2 text-center",
+                            "Test Suites:",
                             onClickFun = testSuitesSelectorWindowOpenness.openWindowAction()
                         )
                     }
                     // ==== Contest description
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormOptional(
-                            InputTypes.CONTEST_DESCRIPTION,
-                            contestDto.description,
-                            "col-12 pl-2 pr-2",
-                            "Contest description",
-                        ) {
-                            setContestDto(contestDto.copy(description = it.target.value))
+                        inputTextFormOptionalWrapperConst {
+                            form = InputTypes.CONTEST_DESCRIPTION
+                            textValue = contestDto.description
+                            classes = "col-12 pl-2 pr-2"
+                            name = "Contest description"
+                            onChangeFun = {
+                                setContestDto(contestDto.copy(description = it.target.value))
+                            }
                         }
                     }
                 }

@@ -439,7 +439,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         scope.launch {
             val response = post(
-                "$apiUrl/organization/${props.organizationName}/update",
+                "$apiUrl/organizations/${props.organizationName}/update",
                 headers,
                 Json.encodeToString(newOrganization),
                 loadingHandler = ::noopLoadingHandler,
@@ -707,7 +707,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         scope.launch {
             responseFromDeleteOrganization =
                     delete(
-                        "$apiUrl/organization/${props.organizationName}/delete",
+                        "$apiUrl/organizations/${props.organizationName}/delete",
                         headers,
                         body = undefined,
                         loadingHandler = ::noopLoadingHandler,

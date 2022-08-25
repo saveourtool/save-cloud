@@ -6,7 +6,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.frontend.components.basic.InputTypes
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getUser

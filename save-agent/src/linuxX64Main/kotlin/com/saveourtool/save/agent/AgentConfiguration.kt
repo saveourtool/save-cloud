@@ -4,13 +4,13 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.SAVE_CLI_EXECUTABLE_NAME
+import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
 
-import platform.posix.getenv
-
-import kotlinx.cinterop.toKString
 import kotlinx.serialization.Serializable
 
 /**
@@ -30,28 +30,29 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AgentConfiguration(
-    private val id: String,
+    val id: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
-    val heartbeat: HeartbeatConfig,
-    val requestTimeoutMillis: Long,
-    val retry: RetryConfig,
+    val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
+    val heartbeat: HeartbeatConfig = HeartbeatConfig(),
+    val requestTimeoutMillis: Long = 60000,
+    val retry: RetryConfig = RetryConfig(),
     val debug: Boolean = false,
-    val cliCommand: String,
-    val testSuitesDir: String,
+    val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
-    /**
-     * If [id] references an environment variable, reads its value and returns the actual ID of the agent.
-     */
-    fun resolvedId() = if (id.startsWith("\${")) {
-        val varName = id.drop(2).dropLast(1)
-        val envVar = getenv(varName)
-        requireNotNull(envVar) { "Config references env variable [$varName] but it was not found" }
-        envVar.toKString()
-    } else {
-        id
+    companion object {
+        /**
+         * @return [AgentConfiguration] with required fields initialized from env
+         */
+        internal fun initializeFromEnv() = AgentConfiguration(
+            id = requiredEnv(AgentEnvName.AGENT_ID),
+            backend = BackendConfig(
+                url = requiredEnv(AgentEnvName.BACKEND_URL),
+            ),
+            orchestratorUrl = requiredEnv(AgentEnvName.ORCHESTRATOR_URL),
+        )
     }
 }
 
@@ -60,7 +61,7 @@ data class AgentConfiguration(
  */
 @Serializable
 data class HeartbeatConfig(
-    val intervalMillis: Long,
+    val intervalMillis: Long = 15000,
 )
 
 /**
@@ -71,6 +72,7 @@ data class HeartbeatConfig(
  * @property executionDataEndpoint endpoint to post execution data to
  * @property filesEndpoint endpoint to post debug info to
  * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
+ * @property saveCliDownloadEndpoint endpoint to download save-cli binary from
  */
 @Serializable
 data class BackendConfig(
@@ -78,6 +80,7 @@ data class BackendConfig(
     val additionalDataEndpoint: String = "internal/saveAgentVersion",
     val executionDataEndpoint: String = "internal/saveTestResult",
     val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
+    val saveCliDownloadEndpoint: String = "/internal/files/download-save-cli",
     val filesEndpoint: String = "internal/files",
 )
 
@@ -87,8 +90,8 @@ data class BackendConfig(
  */
 @Serializable
 data class RetryConfig(
-    val attempts: Int,
-    val initialRetryMillis: Long,
+    val attempts: Int = 5,
+    val initialRetryMillis: Long = 2000,
 )
 
 /**
@@ -96,6 +99,10 @@ data class RetryConfig(
  * @property reportDir corresponds to flag `--report-dir` of save-cli
  * @property logType corresponds to flag `--log` of save-cli
  * @property resultOutput corresponds to flag `--result-output` of save-cli
+ * @property batchSize corresponds to flag `--batch-size` of save-cli (optional)
+ * @property batchSeparator corresponds to flag `--batch-separator` of save-cli (optional)
+ * @property overrideExecCmd corresponds to flag `--override-exec-cmd` of save-cli (optional)
+ * @property overrideExecFlags corresponds to flag `--override-exec-flags` of save-cli (optional)
  */
 @Serializable
 data class SaveCliConfig(
@@ -103,4 +110,8 @@ data class SaveCliConfig(
     val resultOutput: OutputStreamType = OutputStreamType.FILE,
     val reportDir: String = "save-reports",
     val logType: LogType = LogType.ALL,
+    val batchSize: Int? = null,
+    val batchSeparator: String? = null,
+    val overrideExecCmd: String? = null,
+    val overrideExecFlags: String? = null,
 )

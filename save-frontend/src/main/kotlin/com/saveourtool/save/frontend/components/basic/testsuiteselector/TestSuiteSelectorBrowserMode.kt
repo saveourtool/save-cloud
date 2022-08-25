@@ -48,9 +48,14 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
 
     /**
      * Specific organization name which reduces list of test suites source.
-     * If it's null we show public tests
+     * If null, all the test suites are shown
      */
     var specificOrganizationName: String?
+
+    /**
+     * If this flag is true public tests will be shown
+     */
+    var isStandardMode: Boolean
 }
 
 @Suppress(
@@ -158,26 +163,24 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
 
     val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
     val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
+
     useRequest {
-        val response = props.specificOrganizationName?.let { organizationName ->
-            get(
-                url = "$apiUrl/test-suites-sources/$organizationName/list",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
-        } ?: run {
-            get(
-                url = "$apiUrl/test-suites-sources/public-list",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            )
+        val url = when {
+            props.isStandardMode -> "$apiUrl/test-suites-sources/public-list"
+            props.specificOrganizationName == null -> "$apiUrl/test-suites-sources/avaliable"
+            else -> "$apiUrl/test-suites-sources/${props.specificOrganizationName}/list"
         }
+        val response = get(
+            url = url,
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+
         val testSuitesSources: TestSuitesSourceDtoList = response.decodeFromJsonString()
         setAvailableOrganizations(testSuitesSources.map { it.organizationName }.distinct())
         setAvailableTestSuiteSources(testSuitesSources.map { it.name })
-    }()
+    }
 
     val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
@@ -193,7 +196,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             setAvailableTestSuitesVersions(testSuiteSourcesVersions)
             setSelectedTestSuiteVersion(testSuiteSourcesVersions.singleOrNull())
         }
-    }()
+    }
 
     val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
@@ -220,7 +223,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     }
             }
         }
-    }()
+    }
 
     val (namePrefix, setNamePrefix) = useState("")
     div {
@@ -291,7 +294,6 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 }
             }
         }
-
         // ==================== SELECTOR ====================
         div {
             className = ClassName("")
@@ -300,16 +302,19 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
+                    setNamePrefix("")
                 }
                 selectedTestSuiteSource == null -> showAvaliableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
+                    setNamePrefix("")
                 }
                 selectedTestSuiteVersion == null -> showAvaliableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
+                    setNamePrefix("")
                 }
                 else -> showAvaliableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },

@@ -41,7 +41,7 @@ external interface ContestSummaryMenuProps : Props {
 )
 private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
     val (results, setResults) = useState<List<ContestResult>>(emptyList())
-    useRequest(isDeferred = false) {
+    useRequest {
         val projectResults = get(
             url = "$apiUrl/contests/${props.contestName}/scores",
             headers = Headers().also {
@@ -54,7 +54,7 @@ private fun contestSummaryMenu() = FC<ContestSummaryMenuProps> { props ->
             }
             .sortedByDescending { it.score }
         setResults(projectResults)
-    }()
+    }
     div {
         className = ClassName("mb-3")
         style = jso {

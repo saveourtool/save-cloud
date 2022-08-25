@@ -4,17 +4,14 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.ktorLogger
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.logInfoCustom
-import com.saveourtool.save.agent.utils.markAsExecutable
 import com.saveourtool.save.agent.utils.readProperties
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
 
 import generated.SAVE_CLOUD_VERSION
-import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -52,13 +49,17 @@ internal val fs = FileSystem.SYSTEM
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val config: AgentConfiguration = Properties.decodeFromStringMap(
-        readProperties("agent.properties")
-    )
+    val propertiesFile = "agent.properties".toPath()
+    val config: AgentConfiguration = if (fs.exists(propertiesFile)) {
+        Properties.decodeFromStringMap(
+            readProperties(propertiesFile.name)
+        )
+    } else {
+        AgentConfiguration.initializeFromEnv()
+    }
+        .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
-
-    "save-$SAVE_CORE_VERSION-linuxX64.kexe".toPath().markAsExecutable()
 
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
