@@ -408,12 +408,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .forEachIndexed { i, projectMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        // changeUrl(projectMenu)
                                         changeUrl(projectMenu, ProjectMenuBar)
                                         setState { selectedMenu = projectMenu }
                                     }

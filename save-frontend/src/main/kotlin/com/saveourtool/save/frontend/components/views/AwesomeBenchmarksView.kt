@@ -103,7 +103,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
         BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
-        // urlAnalysis()
         scope.launch {
             getBenchmarks()
         }
@@ -251,7 +250,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li {
                                                 className = ClassName("nav-item")
-                                                val classVal = if (state.selectedMenu == value) {
+                                                val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == value) {
                                                     " active font-weight-bold"
                                                 } else {
                                                     ""
@@ -260,7 +259,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
                                                         if (state.selectedMenu != value) {
-                                                            // changeUrl(value)
                                                             changeUrl(value, BenchmarkCategoryEnum)
                                                             setState { selectedMenu = value }
                                                         }

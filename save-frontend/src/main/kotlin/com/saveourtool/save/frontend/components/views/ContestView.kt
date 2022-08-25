@@ -132,7 +132,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != contestMenu) {
-                                        // changeUrl(contestMenu)
                                         changeUrl(contestMenu, ContestMenuBar)
                                         setState { selectedMenu = contestMenu }
                                     }
