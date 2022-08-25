@@ -303,23 +303,66 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
     }
 }
 
+fun <R> useDeferredRequest(
+    request: suspend WithRequestStatusContext.() -> R,
+): () -> Unit {
+    val scope = CoroutineScope(Dispatchers.Default)
+    val context = useRequestStatusContext()
+    val (isSending, setIsSending) = useState(false)
+    useEffect(isSending) {
+        if (!isSending) {
+            return@useEffect
+        }
+        scope.launch {
+            request(context)
+            setIsSending(false)
+        }.invokeOnCompletion {
+            if (it != null && it !is CancellationException) {
+                setIsSending(false)
+            }
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
+    }
+    val initiateSending: () -> Unit = {
+        if (!isSending) {
+            setIsSending(true)
+        }
+    }
+    return initiateSending
+}
+
 /**
  * Hook to perform requests in functional components.
  *
  * @param dependencies
- * @param isDeferred whether this request should be performed right after component is mounted (`isDeferred == false`)
- * or called later by some other mechanism (e.g. a button click).
  * @param request
  * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
 @Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
 fun <R> useRequest(
     dependencies: Array<dynamic> = emptyArray(),
-    isDeferred: Boolean = true,
     request: suspend WithRequestStatusContext.() -> R,
-): () -> Unit {
+) {
     val scope = CoroutineScope(Dispatchers.Default)
-    val (isSending, setIsSending) = useState(false)
+    val context = useRequestStatusContext()
+
+    useEffect(*dependencies) {
+        scope.launch {
+            request(context)
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
+    }
+}
+
+private fun useRequestStatusContext(): WithRequestStatusContext {
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -329,33 +372,7 @@ fun <R> useRequest(
         )
         override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
     }
-
-    useEffect(isSending, *dependencies) {
-        if (!isSending) {
-            return@useEffect
-        }
-        scope.launch {
-            request(context)
-            setIsSending(false)
-        }
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
-
-    val initiateSending: () -> Unit = {
-        if (!isSending) {
-            setIsSending(true)
-        }
-    }
-    @Suppress("BRACES_BLOCK_STRUCTURE_ERROR")
-    return if (!isDeferred) { {
-        useEffect(*dependencies) { initiateSending() }
-    } } else {
-        return initiateSending
-    }
+    return context
 }
 
 /**

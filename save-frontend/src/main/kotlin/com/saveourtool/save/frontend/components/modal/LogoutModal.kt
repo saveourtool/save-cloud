@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.frontend.utils.post
 import com.saveourtool.save.frontend.utils.spread
+import com.saveourtool.save.frontend.utils.useDeferredRequest
 import com.saveourtool.save.frontend.utils.useRequest
 
 import csstype.ClassName
@@ -30,7 +31,7 @@ import kotlinx.browser.window
 fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
-    val doLogoutRequest = useRequest {
+    val doLogoutRequest = useDeferredRequest {
         val replyToLogout = post(
             "${window.location.origin}/logout",
             Headers(),

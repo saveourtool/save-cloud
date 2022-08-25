@@ -37,7 +37,7 @@ external interface ContestInfoMenuProps : Props {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
     val (contest, setContest) = useState<ContestDto?>(null)
-    useRequest(isDeferred = false) {
+    useRequest {
         val contestDto = get(
             "$apiUrl/contests/${props.contestName}",
             headers = Headers().also {
@@ -49,7 +49,7 @@ private fun contestInfoMenu() = FC<ContestInfoMenuProps> { props ->
                 it.decodeFromJsonString<ContestDto>()
             }
         setContest(contestDto)
-    }()
+    }
 
     div {
         className = ClassName("d-flex justify-content-center")

@@ -180,7 +180,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         val testSuitesSources: TestSuitesSourceDtoList = response.decodeFromJsonString()
         setAvailableOrganizations(testSuitesSources.map { it.organizationName }.distinct())
         setAvailableTestSuiteSources(testSuitesSources.map { it.name })
-    }()
+    }
 
     val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
@@ -196,7 +196,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             setAvailableTestSuitesVersions(testSuiteSourcesVersions)
             setSelectedTestSuiteVersion(testSuiteSourcesVersions.singleOrNull())
         }
-    }()
+    }
 
     val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
@@ -223,7 +223,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     }
             }
         }
-    }()
+    }
 
     val (namePrefix, setNamePrefix) = useState("")
     div {
