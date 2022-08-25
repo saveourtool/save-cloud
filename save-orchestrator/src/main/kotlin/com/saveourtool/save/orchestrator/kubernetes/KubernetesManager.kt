@@ -60,8 +60,6 @@ class KubernetesManager(
                             )
                             runtimeClassName = "gvisor"
                         }
-                        // FixMe: Orchestrator uses hostPath mounts to copy resources, so agents have to be run on the same host.
-                        nodeName = System.getenv("NODE_NAME")
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
                                 "executionId" to executionId.toString(),
