@@ -59,7 +59,7 @@ private fun ChildrenBuilder.buildInput(
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(isDeferred = false) {
+    useRequest {
         val testSuitesFromBackend: List<TestSuiteDto> = post(
             url = "$apiUrl/test-suites/get-by-ids",
             headers = jsonHeaders,
@@ -69,11 +69,11 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         )
             .decodeFromJsonString()
         setSelectedTestSuites(testSuitesFromBackend)
-    }()
+    }
 
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
-        useRequest(dependencies = arrayOf(filters)) {
+        useDeferredRequest {
             if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
                     url = "$apiUrl/test-suites/filtered${

@@ -41,7 +41,7 @@ external interface TestSuiteSelectorManagerModeProps : Props {
 private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (preselectedTestSuites, setPreselectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(isDeferred = false) {
+    useRequest {
         val testSuitesFromBackend: List<TestSuiteDto> = post(
             url = "$apiUrl/test-suites/get-by-ids",
             headers = jsonHeaders,
@@ -52,7 +52,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
             .decodeFromJsonString()
         setPreselectedTestSuites(testSuitesFromBackend)
         setSelectedTestSuites(testSuitesFromBackend)
-    }()
+    }
 
     if (preselectedTestSuites.isEmpty()) {
         h6 {
