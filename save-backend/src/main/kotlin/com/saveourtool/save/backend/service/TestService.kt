@@ -73,13 +73,6 @@ class TestService(
                     }
             }
             .partition { it.id != null }
-
-        tests.groupBy {
-            it.testSuiteId
-        }
-            .map { (testSuiteId, tests) ->
-                testSuitesService.updateTestSuitePlugins(testSuiteId, tests.map { it.pluginName }.distinct())
-            }
         testRepository.saveAll(nonExistentTests)
         return (existingTests + nonExistentTests).map { it.requiredId() }
     }

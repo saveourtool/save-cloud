@@ -1,22 +1,33 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
 package com.saveourtool.save.domain
 
-import kotlinx.serialization.Serializable
+import com.saveourtool.save.core.config.TestConfigSections
+
+val contestAllowedPlugins = listOf(TestConfigSections.WARN)
+
+// todo: Probably should fix name in save-cli
+typealias PluginType = TestConfigSections
 
 /**
- * Enum of test type
- * @property pluginName
+ * @return [PluginType] from [String]
  */
-@Serializable
-@Suppress("CUSTOM_GETTERS_SETTERS")
-enum class PluginType(val pluginName: String) {
-    FIX("FixPlugin"),
+fun String.toPluginType(): PluginType = when (this) {
+    "WarnPlugin" -> PluginType.WARN
+    "FixPlugin" -> PluginType.FIX
+    "FixAndWarnPlugin" -> PluginType.`FIX AND WARN`
+    "" -> PluginType.GENERAL
+    else -> throw IllegalArgumentException("No such plugin.")
+}
 
-    FIX_AND_WARN("FixAndWarnPlugin"),
-
-    WARN("WarnPlugin"),
-    ;
-
-    companion object {
-        val contestAllowedPlugins = listOf(WARN)
-    }
+/**
+ * fixme: Will need to support pluginName in save-cli
+ *
+ * @return Pretty name from [PluginType]
+ */
+fun PluginType.pluginName() = when (this) {
+    PluginType.WARN -> "WarnPlugin"
+    PluginType.FIX -> "FixPlugin"
+    PluginType.`FIX AND WARN` -> "FixAndWarnPlugin"
+    else -> "UNKNOWN"
 }

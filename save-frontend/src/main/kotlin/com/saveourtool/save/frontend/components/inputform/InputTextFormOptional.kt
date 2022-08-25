@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.useTooltipAndPopover
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.ChildrenBuilder
@@ -20,26 +21,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.sup
-import react.useEffect
-
-// language=JS
-private const val ENABLE_TOOLTIP_AND_POPOVER_JS: String = """
-    var jQuery = require("jquery")
-    require("popper.js")
-    require("bootstrap")
-    jQuery('.form-popover').each(function() {
-        jQuery(this).popover({
-            placement: jQuery(this).attr("popover-placement"),
-            title: jQuery(this).attr("popover-title"),
-            content: jQuery(this).attr("popover-content"),
-            html: true
-        }).on('show.bs.popover', function() {
-            jQuery(this).tooltip('hide')
-        }).on('hide.bs.popover', function() {
-            jQuery(this).tooltip('show')
-        })
-    })
-"""
 
 /**
  * constant FC to avoid re-creation
@@ -177,8 +158,5 @@ fun inputTextFormOptionalWrapper() = FC<InputTextFormOptionalProps> { props ->
         props.onChangeFun
     )
 
-    useEffect {
-        js(ENABLE_TOOLTIP_AND_POPOVER_JS)
-        return@useEffect
-    }
+    useTooltipAndPopover()
 }

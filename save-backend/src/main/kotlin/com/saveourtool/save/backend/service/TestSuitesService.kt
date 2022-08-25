@@ -57,16 +57,19 @@ class TestSuitesService(
                 // We allow description of existing test suites to be changed.
                 it.copy(description = null)
             }
-            .map {
+            .map { dto ->
                 TestSuite(
-                    name = it.name,
-                    description = it.description,
-                    source = testSuitesSourceService.getByName(it.source.organizationName, it.source.name),
-                    version = it.version,
+                    name = dto.name,
+                    description = dto.description,
+                    source = testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
+                    version = dto.version,
                     dateAdded = null,
-                    language = it.language,
-                    tags = it.tags?.let(TestSuite::tagsFromList),
+                    language = dto.language,
+                    tags = dto.tags?.let(TestSuite::tagsFromList),
                 )
+                    .apply {
+                        setPluginsByTypes(dto.plugins)
+                    }
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`
@@ -260,15 +263,6 @@ class TestSuitesService(
     )
         ?.requiredId()
         .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
-
-    /**
-     * @param testSuiteId
-     * @param listOfPluginNames
-     * @return [TestSuite] if plugins column is updated, null otherwise
-     */
-    fun updateTestSuitePlugins(testSuiteId: Long, listOfPluginNames: List<String>) = testSuiteRepository.findByIdOrNull(testSuiteId)
-        ?.apply { setPlugins(listOfPluginNames) }
-        ?.let { testSuiteRepository.save(it) }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)

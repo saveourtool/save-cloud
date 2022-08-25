@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.*
 import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.useTooltip
 
 import csstype.ClassName
 import react.*
@@ -264,13 +265,8 @@ private fun ChildrenBuilder.buildButton(
         onClick = {
             onClickFun()
         }
-
-        val jquery = kotlinext.js.require("jquery")
-        kotlinext.js.require("popper.js")
-        kotlinext.js.require("bootstrap")
         asDynamic()["data-toggle"] = "tooltip"
         asDynamic()["data-placement"] = "bottom"
-        jquery("[data-toggle=\"tooltip\"]").tooltip()
     }
 }
 
@@ -286,6 +282,9 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
         buildButton(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
         buildButton(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
+
+    useTooltip()
+
     when (currentMode) {
         TestSuiteSelectorMode.MANAGER -> testSuiteSelectorManagerMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate

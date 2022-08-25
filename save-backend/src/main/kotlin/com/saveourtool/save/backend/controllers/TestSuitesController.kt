@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.TestSuiteDtoList
 import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.domain.PluginType
+import com.saveourtool.save.domain.contestAllowedPlugins
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
@@ -89,7 +89,7 @@ class TestSuitesController(
         .map { testSuites ->
             testSuites.filter {
                 if (isContest) {
-                    it.plugins == PluginType.contestAllowedPlugins
+                    it.plugins == contestAllowedPlugins
                 } else {
                     it.plugins.isNotEmpty()
                 }
@@ -113,7 +113,7 @@ class TestSuitesController(
     }
         .filter { testSuite ->
             if (isContest) {
-                testSuite.pluginsAsListOfPluginType() == PluginType.contestAllowedPlugins
+                testSuite.pluginsAsListOfPluginType() == contestAllowedPlugins
             } else {
                 testSuite.pluginsAsListOfPluginType().isNotEmpty()
             }

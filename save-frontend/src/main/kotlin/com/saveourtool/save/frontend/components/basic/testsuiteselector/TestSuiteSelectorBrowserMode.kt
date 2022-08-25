@@ -151,6 +151,7 @@ private fun ChildrenBuilder.showAvaliableOptions(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProps> { props ->
+    useTooltip()
     val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
     val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
     val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
@@ -178,7 +179,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
         setFetchedTestSuites(testSuites)
         setAvailableOrganizations(testSuites.map { it.source.organizationName }.distinct())
-    }()
+    }
 
     useEffect(selectedOrganization) {
         selectedOrganization?.let { selectedOrganization ->
@@ -260,6 +261,9 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 }
                 button {
                     className = ClassName("btn btn-outline-secondary $active")
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "bottom"
+                    title = "Select all"
                     onClick = {
                         setSelectedTestSuites { selectedTestSuites ->
                             if (selectedTestSuites.containsAll(availableTestSuites)) {

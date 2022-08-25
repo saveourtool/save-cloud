@@ -1,6 +1,8 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.PluginType
+import com.saveourtool.save.domain.pluginName
+import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
@@ -44,16 +46,22 @@ class TestSuite(
      * @return [plugins] as a list of string
      */
     fun pluginsAsListOfPluginType() = plugins.split(DATABASE_DELIMITER)
-        .mapNotNull { plugin ->
-            PluginType.values().find { it.pluginName == plugin }
+        .map { pluginName ->
+            pluginName.toPluginType()
         }
+        .filter { it != PluginType.GENERAL }
 
     /**
      * Update [plugins] by list of strings
      */
-    fun setPlugins(pluginsAsList: List<String>) {
-        plugins = pluginsAsList.joinToString(DATABASE_DELIMITER)
+    fun setPluginsByNames(pluginNamesAsList: List<String>) {
+        plugins = pluginNamesAsList.joinToString(DATABASE_DELIMITER)
     }
+
+    /**
+     * Update [plugins] by list of strings
+     */
+    fun setPluginsByTypes(pluginTypesAsList: List<PluginType>) = setPluginsByNames(pluginTypesAsList.map { it.pluginName() })
 
     /**
      * @return [tags] as a list of strings
