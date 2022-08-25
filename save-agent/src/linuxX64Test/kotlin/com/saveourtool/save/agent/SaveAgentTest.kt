@@ -1,7 +1,5 @@
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.readProperties
-
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -12,6 +10,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.*
+import platform.posix.setenv
 
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -20,14 +19,17 @@ import kotlin.test.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.PolymorphicSerializer
-import kotlinx.serialization.properties.Properties
-import kotlinx.serialization.properties.decodeFromStringMap
 
 class SaveAgentTest {
-    @OptIn(ExperimentalSerializationApi::class)
-    private val configuration: AgentConfiguration = Properties.decodeFromStringMap<AgentConfiguration>(readProperties("src/linuxX64Main/resources/agent.properties")).let {
+    init {
+        setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
+        setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
+        setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
+        setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
+    }
+
+    private val configuration: AgentConfiguration = AgentConfiguration.initializeFromEnv().let {
         if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
