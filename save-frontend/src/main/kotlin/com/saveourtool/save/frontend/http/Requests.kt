@@ -56,7 +56,7 @@ suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: 
  * @return organization
  */
 suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
-    "$apiUrl/organization/$name",
+    "$apiUrl/organizations/$name",
     Headers().apply {
         set("Accept", "application/json")
     },
