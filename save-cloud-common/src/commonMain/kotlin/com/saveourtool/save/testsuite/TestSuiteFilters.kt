@@ -31,7 +31,7 @@ data class TestSuiteFilters(
         "language" to language
     )
         .filter { it.second.isNotBlank() }
-        .let { it + additionalParams }
+        .plus(additionalParams)
         .joinToString("&") {
             "${it.first}=${it.second}"
         }
