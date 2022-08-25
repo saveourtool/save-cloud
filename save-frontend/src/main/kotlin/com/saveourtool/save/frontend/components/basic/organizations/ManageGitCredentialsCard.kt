@@ -66,7 +66,7 @@ external interface ManageGitCredentialsCardProps : Props {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { props ->
     val (selfRole, setSelfRole) = useState(Role.NONE)
-    useRequest(isDeferred = false) {
+    useRequest {
         val role = get(
             "$apiUrl/organizations/${props.organizationName}/users/roles",
             headers = jsonHeaders,
@@ -80,7 +80,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
             props.showGlobalRoleWarning()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
-    }()
+    }
 
     val (gitCredentials, _, fetchGitCredentialsRequest) = prepareFetchGitCredentials(props.organizationName)
 
@@ -194,7 +194,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
 @Suppress("TYPE_ALIAS")
 private fun prepareFetchGitCredentials(organizationName: String): RequestWithDependency<List<GitDto>> {
     val (gitCredentials, setGitCredentials) = useState(emptyList<GitDto>())
-    val fetchGitCredentialsRequest = useRequest {
+    val fetchGitCredentialsRequest = useDeferredRequest {
         get(
             "$apiUrl/organizations/$organizationName/list-git",
             headers = jsonHeaders,
@@ -215,7 +215,7 @@ private fun prepareUpsertGitCredential(
     fetchGitCredentialsRequest: () -> Unit
 ): RequestWithDependency<GitDto?> {
     val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto?>(null)
-    val upsertGitCredentialRequest = useRequest(dependencies = arrayOf(gitCredentialToUpsert)) {
+    val upsertGitCredentialRequest = useDeferredRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
             set("Content-Type", "application/json")
@@ -241,7 +241,7 @@ private fun prepareDeleteGitCredential(
     fetchGitCredentialsRequest: () -> Unit
 ): RequestWithDependency<GitDto> {
     val (gitCredentialToDelete, setGitCredentialToDelete) = useState(GitDto("N/A"))
-    val deleteGitCredentialRequest = useRequest(dependencies = arrayOf(gitCredentialToDelete)) {
+    val deleteGitCredentialRequest = useDeferredRequest {
         val response = delete(
             url = "$apiUrl/organizations/$organizationName/delete-git?url=${gitCredentialToDelete.url}",
             headers = jsonHeaders,
