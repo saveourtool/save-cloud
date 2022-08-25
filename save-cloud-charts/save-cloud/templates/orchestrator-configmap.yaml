@@ -13,9 +13,8 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    orchestrator.agent-settings.agent-id-env=POD_NAME
-    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.name }}
-    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.name }}
+    orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
+    orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
 
     orchestrator.test-resources.tmp-path=/tmp/save/resources
 

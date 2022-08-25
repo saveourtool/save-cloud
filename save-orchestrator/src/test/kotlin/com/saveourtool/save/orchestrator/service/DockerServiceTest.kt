@@ -39,7 +39,7 @@ import java.nio.file.Paths
 
 import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import java.net.InetSocketAddress
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -88,6 +88,13 @@ class DockerServiceTest {
             "/updateExecutionByDto",
             MockResponse()
                 .setResponseCode(200)
+        )
+        mockServer.enqueue(
+            "/internal/files/download-save-agent",
+            MockResponse()
+                .setHeader("Content-Type", "application/octet-stream")
+                .setResponseCode(200)
+                .setBody("sleep 200")
         )
         dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
             .subscribe()
@@ -139,9 +146,15 @@ class DockerServiceTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
+            mockServer.start(
+                InetSocketAddress(0).address,
+                0
+            )
             registry.add("orchestrator.backendUrl") {
-                mockServer.start()
                 "http://localhost:${mockServer.port}"
+            }
+            registry.add("orchestrator.agentSettings.backendUrl") {
+                "http://host.docker.internal:${mockServer.port}"
             }
         }
     }

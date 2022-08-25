@@ -75,7 +75,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         scope.launch {
             val responseFromCreationOrganization =
                     post(
-                        "$apiUrl/organization/save",
+                        "$apiUrl/organizations/save",
                         jsonHeaders,
                         Json.encodeToString(state.organizationDto),
                         loadingHandler = ::classLoadingHandler,

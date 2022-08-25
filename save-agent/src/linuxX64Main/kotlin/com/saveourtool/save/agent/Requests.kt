@@ -32,7 +32,7 @@ import okio.Path.Companion.toPath
 internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
     val result = httpClient.downloadTestResources(config, executionId)
     if (updateStateBasedOnBackendResponse(result)) {
-        return@runCatching
+        throw IllegalStateException("Couldn't download test resources")
     }
 
     val bytes = result.getOrThrow()
@@ -70,7 +70,7 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
                 fileKey
             )
             if (updateStateBasedOnBackendResponse(result)) {
-                return@runCatching
+                throw IllegalStateException("Couldn't download file $fileKey")
             }
 
             val fileContentBytes = result.getOrThrow()
@@ -94,6 +94,28 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
             logWarn("Not found any additional files for execution \$id")
             emptyList()
         }
+}
+
+/**
+ * Downloads binary of save-cli into the current directory
+ *
+ * @param url
+ * @throws IllegalStateException
+ */
+internal suspend fun SaveAgent.downloadSaveCli(url: String) {
+    val result = httpClient.download(
+        url = url,
+        body = null,
+    )
+    if (updateStateBasedOnBackendResponse(result)) {
+        throw IllegalStateException("Couldn't download save-cli")
+    }
+
+    val bytes = result.getOrThrow()
+        .readByteArrayOrThrowIfEmpty {
+            error("Downloaded file is empty")
+        }
+    bytes.writeToFile(SAVE_CLI_EXECUTABLE_NAME.toPath())
 }
 
 private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = download(
