@@ -81,7 +81,7 @@ class KubernetesManager(
                         restartPolicy = "Never"
                         initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.resourcesConfiguration)
+                            agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.env)
                         )
                         volumes = listOf(
                             Volume().apply {
@@ -233,15 +233,14 @@ class KubernetesManager(
         imageName: String,
         agentRunCmd: List<String>,
         workingDir: String,
-        resourcesConfiguration: DockerService.RunConfiguration.ResourcesConfiguration,
+        env: Map<AgentEnvName, String>,
     ) = Container().apply {
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
 
-        val staticEnvs = resourcesConfiguration.toEnvsMap().mapToEnvs()
-        env = configProperties.agentSettings.agentIdEnv?.let { staticEnvs + agentIdEnv(it) }
-            ?: staticEnvs
+        val staticEnvs = env.mapToEnvs()
+        this.env = staticEnvs + agentIdEnv(AgentEnvName.AGENT_ID)
 
         val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
@@ -256,8 +255,8 @@ class KubernetesManager(
         )
     }
 
-    private fun agentIdEnv(agentIdEnvName: String) = EnvVar().apply {
-        name = agentIdEnvName
+    private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
+        name = agentIdEnv.name
         valueFrom = EnvVarSource().apply {
             fieldRef = ObjectFieldSelector().apply {
                 fieldPath = "metadata.name"
