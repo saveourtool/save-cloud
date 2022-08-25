@@ -25,7 +25,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         val listOfStringEnumElements = OrganizationMenuBar.values().map { it.name.lowercase() }
         override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
         override var paths: Pair<String, String> = "" to ""
-        override fun valueOf(): OrganizationMenuBar = OrganizationMenuBar.valueOf()
+        override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
         override fun findEnumElements(elem: String): OrganizationMenuBar? = values().find { it.name.lowercase() == elem }
         override fun setPath(shortPath: String, longPath: String) {
@@ -34,7 +34,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
 
         override fun returnStringOneOfElements(elem: OrganizationMenuBar): String = elem.name
 
-        override fun isAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
+        override fun isNotAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
                 ((elem == CONTESTS) && (!role.isHigherOrEqualThan(Role.OWNER) || flag == false))
     }
 }

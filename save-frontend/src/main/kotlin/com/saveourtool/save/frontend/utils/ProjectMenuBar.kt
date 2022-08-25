@@ -20,7 +20,7 @@ enum class ProjectMenuBar {
         override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
         override var paths: Pair<String, String> = "" to ""
 
-        override fun valueOf(): ProjectMenuBar = ProjectMenuBar.valueOf()
+        override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
         override fun findEnumElements(elem: String): ProjectMenuBar? = values().find { it.name.lowercase() == elem }
         override fun setPath(shortPath: String, longPath: String) {
@@ -29,7 +29,7 @@ enum class ProjectMenuBar {
 
         override fun returnStringOneOfElements(elem: ProjectMenuBar): String = elem.name
 
-        override fun isAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) || (elem == RUN)) &&
+        override fun isNotAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) || (elem == RUN)) &&
                 !role.isHigherOrEqualThan(Role.ADMIN)
     }
 }

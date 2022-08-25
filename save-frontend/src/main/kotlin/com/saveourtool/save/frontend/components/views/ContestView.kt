@@ -38,7 +38,7 @@ enum class ContestMenuBar {
         val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
         override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
         override var paths: Pair<String, String> = "" to ""
-        override fun valueOf(): ContestMenuBar = ContestMenuBar.valueOf()
+        override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
         override fun setPath(shortPath: String, longPath: String) {
@@ -47,7 +47,7 @@ enum class ContestMenuBar {
 
         override fun returnStringOneOfElements(elem: ContestMenuBar): String = elem.name
 
-        override fun isAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
+        override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
     }
 }
 

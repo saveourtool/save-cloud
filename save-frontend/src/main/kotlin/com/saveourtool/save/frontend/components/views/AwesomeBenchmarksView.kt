@@ -74,9 +74,12 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     var lang: String
 }
 
+/**
+ * General interface for working with MenuBar
+ */
 external interface HasSelectedMenu<T> : State {
     /**
-     * selected Tab
+     * selected value in T Enum
      */
     var selectedMenu: T?
 }
@@ -541,7 +544,7 @@ where S : State, S : HasSelectedMenu<T> {
         menu.defaultTab
     }
     if (state.selectedMenu != tab) {
-        if (menu.isAvailableWithThisRole(role, tab, flag)) {
+        if (menu.isNotAvailableWithThisRole(role, tab, flag)) {
             changeUrl(menu.defaultTab, menu)
             window.alert("Your role is not suitable for opening this page")
             window.location.reload()
@@ -557,15 +560,15 @@ where S : State, S : HasSelectedMenu<T> {
  * Function create unique url address for page`s tabs
  *
  * @param selectedMenu
- * @param Enum
+ * @param enum
  */
-fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
+fun <T, S> changeUrl(selectedMenu: T?, enum: MenuBar<T>)
 where S : HasSelectedMenu<T> {
     selectedMenu?.let {
-        window.location.href = if (selectedMenu == Enum.defaultTab) {
-            Enum.paths.first
+        window.location.href = if (selectedMenu == enum.defaultTab) {
+            enum.paths.first
         } else {
-            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu).lowercase()}"
+            "${enum.paths.second}/${enum.returnStringOneOfElements(selectedMenu).lowercase()}"
         }
     } ?: run {
         window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
