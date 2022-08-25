@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.frontend.utils.post
 import com.saveourtool.save.frontend.utils.spread
 import com.saveourtool.save.frontend.utils.useDeferredRequest
-import com.saveourtool.save.frontend.utils.useRequest
 
 import csstype.ClassName
 import org.w3c.fetch.Headers

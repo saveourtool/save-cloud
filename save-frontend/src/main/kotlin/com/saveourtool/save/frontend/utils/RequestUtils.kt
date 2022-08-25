@@ -303,6 +303,12 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
     }
 }
 
+/**
+ * Hook to get callbacks to perform requests in functional components.
+ *
+ * @param request
+ * @return a function to trigger request execution.
+ */
 fun <R> useDeferredRequest(
     request: suspend WithRequestStatusContext.() -> R,
 ): () -> Unit {
@@ -340,9 +346,7 @@ fun <R> useDeferredRequest(
  *
  * @param dependencies
  * @param request
- * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
  */
-@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
 fun <R> useRequest(
     dependencies: Array<dynamic> = emptyArray(),
     request: suspend WithRequestStatusContext.() -> R,
@@ -362,19 +366,6 @@ fun <R> useRequest(
     }
 }
 
-private fun useRequestStatusContext(): WithRequestStatusContext {
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
-    return context
-}
-
 /**
  * Handler that allows to skip loading modal
  *
@@ -390,6 +381,20 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @return Unit
  */
 internal fun noopResponseHandler(response: Response) = Unit
+
+@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
+private fun useRequestStatusContext(): WithRequestStatusContext {
+    val statusContext = useContext(requestStatusContext)
+    val context = object : WithRequestStatusContext {
+        override val coroutineScope = CoroutineScope(Dispatchers.Default)
+        override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
+        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
+    }
+    return context
+}
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
