@@ -169,7 +169,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             formName = "Organization"
                                             getData = {
                                                 get(
-                                                    url = "$apiUrl/organization/get/list",
+                                                    url = "$apiUrl/organizations/get/list",
                                                     headers = jsonHeaders,
                                                     loadingHandler = ::loadingHandler,
                                                 )

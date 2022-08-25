@@ -133,7 +133,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
-    val onSaveButtonPressed = useRequest {
+    val onSaveButtonPressed = useDeferredRequest {
         val response = post(
             "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
             jsonHeaders,

@@ -122,6 +122,28 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             } else if (response.isConflict()) {
                 setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
             }
+    val fetchTestSuiteSource = useDeferredRequest {
+        post(
+            url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${testSuiteSource.name}/fetch",
+            headers = jsonHeaders,
+            body = undefined,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+    }
+    val onSubmitButtonPressed = useDeferredRequest {
+        val response = post(
+            url = "/api/$v1/test-suites-sources/create",
+            headers = jsonHeaders,
+            body = Json.encodeToString(testSuiteSource),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation,
+        )
+        if (response.ok) {
+            fetchTestSuiteSource()
+            props.onSuccess()
+        } else if (response.isConflict()) {
+            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
         }
     }
 
