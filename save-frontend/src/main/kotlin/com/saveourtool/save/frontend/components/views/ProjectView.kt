@@ -307,7 +307,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 selfRole = role
             }
 
-            ProjectMenuBar.setPath("/#${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}/")
+            ProjectMenuBar.setPath("#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
             urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)
@@ -395,40 +395,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             ProjectMenuBar.INFO -> renderInfo()
             else -> {
                 // this is a generated else block
-            }
-        }
-    }
-
-    private fun changeUrl(selectedMenu: ProjectMenuBar?) {
-        selectedMenu?.let {
-            window.location.href = if (selectedMenu == ProjectMenuBar.defaultTab) {
-                "#/${props.owner}/${props.name}"
-            } else {
-                "#/project/${props.owner}/${props.name}/${it.name.lowercase()}"
-            }
-        } ?: let {
-            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-            window.location.reload()
-        }
-    }
-
-
-    private fun urlAnalysis(role: Role) {
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/project/[^/]+/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { ProjectMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            ProjectMenuBar.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            if (((tab == ProjectMenuBar.SETTINGS) || (tab == ProjectMenuBar.RUN)) && !role.isHigherOrEqualThan(Role.ADMIN)) {
-                changeUrl(ProjectMenuBar.defaultTab)
-                window.alert("Your role is not suitable for opening this page")
-                window.location.reload()
-                setState { selectedMenu = ProjectMenuBar.defaultTab }
-            } else {
-                changeUrl(tab)
-                setState { selectedMenu = tab }
             }
         }
     }

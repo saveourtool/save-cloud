@@ -235,9 +235,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 selfRole = highestRole
                 usersInOrganization = users
             }
-            OrganizationMenuBar.setPath("#/${props.organizationName}", "#/organization/${props.organizationName}/")
+            OrganizationMenuBar.setPath("#/${props.organizationName}", "#/organization/${props.organizationName}")
             urlAnalysis(OrganizationMenuBar, highestRole, state.organization?.canCreateContests)
-            //urlAnalysis(highestRole)
         }
     }
 
@@ -274,40 +273,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             else -> {
                 // this is a generated else block
             }
-        }
-    }
-
-    private fun urlAnalysis(role: Role) {
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/organization/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { OrganizationMenuBar.values().find { it.name.lowercase() == this } }
-        } else {
-            OrganizationMenuBar.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            if (((tab == OrganizationMenuBar.SETTINGS) && !role.isHigherOrEqualThan(Role.ADMIN)) ||
-                    ((tab == OrganizationMenuBar.CONTESTS) && (!role.isHigherOrEqualThan(Role.OWNER) || state.organization?.canCreateContests == false))) {
-                changeUrl(OrganizationMenuBar.defaultTab)
-                window.alert("Your role is not suitable for opening this page")
-                window.location.reload()
-                setState { selectedMenu = OrganizationMenuBar.defaultTab }
-            } else {
-                changeUrl(tab)
-                setState { selectedMenu = tab }
-            }
-        }
-    }
-
-    private fun changeUrl(selectedMenu: OrganizationMenuBar?) {
-        selectedMenu?.let {
-            window.location.href = if (selectedMenu == OrganizationMenuBar.defaultTab) {
-                "#/${props.organizationName}"
-            } else {
-                "#/organization/${props.organizationName}/${it.name.lowercase()}"
-            }
-        } ?: let {
-            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-            window.location.reload()
         }
     }
 
@@ -703,7 +668,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {
                                         if (state.selectedMenu != organizationMenu) {
-                                            //changeUrl(organizationMenu)
                                             changeUrl(organizationMenu, OrganizationMenuBar)
                                             setState { selectedMenu = organizationMenu }
                                         }

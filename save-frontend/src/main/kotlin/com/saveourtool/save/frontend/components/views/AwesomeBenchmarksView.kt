@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -75,6 +74,14 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     var lang: String
 }
 
+
+external interface HasSelectedMenu<T>: State {
+    /**
+     * selected Tab
+     */
+    var selectedMenu: T?
+}
+
 /**
  * A functional Component for project creation view
  *
@@ -92,7 +99,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     override fun componentDidMount() {
         super.componentDidMount()
 
-        BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}/")
+        BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         //urlAnalysis()
         scope.launch {
@@ -100,18 +107,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    private fun urlAnalysis() {
-        val href = window.location.href
-        val tab = if (href.contains(Regex("/archive/[^/]+/[^/]+"))) {
-            href.substringAfterLast(URL_PATH_DELIMITER).run { BenchmarkCategoryEnum.values().find { it.name.lowercase() == this } }
-        } else {
-            BenchmarkCategoryEnum.defaultTab
-        }
-        if (state.selectedMenu != tab) {
-            changeUrl(tab)
-            setState { selectedMenu = tab }
-        }
-    }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun ChildrenBuilder.render() {
@@ -509,18 +504,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    private fun changeUrl(selectedMenu: BenchmarkCategoryEnum?) {
-        selectedMenu?.let {
-            window.location.href = if (selectedMenu == BenchmarkCategoryEnum.defaultTab) {
-                "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-            } else {
-                "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}/${it.name.lowercase()}"
-            }
-        } ?: let {
-            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-            window.location.reload()
-        }
-    }
 
     private suspend fun getBenchmarks() {
         val headers = Headers().also {
@@ -545,9 +528,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     }
 }
 
-interface HasSelectedMenu<T> {
-    var selectedMenu: T?
-}
 
 fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
         where S: HasSelectedMenu<T>
@@ -556,7 +536,7 @@ fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
         window.location.href = if (selectedMenu == Enum.defaultTab) {
             Enum.paths.first
         } else {
-            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu)}"
+            "${Enum.paths.second}/${Enum.returnStringOneOfElements(selectedMenu).lowercase()}"
         }
     } ?: run {
         window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"

@@ -54,7 +54,7 @@ enum class BenchmarkCategoryEnum {
 
         override fun returnStringOneOfElements(elem: BenchmarkCategoryEnum) : String = elem.name
 
-        override fun isAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, flag: Boolean?): Boolean = true
+        override fun isAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, flag: Boolean?): Boolean = false
     }
 }
 

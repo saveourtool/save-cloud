@@ -51,7 +51,7 @@ enum class ContestMenuBar {
 
         override fun returnStringOneOfElements(elem: ContestMenuBar): String = elem.name
 
-        override fun isAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = true
+        override fun isAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
     }
 }
 
@@ -83,18 +83,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     override fun componentDidMount() {
         super.componentDidMount()
 
-        ContestMenuBar.setPath("#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}/")
+        ContestMenuBar.setPath("#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
         urlAnalysis(ContestMenuBar, Role.NONE, false)
-//        val href = window.location.href
-//        val tab = if (href.contains(Regex("/organization/[^/]*/[^/]*/[^/]*"))) {
-//            href.substringAfterLast(URL_PATH_DELIMITER).run { ContestMenuBar.values().find { it.name.lowercase() == this } }
-//        } else {
-//            ContestMenuBar.defaultTab
-//        }
-//        if (state.selectedMenu != tab) {
-//            changeUrl(tab)
-//            setState { selectedMenu = tab }
-//        }
     }
 
     override fun ChildrenBuilder.render() {
@@ -111,19 +101,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             ContestMenuBar.SUBMISSIONS -> renderSubmissions()
             ContestMenuBar.SUMMARY -> renderSummary()
             else -> throw NotImplementedError()
-        }
-    }
-
-    private fun changeUrl(selectedMenu: ContestMenuBar?) {
-        selectedMenu?.let {
-            window.location.href = if (selectedMenu == ContestMenuBar.defaultTab) {
-                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}"
-            } else {
-                "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}/${it.name.lowercase()}"
-            }
-        } ?: let {
-            window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-            window.location.reload()
         }
     }
 
