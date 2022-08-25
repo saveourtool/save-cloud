@@ -85,7 +85,7 @@ jobs:
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
-            -PsaveCliPath=file://${{ env.HOME }}/save/save-cli/build/bin/linuxX64/releaseExecutable
+            -PsaveCliPath=file:///home/runner/save/save-cli/build/bin/linuxX64/releaseExecutable
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
