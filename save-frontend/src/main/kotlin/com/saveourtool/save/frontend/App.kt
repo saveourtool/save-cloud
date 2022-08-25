@@ -196,7 +196,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = contestView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem(ContestMenuBar.listOfStringEnumElements, "contests/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
+                                createRoutersWithPathAndEachListItem(ContestMenuBar.listOfStringEnumElements, "contests/${FrontendRoutes.CONTESTS.path}/:contestName",
+                                    contestView.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
@@ -314,6 +315,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
 /**
  * The function creates routers with the given [href] and ending with all the elements of the [listOfUrlParams]
+ *
  * @param listOfUrlParams
  * @param href
  * @param routeElement

@@ -21,7 +21,6 @@ import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
@@ -85,7 +84,6 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Organization
      */
     var organization: Organization?
-
 
     /**
      * List of projects for `this` organization

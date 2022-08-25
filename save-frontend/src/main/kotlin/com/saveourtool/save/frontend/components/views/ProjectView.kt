@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
@@ -25,9 +24,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.HTMLButtonElement
@@ -416,7 +413,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        //changeUrl(projectMenu)
+                                        // changeUrl(projectMenu)
                                         changeUrl(projectMenu, ProjectMenuBar)
                                         setState { selectedMenu = projectMenu }
                                     }

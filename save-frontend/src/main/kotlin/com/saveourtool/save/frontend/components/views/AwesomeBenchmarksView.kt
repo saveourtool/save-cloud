@@ -74,8 +74,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     var lang: String
 }
 
-
-external interface HasSelectedMenu<T>: State {
+external interface HasSelectedMenu<T> : State {
     /**
      * selected Tab
      */
@@ -101,12 +100,11 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
 
         BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
-        //urlAnalysis()
+        // urlAnalysis()
         scope.launch {
             getBenchmarks()
         }
     }
-
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun ChildrenBuilder.render() {
@@ -259,7 +257,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
                                                         if (state.selectedMenu != value) {
-                                                            //changeUrl(value)
+                                                            // changeUrl(value)
                                                             changeUrl(value, BenchmarkCategoryEnum)
                                                             setState { selectedMenu = value }
                                                         }
@@ -504,7 +502,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-
     private suspend fun getBenchmarks() {
         val headers = Headers().also {
             it.set("Accept", "application/json")
@@ -528,10 +525,42 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     }
 }
 
+/**
+ * The function of analyzing the URL of a tabbed page goes to the tab that was entered in the url, according to the role
+ *
+ * @param menu
+ * @param role
+ * @param flag
+ */
+fun <T, S> CComponent<*, S>.urlAnalysis(menu: MenuBar<T>, role: Role, flag: Boolean?)
+where S : State, S : HasSelectedMenu<T> {
+    val href = window.location.href
+    val tab = if (href.contains(menu.regex)) {
+        href.substringAfterLast(URL_PATH_DELIMITER).run { menu.findEnumElements(this) }
+    } else {
+        menu.defaultTab
+    }
+    if (state.selectedMenu != tab) {
+        if (menu.isAvailableWithThisRole(role, tab, flag)) {
+            changeUrl(menu.defaultTab, menu)
+            window.alert("Your role is not suitable for opening this page")
+            window.location.reload()
+            setState { selectedMenu = menu.defaultTab }
+        } else {
+            changeUrl(tab, menu)
+            setState { selectedMenu = tab }
+        }
+    }
+}
 
+/**
+ * Function create unique url address for page`s tabs
+ *
+ * @param selectedMenu
+ * @param Enum
+ */
 fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
-        where S: HasSelectedMenu<T>
-{
+where S : HasSelectedMenu<T> {
     selectedMenu?.let {
         window.location.href = if (selectedMenu == Enum.defaultTab) {
             Enum.paths.first
@@ -541,28 +570,5 @@ fun <T, S> changeUrl(selectedMenu: T?, Enum: MenuBar<T>)
     } ?: run {
         window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
         window.location.reload()
-    }
-}
-
-
-fun <T, S> CComponent<*, S>.urlAnalysis(menu: MenuBar<T>, role: Role, flag: Boolean?)
-        where S: State, S: HasSelectedMenu<T>
-{
-    val href = window.location.href
-    val tab = if (href.contains(menu.regex)) {
-        href.substringAfterLast(URL_PATH_DELIMITER).run { menu.findEnumElements(this) }
-    } else {
-        menu.defaultTab
-    }
-    if (state.selectedMenu != tab) {
-        if ( menu.isAvailableWithThisRole(role, tab, flag)) {
-            changeUrl(menu.defaultTab, menu)
-            window.alert("Your role is not suitable for opening this page")
-            window.location.reload()
-            setState { selectedMenu = menu.defaultTab }
-        } else {
-            changeUrl(tab, menu)
-            setState { selectedMenu = tab }
-        }
     }
 }

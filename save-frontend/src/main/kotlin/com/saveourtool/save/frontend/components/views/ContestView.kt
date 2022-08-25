@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
@@ -25,8 +24,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.browser.window
-
 /**
  * Enum that defines the bar that is chosen
  */
@@ -36,15 +33,14 @@ enum class ContestMenuBar {
     SUMMARY,
     ;
 
-    companion object  : MenuBar<ContestMenuBar> {
-        override fun valueOf(): ContestMenuBar = ContestMenuBar.valueOf()
-        override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
+    companion object : MenuBar<ContestMenuBar> {
         override val defaultTab: ContestMenuBar = INFO
         val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
         override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
-        override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
-
         override var paths: Pair<String, String> = "" to ""
+        override fun valueOf(): ContestMenuBar = ContestMenuBar.valueOf()
+        override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
+        override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
         override fun setPath(shortPath: String, longPath: String) {
             paths = shortPath to longPath
         }
@@ -68,7 +64,6 @@ external interface ContestViewProps : Props {
  * [State] for [ContestView]
  */
 external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar>
-
 
 /**
  * A view with collection of projects
@@ -104,7 +99,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    
     private fun ChildrenBuilder.renderSubmissions() {
         contestSubmissionsMenu {
             contestName = props.currentContestName ?: "UNDEFINED"
@@ -133,12 +127,12 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                         li {
                             className = ClassName("nav-item")
                             val classVal =
-                                if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
+                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != contestMenu) {
-                                        //changeUrl(contestMenu)
+                                        // changeUrl(contestMenu)
                                         changeUrl(contestMenu, ContestMenuBar)
                                         setState { selectedMenu = contestMenu }
                                     }
