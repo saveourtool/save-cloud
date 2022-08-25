@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.runner
 
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
@@ -20,7 +19,7 @@ interface AgentRunner {
      */
     fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
+        configuration: DockerService.RunConfiguration,
         replicas: Int,
     ): List<String>
 

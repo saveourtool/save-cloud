@@ -80,12 +80,12 @@ class AgentsController(
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(execution.id!!, configuration) to configuration.resourcesPath
+                    dockerService.createContainers(execution.id!!, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create containers", ex)
                 }
-                .flatMap { (agentIds, resourcesPath) ->
+                .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
                             Agent(id, execution)
@@ -95,12 +95,10 @@ class AgentsController(
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
                             dockerService.cleanup(execution.id!!)
                         }
-                        .thenReturn(agentIds to resourcesPath)
+                        .thenReturn(agentIds)
                 }
-                .flatMapMany { (agentIds, resourcesPath) ->
+                .flatMapMany { agentIds ->
                     dockerService.startContainersAndUpdateExecution(execution, agentIds).doOnTerminate {
-                        log.debug { "Removing temporary directory ${resourcesPath.absolutePathString()}" }
-                        FileSystemUtils.deleteRecursively(resourcesPath)
                     }
                 }
                 .subscribe()
