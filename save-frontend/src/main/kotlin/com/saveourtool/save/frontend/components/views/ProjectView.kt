@@ -266,7 +266,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = null
+        state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
     }
