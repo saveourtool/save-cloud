@@ -7,7 +7,6 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService

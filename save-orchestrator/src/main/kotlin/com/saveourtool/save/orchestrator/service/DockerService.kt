@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -32,25 +31,15 @@ import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
 
 /**
- * A service that uses [DockerContainerManager] to build and start containers for test execution.
+ * A service that builds and starts containers for test execution.
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
-    private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
 ) {
-    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
-    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
-        if (it.exists()) {
-            it
-        } else {
-            it.createDirectories()
-        }
-    }
-
     @Suppress("NonBooleanPropertyPrefixedWithIs")
     private val isAgentStoppingInProgress = AtomicBoolean(false)
 
