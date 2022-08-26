@@ -7022,8 +7022,9 @@
               "type": "string",
               "enum": [
                 "FIX",
-                "FIX_AND_WARN",
-                "WARN"
+                "GENERAL",
+                "WARN",
+                "FIX AND WARN"
               ]
             }
           }
