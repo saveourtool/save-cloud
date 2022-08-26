@@ -175,12 +175,6 @@ class KubernetesManager(
         this.args = listOf("cp $resourcesPath/* . && ${agentRunCmd.last()}")
 
         this.workingDir = workingDir
-        volumeMounts = listOf(
-            VolumeMount().apply {
-                name = "save-execution-pvc"
-                mountPath = resourcesPath
-            }
-        )
     }
 
     private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
