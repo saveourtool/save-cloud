@@ -97,9 +97,7 @@ class AgentsControllerTest {
             DockerService.RunConfiguration(
                 imageTag = "test-image-id",
                 runCmd = listOf("sh", "-c", "test-exec-cmd"),
-                pvId = DockerPvId("test-pv-id"),
                 workingDir = EXECUTION_DIR,
-                resourcesPath = Path.of("test-resources-path"),
                 env = emptyMap(),
             )
         )
