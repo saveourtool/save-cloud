@@ -170,9 +170,8 @@ class KubernetesManager(
         val staticEnvs = env.mapToEnvs()
         this.env = staticEnvs + agentIdEnv(AgentEnvName.AGENT_ID)
 
-        val resourcesPath = requireNotNull(configProperties.kubernetes).pvcMountPath
         this.command = agentRunCmd.dropLast(1)
-        this.args = listOf("cp $resourcesPath/* . && ${agentRunCmd.last()}")
+        this.args = listOf(agentRunCmd.last())
 
         this.workingDir = workingDir
     }
