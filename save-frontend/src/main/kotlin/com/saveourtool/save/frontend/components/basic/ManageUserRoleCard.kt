@@ -202,7 +202,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
 
-    runOnlyOnFirstRender {
+    useOnce {
         getUsersFromGroup()
     }
 

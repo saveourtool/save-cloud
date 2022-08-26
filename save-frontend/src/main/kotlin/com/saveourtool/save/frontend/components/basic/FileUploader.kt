@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.toPrettyString
+import com.saveourtool.save.frontend.utils.useTooltip
 import com.saveourtool.save.v1
 
 import csstype.ClassName
@@ -274,12 +275,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
         }
     }
 
-    useEffect {
-        val jquery = kotlinext.js.require("jquery")
-        kotlinext.js.require("popper.js")
-        kotlinext.js.require("bootstrap")
-        jquery("[data-toggle=\"tooltip\"]").tooltip()
-    }
+    useTooltip()
 }
 
 private fun getHref(

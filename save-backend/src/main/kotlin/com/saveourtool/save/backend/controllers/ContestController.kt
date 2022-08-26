@@ -34,6 +34,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -207,7 +208,7 @@ internal class ContestController(
             it.getTestSuiteIds()
         }
         .flatMapMany { testSuiteIds ->
-            testSuitesService.findTestSuitesByIds(testSuiteIds)
+            testSuitesService.findTestSuitesByIds(testSuiteIds).toFlux()
         }
         .map {
             it.toDto(it.requiredId())

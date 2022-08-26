@@ -10,8 +10,10 @@ import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.utils.toHash
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.test.collectPluginNames
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 import okio.FileSystem
 import okio.Path
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import kotlin.io.path.absolutePathString
@@ -49,19 +52,18 @@ class TestDiscoveringService(
             .map { getRootTestConfig(it.absolutePathString()) }
             .zipWhen { rootTestConfig ->
                 log.info { "Starting to discover test suites for root test config ${rootTestConfig.location}" }
-                discoverAndSaveAllTestSuites(
+                discoverAllTestSuites(
                     rootTestConfig,
                     testSuitesSourceDto,
                     version
-                )
+                ).toMono()
             }
-            .flatMap { (rootTestConfig, testSuites) ->
+            .map { (rootTestConfig, testSuites) ->
                 log.info { "Test suites size = ${testSuites.size}" }
                 log.info { "Starting to save new tests for config test root $repositoryPath" }
-                discoverAndSaveAllTests(rootTestConfig, testSuites)
-                    .collectList()
-                    .map { testSuites }
+                discoverAllTestsIntoMap(rootTestConfig, testSuites)
             }
+            .saveTestSuitesAndTests()
     }
 
     /**
@@ -122,11 +124,11 @@ class TestDiscoveringService(
      * @throws IllegalArgumentException when provided path doesn't point to a valid config file
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun discoverAndSaveAllTestSuites(
+    fun discoverAllTestSuites(
         rootTestConfig: TestConfig,
         source: TestSuitesSourceDto,
         version: String,
-    ) = getAllTestSuites(rootTestConfig, source, version).save()
+    ) = getAllTestSuites(rootTestConfig, source, version)
 
     private fun Path.getRelativePath(rootTestConfig: TestConfig) = this.toFile()
         .relativeTo(rootTestConfig.directory.toFile())
@@ -141,7 +143,7 @@ class TestDiscoveringService(
      * @throws PluginException if configs use unknown plugin
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_MANY_LINES_IN_LAMBDA")
-    fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = rootTestConfig
+    fun getAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuiteDto>) = rootTestConfig
         .getAllTestConfigs()
         .asSequence()
         .flatMap { testConfig ->
@@ -163,18 +165,18 @@ class TestDiscoveringService(
                             listOf(it.test) to emptyList()
                         }
                         val testRelativePath = it.test.getRelativePath(rootTestConfig)
-                        TestDto(
+                        testSuite to TestDto(
                             testRelativePath,
                             plugin::class.simpleName!!,
-                            testSuite.id!!,
+                            0,
                             allFiles.toHash(),
                             additionalFiles,
                         )
                     }
             }
         }
-        .onEach {
-            log.debug("Discovered the following test: $it")
+        .onEach { (testSuite, tests) ->
+            log.debug("For test suite ${testSuite.name} discovered the following tests: $tests")
         }
 
     /**
@@ -186,9 +188,44 @@ class TestDiscoveringService(
      * @throws PluginException if configs use unknown plugin
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun discoverAndSaveAllTests(rootTestConfig: TestConfig, testSuites: List<TestSuite>) = getAllTests(rootTestConfig, testSuites)
+    fun discoverAllTestsIntoMap(
+        rootTestConfig: TestConfig,
+        testSuites: List<TestSuiteDto>,
+    ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
+
+    @Suppress("TYPE_ALIAS")
+    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap { testsMap ->
+        testsMap.run {
+            saveTestSuites().also {
+                saveTests()
+            }
+        }
+    }
+
+    @Suppress("TYPE_ALIAS")
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = keys.toList().save()
+
+    @Suppress("TYPE_ALIAS")
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() = values.flatten()
         .toFlux()
         .save()
+
+    @Suppress("TYPE_ALIAS")
+    private fun Sequence<Pair<TestSuiteDto, TestDto>>.convertToMap() = groupBy({ (testSuite, _) ->
+        testSuite
+    }) { (_, test) ->
+        test
+    }
+
+    @Suppress("TYPE_ALIAS")
+    private fun Map<TestSuiteDto, List<TestDto>>.updatePluginNames() = map { (testSuite, tests) ->
+        val collectedPluginNames = tests.collectPluginNames()
+        log.debug {
+            "Test suite ${testSuite.name} has [$collectedPluginNames] plugins."
+        }
+        testSuite.copy(plugins = collectedPluginNames) to tests
+    }
+        .toMap()
 
     private fun TestConfig.getGeneralConfigOrNull() = pluginConfigs.filterIsInstance<GeneralConfig>().singleOrNull()
 

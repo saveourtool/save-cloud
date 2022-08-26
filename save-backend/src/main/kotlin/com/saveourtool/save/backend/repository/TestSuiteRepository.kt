@@ -41,4 +41,10 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
     fun findAllBySource(
         source: TestSuitesSource,
     ): List<TestSuite>
+
+    /**
+     * @param organizationName
+     * @return List of [TestSuite]s
+     */
+    fun findBySourceOrganizationName(organizationName: String): List<TestSuite>
 }

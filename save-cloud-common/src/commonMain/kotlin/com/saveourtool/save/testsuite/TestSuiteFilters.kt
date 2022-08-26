@@ -21,16 +21,24 @@ data class TestSuiteFilters(
     fun tagsAsList() = tags.split(DATABASE_DELIMITER).distinct()
 
     /**
+     * @param additionalParams some extra parameters that should be in query
      * @return [TestSuiteFilters] as query params for request
      */
-    fun toQueryParams() = listOf("tags" to tags, "name" to name, "language" to language)
+    fun toQueryParams(vararg additionalParams: Pair<String, String>) = listOf(
+        "tags" to tags,
+        "name" to name,
+        "language" to language
+    )
         .filter { it.second.isNotBlank() }
-        .joinToString("&") { "${it.first}=${it.second}" }
-        .let {
-            if (it.isNotBlank()) {
-                "?$it"
+        .plus(additionalParams)
+        .joinToString("&") {
+            "${it.first}=${it.second}"
+        }
+        .let { query ->
+            if (query.isNotBlank()) {
+                "?$query"
             } else {
-                it
+                query
             }
         }
 
