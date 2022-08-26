@@ -4,10 +4,15 @@ package com.saveourtool.save.domain
 
 import com.saveourtool.save.core.config.TestConfigSections
 
-val contestAllowedPlugins = listOf(TestConfigSections.WARN)
+private val contestAllowedPlugins = listOf(TestConfigSections.WARN)
 
 // todo: Probably should fix name in save-cli
 typealias PluginType = TestConfigSections
+
+/**
+ * @return true if given TestSuite can be chosen for contest, false otherwise
+ */
+fun List<PluginType>.isAllowedForContests() = this == contestAllowedPlugins
 
 /**
  * @return [PluginType] from [String]

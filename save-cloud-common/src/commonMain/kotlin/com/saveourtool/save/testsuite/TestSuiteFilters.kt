@@ -25,7 +25,7 @@ data class TestSuiteFilters(
      * @return [TestSuiteFilters] as query params for request
      */
     @Suppress("TYPE_ALIAS")
-    fun toQueryParams(additionalParams: List<Pair<String, String>>) = listOf(
+    fun toQueryParams(vararg additionalParams: Pair<String, String>) = listOf(
         "tags" to tags,
         "name" to name,
         "language" to language

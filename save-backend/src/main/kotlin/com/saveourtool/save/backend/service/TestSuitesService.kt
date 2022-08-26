@@ -17,9 +17,7 @@ import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -116,33 +114,27 @@ class TestSuitesService(
      * @param ids
      * @return List of [TestSuite] by [ids]
      */
-    fun findTestSuitesByIds(ids: List<Long>): Flux<TestSuite> = blockingToFlux {
-        ids.mapNotNull { id ->
-            testSuiteRepository.findByIdOrNull(id)
-        }
+    fun findTestSuitesByIds(ids: List<Long>): List<TestSuite> = ids.mapNotNull { id ->
+        testSuiteRepository.findByIdOrNull(id)
     }
 
     /**
      * @param organizationName
-     * @return [Flux] of [TestSuite]s by [organizationName]
+     * @return [List] of [TestSuite]s by [organizationName]
      */
-    fun findTestSuitesByOrganizationName(organizationName: String): Flux<TestSuite> = blockingToFlux {
-        testSuiteRepository.findBySourceOrganizationName(organizationName)
-    }
+    fun findTestSuitesByOrganizationName(organizationName: String): List<TestSuite> = testSuiteRepository.findBySourceOrganizationName(organizationName)
 
     /**
-     * @return [Flux] of ALL [TestSuite]s
+     * @return [List] of ALL [TestSuite]s
      */
-    fun findAllTestSuites(): Flux<TestSuite> = blockingToFlux {
-        testSuiteRepository.findAll()
-    }
+    fun findAllTestSuites(): List<TestSuite> = testSuiteRepository.findAll()
 
     /**
      * @param filters
-     * @return [Flux] of [TestSuite] that match [filters]
+     * @return [List] of [TestSuite] that match [filters]
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): List<TestSuite> =
             ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
@@ -163,7 +155,6 @@ class TestSuitesService(
                     )
                 }
                 .let { testSuiteRepository.findAll(it) }
-                .toFlux()
 
     /**
      * @param id

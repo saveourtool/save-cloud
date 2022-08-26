@@ -89,7 +89,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
                     url = "$apiUrl/test-suites/filtered${
                         filters.copy(language = encodeURIComponent(filters.language))
-                        .toQueryParams(listOf("isContest" to "${props.selectorPurpose == CONTEST}"))
+                        .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
                     }",
                     headers = jsonHeaders,
                     loadingHandler = ::noopLoadingHandler,
