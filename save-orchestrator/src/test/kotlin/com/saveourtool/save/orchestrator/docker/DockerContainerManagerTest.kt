@@ -60,9 +60,7 @@ class DockerContainerManagerTest {
             configuration = DockerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
-                DockerPvId("test-volume"),
                 workingDir = "/",
-                resourcesPath = Path.of("test-resources-path"),
                 env = emptyMap(),
             ),
             replicas = 1,
