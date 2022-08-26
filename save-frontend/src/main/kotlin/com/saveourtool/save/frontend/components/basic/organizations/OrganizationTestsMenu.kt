@@ -119,8 +119,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     showTestSuiteSourceCreationModal(
         isTestSuiteSourceCreationModalOpen,
         props.organizationName,
-        {
+        { source ->
             setIsTestSuitesSourceCreationModalOpen(false)
+            setTestSuiteSourceToFetch(source)
+            triggerFetchTestSuiteSource()
             setIsSourceCreated { !it }
         },
     ) {
