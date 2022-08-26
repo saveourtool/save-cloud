@@ -31,4 +31,12 @@
         <addUniqueConstraint tableName="test_suites_source" columnNames="organization_id,name" constraintName="test_suites_source_name"/>
         <addUniqueConstraint tableName="test_suites_source" columnNames="git_id,test_root_path,branch" constraintName="test_suites_source_git_location"/>
     </changeSet>
+
+    <changeSet id="add-latest-version" author="sanyavertolet">
+        <addColumn tableName="test_suites_source">
+            <column name="latest_version" type="varchar(170)" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

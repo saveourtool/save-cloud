@@ -18,8 +18,10 @@ import javax.persistence.ManyToOne
  * @property git
  * @property branch
  * @property testRootPath
+ * @property latestVersion
  */
 @Entity
+@Suppress("LongParameterList")
 class TestSuitesSource(
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id")
@@ -33,6 +35,7 @@ class TestSuitesSource(
     var git: Git,
     var branch: String,
     var testRootPath: String,
+    var latestVersion: String,
 ) : BaseEntity() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
@@ -44,6 +47,7 @@ class TestSuitesSource(
         gitDto = git.toDto(),
         branch = branch,
         testRootPath = testRootPath,
+        latestVersion = latestVersion
     )
 
     companion object {
@@ -52,6 +56,7 @@ class TestSuitesSource(
             "",
             null,
             Git.empty,
+            "",
             "",
             "",
         )
@@ -78,6 +83,7 @@ class TestSuitesSource(
                 git,
                 branch,
                 testRootPath,
+                "",
             )
         }
     }

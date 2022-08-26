@@ -19,8 +19,10 @@ import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.events.ChangeEvent
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -59,6 +61,30 @@ private fun ChildrenBuilder.buildInput(
         placeholder = inputName
         onChange = setValue
     }
+}
+
+private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
+    testSuites: List<TestSuiteDto>,
+    selectedTestSuites: List<TestSuiteDto>,
+    isOnlyLatestVersion: Boolean,
+    onTestSuiteClick: (TestSuiteDto) -> Unit,
+) {
+    val testSuitesToBeShown = testSuites.filter {
+        !isOnlyLatestVersion || it.version == it.source.latestVersion
+    }
+
+    // small hack to hide version if only latest is shown
+    val currentDisplayMode = if (isOnlyLatestVersion) {
+        null
+    } else {
+        TestSuiteSelectorMode.SEARCH
+    }
+    showAvaliableTestSuites(
+        testSuitesToBeShown,
+        selectedTestSuites,
+        currentDisplayMode,
+        onTestSuiteClick
+    )
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -111,7 +137,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
     }
 
     div {
-        className = ClassName("d-flex justify-content-around mb-3")
+        className = ClassName("d-flex justify-content-around mb-2")
         buildInput(filters.name, "Name", "mr-1") { event ->
             setFilters { it.copy(name = event.target.value) }
         }
@@ -123,9 +149,32 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         }
     }
 
-    showAvaliableTestSuites(
+    val (isOnlyLatestVersion, setIsOnlyLatestVersion) = useState(false)
+    div {
+        className = ClassName("d-flex justify-content-around mb-3")
+        div {
+            className = ClassName("form-group form-check")
+            input {
+                type = InputType.checkbox
+                className = ClassName("form-check-input")
+                id = "isOnlyLatestVersion"
+                checked = isOnlyLatestVersion
+                onChange = {
+                    setIsOnlyLatestVersion(it.target.checked)
+                }
+            }
+            label {
+                className = ClassName("form-check-label")
+                htmlFor = "isOnlyLatestVersion"
+                +"Show only latest version"
+            }
+        }
+    }
+    useTooltip()
+    showAvailableTestSuitesForSearchMode(
         filteredTestSuites,
         selectedTestSuites,
+        isOnlyLatestVersion,
     ) { testSuite ->
         setSelectedTestSuites { selectedTestSuites ->
             selectedTestSuites.toMutableList()

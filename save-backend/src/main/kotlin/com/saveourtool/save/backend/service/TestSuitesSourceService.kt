@@ -93,6 +93,17 @@ class TestSuitesSourceService(
         }
 
     /**
+     * Raw update
+     *
+     * @param entity [TestSuitesSource] to be updated
+     * @return updated [TestSuitesSource]
+     */
+    fun update(entity: TestSuitesSource): TestSuitesSource {
+        entity.requiredId()
+        return testSuitesSourceRepository.save(entity)
+    }
+
+    /**
      * @param organization
      * @param git
      * @param testRootPath
