@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.benchmarks.TabMenubar
+import com.saveourtool.save.entities.benchmarks.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
@@ -36,7 +36,7 @@ enum class ContestMenuBar {
     SUMMARY,
     ;
 
-    companion object : TabMenubar<ContestMenuBar> {
+    companion object : TabMenuBar<ContestMenuBar> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
@@ -45,9 +45,9 @@ enum class ContestMenuBar {
         override var paths: Pair<String, String> = "" to ""
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
-        override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
+        override fun findEnumElement(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
 
-        override fun returnStringOneOfElements(elem: ContestMenuBar): String = elem.name
+        override fun convertEnumElemToString(elem: ContestMenuBar): String = elem.name
 
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
     }
@@ -74,7 +74,7 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar>
 @OptIn(ExperimentalJsExport::class)
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
-        state.selectedMenu = null
+        state.selectedMenu = ContestMenuBar.defaultTab
     }
 
     override fun componentDidMount() {

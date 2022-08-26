@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.Role
 /**
  * Interface for tab bar in many pages
  */
-interface TabMenubar<T> {
+interface TabMenuBar<T> {
     /**
      * Default value in every Enum classes
      */
@@ -36,7 +36,7 @@ interface TabMenubar<T> {
      * @param elem
      * @return Equivalent to valueOf(), but returns null instead of an exception
      */
-    fun findEnumElements(elem: String): T?
+    fun findEnumElement(elem: String): T?
 
     /**
      * Function set shortPath and longPath in Pair path
@@ -52,7 +52,7 @@ interface TabMenubar<T> {
      * @param elem
      * @return the string of the entered Enum class element
      */
-    fun returnStringOneOfElements(elem: T): String
+    fun convertEnumElemToString(elem: T): String
 
     /**
      * @param role

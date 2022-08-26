@@ -189,7 +189,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
-        state.selectedMenu = null
+        state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = emptyArray()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE

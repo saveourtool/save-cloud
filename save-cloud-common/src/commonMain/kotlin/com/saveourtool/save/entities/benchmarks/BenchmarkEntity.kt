@@ -7,7 +7,6 @@ package com.saveourtool.save.entities.benchmarks
 import com.saveourtool.save.domain.Role
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 @Suppress("WRONG_DECLARATIONS_ORDER")
 /**
@@ -22,7 +21,7 @@ enum class BenchmarkCategoryEnum {
     STATIC_ANALYSIS,
     ;
 
-    companion object : TabMenubar<BenchmarkCategoryEnum> {
+    companion object : TabMenuBar<BenchmarkCategoryEnum> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab = ALL
@@ -31,9 +30,9 @@ enum class BenchmarkCategoryEnum {
         override var paths: Pair<String, String> = "" to ""
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
-        override fun findEnumElements(elem: String): BenchmarkCategoryEnum? = values().find { it.name.lowercase() == elem }
+        override fun findEnumElement(elem: String): BenchmarkCategoryEnum? = values().find { it.name.lowercase() == elem }
 
-        override fun returnStringOneOfElements(elem: BenchmarkCategoryEnum): String = elem.name
+        override fun convertEnumElemToString(elem: BenchmarkCategoryEnum): String = elem.name
 
         override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, flag: Boolean?): Boolean = false
     }

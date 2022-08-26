@@ -8,7 +8,6 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.entities.benchmarks.TabMenubar
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -319,16 +318,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
  * @param href
  * @param routeElement
  */
-
 inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(href: String, routeElement: ReactNode?) {
-    enumValues<T>().map { it.name.lowercase() }.forEach {  item->
+    enumValues<T>().map { it.name.lowercase() }.forEach { item ->
         Route {
             path = "$href/$item"
             element = routeElement
         }
     }
 }
-
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {

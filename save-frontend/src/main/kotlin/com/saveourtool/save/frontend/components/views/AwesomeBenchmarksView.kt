@@ -74,7 +74,6 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     var lang: String
 }
 
-
 /**
  * A functional Component for project creation view
  *
@@ -84,7 +83,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
 @OptIn(ExperimentalJsExport::class)
 class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
     init {
-        state.selectedMenu = null
+        state.selectedMenu = BenchmarkCategoryEnum.defaultTab
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
     }
