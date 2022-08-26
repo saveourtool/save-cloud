@@ -122,7 +122,7 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
