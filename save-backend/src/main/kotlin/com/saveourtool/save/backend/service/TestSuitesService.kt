@@ -64,10 +64,8 @@ class TestSuitesService(
                     dateAdded = null,
                     language = dto.language,
                     tags = dto.tags?.let(TestSuite::tagsFromList),
+                    plugins = TestSuite.pluginsByTypes(dto.plugins)
                 )
-                    .apply {
-                        setPluginsByTypes(dto.plugins)
-                    }
             }
             .map { testSuite ->
                 // try to find TestSuite in the DB based on all non-null properties of `testSuite`

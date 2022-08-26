@@ -52,18 +52,6 @@ class TestSuite(
         .filter { it != PluginType.GENERAL }
 
     /**
-     * Update [plugins] by list of strings
-     */
-    fun setPluginsByNames(pluginNamesAsList: List<String>) {
-        plugins = pluginNamesAsList.joinToString(DATABASE_DELIMITER)
-    }
-
-    /**
-     * Update [plugins] by list of strings
-     */
-    fun setPluginsByTypes(pluginTypesAsList: List<PluginType>) = setPluginsByNames(pluginTypesAsList.map { it.pluginName() })
-
-    /**
      * @return [tags] as a list of strings
      */
     fun tagsAsList() = tags?.split(DATABASE_DELIMITER)?.filter { it.isNotBlank() }.orEmpty()
@@ -92,5 +80,21 @@ class TestSuite(
          * @return representation of [tags] as a single string understood by [TestSuite.tagsAsList]
          */
         fun tagsFromList(tags: List<String>) = tags.joinToString(separator = DATABASE_DELIMITER)
+
+        /**
+         *  [plugins] by list of strings
+         *
+         * @param pluginNamesAsList list of string names of plugins
+         * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [String]s
+         */
+        fun pluginsByNames(pluginNamesAsList: List<String>) = pluginNamesAsList.joinToString(DATABASE_DELIMITER)
+
+        /**
+         * Update [plugins] by list of strings
+         *
+         * @param pluginTypesAsList list of [PluginType]
+         * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [PluginType]s
+         */
+        fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
     }
 }
