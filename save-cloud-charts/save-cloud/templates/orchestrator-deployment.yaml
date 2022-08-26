@@ -11,7 +11,9 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: orchestrator
+        {{- include "pod.common.labels" (merge (dict "service" .Values.orchestrator ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       serviceAccountName: orchestrator-sa
       restartPolicy: Always
