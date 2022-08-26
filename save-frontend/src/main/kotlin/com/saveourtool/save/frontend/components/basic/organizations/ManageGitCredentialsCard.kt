@@ -186,7 +186,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         }
     }
 
-    runOnlyOnFirstRender {
+    useOnce {
         fetchGitCredentialsRequest()
     }
 }

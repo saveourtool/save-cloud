@@ -1,5 +1,8 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.PluginType
+import com.saveourtool.save.domain.pluginName
+import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
@@ -16,6 +19,7 @@ import javax.persistence.ManyToOne
  * @property dateAdded date and time, when this test suite was added to the project
  * @property language
  * @property tags
+ * @property plugins
  */
 @Suppress("LongParameterList")
 @Entity
@@ -35,7 +39,18 @@ class TestSuite(
     var language: String? = null,
 
     var tags: String? = null,
+
+    var plugins: String = ""
 ) : BaseEntity() {
+    /**
+     * @return [plugins] as a list of string
+     */
+    fun pluginsAsListOfPluginType() = plugins.split(DATABASE_DELIMITER)
+        .map { pluginName ->
+            pluginName.toPluginType()
+        }
+        .filter { it != PluginType.GENERAL }
+
     /**
      * @return [tags] as a list of strings
      */
@@ -53,7 +68,8 @@ class TestSuite(
                 this.version,
                 this.language,
                 this.tagsAsList(),
-                id
+                id,
+                this.pluginsAsListOfPluginType(),
             )
 
     companion object {
@@ -64,5 +80,21 @@ class TestSuite(
          * @return representation of [tags] as a single string understood by [TestSuite.tagsAsList]
          */
         fun tagsFromList(tags: List<String>) = tags.joinToString(separator = DATABASE_DELIMITER)
+
+        /**
+         *  [plugins] by list of strings
+         *
+         * @param pluginNamesAsList list of string names of plugins
+         * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [String]s
+         */
+        fun pluginsByNames(pluginNamesAsList: List<String>) = pluginNamesAsList.joinToString(DATABASE_DELIMITER)
+
+        /**
+         * Update [plugins] by list of strings
+         *
+         * @param pluginTypesAsList list of [PluginType]
+         * @return [String] of plugins separated by [DATABASE_DELIMITER] from [List] of [PluginType]s
+         */
+        fun pluginsByTypes(pluginTypesAsList: List<PluginType>) = pluginsByNames(pluginTypesAsList.map { it.pluginName() })
     }
 }

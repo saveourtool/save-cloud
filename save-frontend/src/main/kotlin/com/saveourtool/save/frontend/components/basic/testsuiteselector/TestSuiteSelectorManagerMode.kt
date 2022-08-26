@@ -35,6 +35,11 @@ external interface TestSuiteSelectorManagerModeProps : Props {
      * Callback invoked when test suite is being removed
      */
     var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+
+    /**
+     * Mode that defines what kind of test suites will be shown
+     */
+    var selectorPurpose: TestSuiteSelectorPurpose
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -60,7 +65,10 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
             +"No test suites are selected yet."
         }
     } else {
-        showAvaliableTestSuites(preselectedTestSuites, selectedTestSuites) { testSuite ->
+        showAvaliableTestSuites(
+            preselectedTestSuites,
+            selectedTestSuites,
+        ) { testSuite ->
             setSelectedTestSuites { selectedTestSuites ->
                 selectedTestSuites.toMutableList()
                     .apply {
