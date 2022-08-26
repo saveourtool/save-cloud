@@ -8,14 +8,15 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.entities.benchmarks.MenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
+import com.saveourtool.save.frontend.components.views.url.changeUrl
+import com.saveourtool.save.frontend.components.views.url.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
@@ -47,7 +48,6 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
@@ -74,15 +74,6 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     var lang: String
 }
 
-/**
- * General interface for working with MenuBar
- */
-external interface HasSelectedMenu<T> : State {
-    /**
-     * selected value in T Enum
-     */
-    var selectedMenu: T?
-}
 
 /**
  * A functional Component for project creation view
@@ -523,53 +514,5 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         init {
             contextType = requestStatusContext
         }
-    }
-}
-
-/**
- * The function of analyzing the URL of a tabbed page goes to the tab that was entered in the url, according to the role
- *
- * @param menu
- * @param role
- * @param flag
- */
-fun <T, S> CComponent<*, S>.urlAnalysis(menu: MenuBar<T>, role: Role, flag: Boolean?)
-where S : State, S : HasSelectedMenu<T> {
-    val href = window.location.href
-    val tab = if (href.contains(menu.regex)) {
-        href.substringAfterLast(URL_PATH_DELIMITER).run { menu.findEnumElements(this) }
-    } else {
-        menu.defaultTab
-    }
-    if (state.selectedMenu != tab) {
-        if (menu.isNotAvailableWithThisRole(role, tab, flag)) {
-            changeUrl(menu.defaultTab, menu)
-            window.alert("Your role is not suitable for opening this page")
-            window.location.reload()
-            setState { selectedMenu = menu.defaultTab }
-        } else {
-            changeUrl(tab, menu)
-            setState { selectedMenu = tab }
-        }
-    }
-}
-
-/**
- * Function create unique url address for page`s tabs
- *
- * @param selectedMenu
- * @param enum
- */
-fun <T, S> changeUrl(selectedMenu: T?, enum: MenuBar<T>)
-where S : HasSelectedMenu<T> {
-    selectedMenu?.let {
-        window.location.href = if (selectedMenu == enum.defaultTab) {
-            enum.paths.first
-        } else {
-            "${enum.paths.second}/${enum.returnStringOneOfElements(selectedMenu).lowercase()}"
-        }
-    } ?: run {
-        window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-        window.location.reload()
     }
 }

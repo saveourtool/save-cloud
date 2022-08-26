@@ -8,6 +8,7 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.entities.benchmarks.TabMenubar
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -188,7 +189,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = AwesomeBenchmarksView::class.react.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem(BenchmarkCategoryEnum.listOfStringEnumElements, "archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>("archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
                                     routeElement = AwesomeBenchmarksView::class.react.create())
 
                                 Route {
@@ -196,8 +197,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = contestView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem(ContestMenuBar.listOfStringEnumElements, "contests/${FrontendRoutes.CONTESTS.path}/:contestName",
-                                    contestView.create())
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("contests/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
@@ -269,7 +269,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem(OrganizationMenuBar.listOfStringEnumElements, "/organization/:owner", organizationView.create())
+                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/organization/:owner", organizationView.create())
 
                                 Route {
                                     path = "/:owner/:name/history"
@@ -281,7 +281,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = projectView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem(ProjectMenuBar.listOfStringEnumElements, "/project/:owner/:name", projectView.create())
+                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/project/:owner/:name", projectView.create())
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -314,20 +314,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 }
 
 /**
- * The function creates routers with the given [href] and ending with all the elements of the [listOfUrlParams]
+ * The function creates routers with the given [href] and ending of string with all the elements given Enum<T>
  *
- * @param listOfUrlParams
  * @param href
  * @param routeElement
  */
-fun ChildrenBuilder.createRoutersWithPathAndEachListItem(listOfUrlParams: List<String>, href: String, routeElement: ReactNode?) {
-    listOfUrlParams.forEach { item ->
+
+inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(href: String, routeElement: ReactNode?) {
+    enumValues<T>().map { it.name.lowercase() }.forEach {  item->
         Route {
             path = "$href/$item"
             element = routeElement
         }
     }
 }
+
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {

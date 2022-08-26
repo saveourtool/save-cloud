@@ -15,6 +15,9 @@ import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
+import com.saveourtool.save.frontend.components.views.url.changeUrl
+import com.saveourtool.save.frontend.components.views.url.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory

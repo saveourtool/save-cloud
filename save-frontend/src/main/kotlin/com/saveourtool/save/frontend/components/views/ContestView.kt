@@ -4,12 +4,15 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.benchmarks.MenuBar
+import com.saveourtool.save.entities.benchmarks.TabMenubar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
+import com.saveourtool.save.frontend.components.views.url.changeUrl
+import com.saveourtool.save.frontend.components.views.url.urlAnalysis
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -33,17 +36,16 @@ enum class ContestMenuBar {
     SUMMARY,
     ;
 
-    companion object : MenuBar<ContestMenuBar> {
+    companion object : TabMenubar<ContestMenuBar> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
         val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
-        override val regex = Regex("/project/[^/]+/[^/]+/[^/]+")
+        override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
         override var paths: Pair<String, String> = "" to ""
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun findEnumElements(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
-        override fun setPath(shortPath: String, longPath: String) {
-            paths = shortPath to longPath
-        }
 
         override fun returnStringOneOfElements(elem: ContestMenuBar): String = elem.name
 
