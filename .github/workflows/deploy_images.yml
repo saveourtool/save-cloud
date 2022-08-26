@@ -16,22 +16,22 @@ on:
       gateway:
         type: boolean
         default: true
-        description: Build new image for api-gateway
+        description: Build new image of api-gateway
         required: false
       backend:
         type: boolean
         default: true
-        description: Build new image for save-backend
+        description: Build new image of save-backend
         required: false
       orchestrator:
         type: boolean
         default: true
-        description: Build new image for save-orchestrator
+        description: Build new image of save-orchestrator
         required: false
       preprocessor:
         type: boolean
         default: true
-        description: Build new image for save-preprocessor
+        description: Build new image of save-preprocessor
         required: false
 
 jobs:

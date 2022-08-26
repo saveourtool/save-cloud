@@ -19,6 +19,7 @@ import kotlinx.coroutines.CancellationException
  * @param result
  * @return true if [this] agent's state has been updated to reflect problems with [result]
  */
+@Suppress("FUNCTION_BOOLEAN_PREFIX")
 internal fun SaveAgent.updateStateBasedOnBackendResponse(
     result: Result<HttpResponse>
 ): Boolean = if (result.notOk()) {
