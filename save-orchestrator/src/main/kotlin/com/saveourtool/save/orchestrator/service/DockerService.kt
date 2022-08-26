@@ -223,7 +223,6 @@ class DockerService(
      * @property imageTag tag of an image which should be used for a container
      * @property runCmd command that should be run as container's entrypoint.
      * Usually looks like `sh -c "rest of the command"`.
-     * @property pvId ID of a persistent volume that should be attached to a container
      * @property workingDir
      * @property env environment variables for the container
      */
