@@ -52,7 +52,7 @@ import java.time.LocalDateTime
     Tag(name = "organizations"),
 )
 @RestController
-@RequestMapping(path = ["/api/$v1/organization", "/api/$v1/organizations"])
+@RequestMapping(path = ["/api/$v1/organizations"])
 @Suppress("LongParameterList")
 internal class OrganizationController(
     private val organizationService: OrganizationService,
@@ -63,6 +63,26 @@ internal class OrganizationController(
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
 ) {
+    @GetMapping("/all")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get all organizations",
+        description = "Get organizations",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
+    @ApiResponse(responseCode = "404", description = "Not able to find any organization in SAVE")
+    fun getAllOrganizations(
+        @PathVariable organizationName: String,
+    ) = Mono.fromCallable {
+        organizationService.findAll()
+    }.switchIfEmptyToNotFound {
+        "No organizations are found"
+    }
+
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
     @Operation(

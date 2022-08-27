@@ -4,9 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.FC
@@ -15,6 +17,10 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
+import react.ChildrenBuilder
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.p
 
 val userRatingFc = userRating()
 
@@ -29,6 +35,7 @@ enum class UserRatingTab {
  * properties for rating fc
  */
 external interface UserRatingProps : Props {
+    var organizations: Set<OrganizationDto>
     /**
      * string value of the selected tab: organization/tools/etc.
      */
@@ -52,6 +59,8 @@ fun userRating() = FC<UserRatingProps> { props ->
                 minHeight = 30.rem
             }
 
+            renderingChampionsTable(props.organizations)
+
             div {
                 className = ClassName("col")
                 title(" Global Rating", faTrophy)
@@ -62,6 +71,30 @@ fun userRating() = FC<UserRatingProps> { props ->
                     href = ""
                     +"View more "
                     fontAwesomeIcon(faArrowRight)
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderingChampionsTable(organizations: Set<OrganizationDto>) {
+    organizations.forEachIndexed { i, organization ->
+        div {
+            className = ClassName("media text-muted pb-3")
+            p {
+                +i.toString()
+            }
+
+            p {
+                className = ClassName("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left")
+                ReactHTML.strong {
+                    className = ClassName("d-block text-gray-dark")
+                    +organization.name
+                }
+                +(organization.description)
+
+                div {
+                    className = ClassName("navbar-landing mt-3")
                 }
             }
         }

@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
@@ -29,6 +30,16 @@ import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
 /**
+ * TODO:
+ * 1. Хотите создавать контесты - напишите нам
+ * 2. Добавить свой контест: выбираем организацию и дальше добавляем
+ * 3. Гранд чемпионы
+ * 4.
+ */
+
+
+
+/**
  * [Props] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
@@ -49,6 +60,11 @@ external interface ContestListViewState : State {
      * list of contests that are expired  (deadline has reached)
      */
     var finishedContests: Set<ContestDto>
+
+    /**
+     * all organizations registered in SAVE
+     */
+    var organizations: Set<OrganizationDto>
 
     /**
      * current time
@@ -104,6 +120,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         state.selectedContestsTab = ContestTypesTab.ACTIVE.name
         state.finishedContests = emptySet()
         state.activeContests = emptySet()
+        state.organizations = emptySet()
         state.currentDateTime = getCurrentLocalDateTime()
     }
 
@@ -112,6 +129,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         scope.launch {
             getAndInitActiveContests()
             getAndInitFinishedContests()
+            getAndInitOrganizations()
         }
     }
 
@@ -180,6 +198,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             userRatingFc {
                                 selectedTab = state.selectedRatingTab
                                 updateTabState = { setState { selectedRatingTab = it } }
+                                organizations = state.organizations
                             }
 
                             contestListFc {
@@ -196,31 +215,51 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         }
     }
 
-    private suspend fun getAndInitActiveContests() {
-        getAndInitContests("active") {
-            setState {
-                activeContests = it
-            }
-        }
+    private suspend fun getAndInitOrganizations() {
+            val response = get(
+                url = "$apiUrl/organizations/all",
+                headers = Headers().also {
+                    it.set("Accept", "application/json")
+                },
+                loadingHandler = ::classLoadingHandler,
+            )
+            val update = if (response.ok) {
+                response.unsafeMap {
+                    it.decodeFromJsonString<List<OrganizationDto>>()
+                }
+                    .toTypedArray()
+            } else {
+                emptyArray()
+            }.toSet()
+
+
     }
 
     private suspend fun getAndInitFinishedContests() {
-        getAndInitContests("finished") {
+        getAndUpdateContestsState("$apiUrl/contests/finished") {
             setState {
                 finishedContests = it
             }
         }
     }
 
-    private suspend fun getAndInitContests(url: String, setState: (Set<ContestDto>) -> Unit) {
+    private suspend fun getAndInitActiveContests() {
+        getAndUpdateContestsState("$apiUrl/contests/active") {
+            setState {
+                activeContests = it
+            }
+        }
+    }
+
+    private suspend fun getAndUpdateContestsState(url: String, setState: (Set<ContestDto>) -> Unit) {
         val response = get(
-            url = "$apiUrl/contests/$url",
+            url = url,
             headers = Headers().also {
                 it.set("Accept", "application/json")
             },
             loadingHandler = ::classLoadingHandler,
         )
-        val contestsUpdate = if (response.ok) {
+        val update = if (response.ok) {
             response.unsafeMap {
                 it.decodeFromJsonString<List<ContestDto>>()
             }
@@ -229,7 +268,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
             emptyArray()
         }.toSet()
 
-        setState(contestsUpdate)
+        setState(update)
     }
 
     companion object :

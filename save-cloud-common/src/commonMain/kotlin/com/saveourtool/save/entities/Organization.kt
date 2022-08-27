@@ -28,6 +28,9 @@ data class Organization(
     var avatar: String? = null,
     var description: String? = null,
     var canCreateContests: Boolean = false,
+/*
+    var totalScore: Double = 0.0
+*/
 ) {
     /**
      * id of organization

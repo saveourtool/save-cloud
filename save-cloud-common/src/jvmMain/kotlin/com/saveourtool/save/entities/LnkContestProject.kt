@@ -17,6 +17,11 @@ class LnkContestProject(
     @ManyToOne
     @JoinColumn(name = "contest_id")
     var contest: Contest,
+
+    /*var bestExecution: Execution?,*/
+
+    var bestScore: Double = 0.0,
+
 ) : BaseEntity() {
     /**
      * Get [ContestResult]
