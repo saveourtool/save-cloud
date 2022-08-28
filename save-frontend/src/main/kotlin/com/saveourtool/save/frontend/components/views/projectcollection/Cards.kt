@@ -13,106 +13,8 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 
 fun ChildrenBuilder.topRightCard() {
-    div {
-        className = ClassName("col-lg-3")
-        div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
-            style = jso {
-                borderWidth = 0.2.rem
-                borderColor = "#0275d8".unsafeCast<BorderColor>()
-            }
-
-            div {
-                className = ClassName("col-lg-6 link-container")
-                style = jso {
-                    minHeight = 12.rem
-                }
-
-                a {
-                    className = ClassName("link-three ml-5")
-                    href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
-                    style = jso {
-                        textDecoration = "none".unsafeCast<TextDecoration>()
-                    }
-                    h3 {
-                        +"Create"
-                    }
-                    h3 {
-                        +"new"
-                    }
-                    h3 {
-                        +"organization"
-                    }
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-                img {
-                    src = "img/undraw_for_review_eqxk.svg"
-                    style = jso {
-                        width = "100%".unsafeCast<Width>()
-                    }
-                }
-            }
-        }
-    }
-
-    div {
-        className = ClassName("col-lg-3")
-        div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
-            style = jso {
-                borderWidth = 0.2.rem
-                borderColor = "#0275d8".unsafeCast<BorderColor>()
-            }
-
-            div {
-                className = ClassName("col-lg-6 link-container")
-                style = jso {
-                    minHeight = 12.rem
-                    textDecoration = "none".unsafeCast<TextDecoration>()
-                }
-
-                a {
-                    className = ClassName("link-three")
-                    href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
-                    style = jso {
-                        textDecoration = "none".unsafeCast<TextDecoration>()
-                    }
-                    h3 {
-                        +"Create"
-                    }
-                    h3 {
-                        +"new"
-                    }
-                    h3 {
-                        +"project"
-                    }
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                style = jso {
-                    justifyContent = JustifyContent.center
-                    display = Display.flex
-                    alignItems = AlignItems.center
-                }
-                img {
-                    src = "img/undraw_selecting_team_re_ndkb.svg"
-                    style = jso {
-                        width = "100%".unsafeCast<Width>()
-                    }
-                }
-            }
-        }
-    }
+    creationCard("img/undraw_for_review_eqxk.svg", "organization", "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/")
+    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "#/${FrontendRoutes.CREATE_PROJECT.path}/")
 }
 
 fun ChildrenBuilder.topLeftCard() {
@@ -166,6 +68,58 @@ fun ChildrenBuilder.topLeftCard() {
                         }
                     }
 
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.creationCard(image: String, text: String, url: String) {
+    div {
+        className = ClassName("col-lg-3")
+        div {
+            className = ClassName("card flex-md-row mb-1 box-shadow")
+            style = jso {
+                borderWidth = 0.2.rem
+                borderColor = "#0275d8".unsafeCast<BorderColor>()
+            }
+
+            div {
+                className = ClassName("col-lg-6 link-container")
+                style = jso {
+                    minHeight = 12.rem
+                }
+
+                a {
+                    className = ClassName("link-three ml-5")
+                    href = url
+                    style = jso {
+                        textDecoration = "none".unsafeCast<TextDecoration>()
+                    }
+                    h3 {
+                        +"Create"
+                    }
+                    h3 {
+                        +"new"
+                    }
+                    h3 {
+                        +text
+                    }
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                img {
+                    src = image
+                    style = jso {
+                        width = "100%".unsafeCast<Width>()
+                    }
                 }
             }
         }
