@@ -174,7 +174,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         }
                                         p {
                                             className = ClassName("card-text mb-auto")
-                                            +"Checkout latest news about SAVE project."
+                                            +"Checkout latest updates in SAVE project."
                                         }
                                         a {
                                             href = "https://github.com/saveourtool/save-cloud"

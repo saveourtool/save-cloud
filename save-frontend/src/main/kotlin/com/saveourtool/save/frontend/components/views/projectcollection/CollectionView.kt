@@ -14,14 +14,11 @@ import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
@@ -94,11 +91,11 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
         div {
             className = ClassName("row justify-content-center")
             div {
-                className = ClassName("col-lg-10 mt-2 min-vh-100")
+                className = ClassName("col-lg-10 mt-4 min-vh-100")
                 div {
                     className = ClassName("row mb-2")
                     topLeftCard()
-                    topRightCard(props.currentUserInfo)
+                    topRightCard()
                 }
 
                 projectsTable {

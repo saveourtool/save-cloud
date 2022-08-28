@@ -1,42 +1,113 @@
 package com.saveourtool.save.frontend.components.views.projectcollection
 
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import csstype.*
 import kotlinx.js.jso
 import react.ChildrenBuilder
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 
-fun ChildrenBuilder.topRightCard(currentUserInfo: UserInfo?) {
+fun ChildrenBuilder.topRightCard() {
     div {
-        className = ClassName("col-lg-6")
+        className = ClassName("col-lg-3")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 12.rem
+                borderWidth = 0.2.rem
+                borderColor = "#0275d8".unsafeCast<BorderColor>()
             }
 
             div {
-                hidden = (currentUserInfo == null)
-                ReactHTML.a {
-                    href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
-                    ReactHTML.button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-outline-primary mb-2 mr-2")
-                        +"Add new tested tool"
+                className = ClassName("col-lg-6 link-container")
+                style = jso {
+                    minHeight = 12.rem
+                }
+
+                a {
+                    className = ClassName("link-three ml-5")
+                    href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
+                    style = jso {
+                        textDecoration = "none".unsafeCast<TextDecoration>()
+                    }
+                    h3 {
+                        +"Create"
+                    }
+                    h3 {
+                        +"new"
+                    }
+                    h3 {
+                        +"organization"
                     }
                 }
-                ReactHTML.a {
-                    href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
-                    ReactHTML.button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-outline-primary mb-2")
-                        +"Add new organization"
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                img {
+                    src = "img/undraw_for_review_eqxk.svg"
+                    style = jso {
+                        width = "100%".unsafeCast<Width>()
+                    }
+                }
+            }
+        }
+    }
+
+    div {
+        className = ClassName("col-lg-3")
+        div {
+            className = ClassName("card flex-md-row mb-1 box-shadow")
+            style = jso {
+                borderWidth = 0.2.rem
+                borderColor = "#0275d8".unsafeCast<BorderColor>()
+            }
+
+            div {
+                className = ClassName("col-lg-6 link-container")
+                style = jso {
+                    minHeight = 12.rem
+                    textDecoration = "none".unsafeCast<TextDecoration>()
+                }
+
+                a {
+                    className = ClassName("link-three")
+                    href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+                    style = jso {
+                        textDecoration = "none".unsafeCast<TextDecoration>()
+                    }
+                    h3 {
+                        +"Create"
+                    }
+                    h3 {
+                        +"new"
+                    }
+                    h3 {
+                        +"project"
+                    }
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    display = Display.flex
+                    alignItems = AlignItems.center
+                }
+                img {
+                    src = "img/undraw_selecting_team_re_ndkb.svg"
+                    style = jso {
+                        width = "100%".unsafeCast<Width>()
                     }
                 }
             }
@@ -50,11 +121,11 @@ fun ChildrenBuilder.topLeftCard() {
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 12.rem
+                minHeight = 12.5.rem
             }
 
             div {
-                className = ClassName("col-lg-2")
+                className = ClassName("col-lg-3 mt-3")
 
                 img {
                     src = "img/save-logo-no-bg.png"
@@ -65,16 +136,18 @@ fun ChildrenBuilder.topLeftCard() {
             }
 
             div {
+                className = ClassName("col-lg-8 mt-3")
+
                 style = jso {
                     justifyContent = JustifyContent.center
                     alignItems = AlignItems.center
                     alignSelf = AlignSelf.center
                 }
-                className = ClassName("col-lg-9")
                 div {
                     className = ClassName("row")
 
                     h4 {
+                        className = ClassName("text-info")
                         +"Welcome to SAVE!"
                     }
                 }
@@ -82,13 +155,17 @@ fun ChildrenBuilder.topLeftCard() {
                     className = ClassName("row")
                     p {
                         +(
-                                " This page contains a " +
+                                "This page contains a " +
                                         "list with all public and your private projects created in SAVE. " +
-                                        "Your new added tools will also be shown below. Please keep in mind that to create a " +
-                                        "new project and add new tested tool you will need to be added or to create a new " +
-                                        "organization for benchmarking of your tool."
+                                        "Your new added tools will also be shown below. To create a " +
+                                        "new project and to evaluate your tool with benchmarks you will need to have " +
+                                        "an organization created. "
                                 )
+                        b {
+                            +"To participate in contests you also need to have a project."
+                        }
                     }
+
                 }
             }
         }
