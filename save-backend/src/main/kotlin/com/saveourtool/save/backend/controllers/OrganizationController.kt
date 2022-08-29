@@ -74,13 +74,8 @@ internal class OrganizationController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    @ApiResponse(responseCode = "404", description = "Not able to find any organization in SAVE")
-    fun getAllOrganizations(
-        @PathVariable organizationName: String,
-    ) = Mono.fromCallable {
+    fun getAllOrganizations() = Mono.fromCallable {
         organizationService.findAll()
-    }.switchIfEmptyToNotFound {
-        "No organizations are found"
     }
 
     @GetMapping("/{organizationName}")

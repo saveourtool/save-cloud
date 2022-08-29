@@ -78,7 +78,7 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
     div {
         className = ClassName("col-lg-3")
         div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
+            className = ClassName("card flex-md-row mb-1 box-shadow bordered-div")
             style = jso {
                 borderWidth = 0.2.rem
                 borderColor = "#0275d8".unsafeCast<BorderColor>()
@@ -96,13 +96,13 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
                     style = jso {
                         textDecoration = "none".unsafeCast<TextDecoration>()
                     }
-                    h3 {
+                    h4 {
                         +"Create"
                     }
-                    h3 {
+                    h4 {
                         +"new"
                     }
-                    h3 {
+                    h4 {
                         +text
                     }
                 }

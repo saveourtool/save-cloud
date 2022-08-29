@@ -7,7 +7,9 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
@@ -21,6 +23,7 @@ import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import csstype.ClassName
 import csstype.rem
+import kotlinx.browser.window
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
@@ -33,11 +36,10 @@ import kotlinx.js.jso
  * TODO:
  * 1. Хотите создавать контесты - напишите нам
  * 2. Добавить свой контест: выбираем организацию и дальше добавляем
- * 3. Гранд чемпионы
- * 4.
+ * 3. Гранд чемпионы SAVE
+ * 4. Обратный отсчет
+ * 5. Количество контествов и участников
  */
-
-
 
 /**
  * [Props] retrieved from router
@@ -64,7 +66,12 @@ external interface ContestListViewState : State {
     /**
      * all organizations registered in SAVE
      */
-    var organizations: Set<OrganizationDto>
+    var organizations: Set<Organization>
+
+    /**
+     * all public projects registered in SAVE
+     */
+    var projects: Set<Project>
 
     /**
      * current time
@@ -129,7 +136,9 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         scope.launch {
             getAndInitActiveContests()
             getAndInitFinishedContests()
+            // FixMe: in future here will only be TOP tools (for example 10)
             getAndInitOrganizations()
+            getAndInitProjects()
         }
     }
 
@@ -199,6 +208,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                                 selectedTab = state.selectedRatingTab
                                 updateTabState = { setState { selectedRatingTab = it } }
                                 organizations = state.organizations
+                                projects = state.projects
                             }
 
                             contestListFc {
@@ -215,24 +225,51 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
         }
     }
 
+    private suspend fun getAndInitProjects() {
+        val response = get(
+            url = "$apiUrl/projects/all",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::classLoadingHandler,
+        )
+        val update = if (response.ok) {
+            response.unsafeMap {
+                it.decodeFromJsonString<List<Project>>()
+            }
+                .toTypedArray()
+        } else {
+            emptyArray()
+        }.toSet()
+
+        setState {
+            projects = update
+        }
+    }
+
+    /**
+     * unfortunately we cannot use generic function here, so it is easier to duplicate the code
+     */
     private suspend fun getAndInitOrganizations() {
-            val response = get(
-                url = "$apiUrl/organizations/all",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
-                loadingHandler = ::classLoadingHandler,
-            )
-            val update = if (response.ok) {
-                response.unsafeMap {
-                    it.decodeFromJsonString<List<OrganizationDto>>()
-                }
-                    .toTypedArray()
-            } else {
-                emptyArray()
-            }.toSet()
+        val response = get(
+            url = "$apiUrl/organizations/all",
+            headers = Headers().also {
+                it.set("Accept", "application/json")
+            },
+            loadingHandler = ::classLoadingHandler,
+        )
+        val update = if (response.ok) {
+            response.unsafeMap {
+                it.decodeFromJsonString<List<Organization>>()
+            }
+                .toTypedArray()
+        } else {
+            emptyArray()
+        }.toSet()
 
-
+        setState {
+            organizations = update
+        }
     }
 
     private suspend fun getAndInitFinishedContests() {

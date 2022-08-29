@@ -18,9 +18,10 @@ class LnkContestProject(
     @JoinColumn(name = "contest_id")
     var contest: Contest,
 
+    // FixMe: needed for the rating
     /*var bestExecution: Execution?,*/
 
-    var bestScore: Double = 0.0,
+    /*var bestScore: Double = 0.0,*/
 
 ) : BaseEntity() {
     /**

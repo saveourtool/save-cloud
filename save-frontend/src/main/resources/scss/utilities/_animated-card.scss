@@ -41,6 +41,7 @@
 .link-three:hover::after {
   text-decoration: none;
   transform: translate(0, 0%) scaleY(1);
+  border-color: #5cb85c;
 }
 
 .link-three::before {
@@ -72,4 +73,9 @@
 .link-three:hover::before {
   text-decoration: none;
   transform: translate(0%, 0%) scaleY(1);
+  border-color: #5cb85c;
+}
+
+.bordered-div:hover  {
+  border-color: #5cb85c;
 }
