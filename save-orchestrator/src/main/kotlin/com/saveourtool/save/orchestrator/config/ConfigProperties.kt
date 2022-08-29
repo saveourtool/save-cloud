@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.orchestrator.config
 
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -81,20 +80,20 @@ data class ConfigProperties(
      * to authenticate orchestrator to the API server
      * @property namespace Kubernetes namespace, into which agents will be deployed.
      * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
-     * @property pvcAnnotations Kubernetes annotations for each PVC that will be generated to store resources for an execution
-     * @property pvcSize requested size of the generated PVC
-     * @property pvcStorageSpec Additional YAML spec for PVC
-     * @property pvcMountPath mount point for the PV with test resources
+     * @property agentCpuRequests configures `resources.requests.cpu` for agent pods
+     * @property agentCpuLimits configures `resources.limits.cpu` for agent pods
+     * @property agentMemoryRequests configures `resources.requests.memory` for agent pods
+     * @property agentMemoryLimits configures `resources.requests.memory` for agent pods
      */
     data class KubernetesSettings(
         val apiServerUrl: String,
         val serviceAccount: String,
         val namespace: String,
         val useGvisor: Boolean,
-        val pvcAnnotations: String?,
-        val pvcSize: String,
-        val pvcStorageSpec: String,
-        val pvcMountPath: String = EXECUTION_DIR,
+        val agentCpuRequests: String = "100m",
+        val agentCpuLimits: String = "500m",
+        val agentMemoryRequests: String = "300m",
+        val agentMemoryLimits: String = "500m",
     )
 
     /**
