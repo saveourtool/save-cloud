@@ -73,16 +73,10 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
         !isOnlyLatestVersion || it.version == it.source.latestVersion
     }
 
-    // small hack to hide version if only latest is shown
-    val currentDisplayMode = if (isOnlyLatestVersion) {
-        null
-    } else {
-        TestSuiteSelectorMode.SEARCH
-    }
     showAvaliableTestSuites(
         testSuitesToBeShown,
         selectedTestSuites,
-        currentDisplayMode,
+        TestSuiteSelectorMode.SEARCH,
         onTestSuiteClick
     )
 }

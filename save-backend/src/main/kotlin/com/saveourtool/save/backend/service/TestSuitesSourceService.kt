@@ -99,7 +99,9 @@ class TestSuitesSourceService(
      * @return updated [TestSuitesSource]
      */
     fun update(entity: TestSuitesSource): TestSuitesSource {
-        entity.requiredId()
+        requireNotNull(entity.id) {
+            "Cannot update entity as it is not saved yet: $this"
+        }
         return testSuitesSourceRepository.save(entity)
     }
 
@@ -153,6 +155,7 @@ class TestSuitesSourceService(
             gitDto = git.toDto(),
             branch = branch,
             testRootPath = testRootPath,
+            null,
         )
     )
 

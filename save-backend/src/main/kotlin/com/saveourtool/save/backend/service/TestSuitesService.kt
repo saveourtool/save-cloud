@@ -62,7 +62,7 @@ class TestSuitesService(
             "Do not save test suites from different commits at the same time."
         }
 
-        val testSuiteSourceVersion = testSuitesDto.first().version
+        val testSuiteSourceVersion = testSuitesDto.map { it.version }.distinct().single()
         val testSuiteSource = testSuitesDto.first()
             .let { dto ->
                 testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name)

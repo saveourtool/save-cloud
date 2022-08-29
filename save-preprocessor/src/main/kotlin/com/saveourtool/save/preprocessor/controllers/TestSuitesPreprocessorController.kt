@@ -54,6 +54,9 @@ class TestSuitesPreprocessorController(
         testSuitesSourceDto: TestSuitesSourceDto,
         versionAsMono: Mono<String>,
     ): Mono<Unit> = versionAsMono
+        .also {
+            log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
+        }
         .filterWhen { testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
         .flatMap { version ->
             fetchTestSuitesFromGit(testSuitesSourceDto, version)

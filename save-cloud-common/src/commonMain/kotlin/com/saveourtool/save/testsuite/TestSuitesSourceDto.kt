@@ -25,7 +25,7 @@ data class TestSuitesSourceDto(
     val gitDto: GitDto,
     val branch: String,
     val testRootPath: String,
-    val latestVersion: String = "",
+    val latestVersion: String?,
 ) : Validatable {
     override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath()
 
@@ -55,6 +55,7 @@ data class TestSuitesSourceDto(
             GitDto.empty,
             "",
             "",
+            null,
         )
     }
 }

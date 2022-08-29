@@ -35,7 +35,7 @@ class TestSuitesSource(
     var git: Git,
     var branch: String,
     var testRootPath: String,
-    var latestVersion: String,
+    var latestVersion: String?,
 ) : BaseEntity() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
@@ -58,17 +58,19 @@ class TestSuitesSource(
             Git.empty,
             "",
             "",
-            "",
+            null,
         )
 
         /**
          * @param organization [Organization] from database
          * @param git [Git] from database
+         * @param latestVersion
          * @return [TestSuitesSource] from [TestSuitesSourceDto]
          */
         fun TestSuitesSourceDto.toTestSuiteSource(
             organization: Organization,
             git: Git,
+            latestVersion: String? = null,
         ): TestSuitesSource {
             require(organizationName == organization.name) {
                 "Provided another organization: $organization"
@@ -83,7 +85,7 @@ class TestSuitesSource(
                 git,
                 branch,
                 testRootPath,
-                "",
+                latestVersion,
             )
         }
     }

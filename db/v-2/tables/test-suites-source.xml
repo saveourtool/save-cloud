@@ -34,9 +34,7 @@
 
     <changeSet id="add-latest-version" author="sanyavertolet">
         <addColumn tableName="test_suites_source">
-            <column name="latest_version" type="varchar(170)" defaultValue="">
-                <constraints nullable="false"/>
-            </column>
+            <column name="latest_version" type="varchar(170)"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

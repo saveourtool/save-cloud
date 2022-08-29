@@ -87,7 +87,10 @@ class TestSuitesControllerTest {
                     val body = it.responseBody!!
                     assertEquals(listOf(testSuite).size, body.size)
                     assertEquals(testSuite.name, body[0].name)
-                    assertEquals(testSuite.source, body[0].source.toDto())
+                    assertEquals(testSuite.source.name, body[0].source.name)
+                    assertEquals(testSuite.source.organizationName, body[0].source.organization.name)
+                    assertTrue(testSuite.source.latestVersion != body[0].source.latestVersion)
+                    assertEquals(testSuite.version, body[0].source.latestVersion)
                     assertEquals(testSuite.version, body[0].version)
                 }
         }
