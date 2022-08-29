@@ -17,6 +17,7 @@ class LnkContestProject(
     @ManyToOne
     @JoinColumn(name = "contest_id")
     var contest: Contest,
+
 ) : BaseEntity() {
     /**
      * Get [ContestResult]

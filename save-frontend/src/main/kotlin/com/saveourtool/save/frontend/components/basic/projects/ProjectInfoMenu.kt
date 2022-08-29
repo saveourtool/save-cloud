@@ -115,7 +115,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 bestResults.filter { it.score != null }
                     .forEach {
                         li {
-                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
+                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0 mb-3")
                             a {
                                 href = "#/${FrontendRoutes.CONTESTS.path}/${it.contestName}"
                                 className = ClassName("stretched-link")
