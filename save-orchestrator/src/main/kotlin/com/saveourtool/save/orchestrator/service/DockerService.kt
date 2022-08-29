@@ -21,9 +21,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
@@ -33,28 +30,15 @@ import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
 
 /**
- * A service that uses [DockerContainerManager] to build and start containers for test execution.
+ * A service that builds and starts containers for test execution.
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
-    private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
 ) {
-    // Somehow simple path.createDirectories() doesn't work on macOS, probably due to Apple File System features
-    private val tmpDir = Paths.get(configProperties.testResources.tmpPath).let {
-        if (it.exists()) {
-            it
-        } else {
-            it.createDirectories()
-        }
-    }
-
-    @Suppress("NonBooleanPropertyPrefixedWithIs")
-    private val isAgentStoppingInProgress = AtomicBoolean(false)
-
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
@@ -67,14 +51,9 @@ class DockerService(
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(execution: Execution): RunConfiguration<PersistentVolumeId> {
-        val resourcesForExecution = createTempDirectory(
-            directory = tmpDir,
-            prefix = "save-execution-${execution.id}"
-        )
-        log.info("Preparing volume for execution.id=${execution.id}")
-        val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
-        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
+    fun prepareConfiguration(execution: Execution): RunConfiguration {
+        val buildResult = prepareConfigurationForExecution(execution)
+        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}]")
         return buildResult
     }
 
@@ -87,7 +66,7 @@ class DockerService(
      */
     fun createContainers(
         executionId: Long,
-        configuration: RunConfiguration<PersistentVolumeId>,
+        configuration: RunConfiguration,
     ) = agentRunner.create(
         executionId = executionId,
         configuration = configuration,
@@ -128,7 +107,7 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
@@ -145,19 +124,12 @@ class DockerService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-                try {
-                    agentIds.all { agentId ->
-                        agentRunner.stopByAgentId(agentId)
-                    }
-                } catch (e: AgentRunnerException) {
-                    log.error("Error while stopping agents $agentIds", e)
-                    false
-                } finally {
-                    isAgentStoppingInProgress.lazySet(false)
+            try {
+                agentIds.all { agentId ->
+                    agentRunner.stopByAgentId(agentId)
                 }
-            } else {
-                log.info("Agents stopping is already in progress, skipping")
+            } catch (e: AgentRunnerException) {
+                log.error("Error while stopping agents $agentIds", e)
                 false
             }
 
@@ -170,36 +142,13 @@ class DockerService(
     fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
 
     /**
-     * @param executionId
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stop(executionId: Long): Boolean {
-        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
-        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-            try {
-                agentRunner.stop(executionId)
-                true
-            } finally {
-                isAgentStoppingInProgress.lazySet(false)
-            }
-        } else {
-            false
-        }
-    }
-
-    /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
         agentRunner.cleanup(executionId)
     }
 
-    @Suppress(
-        "TOO_LONG_FUNCTION",
-        "UnsafeCallOnNullableType",
-        "LongMethod",
-    )
-    private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
+    private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
         val saveCliExtraArgs = SaveCliExtraArgs(
             overrideExecCmd = execution.execCmd,
             overrideExecFlags = null,
@@ -213,11 +162,6 @@ class DockerService(
             additionalFilesString = execution.additionalFiles,
         )
 
-        val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
-        log.info("Built persistent volume with tests and additional files by id $pvId")
-        // FixMe: temporary moved after `AgentRunner.start`
-        // FileSystemUtils.deleteRecursively(resourcesForExecution)
-
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
         return RunConfiguration(
@@ -229,8 +173,6 @@ class DockerService(
                         " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && ./$SAVE_AGENT_EXECUTABLE_NAME"
             ),
-            pvId = pvId,
-            resourcesPath = resourcesForExecution,
             env = env,
         )
     }
@@ -241,17 +183,13 @@ class DockerService(
      * @property imageTag tag of an image which should be used for a container
      * @property runCmd command that should be run as container's entrypoint.
      * Usually looks like `sh -c "rest of the command"`.
-     * @property pvId ID of a persistent volume that should be attached to a container
-     * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
      * @property workingDir
      * @property env environment variables for the container
      */
-    data class RunConfiguration<I : PersistentVolumeId>(
+    data class RunConfiguration(
         val imageTag: String,
         val runCmd: List<String>,
-        val pvId: I,
         val workingDir: String = EXECUTION_DIR,
-        val resourcesPath: Path,
         val env: Map<AgentEnvName, String>,
     )
 

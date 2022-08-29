@@ -8,7 +8,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
-import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
@@ -20,7 +19,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -34,8 +32,6 @@ import reactor.kotlin.core.publisher.doOnError
 
 import java.io.File
 import java.io.FileOutputStream
-
-import kotlin.io.path.absolutePathString
 
 /**
  * Controller used to start agents with needed information
@@ -80,12 +76,12 @@ class AgentsController(
                 }
                 .publishOn(agentService.scheduler)
                 .map { configuration ->
-                    dockerService.createContainers(execution.id!!, configuration) to configuration.resourcesPath
+                    dockerService.createContainers(execution.id!!, configuration)
                 }
                 .onErrorResume({ it is DockerException || it is KubernetesClientException }) { ex ->
                     reportExecutionError(execution, "Unable to create containers", ex)
                 }
-                .flatMap { (agentIds, resourcesPath) ->
+                .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
                             Agent(id, execution)
@@ -95,13 +91,10 @@ class AgentsController(
                             log.error("Unable to save agents, backend returned code ${exception.statusCode}", exception)
                             dockerService.cleanup(execution.id!!)
                         }
-                        .thenReturn(agentIds to resourcesPath)
+                        .thenReturn(agentIds)
                 }
-                .flatMapMany { (agentIds, resourcesPath) ->
-                    dockerService.startContainersAndUpdateExecution(execution, agentIds).doOnTerminate {
-                        log.debug { "Removing temporary directory ${resourcesPath.absolutePathString()}" }
-                        FileSystemUtils.deleteRecursively(resourcesPath)
-                    }
+                .flatMapMany { agentIds ->
+                    dockerService.startContainersAndUpdateExecution(execution, agentIds)
                 }
                 .subscribe()
         }

@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 import csstype.ClassName
 
@@ -82,7 +82,7 @@ external interface OrganizationSettingsMenuProps : Props {
 private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val organizationPath = props.organizationName
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
+    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================

@@ -1,8 +1,20 @@
 {{- define "common.labels" -}}
 io.kompose.service: {{ .service.name }}
-version: {{ .Values.dockerTag }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
 prometheus-job: {{ .service.imageName }}
+{{- end }}
+
+{{- define "pod.common.labels" }}
+io.kompose.service: {{ .service.name }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
+{{- end }}
+
+{{- define "pod.common.annotations" }}
+prometheus.io/path: /actuator/prometheus
+{{- if (hasKey .service "managementPort") }}
+prometheus.io/port: {{ .service.managementPort | quote }}
+{{- end }}
 {{- end }}
 
 {{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
@@ -39,11 +51,15 @@ lifecycle:
 
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
-image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
+image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ or .service.dockerTag .Values.dockerTag }}'
 imagePullPolicy: {{ .Values.pullPolicy }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
+  {{ if .service.managementPort }}
+  - name: mgmt
+    containerPort:  {{ .service.managementPort }}
+  {{ end }}
 {{- end }}
 
 {{- define "spring-boot.common.env" -}}

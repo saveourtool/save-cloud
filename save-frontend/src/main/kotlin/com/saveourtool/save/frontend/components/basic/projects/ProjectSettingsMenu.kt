@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
-import com.saveourtool.save.frontend.utils.createGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
@@ -93,7 +93,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
 
-    val (wasConfirmationModalShown, showGlobalRoleWarning) = createGlobalRoleWarningCallback(props.updateNotificationMessage)
+    val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
 
     div {
         className = ClassName("row justify-content-center mb-2")

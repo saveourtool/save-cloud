@@ -13,6 +13,26 @@ on:
         default: master
         description: Branch to build images from
         required: false
+      gateway:
+        type: boolean
+        default: true
+        description: Build new image of api-gateway
+        required: false
+      backend:
+        type: boolean
+        default: true
+        description: Build new image of save-backend
+        required: false
+      orchestrator:
+        type: boolean
+        default: true
+        description: Build new image of save-orchestrator
+        required: false
+      preprocessor:
+        type: boolean
+        default: true
+        description: Build new image of save-preprocessor
+        required: false
 
 jobs:
   deploy_images:
@@ -28,12 +48,23 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
+      - if: github.event_name != 'workflow_dispatch'
+        name: Prepare to build
+        working-directory: save-cloud
+        run: |
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-orchestrator:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
         run: |
           git checkout origin/${{ inputs.branch }}
           echo ADDITIONAL_GRADLE_OPTS=-PdockerTag=${{ inputs.branch }} >> $GITHUB_ENV
+          GRADLE_TASKS=""
+          if ${{ inputs.gateway }} == 'true'; then GRADLE_TASKS+=":api-gateway:bootBuildImage "; fi
+          if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
+          if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
+          if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
+          echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
@@ -77,10 +108,7 @@ jobs:
           gradle-version: wrapper
           build-root-directory: save-cloud
           arguments: |
-            :api-gateway:bootBuildImage
-            :save-backend:bootBuildImage
-            :save-orchestrator:bootBuildImage
-            :save-preprocessor:bootBuildImage
+            ${{ env.GRADLE_TASKS }}
             --stacktrace
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true

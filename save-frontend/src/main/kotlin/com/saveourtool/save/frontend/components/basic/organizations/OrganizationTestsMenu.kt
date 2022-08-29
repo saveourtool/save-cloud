@@ -71,9 +71,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuiteSourceToFetch?.let { testSuiteSource ->
             post(
                 url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
+                headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 body = undefined
             )
@@ -86,9 +84,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
                 url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
-                headers = Headers().also {
-                    it.set("Accept", "application/json")
-                },
+                headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
             )
             if (response.ok) {
@@ -119,8 +115,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     showTestSuiteSourceCreationModal(
         isTestSuiteSourceCreationModalOpen,
         props.organizationName,
-        {
+        { source ->
             setIsTestSuitesSourceCreationModalOpen(false)
+            setTestSuiteSourceToFetch(source)
+            triggerFetchTestSuiteSource()
             setIsSourceCreated { !it }
         },
     ) {

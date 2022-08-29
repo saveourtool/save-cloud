@@ -5,7 +5,6 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -50,7 +49,6 @@ import java.net.InetSocketAddress
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
-    DockerPersistentVolumeService::class,
     AgentService::class,
 )
 class DockerServiceTest {

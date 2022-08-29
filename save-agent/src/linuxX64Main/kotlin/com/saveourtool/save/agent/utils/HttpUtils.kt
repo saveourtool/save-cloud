@@ -6,23 +6,29 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
+import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
 import io.ktor.client.*
 import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 
 /**
  * @param result
  * @return true if [this] agent's state has been updated to reflect problems with [result]
  */
+@Suppress("FUNCTION_BOOLEAN_PREFIX")
 internal fun SaveAgent.updateStateBasedOnBackendResponse(
     result: Result<HttpResponse>
-) = if (result.notOk()) {
+): Boolean = if (result.notOk()) {
     state.value = AgentState.BACKEND_FAILURE
     true
 } else if (result.isFailure) {
+    if (result.exceptionOrNull() is CancellationException) {
+        logWarn("Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state")
+    }
     state.value = AgentState.BACKEND_UNREACHABLE
     true
 } else {

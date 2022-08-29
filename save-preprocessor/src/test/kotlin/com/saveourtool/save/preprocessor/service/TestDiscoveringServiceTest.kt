@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.core.config.TestConfig
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import org.eclipse.jgit.api.Git
 import org.junit.jupiter.api.AfterAll
@@ -67,7 +68,7 @@ class TestDiscoveringServiceTest {
             GitDto("https://github.com/saveourtool/save-cli"),
             "examples/kotlin-diktat",
             "main",
-
+            "aaaaaa",
         )
     }
 
@@ -105,15 +106,20 @@ class TestDiscoveringServiceTest {
         val testDtos = testDiscoveringService.getAllTests(
             rootTestConfig,
             listOf(
-                createTestSuiteStub("Autofix: Smoke Tests", 1),
-                createTestSuiteStub("DocsCheck", 2),
-                createTestSuiteStub("Only Warnings: General", 3),
-                createTestSuiteStub("Autofix and Warn", 4),
-                createTestSuiteStub("Directory: Chapter 1", 5),
-                createTestSuiteStub("Directory: Chapter2", 6),
-                createTestSuiteStub("Directory: Chapter3", 7),
+                createTestSuiteStub("Autofix: Smoke Tests"),
+                createTestSuiteStub("DocsCheck"),
+                createTestSuiteStub("Only Warnings: General"),
+                createTestSuiteStub("Autofix and Warn"),
+                createTestSuiteStub("Directory: Chapter 1"),
+                createTestSuiteStub("Directory: Chapter2"),
+                createTestSuiteStub("Directory: Chapter3"),
             )
-        ).toList()
+        )
+            .map {
+                it.second
+            }
+            .toList()
+
 
         logger.debug("Discovered the following tests: $testDtos")
         Assertions.assertEquals(16, testDtos.size)
@@ -125,8 +131,7 @@ class TestDiscoveringServiceTest {
         }
     }
 
-    private fun createTestSuiteStub(name: String, id: Long) = mock<TestSuite>().also {
-        whenever(it.id).thenReturn(id)
+    private fun createTestSuiteStub(name: String) = mock<TestSuiteDto>().also {
         whenever(it.name).thenReturn(name)
     }
 }
