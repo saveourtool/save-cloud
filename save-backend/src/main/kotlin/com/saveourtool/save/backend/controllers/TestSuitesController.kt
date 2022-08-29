@@ -56,7 +56,7 @@ class TestSuitesController(
     fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
             Mono.just(testSuiteDtos)
                 .filter { it.isNotEmpty() }
-                .map { testSuitesService.saveTestSuite(testSuiteDtos) }
+                .map { testSuitesService.saveTestSuite(it) }
                 .defaultIfEmpty(emptyList())
 
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
