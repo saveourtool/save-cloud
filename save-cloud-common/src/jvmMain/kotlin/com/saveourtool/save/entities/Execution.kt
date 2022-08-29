@@ -4,7 +4,7 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -59,7 +59,7 @@ class Execution(
     var batchSize: Int?,
 
     @Enumerated(EnumType.STRING)
-    var type: ExecutionType,
+    var type: TestingType,
 
     var version: String?,
 
@@ -93,7 +93,7 @@ class Execution(
 
     var batchSizeForAnalyzer: String?,
 
-) : BaseEntity() {
+    ) : BaseEntity() {
     /**
      * @return Execution dto
      */
@@ -155,7 +155,7 @@ class Execution(
             status = ExecutionStatus.RUNNING,
             testSuiteIds = null,
             batchSize = 20,
-            type = ExecutionType.GIT,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             allTests = 0,
             runningTests = 0,

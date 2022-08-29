@@ -20,7 +20,7 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 
 import io.ktor.client.*
 import io.ktor.http.*
@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
 class SaveCloudClient(
     webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
-    private val executionType: ExecutionType,
+    private val executionType: TestingType,
     authorization: Authorization,
 ) {
     private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
@@ -88,10 +88,10 @@ class SaveCloudClient(
      * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
-        executionType: ExecutionType,
+        executionType: TestingType,
         additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
-        val executionRequest = if (executionType == ExecutionType.GIT) {
+        val executionRequest = if (executionType == TestingType.PUBLIC_TESTS) {
             buildExecutionRequest()
         } else {
             val userProvidedTestSuites = verifyTestSuites() ?: return null

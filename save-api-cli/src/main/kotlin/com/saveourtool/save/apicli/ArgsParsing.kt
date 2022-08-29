@@ -7,7 +7,7 @@
 package com.saveourtool.save.apicli
 
 import com.saveourtool.save.api.authorization.Authorization
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 
 import org.slf4j.LoggerFactory
 
@@ -22,7 +22,7 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  */
 data class CliArguments(
     val authorization: Authorization,
-    val mode: ExecutionType,
+    val mode: TestingType,
 )
 
 /**
@@ -60,7 +60,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
     )
 
     val mode by parser.option(
-        ArgType.Choice<ExecutionType>(),
+        ArgType.Choice<TestingType>(),
         fullName = "mode",
         shortName = "m",
         description = "Mode of execution: git/standard"

@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -211,8 +211,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
-            // FIXME: remove this type
-            type = ExecutionType.GIT,
+            type = TestingType.PUBLIC_TESTS,
             version = version,
             allTests = allTests,
             runningTests = 0,

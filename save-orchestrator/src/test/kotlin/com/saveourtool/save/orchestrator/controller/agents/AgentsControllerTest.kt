@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.controller.agents
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
@@ -75,7 +75,7 @@ class AgentsControllerTest {
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
-            type = ExecutionType.STANDARD
+            type = TestingType.PRIVATE_TESTS
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
             id = 42L

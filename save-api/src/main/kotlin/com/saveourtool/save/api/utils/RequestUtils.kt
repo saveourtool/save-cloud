@@ -13,7 +13,7 @@ import com.saveourtool.save.entities.ExecutionRequestBase
 import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
@@ -118,8 +118,8 @@ suspend fun HttpClient.getStandardTestSuites(
  */
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
-    val endpoint = if (executionType == ExecutionType.GIT) {
+suspend fun HttpClient.submitExecution(executionType: TestingType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
+    val endpoint = if (executionType == TestingType.PUBLIC_TESTS) {
         "/api/$v1/submitExecutionRequest"
     } else {
         "/api/$v1/executionRequestStandardTests"
@@ -131,7 +131,7 @@ suspend fun HttpClient.submitExecution(executionType: ExecutionType, executionRe
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
         setBody(MultiPartFormDataContent(formData {
-            if (executionType == ExecutionType.GIT) {
+            if (executionType == TestingType.PUBLIC_TESTS) {
                 append(
                     "executionRequest",
                     json.encodeToString(executionRequest as ExecutionRequest),
