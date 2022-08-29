@@ -75,7 +75,7 @@ class TestDiscoveringService(
      * @throws IllegalArgumentException in case of invalid testConfig file
      */
     fun getRootTestConfig(testResourcesRootAbsolutePath: String): TestConfig =
-            ConfigDetector(FileSystem.SYSTEM).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
+            ConfigDetector(FileSystem.SYSTEM, emptyList()).configFromFile(testResourcesRootAbsolutePath.toPath()).apply {
                 getAllTestConfigs().onEach {
                     it.processInPlace()
                 }

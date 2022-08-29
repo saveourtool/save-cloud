@@ -12,6 +12,7 @@ import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
@@ -40,6 +41,12 @@ class TestSuitesSourceService(
      */
     fun getAllByOrganization(organization: Organization) =
             testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
+
+    /**
+     * @param id [TestSuitesSource.id]
+     * @return entity of [TestSuitesSource] or null
+     */
+    fun findById(id: Long): TestSuitesSource? = testSuitesSourceRepository.findByIdOrNull(id)
 
     /**
      * @param organization [TestSuitesSource.organization]
@@ -87,11 +94,13 @@ class TestSuitesSourceService(
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
-    fun update(entity: TestSuitesSource): Boolean {
+    @Transactional
+    fun update(entity: TestSuitesSource): SourceSaveStatus {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $this"
         }
-        return save(entity)
+        val isSaved = save(entity)
+        return if (isSaved) SourceSaveStatus.UPDATED else SourceSaveStatus.CONFLICT
     }
 
     /**

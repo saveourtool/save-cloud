@@ -8,7 +8,9 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
+import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceCreationModal
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
@@ -140,10 +142,15 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             fetchTestSuitesSourcesSnapshotKeys()
         }
     }
+    val (versionToFetch, setVersionToFetch) = useState<String>()
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
         triggerFetchTestSuiteSource()
     }
+    val editHandler: (TestSuitesSourceDto) -> Unit = {
+        // do nothing for now
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, versionToFetch, setVersionToFetch::invoke, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
@@ -212,10 +219,14 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
     "LongMethod",
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
+    version: String?,
+    versionHandler: (String) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceWithBranch>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { this.first }) { cellProps ->
@@ -255,7 +266,6 @@ private fun prepareTestSuitesSourcesTable(
                         selectHandler(cellProps.value.first)
                     }
                     a {
-                        // TODO: need to detect a default branch here
                         href = "${cellProps.value.first.gitDto.url}/tree/${cellProps.value.second}/${cellProps.value.first.testRootPath}"
                         +"source"
                     }
@@ -265,6 +275,16 @@ private fun prepareTestSuitesSourcesTable(
         column(id = "fetch", header = "Fetch new version", { this.first }) { cellProps ->
             Fragment.create {
                 td {
+                    inputTextFormRequired {
+                        form = InputTypes.SOURCE_VERSION
+                        textValue = version
+                        classes = "mb-2"
+                        name = "Version"
+                        validInput = true
+                        onChangeFun = {
+                            versionHandler(it.target.value)
+                        }
+                    }
                     button {
                         type = ButtonType.button
                         className = ClassName("btn btn-sm btn-primary")
@@ -272,6 +292,20 @@ private fun prepareTestSuitesSourcesTable(
                             fetchHandler(cellProps.value)
                         }
                         +"fetch"
+                    }
+                }
+            }
+        }
+        column(id = "edit", header = "Edit", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
+                        onClick = {
+                            editHandler(cellProps.value)
+                        }
+                        +"edit"
                     }
                 }
             }

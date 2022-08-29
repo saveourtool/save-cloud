@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.nio.file.Path
+import java.time.Instant
 import kotlin.io.path.div
 
 typealias TestSuiteList = List<TestSuite>
@@ -144,6 +146,10 @@ class TestSuitesPreprocessorController(
                     version = cloneObject
                 )
             }
+
+    private fun Mono<List<TestSuite>>.log(testSuitesSourceDto: TestSuitesSourceDto, version: String): Mono<Unit> = map {
+        with(testSuitesSourceDto) {
+            log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
         }
     }
         .map { testSuites ->

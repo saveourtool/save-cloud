@@ -119,6 +119,26 @@ private fun GitDto.doCloneToDirectory(
         }
     }
 
+/**
+ * Sorted set of tags for [GitDto]
+ *
+ * @return list of tags
+ * @throws IllegalStateException
+ */
+fun GitDto.detectTagList(): Collection<String> = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setRemote(url)
+    .setHeads(false)
+    .setTags(true)
+    .gitCallWithRethrow { it.callAsMap() }
+    .filterKeys { it.startsWith(Constants.R_TAGS) }
+    .mapKeys { (key, _) -> key.removePrefix(Constants.R_TAGS) }
+    .mapValues { (_, value) -> value.objectId.name }
+    .toSortedMap()
+    .entries
+    .map { it.toPair() }
+    .map { it.first }
+
 private fun GitDto.credentialsProvider(): CredentialsProvider? = when {
     username != null && password != null -> UsernamePasswordCredentialsProvider(username, password)
     // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token

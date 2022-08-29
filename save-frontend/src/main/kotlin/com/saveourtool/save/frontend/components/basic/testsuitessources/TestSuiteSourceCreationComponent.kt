@@ -1,9 +1,10 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.testsuitessources
 
 import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
@@ -45,6 +46,11 @@ external interface TestSuiteSourceCreationProps : Props {
      * Name of a current organization
      */
     var organizationName: String
+
+    /**
+     * ID of existed [com.saveourtool.save.entities.TestSuitesSource] to update
+     */
+    var testSuitesSourceId: Long
 
     /**
      * Callback invoked on successful save
@@ -108,7 +114,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    val onSubmitButtonPressed = useDeferredRequest {
+    val requestToCreateEntity = useDeferredRequest {
         testSuiteSource.let {
             val response = post(
                 url = "/api/$v1/test-suites-sources/create",
@@ -124,6 +130,22 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             }
         }
     }
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    val requestToUpdateEntity = useDeferredRequest {
+        val response = post(
+            url = "/api/$v1/test-suites-sources/update?id=${props.testSuitesSourceId}",
+            headers = jsonHeaders,
+            body = Json.encodeToString(testSuiteSource),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation,
+        )
+        if (response.ok) {
+            props.onSuccess(testSuiteSource)
+        } else if (response.isConflict()) {
+            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+        }
+    }
+    val onSubmitButtonPressed = requestToCreateEntity
 
     div {
         inputTextFormRequired {
@@ -177,6 +199,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             dataToString = { it.url }
             notFoundErrorMessage = "You have no avaliable git credentials in organization ${props.organizationName}"
             selectedValue = testSuiteSource.gitDto.url
+            disabled = false
             onChangeFun = { git ->
                 git?.let {
                     setTestSuiteSource(testSuiteSource.copy(gitDto = it))
