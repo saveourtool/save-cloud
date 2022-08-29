@@ -7207,7 +7207,7 @@
           "testRootPath": {
             "type": "string"
           },
-          "latestVersion": {
+          "latestFetchedVersion": {
             "type": "string"
           }
         }
