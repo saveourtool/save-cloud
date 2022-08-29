@@ -1,5 +1,6 @@
 package com.saveourtool.save.testsuite
 
+import com.saveourtool.save.domain.PluginType
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property language [com.saveourtool.save.entities.TestSuite.language]
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
  * @property id
+ * @property plugins
  */
 @Serializable
 data class TestSuiteDto(
@@ -19,7 +21,8 @@ data class TestSuiteDto(
     val version: String,
     val language: String? = null,
     val tags: List<String>? = null,
-    var id: Long? = null,
+    val id: Long? = null,
+    val plugins: List<PluginType> = emptyList(),
 ) {
     /**
      * @return non-nullable [id]

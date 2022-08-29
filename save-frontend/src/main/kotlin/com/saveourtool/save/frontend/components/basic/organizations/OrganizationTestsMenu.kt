@@ -52,7 +52,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
     val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
-    val fetchTestSuitesSources = useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
+    useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
             url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
             headers = Headers().also {
@@ -66,9 +66,8 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuitesSources(emptyList())
         }
     }
-    fetchTestSuitesSources()
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto?>(null)
-    val triggerFetchTestSuiteSource = useRequest(dependencies = arrayOf(testSuiteSourceToFetch)) {
+    val triggerFetchTestSuiteSource = useDeferredRequest {
         testSuiteSourceToFetch?.let { testSuiteSource ->
             post(
                 url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
@@ -83,7 +82,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
 
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto?>(null)
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
-    val fetchTestSuitesSourcesSnapshotKeys = useRequest(dependencies = arrayOf(selectedTestSuitesSource)) {
+    val fetchTestSuitesSourcesSnapshotKeys = useDeferredRequest {
         selectedTestSuitesSource?.let { testSuitesSource ->
             val response = get(
                 url = "$apiUrl/test-suites-sources/${testSuitesSource.organizationName}/${encodeURIComponent(testSuitesSource.name)}/list-snapshot",
@@ -120,8 +119,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     showTestSuiteSourceCreationModal(
         isTestSuiteSourceCreationModalOpen,
         props.organizationName,
-        {
+        { source ->
             setIsTestSuitesSourceCreationModalOpen(false)
+            setTestSuiteSourceToFetch(source)
+            triggerFetchTestSuiteSource()
             setIsSourceCreated { !it }
         },
     ) {

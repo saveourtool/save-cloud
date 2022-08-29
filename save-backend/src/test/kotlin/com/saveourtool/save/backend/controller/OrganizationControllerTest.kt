@@ -129,7 +129,7 @@ class OrganizationControllerTest {
     fun `delete organization with owner permission`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
         webClient.delete()
-            .uri("/api/$v1/organization/${organization.name}/delete")
+            .uri("/api/$v1/organizations/${organization.name}/delete")
             .exchange()
             .expectStatus()
             .isOk
@@ -140,7 +140,7 @@ class OrganizationControllerTest {
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
         webClient.delete()
-            .uri("/api/$v1/organization/${organization.name}/delete")
+            .uri("/api/$v1/organizations/${organization.name}/delete")
             .exchange()
             .expectStatus()
             .isForbidden

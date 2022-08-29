@@ -74,7 +74,7 @@ external interface TableProps<D : Any> : Props {
  * @param usePageSelection whether to display entries settings
  * @param plugins
  * @param additionalOptions
- * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used
+ * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @return a functional react component

@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.testsuite.TestSuiteDto
 import csstype.ClassName
 import react.ChildrenBuilder
@@ -52,8 +53,21 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                 p {
                     +(testSuite.description ?: "")
                 }
-                small {
-                    +(testSuite.tags?.joinToString(", ") ?: "")
+                div {
+                    className = ClassName("d-flex justify-content-between")
+                    small {
+                        asDynamic()["data-toggle"] = "tooltip"
+                        asDynamic()["data-placement"] = "bottom"
+                        title = "Test suite tags"
+                        +(testSuite.tags?.joinToString(", ") ?: "")
+                    }
+
+                    small {
+                        asDynamic()["data-toggle"] = "tooltip"
+                        asDynamic()["data-placement"] = "bottom"
+                        title = "Plugin type"
+                        +(testSuite.plugins.joinToString(", ") { it.pluginName() })
+                    }
                 }
             }
         }

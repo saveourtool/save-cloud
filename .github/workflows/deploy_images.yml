@@ -13,6 +13,26 @@ on:
         default: master
         description: Branch to build images from
         required: false
+      gateway:
+        type: boolean
+        default: true
+        description: Build new image of api-gateway
+        required: false
+      backend:
+        type: boolean
+        default: true
+        description: Build new image of save-backend
+        required: false
+      orchestrator:
+        type: boolean
+        default: true
+        description: Build new image of save-orchestrator
+        required: false
+      preprocessor:
+        type: boolean
+        default: true
+        description: Build new image of save-preprocessor
+        required: false
 
 jobs:
   deploy_images:
@@ -28,12 +48,23 @@ jobs:
         with:
           path: save-cloud
           fetch-depth: 0
+      - if: github.event_name != 'workflow_dispatch'
+        name: Prepare to build
+        working-directory: save-cloud
+        run: |
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-orchestrator:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
         run: |
           git checkout origin/${{ inputs.branch }}
           echo ADDITIONAL_GRADLE_OPTS=-PdockerTag=${{ inputs.branch }} >> $GITHUB_ENV
+          GRADLE_TASKS=""
+          if ${{ inputs.gateway }} == 'true'; then GRADLE_TASKS+=":api-gateway:bootBuildImage "; fi
+          if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
+          if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
+          if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
+          echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
       - name: checkout save-core
         uses: actions/checkout@v3
         with:
@@ -71,22 +102,18 @@ jobs:
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
         run: |
-          mkdir -p save-cloud/save-orchestrator/build/resources/main
-          find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec cp {} save-cloud/save-orchestrator/build/resources/main \;
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
           build-root-directory: save-cloud
           arguments: |
-            :api-gateway:bootBuildImage
-            :save-backend:bootBuildImage
-            :save-orchestrator:bootBuildImage
-            :save-preprocessor:bootBuildImage
+            ${{ env.GRADLE_TASKS }}
             --stacktrace
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
             -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
+            -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}

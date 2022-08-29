@@ -81,7 +81,7 @@ external interface ProjectStatisticMenuProps : Props {
 private fun projectStatisticMenu() = FC<ProjectStatisticMenuProps> { props ->
     val (latestExecutionStatisticDtos, setLatestExecutionStatisticDtos) = useState(props.latestExecutionStatisticDtos)
 
-    useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen), isDeferred = false) {
+    useRequest(arrayOf(props.executionId, props.latestExecutionStatisticDtos, props.isOpen)) {
         if (props.isOpen != true && props.executionId != null) {
             val testLatestExecutions = get(
                 url = "$apiUrl/testLatestExecutions?executionId=${props.executionId}&status=${TestResultStatus.PASSED}",
@@ -95,7 +95,7 @@ private fun projectStatisticMenu() = FC<ProjectStatisticMenuProps> { props ->
                 }
             setLatestExecutionStatisticDtos(testLatestExecutions)
         }
-    }()
+    }
 
     div {
         className = ClassName("row justify-content-center")

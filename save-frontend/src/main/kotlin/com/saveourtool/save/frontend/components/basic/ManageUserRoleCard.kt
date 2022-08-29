@@ -88,7 +88,7 @@ external interface ManageUserRoleCardProps : Props {
 fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     val (changeUsersFromGroup, setChangeUsersFromGroup) = useState(true)
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
-    val getUsersFromGroup = useRequest(dependencies = arrayOf(changeUsersFromGroup)) {
+    val getUsersFromGroup = useDeferredRequest {
         val usersFromDb = get(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users",
             headers = Headers().also {
@@ -103,7 +103,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     }
 
     val (roleChange, setRoleChange) = useState(SetRoleRequest("", Role.NONE))
-    val updatePermissions = useRequest(dependencies = arrayOf(roleChange)) {
+    val updatePermissions = useDeferredRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
             set("Content-Type", "application/json")
@@ -124,7 +124,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     val (userToAdd, setUserToAdd) = useState(UserInfo(""))
     val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
     val getUsersNotFromGroup = debounce(
-        useRequest(dependencies = arrayOf(changeUsersFromGroup, userToAdd)) {
+        useDeferredRequest {
             val headers = Headers().apply {
                 set("Accept", "application/json")
                 set("Content-Type", "application/json")
@@ -141,7 +141,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
         },
         DEFAULT_DEBOUNCE_PERIOD,
     )
-    val addUserToGroup = useRequest {
+    val addUserToGroup = useDeferredRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
             set("Content-Type", "application/json")
@@ -163,7 +163,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     }
 
     val (userToDelete, setUserToDelete) = useState(UserInfo(""))
-    val deleteUser = useRequest(dependencies = arrayOf(userToDelete)) {
+    val deleteUser = useDeferredRequest {
         val headers = Headers().apply {
             set("Accept", "application/json")
             set("Content-Type", "application/json")
@@ -184,7 +184,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     }
 
     val (selfRole, setSelfRole) = useState(Role.NONE)
-    useRequest(isDeferred = false) {
+    useRequest {
         val role = get(
             "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = Headers().also {
@@ -200,9 +200,9 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             props.showGlobalRoleWarning()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
-    }()
+    }
 
-    runOnlyOnFirstRender {
+    useOnce {
         getUsersFromGroup()
     }
 

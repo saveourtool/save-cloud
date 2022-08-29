@@ -304,39 +304,28 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
 }
 
 /**
- * Hook to perform requests in functional components.
+ * Hook to get callbacks to perform requests in functional components.
  *
- * @param dependencies
- * @param isDeferred whether this request should be performed right after component is mounted (`isDeferred == false`)
- * or called later by some other mechanism (e.g. a button click).
  * @param request
- * @return a function to trigger request execution. If `isDeferred == false`, this function should be called right after the hook is called.
+ * @return a function to trigger request execution.
  */
-@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
-fun <R> useRequest(
-    dependencies: Array<dynamic> = emptyArray(),
-    isDeferred: Boolean = true,
+fun <R> useDeferredRequest(
     request: suspend WithRequestStatusContext.() -> R,
 ): () -> Unit {
     val scope = CoroutineScope(Dispatchers.Default)
+    val context = useRequestStatusContext()
     val (isSending, setIsSending) = useState(false)
-    val statusContext = useContext(requestStatusContext)
-    val context = object : WithRequestStatusContext {
-        override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
-    }
-
-    useEffect(isSending, *dependencies) {
+    useEffect(isSending) {
         if (!isSending) {
             return@useEffect
         }
         scope.launch {
             request(context)
             setIsSending(false)
+        }.invokeOnCompletion {
+            if (it != null && it !is CancellationException) {
+                setIsSending(false)
+            }
         }
         cleanup {
             if (scope.isActive) {
@@ -344,17 +333,36 @@ fun <R> useRequest(
             }
         }
     }
-
     val initiateSending: () -> Unit = {
         if (!isSending) {
             setIsSending(true)
         }
     }
-    @Suppress("BRACES_BLOCK_STRUCTURE_ERROR")
-    return if (!isDeferred) { {
-        useEffect(*dependencies) { initiateSending() }
-    } } else {
-        return initiateSending
+    return initiateSending
+}
+
+/**
+ * Hook to perform requests in functional components.
+ *
+ * @param dependencies
+ * @param request
+ */
+fun <R> useRequest(
+    dependencies: Array<dynamic> = emptyArray(),
+    request: suspend WithRequestStatusContext.() -> R,
+) {
+    val scope = CoroutineScope(Dispatchers.Default)
+    val context = useRequestStatusContext()
+
+    useEffect(*dependencies) {
+        scope.launch {
+            request(context)
+        }
+        cleanup {
+            if (scope.isActive) {
+                scope.cancel()
+            }
+        }
     }
 }
 
@@ -373,6 +381,20 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @return Unit
  */
 internal fun noopResponseHandler(response: Response) = Unit
+
+@Suppress("TOO_LONG_FUNCTION", "MAGIC_NUMBER")
+private fun useRequestStatusContext(): WithRequestStatusContext {
+    val statusContext = useContext(requestStatusContext)
+    val context = object : WithRequestStatusContext {
+        override val coroutineScope = CoroutineScope(Dispatchers.Default)
+        override fun setResponse(response: Response) = statusContext.setResponse(response)
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
+            isNeedRedirect && response.status == 404.toShort()
+        )
+        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
+    }
+    return context
+}
 
 /**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.

@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
@@ -14,7 +15,7 @@ import kotlin.test.*
 class SelectFormTest {
     private val selectFormRequired = selectFormRequired<Organization>()
     private fun createWorker() = setupWorker(
-        rest.get("$apiUrl/organization/get/list") { _, res, _ ->
+        rest.get("$apiUrl/organizations/get/list") { _, res, _ ->
             res { response ->
                 mockMswResponse(
                     response, listOf(
@@ -36,7 +37,7 @@ class SelectFormTest {
                     selectFormRequired {
                         getData = {
                             get(
-                                "$apiUrl/organization/get/list",
+                                "$apiUrl/organizations/get/list",
                                 jsonHeaders,
                                 loadingHandler = ::noopLoadingHandler,
                             )
@@ -65,7 +66,7 @@ class SelectFormTest {
     fun componentShouldContainWarningIfNoOrganizations(): Promise<*> {
         val worker = createWorker()
         worker.use(
-            rest.get("/api/$v1/organization/get/list") { _, res, _ ->
+            rest.get("/api/$v1/organizations/get/list") { _, res, _ ->
                 res { response ->
                     mockMswResponse(
                         response, emptyList<Organization>()
@@ -79,7 +80,7 @@ class SelectFormTest {
                     selectFormRequired {
                         getData = {
                             get(
-                                "$apiUrl/organization/get/list",
+                                "$apiUrl/organizations/get/list",
                                 jsonHeaders,
                                 loadingHandler = ::noopLoadingHandler,
                             )

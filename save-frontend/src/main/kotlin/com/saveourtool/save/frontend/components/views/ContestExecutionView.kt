@@ -177,7 +177,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
                     colSpan = tableInstance.columns.size
                     div {
                         className = ClassName("row")
-                        displayExecutionInfoHeader(row.original, "row col-11")
+                        displayExecutionInfoHeader(row.original, true, "row col-11")
                         div {
                             className = ClassName("col-1")
                             pieChart(

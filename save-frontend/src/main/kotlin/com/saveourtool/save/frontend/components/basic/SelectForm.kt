@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -83,9 +84,9 @@ external interface SelectFormRequiredProps<D : Any> : Props {
 fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
 
-    useRequest(arrayOf(), isDeferred = false) {
+    useRequest {
         setElements((props.getData)())
-    }()
+    }
 
     div {
         className = ClassName("${props.classes} mt-1")

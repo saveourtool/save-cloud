@@ -4,8 +4,9 @@
 
 package com.saveourtool.save.orchestrator
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
+import com.saveourtool.save.orchestrator.service.DockerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -13,13 +14,10 @@ import com.github.dockerjava.api.command.AsyncDockerCmd
 import com.github.dockerjava.api.command.ListImagesCmd
 import com.github.dockerjava.api.command.SyncDockerCmd
 import com.github.dockerjava.api.model.Image
-import generated.SAVE_CORE_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.apache.commons.io.FileUtils
-import org.springframework.core.io.ClassPathResource
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
@@ -29,8 +27,6 @@ import java.util.function.Supplier
 import java.util.zip.GZIPOutputStream
 
 internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
-
-internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
 
 /**
  * Execute this async docker command while recording its execution duration.
@@ -88,35 +84,37 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
     }
 
 /**
- * Load default agent.properties from classpath, get properties values using configuration and store into [agentPropertiesFile].
+ * Build map of env variables that can be read by save-agent to override settings from properties file
  *
- * @param agentPropertiesFile target file
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
+ * @param saveCliExtraArgs
+ * @param executionId
+ * @param additionalFilesString
+ * @return map of env variables with their values
  */
 internal fun fillAgentPropertiesFromConfiguration(
-    agentPropertiesFile: File,
     agentSettings: AgentSettings,
-) {
-    FileUtils.copyInputStreamToFile(
-        ClassPathResource("agent.properties").inputStream,
-        agentPropertiesFile
-    )
+    saveCliExtraArgs: DockerService.SaveCliExtraArgs,
+    executionId: Long,
+    additionalFilesString: String,
+): Map<AgentEnvName, String> = buildMap {
+    put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
+    put(AgentEnvName.EXECUTION_ID, executionId.toString())
+    put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
 
-    val cliCommand = "./$SAVE_CLI_EXECUTABLE_NAME"
-    agentPropertiesFile.writeText(
-        agentPropertiesFile.readLines().joinToString(System.lineSeparator()) { line ->
-            when {
-                line.startsWith("id=") -> "id=\${${agentSettings.agentIdEnv}}"
-                line.startsWith("cliCommand=") -> "cliCommand=$cliCommand"
-                line.startsWith("backend.url=") && agentSettings.backendUrl != null ->
-                    "backend.url=${agentSettings.backendUrl}"
-                line.startsWith("orchestratorUrl=") && agentSettings.orchestratorUrl != null ->
-                    "orchestratorUrl=${agentSettings.orchestratorUrl}"
-                line.startsWith("testSuitesDir=") -> "testSuitesDir=$TEST_SUITES_DIR_NAME"
-                else -> line
-            }
-        }
-    )
+    with(agentSettings) {
+        agentIdEnv?.let { put(AgentEnvName.AGENT_ID, it) }
+        backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
+        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
+    }
+
+    with(saveCliExtraArgs) {
+        overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
+        overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
+        batchSize?.let { put(AgentEnvName.BATCH_SIZE, it.toString()) }
+        batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
+    }
 }
 
 /**

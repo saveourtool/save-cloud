@@ -76,6 +76,7 @@ fun Project.registerSaveCliVersionCheckTask() {
     val libs = the<LibrariesForLibs>()
     val saveCoreVersion = libs.versions.save.core.get()
     tasks.register("getSaveCliVersion") {
+        inputs.property("save-cli version", findProperty("saveCliVersion") ?: saveCoreVersion)
         val file = file(pathToSaveCliVersion)
         outputs.file(file)
         outputs.upToDateWhen {

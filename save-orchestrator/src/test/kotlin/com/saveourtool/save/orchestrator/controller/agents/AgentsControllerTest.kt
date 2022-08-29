@@ -7,7 +7,6 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -97,17 +96,8 @@ class AgentsControllerTest {
             DockerService.RunConfiguration(
                 imageTag = "test-image-id",
                 runCmd = listOf("sh", "-c", "test-exec-cmd"),
-                pvId = DockerPvId("test-pv-id"),
                 workingDir = EXECUTION_DIR,
-                resourcesPath = Path.of("test-resources-path"),
-                resourcesConfiguration = DockerService.RunConfiguration.ResourcesConfiguration(
-                    executionId = execution.id!!,
-                    additionalFilesString = "",
-                    overrideExecCmd = null,
-                    overrideExecFlags = null,
-                    batchSize = null,
-                    batchSeparator = null,
-                )
+                env = emptyMap(),
             )
         )
         whenever(dockerService.createContainers(any(), any()))
