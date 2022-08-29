@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: gateway
+  replicas: 1
   template:
     metadata:
       labels:
