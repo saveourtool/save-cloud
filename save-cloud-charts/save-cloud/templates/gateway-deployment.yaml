@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway
-  annotations:
-    prometheus.io/port: {{ .Values.gateway.managementPort | quote }}
   labels:
     {{- include "common.labels" (merge (dict "service" .Values.gateway) .) | nindent 4 }}
 spec:
@@ -13,7 +11,9 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: gateway
+        {{- include "pod.common.labels" (merge (dict "service" .Values.gateway ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
       {{- include "spring-boot.securityContext" . | nindent 6 }}

@@ -11,7 +11,9 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: preprocessor
+        {{- include "pod.common.labels" (merge (dict "service" .Values.preprocessor ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
       {{- if .Values.preprocessor.nodeName }}

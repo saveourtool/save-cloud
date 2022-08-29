@@ -5,6 +5,17 @@ env: {{ .Values.env }}
 prometheus-job: {{ .service.imageName }}
 {{- end }}
 
+{{- define "pod.common.labels" }}
+io.kompose.service: {{ .service.name }}
+{{- end }}
+
+{{- define "pod.common.annotations" }}
+prometheus.io/path: /actuator/prometheus
+{{- if (hasKey .service "managementPort") }}
+prometheus.io/port: {{ .service.managementPort | quote }}
+{{- end }}
+{{- end }}
+
 {{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
 {{- define "spring-boot.securityContext" -}}
 securityContext:
@@ -44,6 +55,10 @@ imagePullPolicy: {{ .Values.pullPolicy }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
+  {{ if .service.managementPort }}
+  - name: mgmt
+    containerPort:  {{ .service.managementPort }}
+  {{ end }}
 {{- end }}
 
 {{- define "spring-boot.common.env" -}}
