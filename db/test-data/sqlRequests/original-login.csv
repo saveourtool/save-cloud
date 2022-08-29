@@ -2,4 +2,3 @@ id;user_id;name;source
 1;2;"John";"github"
 2;2;"Doe";"linkedin"
 3;2;"oldAdmin";"codehub"
-4;1;"admin";"basic"
