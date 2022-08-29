@@ -27,11 +27,11 @@ class TestSuitesSource(
     var git: Git,
     var testRootPath: String,
     var latestFetchedVersion: String?,
-) : BaseEntity() {
+) : BaseEntityWithDto<TestSuitesSourceDto>() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
      */
-    fun toDto(): TestSuitesSourceDto = TestSuitesSourceDto(
+    override fun toDto(): TestSuitesSourceDto = TestSuitesSourceDto(
         organizationName = organization.name,
         name = name,
         description = description,

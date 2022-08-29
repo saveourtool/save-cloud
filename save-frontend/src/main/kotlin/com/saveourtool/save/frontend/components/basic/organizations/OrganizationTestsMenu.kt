@@ -118,12 +118,15 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
+    val editHandler: (TestSuitesSourceDto) -> Unit = {
+        // do nothing for now
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
     showTestSuiteSourceCreationModal(
@@ -184,10 +187,12 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
     "LongMethod",
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
+    editHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = {
         columns {
@@ -243,8 +248,23 @@ private fun prepareTestSuitesSourcesTable(
                             className = ClassName("btn btn-sm btn-primary")
                             onClick = {
                                 fetchHandler(cellProps.value)
+                                // testSuitesSourceFetcherWindowOpenness.openWindow()
                             }
                             +"fetch"
+                        }
+                    }
+                }
+            }
+            column(id = "edit", header = "Edit", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                editHandler(cellProps.value)
+                            }
+                            +"edit"
                         }
                     }
                 }

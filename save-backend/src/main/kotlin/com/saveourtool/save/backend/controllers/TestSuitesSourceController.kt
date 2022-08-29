@@ -311,6 +311,50 @@ class TestSuitesSourceController(
                 SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
                 SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
                 SourceSaveStatus.NEW -> Mono.just(ResponseEntity.ok(SourceSaveStatus.NEW))
+                else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
+            }
+        }
+
+    @PostMapping("/api/$v1/test-suites-sources/update")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Get or create a new test suite source by provided values.",
+        description = "Get or create a new test suite source by provided values.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
+    @ApiResponse(responseCode = "404", description = "Either git credentials were not found by provided url or organization was not found by provided name.")
+    @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
+    fun update(
+        @RequestParam("id") id: Long,
+        @RequestBody dtoToUpdate: TestSuitesSourceDto
+    ): Mono<SourceSaveStatusResponse> = getTestSuitesSource(id)
+        .switchIfToResponseException({ organization.name != dtoToUpdate.organizationName }, HttpStatus.CONFLICT) {
+            "Organization cannot be changed in TestSuitesSource"
+        }
+        .switchIfToResponseException({ git.url == dtoToUpdate.gitDto.url }, HttpStatus.CONFLICT) {
+            "Git cannot be changed in TestSuitesSource"
+        }
+        .map { originalEntity ->
+            originalEntity.name to originalEntity.apply {
+                name = dtoToUpdate.name
+                description = dtoToUpdate.description
+                testRootPath = dtoToUpdate.testRootPath
+                latestFetchedVersion = dtoToUpdate.latestFetchedVersion
+            }
+        }
+        .flatMap { (originalName, updatedEntity) ->
+            when (testSuitesSourceService.update(updatedEntity)) {
+                SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
+                SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
+                SourceSaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
+                    .map { it.copy(testSuitesSourceName = originalName) to it }
+                    .flatMap { (sourceKey, targeKey) ->
+                        testSuitesSourceSnapshotStorage.move(sourceKey, targeKey)
+                    }
+                    .then(Mono.just(ResponseEntity.ok(SourceSaveStatus.UPDATED)))
+                else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
 
@@ -431,6 +475,11 @@ class TestSuitesSourceController(
                 .switchIfEmptyToNotFound {
                     "TestSuitesSource not found by name $name for organization $organizationName"
                 }
+
+    private fun getTestSuitesSource(id: Long): Mono<TestSuitesSource> =
+            blockingToMono {
+                testSuitesSourceService.findById(id)
+            }
 
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader

@@ -517,6 +517,27 @@
             }
           },
           {
+            "name": "mode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BY_BRANCH",
+                "BY_COMMIT",
+                "BY_TAG"
+              ]
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "X-Authorization-Source",
             "in": "header",
             "required": true,
@@ -540,6 +561,114 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites-sources/update": {
+      "post": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get or create a new test suite source by provided values.",
+        "description": "Get or create a new test suite source by provided values.",
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestSuitesSourceDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully get or create test suites source with requested values.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW",
+                    "UPDATED"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either git credentials were not found by provided url or organization was not found by provided name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW",
+                    "UPDATED"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Test suite name is already taken.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW",
+                    "UPDATED"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW",
+                    "UPDATED"
+                  ]
                 }
               }
             }
@@ -588,7 +717,8 @@
                   "enum": [
                     "CONFLICT",
                     "EXIST",
-                    "NEW"
+                    "NEW",
+                    "UPDATED"
                   ]
                 }
               }
@@ -603,7 +733,8 @@
                   "enum": [
                     "CONFLICT",
                     "EXIST",
-                    "NEW"
+                    "NEW",
+                    "UPDATED"
                   ]
                 }
               }
@@ -618,7 +749,8 @@
                   "enum": [
                     "CONFLICT",
                     "EXIST",
-                    "NEW"
+                    "NEW",
+                    "UPDATED"
                   ]
                 }
               }
@@ -633,7 +765,8 @@
                   "enum": [
                     "CONFLICT",
                     "EXIST",
-                    "NEW"
+                    "NEW",
+                    "UPDATED"
                   ]
                 }
               }
