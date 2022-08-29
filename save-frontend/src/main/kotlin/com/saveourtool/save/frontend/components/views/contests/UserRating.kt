@@ -88,7 +88,6 @@ fun userRating() = FC<UserRatingProps> { props ->
                         // FixMe: new view on this link
                         href = ""
                         +"View more "
-                        fontAwesomeIcon(faArrowRight)
                     }
                 }
             }
@@ -103,23 +102,33 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
             div {
                 className = ClassName("col-lg-2")
                 h3 {
+                    className = ClassName("text-info")
                     +(i + 1).toString()
                 }
             }
 
             div {
-                className = ClassName("col-lg-10")
+                className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     ReactHTML.strong {
                         className = ClassName("d-block text-gray-dark")
                         +project.name
                     }
-                    +(project.description ?: "")
-
-                    div {
-                        className = ClassName("navbar-landing mt-3")
+                    +("${project.description?.take(20)?: ""}... " )
+                    a {
+                        href = "#/${project.url}"
+                        fontAwesomeIcon(faArrowRight)
                     }
+
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
                 }
             }
         }
@@ -133,23 +142,32 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
             div {
                 className = ClassName("col-lg-2")
                 h3 {
+                    className = ClassName("text-info")
                     +(i + 1).toString()
                 }
             }
 
             div {
-                className = ClassName("col-lg-10")
+                className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     ReactHTML.strong {
                         className = ClassName("d-block text-gray-dark")
                         +organization.name
                     }
-                    +(organization.description ?: "")
-
-                    div {
-                        className = ClassName("navbar-landing mt-3")
+                    +("${organization.description?.take(20) ?: ""}... ")
+                    a {
+                        href = "#/${organization.name}"
+                        fontAwesomeIcon(faArrowRight)
                     }
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
                 }
             }
         }
