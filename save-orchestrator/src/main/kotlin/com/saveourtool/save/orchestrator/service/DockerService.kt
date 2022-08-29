@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
@@ -125,14 +124,14 @@ class DockerService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
-        try {
-            agentIds.all { agentId ->
-                agentRunner.stopByAgentId(agentId)
+            try {
+                agentIds.all { agentId ->
+                    agentRunner.stopByAgentId(agentId)
+                }
+            } catch (e: AgentRunnerException) {
+                log.error("Error while stopping agents $agentIds", e)
+                false
             }
-        } catch (e: AgentRunnerException) {
-            log.error("Error while stopping agents $agentIds", e)
-            false
-        }
 
     /**
      * Check whether the agent agentId is stopped
