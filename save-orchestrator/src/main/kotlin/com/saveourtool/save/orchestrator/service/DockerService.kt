@@ -40,9 +40,6 @@ class DockerService(
     private val agentRunner: AgentRunner,
     private val agentService: AgentService,
 ) {
-    @Suppress("NonBooleanPropertyPrefixedWithIs")
-    private val isAgentStoppingInProgress = AtomicBoolean(false)
-
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
@@ -128,21 +125,14 @@ class DockerService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-                try {
-                    agentIds.all { agentId ->
-                        agentRunner.stopByAgentId(agentId)
-                    }
-                } catch (e: AgentRunnerException) {
-                    log.error("Error while stopping agents $agentIds", e)
-                    false
-                } finally {
-                    isAgentStoppingInProgress.lazySet(false)
-                }
-            } else {
-                log.info("Agents stopping is already in progress, skipping")
-                false
+        try {
+            agentIds.all { agentId ->
+                agentRunner.stopByAgentId(agentId)
             }
+        } catch (e: AgentRunnerException) {
+            log.error("Error while stopping agents $agentIds", e)
+            false
+        }
 
     /**
      * Check whether the agent agentId is stopped
@@ -151,24 +141,6 @@ class DockerService(
      * @return true if agent is stopped
      */
     fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
-
-    /**
-     * @param executionId
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stop(executionId: Long): Boolean {
-        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
-        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-            try {
-                agentRunner.stop(executionId)
-                true
-            } finally {
-                isAgentStoppingInProgress.lazySet(false)
-            }
-        } else {
-            false
-        }
-    }
 
     /**
      * @param executionId ID of execution

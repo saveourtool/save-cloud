@@ -7,6 +7,7 @@ prometheus-job: {{ .service.imageName }}
 
 {{- define "pod.common.labels" }}
 io.kompose.service: {{ .service.name }}
+version: {{ .Values.dockerTag }}
 {{- end }}
 
 {{- define "pod.common.annotations" }}

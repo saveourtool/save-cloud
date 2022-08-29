@@ -174,6 +174,19 @@ class KubernetesManager(
         this.args = listOf(agentRunCmd.last())
 
         this.workingDir = workingDir
+
+        resources = with(configProperties.kubernetes!!) {
+            ResourceRequirements().apply {
+                requests = mapOf(
+                    "cpu" to Quantity(agentCpuRequests),
+                    "memory" to Quantity(agentMemoryRequests),
+                )
+                limits = mapOf(
+                    "cpu" to Quantity(agentCpuLimits),
+                    "memory" to Quantity(agentMemoryLimits),
+                )
+            }
+        }
     }
 
     private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
