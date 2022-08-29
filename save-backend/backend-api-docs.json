@@ -7206,6 +7206,9 @@
           },
           "testRootPath": {
             "type": "string"
+          },
+          "latestFetchedVersion": {
+            "type": "string"
           }
         }
       },
