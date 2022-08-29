@@ -26,10 +26,20 @@ data class ContestDto(
     val description: String?,
     val organizationName: String,
     val testSuiteIds: List<Long>,
+    @Contextual
+    val creationTime: LocalDateTime?,
 ) : Validatable {
     override fun validate(): Boolean = name.isValidName()
 
     companion object {
-        val empty = ContestDto("", null, null, null, "", emptyList())
+        val empty = ContestDto(
+            "",
+            null,
+            null,
+            null,
+            "",
+            emptyList(),
+            null,
+        )
     }
 }

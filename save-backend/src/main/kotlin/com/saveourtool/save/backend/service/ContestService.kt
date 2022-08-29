@@ -3,8 +3,10 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,6 +26,12 @@ class ContestService(
      * @return contest by id
      */
     fun findById(contestId: Long): Optional<Contest> = contestRepository.findById(contestId)
+
+    /**
+     * @param contestIds
+     * @return [Contest]s with ids from [contestIds]
+     */
+    fun findByIdIn(contestIds: Set<Long>): List<Contest> = contestRepository.findByIdIn(contestIds)
 
     /**
      * @param name name of contest
@@ -91,9 +99,29 @@ class ContestService(
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun createContestIfNotPresent(newContest: Contest): Boolean =
             if (contestRepository.findByName(newContest.name).isEmpty) {
-                contestRepository.save(newContest)
+                contestRepository.save(newContest.apply {  })
                 true
             } else {
                 false
             }
+
+    @Transactional
+    @Suppress("AVOID_NULL_CHECKS")
+    fun addOrDeleteFeaturedContest(contest: Contest): Long? = contest.requiredId().let { contestId ->
+        if (contestRepository.findFeaturedContestById(contestId) == null) {
+            contestRepository.saveFeaturedContest(contestId)
+            contestId
+        } else {
+            contestRepository.deleteFeaturedContestById(contestId)
+            null
+        }
+    }
+
+    fun getFeaturedContests(): List<Contest> = findByIdIn(contestRepository.findFeaturedContestIds())
+
+    fun getNewestContests(pageSize: Int): List<Contest> = contestRepository.findByStatusNotAndEndTimeAfterOrderByCreationTimeDesc(
+        ContestStatus.DELETED,
+        LocalDateTime.now(),
+        PageRequest.ofSize(pageSize),
+    )
 }
