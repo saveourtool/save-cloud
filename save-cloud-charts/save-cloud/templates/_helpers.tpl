@@ -1,13 +1,13 @@
 {{- define "common.labels" -}}
 io.kompose.service: {{ .service.name }}
-version: {{ .Values.dockerTag }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
 prometheus-job: {{ .service.imageName }}
 {{- end }}
 
 {{- define "pod.common.labels" }}
 io.kompose.service: {{ .service.name }}
-version: {{ .Values.dockerTag }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 {{- end }}
 
 {{- define "pod.common.annotations" }}
