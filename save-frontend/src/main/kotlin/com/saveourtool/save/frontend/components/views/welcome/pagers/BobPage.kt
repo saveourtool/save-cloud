@@ -22,12 +22,11 @@ object BobPager : WelcomePager {
     }
 
     private fun ChildrenBuilder.renderAnimatedPage() {
-        // FixMe: input contests here
-/*        img {
+        img {
             style = jso {
                 width = "60%".unsafeCast<Width>()
             }
-            src = "img/save-logo-no-bg.png"
-        }*/
+            // FixMe: input contests here
+        }
     }
 }

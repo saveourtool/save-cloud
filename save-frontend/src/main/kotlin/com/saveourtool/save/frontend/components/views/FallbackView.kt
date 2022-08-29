@@ -8,12 +8,11 @@ import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 
 import kotlinx.browser.window
-import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h3
 
 /**
  * Props of fallback component
@@ -58,7 +57,8 @@ class FallbackView : AbstractView<FallbackViewProps, State>(false) {
                 +"${props.smallText}"
             }
             if (props.withRouterLink == true) {
-                Link { to = "/"
+                Link {
+                    to = "/"
                     h3 {
                         +"← Back to the main page"
                     }

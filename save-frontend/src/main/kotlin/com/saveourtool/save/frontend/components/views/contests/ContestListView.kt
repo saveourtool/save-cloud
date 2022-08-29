@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
@@ -23,7 +22,6 @@ import com.saveourtool.save.utils.getCurrentLocalDateTime
 
 import csstype.ClassName
 import csstype.rem
-import kotlinx.browser.window
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div

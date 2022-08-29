@@ -5,25 +5,24 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-
-import kotlinx.js.jso
-import react.ChildrenBuilder
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
+
+import kotlinx.js.jso
+
+const val NUMBER_OF_CHARACTERS_TRIMMED = 20
 
 val userRatingFc = userRating()
 
@@ -38,7 +37,16 @@ enum class UserRatingTab {
  * properties for rating fc
  */
 external interface UserRatingProps : Props {
+    /**
+     * all projects that are registered in SAVE.
+     * FixMe: only TOP PUBLIC projects will be used here in future
+     */
     var projects: Set<Project>
+
+    /**
+     * all organizations that are registered in SAVE.
+     * FixMe: only TOP PUBLIC organizations will be used here in future
+     */
     var organizations: Set<Organization>
 
     /**
@@ -50,6 +58,84 @@ external interface UserRatingProps : Props {
      * callback that will be passed into this fc from the view
      */
     var updateTabState: (String) -> Unit
+}
+
+private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
+    projects.forEachIndexed { i, project ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    ReactHTML.strong {
+                        className = ClassName("d-block text-gray-dark")
+                        +project.name
+                    }
+                    +("${project.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
+                    a {
+                        href = "#/${project.url}"
+                        fontAwesomeIcon(faArrowRight)
+                    }
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
+    organizations.forEachIndexed { i, organization ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    ReactHTML.strong {
+                        className = ClassName("d-block text-gray-dark")
+                        +organization.name
+                    }
+                    +("${organization.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
+                    a {
+                        href = "#/${organization.name}"
+                        fontAwesomeIcon(faArrowRight)
+                    }
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -89,85 +175,6 @@ fun userRating() = FC<UserRatingProps> { props ->
                         href = ""
                         +"View more "
                     }
-                }
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
-    projects.forEachIndexed { i, project ->
-        div {
-            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
-            div {
-                className = ClassName("col-lg-2")
-                h3 {
-                    className = ClassName("text-info")
-                    +(i + 1).toString()
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                p {
-                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
-                        className = ClassName("d-block text-gray-dark")
-                        +project.name
-                    }
-                    +("${project.description?.take(20)?: ""}... " )
-                    a {
-                        href = "#/${project.url}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
-
-                }
-            }
-
-            // FixMe: add rating after kirill's changes
-            div {
-                className = ClassName("col-lg-4")
-                p {
-                    +"4560"
-                }
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
-    organizations.forEachIndexed { i, organization ->
-        div {
-            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
-            div {
-                className = ClassName("col-lg-2")
-                h3 {
-                    className = ClassName("text-info")
-                    +(i + 1).toString()
-                }
-            }
-
-            div {
-                className = ClassName("col-lg-6")
-                p {
-                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
-                        className = ClassName("d-block text-gray-dark")
-                        +organization.name
-                    }
-                    +("${organization.description?.take(20) ?: ""}... ")
-                    a {
-                        href = "#/${organization.name}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
-                }
-            }
-
-            // FixMe: add rating after kirill's changes
-            div {
-                className = ClassName("col-lg-4")
-                p {
-                    +"4560"
                 }
             }
         }
