@@ -8,8 +8,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * @param status
@@ -47,3 +49,18 @@ fun <T> Mono<T>.lazyDefaultIfEmpty(lazyValue: () -> T): Mono<T> = switchIfEmpty 
  * @return [Mono] with [other] as value which will be returned after [Flux] receiver
  */
 fun <T : Any> Flux<*>.thenJust(other: T): Mono<T> = then(Mono.just(other))
+
+/**
+ * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
+ *
+ * @param supplier blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [T]
+ */
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
+    .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * @param supplier blocking operation like JDBC
+ * @return [Flux] from result of blocking operation [List] of [T]
+ */
+fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }

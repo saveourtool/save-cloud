@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.useWindowOpenness
+import com.saveourtool.save.frontend.utils.withUnusedArg
 
 import csstype.ClassName
 import react.*
@@ -189,9 +190,7 @@ private fun ChildrenBuilder.renderForContestMode(
             button {
                 className = ClassName("d-flex justify-content-center btn btn-primary")
                 +"Enroll for a contest"
-                onClick = {
-                    contestEnrollerWindowOpenness.openWindow()
-                }
+                onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
             }
         }
     }

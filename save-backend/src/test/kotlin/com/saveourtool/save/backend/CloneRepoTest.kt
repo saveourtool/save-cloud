@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
+import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.FileStorage
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
@@ -42,13 +43,11 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.scheduler.Schedulers
 import java.nio.file.Path
 
@@ -78,6 +77,9 @@ class CloneRepoTest {
     private lateinit var gitRepository: GitRepository
 
     @Autowired
+    private lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
+
+    @Autowired
     private lateinit var testSuitesSourceService: TestSuitesSourceService
 
     @Autowired
@@ -103,12 +105,8 @@ class CloneRepoTest {
             .first { it.name == "huaweiName" }
         git = gitRepository.findAllByOrganizationId(project.organization.requiredId())
             .first { it.url == "github" }
-        testSuitesSource = testSuitesSourceService.getOrCreate(
-            project.organization,
-            git,
-            "",
-            "master",
-        )
+        testSuitesSource = testSuitesSourceRepository.findAllByGit(git)
+            .first { it.organization == project.organization }
 
         binFile = tmpDir.resolve("binFile").apply {
             createFile()
@@ -195,23 +193,22 @@ class CloneRepoTest {
                 .setBody("Clone pending")
                 .addHeader("Content-Type", "application/json")
         )
-        val executionRequest = ExecutionRequest(
-            project,
-            testSuitesSource.git.toDto(),
-            "origin/${testSuitesSource.branch}",
-            executionId = null,
+        val runExecutionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = project.organization.name,
+                projectName = project.name,
+            ),
+            testSuiteIds = listOf(1L, 2L),
+            files = emptyList(),
             sdk = sdk,
-            testRootPath = testSuitesSource.testRootPath
+            execCmd = null,
+            batchSizeForAnalyzer = null,
         )
 
-        val multipart = MultipartBodyBuilder().apply {
-            part("executionRequest", executionRequest)
-        }
-            .build()
         webClient.post()
-            .uri("/api/$v1/submitExecutionRequest")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(multipart))
+            .uri("/api/$v1/run/trigger")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(runExecutionRequest)
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.ACCEPTED)
@@ -241,63 +238,27 @@ class CloneRepoTest {
 
         val sdk = Jdk("11")
         val organization = organizationRepository.getOrganizationById(1)
-        val project = Project.stub(null, organization)
-        val gitRepo = GitDto("1")
-        val executionRequest = ExecutionRequest(project, gitRepo, "origin/main", executionId = null, sdk = sdk, testRootPath = ".")
-        val executionsClones = listOf(executionRequest, executionRequest, executionRequest)
-        // fixme: why is it repeated 3 times?
-        val multiparts = executionsClones.map {
-            MultipartBodyBuilder().apply {
-                part("executionRequest", it)
-            }
-                .build()
-        }
-        multiparts.forEach {
-            webClient.post()
-                .uri("/api/$v1/submitExecutionRequest")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(it))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.NOT_FOUND)
-        }
-    }
-
-    @Test
-    @WithMockUser(username = "admin")
-    fun checkNewJobResponseForBin() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
-        val sdk = Jdk("8")
-        val request = ExecutionRequestForStandardSuites(project, listOf("standard"), sdk, null, null, null)
-        val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("execution", request)
-        bodyBuilder.part("file", propertyFile.toFileInfo())
-        bodyBuilder.part("file", binFile.toFileInfo())
-
-        mockServerOrchestrator.enqueue(
-            "/initializeAgents",
-            MockResponse()
-                .setResponseCode(202)
-                .setBody("Clone pending")
-                .addHeader("Content-Type", "application/json")
+        val runExecutionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = organization.name,
+                projectName = "INVALID",
+            ),
+            testSuiteIds = listOf(1L, 2L, 3L),
+            files = listOf(
+                propertyFile.toFileInfo().toStorageKey(),
+                binFile.toFileInfo().toStorageKey(),
+            ),
+            sdk = sdk,
+            execCmd = null,
+            batchSizeForAnalyzer = null,
         )
-
         webClient.post()
-            .uri("/api/$v1/executionRequestStandardTests")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+            .uri("/api/$v1/run/trigger")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(runExecutionRequest)
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.ACCEPTED)
-            .expectBody<String>()
-            .consumeWith { result ->
-                Assertions.assertNotNull(result.responseBody)
-                result.responseBody?.run {
-                    Assertions.assertTrue(startsWith("Clone pending, execution id is"))
-                }
-            }
+            .isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     companion object {

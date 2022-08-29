@@ -20,7 +20,6 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.toOrganization
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1

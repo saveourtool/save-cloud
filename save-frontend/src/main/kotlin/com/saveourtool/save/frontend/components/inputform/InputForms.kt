@@ -36,6 +36,7 @@ enum class InputTypes(
     DESCRIPTION("description", null, "description"),
 
     // ==== new project view
+    // TODO: need to removed or move to new modal window
     GIT_BRANCH("git branch", null, placeholder = "leave empty if you would like to use default branch"),
     GIT_TOKEN("git token", null, "token"),
     GIT_URL("git url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),

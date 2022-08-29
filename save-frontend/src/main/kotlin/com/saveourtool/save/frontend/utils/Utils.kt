@@ -103,3 +103,8 @@ internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
+
+/**
+ * @return lambda which does the same as receiver but takes unused arg
+ */
+fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }

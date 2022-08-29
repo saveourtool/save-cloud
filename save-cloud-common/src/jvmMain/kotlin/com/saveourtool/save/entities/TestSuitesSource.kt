@@ -5,18 +5,12 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @param organization which this test suites source belongs to
- * @param name unique name of [TestSuitesSource]
- * @param description free text
- * @param git git credentials for this test suites source
- * @param branch branch which is used for this test suites source
- * @param testRootPath relative path to tests in source
- * @property organization
- * @property name
- * @property description
- * @property git
- * @property branch
- * @property testRootPath
+ * @property organization which this test suites source belongs to
+ * @property name unique name of [TestSuitesSource]
+ * @property description free text
+ * @property git git credentials for this test suites source
+ * @property branch branch which is used for this test suites source
+ * @property testRootPath relative path to tests in source
  * @property latestFetchedVersion
  */
 @Entity

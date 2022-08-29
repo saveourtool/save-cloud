@@ -8,13 +8,9 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestBase
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.v1
@@ -37,7 +33,6 @@ import okio.Path.Companion.toPath
 import java.io.File
 import java.time.LocalDateTime
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
@@ -101,60 +96,17 @@ suspend fun HttpClient.uploadAdditionalFile(
 }.body()
 
 /**
- * @return list of existing standard test suites
- */
-suspend fun HttpClient.getStandardTestSuites(
-): List<TestSuiteDto> = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/allStandardTestSuites"
-).body()
-
-/**
- * Submit execution, according [executionType] with list of [additionalFiles]
+ * Submit execution
  *
- * @param executionType type of requested execution git/standard
- * @param executionRequest execution request
- * @param additionalFiles list of additional files for execution
+ * @param runExecutionRequest execution request
  * @return HttpResponse
  */
-@OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(executionType: TestingType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
-    val endpoint = if (executionType == TestingType.PRIVATE_TESTS) {
-        "/api/$v1/submitExecutionRequest"
-    } else {
-        "/api/$v1/executionRequestStandardTests"
-    }
-    return this.post {
-        url("${Backend.url}$endpoint")
-        header("X-Authorization-Source", UserInformation.source)
-        val formDataHeaders = Headers.build {
-            append(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-        setBody(MultiPartFormDataContent(formData {
-            if (executionType == TestingType.PRIVATE_TESTS) {
-                append(
-                    "executionRequest",
-                    json.encodeToString(executionRequest as ExecutionRequest),
-                    formDataHeaders
-                )
-            } else {
-                append(
-                    "execution",
-                    json.encodeToString(executionRequest as ExecutionRequestForStandardSuites),
-                    formDataHeaders
-                )
-            }
-            additionalFiles?.forEach { shortFileInfo ->
-                append(
-                    "file",
-                    json.encodeToString(shortFileInfo),
-                    Headers.build {
-                        append(HttpHeaders.ContentType, ContentType.Application.Json)
-                    }
-                )
-            }
-        }))
-    }
+suspend fun HttpClient.submitExecution(runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
+    url("${Backend.url}/api/$v1/run/trigger")
+    header("X-Authorization-Source", UserInformation.source)
+    header(HttpHeaders.ContentType, ContentType.Application.Json)
+    setBody(runExecutionRequest)
 }
 
 /**

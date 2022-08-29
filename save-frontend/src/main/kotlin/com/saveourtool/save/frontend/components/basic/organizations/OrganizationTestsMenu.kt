@@ -49,7 +49,7 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
-    val (isTestSuiteSourceCreationModalOpen, setIsTestSuitesSourceCreationModalOpen) = useState(false)
+    val testSuitesSourceCreationWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
     val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
@@ -113,16 +113,16 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
 
     showTestSuiteSourceCreationModal(
-        isTestSuiteSourceCreationModalOpen,
+        testSuitesSourceCreationWindowOpenness.isOpen(),
         props.organizationName,
         { source ->
-            setIsTestSuitesSourceCreationModalOpen(false)
+            testSuitesSourceCreationWindowOpenness.closeWindow()
             setTestSuiteSourceToFetch(source)
             triggerFetchTestSuiteSource()
             setIsSourceCreated { !it }
         },
     ) {
-        setIsTestSuitesSourceCreationModalOpen(false)
+        testSuitesSourceCreationWindowOpenness.closeWindow()
     }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
@@ -130,9 +130,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             type = ButtonType.button
             className = ClassName("btn btn-sm btn-primary")
             disabled = !props.selfRole.hasWritePermission()
-            onClick = {
-                setIsTestSuitesSourceCreationModalOpen(true)
-            }
+            onClick = testSuitesSourceCreationWindowOpenness.openWindowAction().withUnusedArg()
             +"+ Create test suites source"
         }
     }
@@ -173,7 +171,6 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "MAGIC_NUMBER",
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
-    "LongMethod"
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
@@ -217,6 +214,7 @@ private fun prepareTestSuitesSourcesTable(
                         selectHandler(cellProps.value)
                     }
                     a {
+                        // TODO: need to detect a default branch here
                         href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
                         +"source"
                     }
