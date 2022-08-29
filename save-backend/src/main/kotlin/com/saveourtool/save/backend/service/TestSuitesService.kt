@@ -17,9 +17,7 @@ import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -57,15 +55,16 @@ class TestSuitesService(
                 // We allow description of existing test suites to be changed.
                 it.copy(description = null)
             }
-            .map {
+            .map { dto ->
                 TestSuite(
-                    name = it.name,
-                    description = it.description,
-                    source = testSuitesSourceService.getByName(it.source.organizationName, it.source.name),
-                    version = it.version,
+                    name = dto.name,
+                    description = dto.description,
+                    source = testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
+                    version = dto.version,
                     dateAdded = null,
-                    language = it.language,
-                    tags = it.tags?.let(TestSuite::tagsFromList),
+                    language = dto.language,
+                    tags = dto.tags?.let(TestSuite::tagsFromList),
+                    plugins = TestSuite.pluginsByTypes(dto.plugins)
                 )
             }
             .map { testSuite ->
@@ -113,23 +112,32 @@ class TestSuitesService(
      * @param ids
      * @return List of [TestSuite] by [ids]
      */
-    fun findTestSuitesByIds(ids: List<Long>): Flux<TestSuite> = blockingToFlux {
-        ids.mapNotNull { id ->
-            testSuiteRepository.findByIdOrNull(id)
-        }
+    fun findTestSuitesByIds(ids: List<Long>): List<TestSuite> = ids.mapNotNull { id ->
+        testSuiteRepository.findByIdOrNull(id)
     }
 
     /**
+     * @param organizationName
+     * @return [List] of [TestSuite]s by [organizationName]
+     */
+    fun findTestSuitesByOrganizationName(organizationName: String): List<TestSuite> = testSuiteRepository.findBySourceOrganizationName(organizationName)
+
+    /**
+     * @return [List] of ALL [TestSuite]s
+     */
+    fun findAllTestSuites(): List<TestSuite> = testSuiteRepository.findAll()
+
+    /**
      * @param filters
-     * @return [Flux] of [TestSuite] that match [filters]
+     * @return [List] of [TestSuite] that match [filters]
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): List<TestSuite> =
             ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("description", "source", "version", "dateAdded")
+                .withIgnorePaths("description", "source", "version", "dateAdded", "plugins")
                 .let {
                     Example.of(
                         TestSuite(
@@ -145,7 +153,6 @@ class TestSuitesService(
                     )
                 }
                 .let { testSuiteRepository.findAll(it) }
-                .toFlux()
 
     /**
      * @param id

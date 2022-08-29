@@ -36,4 +36,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add-plugins" author="sanyavertolet">
+        <addColumn tableName="test_suite">
+            <column name="plugins" type="varchar(200)" defaultValue=""/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

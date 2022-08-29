@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.*
 import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.useTooltip
 
 import csstype.ClassName
 import react.*
@@ -41,9 +42,9 @@ external interface TestSuiteSelectorProps : Props {
     var specificOrganizationName: String?
 
     /**
-     * If this flag is true public tests will be shown
+     * Mode that defines what kind of test suites will be shown
      */
-    var isStandardMode: Boolean
+    var selectorPurpose: TestSuiteSelectorPurpose
 }
 
 /**
@@ -57,7 +58,22 @@ enum class TestSuiteSelectorMode {
 }
 
 /**
- * Browse standard test suites
+ * Enum that defines what type of test suites should be shown
+ */
+enum class TestSuiteSelectorPurpose {
+    CONTEST,
+    PRIVATE,
+    PUBLIC,
+
+    /**
+     * Will later be merged with PUBLIC
+     */
+    STANDARD,
+    ;
+}
+
+/**
+ * Browse standard test suites.
  *
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
@@ -70,7 +86,7 @@ fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, true, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.STANDARD, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
@@ -87,11 +103,11 @@ fun ChildrenBuilder.showGeneralTestSuitesSelectorModal(
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, false, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
- * Browse test suites of a given organization
+ * Browse test suites of a given organization.
  *
  * @param organizationName
  * @param initTestSuiteIds initial value
@@ -106,13 +122,30 @@ fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
     setSelectedTestSuiteIds: (List<Long>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(organizationName, false, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(organizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * Browse test suites for a contest.
+ *
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showContestTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     specificOrganizationName: String?,
-    isStandardMode: Boolean,
+    selectorPurpose: TestSuiteSelectorPurpose,
     initTestSuiteIds: List<Long>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
@@ -130,7 +163,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
         currentlySelectedTestSuiteIds = initTestSuiteIds
         windowOpenness.closeWindow()
     }
-    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, isStandardMode, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, selectorPurpose, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
 }
 
 @Suppress(
@@ -142,7 +175,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
     specificOrganizationName: String?,
-    isStandardMode: Boolean,
+    selectorPurpose: TestSuiteSelectorPurpose,
     preselectedTestSuiteIds: List<Long>,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<Long>) -> Unit,
@@ -179,7 +212,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                         this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuiteIds = preselectedTestSuiteIds
                         this.specificOrganizationName = specificOrganizationName
-                        this.isStandardMode = isStandardMode
+                        this.selectorPurpose = selectorPurpose
                     }
                 }
 
@@ -232,13 +265,8 @@ private fun ChildrenBuilder.buildButton(
         onClick = {
             onClickFun()
         }
-
-        val jquery = kotlinext.js.require("jquery")
-        kotlinext.js.require("popper.js")
-        kotlinext.js.require("bootstrap")
         asDynamic()["data-toggle"] = "tooltip"
         asDynamic()["data-placement"] = "bottom"
-        jquery("[data-toggle=\"tooltip\"]").tooltip()
     }
 }
 
@@ -254,20 +282,25 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
         buildButton(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
         buildButton(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
+
+    useTooltip()
+
     when (currentMode) {
         TestSuiteSelectorMode.MANAGER -> testSuiteSelectorManagerMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.selectorPurpose = props.selectorPurpose
         }
         TestSuiteSelectorMode.BROWSER -> testSuiteSelectorBrowserMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
             this.specificOrganizationName = props.specificOrganizationName
-            this.isStandardMode = props.isStandardMode
+            this.selectorPurpose = props.selectorPurpose
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.selectorPurpose = props.selectorPurpose
         }
     }
 }

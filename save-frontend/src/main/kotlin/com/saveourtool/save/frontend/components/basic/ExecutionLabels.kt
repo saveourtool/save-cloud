@@ -129,14 +129,17 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
  * Function that renders Project version label, execution statistics label, pass rate label and rerun button.
  * Rerun button is rendered only if [onRerunExecution] is provided.
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
+ * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param innerClasses [ClassName]s that will be applied to each label
  * @param height height of label
  * @param onRerunExecution
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.displayExecutionInfoHeader(
     executionDto: ExecutionDto?,
+    isContest: Boolean,
     classes: String = "",
     innerClasses: String = "col flex-wrap m-2",
     height: String = "h-100",
@@ -145,29 +148,32 @@ fun ChildrenBuilder.displayExecutionInfoHeader(
     val relativeWidth = onRerunExecution?.let { "min-vw-25" } ?: "min-vw-33"
     div {
         className = ClassName(classes)
-        displayProjectVersion(executionDto, "$relativeWidth $innerClasses", height)
-        displayPassRate(executionDto, "$relativeWidth $innerClasses", height)
-        displayStatistics(executionDto, "$relativeWidth $innerClasses", height)
-        displayRerunExecutionButton(executionDto, "$relativeWidth $innerClasses", height, onRerunExecution)
+        displayProjectVersion(executionDto, isContest, "$relativeWidth $innerClasses", height)
+        displayPassRate(executionDto, isContest, "$relativeWidth $innerClasses", height)
+        displayStatistics(executionDto, isContest, "$relativeWidth $innerClasses", height)
+        displayRerunExecutionButton(executionDto, isContest, "$relativeWidth $innerClasses", height, onRerunExecution)
     }
 }
 
 /**
  * Function that renders Rerun execution button
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
+ * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  * @param onRerunExecution onClick callback
  */
 fun ChildrenBuilder.displayRerunExecutionButton(
     executionDto: ExecutionDto?,
+    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
     onRerunExecution: ((MouseEvent<HTMLAnchorElement, *>) -> Unit)?,
 ) {
     onRerunExecution?.let {
         val borderColor = when {
+            !isContest -> "info"
             executionDto == null -> "secondary"
             executionDto.status == ExecutionStatus.ERROR || executionDto.failedTests != 0L -> "danger"
             executionDto.status == ExecutionStatus.RUNNING || executionDto.status == ExecutionStatus.PENDING -> "info"
@@ -198,16 +204,19 @@ fun ChildrenBuilder.displayRerunExecutionButton(
 /**
  * Function that renders label with project version
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
+ * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  */
 fun ChildrenBuilder.displayProjectVersion(
     executionDto: ExecutionDto?,
+    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
 ) {
     val statusColor = when {
+        !isContest -> "bg-info"
         executionDto == null -> "bg-secondary"
         executionDto.status == ExecutionStatus.ERROR || executionDto.failedTests != 0L -> "bg-danger"
         executionDto.status == ExecutionStatus.RUNNING || executionDto.status == ExecutionStatus.PENDING -> "bg-info"
@@ -233,7 +242,7 @@ fun ChildrenBuilder.displayProjectVersion(
 /**
  * A function that displays a GIF if tests not found
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
  */
 fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
     val count = executionDto?.allTests
@@ -266,21 +275,28 @@ fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
 /**
  * Function that renders pass rate label
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
+ * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  */
 @Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION")
 fun ChildrenBuilder.displayPassRate(
     executionDto: ExecutionDto?,
+    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
 ) {
     val values = ExecutionStatisticsValues(executionDto)
     div {
         className = ClassName(classes)
+        val styles = if (isContest) {
+            values.style
+        } else {
+            "info"
+        }
         div {
-            className = ClassName("card border-left-${values.style} shadow $height py-2")
+            className = ClassName("card border-left-$styles shadow $height py-2")
             div {
                 className = ClassName("card-body")
                 div {
@@ -333,13 +349,15 @@ fun ChildrenBuilder.displayPassRate(
 /**
  * Function that renders execution statistics label
  *
- * @param executionDto
+ * @param executionDto execution that should be used as data source
+ * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.displayStatistics(
     executionDto: ExecutionDto?,
+    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
 ) {

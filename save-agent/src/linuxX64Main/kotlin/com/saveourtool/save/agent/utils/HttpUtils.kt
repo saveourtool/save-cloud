@@ -6,22 +6,29 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
+import com.saveourtool.save.core.logging.logWarn
+import com.saveourtool.save.core.utils.runIf
 import io.ktor.client.*
 import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 
 /**
  * @param result
  * @return true if [this] agent's state has been updated to reflect problems with [result]
  */
+@Suppress("FUNCTION_BOOLEAN_PREFIX")
 internal fun SaveAgent.updateStateBasedOnBackendResponse(
     result: Result<HttpResponse>
-) = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
+): Boolean = if (result.notOk()) {
     state.value = AgentState.BACKEND_FAILURE
     true
 } else if (result.isFailure) {
+    if (result.exceptionOrNull() is CancellationException) {
+        logWarn("Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state")
+    }
     state.value = AgentState.BACKEND_UNREACHABLE
     true
 } else {
@@ -36,8 +43,8 @@ internal fun SaveAgent.updateStateBasedOnBackendResponse(
  */
 internal suspend fun SaveAgent.sendDataToBackend(
     requestToBackend: suspend () -> HttpResponse
-): Result<HttpResponse> = runCatching { requestToBackend() }.apply {
-    val reason = if (isSuccess && getOrNull()?.status != HttpStatusCode.OK) {
+): Result<HttpResponse> = runCatching { requestToBackend() }.runIf({ failureOrNotOk() }) {
+    val reason = if (notOk()) {
         state.value = AgentState.BACKEND_FAILURE
         "Backend returned status ${getOrNull()?.status}"
     } else {
@@ -45,6 +52,7 @@ internal suspend fun SaveAgent.sendDataToBackend(
         "Backend is unreachable, ${exceptionOrNull()?.message}"
     }
     logErrorCustom("Cannot send data to backed: $reason")
+    this
 }
 
 /**
@@ -63,3 +71,7 @@ internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpRe
         body?.let { setBody(it) }
     }
 }
+
+private fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
+
+private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()

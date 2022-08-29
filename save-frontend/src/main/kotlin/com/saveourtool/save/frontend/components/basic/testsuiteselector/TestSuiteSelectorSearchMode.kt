@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -39,6 +40,11 @@ external interface TestSuiteSelectorSearchModeProps : Props {
      * Callback invoked when test suite is being removed
      */
     var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+
+    /**
+     * Mode that defines what kind of test suites will be shown
+     */
+    var selectorPurpose: TestSuiteSelectorPurpose
 }
 
 private fun ChildrenBuilder.buildInput(
@@ -59,9 +65,14 @@ private fun ChildrenBuilder.buildInput(
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(isDeferred = false) {
+    useRequest {
+        val contestFlag = if (props.selectorPurpose == CONTEST) {
+            "?isContest=true"
+        } else {
+            ""
+        }
         val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids",
+            url = "$apiUrl/test-suites/get-by-ids$contestFlag",
             headers = jsonHeaders,
             body = Json.encodeToString(props.preselectedTestSuiteIds),
             loadingHandler = ::loadingHandler,
@@ -69,15 +80,16 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         )
             .decodeFromJsonString()
         setSelectedTestSuites(testSuitesFromBackend)
-    }()
+    }
 
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
-        useRequest(dependencies = arrayOf(filters)) {
+        useDeferredRequest {
             if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
                     url = "$apiUrl/test-suites/filtered${
-                        filters.copy(language = encodeURIComponent(filters.language)).toQueryParams()
+                        filters.copy(language = encodeURIComponent(filters.language))
+                        .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
                     }",
                     headers = jsonHeaders,
                     loadingHandler = ::noopLoadingHandler,
@@ -111,7 +123,10 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         }
     }
 
-    showAvaliableTestSuites(filteredTestSuites, selectedTestSuites) { testSuite ->
+    showAvaliableTestSuites(
+        filteredTestSuites,
+        selectedTestSuites,
+    ) { testSuite ->
         setSelectedTestSuites { selectedTestSuites ->
             selectedTestSuites.toMutableList()
                 .apply {

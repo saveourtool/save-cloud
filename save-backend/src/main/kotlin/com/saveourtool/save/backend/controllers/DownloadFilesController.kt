@@ -25,6 +25,8 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -171,6 +173,41 @@ class DownloadFilesController(
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .build()
         )
+
+    @Operation(
+        method = "POST",
+        summary = "Download save-agent with current save-cloud version.",
+        description = "Download save-agent with current save-cloud version.",
+    )
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @ApiResponse(responseCode = "404", description = "File is not found.")
+    @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadSaveAgent(): Mono<out Resource> =
+            Mono.just(ClassPathResource("save-agent.kexe"))
+                .filter { it.exists() }
+                .switchIfEmptyToNotFound()
+
+    @Operation(
+        method = "POST",
+        summary = "Download save-cli by version.",
+        description = "Download save-cli by version.",
+    )
+    @Parameter(
+        name = "version",
+        `in` = ParameterIn.QUERY,
+        description = "version of save-cli",
+        required = true
+    )
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @PostMapping(path = ["/internal/files/download-save-cli"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadSaveCliByVersion(
+        @RequestParam version: String,
+    ): Mono<out Resource> =
+            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
+                .filter { it.exists() }
+                .switchIfEmptyToNotFound {
+                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+                }
 
     /**
      * @param file a file to be uploaded

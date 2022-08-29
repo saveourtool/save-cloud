@@ -14,12 +14,26 @@
     "/api/v1/updateStandardTestSuites": {
       "post": {
         "tags": [
-          "test-suites-controller"
+          "internal",
+          "superadmins",
+          "test-suites"
         ],
+        "summary": "Update standard test suites.",
+        "description": "Trigger update of standard test suites. Can be called only by super admins externally.",
         "operationId": "updateStandardTestSuites",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully updated standard test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -28,7 +42,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot": {
@@ -1033,9 +1052,23 @@
     "/api/v1/test-suites/get-by-ids": {
       "post": {
         "tags": [
-          "test-suites-controller"
+          "test-suites"
         ],
+        "summary": "Get test suites by ids.",
+        "description": "Get list of available test suites by their ids.",
         "operationId": "getTestSuitesByIds",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1052,7 +1085,20 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched test suites by ids.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1064,7 +1110,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/fetch": {
@@ -3091,12 +3142,27 @@
     "/api/v1/allStandardTestSuites": {
       "get": {
         "tags": [
-          "test-suites-controller"
+          "test-suites"
         ],
+        "summary": "Get standard test suites.",
+        "description": "Get list of standard TestSuiteDtos.",
         "operationId": "getAllStandardTestSuites",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched standard test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3108,7 +3174,13 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/organizations/{organizationName}/list-git": {
@@ -3790,44 +3862,42 @@
         ]
       }
     },
-    "/api/v1/test-suites/filtered": {
+    "/api/v1/test-suites/get-standard": {
       "get": {
         "tags": [
-          "test-suites-controller"
+          "test-suites"
         ],
-        "operationId": "getFilteredTestSuites",
+        "summary": "Get standard test suites.",
+        "description": "Get list of standard test suites.",
+        "operationId": "getStandardTestSuites",
         "parameters": [
           {
-            "name": "tags",
+            "name": "isContest",
             "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
             "required": false,
             "schema": {
-              "type": "string",
-              "default": ""
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": ""
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": ""
+              "type": "boolean",
+              "default": false
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Successfully fetched standard test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -3839,7 +3909,216 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/get-by-organization": {
+      "get": {
+        "tags": [
+          "test-suites"
+        ],
+        "summary": "Get test suites by organization.",
+        "description": "Get list of available test suites posted by given organization.",
+        "operationId": "getTestSuitesByOrganizationName",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "query",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched test suites by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/filtered": {
+      "get": {
+        "tags": [
+          "test-suites"
+        ],
+        "summary": "Get test suites with filters.",
+        "description": "Get test suites with filters.",
+        "operationId": "getFilteredTestSuites",
+        "parameters": [
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "test suite tags substring for filtering, default is empty",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "test suite name substring for filtering, default is empty",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "test suite language substring for filtering, default is empty",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched filtered test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/available": {
+      "get": {
+        "tags": [
+          "test-suites"
+        ],
+        "summary": "Get public test suites.",
+        "description": "Get list of available test suites.",
+        "operationId": "getPublicTestSuites",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched public test suites.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
       }
     },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites": {
@@ -6873,6 +7152,7 @@
       "TestSuiteDto": {
         "required": [
           "name",
+          "plugins",
           "source",
           "version"
         ],
@@ -6902,6 +7182,18 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "plugins": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "FIX",
+                "GENERAL",
+                "WARN",
+                "FIX AND WARN"
+              ]
+            }
           }
         }
       },

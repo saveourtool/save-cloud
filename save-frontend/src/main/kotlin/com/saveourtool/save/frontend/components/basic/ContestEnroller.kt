@@ -157,7 +157,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
     })
 
     val (availableOptions, setAvailableOptions) = useState(emptyList<String>())
-    useRequest(isDeferred = false) {
+    useRequest {
         val availableVariants = get(
             if (isContestSelector) {
                 "$apiUrl/contests/$organizationName/$projectName/eligible-contests"
@@ -171,9 +171,9 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                 it.decodeFromJsonString<List<String>>()
             }
         setAvailableOptions(availableVariants)
-    }()
+    }
 
-    val enrollRequest = useRequest {
+    val enrollRequest = useDeferredRequest {
         val responseFromBackend = get(
             "$apiUrl/contests/$contestName/enroll?organizationName=$organizationName&projectName=$projectName",
             headers = Headers(),

@@ -363,7 +363,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun ChildrenBuilder.render() {
         div {
             div {
-                displayExecutionInfoHeader(state.executionDto, "row mb-2") { event ->
+                displayExecutionInfoHeader(state.executionDto, false, "row mb-2") { event ->
                     scope.launch {
                         val response = post(
                             "$apiUrl/run/re-trigger?executionId=${props.executionId}",
