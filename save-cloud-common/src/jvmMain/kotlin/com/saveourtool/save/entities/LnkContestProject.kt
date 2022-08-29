@@ -7,6 +7,8 @@ import javax.persistence.ManyToOne
 /**
  * @property project
  * @property contest
+ * @property bestExecution
+ * @property bestScore
  */
 @Entity
 class LnkContestProject(
@@ -17,6 +19,12 @@ class LnkContestProject(
     @ManyToOne
     @JoinColumn(name = "contest_id")
     var contest: Contest,
+
+    @ManyToOne
+    @JoinColumn(name = "execution_id")
+    var bestExecution: Execution?,
+
+    var bestScore: Int,
 ) : BaseEntity() {
     /**
      * Get [ContestResult]
