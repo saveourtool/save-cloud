@@ -7183,7 +7183,6 @@
         "required": [
           "branch",
           "gitDto",
-          "latestVersion",
           "name",
           "organizationName",
           "testRootPath"
