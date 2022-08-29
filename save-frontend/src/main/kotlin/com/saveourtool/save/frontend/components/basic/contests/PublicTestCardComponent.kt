@@ -107,6 +107,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
                 showAvaliableTestSuites(
                     avaliableTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
+                    null,
                 ) { testSuite ->
                     if (testSuite == selectedTestSuite) {
                         setSelectedTestSuite(null)

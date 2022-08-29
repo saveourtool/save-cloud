@@ -58,7 +58,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
         setPreselectedTestSuites(testSuitesFromBackend)
         setSelectedTestSuites(testSuitesFromBackend)
     }
-
+    useTooltip()
     if (preselectedTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
@@ -68,6 +68,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
         showAvaliableTestSuites(
             preselectedTestSuites,
             selectedTestSuites,
+            TestSuiteSelectorMode.MANAGER,
         ) { testSuite ->
             setSelectedTestSuites { selectedTestSuites ->
                 selectedTestSuites.toMutableList()
