@@ -113,10 +113,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div {
-/*                    Particles::class.react {
+                    Particles::class.react {
                         id = "tsparticles"
                         url = "${window.location.origin}/particles.json"
-                    }*/
+                    }
 
                     className = ClassName("row")
                     // Marketing information

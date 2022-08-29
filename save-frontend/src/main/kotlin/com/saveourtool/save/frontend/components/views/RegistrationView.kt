@@ -108,16 +108,17 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 ?.let { getUser(it) }
             setState {
                 userInfo = user
-                userInfo?.let { updateFieldsMap(it) }
+                userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
             }
         }
     }
 
     override fun componentDidUpdate(prevProps: RegistrationProps, prevState: RegistrationViewState, snapshot: Any) {
+        println("boolean -boolean - ${props.userInfo != prevProps.userInfo}")
         if (props.userInfo != prevProps.userInfo) {
             setState {
                 userInfo = props.userInfo
-                userInfo?.let { updateFieldsMap(it) }
+                userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
             }
         }
     }
@@ -154,14 +155,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 setState {
                     conflictErrorMessage = responseText
                 }
-            }
-        }
-    }
-
-    private fun updateFieldsMap(userInfo: UserInfo) {
-        userInfo.name.let {
-            setState {
-                fieldsMap[InputTypes.USER_NAME] = it
             }
         }
     }

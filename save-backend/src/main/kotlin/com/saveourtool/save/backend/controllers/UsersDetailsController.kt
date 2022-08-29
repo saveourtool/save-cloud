@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
-import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.orNotFound
