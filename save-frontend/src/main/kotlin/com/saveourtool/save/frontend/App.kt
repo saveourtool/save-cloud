@@ -30,7 +30,6 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -164,13 +163,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
-
-                if (state.userInfo?.isActive == false && kotlinx.browser.window.location.hash != "#/${FrontendRoutes.REGISTRATION.path}") {
-                    Navigate {
-                        to = "/${FrontendRoutes.REGISTRATION.path}"
-                        replace = true
-                    }
-                }
 
                 div {
                     className = ClassName("d-flex flex-column")

@@ -114,7 +114,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: RegistrationProps, prevState: RegistrationViewState, snapshot: Any) {
-        println("boolean -boolean - ${props.userInfo != prevProps.userInfo}")
         if (props.userInfo != prevProps.userInfo) {
             setState {
                 userInfo = props.userInfo

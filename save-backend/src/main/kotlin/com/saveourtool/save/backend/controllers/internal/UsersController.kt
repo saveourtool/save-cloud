@@ -9,6 +9,7 @@ import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.transaction.annotation.Transactional
@@ -44,18 +45,17 @@ class UsersController(
      */
     @PostMapping("/new")
     @Transactional
-    fun saveNewUser(@RequestBody user: User) {
+    fun saveNewUser(@RequestBody user: User) = Mono.fromCallable {
         val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
 
         val userFind = originalLoginRepository.findByNameAndSource(userName, user.source)
-        logger.warn("userFind - userFind $userFind")
-        logger.warn("userFind - userFind - user $userFind?.user")
-
         userFind?.user?.let {
             logger.debug("User $userName is already present in the DB")
+            ResponseEntity.status(HttpStatus.OK).body(it.isActive)
         } ?: run {
             logger.info("Saving user $userName to the DB")
             userService.saveNewUser(user)
+            ResponseEntity.status(HttpStatus.OK).body(false)
         }
     }
 
