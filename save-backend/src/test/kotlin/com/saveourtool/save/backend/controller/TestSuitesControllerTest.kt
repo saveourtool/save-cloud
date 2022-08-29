@@ -89,8 +89,8 @@ class TestSuitesControllerTest {
                     assertEquals(testSuite.name, body[0].name)
                     assertEquals(testSuite.source.name, body[0].source.name)
                     assertEquals(testSuite.source.organizationName, body[0].source.organization.name)
-                    assertTrue(testSuite.source.latestVersion != body[0].source.latestVersion)
-                    assertEquals(testSuite.version, body[0].source.latestVersion)
+                    assertTrue(testSuite.source.latestFetchedVersion != body[0].source.latestFetchedVersion)
+                    assertEquals(testSuite.version, body[0].source.latestFetchedVersion)
                     assertEquals(testSuite.version, body[0].version)
                 }
         }

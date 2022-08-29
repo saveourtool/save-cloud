@@ -70,7 +70,7 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
     onTestSuiteClick: (TestSuiteDto) -> Unit,
 ) {
     val testSuitesToBeShown = testSuites.filter {
-        !isOnlyLatestVersion || it.version == it.source.latestVersion
+        !isOnlyLatestVersion || it.version == it.source.latestFetchedVersion
     }
 
     showAvaliableTestSuites(
@@ -160,7 +160,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
             label {
                 className = ClassName("form-check-label")
                 htmlFor = "isOnlyLatestVersion"
-                +"Show only latest version"
+                +"Show only latest fetched version"
             }
         }
     }

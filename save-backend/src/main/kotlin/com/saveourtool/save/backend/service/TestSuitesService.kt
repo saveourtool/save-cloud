@@ -68,7 +68,7 @@ class TestSuitesService(
                 testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name)
             }
             .apply {
-                latestVersion = testSuiteSourceVersion
+                latestFetchedVersion = testSuiteSourceVersion
             }
 
         val testSuites = testSuitesDto

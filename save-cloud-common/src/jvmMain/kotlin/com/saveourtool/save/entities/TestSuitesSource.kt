@@ -18,7 +18,7 @@ import javax.persistence.ManyToOne
  * @property git
  * @property branch
  * @property testRootPath
- * @property latestVersion
+ * @property latestFetchedVersion
  */
 @Entity
 @Suppress("LongParameterList")
@@ -35,7 +35,7 @@ class TestSuitesSource(
     var git: Git,
     var branch: String,
     var testRootPath: String,
-    var latestVersion: String?,
+    var latestFetchedVersion: String?,
 ) : BaseEntity() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
@@ -47,7 +47,7 @@ class TestSuitesSource(
         gitDto = git.toDto(),
         branch = branch,
         testRootPath = testRootPath,
-        latestVersion = latestVersion
+        latestFetchedVersion = latestFetchedVersion
     )
 
     companion object {
@@ -64,13 +64,13 @@ class TestSuitesSource(
         /**
          * @param organization [Organization] from database
          * @param git [Git] from database
-         * @param latestVersion
+         * @param latestFetchedVersion
          * @return [TestSuitesSource] from [TestSuitesSourceDto]
          */
         fun TestSuitesSourceDto.toTestSuiteSource(
             organization: Organization,
             git: Git,
-            latestVersion: String? = null,
+            latestFetchedVersion: String? = null,
         ): TestSuitesSource {
             require(organizationName == organization.name) {
                 "Provided another organization: $organization"
@@ -85,7 +85,7 @@ class TestSuitesSource(
                 git,
                 branch,
                 testRootPath,
-                latestVersion,
+                latestFetchedVersion,
             )
         }
     }
