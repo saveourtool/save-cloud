@@ -9,7 +9,6 @@ import com.saveourtool.save.utils.debug
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
@@ -25,8 +24,6 @@ private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::cl
  */
 fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
     .setCredentialsProvider(credentialsProvider())
-    // ls without clone
-    // FIXME: need to extract to a common place
     .setRemote(url)
     .gitCallWithRethrow {
         it.callAsMap()[Constants.HEAD]
@@ -42,47 +39,64 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
 
 /**
  * @param branch
- * @return latest commit
- */
-fun GitDto.detectLatestSha1(branch: String): String = Git.lsRemoteRepository()
-    .setCredentialsProvider(credentialsProvider())
-    .setRemote(url)
-    .gitCallWithRethrow {
-        it.callAsMap()["${Constants.R_HEADS}$branch"]
-    }
-    ?.objectId
-    ?.name
-    ?: throw IllegalStateException("Couldn't detect hash of ${Constants.HEAD} for $url/$branch")
-
-/**
- * @param branch
- * @param sha1
  * @param pathToDirectory
  * @return commit timestamp as [Instant]
  * @throws IllegalStateException
  */
-fun GitDto.cloneToDirectory(branch: String, sha1: String, pathToDirectory: Path): Instant = Git.cloneRepository()
+fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): Instant = doCloneToDirectory(branch, Constants.R_HEADS, pathToDirectory)
+
+/**
+ * @param tagName
+ * @param pathToDirectory
+ * @return commit timestamp as [Instant]
+ * @throws IllegalStateException
+ */
+fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): Instant = doCloneToDirectory(tagName, Constants.R_TAGS, pathToDirectory)
+
+private fun GitDto.doCloneToDirectory(
+    branch: String,
+    branchToClonePrefix: String,
+    pathToDirectory: Path
+): Instant = Git.cloneRepository()
     .setCredentialsProvider(credentialsProvider())
     .setURI(url)
     .setDirectory(pathToDirectory.toFile())
     .setRemote(Constants.DEFAULT_REMOTE_NAME)
-    .setNoCheckout(true)
-    .setNoTags()
+    .setNoCheckout(false)
     .setBranch(branch)
     .setCloneAllBranches(false)
+    .setBranchesToClone(listOf("$branchToClonePrefix$branch"))
     .callWithRethrow()
     .use { git ->
-        git.checkout()
-            .setName(sha1)
-            .callWithRethrow()
         withRethrow {
+            val objectId = git.repository.resolve(Constants.HEAD)
             RevWalk(git.repository).use {
-                it.parseCommit(ObjectId.fromString(sha1))
+                it.parseCommit(objectId)
                     .authorIdent
                     .whenAsInstant
             }
         }
     }
+
+/**
+ * Sorted set of tags for [GitDto]
+ *
+ * @return list of tags
+ * @throws IllegalStateException
+ */
+fun GitDto.detectTagList(): Collection<String> = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setRemote(url)
+    .setHeads(false)
+    .setTags(true)
+    .gitCallWithRethrow { it.callAsMap() }
+    .filterKeys { it.startsWith(Constants.R_TAGS) }
+    .mapKeys { (key, _) -> key.removePrefix(Constants.R_TAGS) }
+    .mapValues { (_, value) -> value.objectId.name }
+    .toSortedMap()
+    .entries
+    .map { it.toPair() }
+    .map { it.first }
 
 private fun GitDto.credentialsProvider(): CredentialsProvider? = when {
     username != null && password != null -> UsernamePasswordCredentialsProvider(username, password)

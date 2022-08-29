@@ -2,7 +2,8 @@ package com.saveourtool.save.preprocessor.service
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
-import com.saveourtool.save.preprocessor.utils.cloneToDirectory
+import com.saveourtool.save.preprocessor.utils.cloneBranchToDirectory
+import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
 import com.saveourtool.save.utils.*
 import org.eclipse.jgit.util.FileUtils
 import org.slf4j.Logger
@@ -43,24 +44,46 @@ class GitPreprocessorService(
 
     /**
      * @param gitDto
-     * @param branch
-     * @param sha1
+     * @param tagName
      * @param repositoryProcessor operation on folder should be finished here -- folder will be removed after it
      * @return result of [repositoryProcessor]
      * @throws IllegalStateException
      * @throws Exception
      */
-    @Suppress("TooGenericExceptionCaught")
-    fun <T> cloneAndProcessDirectory(
+    fun <T> cloneTagAndProcessDirectory(
         gitDto: GitDto,
-        branch: String,
-        sha1: String,
+        tagName: String,
         repositoryProcessor: GitRepositoryProcessor<T>,
+    ): Mono<T> = doCloneAndProcessDirectory(gitDto, repositoryProcessor) {
+        cloneTagToDirectory(tagName, it)
+    }
+
+    /**
+     * @param gitDto
+     * @param branchName
+     * @param repositoryProcessor operation on folder should be finished here -- folder will be removed after it
+     * @return result of [repositoryProcessor]
+     * @throws IllegalStateException
+     * @throws Exception
+     */
+    fun <T> cloneBranchAndProcessDirectory(
+        gitDto: GitDto,
+        branchName: String,
+        repositoryProcessor: GitRepositoryProcessor<T>,
+    ): Mono<T> = doCloneAndProcessDirectory(gitDto, repositoryProcessor) {
+        cloneBranchToDirectory(branchName, it)
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun <T> doCloneAndProcessDirectory(
+        gitDto: GitDto,
+        repositoryProcessor: GitRepositoryProcessor<T>,
+        doCloneToDirectory: GitDto.(Path) -> Instant,
     ): Mono<T> {
         val cloneAction: () -> Pair<Path, Instant> = {
             val tmpDir = createTempDirectoryForRepository()
             val creationTime = try {
-                gitDto.cloneToDirectory(branch, sha1, tmpDir)
+                gitDto.doCloneToDirectory(tmpDir)
             } catch (ex: Exception) {
                 log.error(ex) { "Failed to clone git repository ${gitDto.url}" }
                 tmpDir.deleteRecursivelySafely()

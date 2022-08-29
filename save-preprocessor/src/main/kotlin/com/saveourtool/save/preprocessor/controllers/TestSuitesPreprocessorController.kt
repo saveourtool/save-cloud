@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.GitPreprocessorService
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
-import com.saveourtool.save.preprocessor.utils.detectLatestSha1
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.*
 
@@ -16,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.nio.file.Path
+import java.time.Instant
 import kotlin.io.path.div
 
 /**
@@ -29,76 +30,94 @@ class TestSuitesPreprocessorController(
     private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
 ) {
     /**
-     * Fetch new tests suites from provided source with specific version or latest if version is not provided
+     * Fetch new tests suites from provided source from provided tag
      *
      * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param version version which needs to be loaded, null is latest
+     * @param tagName tag which needs to be loaded, will be used as version
      * @return empty response
      */
-    @PostMapping("/fetch")
+    @PostMapping("/fetch-from-tag")
     fun fetch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
-        @RequestParam(required = false) version: String?,
-    ): Mono<Unit> = doFetch(
-        testSuitesSourceDto,
-        version?.let { Mono.just(it) } ?: detectLatestVersion(testSuitesSourceDto)
-    ).lazyDefaultIfEmpty {
-        with(testSuitesSourceDto) {
-            version?.also {
-                log.debug { "Test suites source $name in $organizationName already contains version $version" }
-            } ?: log.debug { "There is no new version for $name in $organizationName" }
-        }
+        @RequestParam tagName: String,
+    ): Mono<Unit> = Mono.fromCallable {
+        log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
     }
-
-    private fun doFetch(
-        testSuitesSourceDto: TestSuitesSourceDto,
-        versionAsMono: Mono<String>,
-    ): Mono<Unit> = versionAsMono
-        .also {
-            log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
+        .filterWhen {
+            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, tagName)
+                .map(Boolean::not)
         }
-        .filterWhen { testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, it).map(Boolean::not) }
-        .flatMap { version ->
-            fetchTestSuitesFromGit(testSuitesSourceDto, version)
-                .map {
-                    with(testSuitesSourceDto) {
-                        log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
-                    }
-                }
+        .flatMap { fetchTestSuitesFromTag(testSuitesSourceDto, tagName) }
+        .log(testSuitesSourceDto, tagName)
+        .lazyDefaultIfEmpty {
+            with(testSuitesSourceDto) {
+                log.debug { "Test suites source $name in $organizationName already contains version $tagName" }
+            }
         }
 
     /**
-     * Detect latest version of TestSuitesSource
+     * Fetch new tests suites from provided source from latest sha-1 in provided branch
      *
-     * @param testSuitesSourceDto source of test suites
-     * @return latest available version on source
+     * @param testSuitesSourceDto source from which test suites need to be loaded
+     * @param branchName branch from which the latest commit needs to be loaded, will be used as version
+     * @return empty response
      */
-    private fun detectLatestVersion(
-        testSuitesSourceDto: TestSuitesSourceDto,
-    ): Mono<String> = Mono.fromCallable { testSuitesSourceDto.gitDto.detectLatestSha1(testSuitesSourceDto.branch) }
-
-    private fun fetchTestSuitesFromGit(
-        testSuitesSourceDto: TestSuitesSourceDto,
-        sha1: String,
-    ): Mono<List<TestSuite>> = gitPreprocessorService.cloneAndProcessDirectory(
-        testSuitesSourceDto.gitDto,
-        testSuitesSourceDto.branch,
-        sha1
-    ) { repositoryDirectory, creationTime ->
-        val testRootPath = repositoryDirectory / testSuitesSourceDto.testRootPath
-        gitPreprocessorService.archiveToTar(testRootPath) { archive ->
-            testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
-                testSuitesSourceDto,
-                sha1,
-                creationTime,
-                FileSystemResource(archive)
-            ).flatMap {
-                testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
-                    repositoryPath = repositoryDirectory,
-                    testSuitesSourceDto = testSuitesSourceDto,
-                    version = sha1
-                )
+    @PostMapping("/fetch-from-branch")
+    fun fetchFromBranch(
+        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
+        @RequestParam branchName: String,
+    ): Mono<Unit> = fetchTestSuitesFromBranch(testSuitesSourceDto, branchName)
+        .log(testSuitesSourceDto, branchName)
+        .lazyDefaultIfEmpty {
+            with(testSuitesSourceDto) {
+                log.debug { "There is no new version for $name in $organizationName" }
             }
+        }
+
+    private fun fetchTestSuitesFromTag(
+        testSuitesSourceDto: TestSuitesSourceDto,
+        tagName: String,
+    ): Mono<List<TestSuite>> = gitPreprocessorService.cloneTagAndProcessDirectory(
+        testSuitesSourceDto.gitDto,
+        tagName
+    ) { repositoryDirectory, creationTime ->
+        fetchTestSuites(testSuitesSourceDto, tagName, repositoryDirectory, creationTime)
+    }
+
+    private fun fetchTestSuitesFromBranch(
+        testSuitesSourceDto: TestSuitesSourceDto,
+        branchName: String,
+    ): Mono<List<TestSuite>> = gitPreprocessorService.cloneBranchAndProcessDirectory(
+        testSuitesSourceDto.gitDto,
+        branchName
+    ) { repositoryDirectory, creationTime ->
+        fetchTestSuites(testSuitesSourceDto, branchName, repositoryDirectory, creationTime)
+    }
+
+    private fun fetchTestSuites(
+        testSuitesSourceDto: TestSuitesSourceDto,
+        version: String,
+        repositoryDirectory: Path,
+        creationTime: Instant,
+    ): Mono<List<TestSuite>> =
+            gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
+                testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
+                    testSuitesSource = testSuitesSourceDto,
+                    version = version,
+                    creationTime = creationTime,
+                    resourceWithContent = FileSystemResource(archive)
+                ).flatMap {
+                    testDiscoveringService.detectAndSaveAllTestSuitesAndTests(
+                        repositoryPath = repositoryDirectory,
+                        testSuitesSourceDto = testSuitesSourceDto,
+                        version = version
+                    )
+                }
+            }
+
+    private fun Mono<List<TestSuite>>.log(testSuitesSourceDto: TestSuitesSourceDto, version: String): Mono<Unit> = map {
+        with(testSuitesSourceDto) {
+            log.info { "Loaded ${it.size} test suites from test suites source $name in $organizationName with version $version" }
         }
     }
 

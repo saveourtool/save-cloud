@@ -44,6 +44,7 @@ class SelectFormTest {
                                 .decodeFromJsonString()
                         }
                         dataToString = { it.name }
+                        disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"
@@ -86,7 +87,9 @@ class SelectFormTest {
                             )
                                 .decodeFromJsonString()
                         }
+
                         dataToString = { it.name }
+                        disabled = false
                         formType = InputTypes.ORGANIZATION_NAME
                         validInput = true
                         classes = "col-md-6 pl-0 pl-2 pr-2"

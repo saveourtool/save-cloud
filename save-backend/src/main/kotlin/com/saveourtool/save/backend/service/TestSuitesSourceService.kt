@@ -12,9 +12,11 @@ import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 /**
@@ -39,6 +41,12 @@ class TestSuitesSourceService(
      */
     fun getAllByOrganization(organization: Organization) =
             testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
+
+    /**
+     * @param id [TestSuitesSource.id]
+     * @return entity of [TestSuitesSource] or null
+     */
+    fun findById(id: Long): TestSuitesSource? = testSuitesSourceRepository.findByIdOrNull(id)
 
     /**
      * @param organization [TestSuitesSource.organization]
@@ -82,14 +90,15 @@ class TestSuitesSourceService(
      * Raw update
      *
      * @param entity [TestSuitesSource] to be updated
-     * @return updated [TestSuitesSource]
+     * @return status of updating [TestSuitesSource]
      */
     @Transactional
-    fun update(entity: TestSuitesSource): TestSuitesSource {
+    fun update(entity: TestSuitesSource): SourceSaveStatus {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $this"
         }
-        return testSuitesSourceRepository.save(entity)
+        val isSaved = save(entity)
+        return if (isSaved) SourceSaveStatus.UPDATED else SourceSaveStatus.CONFLICT
     }
 
     /**
@@ -122,7 +131,6 @@ class TestSuitesSourceService(
         // Will be removed in phase 3
         val organizationName = "CQFN.org"
         val gitUrl = "https://github.com/saveourtool/save-cli"
-        val branch = "main"
         val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
         val organization = organizationService.getByName(organizationName)
         val git = gitService.getByOrganizationAndUrl(organization, gitUrl)
@@ -156,8 +164,31 @@ class TestSuitesSourceService(
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
     ): Mono<EmptyResponse> = preprocessorWebClient.post()
-        .uri("/test-suites-sources/fetch")
-        .bodyValue(testSuitesSource)
+        .uri("/git/tag-list")
+        .bodyValue(testSuitesSource.gitDto)
         .retrieve()
-        .toBodilessEntity()
+        .bodyToMono<List<String>>()
+        .flatMapIterable { it }
+        .flatMap { tagName ->
+            preprocessorWebClient.post()
+                .uri("/test-suites-sources/fetch-from-tag?tagName={tagName}", tagName)
+                .bodyValue(testSuitesSource)
+                .retrieve()
+                .toBodilessEntity()
+        }
+        .collectList()
+        .flatMap {
+            preprocessorWebClient.post()
+                .uri("/git/default-branch-name")
+                .bodyValue(testSuitesSource.gitDto)
+                .retrieve()
+                .bodyToMono<String>()
+                .flatMap { branchName ->
+                    preprocessorWebClient.post()
+                        .uri("/test-suites-sources/fetch-from-branch?branchName={branchName}", branchName)
+                        .bodyValue(testSuitesSource)
+                        .retrieve()
+                        .toBodilessEntity()
+                }
+        }
 }

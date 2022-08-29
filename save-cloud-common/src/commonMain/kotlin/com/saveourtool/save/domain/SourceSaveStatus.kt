@@ -23,5 +23,10 @@ enum class SourceSaveStatus(val message: String) {
      * New source
      */
     NEW("Test suite source saved successfully"),
+
+    /**
+     * Updated entity
+     */
+    UPDATED("Test suite source updated successfully"),
     ;
 }

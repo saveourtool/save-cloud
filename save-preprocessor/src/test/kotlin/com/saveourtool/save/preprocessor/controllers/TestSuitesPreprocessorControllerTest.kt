@@ -28,7 +28,6 @@ internal class TestSuitesPreprocessorControllerTest {
         "TestSuitesSource",
         null,
         gitDto,
-        "main",
         "examples/discovery-test",
         "aaaaaa",
     )
@@ -42,7 +41,8 @@ internal class TestSuitesPreprocessorControllerTest {
             @Suppress("UNCHECKED_CAST")
             val processor = answer.arguments[3] as GitRepositoryProcessor<TestSuiteList>
             processor(repositoryDirectory, creationTime)
-        }.whenever(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), any(), any())
+        }.whenever(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq("main"),
+            any())
         doAnswer { answer ->
             @Suppress("UNCHECKED_CAST")
             val processor = answer.arguments[1] as ArchiveProcessor<TestSuiteList>
@@ -60,7 +60,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchLatestAlreadyContains() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any()))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, null)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, "tagName")
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any())
@@ -77,11 +77,12 @@ internal class TestSuitesPreprocessorControllerTest {
                 true
             }))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, null)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, "tagName")
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
-        verify(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), eq(version), any())
+        verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq("main"),
+            any())
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
@@ -97,7 +98,8 @@ internal class TestSuitesPreprocessorControllerTest {
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
-        verify(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), eq(version), any())
+        verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq("main"),
+            any())
         verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
         verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
         verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
