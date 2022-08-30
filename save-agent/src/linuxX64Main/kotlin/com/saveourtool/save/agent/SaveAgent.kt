@@ -96,7 +96,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
             val targetDirectory = config.testSuitesDir.toPath()
-            downloadTestResources(config.backend, targetDirectory, executionId).runIf(FAILURE_RESULT_PREDICATE) {
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -105,7 +105,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
             logDebugCustom("Will now download additional resources")
             val additionalFiles = FileKey.parseList(requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST))
-            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFiles, executionId).runIf(FAILURE_RESULT_PREDICATE) {
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFiles, executionId).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFiles]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -114,7 +114,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
             // a temporary workaround for python integration
             logDebugCustom("Will execute additionally setup of evaluated tool for execution $executionId if it's required")
-            executeAdditionallySetup(targetDirectory, additionalFiles).runIf(FAILURE_RESULT_PREDICATE) {
+            executeAdditionallySetup(targetDirectory, additionalFiles).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to execute additionally setup for $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -122,7 +122,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Additionally setup has completed for execution $executionId")
 
             logDebugCustom("Will create `save-overrides.toml` for execution $executionId if it's required")
-            prepareSaveOverridesToml(targetDirectory).runIf(FAILURE_RESULT_PREDICATE) {
+            prepareSaveOverridesToml(targetDirectory).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to prepare `save-overrides.toml` for $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -445,11 +445,9 @@ class SaveAgent(private val config: AgentConfiguration,
         setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
 
-
-
     companion object {
         private const val SAVE_CLI_TIMEOUT = 1_000_000L
         private const val SETUP_SH_TIMEOUT = 1_000L
-        private val FAILURE_RESULT_PREDICATE: Result<*>.() -> Boolean = { isFailure }
+        private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }
