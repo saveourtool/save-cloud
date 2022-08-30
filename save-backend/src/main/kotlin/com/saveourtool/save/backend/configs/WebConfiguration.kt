@@ -44,6 +44,10 @@ class WebConfiguration(
                 .lastModified(buildProperties.time)
                 .bodyValue(resource)
         }
+        cacheableFsResource(
+            "/{resourcePath:.*\\.(?:jpg|jpeg|png|gif)}",
+            "static",
+        )
         // fallback for other resources
         resources("/**", ClassPathResource("static/"))
     }
