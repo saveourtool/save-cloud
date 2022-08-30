@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
-
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
@@ -19,6 +18,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
+import csstype.rem
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -40,6 +40,7 @@ import react.dom.html.ReactHTML.span
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -61,11 +62,6 @@ external interface RegistrationViewState : State {
      * Conflict error message
      */
     var conflictErrorMessage: String?
-
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean
 
     /**
      * Image to owner avatar
@@ -91,7 +87,6 @@ external interface RegistrationViewState : State {
 class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>() {
     init {
         state.isValidUserName = true
-        state.isUploading = false
         state.fieldsMap = mutableMapOf()
     }
 
@@ -147,11 +142,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     @Suppress(
-        "TOO_LONG_FUNCTION",
         "EMPTY_BLOCK_STRUCTURE_ERROR",
-        "LongMethod",
-        "MAGIC_NUMBER",
-        "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     override fun ChildrenBuilder.render() {
         main {
@@ -169,61 +160,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
                                 className = ClassName("p-5 text-center")
-                                h1 {
-                                    className = ClassName("h4 text-gray-900 mb-4")
-                                    +"Set your user name and avatar"
-                                }
-                                label {
-                                    input {
-                                        type = InputType.file
-                                        hidden = true
-                                        onChange = { event ->
-                                            postImageUpload(event.target)
-                                        }
-                                    }
-                                    ariaLabel = "Change user's avatar"
-                                    img {
-                                        className =
-                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                        src = state.image?.path?.let {
-                                            "/api/$v1/avatar$it"
-                                        }
-                                            ?: "img/undraw_profile.svg"
-                                        height = 260.0
-                                        width = 260.0
-                                    }
-                                }
-                                form {
-                                    val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
-                                    div {
-                                        inputTextFormRequired(
-                                            InputTypes.USER_NAME,
-                                            input,
-                                            (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
-                                            "",
-                                            "User name",
-                                        ) {
-                                            changeFields(InputTypes.USER_NAME, it)
-                                            setState {
-                                                conflictErrorMessage = null
-                                            }
-                                        }
-                                    }
-                                    button {
-                                        type = ButtonType.button
-                                        className = ClassName("btn btn-info mt-4 mr-3")
-                                        +"Registration"
-                                        onClick = {
-                                            saveUser()
-                                        }
-                                    }
-                                    state.conflictErrorMessage?.let {
-                                        div {
-                                            className = ClassName("invalid-feedback d-block")
-                                            +it
-                                        }
-                                    }
-                                }
+                                renderTitle()
+                                renderAvatar()
+                                renderInputForm()
                             }
                         }
                     }
@@ -232,11 +171,80 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         }
     }
 
+    private fun ChildrenBuilder.renderTitle() {
+        h1 {
+            className = ClassName("h4 text-gray-900 mb-4")
+            +"Set your user name and avatar"
+        }
+    }
+
+    @Suppress(
+        "MAGIC_NUMBER",
+    )
+    private fun ChildrenBuilder.renderAvatar() {
+        label {
+            input {
+                type = InputType.file
+                hidden = true
+                onChange = { event ->
+                    postImageUpload(event.target)
+                }
+            }
+            ariaLabel = "Change user's avatar"
+            img {
+                className =
+                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                src = state.image?.path?.let {
+                    "/api/$v1/avatar$it"
+                }
+                    ?: "img/undraw_profile.svg"
+                style = jso {
+                    height = 16.rem
+                    width = 16.rem
+                }
+            }
+        }
+    }
+
+    @Suppress(
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    )
+    private fun ChildrenBuilder.renderInputForm() {
+        form {
+            val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
+            div {
+                inputTextFormRequired(
+                    InputTypes.USER_NAME,
+                    input,
+                    (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
+                    "",
+                    "User name",
+                ) {
+                    changeFields(InputTypes.USER_NAME, it)
+                    setState {
+                        conflictErrorMessage = null
+                    }
+                }
+            }
+            button {
+                type = ButtonType.button
+                className = ClassName("btn btn-info mt-4 mr-3")
+                +"Registration"
+                onClick = {
+                    saveUser()
+                }
+            }
+            state.conflictErrorMessage?.let {
+                div {
+                    className = ClassName("invalid-feedback d-block")
+                    +it
+                }
+            }
+        }
+    }
+
     private fun postImageUpload(element: HTMLInputElement) =
             scope.launch {
-                setState {
-                    isUploading = true
-                }
                 element.files!!.asList().single().let { file ->
                     val response: ImageInfo? = post(
                         "$apiUrl/image/upload?owner=${props.userInfo?.name}&type=${AvatarType.USER}",
@@ -250,9 +258,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                     setState {
                         image = response
                     }
-                }
-                setState {
-                    isUploading = false
                 }
             }
 }
