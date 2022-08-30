@@ -81,7 +81,8 @@ class RunExecutionController(
                 username = authentication.username(),
                 sdk = request.sdk,
                 execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer
+                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                testingType = testingType
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
