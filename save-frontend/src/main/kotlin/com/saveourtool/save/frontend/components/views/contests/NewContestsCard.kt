@@ -39,7 +39,7 @@ fun ChildrenBuilder.newContestsCard() {
                     className = ClassName("mb-0")
                     a {
                         className = ClassName("text-dark")
-                        href = "#"
+                        href = "#/contests"
                         +"Hurry up!"
                     }
                 }
