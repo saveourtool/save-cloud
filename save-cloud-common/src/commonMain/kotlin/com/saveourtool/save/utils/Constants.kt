@@ -18,3 +18,8 @@ const val URL_PATH_DELIMITER = "/"
  * Period in ms for debounce on frontend
  */
 const val DEFAULT_DEBOUNCE_PERIOD = 750
+
+/**
+ * Number of characters of git commit hash that should be displayed
+ */
+const val GIT_HASH_PREFIX_LENGTH = 6

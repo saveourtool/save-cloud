@@ -67,8 +67,6 @@ fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, updateTabS
                     p {
                         className = ClassName("nav-link $classVal text-gray-800")
                         onClick = {
-                            kotlinx.js.console.log(value)
-                            kotlinx.js.console.log(selectedTab)
                             if (selectedTab != value) {
                                 updateTabState(value)
                             }

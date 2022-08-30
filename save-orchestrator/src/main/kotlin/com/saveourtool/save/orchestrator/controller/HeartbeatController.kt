@@ -13,6 +13,7 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.orchestrator.service.areAgentsHaveStarted
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
@@ -143,9 +144,9 @@ class HeartbeatController(private val agentService: AgentService,
     }
 
     private fun ensureGracefulShutdown(agentId: String) {
-        val shutdownTimeout = configProperties.shutdown.gracefulTimeoutSeconds.seconds
+        val shutdownTimeoutSeconds = configProperties.shutdown.gracefulTimeoutSeconds.seconds
         val numChecks: Int = configProperties.shutdown.gracefulNumChecks
-        Flux.interval((shutdownTimeout / numChecks).toJavaDuration())
+        Flux.interval((shutdownTimeoutSeconds / numChecks).toJavaDuration())
             .take(numChecks.toLong())
             .map {
                 dockerService.isAgentStopped(agentId)
@@ -155,7 +156,10 @@ class HeartbeatController(private val agentService: AgentService,
             .any { it }
             .doOnNext { successfullyStopped ->
                 if (!successfullyStopped) {
-                    logger.warn("Agent id=$agentId is not stopped in 60 seconds after ${TerminateResponse::class.simpleName} signal, will add it to crashed list")
+                    logger.warn {
+                        "Agent id=$agentId is not stopped in $shutdownTimeoutSeconds seconds after ${TerminateResponse::class.simpleName} signal," +
+                                " will add it to crashed list"
+                    }
                     heartBeatInspector.watchCrashedAgent(agentId)
                 } else {
                     logger.debug { "Agent id=$agentId has stopped after ${TerminateResponse::class.simpleName} signal" }

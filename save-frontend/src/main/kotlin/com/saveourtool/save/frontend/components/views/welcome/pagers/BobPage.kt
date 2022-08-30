@@ -15,7 +15,7 @@ import kotlinx.js.jso
 object BobPager : WelcomePager {
     @Suppress("MAGIC_NUMBER")
     override val animation: Animation
-        get() = batch(fade(), sticky(45))
+        get() = batch(fade(), sticky())
 
     override fun renderPage(childrenBuilder: ChildrenBuilder) {
         childrenBuilder.renderAnimatedPage()
@@ -24,9 +24,9 @@ object BobPager : WelcomePager {
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
             style = jso {
-                width = "140%".unsafeCast<Width>()
+                width = "60%".unsafeCast<Width>()
             }
-            src = "img/bob.png"
+            // FixMe: input contests here
         }
     }
 }

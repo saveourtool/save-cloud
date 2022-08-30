@@ -31,7 +31,7 @@ $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud
 * Environment should be prepared:
   ```bash
   minikube ssh
-  docker@minikube:~$ for d in repos volumes resources; do sudo mkdir -p /tmp/save/$d && sudo chown -R 1000:100 /tmp/save/$d; done
+  docker@minikube:~$ for d in repos volumes resources; do sudo mkdir -p /tmp/save/$d && sudo chown -R 1000:1000 /tmp/save/$d; done
   ```
 * Install Helm chart using `values-minikube.yaml`: 
   ```bash
