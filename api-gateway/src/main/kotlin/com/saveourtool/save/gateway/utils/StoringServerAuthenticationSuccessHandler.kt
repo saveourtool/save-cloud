@@ -56,16 +56,14 @@ class StoringServerAuthenticationSuccessHandler(
             }
             .bodyToMono(Boolean::class.java)
 
-        newUser.map {
+        return newUser.map {
             logger.debug("User is active == $it")
             if (it) {
                 RedirectServerAuthenticationSuccessHandler("/#/projects")
             } else {
                 RedirectServerAuthenticationSuccessHandler("/#/registration")
             }
-        }
-
-        return Mono.just("Success").then()
+        }.then()
     }
 }
 
