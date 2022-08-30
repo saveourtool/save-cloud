@@ -31,6 +31,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 
@@ -43,7 +44,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import okio.Path
 
 /**
  * A main class for SAVE Agent
@@ -96,7 +96,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
             val targetDirectory = config.testSuitesDir.toPath()
-            downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf(FAILURE_RESULT_PREDICATE) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -105,7 +105,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
             logDebugCustom("Will now download additional resources")
             val additionalFiles = FileKey.parseList(requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST))
-            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFiles, executionId).runIf({ isFailure }) {
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFiles, executionId).runIf(FAILURE_RESULT_PREDICATE) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFiles]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -114,7 +114,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
             // a temporary workaround for python integration
             logDebugCustom("Will execute additionally setup of evaluated tool for execution $executionId if it's required")
-            executeAdditionallySetup(targetDirectory, additionalFiles).runIf({ isFailure}) {
+            executeAdditionallySetup(targetDirectory, additionalFiles).runIf(FAILURE_RESULT_PREDICATE) {
                 logErrorCustom("Unable to execute additionally setup for $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -122,7 +122,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Additionally setup has completed for execution $executionId")
 
             logDebugCustom("Will create `save-overrides.toml` for execution $executionId if it's required")
-            prepareSaveOverridesToml(targetDirectory).runIf({isFailure}) {
+            prepareSaveOverridesToml(targetDirectory).runIf(FAILURE_RESULT_PREDICATE) {
                 logErrorCustom("Unable to prepare `save-overrides.toml` for $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -155,7 +155,7 @@ class SaveAgent(private val config: AgentConfiguration,
                             targetFile.toString(),
                             "",
                             null,
-                            1_000L
+                            SETUP_SH_TIMEOUT
                         )
                     if (setupResult.code != 0) {
                         throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
@@ -166,7 +166,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
     // prepare save-overrides.toml based on config.save.*
     private fun prepareSaveOverridesToml(targetDirectory: Path) = runCatching {
-        with (config.save) {
+        with(config.save) {
             val generalConfig = buildMap {
                 overrideExecCmd?.let { put("execCmd", it) }
                 batchSize?.let { put("batchSize", it) }
@@ -280,7 +280,6 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult {
         val fullCliCommand = buildString {
             append(config.cliCommand)
@@ -310,7 +309,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 fullCliCommand,
                 "",
                 config.logFilePath.toPath(),
-                1_000_000L
+                SAVE_CLI_TIMEOUT
             )
     }
 
@@ -446,5 +445,13 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
+    }
+
+
+
+    companion object {
+        private const val SAVE_CLI_TIMEOUT = 1_000_000L
+        private const val SETUP_SH_TIMEOUT = 1_000L
+        private val FAILURE_RESULT_PREDICATE: Result<*>.() -> Boolean = { isFailure }
     }
 }
