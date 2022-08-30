@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
 class SaveCloudClient(
     webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
-    private val executionType: TestingType,
+    private val testingType: TestingType,
     authorization: Authorization,
 ) {
     private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
@@ -65,9 +65,9 @@ class SaveCloudClient(
         } ?: {
             "without additional files"
         }
-        log.info("Starting submit execution $msg, type: $executionType")
+        log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(executionType, additionalFileInfoList) ?: return
+        val executionRequest = submitExecution(testingType, additionalFileInfoList) ?: return
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
@@ -81,23 +81,23 @@ class SaveCloudClient(
     }
 
     /**
-     * Submit execution according [executionType]
+     * Submit execution according [testingType]
      *
-     * @param executionType
+     * @param testingType
      * @param additionalFiles
      * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
-        executionType: TestingType,
+        testingType: TestingType,
         additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
-        val executionRequest = if (executionType == TestingType.PUBLIC_TESTS) {
+        val executionRequest = if (testingType == TestingType.PUBLIC_TESTS) {
             buildExecutionRequest()
         } else {
             val userProvidedTestSuites = verifyTestSuites() ?: return null
             buildExecutionRequestForStandardSuites(userProvidedTestSuites)
         }
-        val response = httpClient.submitExecution(executionType, executionRequest, additionalFiles)
+        val response = httpClient.submitExecution(testingType, executionRequest, additionalFiles)
         if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
             log.error("Can't submit execution=$executionRequest! Response status: ${response.status}")
             return null
