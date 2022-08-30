@@ -25,6 +25,8 @@ class StoringServerAuthenticationSuccessHandler(
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
+        // This is necessary to remove the originalLogins from the User,
+        // otherwise we will get the kotlin.EmptyList class in Json and will not be able to serialize it.
         .configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false)
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
@@ -68,4 +70,5 @@ fun Authentication.toUser(): User = User(
     toIdentitySource(),
     null,
     isActive = false,
+    originalLogins = emptyList(),
 )

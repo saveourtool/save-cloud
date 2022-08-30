@@ -10,7 +10,6 @@ import com.saveourtool.save.domain.ImageInfo
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -74,11 +73,6 @@ external interface RegistrationViewState : State {
     var image: ImageInfo?
 
     /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
      * Validation of input fields
      */
     var isValidUserName: Boolean?
@@ -103,21 +97,15 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
 
     override fun componentDidMount() {
         super.componentDidMount()
-        scope.launch {
-            val user = props.userInfo?.name
-                ?.let { getUser(it) }
-            setState {
-                userInfo = user
-                userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
-            }
+        setState {
+            props.userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
         }
     }
 
     override fun componentDidUpdate(prevProps: RegistrationProps, prevState: RegistrationViewState, snapshot: Any) {
         if (props.userInfo != prevProps.userInfo) {
             setState {
-                userInfo = props.userInfo
-                userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
+                props.userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
             }
         }
     }
@@ -132,9 +120,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     }
 
     private fun saveUser() {
-        val newUserInfo = state.userInfo?.copy(
-            name = state.fieldsMap[InputTypes.USER_NAME]?.trim() ?: state.userInfo!!.name,
-            oldName = state.userInfo!!.name,
+        val newUserInfo = props.userInfo?.copy(
+            name = state.fieldsMap[InputTypes.USER_NAME]?.trim() ?: props.userInfo!!.name,
+            oldName = props.userInfo!!.name,
             isActive = true,
         )
 
@@ -166,75 +154,73 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     override fun ChildrenBuilder.render() {
-        if (state.userInfo?.isActive == false) {
-            main {
-                className = ClassName("main-content mt-0 ps")
+        main {
+            className = ClassName("main-content mt-0 ps")
+            div {
+                className = ClassName("page-header align-items-start min-vh-100")
+                span {
+                    className = ClassName("mask bg-gradient-dark opacity-6")
+                }
                 div {
-                    className = ClassName("page-header align-items-start min-vh-100")
-                    span {
-                        className = ClassName("mask bg-gradient-dark opacity-6")
-                    }
+                    className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("row justify-content-center")
+                        className = ClassName("col-sm-4")
                         div {
-                            className = ClassName("col-sm-4")
+                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
-                                className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
-                                div {
-                                    className = ClassName("p-5 text-center")
-                                    h1 {
-                                        className = ClassName("h4 text-gray-900 mb-4")
-                                        +"Set your user name and avatar"
-                                    }
-                                    label {
-                                        input {
-                                            type = InputType.file
-                                            hidden = true
-                                            onChange = { event ->
-                                                postImageUpload(event.target)
-                                            }
-                                        }
-                                        ariaLabel = "Change user's avatar"
-                                        img {
-                                            className =
-                                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                            src = state.image?.path?.let {
-                                                "/api/$v1/avatar$it"
-                                            }
-                                                ?: "img/undraw_profile.svg"
-                                            height = 260.0
-                                            width = 260.0
+                                className = ClassName("p-5 text-center")
+                                h1 {
+                                    className = ClassName("h4 text-gray-900 mb-4")
+                                    +"Set your user name and avatar"
+                                }
+                                label {
+                                    input {
+                                        type = InputType.file
+                                        hidden = true
+                                        onChange = { event ->
+                                            postImageUpload(event.target)
                                         }
                                     }
-                                    form {
-                                        val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
+                                    ariaLabel = "Change user's avatar"
+                                    img {
+                                        className =
+                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                        src = state.image?.path?.let {
+                                            "/api/$v1/avatar$it"
+                                        }
+                                            ?: "img/undraw_profile.svg"
+                                        height = 260.0
+                                        width = 260.0
+                                    }
+                                }
+                                form {
+                                    val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
+                                    div {
+                                        inputTextFormRequired(
+                                            InputTypes.USER_NAME,
+                                            input,
+                                            (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
+                                            "",
+                                            "User name",
+                                        ) {
+                                            changeFields(InputTypes.USER_NAME, it)
+                                            setState {
+                                                conflictErrorMessage = null
+                                            }
+                                        }
+                                    }
+                                    button {
+                                        type = ButtonType.button
+                                        className = ClassName("btn btn-info mt-4 mr-3")
+                                        +"Registration"
+                                        onClick = {
+                                            saveUser()
+                                        }
+                                    }
+                                    state.conflictErrorMessage?.let {
                                         div {
-                                            inputTextFormRequired(
-                                                InputTypes.USER_NAME,
-                                                input,
-                                                (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
-                                                "",
-                                                "User name",
-                                            ) {
-                                                changeFields(InputTypes.USER_NAME, it)
-                                                setState {
-                                                    conflictErrorMessage = null
-                                                }
-                                            }
-                                        }
-                                        button {
-                                            type = ButtonType.button
-                                            className = ClassName("btn btn-info mt-4 mr-3")
-                                            +"Registration"
-                                            onClick = {
-                                                saveUser()
-                                            }
-                                        }
-                                        state.conflictErrorMessage?.let {
-                                            div {
-                                                className = ClassName("invalid-feedback d-block")
-                                                +it
-                                            }
+                                            className = ClassName("invalid-feedback d-block")
+                                            +it
                                         }
                                     }
                                 }
@@ -243,8 +229,6 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                     }
                 }
             }
-        } else if (state.userInfo?.isActive == true) {
-            window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
         }
     }
 

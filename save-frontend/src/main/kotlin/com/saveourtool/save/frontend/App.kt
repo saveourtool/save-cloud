@@ -172,6 +172,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                             to = "/${FrontendRoutes.REGISTRATION.path}"
                             replace = false
                         }
+                    } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.PROJECTS.path}"
+                            replace = false
+                        }
                     }
                 }()
 
