@@ -184,7 +184,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                                     className = ClassName("p-5 text-center")
                                     h1 {
                                         className = ClassName("h4 text-gray-900 mb-4")
-                                        +"Registration of a new user"
+                                        +"Set your user name and avatar"
                                     }
                                     label {
                                         input {

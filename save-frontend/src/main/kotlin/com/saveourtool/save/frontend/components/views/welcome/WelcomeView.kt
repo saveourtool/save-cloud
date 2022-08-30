@@ -96,7 +96,12 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 
-    @Suppress("ForbiddenComment", "LongMethod", "TOO_LONG_FUNCTION")
+    @Suppress(
+        "ForbiddenComment",
+        "LongMethod",
+        "TOO_LONG_FUNCTION",
+        "COMMENTED_OUT_CODE",
+    )
     override fun ChildrenBuilder.render() {
         main {
             className = ClassName("main-content mt-0 ps")
@@ -113,10 +118,11 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
 
                 div {
-                    Particles::class.react {
+                    // FixMe: Particles are superimposed on top of the view in some transitions
+                    /* Particles::class.react {
                         id = "tsparticles"
                         url = "${window.location.origin}/particles.json"
-                    }
+                    }*/
 
                     className = ClassName("row")
                     // Marketing information
