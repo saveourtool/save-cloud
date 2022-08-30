@@ -329,14 +329,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
             else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>) {
+    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(

@@ -20,6 +20,7 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.execution.TestingType
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -68,6 +69,7 @@ class RunExecutionController(
     @PostMapping("/trigger")
     fun trigger(
         @RequestBody request: RunExecutionRequest,
+        @RequestParam testingType: TestingType,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
