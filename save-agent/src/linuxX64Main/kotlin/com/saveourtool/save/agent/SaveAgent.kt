@@ -147,19 +147,17 @@ class SaveAgent(private val config: AgentConfiguration,
         additionalFiles
             .singleOrNull { it.name == "setup.sh" }
             ?.let { fileKey ->
-                runCatching {
-                    val targetFile = targetDirectory / fileKey.name
-                    logDebugCustom("Additionally setup of evaluated tool by $targetFile")
-                    val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
-                        .exec(
-                            targetFile.toString(),
-                            "",
-                            null,
-                            SETUP_SH_TIMEOUT
-                        )
-                    if (setupResult.code != 0) {
-                        throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
-                    }
+                val targetFile = targetDirectory / fileKey.name
+                logDebugCustom("Additionally setup of evaluated tool by $targetFile")
+                val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
+                    .exec(
+                        targetFile.toString(),
+                        "",
+                        null,
+                        SETUP_SH_TIMEOUT
+                    )
+                if (setupResult.code != 0) {
+                    throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
                 }
             }
     }
@@ -174,20 +172,20 @@ class SaveAgent(private val config: AgentConfiguration,
             }.map { (key, value) -> "$key = $value" }
             val fixAndWarnConfigs = buildMap {
                 overrideExecFlags?.let { put("execFlags", it) }
-            }
-            if (generalConfig.isNotEmpty() || fixAndWarnConfigs.isNotEmpty()) {
-                val saveOverridesTomlContent = buildString {
-                    if (generalConfig.isNotEmpty()) {
-                        appendLine("[general]")
-                        generalConfig.forEach { appendLine(it) }
-                    }
-                    if (fixAndWarnConfigs.isNotEmpty()) {
-                        appendLine("[fix]")
-                        fixAndWarnConfigs.forEach { appendLine(it) }
-                        appendLine("[warn]")
-                        fixAndWarnConfigs.forEach { appendLine(it) }
-                    }
+            }.map { (key, value) -> "$key = $value" }
+            val saveOverridesTomlContent = buildString {
+                if (generalConfig.isNotEmpty()) {
+                    appendLine("[general]")
+                    generalConfig.forEach { appendLine(it) }
                 }
+                if (fixAndWarnConfigs.isNotEmpty()) {
+                    appendLine("[fix]")
+                    fixAndWarnConfigs.forEach { appendLine(it) }
+                    appendLine("[warn]")
+                    fixAndWarnConfigs.forEach { appendLine(it) }
+                }
+            }
+            if (saveOverridesTomlContent.isNotEmpty()) {
                 FileSystem.SYSTEM.write(targetDirectory.resolveSaveOverridesTomlConfig(), true) {
                     writeUtf8(saveOverridesTomlContent)
                 }
