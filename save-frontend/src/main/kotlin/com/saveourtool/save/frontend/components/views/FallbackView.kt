@@ -8,6 +8,7 @@ import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 
@@ -58,12 +59,16 @@ class FallbackView : AbstractView<FallbackViewProps, State>(false) {
             if (props.withRouterLink == true) {
                 Link {
                     to = "/"
-                    +"← Back to the main page"
+                    h3 {
+                        +"← Back to the main page"
+                    }
                 }
             } else {
                 a {
                     href = "${window.location.origin}/"
-                    +"← Back to the main page"
+                    h3 {
+                        +"← Back to the main page"
+                    }
                 }
             }
         }

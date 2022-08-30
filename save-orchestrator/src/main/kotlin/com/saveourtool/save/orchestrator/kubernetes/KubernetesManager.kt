@@ -22,8 +22,12 @@ import org.springframework.stereotype.Component
 @Profile("kubernetes")
 class KubernetesManager(
     private val kc: KubernetesClient,
-    private val configProperties: ConfigProperties,
+    configProperties: ConfigProperties,
 ) : AgentRunner {
+    private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
+        "orchestrator.kubernetes.* properties are required in this profile"
+    }
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
@@ -38,7 +42,6 @@ class KubernetesManager(
         val baseImageTag = configuration.imageTag
         val agentRunCmd = configuration.runCmd
         val workingDir = configuration.workingDir
-        requireNotNull(configProperties.kubernetes)
         // fixme: pass image name instead of ID from the outside
 
         // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
@@ -54,7 +57,7 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
-                        if (configProperties.kubernetes.useGvisor) {
+                        if (kubernetesSettings.useGvisor) {
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
@@ -64,7 +67,9 @@ class KubernetesManager(
                             labels = mapOf(
                                 "executionId" to executionId.toString(),
                                 // "baseImageName" to baseImageName
-                                "io.kompose.service" to "save-agent"
+                                "io.kompose.service" to "save-agent",
+                                // todo: should be set to version of agent that is stored in backend...
+                                // "version" to SAVE_CORE_VERSION
                             )
                         }
                         // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
@@ -174,6 +179,19 @@ class KubernetesManager(
         this.args = listOf(agentRunCmd.last())
 
         this.workingDir = workingDir
+
+        resources = with(kubernetesSettings) {
+            ResourceRequirements().apply {
+                requests = mapOf(
+                    "cpu" to Quantity(agentCpuRequests),
+                    "memory" to Quantity(agentMemoryRequests),
+                )
+                limits = mapOf(
+                    "cpu" to Quantity(agentCpuLimits),
+                    "memory" to Quantity(agentMemoryLimits),
+                )
+            }
+        }
     }
 
     private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {

@@ -29,7 +29,8 @@ internal class TestSuitesPreprocessorControllerTest {
         null,
         gitDto,
         "main",
-        "examples/discovery-test"
+        "examples/discovery-test",
+        "aaaaaa",
     )
     private val repositoryDirectory = Paths.get("./some-folder")
     private val testLocations = repositoryDirectory.resolve(testSuitesSourceDto.testRootPath)

@@ -54,7 +54,10 @@ class TestSuitesController(
     @Tag(name = "internal")
     @ApiResponse(responseCode = "200", description = "Successfully saved test suites.")
     fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
-            Mono.just(testSuitesService.saveTestSuite(testSuiteDtos))
+            Mono.just(testSuiteDtos)
+                .filter { it.isNotEmpty() }
+                .map { testSuitesService.saveTestSuite(it) }
+                .defaultIfEmpty(emptyList())
 
     @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
     @PreAuthorize("permitAll()")
