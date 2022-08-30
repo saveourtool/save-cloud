@@ -45,9 +45,11 @@
     </changeSet>
 
     <changeSet id="add-testSuiteSourceName" author="kgevorkyan" context="dev or prod">
-        <addColumn tableName="execution">
-            <column name="test_suite_source_name" type="varchar(255)" defaultValue="NULL"/>
-        </addColumn>
+        <sql>
+            ALTER TABLE execution ADD COLUMN test_suite_source_name text;
+            UPDATE execution SET test_suite_source_name = 'unknown' WHERE test_suite_source_name IS NULL;
+            ALTER TABLE execution MODIFY test_suite_source_name text NOT NULL;
+        </sql>
     </changeSet>
 
 </databaseChangeLog>
