@@ -2258,6 +2258,74 @@
         ]
       }
     },
+    "/api/v1/contests/featured/add-or-delete": {
+      "post": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Create or delete featured contest.",
+        "description": "Mark contest to be featured if it is not marked so yet or unmark otherwise.",
+        "operationId": "addOrDeleteContestToFeatured",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contestDto",
+            "description": "contest requested for creation",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contest was successfully created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contest with given name is not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/create": {
       "post": {
         "tags": [
@@ -5575,6 +5643,62 @@
         ]
       }
     },
+    "/api/v1/contests/newest": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get newest contests.",
+        "description": "Get list of [pageSize] newest contests.",
+        "operationId": "getSeveralNewestContests",
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "amount of records that will be returned",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched newest contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/finished": {
       "get": {
         "tags": [
@@ -5599,6 +5723,49 @@
         "responses": {
           "200": {
             "description": "Successfully fetched list of finished contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/contests/featured/list-active": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Get featured contests.",
+        "description": "Get list of contests marked by admins as featured.",
+        "operationId": "getFeaturedContests",
+        "responses": {
+          "200": {
+            "description": "Contests were successfully fetched.",
             "content": {
               "*/*": {
                 "schema": {
@@ -7021,6 +7188,10 @@
               "type": "integer",
               "format": "int64"
             }
+          },
+          "creationTime": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "description": "contest requested for creation"
