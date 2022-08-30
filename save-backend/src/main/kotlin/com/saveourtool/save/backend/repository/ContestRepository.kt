@@ -26,6 +26,10 @@ JpaSpecificationExecutor<Contest> {
      */
     fun findByName(name: String): Optional<Contest>
 
+    /**
+     * @param contestIds
+     * @return list of [Contest]s with ids from [contestIds]
+     */
     fun findByIdIn(contestIds: Set<Long>): List<Contest>
 
     /**
@@ -78,18 +82,45 @@ JpaSpecificationExecutor<Contest> {
      */
     fun findByOrganizationName(organizationName: String, pageable: Pageable): Page<Contest>
 
+    /**
+     * @param status
+     * @param currentTime
+     * @param pageable
+     * @return List of [Contest]s
+     */
     fun findByStatusNotAndEndTimeAfterOrderByCreationTimeDesc(status: ContestStatus, currentTime: LocalDateTime, pageable: Pageable): List<Contest>
 
+    /**
+     * Find ids of all contests marked as featured
+     *
+     * @return set filled with ids of featured contests
+     */
     @Query("""select contest_id from save_cloud.featured_contests""", nativeQuery = true)
     fun findFeaturedContestIds(): Set<Long>
 
+    /**
+     * Method should be used to check whether a contest with given id is marked to be featured or not
+     *
+     * @param contestId
+     * @return [contestId] if given [Contest] is featured, null otherwise
+     */
     @Query("""select contest_id from save_cloud.featured_contests where contest_id = :id""", nativeQuery = true)
     fun findFeaturedContestById(@Param("id") contestId: Long): Long?
 
+    /**
+     * Mark [Contest] with [contestId] as featured
+     *
+     * @param contestId id of a [Contest]
+     */
     @Modifying
     @Query("""insert into save_cloud.featured_contests values (null, :id)""", nativeQuery = true)
     fun saveFeaturedContest(@Param("id") contestId: Long)
 
+    /**
+     * Unmark [Contest] with [contestId] as featured
+     *
+     * @param contestId id of a [Contest]
+     */
     @Modifying
     @Query("""delete from save_cloud.featured_contests where contest_id = :id""", nativeQuery = true)
     fun deleteFeaturedContestById(@Param("id") contestId: Long)

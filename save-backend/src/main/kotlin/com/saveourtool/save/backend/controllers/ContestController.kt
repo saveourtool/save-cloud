@@ -9,8 +9,7 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
-import com.saveourtool.save.backend.utils.toMonoOrNotFound
+import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
@@ -36,7 +35,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -95,16 +93,18 @@ internal class ContestController(
         authentication: Authentication,
     ): Mono<StringResponse> = getContestOrNotFound(contestName)
         .flatMap {
-            contestService.addOrDeleteFeaturedContest(it).toMono()
+            blockingToMono {
+                contestService.addOrDeleteFeaturedContest(it)
+            }
         }
         .map {
             ResponseEntity.ok("Contest $contestName was successfully marked to be featured contest.")
         }
-        .defaultIfEmpty (
+        .defaultIfEmpty(
             ResponseEntity.ok("Contest $contestName was successfully unmarked to be featured contest.")
         )
 
-    @GetMapping("/featured/list")
+    @GetMapping("/featured/list-active")
     @Operation(
         method = "GET",
         summary = "Get featured contests.",
@@ -239,7 +239,6 @@ internal class ContestController(
         contestService.getNewestContests(pageSize)
     )
         .map { it.toDto() }
-
 
     @GetMapping("/{contestName}/test-suites")
     @Operation(

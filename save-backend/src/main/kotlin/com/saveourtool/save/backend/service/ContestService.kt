@@ -99,12 +99,19 @@ class ContestService(
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     fun createContestIfNotPresent(newContest: Contest): Boolean =
             if (contestRepository.findByName(newContest.name).isEmpty) {
-                contestRepository.save(newContest.apply {  })
+                contestRepository.save(newContest)
                 true
             } else {
                 false
             }
 
+    /**
+     * Change `feature` state of [Contest]: if contest is not marked to be featured, it will be marked so,
+     * if contest is already featured, it will be unmarked
+     *
+     * @param contest
+     * @return id of a [contest] if it is marked to be featured, null if [contest] is unmarked to be featured
+     */
     @Transactional
     @Suppress("AVOID_NULL_CHECKS")
     fun addOrDeleteFeaturedContest(contest: Contest): Long? = contest.requiredId().let { contestId ->
@@ -117,8 +124,15 @@ class ContestService(
         }
     }
 
+    /**
+     * @return list of featured [Contest]s
+     */
     fun getFeaturedContests(): List<Contest> = findByIdIn(contestRepository.findFeaturedContestIds())
 
+    /**
+     * @param pageSize amount of records that will be fetched
+     * @return list of [pageSize] newest [Contest]s
+     */
     fun getNewestContests(pageSize: Int): List<Contest> = contestRepository.findByStatusNotAndEndTimeAfterOrderByCreationTimeDesc(
         ContestStatus.DELETED,
         LocalDateTime.now(),

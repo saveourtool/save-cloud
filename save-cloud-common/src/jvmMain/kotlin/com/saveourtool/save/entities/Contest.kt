@@ -95,6 +95,7 @@ class Contest(
          *
          * @param organization that created contest
          * @param status [ContestStatus]
+         * @param creationTime specified time when contest was created
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
