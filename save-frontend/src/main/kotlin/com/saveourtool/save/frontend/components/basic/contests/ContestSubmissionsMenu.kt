@@ -78,6 +78,7 @@ private fun ChildrenBuilder.displayStatus(status: ExecutionStatus, hasFailedTest
             ExecutionStatus.PENDING -> ClassName("")
             ExecutionStatus.RUNNING -> ClassName("")
             ExecutionStatus.ERROR -> ClassName("text-danger")
+            ExecutionStatus.OBSOLETE -> ClassName("text-secondary")
             ExecutionStatus.FINISHED -> if (hasFailedTests) {
                 ClassName("text-danger")
             } else {

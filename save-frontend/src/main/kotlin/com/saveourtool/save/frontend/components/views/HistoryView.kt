@@ -97,6 +97,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             column("result", "", { status }) { cellProps ->
                 val result = when (cellProps.row.original.status) {
                     ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                    ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
                     ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
@@ -108,7 +109,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             fontAwesomeIcon(result.resIcon, classes = result.resColor)
                         }
                     }
@@ -118,7 +119,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +"${cellProps.value}"
                         }
                     }
@@ -128,7 +129,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
@@ -138,8 +139,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
+                        }
+                    }
+                }
+            }
+            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                            +"${cellProps.value}"
                         }
                     }
                 }
@@ -148,7 +159,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.RUNNING)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.RUNNING)
                             +"${cellProps.value}"
                         }
                     }
@@ -158,7 +169,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.PASSED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.PASSED)
                             +"${cellProps.value}"
                         }
                     }
@@ -168,7 +179,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.FAILED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.FAILED)
                             +"${cellProps.value}"
                         }
                     }
@@ -178,7 +189,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.IGNORED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.IGNORED)
                             +"${cellProps.value}"
                         }
                     }
@@ -202,6 +213,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
+                ExecutionStatus.OBSOLETE -> Colors.GREY
                 ExecutionStatus.PENDING -> Colors.GREY
                 ExecutionStatus.RUNNING -> Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
@@ -323,8 +335,15 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
-            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
+    private fun getHrefToExecution(
+        id: Long,
+        executionStatus: ExecutionStatus,
+        status: TestResultStatus?,
+    ): String = if (executionStatus == ExecutionStatus.OBSOLETE) {
+        "${window.location}"
+    } else {
+        "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
+    }
 
     /**
      * @property resColor

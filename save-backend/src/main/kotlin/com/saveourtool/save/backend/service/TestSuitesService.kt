@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
@@ -228,14 +229,17 @@ class TestSuitesService(
             log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
         }
-        // Delete executions and agents, which related to the test suites
-        // All test executions should be removed at this moment, that's why iterate one more time
-        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
-            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
-            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-            agentService.deleteAgentByExecutionIds(executionIds)
-            log.debug { "Delete executions with ids $executionIds" }
-            executionService.deleteExecutionByIds(executionIds)
+
+        // Delete agents, which related to the test suites
+        val executionIds = testSuitesNamesAndIds.flatMap { (_, testSuiteId) ->
+            executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+        }.distinct()
+
+        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+        agentService.deleteAgentByExecutionIds(executionIds)
+
+        executionIds.forEach {
+            executionService.updateExecutionStatus(executionService.findExecution(it)!!, ExecutionStatus.OBSOLETE)
         }
     }
 
