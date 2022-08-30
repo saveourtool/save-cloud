@@ -12,4 +12,10 @@
         </sql>
     </changeSet>
 
+    <changeSet id="update-user-is-active" author="frolov" context="prod">
+        <sql>
+            update user SET is_active = 1;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
