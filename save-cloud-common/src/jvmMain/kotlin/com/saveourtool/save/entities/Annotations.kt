@@ -13,6 +13,7 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 import javax.persistence.MappedSuperclass
 import javax.persistence.OneToMany
+import jakarta.validation.constraints.NotNull
 
 actual typealias Entity = Entity
 actual typealias Id = Id
@@ -23,3 +24,4 @@ actual typealias OneToMany = OneToMany
 actual typealias MappedSuperclass = MappedSuperclass
 actual typealias Enumerated = Enumerated
 actual typealias ForeignKey = ForeignKey
+actual typealias NotNull = NotNull

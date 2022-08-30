@@ -121,7 +121,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
     }
 
     init {
-        state.selectedRatingTab = UserRatingTab.ORGANIZATIONS.name
+        state.selectedRatingTab = UserRatingTab.ORGS.name
         state.selectedContestsTab = ContestTypesTab.ACTIVE.name
         state.finishedContests = emptySet()
         state.activeContests = emptySet()

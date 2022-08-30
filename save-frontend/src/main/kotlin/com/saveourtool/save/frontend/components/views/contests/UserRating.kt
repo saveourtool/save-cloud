@@ -30,7 +30,7 @@ val userRatingFc = userRating()
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGANIZATIONS, TOOLS
+    ORGS, TOOLS
 }
 
 /**
@@ -156,7 +156,7 @@ fun userRating() = FC<UserRatingProps> { props ->
                 title(" Global Rating", faTrophy)
                 tab(props.selectedTab, UserRatingTab.values().map { it.name }, props.updateTabState)
                 when (props.selectedTab) {
-                    UserRatingTab.ORGANIZATIONS.name -> renderingOrganizationChampionsTable(props.organizations)
+                    UserRatingTab.ORGS.name -> renderingOrganizationChampionsTable(props.organizations)
                     UserRatingTab.TOOLS.name -> renderingProjectChampionsTable(props.projects)
                 }
 
