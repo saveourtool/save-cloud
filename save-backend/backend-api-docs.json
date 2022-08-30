@@ -7274,6 +7274,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7345,6 +7346,9 @@
             "type": "string"
           },
           "batchSizeForAnalyzer": {
+            "type": "string"
+          },
+          "testSuiteSourceName": {
             "type": "string"
           },
           "id": {
@@ -7491,6 +7495,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7549,6 +7554,9 @@
           "unexpectedChecks": {
             "type": "integer",
             "format": "int64"
+          },
+          "testSuiteSourceName": {
+            "type": "string"
           }
         }
       },
@@ -7585,6 +7593,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
