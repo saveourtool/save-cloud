@@ -29,6 +29,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
@@ -127,6 +128,7 @@ class WebSecurityConfig(
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
                     StoringServerAuthenticationSuccessHandler(configurationProperties),
+                    RedirectServerAuthenticationSuccessHandler("/#/projects"),
                 )
             )
             it.authenticationFailureHandler(

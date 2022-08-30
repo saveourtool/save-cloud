@@ -31,6 +31,7 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -164,6 +165,15 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
+
+                withRouter<Props> { location, _ ->
+                    if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.REGISTRATION.path}"
+                            replace = false
+                        }
+                    }
+                }()
 
                 div {
                     className = ClassName("d-flex flex-column")

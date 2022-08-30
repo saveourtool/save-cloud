@@ -12,7 +12,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.WebFilterExchange
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.server.ResponseStatusException
@@ -46,7 +45,7 @@ class StoringServerAuthenticationSuccessHandler(
             role = Role.VIEWER.asSpringSecurityRole()
         }
 
-        val newUser: Mono<Boolean> = webClient.post()
+        return webClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(user))
@@ -54,16 +53,8 @@ class StoringServerAuthenticationSuccessHandler(
             .onStatus({ it.is4xxClientError }) {
                 Mono.error(ResponseStatusException(it.statusCode()))
             }
-            .bodyToMono(Boolean::class.java)
-
-        return newUser.map {
-            logger.debug("User is active == $it")
-            if (it) {
-                RedirectServerAuthenticationSuccessHandler("/#/projects")
-            } else {
-                RedirectServerAuthenticationSuccessHandler("/#/registration")
-            }
-        }.then()
+            .toBodilessEntity()
+            .then()
     }
 }
 
