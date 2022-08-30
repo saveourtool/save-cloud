@@ -97,7 +97,7 @@ private fun featuredContest() = VFC {
                         className = ClassName("mb-0")
                         a {
                             className = ClassName("text-dark")
-                            href = "#"
+                            href = "#/contests/${contestToShow.name}"
                             +contestToShow.name
                         }
                     }
