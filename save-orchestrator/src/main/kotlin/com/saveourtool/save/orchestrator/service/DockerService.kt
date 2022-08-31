@@ -22,6 +22,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlin.io.path.*
 import kotlin.io.path.ExperimentalPathApi
@@ -42,6 +45,8 @@ class DockerService(
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
+
+    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
 
     /**
      * Function that builds a base image with test resources
@@ -100,13 +105,14 @@ class DockerService(
                 val duration = AtomicLong(0)
                 Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
+                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
                     }
                     .doOnNext {
                         duration.set((Clock.System.now() - now).inWholeMilliseconds)
                     }
                     .doOnComplete {
-                        if (!areAgentsHaveStarted.get()) {
+                        if (areAgentsHaveStarted[executionId]?.get() != true) {
                             log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -114,6 +120,7 @@ class DockerService(
                             ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
                                 .subscribe()
                         }
+                        areAgentsHaveStarted.remove(executionId)
                     }
             }
     }
@@ -132,6 +139,10 @@ class DockerService(
                 log.error("Error while stopping agents $agentIds", e)
                 false
             }
+
+    fun markAgentForExecutionAsStarted(executionId: Long) = areAgentsHaveStarted
+        .computeIfAbsent(executionId) { AtomicBoolean(false) }
+        .compareAndSet(false, true)
 
     /**
      * Check whether the agent agentId is stopped
