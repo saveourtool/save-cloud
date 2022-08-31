@@ -5,6 +5,7 @@ metadata:
 data:
   application.properties: |
     gateway.backend.url=http://backend
+    gateway.frontend.url=http://frontend
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.gateway.managementPort }}

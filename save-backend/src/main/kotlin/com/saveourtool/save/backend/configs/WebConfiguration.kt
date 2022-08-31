@@ -26,32 +26,7 @@ import kotlin.time.toJavaDuration
 @Configuration
 class WebConfiguration(
     private val configProperties: ConfigProperties,
-    private val buildProperties: BuildProperties,
 ) {
-    /**
-     * @return a router bean
-     */
-    @Bean
-    fun staticResourceRouter() = router {
-        path("/{resourcePath:.*\\.(?:js|css|html)}") { request ->
-            val resourcePath = request.pathVariable("resourcePath")
-            val resource = ClassPathResource("static/$resourcePath")
-            val cacheControl: (ServerResponse.BodyBuilder) -> ServerResponse.BodyBuilder = when (getFilenameExtension(resource.filename)) {
-                "js", "css", "html" -> { builder -> builder.cacheControl(shortExpirationTime) { cachePublic() } }
-                else -> { builder -> builder.cacheControl(CacheControl.noCache()) }
-            }
-            ok().run(cacheControl)
-                .lastModified(buildProperties.time)
-                .bodyValue(resource)
-        }
-        cacheableClasspathResource(
-            "/img/{resourcePath:.*\\.(?:jpg|jpeg|png|gif)}",
-            "static/img",
-        )
-        // fallback for other resources
-        resources("/**", ClassPathResource("static/"))
-    }
-
     /**
      * @return a router with routes for avatars that set `Cache-Control` header
      */
@@ -68,40 +43,10 @@ class WebConfiguration(
         resources("/api/$v1/resource/**", FileSystemResource("${configProperties.fileStorage.location}/storage/"))
     }
 
-    /**
-     * @param indexPage resource for index.html
-     * @param errorPage resource for error.html
-     * @return router bean
-     */
-    @Bean
-    fun indexRouter(
-        @Value("classpath:/static/index.html") indexPage: Resource,
-        @Value("classpath:/static/error.html") errorPage: Resource,
-    ) = router {
-        GET("/") {
-            ok().header("Content-Type", "text/html; charset=utf8")
-                .cacheControl(shortExpirationTime) { cachePublic() }
-                .lastModified(buildProperties.time)
-                .bodyValue(indexPage)
-        }
-
-        GET("/error") {
-            ok().header("Content-Type", "text/html; charset=utf8")
-                .cacheControl(shortExpirationTime) { cachePublic() }
-                .lastModified(buildProperties.time)
-                .bodyValue(errorPage)
-        }
-    }
-
     private fun RouterFunctionDsl.cacheableFsResource(
         pattern: String,
         basePath: String
     ) = cacheableResource(pattern, basePath) { FileSystemResource(it) }
-
-    private fun RouterFunctionDsl.cacheableClasspathResource(
-        pattern: String,
-        basePath: String
-    ) = cacheableResource(pattern, basePath) { ClassPathResource(it) }
 
     private fun RouterFunctionDsl.cacheableResource(
         pattern: String,

@@ -84,9 +84,6 @@ val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Downloa
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    runtimeOnly(projects.saveFrontend) {
-        targetConfiguration = "distribution"  // static resources packed as a jar, will be accessed from classpath
-    }
     runtimeOnly(
         files(layout.buildDirectory.dir("$buildDir/download")).apply {
             builtBy(downloadSaveCliTaskProvider)

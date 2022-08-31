@@ -212,6 +212,7 @@ fun Project.createStackDeployTask(profile: String) {
             "-d",
             "orchestrator",
             "backend",
+            "frontend",
             "preprocessor"
         )
     }
@@ -228,7 +229,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }

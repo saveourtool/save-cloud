@@ -1,4 +1,5 @@
 import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
@@ -225,6 +226,28 @@ val distributionJarTask by tasks.registering(Jar::class) {
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
+}
+
+tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
+    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
+    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
+    buildpacks = listOf("paketo-buildpacks/nginx")
+    environment = mapOf(
+        "BP_WEB_SERVER" to "nginx",
+        "BP_WEB_SERVER_ROOT" to "static",
+    )
+    isVerboseLogging = true
+    val registryPassword: String? = System.getenv("GHCR_PWD")
+    isPublish = registryPassword != null
+    if (isPublish) {
+        docker {
+            publishRegistry {
+                username = "saveourtool"
+                password = registryPassword
+                url = "https://ghcr.io"
+            }
+        }
+    }
 }
 
 detekt {

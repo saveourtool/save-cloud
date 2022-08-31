@@ -17,8 +17,8 @@ prometheus.io/port: {{ .service.managementPort | quote }}
 {{- end }}
 {{- end }}
 
-{{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
-{{- define "spring-boot.securityContext" -}}
+{{/* Common Linux user configuration for paketo-created containers, where user is cnb:cnb */}}
+{{- define "cnb.securityContext" -}}
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000

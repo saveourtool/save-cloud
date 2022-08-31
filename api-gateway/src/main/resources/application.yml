@@ -5,6 +5,8 @@ server:
 gateway:
   backend:
     url: http://backend:5800
+  frontend:
+    url: http://frontend:5810
   grafana:
     url: http://grafana:9100
 management:
@@ -27,18 +29,18 @@ spring:
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
         - id: index_route
-          uri: ${gateway.backend.url}/index.html
+          uri: ${gateway.frontend.url}/index.html
           predicates:
             - Path=/
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
         - id: error_route
-          uri: ${gateway.backend.url}/error
+          uri: ${gateway.frontend.url}/error
           predicates:
             - Path=/error
         - id: resource_route
-          uri: ${gateway.backend.url}
+          uri: ${gateway.frontend.url}
           predicates:
             - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
           filters:
