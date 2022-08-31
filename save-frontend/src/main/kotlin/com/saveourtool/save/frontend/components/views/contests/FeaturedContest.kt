@@ -84,9 +84,7 @@ fun ChildrenBuilder.featuredContest() {
 private fun ChildrenBuilder.image() {
     img {
         className = ClassName("card-img-right flex-auto d-none d-md-block")
-        asDynamic()["data-src"] = "holder.js/200x250?theme=thumb"
         src = "img/undraw_certificate_re_yadi.svg"
-        asDynamic()["data-holder-rendered"] = "true"
         style = jso {
             width = 12.rem
         }
