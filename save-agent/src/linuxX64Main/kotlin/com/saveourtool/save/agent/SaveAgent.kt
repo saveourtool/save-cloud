@@ -6,6 +6,7 @@ import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.sendDataToBackend
+import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
@@ -117,7 +118,7 @@ class SaveAgent(private val config: AgentConfiguration,
      * [coroutineScope] is the topmost scope for all jobs, so by cancelling it
      * we can gracefully shut down the whole application.
      */
-    fun shutdown() {
+    internal fun shutdown() {
         coroutineScope.cancel()
     }
 
@@ -126,8 +127,9 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Scheduling heartbeats")
         while (true) {
             val response = runCatching {
+                val executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong()
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(0))
+                sendHeartbeat(ExecutionProgress(executionId = executionId, percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -170,27 +172,26 @@ class SaveAgent(private val config: AgentConfiguration,
 
     /**
      * @param cliArgs arguments for SAVE process
-     * @return Unit
      */
     internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        val pwd = FileSystem.SYSTEM.canonicalize(".".toPath())
-        logInfoCustom("Starting SAVE in $pwd with provided args $cliArgs")
+        logInfoCustom("Starting SAVE in ${getWorkingDirectory()} with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
+
         val saveCliLogFilePath = config.logFilePath
         val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
             .buffer()
             .readByteArray()
         val saveCliLogData = String(byteArray).split("\n")
-
         launchLogSendingJob(byteArray)
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
         }
+
         when (executionResult.code) {
             0 -> if (saveCliLogData.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
