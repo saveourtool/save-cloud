@@ -14,6 +14,10 @@ expect annotation class Entity()
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
+expect annotation class NotNull()
+
+@OptIn(ExperimentalMultiplatform::class)
+@OptionalExpectation
 expect annotation class Id()
 
 @OptIn(ExperimentalMultiplatform::class)
