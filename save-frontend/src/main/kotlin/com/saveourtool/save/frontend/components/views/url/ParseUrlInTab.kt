@@ -5,9 +5,7 @@ package com.saveourtool.save.frontend.components.views.url
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.TabMenuBar
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.components.views.OrganizationView
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.State
 
@@ -30,10 +28,10 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
  * @param role
  * @param isOrganizationCanCreateContest is state.organization?.canCreateContests in OrganizationView.kt
  */
-fun <T, S: HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
+fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
     val href = window.location.href
     val tab = if (href.contains(menu.regexForUrlClassification)) {
-        href.substringAfterLast(URL_PATH_DELIMITER).let { menu.findEnumElement(it) ?: menu.defaultTab}
+        href.substringAfterLast(URL_PATH_DELIMITER).let { menu.findEnumElement(it) ?: menu.defaultTab }
     } else {
         menu.defaultTab
     }
