@@ -36,7 +36,6 @@ springdoc = "1.6.11"
 kotlinx-cli = "0.3.5"
 spotless = "6.10.0"
 fabric8 = "6.0.0"
-jakarta = "3.0.2"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -117,7 +116,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 # java core libraries
-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta"}
+validation-api = { module = "jakarta.validation:jakarta.validation-api"}
 
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
