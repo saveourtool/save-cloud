@@ -49,12 +49,6 @@ interface TabMenuBar<T> {
     }
 
     /**
-     * @param elem
-     * @return the string of the entered Enum class element
-     */
-    fun convertEnumElemToString(elem: T): String
-
-    /**
      * @param role
      * @param elem
      * @param flag

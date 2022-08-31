@@ -40,15 +40,11 @@ enum class ContestMenuBar {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
-        val listOfStringEnumElements = ContestMenuBar.values().map { it.name.lowercase() }
         override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
         override var paths: Pair<String, String> = "" to ""
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun findEnumElement(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
-
-        override fun convertEnumElemToString(elem: ContestMenuBar): String = elem.name
-
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
     }
 }

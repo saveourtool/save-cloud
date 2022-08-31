@@ -24,8 +24,6 @@ enum class ProjectMenuBar {
         override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
         override fun findEnumElement(elem: String): ProjectMenuBar? = values().find { it.name.lowercase() == elem }
-        override fun convertEnumElemToString(elem: ProjectMenuBar): String = elem.name
-
         override fun isNotAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) || (elem == RUN)) && role.isLowerThan(Role.ADMIN)
     }
 }

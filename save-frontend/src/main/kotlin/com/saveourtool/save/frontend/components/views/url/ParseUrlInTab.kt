@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.views.url
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.TabMenuBar
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.components.views.OrganizationView
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -15,11 +16,11 @@ import kotlinx.browser.window
 /**
  * General interface for working with MenuBar
  */
-external interface HasSelectedMenu<T> : State {
+external interface HasSelectedMenu<T : Enum<T>> : State {
     /**
      * selected value in T Enum
      */
-    var selectedMenu: T?
+    var selectedMenu: T
 }
 
 /**
@@ -27,18 +28,17 @@ external interface HasSelectedMenu<T> : State {
  *
  * @param menu
  * @param role
- * @param flag
+ * @param isOrganizationCanCreateContest is state.organization?.canCreateContests in OrganizationView.kt
  */
-fun <T, S> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, flag: Boolean?)
-where S : State, S : HasSelectedMenu<T> {
+fun <T, S: HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
     val href = window.location.href
     val tab = if (href.contains(menu.regexForUrlClassification)) {
-        href.substringAfterLast(URL_PATH_DELIMITER).run { menu.findEnumElement(this) }
+        href.substringAfterLast(URL_PATH_DELIMITER).let { menu.findEnumElement(it) ?: menu.defaultTab}
     } else {
         menu.defaultTab
     }
     if (state.selectedMenu != tab) {
-        if (menu.isNotAvailableWithThisRole(role, tab, flag)) {
+        if (menu.isNotAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
             changeUrl(menu.defaultTab, menu)
             window.alert("Your role is not suitable for opening this page")
             window.location.reload()
@@ -56,15 +56,10 @@ where S : State, S : HasSelectedMenu<T> {
  * @param selectedMenu
  * @param menuBar
  */
-fun <T> changeUrl(selectedMenu: T?, menuBar: TabMenuBar<T>) {
-    selectedMenu?.let {
-        window.location.href = if (selectedMenu == menuBar.defaultTab) {
-            menuBar.paths.first
-        } else {
-            "${menuBar.paths.second}/${menuBar.convertEnumElemToString(selectedMenu).lowercase()}"
-        }
-    } ?: run {
-        window.location.href = "#/${FrontendRoutes.NOT_FOUND.path}"
-        window.location.reload()
+fun <T> changeUrl(selectedMenu: T, menuBar: TabMenuBar<T>) {
+    window.location.href = if (selectedMenu == menuBar.defaultTab) {
+        menuBar.paths.first
+    } else {
+        "${menuBar.paths.second}/${selectedMenu.toString().lowercase()}"
     }
 }
