@@ -21,10 +21,10 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
 import kotlin.io.path.ExperimentalPathApi
@@ -42,11 +42,11 @@ class DockerService(
     private val agentRunner: AgentRunner,
     private val agentService: AgentService,
 ) {
+    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
+
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
-
-    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
 
     /**
      * Function that builds a base image with test resources
@@ -140,9 +140,14 @@ class DockerService(
                 false
             }
 
-    fun markAgentForExecutionAsStarted(executionId: Long) = areAgentsHaveStarted
-        .computeIfAbsent(executionId) { AtomicBoolean(false) }
-        .compareAndSet(false, true)
+    /**
+     * @param executionId
+     */
+    fun markAgentForExecutionAsStarted(executionId: Long) {
+        areAgentsHaveStarted
+            .computeIfAbsent(executionId) { AtomicBoolean(false) }
+            .compareAndSet(false, true)
+    }
 
     /**
      * Check whether the agent agentId is stopped
