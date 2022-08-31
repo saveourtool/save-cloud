@@ -151,7 +151,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 logDebugCustom("Additionally setup of evaluated tool by $targetFile")
                 val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
                     .exec(
-                        targetFile.toString(),
+                        "./$targetFile",
                         "",
                         null,
                         SETUP_SH_TIMEOUT
