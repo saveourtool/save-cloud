@@ -51,4 +51,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="user-add-column-2" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="is_active" type="BOOLEAN" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

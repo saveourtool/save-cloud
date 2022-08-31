@@ -1,6 +1,8 @@
 package com.saveourtool.save.info
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.validation.Validatable
+import com.saveourtool.save.validation.isValidName
 
 import kotlinx.serialization.Serializable
 
@@ -19,10 +21,17 @@ import kotlinx.serialization.Serializable
  * @property twitter
  * @property organizations
  * @property globalRole
+ * @property id
+ * @property isActive
+ * @property oldName is always null except for the process of renaming the user.
+ * @property originalLogins
  */
 @Serializable
 data class UserInfo(
     val name: String,
+    val id: Long? = null,
+    val oldName: String? = null,
+    val originalLogins: List<String?> = emptyList(),
     val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),
     val organizations: Map<String, Role> = emptyMap(),
@@ -34,4 +43,21 @@ data class UserInfo(
     var gitHub: String? = null,
     var twitter: String? = null,
     val globalRole: Role? = null,
-)
+    var isActive: Boolean = false,
+) : Validatable {
+    /**
+     * Validation of organization name
+     *
+     * @return true if name is valid, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    fun validateName(): Boolean = name.isValidName()
+
+    /**
+     * Validation of an organization
+     *
+     * @return true if organization is valid, false otherwise
+     */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
+    override fun validate(): Boolean = validateName()
+}

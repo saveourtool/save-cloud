@@ -31,6 +31,7 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -164,6 +165,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
+
+                withRouter<Props> { location, _ ->
+                    if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.REGISTRATION.path}"
+                            replace = false
+                        }
+                    } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.PROJECTS.path}"
+                            replace = false
+                        }
+                    }
+                }()
+
                 div {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"
@@ -186,6 +202,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     element = AwesomeBenchmarksView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.REGISTRATION.path}"
+                                    element = RegistrationView::class.react.create() {
+                                        userInfo = state.userInfo
+                                    }
                                 }
 
                                 Route {
