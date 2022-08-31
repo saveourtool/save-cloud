@@ -7,7 +7,6 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showContestTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
@@ -168,15 +167,17 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     // ==== Contest Name
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormRequired(
-                            InputTypes.CONTEST_NAME,
-                            contestDto.name,
-                            (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null,
-                            "col-12 pl-2 pr-2",
-                            "Contest name",
-                        ) {
-                            setContestDto(contestDto.copy(name = it.target.value))
-                            setConflictErrorMessage(null)
+                        inputTextFormRequired {
+                            form = InputTypes.CONTEST_NAME
+                            textValue = contestDto.name
+                            validInput = (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null
+                            classes = "col-12 pl-2 pr-2"
+                            name = "Contest name"
+                            conflictMessage = conflictErrorMessage
+                            onChangeFun = {
+                                setContestDto(contestDto.copy(name = it.target.value))
+                                setConflictErrorMessage(null)
+                            }
                         }
                     }
                     // ==== Organization Name selection
@@ -212,19 +213,20 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                     // ==== Contest test suites
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormRequired(
-                            InputTypes.CONTEST_TEST_SUITE_IDS,
-                            contestDto.testSuiteIds.sorted().joinToString(", "),
-                            true,
-                            "col-12 pl-2 pr-2 text-center",
-                            "Test Suites:",
+                        inputTextFormRequired {
+                            form = InputTypes.CONTEST_TEST_SUITE_IDS
+                            conflictMessage = null
+                            textValue = contestDto.testSuiteIds.sorted().joinToString(", ")
+                            validInput = true
+                            classes = "col-12 pl-2 pr-2 text-center"
+                            name = "Test Suites:"
                             onClickFun = testSuitesSelectorWindowOpenness.openWindowAction()
-                        )
+                        }
                     }
                     // ==== Contest description
                     div {
                         className = ClassName("mt-2")
-                        inputTextFormOptionalWrapperConst {
+                        inputTextFormOptional {
                             form = InputTypes.CONTEST_DESCRIPTION
                             textValue = contestDto.description
                             classes = "col-12 pl-2 pr-2"

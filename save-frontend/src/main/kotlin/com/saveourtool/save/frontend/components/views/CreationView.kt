@@ -11,7 +11,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
@@ -188,21 +188,24 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 }
                                             }
                                         }
-                                        inputTextFormRequired(
-                                            InputTypes.PROJECT_NAME,
-                                            state.projectCreationRequest.name,
-                                            (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
-                                                    state.conflictErrorMessage == null,
-                                            "col-md-12 pl-2 pr-2 mt-3",
-                                            "Tested tool name",
-                                        ) {
-                                            setState {
-                                                projectCreationRequest = projectCreationRequest.copy(name = it.target.value)
-                                                conflictErrorMessage = null
+                                        inputTextFormRequired {
+                                            form = InputTypes.PROJECT_NAME
+                                            textValue = state.projectCreationRequest.name
+                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
+                                                    state.conflictErrorMessage == null
+                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            name = "Tested tool name"
+                                            conflictMessage = state.conflictErrorMessage
+                                            onChangeFun = {
+                                                setState {
+                                                    projectCreationRequest =
+                                                            projectCreationRequest.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
+                                                }
                                             }
                                         }
 
-                                        inputTextFormOptionalWrapperConst {
+                                        inputTextFormOptional {
                                             form = InputTypes.PROJECT_EMAIL
                                             textValue = state.projectCreationRequest.email
                                             classes = "col-md-12 pl-2 pr-2 mt-3"
