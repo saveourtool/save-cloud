@@ -6,7 +6,7 @@ import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -126,16 +126,18 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
     }
 
     div {
-        inputTextFormRequired(
-            InputTypes.SOURCE_NAME,
-            testSuiteSource.name,
-            testSuiteSource.validateName() && saveStatus != SourceSaveStatus.EXIST,
-            "mb-2",
-            "Source name",
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(name = it.target.value))
-            if (saveStatus == SourceSaveStatus.EXIST) {
-                setSaveStatus(null)
+        inputTextFormRequired {
+            form = InputTypes.SOURCE_NAME
+            textValue = testSuiteSource.name
+            validInput = testSuiteSource.validateName() && saveStatus != SourceSaveStatus.EXIST
+            classes = "mb-2"
+            name = "Source name"
+            conflictMessage = saveStatus?.message
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(name = it.target.value))
+                if (saveStatus == SourceSaveStatus.EXIST) {
+                    setSaveStatus(null)
+                }
             }
         }
         inputTextDisabled(
@@ -144,7 +146,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             "Organization name",
             testSuiteSource.organizationName
         )
-        inputTextFormOptionalWrapperConst {
+        inputTextFormOptional {
             form = InputTypes.GIT_BRANCH
             textValue = testSuiteSource.branch
             classes = "mb-2"
@@ -157,7 +159,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                 }
             }
         }
-        inputTextFormOptionalWrapperConst {
+        inputTextFormOptional {
             form = InputTypes.SOURCE_TEST_ROOT_PATH
             textValue = testSuiteSource.testRootPath
             classes = "mb-2"
@@ -197,7 +199,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                 }
             }
         }
-        inputTextFormOptionalWrapperConst {
+        inputTextFormOptional {
             form = InputTypes.DESCRIPTION
             textValue = testSuiteSource.description
             classes = "mb-2"

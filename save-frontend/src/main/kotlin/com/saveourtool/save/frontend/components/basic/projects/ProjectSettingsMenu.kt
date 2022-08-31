@@ -6,7 +6,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
@@ -131,7 +131,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     }
                     div {
                         className = ClassName("col-7 input-group pl-0")
-                        inputTextFormOptionalWrapperConst {
+                        inputTextFormOptional {
                             form = InputTypes.PROJECT_EMAIL
                             textValue = draftProject.email
                             classes = ""
