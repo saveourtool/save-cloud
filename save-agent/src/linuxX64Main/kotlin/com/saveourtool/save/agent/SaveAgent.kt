@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
 import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.logging.logTrace
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
@@ -159,6 +160,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 if (setupResult.code != 0) {
                     throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
                 }
+                logTrace("$fileKey is executed successfully. Output: ${setupResult.stdout}")
             }
     }
 
