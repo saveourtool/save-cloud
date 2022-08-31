@@ -75,6 +75,24 @@ internal class ContestController(
     fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = getContestOrNotFound(contestName)
         .map { it.toDto() }
 
+    @GetMapping("/{contestName}/is-featured")
+    @Operation(
+        method = "GET",
+        summary = "Check if contest is featured.",
+        description = "Check if a given contest is featured or not.",
+    )
+    @Parameters(
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched contest data.")
+    @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
+    fun isContestFeatured(
+        @PathVariable contestName: String,
+    ): Mono<Boolean> = getContestOrNotFound(contestName)
+        .map {
+            contestService.isContestFeatured(it.requiredId())
+        }
+
     @PostMapping("/featured/add-or-delete")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")

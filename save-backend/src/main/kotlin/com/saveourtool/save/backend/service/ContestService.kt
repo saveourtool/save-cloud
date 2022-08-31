@@ -34,6 +34,12 @@ class ContestService(
     fun findByIdIn(contestIds: Set<Long>): List<Contest> = contestRepository.findByIdIn(contestIds)
 
     /**
+     * @param contestId
+     * @return true if contest with [contestId] is marked as featured, false otherwise
+     */
+    fun isContestFeatured(contestId: Long) = contestRepository.findFeaturedContestById(contestId) != null
+
+    /**
      * @param name name of contest
      * @return contest by name
      */

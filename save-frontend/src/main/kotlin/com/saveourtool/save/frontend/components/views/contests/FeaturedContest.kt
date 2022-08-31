@@ -82,9 +82,9 @@ private fun featuredContest() = VFC {
             style = jso {
                 height = 14.rem
             }
+            image()
             val contestToShow = featuredContests.firstOrNull()
             contestToShow?.let {
-                image()
                 div {
                     className = ClassName("card-body d-flex flex-column align-items-start")
                     strong {
@@ -121,6 +121,23 @@ private fun featuredContest() = VFC {
                             +"Description "
                             fontAwesomeIcon(icon = faArrowRight)
                         }
+                    }
+                }
+            } ?: run {
+                div {
+                    className = ClassName("card-body d-flex flex-column align-items-start")
+                    strong {
+                        className = ClassName("d-inline-block mb-2 text-info")
+                        +"Featured Contest"
+                    }
+                    h3 {
+                        className = ClassName("mb-0")
+                        +"Stay turned..."
+                    }
+                    p {
+                        className = ClassName("card-text mb-auto")
+                        +("Right now there is no contest that we would recommend you to participate in, but it is going to change soon. " +
+                                "Stay turned and soon we will find good contests for you and your tools!")
                     }
                 }
             }
