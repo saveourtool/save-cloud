@@ -27,7 +27,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -129,7 +128,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         scope.launch {
             val userName: String? = get(
                 "${window.location.origin}/sec/user",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
@@ -139,7 +138,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
             val globalRole: Role? = get(
                 "${window.location.origin}/api/$v1/users/global-role",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {

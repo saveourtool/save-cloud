@@ -144,16 +144,18 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                 form {
                                     className = ClassName("needs-validation")
                                     div {
-                                        inputTextFormRequired(
-                                            InputTypes.ORGANIZATION_NAME,
-                                            state.organizationDto.name,
-                                            (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null,
-                                            "",
-                                            "Organization name",
-                                        ) {
-                                            setState {
-                                                organizationDto = organizationDto.copy(name = it.target.value)
-                                                conflictErrorMessage = null
+                                        inputTextFormRequired {
+                                            form = InputTypes.ORGANIZATION_NAME
+                                            conflictMessage = state.conflictErrorMessage
+                                            textValue = state.organizationDto.name
+                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null
+                                            classes = ""
+                                            name = "Organization name"
+                                            onChangeFun = {
+                                                setState {
+                                                    organizationDto = organizationDto.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
+                                                }
                                             }
                                         }
                                     }
