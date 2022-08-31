@@ -31,7 +31,7 @@ val userRating = userRating()
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGANIZATIONS, TOOLS
+    ORGS, TOOLS
 }
 
 private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
@@ -117,7 +117,7 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
  */
 @Suppress("TOO_LONG_FUNCTION")
 private fun userRating() = VFC {
-    val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGANIZATIONS)
+    val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
     val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
     useRequest {
@@ -157,7 +157,7 @@ private fun userRating() = VFC {
                     setSelectedTab(UserRatingTab.valueOf(it))
                 }
                 when (selectedTab) {
-                    UserRatingTab.ORGANIZATIONS -> renderingOrganizationChampionsTable(organizations)
+                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizations)
                     UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
                 }
 
