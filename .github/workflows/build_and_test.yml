@@ -54,6 +54,16 @@ jobs:
           sudo mv runsc containerd-shim-runsc-v1 /usr/local/bin
           sudo /usr/local/bin/runsc install
           sudo systemctl reload docker
+      - uses: burrunan/gradle-cache-action@v1.13
+        with:
+          remote-build-cache-proxy-enabled: true
+          concurrent: true
+          save-generated-gradle-jars: false
+          save-local-build-cache: false
+          multi-cache-enabled: false
+          save-gradle-dependencies-cache: false
+          save-maven-dependencies-cache: false
+          gradle-build-scan-report: false
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper
