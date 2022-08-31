@@ -74,9 +74,7 @@ private fun newContestsCard() = VFC {
 
             img {
                 className = ClassName("card-img-right flex-auto d-none d-md-block")
-                asDynamic()["data-src"] = "holder.js/200x250?theme=thumb"
                 src = "img/undraw_exciting_news_re_y1iw.svg"
-                asDynamic()["data-holder-rendered"] = "true"
                 style = jso {
                     width = 12.rem
                 }

@@ -62,10 +62,7 @@ private fun ChildrenBuilder.contestListTable(
             className = ClassName("media text-muted pb-3")
             img {
                 className = ClassName("rounded")
-                asDynamic()["data-src"] =
-                        "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                 src = "img/undraw_code_inspection_bdl7.svg"
-                asDynamic()["data-holder-rendered"] = "true"
                 style = jso {
                     width = 4.2.rem
                 }
