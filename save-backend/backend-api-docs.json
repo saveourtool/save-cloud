@@ -5314,6 +5314,64 @@
         ]
       }
     },
+    "/api/v1/contests/{contestName}/is-featured": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Check if contest is featured.",
+        "description": "Check if a given contest is featured or not.",
+        "operationId": "isContestFeatured",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched contest data.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/{contestName}/executions/{organizationName}/{projectName}": {
       "get": {
         "tags": [
