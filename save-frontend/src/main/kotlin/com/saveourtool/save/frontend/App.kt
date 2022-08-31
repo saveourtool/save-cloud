@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
+import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView

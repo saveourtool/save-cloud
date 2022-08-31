@@ -11,7 +11,6 @@ import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
@@ -54,11 +53,9 @@ class DockerAgentRunner(
 
     override fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
+        configuration: DockerService.RunConfiguration,
         replicas: Int,
     ): List<String> {
-        require(configuration.pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
-
         logger.debug { "Pulling image ${configuration.imageTag}" }
         dockerClient.pullImageCmd(configuration.imageTag)
             .withRegistry("https://ghcr.io")
@@ -67,7 +64,7 @@ class DockerAgentRunner(
 
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(configuration as DockerService.RunConfiguration<DockerPvId>, containerName(executionId.toString())).also { agentId ->
+            createContainerFromImage(configuration, containerName(executionId.toString())).also { agentId ->
                 logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
@@ -167,7 +164,7 @@ class DockerAgentRunner(
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(configuration: DockerService.RunConfiguration<DockerPvId>,
+    private fun createContainerFromImage(configuration: DockerService.RunConfiguration,
                                          containerName: String,
     ): String {
         val baseImageTag = configuration.imageTag

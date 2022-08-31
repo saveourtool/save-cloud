@@ -14,7 +14,9 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: backend
+        {{- include "pod.common.labels" (merge (dict "service" .Values.backend ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
       {{- include "spring-boot.securityContext" . | nindent 6 }}
@@ -46,6 +48,8 @@ spec:
           args:
             - clone
             - --single-branch
+            - --branch
+            - {{ .Values.mysql.migrations.branch | default "master" }}
             - --
             - https://github.com/saveourtool/save-cloud.git
             - /data

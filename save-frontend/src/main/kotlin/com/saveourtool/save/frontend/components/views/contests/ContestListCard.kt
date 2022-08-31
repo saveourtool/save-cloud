@@ -2,19 +2,22 @@
  * a card with contests list from ContestListView
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.frontend.components.basic.ContestNameProps
+import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faCode
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
-import react.ChildrenBuilder
-import react.FC
-import react.Props
+import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -25,7 +28,7 @@ import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
 
-val contestListFc = contestList()
+val contestList = contestList()
 
 /**
  * this enum is used in a tab for contests
@@ -34,57 +37,32 @@ enum class ContestTypesTab {
     ACTIVE, FINISHED, PLANNED
 }
 
-/**
- * properties for contestList FC
- */
-external interface ContestListProps : Props {
-    /**
-     * contest tab selected by user (propagated from state)
-     */
-    var selectedTab: String?
-
-    /**
-     * callback to update state with a tab selection
-     */
-    var updateTabState: (String) -> Unit
-
-    /**
-     * all finished contests
-     */
-    var finishedContests: Set<ContestDto>
-
-    /**
-     * all active contests
-     */
-    var activeContests: Set<ContestDto>
-
-    /**
-     * callback to set selected contest (will trigger a modal window with a participation modal window)
-     */
-    var updateSelectedContestName: (String) -> Unit
-}
-
-private fun ChildrenBuilder.contests(props: ContestListProps) {
-    when (props.selectedTab) {
-        ContestTypesTab.ACTIVE.name -> contestListTable(props.activeContests, props.updateSelectedContestName)
-        ContestTypesTab.FINISHED.name -> contestListTable(props.finishedContests, props.updateSelectedContestName)
-        ContestTypesTab.PLANNED.name -> {
+private fun ChildrenBuilder.contests(
+    selectedTab: ContestTypesTab,
+    activeContests: Set<ContestDto>,
+    finishedContests: Set<ContestDto>,
+    onEnrollButtonPressed: (String) -> Unit,
+) {
+    when (selectedTab) {
+        ContestTypesTab.ACTIVE -> contestListTable(activeContests, onEnrollButtonPressed)
+        ContestTypesTab.FINISHED -> contestListTable(finishedContests, null)
+        ContestTypesTab.PLANNED -> {
             // FixMe: Add planned contests
         }
     }
 }
 
 @Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.contestListTable(contests: Set<ContestDto>, updateSelectedContestName: (String) -> Unit) {
+private fun ChildrenBuilder.contestListTable(
+    contests: Set<ContestDto>,
+    onEnrollButtonPressed: ((String) -> Unit)?,
+) {
     contests.forEachIndexed { i, contest ->
         div {
             className = ClassName("media text-muted pb-3")
             img {
                 className = ClassName("rounded")
-                asDynamic()["data-src"] =
-                        "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                 src = "img/undraw_code_inspection_bdl7.svg"
-                asDynamic()["data-holder-rendered"] = "true"
                 style = jso {
                     width = 4.2.rem
                 }
@@ -103,9 +81,11 @@ private fun ChildrenBuilder.contestListTable(contests: Set<ContestDto>, updateSe
                     button {
                         type = ButtonType.button
                         className = ClassName("btn btn-outline-success ml-auto mr-2")
+                        disabled = onEnrollButtonPressed == null
                         onClick = {
-                            // FixMe: fix the selector here
-                            updateSelectedContestName(contest.name)
+                            onEnrollButtonPressed?.let {
+                                onEnrollButtonPressed(contest.name)
+                            }
                         }
                         +"Enroll"
                     }
@@ -124,7 +104,53 @@ private fun ChildrenBuilder.contestListTable(contests: Set<ContestDto>, updateSe
 /**
  * @return functional component that render the stylish table with contests
  */
-fun contestList() = FC<ContestListProps> { props ->
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+private fun contestList() = VFC {
+    val (isContestEnrollerModalOpen, setIsContestEnrollerModalOpen) = useState(false)
+    val (isConfirmationModalOpen, setIsConfirmationModalOpen) = useState(false)
+    val (enrollmentResponseString, setEnrollmentResponseString) = useState("")
+    val (selectedContestName, setSelectedContestName) = useState("")
+    showContestEnrollerModal(
+        isContestEnrollerModalOpen,
+        ContestNameProps(selectedContestName),
+        { setIsContestEnrollerModalOpen(false) }
+    ) {
+        setEnrollmentResponseString(it)
+        setIsConfirmationModalOpen(true)
+        setIsContestEnrollerModalOpen(false)
+    }
+
+    runErrorModal(
+        isConfirmationModalOpen,
+        "Contest Enroller",
+        enrollmentResponseString,
+    ) {
+        setIsConfirmationModalOpen(false)
+    }
+
+    val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/active",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setActiveContests(contests.toSet())
+    }
+
+    val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/finished",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setFinishedContests(contests.toSet())
+    }
+
+    val (selectedTab, setSelectedTab) = useState(ContestTypesTab.ACTIVE)
     div {
         className = ClassName("col-lg-9")
         div {
@@ -138,13 +164,14 @@ fun contestList() = FC<ContestListProps> { props ->
 
                 title(" Available Contests", faCode)
 
-                tab(
-                    props.selectedTab,
-                    ContestTypesTab.values().map { it.name },
-                    props.updateTabState
-                )
+                tab(selectedTab.name, ContestTypesTab.values().map { it.name }) {
+                    setSelectedTab(ContestTypesTab.valueOf(it))
+                }
 
-                contests(props)
+                contests(selectedTab, activeContests, finishedContests) {
+                    setSelectedContestName(it)
+                    setIsContestEnrollerModalOpen(true)
+                }
             }
         }
     }

@@ -143,9 +143,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     }
                                     img {
                                         className = ClassName("card-img-right flex-auto d-none d-md-block")
-                                        asDynamic()["data-src"] = "holder.js/200x250?theme=thumb"
                                         src = "img/undraw_result_re_uj08.svg"
-                                        asDynamic()["data-holder-rendered"] = "true"
                                         style = jso {
                                             width = 12.rem
                                         }
@@ -176,7 +174,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         }
                                         p {
                                             className = ClassName("card-text mb-auto")
-                                            +"Checkout latest news about SAVE project."
+                                            +"Checkout latest updates in SAVE project."
                                         }
                                         a {
                                             href = "https://github.com/saveourtool/save-cloud"
@@ -189,9 +187,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     }
                                     img {
                                         className = ClassName("card-img-right flex-auto d-none d-md-block")
-                                        asDynamic()["data-src"] = "holder.js/200x250?theme=thumb"
                                         src = "img/undraw_happy_news_re_tsbd.svg"
-                                        asDynamic()["data-holder-rendered"] = "true"
                                         style = jso {
                                             width = 12.rem
                                         }
@@ -280,8 +276,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     img {
                                                         className = ClassName("rounded")
 
-                                                        asDynamic()["data-src"] =
-                                                                "holder.js/32x32?theme=thumb&amp;bg=007bff&amp;fg=007bff&amp;size=1"
                                                         src = "img/undraw_code_inspection_bdl7.svg"
                                                         asDynamic()["data-holder-rendered"] = "true"
                                                         style = jso {

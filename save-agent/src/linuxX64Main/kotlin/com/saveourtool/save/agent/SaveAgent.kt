@@ -84,7 +84,9 @@ class SaveAgent(private val config: AgentConfiguration,
             sendDataToBackend { saveAdditionalData() }
 
             logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
-            downloadSaveCli("${config.backend.url}${config.backend.saveCliDownloadEndpoint}?version=$SAVE_CORE_VERSION")
+            downloadSaveCli(
+                "${config.backend.url}${config.backend.saveCliDownloadEndpoint}?version=${SAVE_CORE_VERSION.encodeURLParameter()}"
+            )
             SAVE_CLI_EXECUTABLE_NAME.toPath().markAsExecutable()
 
             logDebugCustom("Will now download tests")

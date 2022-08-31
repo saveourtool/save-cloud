@@ -309,6 +309,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 else -> showAvaliableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
+                    TestSuiteSelectorMode.BROWSER,
                 ) { testSuite ->
                     setSelectedTestSuites { selectedTestSuites ->
                         selectedTestSuites.toMutableList()

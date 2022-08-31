@@ -27,7 +27,7 @@ import java.net.HttpURLConnection
 @ExtendWith(SpringExtension::class, KubernetesMockServerExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @EnableKubernetesMockClient
-@TestPropertySource("classpath:application.properties")
+@TestPropertySource("classpath:application.properties", "classpath:application-kubernetes.properties")
 class KubernetesManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager

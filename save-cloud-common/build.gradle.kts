@@ -50,6 +50,7 @@ kotlin {
                 api(libs.slf4j.api)
                 implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
                 implementation(libs.commons.compress)
+                implementation(libs.validation.api)
             }
         }
         val jvmTest by getting {
