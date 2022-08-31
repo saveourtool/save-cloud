@@ -115,6 +115,9 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
+# java core libraries
+validation-api = { module = "jakarta.validation:jakarta.validation-api"}
+
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }
 hibernate-core = { module = "org.hibernate:hibernate-core", version.ref = "hibernate" }

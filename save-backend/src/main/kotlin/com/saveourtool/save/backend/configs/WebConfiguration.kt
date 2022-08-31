@@ -109,10 +109,10 @@ class WebConfiguration(
         resource: (path: String) -> Resource,
     ) = GET(pattern) { request ->
         val resourcePath = request.pathVariable("resourcePath")
-        val resource = resource("$basePath/$resourcePath")
+        val newResource = resource("$basePath/$resourcePath")
         ok().cacheControl(longExpirationTime) { cachePublic() }
-            .lastModified(resource.lastModified().toInstant())
-            .bodyValue(resource)
+            .lastModified(newResource.lastModified().toInstant())
+            .bodyValue(newResource)
     }
 
     private fun ServerResponse.BodyBuilder.cacheControl(duration: kotlin.time.Duration,

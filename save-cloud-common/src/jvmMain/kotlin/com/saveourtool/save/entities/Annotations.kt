@@ -23,3 +23,4 @@ actual typealias OneToMany = OneToMany
 actual typealias MappedSuperclass = MappedSuperclass
 actual typealias Enumerated = Enumerated
 actual typealias ForeignKey = ForeignKey
+actual typealias NotNull = javax.validation.constraints.NotNull
