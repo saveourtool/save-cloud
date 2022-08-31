@@ -2,6 +2,8 @@
  * Card for the rendering of ratings: for organizations and tools
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.Organization
@@ -9,11 +11,10 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
-import react.ChildrenBuilder
-import react.FC
-import react.Props
+import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -24,40 +25,13 @@ import kotlinx.js.jso
 
 const val NUMBER_OF_CHARACTERS_TRIMMED = 20
 
-val userRatingFc = userRating()
+val userRating = userRating()
 
 /**
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
     ORGANIZATIONS, TOOLS
-}
-
-/**
- * properties for rating fc
- */
-external interface UserRatingProps : Props {
-    /**
-     * all projects that are registered in SAVE.
-     * FixMe: only TOP PUBLIC projects will be used here in future
-     */
-    var projects: Set<Project>
-
-    /**
-     * all organizations that are registered in SAVE.
-     * FixMe: only TOP PUBLIC organizations will be used here in future
-     */
-    var organizations: Set<Organization>
-
-    /**
-     * string value of the selected tab: organization/tools/etc.
-     */
-    var selectedTab: String?
-
-    /**
-     * callback that will be passed into this fc from the view
-     */
-    var updateTabState: (String) -> Unit
 }
 
 private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
@@ -141,7 +115,32 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
 /**
  * @return functional component for the rating card
  */
-fun userRating() = FC<UserRatingProps> { props ->
+@Suppress("TOO_LONG_FUNCTION")
+private fun userRating() = VFC {
+    val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGANIZATIONS)
+
+    val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
+    useRequest {
+        val organizationsFromBackend: List<Organization> = get(
+            url = "$apiUrl/organizations/all",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setOrganizations(organizationsFromBackend.toSet())
+    }
+
+    val (projects, setProjects) = useState<Set<Project>>(emptySet())
+    useRequest {
+        val projectsFromBackend: List<Project> = get(
+            url = "$apiUrl/projects/all",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setProjects(projectsFromBackend.toSet())
+    }
+
     div {
         className = ClassName("col-lg-3")
         div {
@@ -154,10 +153,12 @@ fun userRating() = FC<UserRatingProps> { props ->
                 className = ClassName("col")
 
                 title(" Global Rating", faTrophy)
-                tab(props.selectedTab, UserRatingTab.values().map { it.name }, props.updateTabState)
-                when (props.selectedTab) {
-                    UserRatingTab.ORGANIZATIONS.name -> renderingOrganizationChampionsTable(props.organizations)
-                    UserRatingTab.TOOLS.name -> renderingProjectChampionsTable(props.projects)
+                tab(selectedTab.name, UserRatingTab.values().map { it.name }) {
+                    setSelectedTab(UserRatingTab.valueOf(it))
+                }
+                when (selectedTab) {
+                    UserRatingTab.ORGANIZATIONS -> renderingOrganizationChampionsTable(organizations)
+                    UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
                 }
 
                 div {
