@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.configs.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -48,6 +49,9 @@ class LnkUserOrganizationControllerTest {
 
     @MockBean
     private lateinit var organizationService: OrganizationService
+
+    @MockBean
+    private lateinit var originalLoginRepository: OriginalLoginRepository
 
     @Test
     @WithMockUser

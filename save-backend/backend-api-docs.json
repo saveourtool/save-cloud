@@ -6475,14 +6475,29 @@
       },
       "UserInfo": {
         "required": [
+          "isActive",
           "name",
           "organizations",
+          "originalLogins",
           "projects"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "oldName": {
+            "type": "string"
+          },
+          "originalLogins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "source": {
             "type": "string"
@@ -6543,6 +6558,9 @@
               "SUPER_ADMIN",
               "VIEWER"
             ]
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -7256,6 +7274,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7329,6 +7348,30 @@
           "batchSizeForAnalyzer": {
             "type": "string"
           },
+          "testSuiteSourceName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "OriginalLogin": {
+        "required": [
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "source": {
+            "type": "string"
+          },
           "id": {
             "type": "integer",
             "format": "int64"
@@ -7337,6 +7380,8 @@
       },
       "User": {
         "required": [
+          "isActive",
+          "originalLogins",
           "source"
         ],
         "type": "object",
@@ -7373,6 +7418,15 @@
           },
           "twitter": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "originalLogins": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OriginalLogin"
+            }
           },
           "id": {
             "type": "integer",
@@ -7441,6 +7495,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7499,6 +7554,9 @@
           "unexpectedChecks": {
             "type": "integer",
             "format": "int64"
+          },
+          "testSuiteSourceName": {
+            "type": "string"
           }
         }
       },
@@ -7535,6 +7593,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
