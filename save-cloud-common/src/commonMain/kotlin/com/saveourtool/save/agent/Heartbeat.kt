@@ -60,12 +60,6 @@ object WaitResponse : HeartbeatResponse()
 object ContinueResponse : HeartbeatResponse()
 
 /**
- * A response that indicates that agent shouldn't change its state and should repeat the same state on the next heartbeat.
- */
-@Serializable
-object RepeatResponse : HeartbeatResponse()
-
-/**
  * @property tests a list of new jobs for this agent
  * @property cliArgs command line arguments for SAVE launch
  */

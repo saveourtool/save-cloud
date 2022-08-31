@@ -7,13 +7,11 @@ package com.saveourtool.save.orchestrator.controller
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.then
 import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -30,7 +29,6 @@ import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.serialization.json.Json
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller for heartbeat
@@ -92,7 +90,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
             }
             // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.
-            .defaultIfEmpty(RepeatResponse)
+            .defaultIfEmpty(ContinueResponse)
             .map {
                 Json.encodeToString(HeartbeatResponse.serializer(), it)
             }
@@ -122,7 +120,7 @@ class HeartbeatController(private val agentService: AgentService,
                     if (shouldStop) {
                         agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
                             .thenReturn<HeartbeatResponse>(TerminateResponse)
-                            .defaultIfEmpty(RepeatResponse)
+                            .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {
                                 logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
                                 ensureGracefulShutdown(agentId)
