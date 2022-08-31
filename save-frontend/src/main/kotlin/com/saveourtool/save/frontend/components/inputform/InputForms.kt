@@ -68,6 +68,7 @@ enum class InputTypes(
 
     // ==== user setting view
     USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    USER_NAME("user name", NAME_ERROR_MESSAGE, "name"),
     COMPANY("company"),
     LOCATION("location"),
     GIT_HUB("git hub"),

@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
@@ -24,6 +25,9 @@ class StoringServerAuthenticationSuccessHandler(
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
+        // This is necessary to remove the originalLogins from the User,
+        // otherwise we will get the kotlin.EmptyList class in Json and will not be able to serialize it.
+        .configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false)
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
         .registerModule(OAuth2ClientJackson2Module())
@@ -42,6 +46,7 @@ class StoringServerAuthenticationSuccessHandler(
             // roles to save-cloud roles.
             role = Role.VIEWER.asSpringSecurityRole()
         }
+
         return webClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
@@ -64,4 +69,6 @@ fun Authentication.toUser(): User = User(
     authorities.joinToString(",") { it.authority },
     toIdentitySource(),
     null,
+    isActive = false,
+    originalLogins = emptyList(),
 )
