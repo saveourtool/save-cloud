@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.docker
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -10,7 +11,6 @@ import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
+import kotlin.math.abs
+import kotlin.random.Random
 
 /**
  * [AgentRunner] that uses Docker Daemon API to run save-agents
@@ -51,13 +53,9 @@ class DockerAgentRunner(
 
     override fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
+        configuration: DockerService.RunConfiguration,
         replicas: Int,
-        workingDir: String,
     ): List<String> {
-        val (baseImageTag, agentRunCmd, pvId) = configuration
-        require(pvId is DockerPvId) { "${DockerPersistentVolumeService::class.simpleName} can only operate with ${DockerPvId::class.simpleName}" }
-
         logger.debug { "Pulling image ${configuration.imageTag}" }
         dockerClient.pullImageCmd(configuration.imageTag)
             .withRegistry("https://ghcr.io")
@@ -66,7 +64,7 @@ class DockerAgentRunner(
 
         return (1..replicas).map { number ->
             logger.info("Creating a container #$number for execution.id=$executionId")
-            createContainerFromImage(baseImageTag, pvId, workingDir, agentRunCmd, containerName("$executionId-$number")).also { agentId ->
+            createContainerFromImage(configuration, containerName(executionId.toString())).also { agentId ->
                 logger.info("Created a container id=$agentId for execution.id=$executionId")
                 agentIdsByExecution
                     .getOrPut(executionId) { mutableListOf() }
@@ -166,33 +164,33 @@ class DockerAgentRunner(
      * @throws RuntimeException if an exception not specific to docker has occurred
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    private fun createContainerFromImage(baseImageTag: String,
-                                         pvId: DockerPvId,
-                                         workingDir: String,
-                                         runCmd: List<String>,
+    private fun createContainerFromImage(configuration: DockerService.RunConfiguration,
                                          containerName: String,
     ): String {
+        val baseImageTag = configuration.imageTag
+        val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
-            .withWorkingDir(workingDir)
+            .withWorkingDir(EXECUTION_DIR)
             // Load environment variables required by save-agent and then run it.
             // Rely on `runCmd` format: last argument is parameter of the subshell.
             .withCmd(
                 // this part is like `sh -c` with probably some other flags
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
-                        "env \$(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
+                        "env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
                 )
             )
             .withName(containerName)
             .withUser("save-agent")
+            .withEnv(
+                configuration.env.map { (key, value) ->
+                    "$key=$value"
+                }
+            )
             .withHostConfig(
                 HostConfig.newHostConfig()
-                    .withBinds(Bind(
-                        // Apparently, target path needs to be wrapped into [Volume] object in Docker API.
-                        pvId.volumeName, Volume(EXECUTION_DIR)
-                    ))
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
@@ -216,7 +214,8 @@ class DockerAgentRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
-                AGENT_ID=$containerId""".trimIndent()
+                ${AgentEnvName.AGENT_ID.name}=$containerId
+                """.trimIndent()
             )
         }
         copyResourcesIntoContainer(
@@ -254,4 +253,5 @@ class DockerAgentRunner(
 /**
  * @param id
  */
-private fun containerName(id: String) = "save-execution-$id"
+@Suppress("MAGIC_NUMBER", "MagicNumber")
+private fun containerName(id: String) = "save-execution-$id-${abs(Random.nextInt(100, 999))}"

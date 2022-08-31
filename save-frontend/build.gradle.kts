@@ -76,8 +76,6 @@ kotlin {
             implementation(npm("react-tsparticles", "1.42.1"))
             implementation(npm("tsparticles", "2.1.3"))
             implementation(npm("jquery", "3.6.0"))
-            // can be very useful for CSS animation:
-            // implementation(npm("animate.css", "4.1.1"))
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))

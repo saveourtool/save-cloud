@@ -4,6 +4,10 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.CssProperties
@@ -45,7 +49,7 @@ external interface TestSuiteSourceCreationProps : Props {
     /**
      * Callback invoked on successful save
      */
-    var onSuccess: () -> Unit
+    var onSuccess: (TestSuitesSourceDto) -> Unit
 }
 
 /**
@@ -58,7 +62,7 @@ external interface TestSuiteSourceCreationProps : Props {
 fun ChildrenBuilder.showTestSuiteSourceCreationModal(
     isOpen: Boolean,
     organizationName: String,
-    onSuccess: () -> Unit,
+    onSuccess: (TestSuitesSourceDto) -> Unit,
     onClose: () -> Unit,
 ) {
     modal { props ->
@@ -103,18 +107,21 @@ fun ChildrenBuilder.showTestSuiteSourceCreationModal(
 private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
-    val onSubmitButtonPressed = useRequest {
-        val response = post(
-            url = "/api/$v1/test-suites-sources/create",
-            headers = jsonHeaders,
-            body = Json.encodeToString(testSuiteSource),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::responseHandlerWithValidation,
-        )
-        if (response.ok) {
-            props.onSuccess()
-        } else {
-            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    val onSubmitButtonPressed = useDeferredRequest {
+        testSuiteSource.let {
+            val response = post(
+                url = "/api/$v1/test-suites-sources/create",
+                headers = jsonHeaders,
+                body = Json.encodeToString(it),
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::responseHandlerWithValidation,
+            )
+            if (response.ok) {
+                props.onSuccess(it)
+            } else if (response.isConflict()) {
+                setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
+            }
         }
     }
 
@@ -137,28 +144,30 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             "Organization name",
             testSuiteSource.organizationName
         )
-        inputTextFormOptional(
-            InputTypes.GIT_BRANCH,
-            testSuiteSource.branch,
-            "mb-2",
-            "Branch",
-            saveStatus != SourceSaveStatus.CONFLICT,
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(branch = it.target.value))
-            if (saveStatus == SourceSaveStatus.CONFLICT) {
-                setSaveStatus(null)
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.GIT_BRANCH
+            textValue = testSuiteSource.branch
+            classes = "mb-2"
+            name = "Branch"
+            validInput = saveStatus != SourceSaveStatus.CONFLICT
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(branch = it.target.value))
+                if (saveStatus == SourceSaveStatus.CONFLICT) {
+                    setSaveStatus(null)
+                }
             }
         }
-        inputTextFormOptional(
-            InputTypes.SOURCE_TEST_ROOT_PATH,
-            testSuiteSource.testRootPath,
-            "mb-2",
-            "Test root path",
-            testSuiteSource.validateTestRootPath() && saveStatus != SourceSaveStatus.CONFLICT,
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(testRootPath = it.target.value))
-            if (saveStatus == SourceSaveStatus.CONFLICT) {
-                setSaveStatus(null)
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.SOURCE_TEST_ROOT_PATH
+            textValue = testSuiteSource.testRootPath
+            classes = "mb-2"
+            name = "Test root path"
+            validInput = testSuiteSource.validateTestRootPath() && saveStatus != SourceSaveStatus.CONFLICT
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(testRootPath = it.target.value))
+                if (saveStatus == SourceSaveStatus.CONFLICT) {
+                    setSaveStatus(null)
+                }
             }
         }
         gitSelectionForm {
@@ -188,13 +197,15 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                 }
             }
         }
-        inputTextFormOptional(
-            InputTypes.DESCRIPTION,
-            testSuiteSource.description,
-            "mb-2",
-            "Description",
-        ) {
-            setTestSuiteSource(testSuiteSource.copy(description = it.target.value))
+        inputTextFormOptionalWrapperConst {
+            form = InputTypes.DESCRIPTION
+            textValue = testSuiteSource.description
+            classes = "mb-2"
+            name = "Description"
+            validInput = true
+            onChangeFun = {
+                setTestSuiteSource(testSuiteSource.copy(description = it.target.value))
+            }
         }
         div {
             className = ClassName("d-flex justify-content-center")

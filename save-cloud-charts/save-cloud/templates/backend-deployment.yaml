@@ -14,7 +14,9 @@ spec:
   template:
     metadata:
       labels:
-        io.kompose.service: backend
+        {{- include "pod.common.labels" (merge (dict "service" .Values.backend ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
       {{- include "spring-boot.securityContext" . | nindent 6 }}
@@ -46,6 +48,8 @@ spec:
           args:
             - clone
             - --single-branch
+            - --branch
+            - {{ .Values.mysql.migrations.branch | default "master" }}
             - --
             - https://github.com/saveourtool/save-cloud.git
             - /data
@@ -53,24 +57,44 @@ spec:
             - mountPath: /data
               name: migrations-data
         - name: liquibase-runner
-          image: gradle:7.5.1-jdk11-alpine
-          workingDir: /data
+          image: liquibase/liquibase:4.15
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
           args:
-            - ./gradlew
-            - -Psave.profile={{ .Values.profile }}
-            - liquibaseUpdate
-          # To execute liquibase via gradle-plugin we need to allocate plenty of memory.
-          # Fixme: extract database related logic to a more lightweight Gradle build?
+            - --url=$(DB_URL)
+            - --changeLogFile=db/db.changelog-master.xml
+            - --username=$(DB_USERNAME)
+            - --password=$(DB_PASSWORD)
+            - --log-level=info
+            - --contexts={{ .Values.profile }}
+            - update
           resources:
             requests:
-              memory: 1G
+              memory: 100M
             limits:
-              memory: 1500M
+              memory: 300M
           env:
-            - name: DB_SECRETS_PATH
-              value: {{ .Values.backend.dbPasswordFile }}
+            # See https://hub.docker.com/r/liquibase/liquibase, section 'Notice for MySQL Users'
+            - name: INSTALL_MYSQL
+              value: 'true'
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.url
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.password
           volumeMounts:
-            - mountPath: /data
+            - mountPath: /liquibase/changelog
               name: migrations-data
             - mountPath: {{ .Values.backend.dbPasswordFile }}
               name: database-secret

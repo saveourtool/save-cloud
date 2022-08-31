@@ -8,6 +8,8 @@ package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.*
+import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.useTooltip
 
 import csstype.ClassName
 import react.*
@@ -32,6 +34,17 @@ external interface TestSuiteSelectorProps : Props {
      * List of test suite ids that should be preselected
      */
     var preselectedTestSuiteIds: List<Long>
+
+    /**
+     * Specific organization name which reduces list of test suites source.
+     * If null, all the test suites are shown
+     */
+    var specificOrganizationName: String?
+
+    /**
+     * Mode that defines what kind of test suites will be shown
+     */
+    var selectorPurpose: TestSuiteSelectorPurpose
 }
 
 /**
@@ -45,15 +58,124 @@ enum class TestSuiteSelectorMode {
 }
 
 /**
- * @param isOpen
- * @param preselectedTestSuiteIds
- * @param onSubmit
- * @param onTestSuiteIdUpdate
- * @param onCancel
+ * Enum that defines what type of test suites should be shown
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun ChildrenBuilder.showTestSuiteSelectorModal(
+enum class TestSuiteSelectorPurpose {
+    CONTEST,
+    PRIVATE,
+    PUBLIC,
+
+    /**
+     * Will later be merged with PUBLIC
+     */
+    STANDARD,
+    ;
+}
+
+/**
+ * Browse standard test suites.
+ *
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.STANDARD, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * Browse all the avaliable test suites.
+ *
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showGeneralTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * Browse test suites of a given organization.
+ *
+ * @param organizationName
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
+    organizationName: String,
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(organizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+/**
+ * Browse test suites for a contest.
+ *
+ * @param initTestSuiteIds initial value
+ * @param windowOpenness state to control openness of window
+ * @param testSuiteIdsInSelectorState state for intermediate result in selector
+ * @param setSelectedTestSuiteIds consumer for result
+ */
+fun ChildrenBuilder.showContestTestSuitesSelectorModal(
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+}
+
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+private fun ChildrenBuilder.showTestSuitesSelectorModal(
+    specificOrganizationName: String?,
+    selectorPurpose: TestSuiteSelectorPurpose,
+    initTestSuiteIds: List<Long>,
+    windowOpenness: WindowOpenness,
+    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
+    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+) {
+    var currentlySelectedTestSuiteIds by testSuiteIdsInSelectorState
+    val onSubmit: () -> Unit = {
+        setSelectedTestSuiteIds(currentlySelectedTestSuiteIds)
+        windowOpenness.closeWindow()
+    }
+    val onTestSuiteIdUpdate: (List<Long>) -> Unit = {
+        currentlySelectedTestSuiteIds = it
+    }
+    val onCancel: () -> Unit = {
+        currentlySelectedTestSuiteIds = initTestSuiteIds
+        windowOpenness.closeWindow()
+    }
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, selectorPurpose, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
+}
+
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList"
+)
+private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
+    specificOrganizationName: String?,
+    selectorPurpose: TestSuiteSelectorPurpose,
     preselectedTestSuiteIds: List<Long>,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<Long>) -> Unit,
@@ -89,6 +211,8 @@ fun ChildrenBuilder.showTestSuiteSelectorModal(
                     testSuiteSelector {
                         this.onTestSuiteIdUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuiteIds = preselectedTestSuiteIds
+                        this.specificOrganizationName = specificOrganizationName
+                        this.selectorPurpose = selectorPurpose
                     }
                 }
 
@@ -141,13 +265,8 @@ private fun ChildrenBuilder.buildButton(
         onClick = {
             onClickFun()
         }
-
-        val jquery = kotlinext.js.require("jquery")
-        kotlinext.js.require("popper.js")
-        kotlinext.js.require("bootstrap")
         asDynamic()["data-toggle"] = "tooltip"
         asDynamic()["data-placement"] = "bottom"
-        jquery("[data-toggle=\"tooltip\"]").tooltip()
     }
 }
 
@@ -163,18 +282,25 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
         buildButton(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
         buildButton(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
+
+    useTooltip()
+
     when (currentMode) {
         TestSuiteSelectorMode.MANAGER -> testSuiteSelectorManagerMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.selectorPurpose = props.selectorPurpose
         }
         TestSuiteSelectorMode.BROWSER -> testSuiteSelectorBrowserMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.specificOrganizationName = props.specificOrganizationName
+            this.selectorPurpose = props.selectorPurpose
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuiteIdsUpdate = props.onTestSuiteIdUpdate
             this.preselectedTestSuiteIds = props.preselectedTestSuiteIds
+            this.selectorPurpose = props.selectorPurpose
         }
     }
 }

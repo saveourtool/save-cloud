@@ -80,6 +80,22 @@ class TestSuitesSourceController(
 
     @GetMapping(
         path = [
+            "/api/$v1/test-suites-sources/public-list",
+        ],
+    )
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "List of public test suites sources.",
+        description = "List of public test suites sources.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of public test suites sources.")
+    fun publicList(): Mono<TestSuitesSourceDtoList> = blockingToMono { testSuitesSourceService.getStandardTestSuitesSources() }
+        .map { testSuitesSources -> testSuitesSources.map { it.toDto() } }
+
+    @GetMapping(
+        path = [
             "/internal/test-suites-sources/{organizationName}/{sourceName}",
             "/api/$v1/test-suites-sources/{organizationName}/{sourceName}",
         ],
@@ -331,14 +347,11 @@ class TestSuitesSourceController(
         .map { (organization, git) ->
             testSuiteRequest.toTestSuiteSource(organization, git)
         }
-        .map { testSuitesSource ->
+        .flatMap { testSuitesSource ->
             when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                SourceSaveStatus.EXIST -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST)
-                SourceSaveStatus.CONFLICT -> ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT)
-                SourceSaveStatus.NEW -> {
-                    testSuitesSourceService.fetch(testSuitesSource.toDto())
-                    ResponseEntity.ok(SourceSaveStatus.NEW)
-                }
+                SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
+                SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
+                SourceSaveStatus.NEW -> Mono.just(ResponseEntity.ok(SourceSaveStatus.NEW))
             }
         }
 
@@ -474,19 +487,6 @@ class TestSuitesSourceController(
                     "TestSuitesSource not found by name $name for organization $organizationName"
                 }
 
-    @GetMapping("/api/$v1/test-suites-sources/organizations-list")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get organizations with public test suite sources.",
-        description = "Get list of organizations with public test suite sources",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
-    fun getOrganizationNamesWithPublicTestSuiteSources(
-        authentication: Authentication,
-    ): Mono<List<String>> = testSuitesSourceService.getOrganizationsWithPublicTestSuiteSources().toMono()
-
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
@@ -510,6 +510,22 @@ class TestSuitesSourceController(
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
+        }
+
+    @GetMapping("/api/$v1/test-suites-sources/avaliable")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organizations with public test suite sources.",
+        description = "Get list of organizations with public test suite sources",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organizations with public test suite sources.")
+    fun getOrganizationNamesWithPublicTestSuiteSources(
+        authentication: Authentication,
+    ): Mono<TestSuitesSourceDtoList> = testSuitesSourceService.getAvaliableTestSuiteSources().toMono()
+        .map {testSuitesSourceList ->
+            testSuitesSourceList.map { it.toDto() }
         }
 
     private fun TestSuitesSourceDto.downloadSnapshot(

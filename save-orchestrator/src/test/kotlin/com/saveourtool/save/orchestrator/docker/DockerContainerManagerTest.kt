@@ -60,11 +60,10 @@ class DockerContainerManagerTest {
             configuration = DockerService.RunConfiguration(
                 baseImage.repoTags.first(),
                 listOf("bash", "-c", "./script.sh"),
-                DockerPvId("test-volume"),
-                Path.of("test-resources-path"),
+                workingDir = "/",
+                env = emptyMap(),
             ),
             replicas = 1,
-            workingDir = "/",
         ).single()
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
@@ -76,7 +75,7 @@ class DockerContainerManagerTest {
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
-        Assertions.assertEquals("/save-execution-42-1", inspectContainerResponse.name)
+        Assertions.assertTrue(inspectContainerResponse.name.startsWith("/save-execution-42"))
 
         val resourceFile = createTempFile().toFile()
         resourceFile.writeText("Lorem ipsum dolor sit amet")

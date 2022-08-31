@@ -10,7 +10,7 @@ class ExecutionStatisticsValuesTest {
     @Test
     fun nullExecution() {
         val executionStatisticsValues = ExecutionStatisticsValues(null)
-        assertEquals("info", executionStatisticsValues.style)
+        assertEquals("secondary", executionStatisticsValues.style)
         assertEquals("0", executionStatisticsValues.allTests)
         assertEquals("0", executionStatisticsValues.passedTests)
         assertEquals("0", executionStatisticsValues.failedTests)
@@ -38,9 +38,10 @@ class ExecutionStatisticsValuesTest {
             matchedChecks = 15,
             expectedChecks = 25,
             unexpectedChecks = 5,
+            testSuiteSourceName = "",
         )
         val executionStatisticsValues = ExecutionStatisticsValues(executionDto)
-        assertEquals("info", executionStatisticsValues.style)
+        assertEquals("danger", executionStatisticsValues.style)
         assertEquals("10", executionStatisticsValues.allTests)
         assertEquals("3", executionStatisticsValues.passedTests)
         assertEquals("1", executionStatisticsValues.failedTests)

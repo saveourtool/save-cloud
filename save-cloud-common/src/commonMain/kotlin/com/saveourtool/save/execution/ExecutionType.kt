@@ -8,7 +8,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class ExecutionType {
     /**
-     * project from git
+     * Project on contest
+     */
+    CONTEST,
+
+    /**
+     * Project from git
      */
     GIT,
 

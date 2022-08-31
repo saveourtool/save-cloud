@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
@@ -8,7 +7,6 @@ import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
-import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
@@ -42,7 +40,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 @RestController
 @Suppress("LongParameterList")
 class ExecutionController(private val executionService: ExecutionService,
-                          private val testSuitesService: TestSuitesService,
                           private val projectService: ProjectService,
                           private val projectPermissionEvaluator: ProjectPermissionEvaluator,
                           private val testExecutionService: TestExecutionService,
@@ -50,7 +47,6 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
-                          private val runExecutionController: RunExecutionController,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -103,15 +99,22 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @param organizationName
      * @return list of execution dtos
-     * @throws NoSuchElementException
      */
     @GetMapping(path = ["/api/$v1/executionDtoList"])
-    fun getExecutionByProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<List<ExecutionDto>> {
-        val organization = organizationService.findByName(organizationName) ?: throw NoSuchElementException("Organization with name [$organizationName] was not found.")
-        return projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-            executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+    fun getExecutionByProject(
+        @RequestParam name: String,
+        @RequestParam organizationName: String,
+        authentication: Authentication,
+    ): Mono<List<ExecutionDto>> = organizationService.findByName(organizationName)
+        .toMono()
+        .switchIfEmptyToNotFound {
+            "Organization with name [$organizationName] was not found."
         }
-    }
+        .flatMap { organization ->
+            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
+                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+            }
+        }
 
     /**
      * Get latest (by start time an) execution by project name and organization
@@ -225,51 +228,6 @@ class ExecutionController(private val executionService: ExecutionService,
                 }
             }
     }
-
-    /**
-     * @param id requested execution ID
-     * @param authentication auth provider
-     * @return string with a test root path that is linked with this execution id
-     */
-    @GetMapping(path = ["/api/$v1/getTestRootPathByExecutionId"])
-    @Transactional
-    fun getTestRootPathByExecutionId(@RequestParam id: Long, authentication: Authentication): Mono<String> =
-            executionService.findExecution(id)
-                .toMonoOrNotFound()
-                .filterWhen { projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ) }
-                .flatMap {
-                    it.getTestRootPathByTestSuites()
-                        .distinct()
-                        .singleOrNull()
-                        .toMono()
-                }
-                .switchIfEmptyToNotFound()
-
-    /**
-     * Accepts a request to rerun an existing execution
-     *
-     * @param id id of an existing execution
-     * @param authentication [Authentication] representing an authenticated request
-     * @return bodiless response
-     * @throws ResponseStatusException
-     * @throws IllegalArgumentException
-     */
-    @PostMapping(path = ["/api/$v1/rerunExecution"])
-    @Transactional
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun rerunExecution(@RequestParam id: Long, authentication: Authentication): Mono<StringResponse> = runExecutionController.reTrigger(id, authentication)
-
-    @Suppress("UnsafeCallOnNullableType")
-    private fun Execution.getTestRootPathByTestSuites(): List<String> = this
-        .parseAndGetTestSuiteIds()
-        ?.map { testSuiteId ->
-            testSuitesService.findTestSuiteById(testSuiteId).orNotFound {
-                "Can't find test suite with id=$testSuiteId for executionId=$id"
-            }
-        }
-        ?.map { it.source }
-        ?.map { it.testRootPath }
-        .orEmpty()
 
     /**
      * @return Flux of executions, that are present by ID; or `Flux.error` with status 404 if all executions are missing

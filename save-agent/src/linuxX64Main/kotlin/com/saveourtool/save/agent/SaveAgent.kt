@@ -2,16 +2,16 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.agent.utils.logDebugCustom
-import com.saveourtool.save.agent.utils.logErrorCustom
-import com.saveourtool.save.agent.utils.logInfoCustom
+import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
+import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.sendDataToBackend
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
+import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
@@ -19,13 +19,13 @@ import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
 import generated.SAVE_CLOUD_VERSION
+import generated.SAVE_CORE_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -33,14 +33,7 @@ import okio.buffer
 
 import kotlin.native.concurrent.AtomicLong
 import kotlin.native.concurrent.AtomicReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -52,16 +45,17 @@ import kotlinx.serialization.modules.subclass
  * A main class for SAVE Agent
  * @property config
  * @property coroutineScope a [CoroutineScope] to launch other jobs
+ * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")
-class SaveAgent(internal val config: AgentConfiguration,
-                private val httpClient: HttpClient,
+class SaveAgent(private val config: AgentConfiguration,
+                internal val httpClient: HttpClient,
                 private val coroutineScope: CoroutineScope,
 ) {
     /**
-     * The current [AgentState] of this agent
+     * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
      */
-    val state = AtomicReference(AgentState.STARTING)
+    val state = AtomicReference(AgentState.BUSY)
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
@@ -86,7 +80,34 @@ class SaveAgent(internal val config: AgentConfiguration,
     fun start(): Job {
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
+            state.value = AgentState.BUSY
             sendDataToBackend { saveAdditionalData() }
+
+            logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
+            downloadSaveCli(
+                "${config.backend.url}${config.backend.saveCliDownloadEndpoint}?version=${SAVE_CORE_VERSION.encodeURLParameter()}"
+            )
+            SAVE_CLI_EXECUTABLE_NAME.toPath().markAsExecutable()
+
+            logDebugCustom("Will now download tests")
+            val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
+            val targetDirectory = config.testSuitesDir.toPath()
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+                logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+            logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
+
+            logDebugCustom("Will now download additional resources")
+            val additionalFilesList = requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST)
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList, executionId).runIf({ isFailure }) {
+                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+
+            state.value = AgentState.STARTING
         }
         return coroutineScope.launch { startHeartbeats(this) }
     }
@@ -189,11 +210,26 @@ class SaveAgent(internal val config: AgentConfiguration,
     private fun runSave(cliArgs: String): ExecutionResult {
         val fullCliCommand = buildString {
             append(config.cliCommand)
+            append(" ${config.testSuitesDir}")
             append(" $cliArgs")
-            append(" --report-type ${config.save.reportType.name.lowercase()}")
-            append(" --result-output ${config.save.resultOutput.name.lowercase()}")
-            append(" --report-dir ${config.save.reportDir}")
-            append(" --log ${config.save.logType.name.lowercase()}")
+            with(config.save) {
+                batchSize?.let {
+                    append(" --batch-size $it")
+                }
+                batchSeparator?.let {
+                    append(" --batch-separator \"$it\"")
+                }
+                overrideExecCmd?.let {
+                    append(" --override-exec-cmd \"$it\"")
+                }
+                overrideExecFlags?.let {
+                    append(" --override-exec-flags \"$it\"")
+                }
+                append(" --report-type ${reportType.name.lowercase()}")
+                append(" --result-output ${resultOutput.name.lowercase()}")
+                append(" --report-dir $reportDir")
+                append(" --log ${logType.name.lowercase()}")
+            }
         }
         return ProcessBuilder(true, FileSystem.SYSTEM)
             .exec(
@@ -216,7 +252,7 @@ class SaveAgent(internal val config: AgentConfiguration,
                     debugInfo to TestExecutionDto(
                         tr.resources.test.toString(),
                         pluginExecution.plugin,
-                        config.resolvedId(),
+                        config.id,
                         testResultStatus,
                         executionStartSeconds.value,
                         currentTime.epochSeconds,
@@ -231,12 +267,10 @@ class SaveAgent(internal val config: AgentConfiguration,
             .unzip()
     }
 
-    @Suppress("MAGIC_NUMBER", "MagicNumber")
     private fun TestResultDebugInfo.getCountWarningsAsLong(getter: (CountWarnings) -> Int?) = this.debugInfo
         ?.countWarnings
         ?.let { getter(it) }
         ?.toLong()
-        ?: 0L
 
     private fun readExecutionReportFromFile(jsonFile: String): List<Report> {
         val jsonFileContent = readFile(jsonFile).joinToString(separator = "")
@@ -289,7 +323,6 @@ class SaveAgent(internal val config: AgentConfiguration,
     /**
      * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
      */
-    @OptIn(InternalAPI::class)
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
             httpClient.post {
                 url("${config.orchestratorUrl}/executionLogs")
@@ -299,14 +332,14 @@ class SaveAgent(internal val config: AgentConfiguration,
                         byteArray,
                         Headers.build {
                             append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                            append(HttpHeaders.ContentDisposition, "filename=${config.resolvedId()}")
+                            append(HttpHeaders.ContentDisposition, "filename=${config.id}")
                         }
                     )
                 }))
             }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.resolvedId()}")
+        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }
@@ -322,7 +355,7 @@ class SaveAgent(internal val config: AgentConfiguration,
             url("${config.orchestratorUrl}/heartbeat")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.resolvedId(), state.value, executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
         }
             .body()
     }
@@ -338,6 +371,6 @@ class SaveAgent(internal val config: AgentConfiguration,
         logInfoCustom("Posting additional data to backend")
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
-        setBody(AgentVersion(config.resolvedId(), SAVE_CLOUD_VERSION))
+        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
 }

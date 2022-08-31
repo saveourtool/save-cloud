@@ -7,8 +7,8 @@ import com.saveourtool.save.execution.ExecutionType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.docker.DockerPvId
 import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
@@ -71,7 +71,7 @@ class AgentsControllerTest {
     }
 
     @Test
-    @Suppress("TOO_LONG_FUNCTION")
+    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
@@ -92,12 +92,12 @@ class AgentsControllerTest {
                 .addHeader("Content-Type", "application/octet-stream")
                 .setBody(Buffer().readFrom(tmpArchive.inputStream()))
         )
-        whenever(dockerService.prepareConfiguration(any(), any())).thenReturn(
+        whenever(dockerService.prepareConfiguration(any())).thenReturn(
             DockerService.RunConfiguration(
-                "test-image-id",
-                listOf("sh", "-c", "test-exec-cmd"),
-                DockerPvId("test-pv-id"),
-                Path.of("test-resources-path"),
+                imageTag = "test-image-id",
+                runCmd = listOf("sh", "-c", "test-exec-cmd"),
+                workingDir = EXECUTION_DIR,
+                env = emptyMap(),
             )
         )
         whenever(dockerService.createContainers(any(), any()))
@@ -122,7 +122,7 @@ class AgentsControllerTest {
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Path>(), any<Execution>())
+        verify(dockerService).prepareConfiguration(any<Execution>())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
 

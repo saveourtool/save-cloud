@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.utils
 
+import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.core.io.buffer.DefaultDataBufferFactory
@@ -28,6 +29,18 @@ fun Path.toDataBufferFlux(): Flux<DataBuffer> = if (exists()) {
 } else {
     Flux.empty()
 }
+
+/**
+ * @receiver a [Resource] that should be read
+ * @return content of [Resource] as [Flux] of [ByteBuffer]
+ */
+fun Resource.toByteBufferFlux(): Flux<ByteBuffer> = if (exists()) {
+    DataBufferUtils.read(this, DefaultDataBufferFactory.sharedInstance, DEFAULT_BUFFER_SIZE)
+        .cast(DataBuffer::class.java)
+} else {
+    Flux.empty()
+}
+    .map { it.asByteBuffer() }
 
 /**
  * @return content of file as [Flux] of [ByteBuffer]

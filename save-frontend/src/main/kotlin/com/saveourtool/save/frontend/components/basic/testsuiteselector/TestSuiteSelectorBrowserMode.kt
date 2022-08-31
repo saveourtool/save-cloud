@@ -12,12 +12,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
 import csstype.ClassName
-import react.ChildrenBuilder
-import react.FC
-import react.Props
+import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ReactHTML.a
@@ -28,7 +24,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.ol
 import react.dom.html.ReactHTML.ul
-import react.useState
 
 val testSuiteSelectorBrowserMode = testSuiteSelectorBrowserMode()
 
@@ -45,6 +40,17 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      * List of test suite ids that should be preselected
      */
     var preselectedTestSuiteIds: List<Long>
+
+    /**
+     * Specific organization name which reduces list of test suites source.
+     * If null, all the test suites are shown
+     */
+    var specificOrganizationName: String?
+
+    /**
+     * Mode that defines what kind of test suites will be shown
+     */
+    var selectorPurpose: TestSuiteSelectorPurpose
 }
 
 @Suppress(
@@ -113,9 +119,9 @@ private fun ChildrenBuilder.showBreadcrumb(
             if (shouldDisplayVersion) {
                 selectedTestSuiteVersion?.let {
                     li {
+                        className = ClassName("breadcrumb-item active")
                         a {
                             role = "button".unsafeCast<AriaRole>()
-                            className = ClassName("breadcrumb-item active")
                             +selectedTestSuiteVersion
                         }
                     }
@@ -145,80 +151,66 @@ private fun ChildrenBuilder.showAvaliableOptions(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProps> { props ->
+    useTooltip()
     val (selectedOrganization, setSelectedOrganization) = useState<String?>(null)
     val (selectedTestSuiteSource, setSelectedTestSuiteSource) = useState<String?>(null)
     val (selectedTestSuiteVersion, setSelectedTestSuiteVersion) = useState<String?>(null)
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
 
-    val (avaliableOrganizations, setAvaliableOrganizations) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
-        val organizations: List<String> = get(
-            url = "$apiUrl/test-suites-sources/organizations-list",
+    val (availableOrganizations, setAvailableOrganizations) = useState<List<String>>(emptyList())
+    val (availableTestSuiteSources, setAvailableTestSuiteSources) = useState<List<String>>(emptyList())
+    val (availableTestSuitesVersions, setAvailableTestSuitesVersions) = useState<List<String>>(emptyList())
+    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    useRequest {
+        val url = when (props.selectorPurpose) {
+            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/available"
+            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/get-by-organization?organizationName=${props.specificOrganizationName}"
+            TestSuiteSelectorPurpose.STANDARD -> "$apiUrl/test-suites/get-standard"
+            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/available?isContest=true"
+        }
+        val response = get(
+            url = url,
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
-            .decodeFromJsonString()
-        setAvaliableOrganizations(organizations)
-    }()
 
-    val (avaliableTestSuiteSources, setAvaliableTestSuiteSources) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
+        val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
+        setFetchedTestSuites(testSuites)
+        setAvailableOrganizations(testSuites.map { it.source.organizationName }.distinct())
+    }
+
+    useEffect(selectedOrganization) {
         selectedOrganization?.let { selectedOrganization ->
-            val testSuiteSources = get(
-                url = "$apiUrl/test-suites-sources/$selectedOrganization/list",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
+            setAvailableTestSuiteSources(
+                fetchedTestSuites.map { it.source }
+                    .filter { it.organizationName == selectedOrganization }
+                    .map { it.name }
+                    .distinct()
             )
-                .decodeFromJsonString<List<TestSuitesSourceDto>>()
-                .map { it.name }
-            setAvaliableTestSuiteSources(testSuiteSources)
-        }
-    }()
+        } ?: setAvailableTestSuiteSources(emptyList())
+    }
 
-    val (avaliableTestSuitesVersions, setAvaliableTestSuitesVersions) = useState<List<String>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedTestSuiteSource)) {
+    useEffect(selectedTestSuiteSource) {
         selectedTestSuiteSource?.let { selectedTestSuiteSource ->
-            val testSuiteSourcesVersions: List<String> = get(
-                url = "$apiUrl/test-suites-sources/$selectedOrganization/${encodeURIComponent(selectedTestSuiteSource)}/list-snapshot",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
+            setAvailableTestSuitesVersions(
+                fetchedTestSuites.filter { it.source.name == selectedTestSuiteSource }
+                    .map { it.version }
+                    .distinct()
             )
-                .decodeFromJsonString<TestSuitesSourceSnapshotKeyList>()
-                .map { it.version }
-            setAvaliableTestSuitesVersions(testSuiteSourcesVersions)
-            setSelectedTestSuiteVersion(testSuiteSourcesVersions.singleOrNull())
-        }
-    }()
+        } ?: setAvailableTestSuitesVersions(emptyList())
+    }
 
-    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest(dependencies = arrayOf(selectedTestSuiteVersion)) {
+    useEffect(selectedTestSuiteVersion) {
         selectedTestSuiteVersion?.let { selectedTestSuiteVersion ->
-            selectedTestSuiteSource?.let { selectedTestSuiteSource ->
-                val testSuites: List<TestSuiteDto> = get(
-                    url = "$apiUrl/test-suites-sources/$selectedOrganization/${
-                        encodeURIComponent(
-                            selectedTestSuiteSource
-                        )
-                    }" +
-                            "/get-test-suites?version=${encodeURIComponent(selectedTestSuiteVersion)}",
-                    headers = jsonHeaders,
-                    loadingHandler = ::noopLoadingHandler,
-                    responseHandler = ::noopResponseHandler,
-                )
-                    .decodeFromJsonString()
-                setAvaliableTestSuites(testSuites)
-                testSuites.filter {
-                    it.id in props.preselectedTestSuiteIds
+            setAvailableTestSuites(
+                fetchedTestSuites.filter {
+                    it.source.name == selectedTestSuiteSource && it.version == selectedTestSuiteVersion
                 }
-                    .let {
-                        setSelectedTestSuites(it)
-                    }
-            }
-        }
-    }()
+            )
+        } ?: setAvailableTestSuites(emptyList())
+    }
 
     val (namePrefix, setNamePrefix) = useState("")
     div {
@@ -228,14 +220,14 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             selectedOrganization,
             selectedTestSuiteSource,
             selectedTestSuiteVersion,
-            avaliableTestSuitesVersions.size > 1,
-            {
+            availableTestSuitesVersions.size > 1,
+            onOrganizationsClick = {
                 setSelectedOrganization(null)
                 setSelectedTestSuiteSource(null)
                 setSelectedTestSuiteVersion(null)
                 setNamePrefix("")
             },
-            {
+            onSelectedOrganizationClick = {
                 setSelectedTestSuiteSource(null)
                 setSelectedTestSuiteVersion(null)
                 setNamePrefix("")
@@ -262,21 +254,24 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 }
             }
             selectedTestSuiteVersion?.let {
-                val active = if (selectedTestSuites.containsAll(avaliableTestSuites)) {
+                val active = if (selectedTestSuites.containsAll(availableTestSuites)) {
                     "active"
                 } else {
                     ""
                 }
                 button {
                     className = ClassName("btn btn-outline-secondary $active")
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "bottom"
+                    title = "Select all"
                     onClick = {
                         setSelectedTestSuites { selectedTestSuites ->
-                            if (selectedTestSuites.containsAll(avaliableTestSuites)) {
-                                selectedTestSuites.filter { it !in avaliableTestSuites }
+                            if (selectedTestSuites.containsAll(availableTestSuites)) {
+                                selectedTestSuites.filter { it !in availableTestSuites }
                             } else {
                                 selectedTestSuites.toMutableList()
                                     .apply {
-                                        addAll(avaliableTestSuites)
+                                        addAll(availableTestSuites)
                                     }
                                     .distinctBy { it.id }
                             }
@@ -289,29 +284,32 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                 }
             }
         }
-
         // ==================== SELECTOR ====================
         div {
             className = ClassName("")
             when {
                 selectedOrganization == null -> showAvaliableOptions(
-                    avaliableOrganizations.filter { it.contains(namePrefix, true) }
+                    availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
+                    setNamePrefix("")
                 }
                 selectedTestSuiteSource == null -> showAvaliableOptions(
-                    avaliableTestSuiteSources.filter { it.contains(namePrefix, true) }
+                    availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
+                    setNamePrefix("")
                 }
                 selectedTestSuiteVersion == null -> showAvaliableOptions(
-                    avaliableTestSuitesVersions.filter { it.contains(namePrefix, true) }
+                    availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
+                    setNamePrefix("")
                 }
                 else -> showAvaliableTestSuites(
-                    avaliableTestSuites.filter { it.name.contains(namePrefix, true) },
+                    availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
+                    TestSuiteSelectorMode.BROWSER,
                 ) { testSuite ->
                     setSelectedTestSuites { selectedTestSuites ->
                         selectedTestSuites.toMutableList()

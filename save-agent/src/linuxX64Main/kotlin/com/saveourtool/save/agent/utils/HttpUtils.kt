@@ -5,55 +5,73 @@
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.RetryConfig
 import com.saveourtool.save.agent.SaveAgent
+import com.saveourtool.save.core.logging.logWarn
+import com.saveourtool.save.core.utils.runIf
+import io.ktor.client.*
+import io.ktor.client.request.*
 
 import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpStatusCode
-
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 
 /**
- * Attempt to send execution data to backend, will retry several times, while increasing delay 2 times on each iteration.
+ * @param result
+ * @return true if [this] agent's state has been updated to reflect problems with [result]
+ */
+@Suppress("FUNCTION_BOOLEAN_PREFIX")
+internal fun SaveAgent.updateStateBasedOnBackendResponse(
+    result: Result<HttpResponse>
+): Boolean = if (result.notOk()) {
+    state.value = AgentState.BACKEND_FAILURE
+    true
+} else if (result.isFailure) {
+    if (result.exceptionOrNull() is CancellationException) {
+        logWarn("Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state")
+    }
+    state.value = AgentState.BACKEND_UNREACHABLE
+    true
+} else {
+    false
+}
+
+/**
+ * Attempt to send execution data to backend.
  *
  * @param requestToBackend
+ * @return a [Result] wrapping response
  */
 internal suspend fun SaveAgent.sendDataToBackend(
     requestToBackend: suspend () -> HttpResponse
-): Unit = sendWithRetries(config.retry, requestToBackend) { result, attempt ->
-    val reason = if (result.isSuccess && result.getOrNull()?.status != HttpStatusCode.OK) {
+): Result<HttpResponse> = runCatching { requestToBackend() }.runIf({ failureOrNotOk() }) {
+    val reason = if (notOk()) {
         state.value = AgentState.BACKEND_FAILURE
-        "Backend returned status ${result.getOrNull()?.status}"
+        "Backend returned status ${getOrNull()?.status}"
     } else {
         state.value = AgentState.BACKEND_UNREACHABLE
-        "Backend is unreachable, ${result.exceptionOrNull()?.message}"
+        "Backend is unreachable, ${exceptionOrNull()?.message}"
     }
-    logErrorCustom("Cannot post data (x${attempt + 1}), will retry in ${config.retry.initialRetryMillis} ms. Reason: $reason")
+    logErrorCustom("Cannot send data to backed: $reason")
+    this
 }
 
 /**
- * @param retryConfig
- * @param request
- * @param onError
+ * Perform a POST request to [url] (optionally with body [body] that will be serialized as JSON),
+ * accepting application/octet-stream and return result wrapping [HttpResponse]
+ *
+ * @param url
+ * @param body
+ * @return result wrapping [HttpResponse]
  */
-@Suppress("TYPE_ALIAS")
-internal suspend fun sendWithRetries(
-    retryConfig: RetryConfig,
-    request: suspend () -> HttpResponse,
-    onError: (Result<HttpResponse>, attempt: Int) -> Unit,
-): Unit = coroutineScope {
-    var retryInterval = retryConfig.initialRetryMillis
-    repeat(retryConfig.attempts) { attempt ->
-        val result = runCatching {
-            request()
-        }
-        if (result.isSuccess && result.getOrNull()?.status == HttpStatusCode.OK) {
-            return@coroutineScope
-        } else {
-            onError(result, attempt)
-            delay(retryInterval)
-            retryInterval *= 2
-        }
+internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpResponse> = runCatching {
+    post {
+        url(url)
+        contentType(ContentType.Application.Json)
+        accept(ContentType.Application.OctetStream)
+        body?.let { setBody(it) }
     }
 }
+
+private fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
+
+private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()

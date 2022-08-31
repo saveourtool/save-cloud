@@ -11,10 +11,12 @@ import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
-import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettingsview.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.contests.ContestListView
+import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
+import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
 import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
@@ -91,6 +93,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         ContestView::class.react {
             currentUserInfo = state.userInfo
             currentContestName = params["contestName"]
+        }
+    }
+    private val contestExecutionView: FC<Props> = withRouter { _, params ->
+        ContestExecutionView::class.react {
+            currentUserInfo = state.userInfo
+            contestName = params["contestName"]!!
+            organizationName = params["organizationName"]!!
+            projectName = params["projectName"]!!
         }
     }
     private val organizationView: FC<Props> = withRouter { _, params ->
@@ -181,6 +191,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
+                                    element = contestExecutionView.create()
                                 }
 
                                 Route {

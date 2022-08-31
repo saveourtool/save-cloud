@@ -6,10 +6,10 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
@@ -17,8 +17,6 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.externals.fontawesome.faRedo
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.table.useFilters
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
@@ -28,7 +26,6 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.*
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
@@ -134,14 +131,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             column(id = "missing", header = "Missing", { unmatched }) {
                 Fragment.create {
                     td {
-                        +"${it.value ?: ""}"
+                        +formatCounter(it.value)
                     }
                 }
             }
             column(id = "matched", header = "Matched", { matched }) {
                 Fragment.create {
                     td {
-                        +"${it.value ?: ""}"
+                        +formatCounter(it.value)
                     }
                 }
             }
@@ -220,8 +217,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         +"Error retrieving additional information: $errorDescription"
                     }
                 }
-                trei?.failReason != null -> executionStatusComponent(trei.failReason!!, tableInstance)()
-                trdi != null -> testStatusComponent(trdi, tableInstance)()
+                trei?.failReason != null || trdi != null -> {
+                    trei?.failReason?.let { executionStatusComponent(it, tableInstance)() }
+                    trdi?.let { testStatusComponent(it, tableInstance)() }
+                }
                 else -> tr {
                     td {
                         colSpan = tableInstance.columns.size
@@ -306,6 +305,14 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         state.filters = TestExecutionFilters.empty
     }
 
+    private fun formatCounter(count: Long?): String = count?.let {
+        if (CountWarnings.isNotApplicable(it.toInt())) {
+            "N/A"
+        } else {
+            it.toString()
+        }
+    } ?: ""
+
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: IdType<*>) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution)
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
@@ -356,65 +363,20 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     override fun ChildrenBuilder.render() {
         div {
             div {
-                className = ClassName("d-flex")
-                val statusVal = state.executionDto?.status
-                val statusColor = when (statusVal) {
-                    ExecutionStatus.ERROR -> "bg-danger"
-                    ExecutionStatus.RUNNING, ExecutionStatus.PENDING -> "bg-info"
-                    ExecutionStatus.FINISHED -> "bg-success"
-                    else -> "bg-secondary"
-                }
-
-                div {
-                    className = ClassName("col-md-2 mb-4")
-                    div {
-                        className = ClassName("card $statusColor text-white h-100 shadow py-2")
-                        div {
-                            className = ClassName("card-body")
-                            +(statusVal?.name ?: "N/A")
-                            div {
-                                className = ClassName("text-white-50 small")
-                                +"Project version: ${(state.executionDto?.version ?: "N/A")}"
-                            }
+                displayExecutionInfoHeader(state.executionDto, false, "row mb-2") { event ->
+                    scope.launch {
+                        val response = post(
+                            "$apiUrl/run/re-trigger?executionId=${props.executionId}",
+                            Headers(),
+                            body = undefined,
+                            loadingHandler = ::classLoadingHandler,
+                        )
+                        if (response.ok) {
+                            window.alert("Rerun request successfully submitted")
+                            window.location.reload()
                         }
                     }
-                }
-
-                executionStatistics {
-                    executionDto = state.executionDto
-                }
-                div {
-                    className = ClassName("col-md-3 mb-4")
-                    div {
-                        className = ClassName("card border-left-info shadow h-100 py-2")
-                        div {
-                            className = ClassName("card-body")
-                            div {
-                                className = ClassName("row no-gutters align-items-center mx-auto")
-                                a {
-                                    href = ""
-                                    +"Rerun execution"
-                                    fontAwesomeIcon(icon = faRedo, classes = "ml-2")
-                                    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-                                    onClick = { event ->
-                                        scope.launch {
-                                            val response = post(
-                                                "$apiUrl/rerunExecution?id=${props.executionId}",
-                                                Headers(),
-                                                body = undefined,
-                                                loadingHandler = ::classLoadingHandler,
-                                            )
-                                            if (response.ok) {
-                                                window.alert("Rerun request successfully submitted")
-                                                window.location.reload()
-                                            }
-                                        }
-                                        event.preventDefault()
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    event.preventDefault()
                 }
             }
         }
@@ -425,10 +387,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             getData = { page, size ->
                 post(
                     url = "$apiUrl/test-executions?executionId=${props.executionId}&page=$page&size=$size&checkDebugInfo=true",
-                    headers = Headers().apply {
-                        set("Accept", "application/json")
-                        set("Content-Type", "application/json")
-                    },
+                    headers = jsonHeaders,
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
@@ -463,9 +422,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                 count / pageSize + 1
             }
         }
-        executionTestsNotFound {
-            executionDto = state.executionDto
-        }
+        displayTestNotFound(state.executionDto)
     }
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilters) = "${window.location.href.substringBefore("?")}${filterValue.toQueryParams()}"

@@ -1,17 +1,17 @@
 [versions]
 kotlin = "1.7.10"
-save-core = "0.3.2"
+save-core = "0.4.0-SNAPSHOT"
 ktor = "2.1.0"
 okio = "3.2.0"
-serialization = "1.3.3"
+serialization = "1.4.0"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
-kotlin-wrappers = "1.0.0-pre.369"
+kotlin-wrappers = "1.0.0-pre.379"
 spring = "5.3.22"
-spring-boot = "2.7.2"
-spring-security = "5.7.2"
+spring-boot = "2.7.3"
 spring-cloud = "3.1.3"
 spring-cloud-kubernetes = "2.1.3"
+kafka-client = "3.2.1"
 junit = "5.9.0"
 diktat = "1.2.3"
 detekt = "1.21.0"
@@ -20,7 +20,6 @@ docker-java = "3.2.13"
 jgit = "6.2.0.202206071550-r"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
-logback = "1.2.11"
 log4j = "2.18.0"
 micrometer = "1.9.3"
 jpa = "1.0.2"
@@ -33,9 +32,9 @@ commons-compress = "1.21"
 picocli = "4.6.3"
 zip4j = "2.11.1"
 ktoml = "0.2.13"
-springdoc = "1.6.9"
+springdoc = "1.6.11"
 kotlinx-cli = "0.3.5"
-spotless = "6.9.1"
+spotless = "6.10.0"
 fabric8 = "6.0.0"
 
 [plugins]
@@ -48,7 +47,7 @@ kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.re
 diktat = { id = "com.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "1.5.3" }
-download = { id = "de.undercouch.download", version = "5.1.1" }
+download = { id = "de.undercouch.download", version = "5.1.2" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 
 [libraries]
@@ -92,8 +91,13 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-context-indexer = { module = "org.springframework:spring-context-indexer", version.ref = "spring" }
+spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
+spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-client" }
+kafka212 = { module = "org.apache.kafka:kafka_2.12", version.ref = "kafka-client" }
 
 springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.ref = "springdoc" }
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
@@ -107,6 +111,8 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 # database
@@ -130,7 +136,7 @@ okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
-logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+logback-core = { module = "ch.qos.logback:logback-core" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }

@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.debug
@@ -16,10 +17,9 @@ import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.max
 import java.time.LocalDateTime
 
@@ -43,29 +43,51 @@ class TestSuitesService(
     /**
      * Save new test suites to DB
      *
-     * @param testSuitesDto test suites, that should be checked and possibly saved
+     * @param testSuitesDto test suites **from the same source**, that should be checked and possibly saved
      * @return list of *all* TestSuites
      */
+    @Transactional
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun saveTestSuite(testSuitesDto: List<TestSuiteDto>): List<TestSuite> {
         // FIXME: need to check logic about [dateAdded]
         // It's kind of upsert (insert or update) with key of all fields excluding [dateAdded]
         // This logic will be removed after https://github.com/saveourtool/save-cli/issues/429
+
+        // test suites must be from the same source
+        require(testSuitesDto.map { it.source.name to it.source.organizationName }.distinct().size == 1) {
+            "Do not save test suites from different sources at the same time."
+        }
+
+        // test suites must be from the same commit
+        require(testSuitesDto.map { it.version }.distinct().size == 1) {
+            "Do not save test suites from different commits at the same time."
+        }
+
+        val testSuiteSourceVersion = testSuitesDto.map { it.version }.distinct().single()
+        val testSuiteSource = testSuitesDto.first()
+            .let { dto ->
+                testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name)
+            }
+            .apply {
+                latestFetchedVersion = testSuiteSourceVersion
+            }
+
         val testSuites = testSuitesDto
             .distinctBy {
                 // Same suites may be declared in different directories, we unify them here.
                 // We allow description of existing test suites to be changed.
                 it.copy(description = null)
             }
-            .map {
+            .map { dto ->
                 TestSuite(
-                    name = it.name,
-                    description = it.description,
-                    source = testSuitesSourceService.getByName(it.source.organizationName, it.source.name),
-                    version = it.version,
+                    name = dto.name,
+                    description = dto.description,
+                    source = testSuiteSource,
+                    version = dto.version,
                     dateAdded = null,
-                    language = it.language,
-                    tags = it.tags?.let(TestSuite::tagsFromList),
+                    language = dto.language,
+                    tags = dto.tags?.let(TestSuite::tagsFromList),
+                    plugins = TestSuite.pluginsByTypes(dto.plugins)
                 )
             }
             .map { testSuite ->
@@ -85,7 +107,8 @@ class TestSuitesService(
                     }
             }
         testSuiteRepository.saveAll(testSuites)
-        return testSuites.toList()
+        testSuitesSourceService.update(testSuiteSource)
+        return testSuites
     }
 
     /**
@@ -113,23 +136,32 @@ class TestSuitesService(
      * @param ids
      * @return List of [TestSuite] by [ids]
      */
-    fun findTestSuitesByIds(ids: List<Long>): Flux<TestSuite> = blockingToFlux {
-        ids.mapNotNull { id ->
-            testSuiteRepository.findByIdOrNull(id)
-        }
+    fun findTestSuitesByIds(ids: List<Long>): List<TestSuite> = ids.mapNotNull { id ->
+        testSuiteRepository.findByIdOrNull(id)
     }
 
     /**
+     * @param organizationName
+     * @return [List] of [TestSuite]s by [organizationName]
+     */
+    fun findTestSuitesByOrganizationName(organizationName: String): List<TestSuite> = testSuiteRepository.findBySourceOrganizationName(organizationName)
+
+    /**
+     * @return [List] of ALL [TestSuite]s
+     */
+    fun findAllTestSuites(): List<TestSuite> = testSuiteRepository.findAll()
+
+    /**
      * @param filters
-     * @return [Flux] of [TestSuite] that match [filters]
+     * @return [List] of [TestSuite] that match [filters]
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): Flux<TestSuite> =
+    fun findTestSuitesMatchingFilters(filters: TestSuiteFilters): List<TestSuite> =
             ExampleMatcher.matchingAll()
                 .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("language", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
                 .withMatcher("tags", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-                .withIgnorePaths("description", "source", "version", "dateAdded")
+                .withIgnorePaths("description", "source", "version", "dateAdded", "plugins")
                 .let {
                     Example.of(
                         TestSuite(
@@ -145,7 +177,6 @@ class TestSuitesService(
                     )
                 }
                 .let { testSuiteRepository.findAll(it) }
-                .toFlux()
 
     /**
      * @param id
@@ -198,14 +229,17 @@ class TestSuitesService(
             log.info("Delete test suite $testSuiteName with id $testSuiteId")
             testSuiteRepository.deleteById(testSuiteId)
         }
-        // Delete executions and agents, which related to the test suites
-        // All test executions should be removed at this moment, that's why iterate one more time
-        testSuitesNamesAndIds.forEach { (_, testSuiteId) ->
-            val executionIds = executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
-            agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
-            agentService.deleteAgentByExecutionIds(executionIds)
-            log.debug { "Delete executions with ids $executionIds" }
-            executionService.deleteExecutionByIds(executionIds)
+
+        // Delete agents, which related to the test suites
+        val executionIds = testSuitesNamesAndIds.flatMap { (_, testSuiteId) ->
+            executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+        }.distinct()
+
+        agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
+        agentService.deleteAgentByExecutionIds(executionIds)
+
+        executionIds.forEach {
+            executionService.updateExecutionStatus(executionService.findExecution(it)!!, ExecutionStatus.OBSOLETE)
         }
     }
 

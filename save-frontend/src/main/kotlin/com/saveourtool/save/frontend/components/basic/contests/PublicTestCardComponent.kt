@@ -60,7 +60,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
 
     val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
-    useRequest(isDeferred = false) {
+    useRequest {
         val response = get(
             "$apiUrl/contests/${props.contestName}/test-suites",
             jsonHeaders,
@@ -74,7 +74,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             setPublicTest(null)
             setSelectedTestSuite(null)
         }
-    }()
+    }
 
     useRequest(dependencies = arrayOf(selectedTestSuite)) {
         selectedTestSuite?.let { selectedTestSuite ->
@@ -91,7 +91,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
                 setPublicTest(TestFilesContent.empty)
             }
         }
-    }()
+    }
 
     if (avaliableTestSuites.isEmpty()) {
         h6 {
@@ -107,6 +107,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
                 showAvaliableTestSuites(
                     avaliableTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
+                    null,
                 ) { testSuite ->
                     if (testSuite == selectedTestSuite) {
                         setSelectedTestSuite(null)

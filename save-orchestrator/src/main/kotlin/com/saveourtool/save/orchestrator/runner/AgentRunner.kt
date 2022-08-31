@@ -1,11 +1,9 @@
 package com.saveourtool.save.orchestrator.runner
 
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"
-internal const val TEST_SUITES_DIR_NAME = "test-suites"
 
 /**
  * Describes operations that should be supported with a specific engine for running save-agents.
@@ -17,14 +15,12 @@ interface AgentRunner {
      * @param executionId and ID of execution for which agents will run tests
      * @param configuration [DockerService.RunConfiguration] for the created containers
      * @param replicas number of agents acting in parallel
-     * @param workingDir execution directory inside the container
      * @return unique identifier of created instances that can be used to manipulate them later
      */
     fun create(
         executionId: Long,
-        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
+        configuration: DockerService.RunConfiguration,
         replicas: Int,
-        workingDir: String,
     ): List<String>
 
     /**

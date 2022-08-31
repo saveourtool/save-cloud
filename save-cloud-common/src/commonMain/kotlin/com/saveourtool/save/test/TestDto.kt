@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.test
 
+import com.saveourtool.save.domain.PluginType
+import com.saveourtool.save.domain.toPluginType
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable
@@ -46,3 +48,11 @@ data class TestFilesRequest(
     val version: String,
 
 )
+
+/**
+ * @return [List] of plugin names
+ */
+fun List<TestDto>.collectPluginNames() = map { it.pluginName }
+    .distinct()
+    .map { it.toPluginType() }
+    .filter { it != PluginType.GENERAL }

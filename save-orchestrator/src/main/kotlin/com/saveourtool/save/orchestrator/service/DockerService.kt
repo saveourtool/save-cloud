@@ -1,37 +1,26 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.orchestrator.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
-import com.saveourtool.save.orchestrator.utils.changeOwnerRecursively
-import com.saveourtool.save.orchestrator.utils.tryMarkAsExecutable
-import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.orConflict
 
-import org.apache.commons.io.file.PathUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 
-import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
@@ -41,19 +30,15 @@ import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
 
 /**
- * A service that uses [DockerContainerManager] to build and start containers for test execution.
+ * A service that builds and starts containers for test execution.
  */
 @Service
 @OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
-    private val persistentVolumeService: PersistentVolumeService,
     private val agentService: AgentService,
 ) {
-    @Suppress("NonBooleanPropertyPrefixedWithIs")
-    private val isAgentStoppingInProgress = AtomicBoolean(false)
-
     @Autowired
     @Qualifier("webClientBackend")
     private lateinit var webClientBackend: WebClient
@@ -61,17 +46,14 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
-     * @param resourcesForExecution location to resources are required for [execution]
      * @param execution [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        log.info("Preparing volume for execution.id=${execution.id}")
-        val buildResult = prepareImageAndVolumeForExecution(resourcesForExecution, execution)
-        // todo (k8s): need to also push it so that other nodes will have access to it
-        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}] and PV [id=${buildResult.pvId}]")
+    fun prepareConfiguration(execution: Execution): RunConfiguration {
+        val buildResult = prepareConfigurationForExecution(execution)
+        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}]")
         return buildResult
     }
 
@@ -84,12 +66,11 @@ class DockerService(
      */
     fun createContainers(
         executionId: Long,
-        configuration: RunConfiguration<PersistentVolumeId>,
+        configuration: RunConfiguration,
     ) = agentRunner.create(
         executionId = executionId,
         configuration = configuration,
         replicas = configProperties.agentsCount,
-        workingDir = EXECUTION_DIR,
     )
 
     /**
@@ -126,10 +107,10 @@ class DockerService(
                     }
                     .doOnComplete {
                         if (!areAgentsHaveStarted.get()) {
-                            log.error("Internal error: none of agents $agentIds are started, will mark execution as failed.")
+                            log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
-                                "Internal error, raise an issue at https://github.com/saveourtoo/save-cloud/issues/new"
+                                "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
                             ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
                                 .subscribe()
                         }
@@ -143,19 +124,12 @@ class DockerService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-                try {
-                    agentIds.all { agentId ->
-                        agentRunner.stopByAgentId(agentId)
-                    }
-                } catch (e: AgentRunnerException) {
-                    log.error("Error while stopping agents $agentIds", e)
-                    false
-                } finally {
-                    isAgentStoppingInProgress.lazySet(false)
+            try {
+                agentIds.all { agentId ->
+                    agentRunner.stopByAgentId(agentId)
                 }
-            } else {
-                log.info("Agents stopping is already in progress, skipping")
+            } catch (e: AgentRunnerException) {
+                log.error("Error while stopping agents $agentIds", e)
                 false
             }
 
@@ -168,92 +142,40 @@ class DockerService(
     fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
 
     /**
-     * @param executionId
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stop(executionId: Long): Boolean {
-        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
-        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-            try {
-                agentRunner.stop(executionId)
-                true
-            } finally {
-                isAgentStoppingInProgress.lazySet(false)
-            }
-        } else {
-            false
-        }
-    }
-
-    /**
      * @param executionId ID of execution
      */
     fun cleanup(executionId: Long) {
         agentRunner.cleanup(executionId)
     }
 
-    @Suppress(
-        "TOO_LONG_FUNCTION",
-        "UnsafeCallOnNullableType",
-        "LongMethod",
-    )
-    private fun prepareImageAndVolumeForExecution(resourcesForExecution: Path, execution: Execution): RunConfiguration<PersistentVolumeId> {
-        // collect test suite names, which were selected by user
-        val saveCliExecFlags = " --include-suites \"${execution.getTestSuiteNames().joinToString(DATABASE_DELIMITER)}\" $TEST_SUITES_DIR_NAME"
-
-        // include save-agent into the image
-        PathUtils.copyFile(
-            ClassPathResource(SAVE_AGENT_EXECUTABLE_NAME).url,
-            resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME)
+    private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
+        val saveCliExtraArgs = SaveCliExtraArgs(
+            overrideExecCmd = execution.execCmd,
+            overrideExecFlags = null,
+            batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
+            batchSeparator = null,
         )
-
-        // include save-cli into the image
-        PathUtils.copyFile(
-            ClassPathResource(SAVE_CLI_EXECUTABLE_NAME).url,
-            resourcesForExecution.resolve(SAVE_CLI_EXECUTABLE_NAME)
+        val env = fillAgentPropertiesFromConfiguration(
+            configProperties.agentSettings,
+            saveCliExtraArgs,
+            executionId = execution.requiredId(),
+            additionalFilesString = execution.additionalFiles,
         )
-
-        if (configProperties.adjustResourceOwner) {
-            // orchestrator is executed as root (to access docker socket), but files are in a shared volume
-            // todo: set it to `save-agent` (by ID returned from Docker build?)
-            resourcesForExecution.changeOwnerRecursively("cnb")
-
-            with(loggingContext) {
-                resourcesForExecution.resolve(SAVE_AGENT_EXECUTABLE_NAME).tryMarkAsExecutable()
-                resourcesForExecution.resolve(SAVE_CLI_EXECUTABLE_NAME).tryMarkAsExecutable()
-            }
-        }
-
-        val agentPropertiesFile = resourcesForExecution.resolve("agent.properties")
-        fillAgentPropertiesFromConfiguration(agentPropertiesFile.toFile(), configProperties.agentSettings, saveCliExecFlags)
-
-        val pvId = persistentVolumeService.createFromResources(resourcesForExecution)
-        log.info("Built persistent volume with tests and additional files by id $pvId")
-        // FixMe: temporary moved after `AgentRunner.start`
-        // FileSystemUtils.deleteRecursively(resourcesForExecution)
 
         val sdk = execution.sdk.toSdk()
         val baseImage = baseImageName(sdk)
         return RunConfiguration(
             imageTag = baseImage,
-            runCmd = listOf("sh", "-c", "chmod +x $SAVE_AGENT_EXECUTABLE_NAME && ./$SAVE_AGENT_EXECUTABLE_NAME"),
-            pvId = pvId,
-            resourcesPath = resourcesForExecution,
+            runCmd = listOf(
+                "sh", "-c",
+                "set -o xtrace" +
+                        " && curl -vvv -X POST \$${AgentEnvName.GET_AGENT_LINK.name} --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && ./$SAVE_AGENT_EXECUTABLE_NAME"
+            ),
+            env = env,
         )
     }
-
-    private fun Execution.getTestSuiteNames(): List<String> = this
-        .parseAndGetTestSuiteIds()
-        ?.let {
-            webClientBackend.post()
-                .uri("/test-suite/names-by-ids")
-                .bodyValue(it)
-                .retrieve()
-                .bodyToMono<List<String>>()
-                .block()!!
-        }.orConflict {
-            "Execution (id=$id) doesn't contain testSuiteIds"
-        }
 
     /**
      * Information required to start containers with save-agent
@@ -261,20 +183,32 @@ class DockerService(
      * @property imageTag tag of an image which should be used for a container
      * @property runCmd command that should be run as container's entrypoint.
      * Usually looks like `sh -c "rest of the command"`.
-     * @property pvId ID of a persistent volume that should be attached to a container
-     * @property resourcesPath FixMe: needed only until agents download test and additional files by themselves
+     * @property workingDir
+     * @property env environment variables for the container
      */
-    data class RunConfiguration<I : PersistentVolumeId>(
+    data class RunConfiguration(
         val imageTag: String,
         val runCmd: List<String>,
-        val pvId: I,
-        val resourcesPath: Path,
+        val workingDir: String = EXECUTION_DIR,
+        val env: Map<AgentEnvName, String>,
+    )
+
+    /**
+     * @property overrideExecCmd
+     * @property overrideExecFlags
+     * @property batchSize
+     * @property batchSeparator
+     */
+    internal data class SaveCliExtraArgs(
+        val overrideExecCmd: String?,
+        val overrideExecFlags: String?,
+        val batchSize: Int?,
+        val batchSeparator: String?,
     )
 
     companion object {
         private val log = LoggerFactory.getLogger(DockerService::class.java)
-        private val loggingContext = LoggingContextImpl(log)
-        private const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
+        internal const val SAVE_AGENT_EXECUTABLE_NAME = "save-agent.kexe"
     }
 }
 

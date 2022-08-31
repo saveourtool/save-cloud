@@ -5,8 +5,6 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.docker.DockerPersistentVolumeService
-import com.saveourtool.save.orchestrator.runner.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -40,7 +38,7 @@ import java.nio.file.Paths
 
 import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import java.net.InetSocketAddress
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
@@ -51,14 +49,12 @@ import kotlinx.serialization.json.Json
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
-    DockerPersistentVolumeService::class,
     AgentService::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
     @Autowired private lateinit var configProperties: ConfigProperties
-    private lateinit var testImageId: String
     private lateinit var testContainerId: String
 
     @BeforeEach
@@ -78,21 +74,7 @@ class DockerServiceTest {
             testSuiteIds = "1,2,3"
             sdk = "Java:11"
         }
-        mockServer.enqueue(
-            "/test-suite/names-by-ids",
-            MockResponse()
-                .setResponseCode(200)
-                .setHeader("Accept", "application/json")
-                .setHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(listOf("Test1", "Test2")))
-        )
-        val tmpDir = Paths.get(configProperties.testResources.tmpPath).createDirectories()
-        val resourcesForExecution = createTempDirectory(
-            directory = tmpDir,
-            prefix = "save-execution-${testExecution.requiredId()}"
-        )
-        resourcesForExecution.resolve(TEST_SUITES_DIR_NAME).createDirectory()
-        val configuration = dockerService.prepareConfiguration(resourcesForExecution, testExecution)
+        val configuration = dockerService.prepareConfiguration(testExecution)
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -105,13 +87,19 @@ class DockerServiceTest {
             MockResponse()
                 .setResponseCode(200)
         )
+        mockServer.enqueue(
+            "/internal/files/download-save-agent",
+            MockResponse()
+                .setHeader("Content-Type", "application/octet-stream")
+                .setResponseCode(200)
+                .setBody("sleep 200")
+        )
         dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
             .subscribe()
 
         // assertions
         Thread.sleep(2_500)  // waiting for container to start
         val inspectContainerResponse = dockerClient.inspectContainerCmd(testContainerId).exec()
-        testImageId = inspectContainerResponse.imageId
         Assertions.assertTrue(inspectContainerResponse.state.running!!) {
             dockerClient.logContainerCmd(testContainerId)
                 .withStdOut(true)
@@ -137,9 +125,6 @@ class DockerServiceTest {
         if (::testContainerId.isInitialized) {
             dockerClient.removeContainerCmd(testContainerId).exec()
         }
-        if (::testImageId.isInitialized) {
-            dockerClient.removeImageCmd(testImageId).exec()
-        }
         mockServer.checkQueues()
         mockServer.cleanup()
     }
@@ -159,9 +144,15 @@ class DockerServiceTest {
         @JvmStatic
         @DynamicPropertySource
         fun properties(registry: DynamicPropertyRegistry) {
+            mockServer.start(
+                InetSocketAddress(0).address,
+                0
+            )
             registry.add("orchestrator.backendUrl") {
-                mockServer.start()
                 "http://localhost:${mockServer.port}"
+            }
+            registry.add("orchestrator.agentSettings.backendUrl") {
+                "http://host.docker.internal:${mockServer.port}"
             }
         }
     }

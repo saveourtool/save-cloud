@@ -9,10 +9,10 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.InputTypes
-import com.saveourtool.save.frontend.components.basic.inputTextFormOptional
-import com.saveourtool.save.frontend.components.basic.inputTextFormRequired
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -169,7 +169,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             formName = "Organization"
                                             getData = {
                                                 get(
-                                                    url = "$apiUrl/organization/get/list",
+                                                    url = "$apiUrl/organizations/get/list",
                                                     headers = jsonHeaders,
                                                     loadingHandler = ::loadingHandler,
                                                 )
@@ -193,7 +193,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                             state.projectCreationRequest.name,
                                             (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
                                                     state.conflictErrorMessage == null,
-                                            "col-md-12 pl-2 pr-2",
+                                            "col-md-12 pl-2 pr-2 mt-3",
                                             "Tested tool name",
                                         ) {
                                             setState {
@@ -201,27 +201,19 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 conflictErrorMessage = null
                                             }
                                         }
-                                        inputTextFormOptional(
-                                            InputTypes.PROJECT_URL,
-                                            state.projectCreationRequest.url,
-                                            "col-md-12 pl-2 pr-2 mt-3",
-                                            "Tested Tool Website",
-                                            validInput = state.projectCreationRequest.url.isEmpty() || state.projectCreationRequest.validateUrl(),
-                                        ) {
-                                            setState {
-                                                projectCreationRequest = projectCreationRequest.copy(url = it.target.value)
-                                            }
-                                        }
 
-                                        inputTextFormOptional(
-                                            InputTypes.PROJECT_EMAIL,
-                                            state.projectCreationRequest.email,
-                                            "col-md-12 pl-2 pr-2 mt-3",
-                                            "Tested Tool Email",
-                                            validInput = state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail(),
-                                        ) {
-                                            setState {
-                                                projectCreationRequest = projectCreationRequest.copy(email = it.target.value)
+                                        inputTextFormOptionalWrapperConst {
+                                            form = InputTypes.PROJECT_EMAIL
+                                            textValue = state.projectCreationRequest.email
+                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            name = "Contact e-mail"
+                                            validInput =
+                                                    state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail()
+                                            onChangeFun = {
+                                                setState {
+                                                    projectCreationRequest =
+                                                            projectCreationRequest.copy(email = it.target.value)
+                                                }
                                             }
                                         }
 

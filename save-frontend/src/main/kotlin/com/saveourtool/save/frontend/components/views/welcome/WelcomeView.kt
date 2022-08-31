@@ -16,18 +16,18 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import csstype.*
 
+import csstype.*
 import csstype.*
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
@@ -285,13 +285,15 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             className = ClassName("card-body")
             div {
                 className = ClassName("text-sm")
-                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faBell)
+                menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faCode)
                 hrNoMargin()
                 menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
                 hrNoMargin()
                 menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
                 hrNoMargin()
-                menuTextAndLink("User Settings", "/#/${props.userInfo?.name}/${FrontendRoutes.SETTINGS_EMAIL.path}", faUser)
+                menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                hrNoMargin()
+                menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
             }
         }
     }
@@ -349,7 +351,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
             }
 
     private fun ChildrenBuilder.hrNoMargin() =
-            ReactHTML.hr {
+            hr {
                 style = jso {
                     marginTop = "0.0em".unsafeCast<Margin>()
                     marginBottom = "0.0em".unsafeCast<Margin>()

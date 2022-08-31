@@ -58,7 +58,7 @@ external interface ProjectInfoMenuProps : Props {
 )
 private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
     val (usersInProject, setUsersInProject) = useState(emptyList<UserInfo>())
-    useRequest(isDeferred = false) {
+    useRequest {
         val users: List<UserInfo> = get(
             url = "$apiUrl/projects/${props.organizationName}/${props.projectName}/users",
             headers = Headers().also {
@@ -70,10 +70,10 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setUsersInProject(users)
-    }()
+    }
 
     val (bestResults, setBestResults) = useState(emptyList<ContestResult>())
-    useRequest(isDeferred = false) {
+    useRequest {
         val results: List<ContestResult> = get(
             url = "$apiUrl/contests/${props.organizationName}/${props.projectName}/best",
             headers = Headers().also {
@@ -85,10 +85,10 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setBestResults(results)
-    }()
+    }
 
     val (project, setProject) = useState(Project.stub(-1))
-    useRequest(isDeferred = false) {
+    useRequest {
         val projectFromBackend: Project = get(
             url = "$apiUrl/projects/get/organization-name?name=${props.projectName}&organizationName=${props.organizationName}",
             headers = Headers().also {
@@ -100,7 +100,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 it.decodeFromJsonString()
             }
         setProject(projectFromBackend)
-    }()
+    }
 
     div {
         className = ClassName("d-flex justify-content-center")
@@ -115,7 +115,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 bestResults.filter { it.score != null }
                     .forEach {
                         li {
-                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0")
+                            className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0 mb-3")
                             a {
                                 href = "#/${FrontendRoutes.CONTESTS.path}/${it.contestName}"
                                 className = ClassName("stretched-link")

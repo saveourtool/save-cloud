@@ -58,7 +58,7 @@ private fun userBoard() = FC<UserBoardProps> { props ->
                                 "/api/$v1/avatar$path"
                             }
                                 ?: run {
-                                    "img/user.svg"
+                                    "img/undraw_profile.svg"
                                 }
                             alt = ""
                         }

@@ -66,7 +66,7 @@ fun Project.configureVersioning() {
  */
 fun Project.versionForDockerImages(): String =
         (project.findProperty("dockerTag") as String? ?: version.toString())
-            .replace(Regex("[^._\\-a-z0-9]"), "-")
+            .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
 
 /**
  * Register task that reads version of save-cli, either from project property, or from Versions, or latest
@@ -76,6 +76,7 @@ fun Project.registerSaveCliVersionCheckTask() {
     val libs = the<LibrariesForLibs>()
     val saveCoreVersion = libs.versions.save.core.get()
     tasks.register("getSaveCliVersion") {
+        inputs.property("save-cli version", findProperty("saveCliVersion") ?: saveCoreVersion)
         val file = file(pathToSaveCliVersion)
         outputs.file(file)
         outputs.upToDateWhen {

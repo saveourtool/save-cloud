@@ -1,12 +1,10 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
+import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.PersistentVolumeId
 import com.saveourtool.save.utils.debug
 
 import io.fabric8.kubernetes.api.model.*
@@ -16,8 +14,6 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 /**
  * A component that manages save-agents running in Kubernetes.
@@ -26,9 +22,11 @@ import java.util.concurrent.ConcurrentMap
 @Profile("kubernetes")
 class KubernetesManager(
     private val kc: KubernetesClient,
-    private val configProperties: ConfigProperties,
+    configProperties: ConfigProperties,
 ) : AgentRunner {
-    private val boundPvcs: ConcurrentMap<Long, String> = ConcurrentHashMap()
+    private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
+        "orchestrator.kubernetes.* properties are required in this profile"
+    }
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -38,13 +36,12 @@ class KubernetesManager(
         "ComplexMethod",
     )
     override fun create(executionId: Long,
-                        configuration: DockerService.RunConfiguration<PersistentVolumeId>,
+                        configuration: DockerService.RunConfiguration,
                         replicas: Int,
-                        workingDir: String,
     ): List<String> {
-        val (baseImageTag, agentRunCmd, pvId) = configuration
-        require(pvId is KubernetesPvId) { "${KubernetesPersistentVolumeService::class.simpleName} can only operate with ${KubernetesPvId::class.simpleName}" }
-        requireNotNull(configProperties.kubernetes)
+        val baseImageTag = configuration.imageTag
+        val agentRunCmd = configuration.runCmd
+        val workingDir = configuration.workingDir
         // fixme: pass image name instead of ID from the outside
 
         // Creating Kubernetes objects that will be responsible for lifecycle of save-agents.
@@ -60,40 +57,25 @@ class KubernetesManager(
                 backoffLimit = 0
                 template = PodTemplateSpec().apply {
                     spec = PodSpec().apply {
-                        if (configProperties.kubernetes.useGvisor) {
+                        if (kubernetesSettings.useGvisor) {
                             nodeSelector = mapOf(
                                 "gvisor" to "enabled"
                             )
                             runtimeClassName = "gvisor"
                         }
-                        // FixMe: Orchestrator uses hostPath mounts to copy resources, so agents have to be run on the same host.
-                        nodeName = System.getenv("NODE_NAME")
                         metadata = ObjectMeta().apply {
                             labels = mapOf(
                                 "executionId" to executionId.toString(),
                                 // "baseImageName" to baseImageName
-                                "io.kompose.service" to "save-agent"
+                                "io.kompose.service" to "save-agent",
+                                // todo: should be set to version of agent that is stored in backend...
+                                // "version" to SAVE_CORE_VERSION
                             )
                         }
                         // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
                         restartPolicy = "Never"
-                        initContainers = initContainersSpec(pvId)
                         containers = listOf(
-                            agentContainerSpec(baseImageTag, agentRunCmd)
-                        )
-                        volumes = listOf(
-                            Volume().apply {
-                                name = "save-resources-tmp"
-                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
-                                    claimName = pvId.sourcePvcName
-                                }
-                            },
-                            Volume().apply {
-                                name = "save-execution-pvc"
-                                persistentVolumeClaim = PersistentVolumeClaimVolumeSource().apply {
-                                    claimName = pvId.pvcName
-                                }
-                            }
+                            agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.env)
                         )
                     }
                 }
@@ -103,7 +85,6 @@ class KubernetesManager(
         kc.resource(job)
             .create()
         logger.info("Created Job for execution id=$executionId")
-        boundPvcs[executionId] = pvId.pvcName
         // fixme: wait for pods to be created
         return generateSequence<List<String>> {
             Thread.sleep(1_000)
@@ -154,12 +135,6 @@ class KubernetesManager(
         job.get()?.let {
             job.delete()
         }
-        boundPvcs.remove(executionId)?.let { pvcName ->
-            logger.debug("Removing a PVC for execution id=$executionId with name $pvcName")
-            kc.persistentVolumeClaims()
-                .withName(pvcName)
-                .delete()
-        }
     }
 
     override fun prune() {
@@ -186,70 +161,53 @@ class KubernetesManager(
 
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
 
-    private fun initContainersSpec(pvId: KubernetesPvId): List<Container> {
-        requireNotNull(configProperties.kubernetes)
-
-        // FixMe: After #958 is merged we can start downloading tests directly from backend/storage into a volume.
-        // Probably, a separate client process should be introduced. Until then, one init container performs copying
-        // into a shared mount while others are sleeping for this many seconds:
-        @Suppress(
-            "FLOAT_IN_ACCURATE_CALCULATIONS",
-            "MAGIC_NUMBER",
-            "MagicNumber",
-        )
-        val waitForCopySeconds = (configProperties.agentsStartTimeoutMillis * 0.8 / 1000).toLong()
-
-        return listOf(
-            Container().apply {
-                name = "save-vol-copier"
-                image = "alpine:latest"
-                command = listOf(
-                    "sh", "-c",
-                    "if [ -z \"$(ls -A $EXECUTION_DIR)\" ];" +
-                            " then mkdir -p $EXECUTION_DIR && cp -R ${pvId.sourcePath}/* $EXECUTION_DIR" +
-                            " && chown -R 1100:1100 $EXECUTION_DIR && echo Successfully copied;" +
-                            " else echo Copying already in progress && ls -A $EXECUTION_DIR && sleep $waitForCopySeconds;" +
-                            " fi"
-                )
-                volumeMounts = listOf(
-                    VolumeMount().apply {
-                        name = "save-resources-tmp"
-                        mountPath = "$SAVE_AGENT_USER_HOME/tmp"
-                    },
-                    VolumeMount().apply {
-                        name = "save-execution-pvc"
-                        mountPath = configProperties.kubernetes.pvcMountPath
-                    }
-                )
-            }
-        )
-    }
-
-    private fun agentContainerSpec(imageName: String, agentRunCmd: List<String>) = Container().apply {
+    @Suppress("TOO_LONG_FUNCTION")
+    private fun agentContainerSpec(
+        imageName: String,
+        agentRunCmd: List<String>,
+        workingDir: String,
+        env: Map<AgentEnvName, String>,
+    ) = Container().apply {
         name = "save-agent-pod"
         image = imageName
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
-        env = listOf(
-            EnvVar().apply {
-                name = "POD_NAME"
-                valueFrom = EnvVarSource().apply {
-                    fieldRef = ObjectFieldSelector().apply {
-                        fieldPath = "metadata.name"
-                    }
-                }
-            }
-        )
+
+        val staticEnvs = env.mapToEnvs()
+        this.env = staticEnvs + agentIdEnv(AgentEnvName.AGENT_ID)
 
         this.command = agentRunCmd.dropLast(1)
         this.args = listOf(agentRunCmd.last())
 
         this.workingDir = workingDir
-        volumeMounts = listOf(
-            VolumeMount().apply {
-                name = "save-execution-pvc"
-                mountPath = requireNotNull(configProperties.kubernetes).pvcMountPath
+
+        resources = with(kubernetesSettings) {
+            ResourceRequirements().apply {
+                requests = mapOf(
+                    "cpu" to Quantity(agentCpuRequests),
+                    "memory" to Quantity(agentMemoryRequests),
+                )
+                limits = mapOf(
+                    "cpu" to Quantity(agentCpuLimits),
+                    "memory" to Quantity(agentMemoryLimits),
+                )
             }
-        )
+        }
+    }
+
+    private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
+        name = agentIdEnv.name
+        valueFrom = EnvVarSource().apply {
+            fieldRef = ObjectFieldSelector().apply {
+                fieldPath = "metadata.name"
+            }
+        }
+    }
+
+    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { (envName, envValue) ->
+        EnvVar().apply {
+            name = envName.name
+            value = envValue.toString()
+        }
     }
 
     private fun kcJobsWithName(name: String) = kc.batch()

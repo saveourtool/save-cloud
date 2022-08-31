@@ -11,8 +11,9 @@ import com.saveourtool.save.validation.isValidName
  * @property startTime the time contest starts
  * @property endTime the time contest ends
  * @property organization organization that created this contest
- * @property description
  * @property testSuiteIds
+ * @property description
+ * @property creationTime
  */
 @Entity
 @Suppress("LongParameterList")
@@ -27,6 +28,7 @@ class Contest(
     var organization: Organization,
     var testSuiteIds: String = "",
     var description: String? = null,
+    var creationTime: LocalDateTime?,
 ) : BaseEntity() {
     /**
      * Create Data Transfer Object in order to pass entity to frontend
@@ -41,6 +43,7 @@ class Contest(
         description,
         organization.name,
         getTestSuiteIds().toList(),
+        creationTime,
     )
 
     /**
@@ -79,7 +82,8 @@ class Contest(
             status = status,
             startTime = null,
             endTime = null,
-            organization = Organization.stub(1)
+            organization = Organization.stub(1),
+            creationTime = LocalDateTime.now(),
         ).apply {
             this.id = id
         }
@@ -91,11 +95,13 @@ class Contest(
          *
          * @param organization that created contest
          * @param status [ContestStatus]
+         * @param creationTime specified time when contest was created
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
             status: ContestStatus = ContestStatus.CREATED,
+            creationTime: LocalDateTime? = null,
         ) = Contest(
             name,
             status,
@@ -104,6 +110,7 @@ class Contest(
             organization,
             joinTestSuiteIds(testSuiteIds),
             description,
+            creationTime ?: this.creationTime,
         )
     }
 }
