@@ -6,12 +6,16 @@ import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.requiredEnv
 import com.saveourtool.save.agent.utils.sendDataToBackend
+import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
+import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.logging.logTrace
 import com.saveourtool.save.core.plugin.Plugin
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.core.utils.runIf
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
@@ -28,6 +32,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 
@@ -92,7 +97,7 @@ class SaveAgent(private val config: AgentConfiguration,
             logDebugCustom("Will now download tests")
             val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
             val targetDirectory = config.testSuitesDir.toPath()
-            downloadTestResources(config.backend, targetDirectory, executionId).runIf({ isFailure }) {
+            downloadTestResources(config.backend, targetDirectory, executionId).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
@@ -100,13 +105,30 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")
-            val additionalFilesList = requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST)
-            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFilesList, executionId).runIf({ isFailure }) {
-                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFilesList]: ${exceptionOrNull()?.describe()}")
+            val additionalFiles = FileKey.parseList(requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST))
+            downloadAdditionalResources(config.backend.url, targetDirectory, additionalFiles, executionId).runIf(failureResultPredicate) {
+                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFiles]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch
             }
+            logInfoCustom("Downloaded all additional resources for execution $executionId to $targetDirectory")
 
+            // a temporary workaround for python integration
+            logDebugCustom("Will execute additionally setup of evaluated tool for execution $executionId if it's required")
+            executeAdditionallySetup(targetDirectory, additionalFiles).runIf(failureResultPredicate) {
+                logErrorCustom("Unable to execute additionally setup for $executionId: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+            logInfoCustom("Additionally setup has completed for execution $executionId")
+
+            logDebugCustom("Will create `save-overrides.toml` for execution $executionId if it's required")
+            prepareSaveOverridesToml(targetDirectory).runIf(failureResultPredicate) {
+                logErrorCustom("Unable to prepare `save-overrides.toml` for $executionId: ${exceptionOrNull()?.describe()}")
+                state.value = AgentState.CRASHED
+                return@launch
+            }
+            logInfoCustom("Created `save-overrides.toml` for execution $executionId based on configuration provided by orchestrator")
             state.value = AgentState.STARTING
         }
         return coroutineScope.launch { startHeartbeats(this) }
@@ -117,8 +139,60 @@ class SaveAgent(private val config: AgentConfiguration,
      * [coroutineScope] is the topmost scope for all jobs, so by cancelling it
      * we can gracefully shut down the whole application.
      */
-    fun shutdown() {
+    internal fun shutdown() {
         coroutineScope.cancel()
+    }
+
+    // a temporary workaround for python integration
+    private fun executeAdditionallySetup(targetDirectory: Path, additionalFiles: List<FileKey>) = runCatching {
+        additionalFiles
+            .singleOrNull { it.name == "setup.sh" }
+            ?.let { fileKey ->
+                val targetFile = targetDirectory / fileKey.name
+                logDebugCustom("Additionally setup of evaluated tool by $targetFile")
+                val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
+                    .exec(
+                        "./$targetFile",
+                        "",
+                        null,
+                        SETUP_SH_TIMEOUT
+                    )
+                if (setupResult.code != 0) {
+                    throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
+                }
+                logTrace("$fileKey is executed successfully. Output: ${setupResult.stdout}")
+            }
+    }
+
+    // prepare save-overrides.toml based on config.save.*
+    private fun prepareSaveOverridesToml(targetDirectory: Path) = runCatching {
+        with(config.save) {
+            val generalConfig = buildMap {
+                overrideExecCmd?.let { put("execCmd", it) }
+                batchSize?.let { put("batchSize", it) }
+                batchSeparator?.let { put("batchSeparator", it) }
+            }.map { (key, value) -> "$key = $value" }
+            val fixAndWarnConfigs = buildMap {
+                overrideExecFlags?.let { put("execFlags", it) }
+            }.map { (key, value) -> "$key = $value" }
+            val saveOverridesTomlContent = buildString {
+                if (generalConfig.isNotEmpty()) {
+                    appendLine("[general]")
+                    generalConfig.forEach { appendLine(it) }
+                }
+                if (fixAndWarnConfigs.isNotEmpty()) {
+                    appendLine("[fix]")
+                    fixAndWarnConfigs.forEach { appendLine(it) }
+                    appendLine("[warn]")
+                    fixAndWarnConfigs.forEach { appendLine(it) }
+                }
+            }
+            if (saveOverridesTomlContent.isNotEmpty()) {
+                FileSystem.SYSTEM.write(targetDirectory.resolveSaveOverridesTomlConfig(), true) {
+                    writeUtf8(saveOverridesTomlContent)
+                }
+            }
+        }
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
@@ -126,8 +200,9 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Scheduling heartbeats")
         while (true) {
             val response = runCatching {
+                val executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong()
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(0))
+                sendHeartbeat(ExecutionProgress(executionId = executionId, percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -170,27 +245,26 @@ class SaveAgent(private val config: AgentConfiguration,
 
     /**
      * @param cliArgs arguments for SAVE process
-     * @return Unit
      */
     internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        val pwd = FileSystem.SYSTEM.canonicalize(".".toPath())
-        logInfoCustom("Starting SAVE in $pwd with provided args $cliArgs")
+        logInfoCustom("Starting SAVE in ${getWorkingDirectory()} with provided args $cliArgs")
         val executionResult = runSave(cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
+
         val saveCliLogFilePath = config.logFilePath
         val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
             .buffer()
             .readByteArray()
         val saveCliLogData = String(byteArray).split("\n")
-
         launchLogSendingJob(byteArray)
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
         }
+
         when (executionResult.code) {
             0 -> if (saveCliLogData.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
@@ -206,7 +280,6 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    @Suppress("MagicNumber")
     private fun runSave(cliArgs: String): ExecutionResult {
         val fullCliCommand = buildString {
             append(config.cliCommand)
@@ -236,7 +309,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 fullCliCommand,
                 "",
                 config.logFilePath.toPath(),
-                1_000_000L
+                SAVE_CLI_TIMEOUT
             )
     }
 
@@ -372,5 +445,11 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
+    }
+
+    companion object {
+        private const val SAVE_CLI_TIMEOUT = 1_000_000L
+        private const val SETUP_SH_TIMEOUT = 1_000L
+        private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }
