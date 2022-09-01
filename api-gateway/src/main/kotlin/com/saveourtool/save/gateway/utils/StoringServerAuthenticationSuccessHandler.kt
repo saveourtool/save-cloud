@@ -5,11 +5,9 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
-import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
@@ -25,11 +23,7 @@ class StoringServerAuthenticationSuccessHandler(
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
-        // This is necessary to remove the originalLogins from the User,
-        // otherwise we will get the kotlin.EmptyList class in Json and will not be able to serialize it.
-        .configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false)
         .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
         .registerModule(OAuth2ClientJackson2Module())
     private val webClient = WebClient.create(configurationProperties.backend.url)
 

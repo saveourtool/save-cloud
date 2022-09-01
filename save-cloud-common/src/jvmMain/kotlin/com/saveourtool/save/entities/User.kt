@@ -3,8 +3,7 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo
-import com.fasterxml.jackson.annotation.ObjectIdGenerators
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 import javax.persistence.Entity
 import javax.persistence.FetchType
@@ -27,10 +26,6 @@ import javax.persistence.OneToMany
  */
 @Entity
 @Suppress("LongParameterList")
-@JsonIdentityInfo(
-    generator = ObjectIdGenerators.PropertyGenerator::class,
-    property = "id"
-)
 class User(
     var name: String?,
     var password: String?,
@@ -49,6 +44,7 @@ class User(
         mappedBy = "user",
         targetEntity = OriginalLogin::class
     )
+    @JsonIgnore
     var originalLogins: List<OriginalLogin> = emptyList(),
 ) : BaseEntity() {
     /**

@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.saveourtool.save.backend.configs.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.UsersDetailsController
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -18,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 
@@ -60,12 +58,12 @@ class UsersDetailsControllerTest {
         ).apply { id = 4 }
         user.apply { originalLogins = listOf(originalLogin) }
 
-        val result = objectMapper.writeValueAsString(originalLogin)
+        val result = objectMapper.writeValueAsString(user)
 
         webTestClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(objectMapper.writeValueAsString(user))
+            .bodyValue(result)
             .exchange()
             .expectStatus()
             .isOk
