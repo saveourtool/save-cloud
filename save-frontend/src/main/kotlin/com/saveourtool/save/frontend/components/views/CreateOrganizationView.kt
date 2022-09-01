@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
@@ -37,7 +39,7 @@ external interface OrganizationSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithOrganizationSave: Boolean?
+    var isErrorWithOrganizationSave: Boolean
 
     /**
      * Error message
@@ -107,12 +109,10 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         "MAGIC_NUMBER"
     )
     override fun ChildrenBuilder.render() {
-        runErrorModal(
-            state.isErrorWithOrganizationSave,
-            "Error appeared during organization creation",
-            state.errorMessage
-        ) {
-            setState { isErrorWithOrganizationSave = false }
+        displayModal(state.isErrorWithOrganizationSave, "Creation error", state.errorMessage, mediumTransparentModalStyle, { setState { isErrorWithOrganizationSave = false } }) {
+            buttonBuilder("Close", "secondary") {
+                setState { isErrorWithOrganizationSave = false }
+            }
         }
 
         main {

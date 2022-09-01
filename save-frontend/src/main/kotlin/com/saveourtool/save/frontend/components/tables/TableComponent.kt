@@ -6,10 +6,12 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import com.saveourtool.save.frontend.components.modal.errorModal
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
 import com.saveourtool.save.frontend.utils.WithRequestStatusContext
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
 import csstype.ClassName
 
@@ -272,12 +274,16 @@ fun <D : Any, P : TableProps<D>> tableComponent(
             }
         }
     }
-    errorModal(
+
+    displayModal(
+        isModalOpen,
         "Error",
         "Error when fetching data: ${dataAccessException?.message}",
-        {
-            it.isOpen = isModalOpen
-        }) {
-        setIsModalOpen(false)
+        mediumTransparentModalStyle,
+        { setIsModalOpen(false) },
+    ) {
+        buttonBuilder("Close", "secondary") {
+            setIsModalOpen(false)
+        }
     }
 }
