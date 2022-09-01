@@ -7,6 +7,8 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -68,12 +70,16 @@ private fun featuredContest() = VFC {
         setEnrollerResponseMessage(it)
     }
 
-    runErrorModal(
+    displayModal(
         isConfirmationWindowOpen,
         "Contest enroller",
         enrollerResponseMessage,
+        mediumTransparentModalStyle,
+        { setIsConfirmationWindowOpen(false) }
     ) {
-        setIsConfirmationWindowOpen(false)
+        buttonBuilder("Close", "secondary") {
+            setIsConfirmationWindowOpen(false)
+        }
     }
     div {
         className = ClassName("col-lg-6")

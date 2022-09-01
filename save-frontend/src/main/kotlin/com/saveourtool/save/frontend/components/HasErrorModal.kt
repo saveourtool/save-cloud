@@ -2,10 +2,10 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.components.modal.loaderModalStyle
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.animations.ringLoader
-import com.saveourtool.save.frontend.externals.modal.loaderModalStyle
-import com.saveourtool.save.frontend.externals.modal.modal
 import com.saveourtool.save.frontend.topBarComponent
 import com.saveourtool.save.info.UserInfo
 
@@ -170,7 +170,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
  */
 external interface RequestModalProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }
@@ -195,7 +195,7 @@ data class RequestStatusContext(
  * @property redirectToFallbackView
  */
 data class ErrorModalState(
-    val isErrorModalOpen: Boolean?,
+    val isErrorModalOpen: Boolean,
     val errorMessage: String,
     val errorLabel: String,
     val confirmationText: String = "Close",
@@ -207,5 +207,5 @@ data class ErrorModalState(
  * @property isLoadingModalOpen
  */
 data class LoadingModalState(
-    val isLoadingModalOpen: Boolean?,
+    val isLoadingModalOpen: Boolean,
 )

@@ -13,6 +13,8 @@ import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -50,7 +52,7 @@ external interface ProjectSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithProjectSave: Boolean?
+    var isErrorWithProjectSave: Boolean
 
     /**
      * Error message
@@ -120,12 +122,16 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
-        runErrorModal(
+        displayModal(
             state.isErrorWithProjectSave,
             "Error appeared during project creation",
-            state.errorMessage
+            state.errorMessage,
+            mediumTransparentModalStyle,
+            { setState { isErrorWithProjectSave = false } },
         ) {
-            setState { isErrorWithProjectSave = false }
+            buttonBuilder("Close", "secondary") {
+                setState { isErrorWithProjectSave = false }
+            }
         }
 
         main {
