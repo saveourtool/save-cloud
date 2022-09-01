@@ -1,0 +1,46 @@
+name: Package and push Helm chart
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'chart/v*'
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        default: master
+        description: Branch to package chart from
+        required: false
+
+jobs:
+  deploy_chart:
+    name: Package and push Helm chart
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: checkout save-cloud
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 3.*
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: github.event_name == 'workflow_dispatch'
+        name: Prepare to build from branch
+        run: |
+          git checkout origin/${{ inputs.branch }}
+      # TODO: update `version` and `appVersion` in Chart.yaml based on action inputs?
+      # https://helm.sh/docs/topics/registries/
+      # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
+      - run: |
+          helm package save-cloud-charts/save-cloud
+          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
