@@ -40,9 +40,6 @@ class UsersDetailsControllerTest {
     private lateinit var originalLoginRepository: OriginalLoginRepository
 
     private val objectMapper = ObjectMapper()
-        .configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false)
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
 
     @Test
     @WithMockUser
@@ -65,7 +62,7 @@ class UsersDetailsControllerTest {
 
         val result = objectMapper.writeValueAsString(originalLogin)
 
-        val x = webTestClient.post()
+        webTestClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(objectMapper.writeValueAsString(user))
