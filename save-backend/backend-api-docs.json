@@ -7417,6 +7417,7 @@
       },
       "OriginalLogin": {
         "required": [
+          "type",
           "user"
         ],
         "type": "object",
@@ -7433,14 +7434,21 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "type": {
+            "type": "string"
           }
+        },
+        "discriminator": {
+          "propertyName": "type"
         }
       },
       "User": {
         "required": [
           "isActive",
           "originalLogins",
-          "source"
+          "source",
+          "type"
         ],
         "type": "object",
         "properties": {
@@ -7489,7 +7497,13 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "type": {
+            "type": "string"
           }
+        },
+        "discriminator": {
+          "propertyName": "type"
         }
       },
       "TestSuiteExecutionStatisticDto": {
