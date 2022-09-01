@@ -1,5 +1,8 @@
 package com.saveourtool.save.entities
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
 import javax.persistence.Entity
@@ -23,6 +26,11 @@ import javax.persistence.OneToMany
  */
 @Entity
 @Suppress("LongParameterList")
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator::class,
+    property = "id"
+)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.WRAPPER_ARRAY, property = "type")
 class User(
     var name: String?,
     var password: String?,
