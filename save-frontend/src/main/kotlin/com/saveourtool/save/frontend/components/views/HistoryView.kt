@@ -8,6 +8,8 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
@@ -21,7 +23,6 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import csstype.Background
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -67,12 +68,12 @@ external interface HistoryViewState : State {
     /**
      * Flag to handle confirm Window
      */
-    var isConfirmWindowOpen: Boolean?
+    var isConfirmWindowOpen: Boolean
 
     /**
      * Flag to handle delete execution Window
      */
-    var isDeleteExecutionWindowOpen: Boolean?
+    var isDeleteExecutionWindowOpen: Boolean
 
     /**
      * id execution
@@ -225,6 +226,10 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         }
     )
+    init {
+        state.isConfirmWindowOpen = false
+        state.isDeleteExecutionWindowOpen = false
+    }
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -232,16 +237,38 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
-        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isConfirmWindowOpen = false } }) {
-            deleteExecutionsBuilder()
-            setState { isConfirmWindowOpen = false }
-        }
-        runConfirmWindowModal(state.isDeleteExecutionWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isDeleteExecutionWindowOpen = false } }) {
-            deleteExecutionBuilder(state.deleteExecutionId)
-            setState {
-                isDeleteExecutionWindowOpen = false
+        displayModal(
+            state.isConfirmWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            mediumTransparentModalStyle,
+            { setState { isConfirmWindowOpen = false } }
+        ) {
+            buttonBuilder("Ok") {
+                deleteExecutionsBuilder()
+                setState { isConfirmWindowOpen = false }
+            }
+            buttonBuilder("Cancel", "secondary") {
+                setState { isConfirmWindowOpen = false }
             }
         }
+
+        displayModal(
+            state.isDeleteExecutionWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            mediumTransparentModalStyle,
+            { setState { isDeleteExecutionWindowOpen = false } }
+        ) {
+            buttonBuilder("Ok") {
+                deleteExecutionBuilder(state.deleteExecutionId)
+                setState { isDeleteExecutionWindowOpen = false }
+            }
+            buttonBuilder("Cancel", "secondary") {
+                setState { isDeleteExecutionWindowOpen = false }
+            }
+        }
+
         div {
             button {
                 type = ButtonType.button
@@ -257,9 +284,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             getData = { _, _ ->
                 get(
                     url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
+                    headers = jsonHeaders,
                     loadingHandler = ::classLoadingHandler
                 )
                     .unsafeMap {
@@ -286,15 +311,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     }
 
     private fun deleteExecutionsBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
                         "$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}",
-                        headers,
+                        jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler,
                     )
@@ -316,15 +337,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     }
 
     private fun deleteExecutionBuilder(executionIds: List<Long>) {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
                         "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
-                        headers,
+                        jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler
                     )
