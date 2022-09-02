@@ -18,6 +18,8 @@ jobs:
   deploy_chart:
     name: Package and push Helm chart
     runs-on: ubuntu-20.04
+    env:
+      CHARTS_DIR: save-cloud-charts/save-cloud
 
     steps:
       - name: checkout save-cloud
@@ -38,9 +40,15 @@ jobs:
         name: Prepare to build from branch
         run: |
           git checkout origin/${{ inputs.branch }}
-      # TODO: update `version` and `appVersion` in Chart.yaml based on action inputs?
+      - uses: gittools/actions/gitversion/setup@v0.9.7
+      - uses: gittools/actions/gitversion/execute@v0.9.7
+        id: calculate-semver
+        with:
+          targetPath: ${{ env.CHARTS_DIR }}
+      - run: |
+          echo VERSION=${{ steps.calculate-semver.outputs.semVer }} >> $GITHUB_ENV
       # https://helm.sh/docs/topics/registries/
       # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
       - run: |
-          helm package save-cloud-charts/save-cloud
+          helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
           find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
