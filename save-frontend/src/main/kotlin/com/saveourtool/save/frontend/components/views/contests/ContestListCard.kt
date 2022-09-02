@@ -57,7 +57,7 @@ private fun ChildrenBuilder.contestListTable(
     contests: Set<ContestDto>,
     onEnrollButtonPressed: ((String) -> Unit)?,
 ) {
-    contests.forEachIndexed { i, contest ->
+    contests.forEach { contest ->
         div {
             className = ClassName("media text-muted pb-3")
             img {
