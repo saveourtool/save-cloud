@@ -116,7 +116,6 @@ fun Project.readSaveCliVersion(): String {
  */
 fun Project.getSaveCliPath(): String {
     val saveCliVersion = readSaveCliVersion()
-    val saveCliPath = findProperty("saveCliPath") as String? ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
     val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
         ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
     return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
