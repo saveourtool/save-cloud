@@ -54,5 +54,8 @@ jobs:
       # https://helm.sh/docs/topics/registries/
       # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
       - run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add prometheus https://prometheus-community.github.io/helm-charts
+          helm dependency build
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
 #          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
