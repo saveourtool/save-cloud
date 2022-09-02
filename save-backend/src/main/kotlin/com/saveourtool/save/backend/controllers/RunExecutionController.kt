@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -20,7 +21,6 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.execution.TestingType
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -64,6 +64,7 @@ class RunExecutionController(
     /**
      * @param request incoming request from frontend
      * @param authentication
+     * @param testingType type for this execution
      * @return response with ID of created [Execution]
      */
     @PostMapping("/trigger")

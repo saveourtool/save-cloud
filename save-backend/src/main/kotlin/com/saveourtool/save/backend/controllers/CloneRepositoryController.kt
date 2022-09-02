@@ -98,7 +98,7 @@ class CloneRepositoryController(
                 testSuitesSourceService.getStandardTestSuitesSources()
             }
 
-    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA", "TOO_MANY_PARAMETERS")
     private fun <T : ExecutionRequestBase> sendToTrigger(
         executionRequest: T,
         testingType: TestingType,

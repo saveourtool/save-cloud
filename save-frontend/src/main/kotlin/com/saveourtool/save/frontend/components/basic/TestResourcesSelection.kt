@@ -2,7 +2,7 @@
  * Utility methods for creation of the module window for the selection of test resources
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic
 
@@ -26,7 +26,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
 val testResourcesSelection = prepareTestResourcesSelection()
-
 
 /**
  * Properties for test resources

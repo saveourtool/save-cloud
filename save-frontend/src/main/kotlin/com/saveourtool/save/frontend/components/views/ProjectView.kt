@@ -351,7 +351,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             execCmd = state.execCmd,
             batchSizeForAnalyzer = state.batchSizeForAnalyzer
         )
-        submitRequest("/run/trigger?testingType=${testingType}", jsonHeaders, Json.encodeToString(executionRequest))
+        submitRequest("/run/trigger?testingType=$testingType", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
