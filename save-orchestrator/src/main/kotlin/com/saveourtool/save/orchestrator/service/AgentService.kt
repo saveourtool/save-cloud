@@ -25,9 +25,12 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientException
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.onErrorResume
 import java.time.Duration
 
 import java.time.LocalDateTime
@@ -92,7 +95,7 @@ class AgentService(
 
     /**
      * @param agentState [AgentStatus] to update in the DB
-     * @return as bodiless entity of response
+     * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
             webClientBackend
@@ -101,6 +104,10 @@ class AgentService(
                 .body(BodyInserters.fromValue(agentState))
                 .retrieve()
                 .toBodilessEntity()
+                .onErrorResume(WebClientException::class) {
+                    log.warn("Couldn't update agent statuses because of backend failure", it)
+                    Mono.empty()
+                }
 
     /**
      * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING

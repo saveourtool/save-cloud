@@ -4,12 +4,11 @@
 
 package com.saveourtool.save.buildutils
 
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.kotlin.dsl.*
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 import org.jetbrains.kotlin.allopen.gradle.AllOpenGradleSubplugin
 import org.jetbrains.kotlin.allopen.gradle.SpringGradleSubplugin
@@ -31,7 +30,7 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     apply<SpringBootPlugin>()
 
     extensions.getByType<KotlinJvmProjectExtension>().jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
 
     val libs = the<LibrariesForLibs>()
@@ -87,21 +86,19 @@ fun Project.configureSpringBoot(withSpringDataJpa: Boolean = false) {
     }
 
     tasks.withType<BootRun>().configureEach {
-        if (Os.isFamily(Os.FAMILY_MAC)) {
-            val profiles = if (this.path.contains("save-backend")) {
-                "secure,dev,mac"
-            } else {
-                "dev,mac"
+        val profiles = buildString {
+            append("dev")
+            val os = DefaultNativePlatform.getCurrentOperatingSystem()
+            when {
+                os.isWindows -> append(",win")
+                os.isMacOsX -> append(",mac")
             }
-            environment["SPRING_PROFILES_ACTIVE"] = profiles
-        } else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            val profiles = if (this.path.contains("save-backend")) {
-                "secure,dev,win"
-            } else {
-                "dev,win"
+            val project = this@configureSpringBoot
+            if (project.path.contains("save-backend")) {
+                append(",secure")
             }
-            environment["SPRING_PROFILES_ACTIVE"] = profiles
         }
+        environment["SPRING_PROFILES_ACTIVE"] = profiles
     }
 
     tasks.named<BootBuildImage>("bootBuildImage") {

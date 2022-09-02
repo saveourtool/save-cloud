@@ -73,6 +73,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
             column("result", "", { status }) { cellProps ->
                 val result = when (cellProps.row.original.status) {
                     ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                    ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
                     ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
@@ -161,6 +162,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
+                ExecutionStatus.OBSOLETE -> Colors.GREY
                 ExecutionStatus.PENDING -> Colors.GREY
                 ExecutionStatus.RUNNING -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN

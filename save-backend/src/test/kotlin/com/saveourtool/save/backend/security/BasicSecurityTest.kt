@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.security
 
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
@@ -28,6 +29,7 @@ class BasicSecurityTest {
     @Autowired
     private lateinit var convertingAuthenticationManager: ConvertingAuthenticationManager
     @MockBean private lateinit var userRepository: UserRepository
+    @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
 
     @BeforeEach
     fun setUp() {

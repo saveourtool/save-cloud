@@ -92,8 +92,8 @@ data class ConfigProperties(
         val useGvisor: Boolean,
         val agentCpuRequests: String = "100m",
         val agentCpuLimits: String = "500m",
-        val agentMemoryRequests: String = "300m",
-        val agentMemoryLimits: String = "500m",
+        val agentMemoryRequests: String = "300Mi",
+        val agentMemoryLimits: String = "500Mi",
     )
 
     /**

@@ -38,7 +38,6 @@ if (!System.getProperty("os.name").startsWith("Windows")) {
 }
 include("save-preprocessor")
 include("test-utils")
-include("save-cloud-charts")
 include("save-api")
 include("save-api-cli")
 

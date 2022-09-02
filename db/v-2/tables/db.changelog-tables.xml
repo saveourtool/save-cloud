@@ -24,6 +24,7 @@
     <include file="lnk-contest-execution.xml" relativeToChangelogFile="true"/>
     <include file="test.xml" relativeToChangelogFile="true"/>
     <include file="high-level-names.xml" relativeToChangelogFile="true"/>
+    <include file="original-login.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>
