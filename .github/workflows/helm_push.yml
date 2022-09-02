@@ -49,6 +49,7 @@ jobs:
         with:
           targetPath: ${{ env.CHARTS_DIR }}
           configFilePath: save-cloud-charts/GitVersion.yml
+          useConfigFile: true
       - name: Set chart version into env
         run: |
           echo VERSION=${{ steps.calculate-semver.outputs.fullSemVer }} | tee -a $GITHUB_ENV
