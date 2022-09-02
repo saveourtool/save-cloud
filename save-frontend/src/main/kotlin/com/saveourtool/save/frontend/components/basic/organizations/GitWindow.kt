@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.externals.modal.modal
+import com.saveourtool.save.frontend.components.modal.modal
 
 import csstype.ClassName
 import react.*

@@ -7415,31 +7415,9 @@
           }
         }
       },
-      "OriginalLogin": {
-        "required": [
-          "user"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "user": {
-            "$ref": "#/components/schemas/User"
-          },
-          "source": {
-            "type": "string"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
       "User": {
         "required": [
           "isActive",
-          "originalLogins",
           "source"
         ],
         "type": "object",
@@ -7479,12 +7457,6 @@
           },
           "isActive": {
             "type": "boolean"
-          },
-          "originalLogins": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OriginalLogin"
-            }
           },
           "id": {
             "type": "integer",

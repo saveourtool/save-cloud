@@ -14,6 +14,8 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -103,7 +105,7 @@ external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle error
      */
-    var isErrorOpen: Boolean?
+    var isErrorOpen: Boolean
 
     /**
      * Error label
@@ -123,7 +125,7 @@ external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle confirm Window
      */
-    var isConfirmWindowOpen: Boolean?
+    var isConfirmWindowOpen: Boolean
 
     /**
      * Label of confirm Window
@@ -196,6 +198,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
+        state.isConfirmWindowOpen = false
+        state.isErrorOpen = false
+        state.confirmationType = ConfirmationType.DELETE_CONFIRM
     }
 
     private fun deleteOrganization() {
@@ -241,24 +246,27 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+        val errorCloseCallback = {
             setState {
                 isErrorOpen = false
                 closeButtonLabel = null
             }
         }
-        runConfirmWindowModal(
-            state.isConfirmWindowOpen,
-            state.confirmLabel,
-            state.confirmMessage,
-            "Ok",
-            "Cancel",
-            { setState { isConfirmWindowOpen = false } }) {
-            when (state.confirmationType) {
-                ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                else -> throw IllegalStateException("Not implemented yet")
+        displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
+            buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
+        }
+
+        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
+            buttonBuilder("Ok") {
+                when (state.confirmationType) {
+                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                    else -> throw IllegalStateException("Not implemented yet")
+                }
+                setState { isConfirmWindowOpen = false }
             }
-            setState { isConfirmWindowOpen = false }
+            buttonBuilder("Close", "secondary") {
+                setState { isConfirmWindowOpen = false }
+            }
         }
 
         renderOrganizationMenuBar()
