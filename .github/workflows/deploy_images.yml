@@ -118,7 +118,7 @@ jobs:
             --stacktrace
             -Porg.gradle.caching=true
             -Pdetekt.multiplatform.disabled=true
-            -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}  # todo
+            -PsaveCliVersion=${{ env.SAVE_CLI_VERSION }}
             -PsaveCliPath=file://${{ github.workspace }}/save/save-cli/build/bin/linuxX64/releaseExecutable
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
