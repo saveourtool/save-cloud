@@ -31,7 +31,6 @@ include("save-cloud-common")
 include("save-agent")
 include("save-preprocessor")
 include("test-utils")
-include("save-cloud-charts")
 include("save-api")
 include("save-api-cli")
 

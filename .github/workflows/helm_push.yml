@@ -48,7 +48,7 @@ jobs:
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
-          configFilePath: ${{ env.CHARTS_DIR }}/GitVersion.yml
+          configFilePath: ${{ env.CHARTS_DIR }}/../GitVersion.yml
       - name: Set chart version into env
         run: |
           echo VERSION=${{ steps.calculate-semver.outputs.fullSemVer }} | tee -a $GITHUB_ENV
