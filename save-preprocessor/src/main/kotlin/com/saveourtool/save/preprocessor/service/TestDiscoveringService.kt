@@ -15,6 +15,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.thenJust
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -194,12 +195,10 @@ class TestDiscoveringService(
     ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
 
     @Suppress("TYPE_ALIAS")
-    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap { testsMap ->
-        testsMap.run {
-            saveTestSuites().also {
-                saveTests()
-            }
-        }
+    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = zipWhen {
+        it.saveTestSuites()
+    }.flatMap { (testsMap, testSuites) ->
+        testsMap.saveTests().thenJust(testSuites)
     }
 
     @Suppress("TYPE_ALIAS")
