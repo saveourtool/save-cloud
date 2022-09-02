@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.*
@@ -173,7 +174,7 @@ private fun userRating() = VFC {
                     a {
                         className = ClassName("mb-5")
                         // FixMe: new view on this link
-                        href = ""
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/"
                         +"View more "
                     }
                 }

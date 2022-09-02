@@ -11,6 +11,7 @@ import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
@@ -206,6 +207,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.REGISTRATION.path}"
                                     element = RegistrationView::class.react.create() {
+                                        userInfo = state.userInfo
+                                    }
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    element = ContestGlobalRatingView::class.react.create() {
                                         userInfo = state.userInfo
                                     }
                                 }
