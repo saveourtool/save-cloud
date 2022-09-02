@@ -25,6 +25,7 @@ class LnkContestProject(
     var bestExecution: Execution?,
 
     var bestScore: Int,
+
 ) : BaseEntity() {
     /**
      * Get [ContestResult]

@@ -14,12 +14,9 @@ import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
 
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-
-internal var areAgentsHaveStarted = AtomicBoolean(false)
 
 typealias AgentStateWithTimeStamp = Pair<String, Instant>
 

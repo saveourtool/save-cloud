@@ -32,6 +32,7 @@
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="0"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -59,6 +60,7 @@
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="0"/>
             <column name="unexpected_checks" value="0"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -86,6 +88,7 @@
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="4" />
@@ -113,6 +116,7 @@
             <column name="matched_checks" value="0"/>
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="5" />
@@ -140,6 +144,7 @@
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
 
         <insert dbms="mysql" tableName="execution">
@@ -168,6 +173,7 @@
             <column name="matched_checks" value="9"/>
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
+            <column name="test_suite_source_name" value="unknown"/>
         </insert>
     </changeSet>
 

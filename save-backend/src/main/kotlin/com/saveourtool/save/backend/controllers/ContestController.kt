@@ -9,7 +9,8 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.justOrNotFound
+import com.saveourtool.save.backend.utils.blockingToMono
+import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.permission.Permission
@@ -38,6 +39,7 @@ import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -70,8 +72,70 @@ internal class ContestController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched contest by it's name.")
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
-    fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = justOrNotFound(contestService.findByName(contestName))
+    fun getContestByName(@PathVariable contestName: String): Mono<ContestDto> = getContestOrNotFound(contestName)
         .map { it.toDto() }
+
+    @GetMapping("/{contestName}/is-featured")
+    @Operation(
+        method = "GET",
+        summary = "Check if contest is featured.",
+        description = "Check if a given contest is featured or not.",
+    )
+    @Parameters(
+        Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched contest data.")
+    @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
+    fun isContestFeatured(
+        @PathVariable contestName: String,
+    ): Mono<Boolean> = getContestOrNotFound(contestName)
+        .map {
+            contestService.isContestFeatured(it.requiredId())
+        }
+
+    @PostMapping("/featured/add-or-delete")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+        method = "POST",
+        summary = "Create or delete featured contest.",
+        description = "Mark contest to be featured if it is not marked so yet or unmark otherwise.",
+    )
+    @Parameters(
+        Parameter(name = "contestDto", `in` = ParameterIn.DEFAULT, description = "contest requested for creation", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Contest was successfully created.")
+    @ApiResponse(responseCode = "404", description = "Contest with given name is not found.")
+    fun addOrDeleteContestToFeatured(
+        @RequestParam contestName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = getContestOrNotFound(contestName)
+        .flatMap {
+            blockingToMono {
+                contestService.addOrDeleteFeaturedContest(it)
+            }
+        }
+        .map {
+            ResponseEntity.ok("Contest $contestName was successfully marked to be featured contest.")
+        }
+        .defaultIfEmpty(
+            ResponseEntity.ok("Contest $contestName was successfully unmarked to be featured contest.")
+        )
+
+    @GetMapping("/featured/list-active")
+    @Operation(
+        method = "GET",
+        summary = "Get featured contests.",
+        description = "Get list of contests marked by admins as featured.",
+    )
+    @ApiResponse(responseCode = "200", description = "Contests were successfully fetched.")
+    fun getFeaturedContests(): Flux<ContestDto> = Flux.fromIterable(contestService.getFeaturedContests())
+        .filter {
+            LocalDateTime.now() < it.endTime
+        }
+        .map {
+            it.toDto()
+        }
 
     @GetMapping("/active")
     @Operation(
@@ -122,16 +186,8 @@ internal class ContestController(
     fun getPublicTestForContest(
         @PathVariable contestName: String,
         @RequestParam testSuiteId: Long,
-    ): Mono<TestFilesContent> = Mono.just(contestName)
-        .flatMap {
-            Mono.zip(
-                Mono.justOrEmpty(contestService.findByName(it)),
-                Mono.just(testSuiteId),
-            )
-        }
-        .switchIfEmptyToNotFound {
-            "Could not find contest with name $contestName."
-        }
+    ): Mono<TestFilesContent> = getContestOrNotFound(contestName)
+        .zipWith(Mono.just(testSuiteId))
         .filter { (contest, testSuiteId) ->
             testSuiteId in contest.getTestSuiteIds()
         }
@@ -185,6 +241,23 @@ internal class ContestController(
     )
         .map { it.toDto() }
 
+    @GetMapping("/newest")
+    @Operation(
+        method = "GET",
+        summary = "Get newest contests.",
+        description = "Get list of [pageSize] newest contests.",
+    )
+    @Parameters(
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of records that will be returned", required = false),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched newest contests.")
+    fun getSeveralNewestContests(
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+    ): Flux<ContestDto> = Flux.fromIterable(
+        contestService.getNewestContests(pageSize)
+    )
+        .map { it.toDto() }
+
     @GetMapping("/{contestName}/test-suites")
     @Operation(
         method = "GET",
@@ -197,13 +270,7 @@ internal class ContestController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched test suites.")
     fun getTestSuiteDtosByContestName(
         @PathVariable contestName: String,
-    ): Flux<TestSuiteDto> = Mono.just(contestName)
-        .flatMap {
-            Mono.justOrEmpty(contestService.findByName(it))
-        }
-        .switchIfEmptyToNotFound {
-            "Could not find contest with name $contestName."
-        }
+    ): Flux<TestSuiteDto> = getContestOrNotFound(contestName)
         .map {
             it.getTestSuiteIds()
         }
@@ -298,5 +365,13 @@ internal class ContestController(
                 contestRequest.toContest(organization, contest.status).apply { id = contest.id }
             )
             ResponseEntity.ok("Contest successfully updated")
+        }
+
+    private fun getContestOrNotFound(contestName: String): Mono<Contest> = Mono.just(contestName)
+        .flatMap {
+            Mono.justOrEmpty(contestService.findByName(it))
+        }
+        .switchIfEmptyToNotFound {
+            "Could not find contest with name $contestName."
         }
 }

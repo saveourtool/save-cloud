@@ -9,12 +9,12 @@ data:
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
     orchestrator.kubernetes.namespace=${POD_NAMESPACE}
-    orchestrator.kubernetes.pvcMountPath=/home/save-agent/resources
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
     orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
+    orchestrator.agent-settings.debug=true
 
     orchestrator.test-resources.tmp-path=/tmp/save/resources
 

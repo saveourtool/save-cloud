@@ -43,9 +43,9 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
 /**
  * @param selectedTab
  * @param tabsList
- * @param updateTabState
+ * @param setSelectedTab
  */
-fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, updateTabState: (String) -> Unit) {
+fun ChildrenBuilder.tab(selectedTab: String, tabsList: List<String>, setSelectedTab: (String) -> Unit) {
     div {
         className = ClassName("row")
         style = jso {
@@ -59,7 +59,7 @@ fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, updateTabS
                 li {
                     className = ClassName("nav-item")
                     val classVal =
-                            if ((i == 0 && selectedTab == null) || selectedTab == value) {
+                            if (selectedTab == value) {
                                 " active font-weight-bold"
                             } else {
                                 ""
@@ -67,10 +67,8 @@ fun ChildrenBuilder.tab(selectedTab: String?, tabsList: List<String>, updateTabS
                     p {
                         className = ClassName("nav-link $classVal text-gray-800")
                         onClick = {
-                            kotlinx.js.console.log(value)
-                            kotlinx.js.console.log(selectedTab)
                             if (selectedTab != value) {
-                                updateTabState(value)
+                                setSelectedTab(value)
                             }
                         }
                         style = jso {

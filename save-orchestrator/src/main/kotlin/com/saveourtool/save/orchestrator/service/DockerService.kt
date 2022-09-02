@@ -21,6 +21,8 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -40,8 +42,7 @@ class DockerService(
     private val agentRunner: AgentRunner,
     private val agentService: AgentService,
 ) {
-    @Suppress("NonBooleanPropertyPrefixedWithIs")
-    private val isAgentStoppingInProgress = AtomicBoolean(false)
+    private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
 
     @Autowired
     @Qualifier("webClientBackend")
@@ -104,13 +105,14 @@ class DockerService(
                 val duration = AtomicLong(0)
                 Flux.interval(configProperties.agentsStartCheckIntervalMillis.milliseconds.toJavaDuration())
                     .takeWhile {
-                        duration.get() < configProperties.agentsStartTimeoutMillis && !areAgentsHaveStarted.get()
+                        val isAnyAgentStarted = areAgentsHaveStarted.computeIfAbsent(executionId) { AtomicBoolean(false) }.get()
+                        duration.get() < configProperties.agentsStartTimeoutMillis && !isAnyAgentStarted
                     }
                     .doOnNext {
                         duration.set((Clock.System.now() - now).inWholeMilliseconds)
                     }
                     .doOnComplete {
-                        if (!areAgentsHaveStarted.get()) {
+                        if (areAgentsHaveStarted[executionId]?.get() != true) {
                             log.error("Internal error: none of agents $agentIds are started, will mark execution $executionId as failed.")
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
@@ -118,6 +120,7 @@ class DockerService(
                             ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
                                 .subscribe()
                         }
+                        areAgentsHaveStarted.remove(executionId)
                     }
             }
     }
@@ -128,21 +131,23 @@ class DockerService(
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "FUNCTION_BOOLEAN_PREFIX")
     fun stopAgents(agentIds: Collection<String>) =
-            if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-                try {
-                    agentIds.all { agentId ->
-                        agentRunner.stopByAgentId(agentId)
-                    }
-                } catch (e: AgentRunnerException) {
-                    log.error("Error while stopping agents $agentIds", e)
-                    false
-                } finally {
-                    isAgentStoppingInProgress.lazySet(false)
+            try {
+                agentIds.all { agentId ->
+                    agentRunner.stopByAgentId(agentId)
                 }
-            } else {
-                log.info("Agents stopping is already in progress, skipping")
+            } catch (e: AgentRunnerException) {
+                log.error("Error while stopping agents $agentIds", e)
                 false
             }
+
+    /**
+     * @param executionId
+     */
+    fun markAgentForExecutionAsStarted(executionId: Long) {
+        areAgentsHaveStarted
+            .computeIfAbsent(executionId) { AtomicBoolean(false) }
+            .compareAndSet(false, true)
+    }
 
     /**
      * Check whether the agent agentId is stopped
@@ -151,24 +156,6 @@ class DockerService(
      * @return true if agent is stopped
      */
     fun isAgentStopped(agentId: String): Boolean = agentRunner.isAgentStopped(agentId)
-
-    /**
-     * @param executionId
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun stop(executionId: Long): Boolean {
-        // return if (isAgentStoppingInProgress.compute(executionId) { _, value -> if (value == false) true else value } == true) {
-        return if (isAgentStoppingInProgress.compareAndSet(false, true)) {
-            try {
-                agentRunner.stop(executionId)
-                true
-            } finally {
-                isAgentStoppingInProgress.lazySet(false)
-            }
-        } else {
-            false
-        }
-    }
 
     /**
      * @param executionId ID of execution

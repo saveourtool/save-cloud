@@ -48,6 +48,8 @@ spec:
           args:
             - clone
             - --single-branch
+            - --branch
+            - {{ .Values.mysql.migrations.branch | default "master" }}
             - --
             - https://github.com/saveourtool/save-cloud.git
             - /data

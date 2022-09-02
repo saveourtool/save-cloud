@@ -8,6 +8,8 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -105,17 +107,21 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
     }
 
     val (isConfirmDeleteGitCredentialWindowOpened, setConfirmDeleteGitCredentialWindowOpened) = useState(false)
-    runConfirmWindowModal(
-        isConfirmWindowOpen = isConfirmDeleteGitCredentialWindowOpened,
-        confirmLabel = "Deletion of git credential",
-        confirmMessage = "Please confirm deletion of git credential for ${gitCredentialToDelete.url}. " +
+    displayModal(
+        isConfirmDeleteGitCredentialWindowOpened,
+        "Deletion of git credential",
+        "Please confirm deletion of git credential for ${gitCredentialToDelete.url}. " +
                 "Note! This action will also delete all corresponding data to that repository, such as test suites sources, test executions and so on.",
-        okButtonLabel = "Ok",
-        closeButtonLabel = "Cancel",
-        handlerClose = { setConfirmDeleteGitCredentialWindowOpened(false) }) {
-        // delete and close
-        deleteGitCredentialRequest()
-        setConfirmDeleteGitCredentialWindowOpened(false)
+        mediumTransparentModalStyle,
+        { setConfirmDeleteGitCredentialWindowOpened(false) },
+    ) {
+        buttonBuilder("Ok") {
+            deleteGitCredentialRequest()
+            setConfirmDeleteGitCredentialWindowOpened(false)
+        }
+        buttonBuilder("Close", "secondary") {
+            setConfirmDeleteGitCredentialWindowOpened(false)
+        }
     }
 
     val canModify = selfRole == Role.SUPER_ADMIN || selfRole == Role.ADMIN

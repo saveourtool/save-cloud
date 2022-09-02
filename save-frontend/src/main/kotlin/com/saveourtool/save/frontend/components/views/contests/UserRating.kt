@@ -2,48 +2,145 @@
  * Card for the rendering of ratings: for organizations and tools
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
-import react.FC
-import react.Props
+import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.p
 
 import kotlinx.js.jso
 
-val userRatingFc = userRating()
+const val NUMBER_OF_CHARACTERS_TRIMMED = 20
+
+val userRating = userRating()
 
 /**
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGANIZATIONS, TOOLS
+    ORGS, TOOLS
 }
 
-/**
- * properties for rating fc
- */
-external interface UserRatingProps : Props {
-    /**
-     * string value of the selected tab: organization/tools/etc.
-     */
-    var selectedTab: String?
+private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
+    projects.forEachIndexed { i, project ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
 
-    /**
-     * callback that will be passed into this fc from the view
-     */
-    var updateTabState: (String) -> Unit
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    ReactHTML.strong {
+                        className = ClassName("d-block text-gray-dark")
+                        +project.name
+                    }
+                    +("${project.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
+                    a {
+                        href = "#/${project.url}"
+                        fontAwesomeIcon(faArrowRight)
+                    }
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
+                }
+            }
+        }
+    }
+}
+
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
+    organizations.forEachIndexed { i, organization ->
+        div {
+            className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
+            div {
+                className = ClassName("col-lg-2")
+                h3 {
+                    className = ClassName("text-info")
+                    +(i + 1).toString()
+                }
+            }
+
+            div {
+                className = ClassName("col-lg-6")
+                p {
+                    className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
+                    ReactHTML.strong {
+                        className = ClassName("d-block text-gray-dark")
+                        +organization.name
+                    }
+                    +("${organization.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
+                    a {
+                        href = "#/${organization.name}"
+                        fontAwesomeIcon(faArrowRight)
+                    }
+                }
+            }
+
+            // FixMe: add rating after kirill's changes
+            div {
+                className = ClassName("col-lg-4")
+                p {
+                    +"4560"
+                }
+            }
+        }
+    }
 }
 
 /**
  * @return functional component for the rating card
  */
-fun userRating() = FC<UserRatingProps> { props ->
+@Suppress("TOO_LONG_FUNCTION")
+private fun userRating() = VFC {
+    val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
+
+    val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
+    useRequest {
+        val organizationsFromBackend: List<Organization> = get(
+            url = "$apiUrl/organizations/all",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setOrganizations(organizationsFromBackend.toSet())
+    }
+
+    val (projects, setProjects) = useState<Set<Project>>(emptySet())
+    useRequest {
+        val projectsFromBackend: List<Project> = get(
+            url = "$apiUrl/projects/all",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setProjects(projectsFromBackend.toSet())
+    }
+
     div {
         className = ClassName("col-lg-3")
         div {
@@ -54,14 +151,31 @@ fun userRating() = FC<UserRatingProps> { props ->
 
             div {
                 className = ClassName("col")
+
                 title(" Global Rating", faTrophy)
-                tab(props.selectedTab, UserRatingTab.values().map { it.name }, props.updateTabState)
-                // FixMe: user rating here
-                a {
-                    // FixMe: new view on this link
-                    href = ""
-                    +"View more "
-                    fontAwesomeIcon(faArrowRight)
+                tab(selectedTab.name, UserRatingTab.values().map { it.name }) {
+                    setSelectedTab(UserRatingTab.valueOf(it))
+                }
+                when (selectedTab) {
+                    UserRatingTab.ORGS -> renderingOrganizationChampionsTable(organizations)
+                    UserRatingTab.TOOLS -> renderingProjectChampionsTable(projects)
+                }
+
+                div {
+                    className = ClassName("row")
+                    style = jso {
+                        justifyContent = JustifyContent.center
+                        display = Display.flex
+                        alignItems = AlignItems.center
+                        alignSelf = AlignSelf.start
+                    }
+
+                    a {
+                        className = ClassName("mb-5")
+                        // FixMe: new view on this link
+                        href = ""
+                        +"View more "
+                    }
                 }
             }
         }

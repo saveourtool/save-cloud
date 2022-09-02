@@ -193,7 +193,7 @@ class ExecutionService(
         testingType = execution.type,
     )
 
-    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+    @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
         formattedTestSuiteIds: String?,
@@ -209,6 +209,9 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
+        val testSuiteSourceName = testSuitesService.getById(
+            Execution.parseAndGetTestSuiteIds(formattedTestSuiteIds)!!.first()
+        ).source.name
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
@@ -232,6 +235,7 @@ class ExecutionService(
             user = user,
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
+            testSuiteSourceName = testSuiteSourceName,
         )
         val savedExecution = saveExecution(execution)
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")

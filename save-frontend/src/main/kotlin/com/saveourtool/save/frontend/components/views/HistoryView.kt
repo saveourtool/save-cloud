@@ -8,6 +8,8 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
@@ -21,7 +23,6 @@ import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import csstype.Background
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -67,12 +68,12 @@ external interface HistoryViewState : State {
     /**
      * Flag to handle confirm Window
      */
-    var isConfirmWindowOpen: Boolean?
+    var isConfirmWindowOpen: Boolean
 
     /**
      * Flag to handle delete execution Window
      */
-    var isDeleteExecutionWindowOpen: Boolean?
+    var isDeleteExecutionWindowOpen: Boolean
 
     /**
      * id execution
@@ -97,6 +98,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             column("result", "", { status }) { cellProps ->
                 val result = when (cellProps.row.original.status) {
                     ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                    ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
                     ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
                     ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
@@ -108,7 +110,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             fontAwesomeIcon(result.resIcon, classes = result.resColor)
                         }
                     }
@@ -118,7 +120,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +"${cellProps.value}"
                         }
                     }
@@ -128,7 +130,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
                         }
                     }
@@ -138,8 +140,18 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, null)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                             +(formattingDate(cellProps.value) ?: "Starting")
+                        }
+                    }
+                }
+            }
+            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                            +"${cellProps.value}"
                         }
                     }
                 }
@@ -148,7 +160,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.RUNNING)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.RUNNING)
                             +"${cellProps.value}"
                         }
                     }
@@ -158,7 +170,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.PASSED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.PASSED)
                             +"${cellProps.value}"
                         }
                     }
@@ -168,7 +180,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.FAILED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.FAILED)
                             +"${cellProps.value}"
                         }
                     }
@@ -178,7 +190,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 Fragment.create {
                     td {
                         a {
-                            href = getHrefToExecution(cellProps.row.original.id, TestResultStatus.IGNORED)
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.IGNORED)
                             +"${cellProps.value}"
                         }
                     }
@@ -202,6 +214,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         getRowProps = { row ->
             val color = when (row.original.status) {
                 ExecutionStatus.ERROR -> Colors.RED
+                ExecutionStatus.OBSOLETE -> Colors.GREY
                 ExecutionStatus.PENDING -> Colors.GREY
                 ExecutionStatus.RUNNING -> Colors.GREY
                 ExecutionStatus.FINISHED -> if (row.original.failedTests != 0L) Colors.DARK_RED else Colors.GREEN
@@ -213,6 +226,10 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             }
         }
     )
+    init {
+        state.isConfirmWindowOpen = false
+        state.isDeleteExecutionWindowOpen = false
+    }
 
     @Suppress(
         "TOO_LONG_FUNCTION",
@@ -220,16 +237,38 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
-        runConfirmWindowModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isConfirmWindowOpen = false } }) {
-            deleteExecutionsBuilder()
-            setState { isConfirmWindowOpen = false }
-        }
-        runConfirmWindowModal(state.isDeleteExecutionWindowOpen, state.confirmLabel, state.confirmMessage, "Ok", "Cancel", { setState { isDeleteExecutionWindowOpen = false } }) {
-            deleteExecutionBuilder(state.deleteExecutionId)
-            setState {
-                isDeleteExecutionWindowOpen = false
+        displayModal(
+            state.isConfirmWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            mediumTransparentModalStyle,
+            { setState { isConfirmWindowOpen = false } }
+        ) {
+            buttonBuilder("Ok") {
+                deleteExecutionsBuilder()
+                setState { isConfirmWindowOpen = false }
+            }
+            buttonBuilder("Cancel", "secondary") {
+                setState { isConfirmWindowOpen = false }
             }
         }
+
+        displayModal(
+            state.isDeleteExecutionWindowOpen,
+            state.confirmLabel,
+            state.confirmMessage,
+            mediumTransparentModalStyle,
+            { setState { isDeleteExecutionWindowOpen = false } }
+        ) {
+            buttonBuilder("Ok") {
+                deleteExecutionBuilder(state.deleteExecutionId)
+                setState { isDeleteExecutionWindowOpen = false }
+            }
+            buttonBuilder("Cancel", "secondary") {
+                setState { isDeleteExecutionWindowOpen = false }
+            }
+        }
+
         div {
             button {
                 type = ButtonType.button
@@ -245,9 +284,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             getData = { _, _ ->
                 get(
                     url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
+                    headers = jsonHeaders,
                     loadingHandler = ::classLoadingHandler
                 )
                     .unsafeMap {
@@ -274,15 +311,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     }
 
     private fun deleteExecutionsBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
                         "$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}",
-                        headers,
+                        jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler,
                     )
@@ -304,15 +337,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     }
 
     private fun deleteExecutionBuilder(executionIds: List<Long>) {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
                         "$apiUrl/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
-                        headers,
+                        jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler
                     )
@@ -323,8 +352,15 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
     }
 
-    private fun getHrefToExecution(id: Long, status: TestResultStatus?) =
-            "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
+    private fun getHrefToExecution(
+        id: Long,
+        executionStatus: ExecutionStatus,
+        status: TestResultStatus?,
+    ): String = if (executionStatus == ExecutionStatus.OBSOLETE) {
+        "${window.location}"
+    } else {
+        "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
+    }
 
     /**
      * @property resColor

@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property matchedChecks
  * @property expectedChecks
  * @property unexpectedChecks
+ * @property testSuiteSourceName
  */
 @Serializable
 @Suppress("LongParameterList")
@@ -37,6 +38,7 @@ data class ExecutionDto(
     val matchedChecks: Long,
     val expectedChecks: Long,
     val unexpectedChecks: Long,
+    val testSuiteSourceName: String?,
 ) {
     companion object {
         val empty = ExecutionDto(
@@ -55,6 +57,7 @@ data class ExecutionDto(
             matchedChecks = 0,
             expectedChecks = 0,
             unexpectedChecks = 0,
+            testSuiteSourceName = "",
         )
     }
 }

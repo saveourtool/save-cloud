@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
@@ -11,16 +11,19 @@ import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
+
 import csstype.ClassName
-
-import org.w3c.fetch.Headers
 import react.*
-
+import react.dom.html.InputType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+
+import kotlinx.coroutines.launch
 
 /**
  * Enum that defines the bar that is chosen
@@ -49,6 +52,11 @@ external interface ContestViewState : State {
      * Current selected menu
      */
     var selectedMenu: ContestMenuBar?
+
+    /**
+     * Flag that shows if current contest is featured or not
+     */
+    var isFeatured: Boolean
 }
 
 /**
@@ -59,6 +67,12 @@ external interface ContestViewState : State {
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
         state.selectedMenu = ContestMenuBar.INFO
+        state.isFeatured = false
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        getIsFeaturedAndSetState()
     }
 
     override fun ChildrenBuilder.render() {
@@ -68,13 +82,41 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                 +"${props.currentContestName}"
             }
         }
+        renderFeaturedCheckbox()
         renderContestMenuBar()
-
         when (state.selectedMenu) {
             ContestMenuBar.INFO -> renderInfo()
             ContestMenuBar.SUBMISSIONS -> renderSubmissions()
             ContestMenuBar.SUMMARY -> renderSummary()
             else -> throw NotImplementedError()
+        }
+    }
+
+    private fun ChildrenBuilder.renderFeaturedCheckbox() {
+        if (props.currentUserInfo?.globalRole == Role.SUPER_ADMIN) {
+            div {
+                className = ClassName("d-sm-flex justify-content-center form-check pb-2")
+                div {
+                    input {
+                        className = ClassName("form-check-input")
+                        type = InputType.checkbox
+                        id = "isFeaturedCheckbox"
+                        checked = state.isFeatured
+                        onChange = {
+                            props.currentContestName?.let { contestName ->
+                                addOrDeleteFeaturedContest(contestName)
+                            }
+                        }
+                    }
+                }
+                div {
+                    ReactHTML.label {
+                        className = ClassName("form-check-label")
+                        htmlFor = "isFeaturedCheckbox"
+                        +"Featured contest"
+                    }
+                }
+            }
         }
     }
 
@@ -128,16 +170,31 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    private suspend fun ComponentWithScope<*, *>.getContest(contestName: String) = get(
-        "$apiUrl/contests/$contestName",
-        Headers().apply {
-            set("Accept", "application/json")
-        },
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<ContestDto>()
+    private fun ComponentWithScope<*, ContestViewState>.addOrDeleteFeaturedContest(contestName: String) = scope.launch {
+        val response = post(
+            "$apiUrl/contests/featured/add-or-delete?contestName=$contestName",
+            jsonHeaders,
+            undefined,
+            loadingHandler = ::classLoadingHandler,
+        )
+        if (response.ok) {
+            setState {
+                this.isFeatured = !this.isFeatured
+            }
         }
+    }
+
+    private fun ComponentWithScope<ContestViewProps, ContestViewState>.getIsFeaturedAndSetState() = scope.launch {
+        val isFeatured: Boolean = get(
+            "$apiUrl/contests/${props.currentContestName}/is-featured",
+            jsonHeaders,
+            loadingHandler = ::classLoadingHandler,
+        )
+            .decodeFromJsonString()
+        setState {
+            this.isFeatured = isFeatured
+        }
+    }
 
     companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext>>(ContestView::class) {
         init {

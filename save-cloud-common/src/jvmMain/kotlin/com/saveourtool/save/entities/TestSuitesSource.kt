@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -18,21 +17,24 @@ import javax.persistence.ManyToOne
  * @property git
  * @property branch
  * @property testRootPath
+ * @property latestFetchedVersion
  */
 @Entity
+@Suppress("LongParameterList")
 class TestSuitesSource(
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
 
     var name: String,
     var description: String?,
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "git_id")
     var git: Git,
     var branch: String,
     var testRootPath: String,
+    var latestFetchedVersion: String?,
 ) : BaseEntity() {
     /**
      * @return entity as dto [TestSuitesSourceDto]
@@ -44,6 +46,7 @@ class TestSuitesSource(
         gitDto = git.toDto(),
         branch = branch,
         testRootPath = testRootPath,
+        latestFetchedVersion = latestFetchedVersion
     )
 
     companion object {
@@ -54,16 +57,19 @@ class TestSuitesSource(
             Git.empty,
             "",
             "",
+            null,
         )
 
         /**
          * @param organization [Organization] from database
          * @param git [Git] from database
+         * @param latestFetchedVersion
          * @return [TestSuitesSource] from [TestSuitesSourceDto]
          */
         fun TestSuitesSourceDto.toTestSuiteSource(
             organization: Organization,
             git: Git,
+            latestFetchedVersion: String? = null,
         ): TestSuitesSource {
             require(organizationName == organization.name) {
                 "Provided another organization: $organization"
@@ -78,6 +84,7 @@ class TestSuitesSource(
                 git,
                 branch,
                 testRootPath,
+                latestFetchedVersion,
             )
         }
     }

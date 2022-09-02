@@ -1,6 +1,6 @@
 [versions]
 kotlin = "1.7.10"
-save-core = "0.4.0-SNAPSHOT"
+save-core = "0.3.4"
 ktor = "2.1.0"
 okio = "3.2.0"
 serialization = "1.4.0"
@@ -46,7 +46,7 @@ kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kot
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 diktat = { id = "com.cqfn.diktat.diktat-gradle-plugin", version.ref = "diktat" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
-talaiot-base = { id = "com.cdsap.talaiot.plugin.base", version = "1.4.2" }
+talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "1.5.3" }
 download = { id = "de.undercouch.download", version = "5.1.2" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 
@@ -73,6 +73,7 @@ kotlinx-serialization-json-jvm = { module = "org.jetbrains.kotlinx:kotlinx-seria
 kotlinx-serialization-properties = { module = "org.jetbrains.kotlinx:kotlinx-serialization-properties", version.ref = "serialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-core-linuxx64 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-linuxx64", version.ref = "kotlinx-coroutines" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 
@@ -114,6 +115,9 @@ ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", vers
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+
+# java core libraries
+validation-api = { module = "jakarta.validation:jakarta.validation-api"}
 
 # database
 hibernate-jpa21-api = { module = "org.hibernate.javax.persistence:hibernate-jpa-2.1-api", version.ref = "jpa" }

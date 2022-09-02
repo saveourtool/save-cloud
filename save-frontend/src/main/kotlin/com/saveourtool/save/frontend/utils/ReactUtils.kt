@@ -42,7 +42,6 @@ fun useGlobalRoleWarningCallback(updateNotificationMessage: (String, String) -> 
 fun useTooltip() {
     useEffect {
         enableTooltip()
-        return@useEffect
     }
 }
 
@@ -62,12 +61,14 @@ fun useTooltipAndPopover() {
  * @return dynamic
  */
 // language=js
-fun enableTooltip() = js("""
+fun enableTooltip() {
+    js("""
     var jQuery = require("jquery")
     require("popper.js")
     require("bootstrap")
     jQuery('[data-toggle="tooltip"]').tooltip()
 """)
+}
 
 /**
  * JS code lines to enable tooltip and popover.

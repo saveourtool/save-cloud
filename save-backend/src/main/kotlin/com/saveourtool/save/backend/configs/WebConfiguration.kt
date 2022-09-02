@@ -44,6 +44,10 @@ class WebConfiguration(
                 .lastModified(buildProperties.time)
                 .bodyValue(resource)
         }
+        cacheableClasspathResource(
+            "/img/{resourcePath:.*\\.(?:jpg|jpeg|png|gif)}",
+            "static/img",
+        )
         // fallback for other resources
         resources("/**", ClassPathResource("static/"))
     }
@@ -91,13 +95,24 @@ class WebConfiguration(
 
     private fun RouterFunctionDsl.cacheableFsResource(
         pattern: String,
+        basePath: String
+    ) = cacheableResource(pattern, basePath) { FileSystemResource(it) }
+
+    private fun RouterFunctionDsl.cacheableClasspathResource(
+        pattern: String,
+        basePath: String
+    ) = cacheableResource(pattern, basePath) { ClassPathResource(it) }
+
+    private fun RouterFunctionDsl.cacheableResource(
+        pattern: String,
         basePath: String,
+        resource: (path: String) -> Resource,
     ) = GET(pattern) { request ->
         val resourcePath = request.pathVariable("resourcePath")
-        val resource = FileSystemResource("$basePath/$resourcePath")
+        val newResource = resource("$basePath/$resourcePath")
         ok().cacheControl(longExpirationTime) { cachePublic() }
-            .lastModified(resource.lastModified().toInstant())
-            .bodyValue(resource)
+            .lastModified(newResource.lastModified().toInstant())
+            .bodyValue(newResource)
     }
 
     private fun ServerResponse.BodyBuilder.cacheControl(duration: kotlin.time.Duration,

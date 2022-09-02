@@ -1,12 +1,13 @@
 {{- define "common.labels" -}}
 io.kompose.service: {{ .service.name }}
-version: {{ .Values.dockerTag }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
 prometheus-job: {{ .service.imageName }}
 {{- end }}
 
 {{- define "pod.common.labels" }}
 io.kompose.service: {{ .service.name }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 {{- end }}
 
 {{- define "pod.common.annotations" }}
@@ -50,7 +51,7 @@ lifecycle:
 
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
-image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
+image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ or .service.dockerTag .Values.dockerTag }}'
 imagePullPolicy: {{ .Values.pullPolicy }}
 ports:
   - name: http

@@ -1,26 +1,24 @@
 @file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.get
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
@@ -38,7 +36,7 @@ external interface CreationViewProps : Props {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CollectionView : AbstractView<CreationViewProps, State>(false) {
+class CollectionView : AbstractView<CreationViewProps, State>() {
     @Suppress("MAGIC_NUMBER")
     private val projectsTable = tableComponent(
         columns = columns<Project> {
@@ -91,40 +89,32 @@ class CollectionView : AbstractView<CreationViewProps, State>(false) {
     )
     override fun ChildrenBuilder.render() {
         div {
-            hidden = (props.currentUserInfo == null)
-            a {
-                href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-primary mb-2 mr-2")
-                    +"Add new tested tool"
+            className = ClassName("row justify-content-center")
+            div {
+                className = ClassName("col-lg-10 mt-4 min-vh-100")
+                div {
+                    className = ClassName("row mb-2")
+                    topLeftCard()
+                    topRightCard()
                 }
-            }
-            a {
-                href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-primary mb-2")
-                    +"Add new organization"
-                }
-            }
-        }
 
-        projectsTable {
-            getData = { _, _ ->
-                val response = get(
-                    url = "$apiUrl/projects/not-deleted",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::classLoadingHandler,
-                )
-                if (response.ok) {
-                    response.unsafeMap {
-                        it.decodeFromJsonString<Array<Project>>()
+                projectsTable {
+                    getData = { _, _ ->
+                        val response = get(
+                            url = "$apiUrl/projects/not-deleted",
+                            headers = Headers().also {
+                                it.set("Accept", "application/json")
+                            },
+                            loadingHandler = ::classLoadingHandler,
+                        )
+                        if (response.ok) {
+                            response.unsafeMap {
+                                it.decodeFromJsonString<Array<Project>>()
+                            }
+                        } else {
+                            emptyArray()
+                        }
                     }
-                } else {
-                    emptyArray()
                 }
             }
         }
