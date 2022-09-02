@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.buildutils
 
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
 import org.gradle.jvm.toolchain.JavaLanguageVersion
