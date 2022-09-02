@@ -63,3 +63,8 @@ jobs:
           cd -
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
 #          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+      - uses: actions/upload-artifact@v3
+        with:
+          name: save-cloud
+          path: save-cloud-${{ env.VERSION }}.tgz
+          retention-days: 1
