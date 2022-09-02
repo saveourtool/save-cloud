@@ -404,7 +404,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .filterNot {
                         (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
-                    .forEachIndexed { i, projectMenu ->
+                    .forEach { projectMenu ->
                         li {
                             className = ClassName("nav-item")
                             val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""

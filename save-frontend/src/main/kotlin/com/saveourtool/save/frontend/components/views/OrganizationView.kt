@@ -663,7 +663,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .filter {
                             it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
                         }
-                        .forEachIndexed { i, organizationMenu ->
+                        .forEach { organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
                                 val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold" else ""

@@ -268,7 +268,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         className = ClassName("col-lg-8")
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
-                                        state.benchmarks.forEachIndexed { _, benchmark ->
+                                        state.benchmarks.forEach { benchmark ->
                                             if ((state.selectedMenu == BenchmarkCategoryEnum.ALL || state.selectedMenu == benchmark.category) &&
                                                     (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {
@@ -277,7 +277,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("media text-muted pb-3")
                                                     img {
                                                         className = ClassName("rounded")
-
                                                         src = "img/undraw_code_inspection_bdl7.svg"
                                                         asDynamic()["data-holder-rendered"] = "true"
                                                         style = jso {
