@@ -46,4 +46,4 @@ fun <T> Mono<T>.lazyDefaultIfEmpty(lazyValue: () -> T): Mono<T> = switchIfEmpty 
  * @param other other value which will be returned in [Mono]
  * @return [Mono] with [other] as value which will be returned after [Flux] receiver
  */
-fun <T: Any> Flux<*>.thenJust(other: T): Mono<T> = then(Mono.just(other))
+fun <T : Any> Flux<*>.thenJust(other: T): Mono<T> = then(Mono.just(other))
