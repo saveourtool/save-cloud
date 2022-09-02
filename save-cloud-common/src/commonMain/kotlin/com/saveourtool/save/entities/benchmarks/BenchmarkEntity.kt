@@ -5,6 +5,7 @@
 package com.saveourtool.save.entities.benchmarks
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.TabMenuBar
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,11 +27,17 @@ enum class BenchmarkCategoryEnum {
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab = ALL
         override val regexForUrlClassification: Regex = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var paths: Pair<String, String> = "" to ""
+        override var pathDefaultTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
+
+        override var longPrefixPathAllTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
+
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
-        override fun findEnumElement(elem: String): BenchmarkCategoryEnum? = values().find { it.name.lowercase() == elem }
-        override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, flag: Boolean?): Boolean = false
+        override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 

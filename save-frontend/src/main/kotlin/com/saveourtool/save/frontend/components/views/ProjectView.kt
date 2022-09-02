@@ -15,9 +15,9 @@ import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
-import com.saveourtool.save.frontend.components.views.url.changeUrl
-import com.saveourtool.save.frontend.components.views.url.urlAnalysis
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -293,13 +293,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
             setState { this.project = project }
 
-            val headers = Headers().apply {
-                set("Accept", "application/json")
-                set("Content-Type", "application/json")
-            }
             val currentUserRole: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
-                headers,
+                jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
@@ -411,7 +407,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .forEachIndexed { i, projectMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {

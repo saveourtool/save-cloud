@@ -4,15 +4,15 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.benchmarks.TabMenuBar
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
-import com.saveourtool.save.frontend.components.views.url.changeUrl
-import com.saveourtool.save.frontend.components.views.url.urlAnalysis
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -41,11 +41,16 @@ enum class ContestMenuBar {
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
         override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var paths: Pair<String, String> = "" to ""
+        override var shortPathDefaultTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
+
+        override var longPrefixPathAllTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
-        override fun findEnumElement(elem: String): ContestMenuBar? = values().find { it.name.lowercase() == elem }
-        override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, flag: Boolean?): Boolean = false
+        override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 
@@ -125,7 +130,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                         li {
                             className = ClassName("nav-item")
                             val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) " active font-weight-bold" else ""
+                                    if (state.selectedMenu == contestMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {

@@ -1,7 +1,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.benchmarks.TabMenuBar
+import com.saveourtool.save.frontend.TabMenuBar
 
 /**
  * A value for project menu.
@@ -25,11 +25,16 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: OrganizationMenuBar = INFO
         override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var paths: Pair<String, String> = "" to ""
+        override var shortPathDefaultTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
+
+        override var longPrefixPathAllTab: String
+            get() = TODO("Not yet implemented")
+            set(value) {}
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
-        override fun findEnumElement(elem: String): OrganizationMenuBar? = values().find { it.name.lowercase() == elem }
-        override fun isNotAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, flag: Boolean?): Boolean = ((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) ||
-                ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || flag == false))
+        override fun isNotAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = ((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) ||
+                ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || isOrganizationCanCreateContest == false))
     }
 }

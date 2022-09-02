@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities.benchmarks
+package com.saveourtool.save.frontend
 
 import com.saveourtool.save.domain.Role
 
@@ -17,9 +17,14 @@ interface TabMenuBar<T> {
     val regexForUrlClassification: Regex
 
     /**
-     * Pair consisting of a short address of the default tab and a long prefix of the addresses of all other tabs
+     * Contains the url of the default tab
      */
-    var paths: Pair<String, String>
+    var pathDefaultTab : String
+
+    /**
+     * Contains the prefix of the url of the tabs
+     */
+    var longPrefixPathAllTab : String
 
     /**
      * @return Array of elements this Enum
@@ -36,7 +41,7 @@ interface TabMenuBar<T> {
      * @param elem
      * @return Equivalent to valueOf(), but returns null instead of an exception
      */
-    fun findEnumElement(elem: String): T?
+    fun findEnumElement(elem: String): T? = values().firstOrNull { valueOf(elem) == it }
 
     /**
      * Function set shortPath and longPath in Pair path
@@ -45,14 +50,15 @@ interface TabMenuBar<T> {
      * @param longPath
      */
     fun setPath(shortPath: String, longPath: String) {
-        paths = shortPath to longPath
+        pathDefaultTab = shortPath
+        longPrefixPathAllTab = longPath
     }
 
     /**
      * @param role
      * @param elem
-     * @param flag
+     * @param isOrganizationCanCreateContest
      * @return Returns true if the check for this tab and role is not passed, else return false
      */
-    fun isNotAvailableWithThisRole(role: Role, elem: T?, flag: Boolean?): Boolean
+    fun isNotAvailableWithThisRole(role: Role, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean
 }

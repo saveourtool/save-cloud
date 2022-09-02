@@ -1,9 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.views.url
+package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.benchmarks.TabMenuBar
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
@@ -37,8 +37,8 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
     }
     if (state.selectedMenu != tab) {
         if (menu.isNotAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
-            changeUrl(menu.defaultTab, menu)
             window.alert("Your role is not suitable for opening this page")
+            changeUrl(menu.defaultTab, menu)
             window.location.reload()
             setState { selectedMenu = menu.defaultTab }
         } else {
@@ -56,8 +56,8 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
  */
 fun <T> changeUrl(selectedMenu: T, menuBar: TabMenuBar<T>) {
     window.location.href = if (selectedMenu == menuBar.defaultTab) {
-        menuBar.paths.first
+        menuBar.pathDefaultTab
     } else {
-        "${menuBar.paths.second}/${selectedMenu.toString().lowercase()}"
+        "${menuBar.longPrefixPathAllTab}/${selectedMenu.toString().lowercase()}"
     }
 }

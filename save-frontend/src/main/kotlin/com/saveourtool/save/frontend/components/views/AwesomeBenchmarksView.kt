@@ -10,9 +10,9 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.components.views.url.HasSelectedMenu
-import com.saveourtool.save.frontend.components.views.url.changeUrl
-import com.saveourtool.save.frontend.components.views.url.urlAnalysis
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AwesomeBenchmarks
@@ -236,7 +236,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
                                             li {
                                                 className = ClassName("nav-item")
-                                                val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == value) {
+                                                val classVal = if (state.selectedMenu == value) {
                                                     " active font-weight-bold"
                                                 } else {
                                                     ""
