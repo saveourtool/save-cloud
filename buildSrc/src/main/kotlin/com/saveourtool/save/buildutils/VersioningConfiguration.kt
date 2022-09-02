@@ -121,4 +121,4 @@ fun Project.getSaveCliPath(): String {
     return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
 }
 
-fun String.isSnapshot() = endsWith("SNAPSHOT")
+private fun String.isSnapshot() = endsWith("SNAPSHOT")
