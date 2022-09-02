@@ -25,7 +25,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: OrganizationMenuBar = INFO
         override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var shortPathDefaultTab: String
+        override var pathDefaultTab: String
             get() = TODO("Not yet implemented")
             set(value) {}
 
