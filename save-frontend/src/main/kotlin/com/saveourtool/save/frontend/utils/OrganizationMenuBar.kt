@@ -24,14 +24,11 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: OrganizationMenuBar = INFO
-        override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var pathDefaultTab: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override val regexForUrlClassification = Regex("/organization/[^/]+/($postfixInRegex)")
+        override var pathDefaultTab: String = ""
 
-        override var longPrefixPathAllTab: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override var longPrefixPathAllTab: String = ""
+
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = ((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) ||

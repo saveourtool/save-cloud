@@ -237,7 +237,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     className = ClassName("row")
                                     nav {
                                         className = ClassName("nav nav-tabs mb-4")
-                                        BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
+                                        BenchmarkCategoryEnum.values().forEachIndexed { _, value ->
                                             li {
                                                 className = ClassName("nav-item")
                                                 val classVal = if (state.selectedMenu == value) {
@@ -268,7 +268,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         className = ClassName("col-lg-8")
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
-                                        state.benchmarks.forEachIndexed { i, benchmark ->
+                                        state.benchmarks.forEachIndexed { _, benchmark ->
                                             if ((state.selectedMenu == BenchmarkCategoryEnum.ALL || state.selectedMenu == benchmark.category) &&
                                                     (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {

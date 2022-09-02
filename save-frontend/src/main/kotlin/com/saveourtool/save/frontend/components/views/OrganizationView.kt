@@ -276,9 +276,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
-            else -> {
-                // this is a generated else block
-            }
         }
     }
 

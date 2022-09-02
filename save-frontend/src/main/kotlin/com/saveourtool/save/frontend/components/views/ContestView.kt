@@ -40,7 +40,7 @@ enum class ContestMenuBar {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = Regex("/contest/[^/]+/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String
             get() = TODO("Not yet implemented")
             set(value) {}

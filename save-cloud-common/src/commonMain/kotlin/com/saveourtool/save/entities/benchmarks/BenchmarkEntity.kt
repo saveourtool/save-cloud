@@ -25,15 +25,11 @@ enum class BenchmarkCategoryEnum {
     companion object : TabMenuBar<BenchmarkCategoryEnum> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
-        override val defaultTab = ALL
-        override val regexForUrlClassification: Regex = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
-        override var pathDefaultTab: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override val defaultTab: BenchmarkCategoryEnum = ALL
+        override val regexForUrlClassification: Regex = Regex("/archive/[^/]+/($postfixInRegex)")
+        override var pathDefaultTab: String = ""
 
-        override var longPrefixPathAllTab: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override var longPrefixPathAllTab: String = ""
 
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
