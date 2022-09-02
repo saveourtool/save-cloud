@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'infra/publish-helm-to-ghcr'
     tags:
       - 'chart/v*'
   workflow_dispatch:
@@ -45,10 +46,11 @@ jobs:
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
+          configFilePath: ${{ env.CHARTS_DIR }}/GitVersion.yml
       - run: |
-          echo VERSION=${{ steps.calculate-semver.outputs.semVer }} >> $GITHUB_ENV
+          echo VERSION=${{ steps.calculate-semver.outputs.semVer }} | tee -a $GITHUB_ENV
       # https://helm.sh/docs/topics/registries/
       # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
       - run: |
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
-          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+#          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
