@@ -49,11 +49,13 @@ jobs:
         with:
           targetPath: ${{ env.CHARTS_DIR }}
           configFilePath: ${{ env.CHARTS_DIR }}/GitVersion.yml
-      - run: |
-          echo VERSION=${{ steps.calculate-semver.outputs.semVer }} | tee -a $GITHUB_ENV
+      - name: Set chart version into env
+        run: |
+          echo VERSION=${{ steps.calculate-semver.outputs.fullSemVer }} | tee -a $GITHUB_ENV
       # https://helm.sh/docs/topics/registries/
       # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
-      - run: |
+      - name: Build and push chart version ${{ env.VERSION }}
+        run: |
           cd ${{ env.CHARTS_DIR }}
           helm repo add grafana https://grafana.github.io/helm-charts
           helm repo add prometheus https://prometheus-community.github.io/helm-charts
