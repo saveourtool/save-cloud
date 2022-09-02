@@ -98,6 +98,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
+    override fun componentDidUpdate(prevProps: PropsWithChildren, prevState: AwesomeBenchmarksState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, BenchmarkCategoryEnum)
+    }
+
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun ChildrenBuilder.render() {
         main {
@@ -245,14 +249,12 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
                                                         if (state.selectedMenu != value) {
-                                                            changeUrl(value, BenchmarkCategoryEnum)
                                                             setState { selectedMenu = value }
                                                         }
                                                     }
                                                     style = jso {
                                                         cursor = "pointer".unsafeCast<Cursor>()
                                                     }
-
                                                     +value.name
                                                 }
                                             }

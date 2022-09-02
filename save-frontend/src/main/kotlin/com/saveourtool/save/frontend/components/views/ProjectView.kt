@@ -280,6 +280,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+    override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, ProjectMenuBar)
+    }
+
     @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         super.componentDidMount()
@@ -412,7 +416,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        changeUrl(projectMenu, ProjectMenuBar)
                                         setState { selectedMenu = projectMenu }
                                     }
                                 }

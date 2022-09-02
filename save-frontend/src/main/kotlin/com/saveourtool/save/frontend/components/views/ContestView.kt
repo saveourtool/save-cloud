@@ -78,6 +78,10 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         state.selectedMenu = ContestMenuBar.defaultTab
     }
 
+    override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
+       if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar)
+    }
+
     override fun componentDidMount() {
         super.componentDidMount()
 
@@ -135,7 +139,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != contestMenu) {
-                                        changeUrl(contestMenu, ContestMenuBar)
                                         setState { selectedMenu = contestMenu }
                                     }
                                     +contestMenu.name

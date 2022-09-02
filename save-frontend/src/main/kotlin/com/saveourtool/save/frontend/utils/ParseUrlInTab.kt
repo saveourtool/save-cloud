@@ -38,11 +38,9 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
     if (state.selectedMenu != tab) {
         if (menu.isNotAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
             window.alert("Your role is not suitable for opening this page")
-            changeUrl(menu.defaultTab, menu)
             window.location.reload()
             setState { selectedMenu = menu.defaultTab }
         } else {
-            changeUrl(tab, menu)
             setState { selectedMenu = tab }
         }
     }

@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -216,6 +217,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             errorMessage = notificationMessage
             closeButtonLabel = "Confirm"
         }
+    }
+
+    override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
+        if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, OrganizationMenuBar)
     }
 
     override fun componentDidMount() {
@@ -669,7 +674,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {
                                         if (state.selectedMenu != organizationMenu) {
-                                            changeUrl(organizationMenu, OrganizationMenuBar)
                                             setState { selectedMenu = organizationMenu }
                                         }
                                     }
