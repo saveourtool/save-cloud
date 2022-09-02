@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 
 import csstype.ClassName
@@ -29,7 +28,7 @@ import kotlinx.js.jso
 /**
  * `Props` retrieved from router
  */
-external interface ContestGlobalRatingProps : PropsWithChildren
+external interface ContestGlobalRatingProps : Props
 
 /**
  * [State] of Contest Global Rating view component
@@ -57,6 +56,9 @@ external interface ContestGlobalRatingViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(false) {
+    @Suppress(
+        "STRING_TEMPLATE_QUOTES",
+    )
     private val tableWithOrganizationRating = tableComponent(
         columns = columns<Organization> {
             column(id = "index", header = "Position") {
@@ -76,10 +78,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                         ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                 src = cellProps.row.original.avatar?.let {
                                     "/api/$v1/avatar$it"
-                                }
-                                    ?: run {
-                                        "img//company.svg"
-                                    }
+                                } ?: "img/company.svg"
                                 style = jso {
                                     height = 2.rem
                                     width = 2.rem
@@ -99,12 +98,16 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         },
-        isInvisibleTable = true,
+        isTransparentGrid = true,
         useServerPaging = false,
         usePageSelection = false,
         getAdditionalDependencies = {
             arrayOf(it)
         }
+    )
+
+    @Suppress(
+        "STRING_TEMPLATE_QUOTES",
     )
     private val renderingProjectChampionsTable = tableComponent(
         columns = columns<Project> {
@@ -134,7 +137,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 }
             }
         },
-        isInvisibleTable = true,
+        isTransparentGrid = true,
         useServerPaging = false,
         usePageSelection = false,
         getAdditionalDependencies = {

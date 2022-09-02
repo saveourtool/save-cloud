@@ -79,7 +79,7 @@ external interface TableProps<D : Any> : Props {
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
- * @param isInvisibleTable
+ * @param isTransparentGrid
  * @return a functional react component
  */
 @Suppress(
@@ -98,7 +98,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
-    isInvisibleTable: Boolean = false,
+    isTransparentGrid: Boolean = false,
     plugins: Array<PluginHook<D>> = arrayOf(useSortBy, usePagination),
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: ((Row<D>) -> TableRowProps) = { jso() },
@@ -182,7 +182,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     }
 
     div {
-        className = ClassName("${if (isInvisibleTable) "" else "card shadow"} mb-4")
+        className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
         div {
             className = ClassName("card-header py-3")
             h6 {
@@ -195,7 +195,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
             div {
                 className = ClassName("table-responsive")
                 table {
-                    className = ClassName("table ${if (isInvisibleTable) "" else "table-bordered"}")
+                    className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
                     spread(tableInstance.getTableProps())
                     width = 100.0
                     cellSpacing = "0"

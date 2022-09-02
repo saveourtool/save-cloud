@@ -173,7 +173,6 @@ private fun userRating() = VFC {
 
                     a {
                         className = ClassName("mb-5")
-                        // FixMe: new view on this link
                         href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/"
                         +"View more "
                     }
