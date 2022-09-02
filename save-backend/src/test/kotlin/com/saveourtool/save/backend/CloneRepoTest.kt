@@ -227,7 +227,7 @@ class CloneRepoTest {
         executionRepository.findAll().shouldExist {
             it.project.name == project.name &&
                     it.project.organization == project.organization &&
-                    it.type == TestingType.PUBLIC_TESTS &&
+                    it.type == TestingType.PRIVATE_TESTS &&
                     it.sdk == sdk.toString()
         }
     }

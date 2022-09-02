@@ -97,7 +97,7 @@ class ExecutionControllerTest {
             .expectBody<ExecutionDto>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(TestingType.PUBLIC_TESTS, it.responseBody!!.type)
+                assertEquals(TestingType.PRIVATE_TESTS, it.responseBody!!.type)
             }
     }
 
