@@ -5,11 +5,15 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import csstype.ClassName
+import csstype.Height
+import csstype.Width
 import csstype.rem
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 
 import kotlinx.js.jso
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.img
 
 /**
  * rendering of a card where we suggest to propose new custom contests
@@ -24,7 +28,14 @@ fun ChildrenBuilder.proposeContest() {
                 minHeight = 7.rem
             }
 
-            // FixMe: Want to propose contest? Write e-mail! undraw_mailbox_re_dvds.svg
+            div {
+                className = ClassName("row")
+                img {
+                    src = "img/undraw_mailbox_re_dvds.svg"
+                }
+            }
+
+            // FixMe: Want to propose a contest? Write e-mail! undraw_mailbox_re_dvds.svg
         }
     }
 }
