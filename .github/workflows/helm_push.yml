@@ -42,6 +42,8 @@ jobs:
         run: |
           git checkout origin/${{ inputs.branch }}
       - uses: gittools/actions/gitversion/setup@v0.9.7
+        with:
+          versionSpec: 5.x
       - uses: gittools/actions/gitversion/execute@v0.9.7
         id: calculate-semver
         with:
