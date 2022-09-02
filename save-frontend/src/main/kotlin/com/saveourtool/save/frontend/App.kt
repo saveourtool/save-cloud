@@ -213,9 +213,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                                    element = ContestGlobalRatingView::class.react.create() {
-                                        userInfo = state.userInfo
-                                    }
+                                    element = ContestGlobalRatingView::class.react.create()
                                 }
 
                                 Route {

@@ -29,12 +29,7 @@ import kotlinx.js.jso
 /**
  * `Props` retrieved from router
  */
-external interface ContestGlobalRatingProps : PropsWithChildren {
-    /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-}
+external interface ContestGlobalRatingProps : PropsWithChildren
 
 /**
  * [State] of Contest Global Rating view component
@@ -68,7 +63,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 Fragment.create {
                     td {
                         val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +index
+                        +"$index"
                     }
                 }
             }
@@ -117,7 +112,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 Fragment.create {
                     td {
                         val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +index
+                        +"$index"
                     }
                 }
             }
