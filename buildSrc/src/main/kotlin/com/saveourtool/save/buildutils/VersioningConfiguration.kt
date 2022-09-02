@@ -84,7 +84,7 @@ fun Project.registerSaveCliVersionCheckTask() {
             (System.currentTimeMillis() - file.lastModified()) < Duration.ofMinutes(10).toMillis()
         }
         doFirst {
-            val version = if (saveCoreVersion.endsWith("SNAPSHOT")) {
+            val version = if (saveCoreVersion.isSnapshot()) {
                 // try to get the required version of cli
                 findProperty("saveCliVersion") as String? ?: run {
                     // as fallback, use latest release to allow the project to build successfully
@@ -117,5 +117,9 @@ fun Project.readSaveCliVersion(): String {
 fun Project.getSaveCliPath(): String {
     val saveCliVersion = readSaveCliVersion()
     val saveCliPath = findProperty("saveCliPath") as String? ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
+    val saveCliPath = findProperty("saveCliPath")?.takeIf { saveCliVersion.isSnapshot() } as String?
+        ?: "https://github.com/saveourtool/save-cli/releases/download/v$saveCliVersion"
     return "$saveCliPath/save-$saveCliVersion-linuxX64.kexe"
 }
+
+fun String.isSnapshot() = endsWith("SNAPSHOT")
