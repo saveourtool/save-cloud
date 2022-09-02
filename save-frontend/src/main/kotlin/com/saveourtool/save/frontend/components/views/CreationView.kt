@@ -11,8 +11,10 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -50,7 +52,7 @@ external interface ProjectSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithProjectSave: Boolean?
+    var isErrorWithProjectSave: Boolean
 
     /**
      * Error message
@@ -77,7 +79,7 @@ external interface ProjectSaveViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-    private val organzationSelectForm = selectFormRequired<String>()
+    private val organizationSelectForm = selectFormRequired<String>()
     init {
         state.isErrorWithProjectSave = false
         state.errorMessage = ""
@@ -120,12 +122,16 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
-        runErrorModal(
+        displayModal(
             state.isErrorWithProjectSave,
             "Error appeared during project creation",
-            state.errorMessage
+            state.errorMessage,
+            mediumTransparentModalStyle,
+            { setState { isErrorWithProjectSave = false } },
         ) {
-            setState { isErrorWithProjectSave = false }
+            buttonBuilder("Close", "secondary") {
+                setState { isErrorWithProjectSave = false }
+            }
         }
 
         main {
@@ -162,7 +168,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                     className = ClassName("needs-validation")
                                     div {
                                         className = ClassName("row-3")
-                                        organzationSelectForm {
+                                        organizationSelectForm {
                                             formType = InputTypes.ORGANIZATION_NAME
                                             validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-md-12 pl-2 pr-2"
@@ -188,21 +194,24 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 }
                                             }
                                         }
-                                        inputTextFormRequired(
-                                            InputTypes.PROJECT_NAME,
-                                            state.projectCreationRequest.name,
-                                            (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
-                                                    state.conflictErrorMessage == null,
-                                            "col-md-12 pl-2 pr-2 mt-3",
-                                            "Tested tool name",
-                                        ) {
-                                            setState {
-                                                projectCreationRequest = projectCreationRequest.copy(name = it.target.value)
-                                                conflictErrorMessage = null
+                                        inputTextFormRequired {
+                                            form = InputTypes.PROJECT_NAME
+                                            textValue = state.projectCreationRequest.name
+                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
+                                                    state.conflictErrorMessage == null
+                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            name = "Tested tool name"
+                                            conflictMessage = state.conflictErrorMessage
+                                            onChangeFun = {
+                                                setState {
+                                                    projectCreationRequest =
+                                                            projectCreationRequest.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
+                                                }
                                             }
                                         }
 
-                                        inputTextFormOptionalWrapperConst {
+                                        inputTextFormOptional {
                                             form = InputTypes.PROJECT_EMAIL
                                             textValue = state.projectCreationRequest.email
                                             classes = "col-md-12 pl-2 pr-2 mt-3"

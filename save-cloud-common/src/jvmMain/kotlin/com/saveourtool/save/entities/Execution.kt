@@ -11,7 +11,6 @@ import java.time.ZoneOffset
 import javax.persistence.Entity
 import javax.persistence.EnumType
 import javax.persistence.Enumerated
-import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -38,12 +37,13 @@ import javax.persistence.ManyToOne
  * @property user user that has started this execution
  * @property execCmd
  * @property batchSizeForAnalyzer
+ * @property testSuiteSourceName
  */
 @Suppress("LongParameterList")
 @Entity
 class Execution(
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "project_id")
     var project: Project,
 
@@ -93,6 +93,8 @@ class Execution(
 
     var batchSizeForAnalyzer: String?,
 
+    var testSuiteSourceName: String?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
@@ -114,6 +116,7 @@ class Execution(
         matchedChecks,
         expectedChecks,
         unexpectedChecks,
+        testSuiteSourceName,
     )
 
     /**
@@ -121,9 +124,7 @@ class Execution(
      *
      * @return list of TestSuite IDs
      */
-    fun parseAndGetTestSuiteIds(): List<Long>? = this.testSuiteIds
-        ?.split(DATABASE_DELIMITER)
-        ?.map { it.trim().toLong() }
+    fun parseAndGetTestSuiteIds(): List<Long>? = parseAndGetTestSuiteIds(this.testSuiteIds)
 
     /**
      * Format and set provided list of TestSuite IDs
@@ -171,7 +172,18 @@ class Execution(
             user = null,
             execCmd = null,
             batchSizeForAnalyzer = null,
+            testSuiteSourceName = "",
         )
+
+        /**
+         * Parse and get testSuiteIds as List<Long>
+         *
+         * @param testSuiteIds
+         * @return list of TestSuite IDs
+         */
+        fun parseAndGetTestSuiteIds(testSuiteIds: String?): List<Long>? = testSuiteIds
+            ?.split(DATABASE_DELIMITER)
+            ?.map { it.trim().toLong() }
 
         /**
          * @param testSuiteIds list of TestSuite IDs

@@ -164,14 +164,15 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
             // ==== test suite ids selector
             div {
                 className = ClassName("mt-2")
-                inputTextFormRequired(
-                    InputTypes.TEST_SUITE_IDS,
-                    selectedTestSuiteIds.joinToString(", "),
-                    true,
-                    "col-12 pl-2 pr-2 text-center",
-                    "Test Suites:",
+                inputTextFormRequired {
+                    form = InputTypes.TEST_SUITE_IDS
+                    textValue = selectedTestSuiteIds.joinToString(", ")
+                    validInput = true
+                    classes = "col-12 pl-2 pr-2 text-center"
+                    name = "Test Suites:"
+                    conflictMessage = null
                     onClickFun = testSuiteSelectorWindowOpenness.openWindowAction()
-                )
+                }
             }
         }
     }

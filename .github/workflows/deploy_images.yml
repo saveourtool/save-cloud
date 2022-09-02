@@ -80,18 +80,22 @@ jobs:
       - name: Install system packages
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Retrieve Kotlin version
+      - name: Store versions in env
+        working-directory: save-cloud
         run: |
-          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-core =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo SAVE_CORE_VERSION=$sv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
         with:
           path: ~/.konan
           key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - run: |
-          cd save && git status && git diff
+      - working-directory: save
+        run: git status && git diff
       - uses: gradle/gradle-build-action@v2
+        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
         with:
           gradle-version: wrapper
           build-root-directory: save
@@ -101,8 +105,13 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
       - name: Set environment variable with save-cli version
+        if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
         run: |
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
+      - name: Set SAVE_CLI_VERSION if it's not set yet
+        run: |
+          # If using release version of save-cli, this variable should be empty at this point
+          if [ -z "$SAVE_CLI_VERSION" ]; then echo SAVE_CLI_VERSION="$SAVE_CORE_VERSION" >> $GITHUB_ENV; fi
       - uses: gradle/gradle-build-action@v2
         with:
           gradle-version: wrapper

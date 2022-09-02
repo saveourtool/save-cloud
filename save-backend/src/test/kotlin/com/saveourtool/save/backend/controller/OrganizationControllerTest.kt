@@ -48,7 +48,6 @@ import java.util.*
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
     UserDetailsService::class,
-
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -116,6 +115,9 @@ class OrganizationControllerTest {
 
     @MockBean
     private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
+
+    @MockBean
+    private lateinit var originalLoginRepository: OriginalLoginRepository
 
     @BeforeEach
     internal fun setUp() {

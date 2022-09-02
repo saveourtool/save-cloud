@@ -3,6 +3,7 @@ name: save-cloud
 description: Helm chart for SAVE Cloud service
 # todo: separate versioning of charts or aligned with project version?
 version: 0.2.0
+appVersion: "0.3.0-SNAPSHOT"
 sources:
   - https://github.com/saveourtool/save-cloud
   - https://github.com/saveourtool/save-cli

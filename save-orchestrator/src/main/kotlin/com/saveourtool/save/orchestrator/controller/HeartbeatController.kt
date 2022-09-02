@@ -11,7 +11,6 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
-import com.saveourtool.save.orchestrator.service.areAgentsHaveStarted
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
@@ -19,9 +18,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
@@ -58,21 +57,20 @@ class HeartbeatController(private val agentService: AgentService,
      */
     @PostMapping("/heartbeat")
     fun acceptHeartbeat(@RequestBody heartbeat: Heartbeat): Mono<String> {
-        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId}")
-        areAgentsHaveStarted.compareAndSet(false, true)
-        // store new state into DB
-        return agentService.updateAgentStatusesWithDto(
-            AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
-        )
-            .onErrorResume(WebClientResponseException::class.java) {
-                logger.warn("Couldn't update agent statuses for agent ${heartbeat.agentId}, will skip this heartbeat: ${it.message}")
-                Mono.empty()
+        val executionId = heartbeat.executionProgress.executionId
+        logger.info("Got heartbeat state: ${heartbeat.state.name} from ${heartbeat.agentId} under execution id=$executionId")
+        return {
+            dockerService.markAgentForExecutionAsStarted(executionId)
+            heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
+        }
+            .toMono()
+            .flatMap {
+                // store new state into DB
+                agentService.updateAgentStatusesWithDto(
+                    AgentStatusDto(LocalDateTime.now(), heartbeat.state, heartbeat.agentId)
+                )
             }
-            .doOnSuccess {
-                // Update heartbeat info only if agent state is updated in the backend
-                heartBeatInspector.updateAgentHeartbeatTimeStamps(heartbeat)
-            }
-            .then(
+            .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
                     STARTING -> handleVacantAgent(heartbeat.agentId, isStarting = true)
@@ -82,6 +80,7 @@ class HeartbeatController(private val agentService: AgentService,
                     FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
                         handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
                     }
+
                     BUSY -> Mono.just(ContinueResponse)
                     BACKEND_FAILURE, BACKEND_UNREACHABLE, CLI_FAILED -> Mono.just(WaitResponse)
                     CRASHED, TERMINATED, STOPPED_BY_ORCH -> Mono.fromCallable {
@@ -89,7 +88,9 @@ class HeartbeatController(private val agentService: AgentService,
                         WaitResponse
                     }
                 }
-            )
+            }
+            // Heartbeat couldn't be processed, agent should replay it current state on the next heartbeat.
+            .defaultIfEmpty(ContinueResponse)
             .map {
                 Json.encodeToString(HeartbeatResponse.serializer(), it)
             }
@@ -118,7 +119,8 @@ class HeartbeatController(private val agentService: AgentService,
                 .flatMap { (response, shouldStop) ->
                     if (shouldStop) {
                         agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
-                            .thenReturn(TerminateResponse)
+                            .thenReturn<HeartbeatResponse>(TerminateResponse)
+                            .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {
                                 logger.info("Agent id=$agentId will receive ${TerminateResponse::class.simpleName} and should shutdown gracefully")
                                 ensureGracefulShutdown(agentId)
