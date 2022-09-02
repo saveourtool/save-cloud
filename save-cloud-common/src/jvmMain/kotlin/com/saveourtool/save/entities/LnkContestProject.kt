@@ -3,6 +3,7 @@ package com.saveourtool.save.entities
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.OneToOne
 
 /**
  * @property project
@@ -20,8 +21,8 @@ class LnkContestProject(
     @JoinColumn(name = "contest_id")
     var contest: Contest,
 
-    @ManyToOne
-    @JoinColumn(name = "execution_id")
+    @OneToOne
+    @JoinColumn(name = "best_execution_id")
     var bestExecution: Execution?,
 
     var bestScore: Int,
