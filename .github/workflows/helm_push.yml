@@ -2,6 +2,8 @@ name: Package and push Helm chart
 
 on:
   push:
+    paths:
+      - 'save-cloud-charts/**'
     branches:
       - 'master'
     tags:
