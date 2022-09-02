@@ -29,7 +29,7 @@ enum class BenchmarkCategoryEnum {
         override val regexForUrlClassification: Regex = Regex("/archive/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String = ""
 
-        override var longPrefixPathAllTab: String = ""
+        override var extendedViewPath: String = ""
 
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()

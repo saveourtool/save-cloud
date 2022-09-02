@@ -27,7 +27,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         override val regexForUrlClassification = Regex("/organization/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String = ""
 
-        override var longPrefixPathAllTab: String = ""
+        override var extendedViewPath: String = ""
 
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()

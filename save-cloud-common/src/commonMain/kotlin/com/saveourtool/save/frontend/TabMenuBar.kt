@@ -24,7 +24,7 @@ interface TabMenuBar<T> {
     /**
      * Contains the prefix of the url of the tabs
      */
-    var longPrefixPathAllTab : String
+    var extendedViewPath : String
 
     /**
      * @return Array of elements this Enum
@@ -41,7 +41,7 @@ interface TabMenuBar<T> {
      * @param elem
      * @return Equivalent to valueOf(), but returns null instead of an exception
      */
-    fun findEnumElement(elem: String): T? = values().firstOrNull { valueOf(elem) == it }
+    fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem) == it }
 
     /**
      * Function set shortPath and longPath in Pair path
@@ -51,7 +51,7 @@ interface TabMenuBar<T> {
      */
     fun setPath(shortPath: String, longPath: String) {
         pathDefaultTab = shortPath
-        longPrefixPathAllTab = longPath
+        extendedViewPath = longPath
     }
 
     /**

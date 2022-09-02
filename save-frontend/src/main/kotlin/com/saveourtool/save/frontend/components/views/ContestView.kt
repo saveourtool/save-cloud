@@ -45,7 +45,7 @@ enum class ContestMenuBar {
             get() = TODO("Not yet implemented")
             set(value) {}
 
-        override var longPrefixPathAllTab: String
+        override var extendedViewPath: String
             get() = TODO("Not yet implemented")
             set(value) {}
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)

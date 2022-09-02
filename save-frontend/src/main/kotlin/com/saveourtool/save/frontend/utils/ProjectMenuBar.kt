@@ -21,7 +21,7 @@ enum class ProjectMenuBar {
         override val regexForUrlClassification = Regex("/project/[^/]+/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String = ""
 
-        override var longPrefixPathAllTab: String = ""
+        override var extendedViewPath: String = ""
 
         override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
