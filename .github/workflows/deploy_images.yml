@@ -83,9 +83,9 @@ jobs:
       - name: Store versions in env
         working-directory: save-cloud
         run: |
-          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-          sv=$(cat gradle/libs.versions.toml | grep '^save-core =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          sv=$(cat gradle/libs.versions.toml | grep -m1 '^save-core =' | awk -F'[=]' '{print $2}' | tr -d '" ')
           echo SAVE_CORE_VERSION=$sv >> $GITHUB_ENV
       - name: Cache konan
         uses: actions/cache@v3
@@ -108,7 +108,8 @@ jobs:
         if: ${{ endsWith(env.SAVE_CORE_VERSION, '-SNAPSHOT') }}
         run: |
           find save/save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
-      - run: |
+      - name: Set SAVE_CLI_VERSION if it's not set yet
+        run: |
           # If using release version of save-cli, this variable should be empty at this point
           if [ -z "$SAVE_CLI_VERSION" ]; then echo SAVE_CLI_VERSION="$SAVE_CORE_VERSION" >> $GITHUB_ENV; fi
       - uses: gradle/gradle-build-action@v2
