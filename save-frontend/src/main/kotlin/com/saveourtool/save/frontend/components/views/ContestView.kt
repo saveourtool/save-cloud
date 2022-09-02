@@ -90,6 +90,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun ChildrenBuilder.render() {
+        console.log("render")
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {
