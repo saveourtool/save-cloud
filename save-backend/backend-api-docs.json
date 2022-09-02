@@ -5314,6 +5314,64 @@
         ]
       }
     },
+    "/api/v1/contests/{contestName}/is-featured": {
+      "get": {
+        "tags": [
+          "contests"
+        ],
+        "summary": "Check if contest is featured.",
+        "description": "Check if a given contest is featured or not.",
+        "operationId": "isContestFeatured",
+        "parameters": [
+          {
+            "name": "contestName",
+            "in": "path",
+            "description": "name of a contest",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Contest with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched contest data.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/contests/{contestName}/executions/{organizationName}/{projectName}": {
       "get": {
         "tags": [
@@ -6475,14 +6533,29 @@
       },
       "UserInfo": {
         "required": [
+          "isActive",
           "name",
           "organizations",
+          "originalLogins",
           "projects"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "oldName": {
+            "type": "string"
+          },
+          "originalLogins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "source": {
             "type": "string"
@@ -6543,6 +6616,9 @@
               "SUPER_ADMIN",
               "VIEWER"
             ]
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -7256,6 +7332,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7329,6 +7406,9 @@
           "batchSizeForAnalyzer": {
             "type": "string"
           },
+          "testSuiteSourceName": {
+            "type": "string"
+          },
           "id": {
             "type": "integer",
             "format": "int64"
@@ -7337,6 +7417,7 @@
       },
       "User": {
         "required": [
+          "isActive",
           "source"
         ],
         "type": "object",
@@ -7373,6 +7454,9 @@
           },
           "twitter": {
             "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           },
           "id": {
             "type": "integer",
@@ -7441,6 +7525,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]
@@ -7499,6 +7584,9 @@
           "unexpectedChecks": {
             "type": "integer",
             "format": "int64"
+          },
+          "testSuiteSourceName": {
+            "type": "string"
           }
         }
       },
@@ -7535,6 +7623,7 @@
             "enum": [
               "ERROR",
               "FINISHED",
+              "OBSOLETE",
               "PENDING",
               "RUNNING"
             ]

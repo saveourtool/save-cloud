@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
@@ -23,14 +22,14 @@ import javax.persistence.ManyToOne
 @Entity
 @Suppress("LongParameterList")
 class TestSuitesSource(
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
 
     var name: String,
     var description: String?,
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "git_id")
     var git: Git,
     var branch: String,

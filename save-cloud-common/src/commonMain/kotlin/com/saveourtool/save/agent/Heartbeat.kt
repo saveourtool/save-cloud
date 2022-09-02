@@ -13,9 +13,13 @@ import kotlinx.serialization.Serializable
  * Progress of tests execution
  *
  * @property percentCompletion percentage of completed jobs, integer 0..100
+ * @property executionId ID of an execution under which the progress is being tracked
  */
 @Serializable
-data class ExecutionProgress(val percentCompletion: Int) {
+data class ExecutionProgress(
+    val percentCompletion: Int,
+    val executionId: Long,
+) {
     init {
         @Suppress("MAGIC_NUMBER", "MagicNumber")
         require(percentCompletion in 0..100) { "percentCompletion should be in 0..100, but is $percentCompletion" }

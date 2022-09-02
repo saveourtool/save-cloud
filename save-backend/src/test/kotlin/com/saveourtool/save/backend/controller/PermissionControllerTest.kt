@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.configs.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -53,6 +54,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
     @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var organizationService: OrganizationService
+    @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
 
     @Test
     @WithMockUser

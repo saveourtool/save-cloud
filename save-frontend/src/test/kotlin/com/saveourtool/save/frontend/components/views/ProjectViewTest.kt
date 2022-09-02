@@ -37,9 +37,9 @@ class ProjectViewTest {
     )
     private val testUserInfo = UserInfo(
         "TestUser",
-        "basic",
-        mapOf(testProject.name to Role.VIEWER),
-        mapOf(testOrganization.name to Role.VIEWER),
+        source = "basic",
+        projects = mapOf(testProject.name to Role.VIEWER),
+        organizations = mapOf(testOrganization.name to Role.VIEWER),
         globalRole = Role.SUPER_ADMIN,
     )
 
