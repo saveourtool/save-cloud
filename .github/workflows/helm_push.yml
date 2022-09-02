@@ -48,7 +48,7 @@ jobs:
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
-          configFilePath: ${{ env.CHARTS_DIR }}/../GitVersion.yml
+          configFilePath: save-cloud-charts/GitVersion.yml
       - name: Set chart version into env
         run: |
           echo VERSION=${{ steps.calculate-semver.outputs.fullSemVer }} | tee -a $GITHUB_ENV
@@ -62,7 +62,7 @@ jobs:
           helm dependency build
           cd -
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
-#          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
       - uses: actions/upload-artifact@v3
         with:
           name: save-cloud
