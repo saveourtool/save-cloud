@@ -237,7 +237,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     className = ClassName("row")
                                     nav {
                                         className = ClassName("nav nav-tabs mb-4")
-                                        BenchmarkCategoryEnum.values().forEachIndexed { _, value ->
+                                        BenchmarkCategoryEnum.values().forEach { value ->
                                             li {
                                                 className = ClassName("nav-item")
                                                 val classVal = if (state.selectedMenu == value) {
