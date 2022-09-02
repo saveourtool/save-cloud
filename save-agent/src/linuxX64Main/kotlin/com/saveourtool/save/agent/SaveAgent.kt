@@ -449,7 +449,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
     companion object {
         private const val SAVE_CLI_TIMEOUT = 1_000_000L
-        private const val SETUP_SH_TIMEOUT = 1_000L
+        private const val SETUP_SH_TIMEOUT = 60_000L
         private val failureResultPredicate: Result<*>.() -> Boolean = { isFailure }
     }
 }
