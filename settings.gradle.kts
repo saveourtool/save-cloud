@@ -28,7 +28,14 @@ include("save-backend")
 include("save-orchestrator")
 include("save-frontend")
 include("save-cloud-common")
-include("save-agent")
+/*
+ * Don't include "save-agent" on Windows because of the missing `libcurl`
+ * dependency.
+ */
+@Suppress("RUN_IN_SCRIPT")
+if (!System.getProperty("os.name").startsWith("Windows")) {
+    include("save-agent")
+}
 include("save-preprocessor")
 include("test-utils")
 include("save-cloud-charts")
