@@ -41,13 +41,10 @@ enum class ContestMenuBar {
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
         override val regexForUrlClassification = Regex("/contest/[^/]+/[^/]+/($postfixInRegex)")
-        override var pathDefaultTab: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override var pathDefaultTab: String = ""
 
-        override var extendedViewPath: String
-            get() = TODO("Not yet implemented")
-            set(value) {}
+        override var extendedViewPath: String = ""
+
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
@@ -130,6 +127,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             className = ClassName("row align-items-center justify-content-center")
             nav {
                 className = ClassName("nav nav-tabs mb-4")
+                console.log(ContestMenuBar.values().map {it.name} )
                 ContestMenuBar.values()
                     .forEachIndexed { i, contestMenu ->
                         li {
@@ -142,8 +140,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                                     if (state.selectedMenu != contestMenu) {
                                         setState { selectedMenu = contestMenu }
                                     }
-                                    +contestMenu.name
                                 }
+                                +contestMenu.name
                             }
                         }
                     }
