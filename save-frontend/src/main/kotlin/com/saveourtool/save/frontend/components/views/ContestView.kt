@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
@@ -19,9 +18,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
-
 
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
@@ -50,9 +47,7 @@ enum class ContestMenuBar {
         override val defaultTab: ContestMenuBar = INFO
         override val regexForUrlClassification = Regex("/contest/[^/]+/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String = ""
-
         override var extendedViewPath: String = ""
-
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
@@ -71,7 +66,6 @@ external interface ContestViewProps : Props {
 /**
  * [State] for [ContestView]
  */
-
 external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
      * Flag that shows if current contest is featured or not
