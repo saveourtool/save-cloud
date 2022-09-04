@@ -122,44 +122,16 @@ fun topBar() = FC<TopBarProps> { props ->
                             else null
                         }
 
-                        insideTab?.let {
-                            var currentPath = "#"
-                            forEachIndexed{index: Int, pathPart: String ->
-                                currentPath = if (index == 0){
+                        var currentPath = "#"
+                        forEachIndexed{ index: Int, pathPart: String ->
+                            currentPath = if (insideTab != null && index == 0) {
                                     when(insideTab) {
                                         "contest" -> "#/${FrontendRoutes.CONTESTS.path}"
-                                        "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}"
+                                        "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}" // Replace when creating an OrganizationListView
                                         "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                         else -> ""
                                     }
-                                } else {
-                                    "$currentPath/$pathPart"
-                                }
-                                li {
-                                    className = ClassName("breadcrumb-item")
-                                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
-                                    if (index == size - 1) {
-                                        a {
-                                            className = ClassName("text-warning")
-                                            +pathPart
-                                        }
-                                    } else {
-                                        // small hack to redirect from history/execution to history
-                                        val resultingLink = currentPath.removeSuffix("/execution")
-                                        a {
-                                            href = resultingLink
-                                            className = ClassName("text-light")
-                                            +pathPart
-                                        }
-                                    }
-                                }
-                                if (index == 0) currentPath = "#"
-                            }
-
-                        } ?: foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-
-                            val currentLink = "$acc/$pathPart"
-
+                                } else "$currentPath/$pathPart"
                             li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
@@ -170,7 +142,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    val resultingLink = currentLink.removeSuffix("/execution")
+                                    val resultingLink = currentPath.removeSuffix("/execution")
                                     a {
                                         href = resultingLink
                                         className = ClassName("text-light")
@@ -178,7 +150,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 }
                             }
-                            currentLink
+                            currentPath = if (insideTab != null && index == 0) "#" else "#/$pathPart"
                         }
                     }
             }
