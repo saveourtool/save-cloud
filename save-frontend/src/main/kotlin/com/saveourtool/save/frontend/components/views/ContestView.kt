@@ -72,8 +72,7 @@ external interface ContestViewProps : Props {
  * [State] for [ContestView]
  */
 
-external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar>
-
+external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
      * Flag that shows if current contest is featured or not
      */
@@ -93,7 +92,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
-       if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar) else urlAnalysis(ContestMenuBar, Role.NONE, false)
+        console.log("component Did Update")
+        if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar) else urlAnalysis(ContestMenuBar, Role.NONE, false)
     }
 
     override fun componentDidMount() {
@@ -104,7 +104,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun ChildrenBuilder.render() {
-        console.log("render")
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {
@@ -117,7 +116,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             ContestMenuBar.INFO -> renderInfo()
             ContestMenuBar.SUBMISSIONS -> renderSubmissions()
             ContestMenuBar.SUMMARY -> renderSummary()
-            else -> throw NotImplementedError()
         }
     }
 
@@ -172,13 +170,11 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             className = ClassName("row align-items-center justify-content-center")
             nav {
                 className = ClassName("nav nav-tabs mb-4")
-                console.log(ContestMenuBar.values().map {it.name} )
                 ContestMenuBar.values()
-                    .forEachIndexed { i, contestMenu ->
+                    .forEach { contestMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal =
-                                    if (state.selectedMenu == contestMenu) " active font-weight-bold" else ""
+                            val classVal = if (state.selectedMenu == contestMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
