@@ -220,7 +220,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, OrganizationMenuBar)
+        if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, OrganizationMenuBar) else urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
     }
 
     override fun componentDidMount() {

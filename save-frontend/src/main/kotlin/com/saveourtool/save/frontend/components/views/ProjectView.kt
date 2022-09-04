@@ -281,7 +281,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, ProjectMenuBar)
+        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, ProjectMenuBar) else urlAnalysis(ProjectMenuBar, state.selfRole, false)
     }
 
     @Suppress("TOO_LONG_FUNCTION")

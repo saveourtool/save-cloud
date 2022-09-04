@@ -99,7 +99,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     }
 
     override fun componentDidUpdate(prevProps: PropsWithChildren, prevState: AwesomeBenchmarksState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, BenchmarkCategoryEnum)
+        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, BenchmarkCategoryEnum) else urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")

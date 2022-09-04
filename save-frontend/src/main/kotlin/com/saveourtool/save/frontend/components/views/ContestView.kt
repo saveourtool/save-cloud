@@ -76,7 +76,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
-       if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar)
+       if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar) else urlAnalysis(ContestMenuBar, Role.NONE, false)
     }
 
     override fun componentDidMount() {
