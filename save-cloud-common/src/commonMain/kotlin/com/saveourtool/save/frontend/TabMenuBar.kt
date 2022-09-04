@@ -41,7 +41,7 @@ interface TabMenuBar<T> {
      * @param elem
      * @return Equivalent to valueOf(), but returns null instead of an exception
      */
-    fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem) == it }
+    fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem.uppercase()) == it }
 
     /**
      * Function set shortPath and longPath in Pair path
