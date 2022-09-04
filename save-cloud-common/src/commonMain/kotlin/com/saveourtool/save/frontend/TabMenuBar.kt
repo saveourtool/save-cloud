@@ -19,12 +19,12 @@ interface TabMenuBar<T> {
     /**
      * Contains the url of the default tab
      */
-    var pathDefaultTab : String
+    var pathDefaultTab: String
 
     /**
      * Contains the prefix of the url of the tabs
      */
-    var extendedViewPath : String
+    var extendedViewPath: String
 
     /**
      * @return Array of elements this Enum

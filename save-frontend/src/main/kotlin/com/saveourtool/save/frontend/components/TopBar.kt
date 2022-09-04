@@ -39,12 +39,11 @@ import react.router.useLocation
 import react.useState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.ins
 
 /**
  * [Props] of the top bor component
@@ -75,7 +74,7 @@ private fun ChildrenBuilder.dropdownEntry(
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
@@ -115,23 +114,23 @@ fun topBar() = FC<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         val insideTab = location.pathname.substringBeforeLast("?").let {
-                            if (it.contains(ContestMenuBar.regexForUrlClassification)) "contest"
-                            else if (it.contains(OrganizationMenuBar.regexForUrlClassification)) "organization"
-                            else if(it.contains(ProjectMenuBar.regexForUrlClassification)) "project"
-                            else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) "archive"
-                            else null
+                            if (it.contains(ContestMenuBar.regexForUrlClassification)) { "contest" }
+                            else if (it.contains(OrganizationMenuBar.regexForUrlClassification)) { "organization" }
+                            else if(it.contains(ProjectMenuBar.regexForUrlClassification)) { "project" }
+                            else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {"archive" }
+                            else { null }
                         }
 
                         var currentPath = "#"
-                        forEachIndexed{ index: Int, pathPart: String ->
+                        forEachIndexed { index: Int, pathPart: String ->
                             currentPath = if (insideTab != null && index == 0) {
-                                    when(insideTab) {
-                                        "contest" -> "#/${FrontendRoutes.CONTESTS.path}"
-                                        "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}" // Replace when creating an OrganizationListView
-                                        "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                        else -> ""
-                                    }
-                                } else "$currentPath/$pathPart"
+                                when (insideTab) {
+                                    "contest" -> "#/${FrontendRoutes.CONTESTS.path}"
+                                    "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}" // Replace when creating an OrganizationListView
+                                    "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                                    else -> ""
+                                }
+                            } else "$currentPath/$pathPart"
                             li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()

@@ -28,9 +28,7 @@ enum class BenchmarkCategoryEnum {
         override val defaultTab: BenchmarkCategoryEnum = ALL
         override val regexForUrlClassification: Regex = Regex("/archive/[^/]+/($postfixInRegex)")
         override var pathDefaultTab: String = ""
-
         override var extendedViewPath: String = ""
-
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false
