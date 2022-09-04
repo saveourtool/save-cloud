@@ -8,8 +8,12 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.modal.logoutModal
+import com.saveourtool.save.frontend.components.views.ContestMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.OrganizationMenuBar
+import com.saveourtool.save.frontend.utils.ProjectMenuBar
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -40,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.js.jso
+import react.dom.html.ReactHTML.ins
 
 /**
  * [Props] of the top bor component
@@ -109,7 +114,49 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        foldIndexed("#") { index: Int, acc: String, pathPart: String ->
+                        val insideTab = location.pathname.substringBeforeLast("?").let {
+                            if (it.contains(ContestMenuBar.regexForUrlClassification)) "contest"
+                            else if (it.contains(OrganizationMenuBar.regexForUrlClassification)) "organization"
+                            else if(it.contains(ProjectMenuBar.regexForUrlClassification)) "project"
+                            else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) "archive"
+                            else null
+                        }
+
+                        insideTab?.let {
+                            var currentPath = "#"
+                            forEachIndexed{index: Int, pathPart: String ->
+                                currentPath = if (index == 0){
+                                    when(insideTab) {
+                                        "contest" -> "#/${FrontendRoutes.CONTESTS.path}"
+                                        "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}"
+                                        "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                                        else -> ""
+                                    }
+                                } else {
+                                    "$currentPath/$pathPart"
+                                }
+                                li {
+                                    className = ClassName("breadcrumb-item")
+                                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
+                                    if (index == size - 1) {
+                                        a {
+                                            className = ClassName("text-warning")
+                                            +pathPart
+                                        }
+                                    } else {
+                                        // small hack to redirect from history/execution to history
+                                        val resultingLink = currentPath.removeSuffix("/execution")
+                                        a {
+                                            href = resultingLink
+                                            className = ClassName("text-light")
+                                            +pathPart
+                                        }
+                                    }
+                                }
+                                if (index == 0) currentPath = "#"
+                            }
+
+                        } ?: foldIndexed("#") { index: Int, acc: String, pathPart: String ->
 
                             val currentLink = "$acc/$pathPart"
 
@@ -282,6 +329,7 @@ fun topBar() = FC<TopBarProps> { props ->
             }
         }
     }
+
     logoutModal {
         setIsLogoutModalOpen(false)
     }() {

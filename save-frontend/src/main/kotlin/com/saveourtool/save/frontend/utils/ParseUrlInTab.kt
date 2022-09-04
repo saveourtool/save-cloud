@@ -53,11 +53,9 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
  * @param menuBar
  */
 fun <T> changeUrl(selectedMenu: T, menuBar: TabMenuBar<T>) {
-    console.log(window.location.href)
     window.location.href = if (selectedMenu == menuBar.defaultTab) {
         menuBar.pathDefaultTab
     } else {
         "${menuBar.extendedViewPath}/${selectedMenu.toString().lowercase()}"
     }
-    console.log(window.location.href)
 }
