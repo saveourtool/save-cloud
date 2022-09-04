@@ -6,6 +6,8 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
+import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.*
 import com.saveourtool.save.frontend.utils.WindowOpenness
@@ -183,7 +185,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
 ) {
     modal { props ->
         props.isOpen = isOpen
-        props.style = transparentModalStyle
+        props.style = largeTransparentModalStyle
         div {
             className = ClassName("modal-dialog modal-lg modal-dialog-scrollable")
             div {

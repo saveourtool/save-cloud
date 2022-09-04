@@ -28,10 +28,10 @@ import com.saveourtool.save.validation.FrontendRoutes
 import csstype.ClassName
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.url.URLSearchParams
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
@@ -129,7 +129,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         scope.launch {
             val userName: String? = get(
                 "${window.location.origin}/sec/user",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
@@ -139,7 +139,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
             val globalRole: Role? = get(
                 "${window.location.origin}/api/$v1/users/global-role",
-                Headers().also { it.set("Accept", "application/json") },
+                jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).run {
@@ -165,6 +165,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
+
+                withRouter<Props> { location, _ ->
+                    if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.REGISTRATION.path}"
+                            replace = false
+                        }
+                    } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+                        Navigate {
+                            to = "/${FrontendRoutes.PROJECTS.path}"
+                            replace = false
+                        }
+                    }
+                }()
+
                 div {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"
@@ -191,6 +206,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>("archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
                                     routeElement = AwesomeBenchmarksView::class.react.create())
+
+                                Route {
+                                    path = "/${FrontendRoutes.REGISTRATION.path}"
+                                    element = RegistrationView::class.react.create() {
+                                        userInfo = state.userInfo
+                                    }
+                                }
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"

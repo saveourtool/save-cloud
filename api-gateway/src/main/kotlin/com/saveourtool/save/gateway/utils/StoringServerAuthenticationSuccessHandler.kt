@@ -4,12 +4,9 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
-import org.springframework.security.jackson2.CoreJackson2Module
-import org.springframework.security.oauth2.client.jackson2.OAuth2ClientJackson2Module
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.web.reactive.function.client.WebClient
@@ -23,10 +20,6 @@ class StoringServerAuthenticationSuccessHandler(
     configurationProperties: ConfigurationProperties,
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val objectMapper = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .registerModule(OAuth2ClientJackson2Module())
     private val webClient = WebClient.create(configurationProperties.backend.url)
 
     override fun onAuthenticationSuccess(
@@ -42,10 +35,11 @@ class StoringServerAuthenticationSuccessHandler(
             // roles to save-cloud roles.
             role = Role.VIEWER.asSpringSecurityRole()
         }
+
         return webClient.post()
             .uri("/internal/users/new")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(objectMapper.writeValueAsString(user))
+            .bodyValue(user)
             .retrieve()
             .onStatus({ it.is4xxClientError }) {
                 Mono.error(ResponseStatusException(it.statusCode()))
@@ -64,4 +58,6 @@ fun Authentication.toUser(): User = User(
     authorities.joinToString(",") { it.authority },
     toIdentitySource(),
     null,
+    isActive = false,
+    originalLogins = emptyList(),
 )

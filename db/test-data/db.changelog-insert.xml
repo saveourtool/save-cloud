@@ -22,6 +22,7 @@
     <include file="contest-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-project-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-execution-insert.xml" relativeToChangelogFile="true"/>
+    <include file="original-login-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="add-tests-data" author="nulls">
         <tagDatabase tag="test-data-insert"/>

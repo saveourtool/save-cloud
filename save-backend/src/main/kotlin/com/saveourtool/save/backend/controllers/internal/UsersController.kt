@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -27,8 +28,8 @@ typealias StringResponse = ResponseEntity<String>
 @RestController
 @RequestMapping("/internal/users")
 class UsersController(
-    private val userRepository: UserRepository,
     private val userService: UserDetailsService,
+    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val objectMapper = ObjectMapper()
@@ -42,13 +43,17 @@ class UsersController(
      * @param user user to store
      */
     @PostMapping("/new")
+    @Transactional
     fun saveNewUser(@RequestBody user: User) {
         val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
-        userRepository.findByName(userName)?.let {
+
+        val userFind = originalLoginRepository.findByNameAndSource(userName, user.source)
+
+        userFind?.user?.let {
             logger.debug("User $userName is already present in the DB")
         } ?: run {
             logger.info("Saving user $userName to the DB")
-            userRepository.save(user)
+            userService.saveNewUser(user)
         }
     }
 

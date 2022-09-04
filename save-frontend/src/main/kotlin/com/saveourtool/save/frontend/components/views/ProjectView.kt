@@ -14,6 +14,8 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
@@ -106,7 +108,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Flag to handle error
      */
-    var isErrorOpen: Boolean?
+    var isErrorOpen: Boolean
 
     /**
      * Error label
@@ -367,11 +369,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun ChildrenBuilder.render() {
-        // modal windows are initially hidden
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+        val modalCloseCallback = {
             setState {
                 isErrorOpen = false
                 closeButtonLabel = null
+            }
+        }
+        displayModal(
+            state.isErrorOpen,
+            state.errorLabel,
+            state.errorMessage,
+            mediumTransparentModalStyle,
+            modalCloseCallback,
+        ) {
+            buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") {
+                modalCloseCallback()
             }
         }
 

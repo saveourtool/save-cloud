@@ -39,6 +39,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
         val linuxX64Test by getting {

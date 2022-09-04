@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
  * Repository to access data about users
  */
 @Repository
-interface UserRepository : BaseEntityRepository<User> {
+interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
     /**
      * @param username
      * @return user or null if no results have been found

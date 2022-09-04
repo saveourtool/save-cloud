@@ -3,16 +3,18 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.rest
 import com.saveourtool.save.frontend.externals.setupWorker
-import kotlinx.browser.window
+
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.create
 import react.useEffect
 import react.useState
+
 import kotlin.js.Promise
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.browser.window
 
 class UseRequestTest {
     private var requestCount = 0
@@ -29,7 +31,7 @@ class UseRequestTest {
     @Test
     fun test(): Promise<Unit> {
         val worker = createWorker()
-        val testComponent = FC<Props> {
+        val testComponent: FC<Props> = FC {
             val (sendSecond, setSendSecond) = useState(false)
             val (sendThird, setSendThird) = useState(false)
             useRequest(dependencies = arrayOf(sendSecond)) {
