@@ -75,7 +75,7 @@ class AgentsControllerTest {
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
-            type = TestingType.PRIVATE_TESTS
+            type = TestingType.PUBLIC_TESTS
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
             id = 42L
@@ -248,7 +248,6 @@ class AgentsControllerTest {
     }
 
     companion object {
-        @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("executionLogs").toAbsolutePath().toString()
         }

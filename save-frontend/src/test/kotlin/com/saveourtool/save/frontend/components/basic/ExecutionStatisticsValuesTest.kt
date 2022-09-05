@@ -25,7 +25,7 @@ class ExecutionStatisticsValuesTest {
         val executionDto = ExecutionDto(
             id = -1,
             status = ExecutionStatus.RUNNING,
-            type = TestingType.PUBLIC_TESTS,
+            type = TestingType.PRIVATE_TESTS,
             version = "N/A",
             startTime = 0L,
             endTime = null,

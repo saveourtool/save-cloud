@@ -44,7 +44,7 @@ data class ExecutionDto(
         val empty = ExecutionDto(
             id = -1,
             status = ExecutionStatus.PENDING,
-            type = TestingType.PRIVATE_TESTS,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             startTime = -1,
             endTime = null,

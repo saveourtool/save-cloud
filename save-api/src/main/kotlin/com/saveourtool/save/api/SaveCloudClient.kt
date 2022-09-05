@@ -91,7 +91,7 @@ class SaveCloudClient(
         testingType: TestingType,
         additionalFiles: List<ShortFileInfo>?
     ): ExecutionRequestBase? {
-        val executionRequest = if (testingType == TestingType.PUBLIC_TESTS) {
+        val executionRequest = if (testingType == TestingType.PRIVATE_TESTS) {
             buildExecutionRequest()
         } else {
             val userProvidedTestSuites = verifyTestSuites() ?: return null

@@ -119,7 +119,7 @@ suspend fun HttpClient.getStandardTestSuites(
 @OptIn(InternalAPI::class)
 @Suppress("TOO_LONG_FUNCTION")
 suspend fun HttpClient.submitExecution(executionType: TestingType, executionRequest: ExecutionRequestBase, additionalFiles: List<ShortFileInfo>?): HttpResponse {
-    val endpoint = if (executionType == TestingType.PUBLIC_TESTS) {
+    val endpoint = if (executionType == TestingType.PRIVATE_TESTS) {
         "/api/$v1/submitExecutionRequest"
     } else {
         "/api/$v1/executionRequestStandardTests"
@@ -131,7 +131,7 @@ suspend fun HttpClient.submitExecution(executionType: TestingType, executionRequ
             append(HttpHeaders.ContentType, ContentType.Application.Json)
         }
         setBody(MultiPartFormDataContent(formData {
-            if (executionType == TestingType.PUBLIC_TESTS) {
+            if (executionType == TestingType.PRIVATE_TESTS) {
                 append(
                     "executionRequest",
                     json.encodeToString(executionRequest as ExecutionRequest),

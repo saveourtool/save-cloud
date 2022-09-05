@@ -266,7 +266,7 @@ The response format will look like:
 {
   "id": 42, # execution id
   "status": "FINISHED", # execution status, i.e. running, finished and so on
-  "type":"PUBLIC_TESTS", # testing type
+  "type":"PRIVATE_TESTS", # testing type
   "version": "264e5feb8f4c6410d70536d6fc4bdf090df62287", # commit hash
   "startTime": 1651856549, # start time of execution in Unix format
   "endTime": 1651856797, # end time of execution in Unix format
