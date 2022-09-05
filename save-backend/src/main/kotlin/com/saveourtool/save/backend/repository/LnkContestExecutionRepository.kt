@@ -47,5 +47,10 @@ interface LnkContestExecutionRepository : BaseEntityRepository<LnkContestExecuti
     @Suppress("IDENTIFIER_LENGTH")
     fun findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest: Contest, projectIds: List<Long>): List<LnkContestExecution>
 
+    /**
+     * @param project
+     * @param contestName
+     * @return [LnkContestExecution] associated with [project] and [Contest] with name [contestName]
+     */
     fun findByExecutionProjectAndContestName(project: Project, contestName: String): LnkContestExecution?
 }
