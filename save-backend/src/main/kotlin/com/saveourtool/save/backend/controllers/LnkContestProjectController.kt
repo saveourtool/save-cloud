@@ -97,8 +97,7 @@ class LnkContestProjectController(
         it to lnkContestProjectService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
     }
         .map { (lnkContestProject, score) ->
-            // fixme: score should be either Double or Int everywhere (or BigDecimal)
-            lnkContestProject.toContestResult(score?.toDouble())
+            lnkContestProject.toContestResult(score)
         }
 
     @GetMapping("/{contestName}/eligible-projects")
