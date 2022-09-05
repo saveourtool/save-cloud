@@ -7426,6 +7426,10 @@
           "testSuiteSourceName": {
             "type": "string"
           },
+          "score": {
+            "type": "number",
+            "format": "double"
+          },
           "id": {
             "type": "integer",
             "format": "int64"
@@ -7604,6 +7608,10 @@
           },
           "testSuiteSourceName": {
             "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

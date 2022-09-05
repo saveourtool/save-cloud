@@ -21,9 +21,7 @@ class LnkContestExecutionService(
      */
     @Transactional
     fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
-            lnkContestExecutionRepository.findByExecutionProjectAndContestNameOrderByScoreDesc(project, contestName, Pageable.ofSize(1))
-                .content
-                .singleOrNull()
+            lnkContestExecutionRepository.findByExecutionProjectAndContestName(project, contestName)
                 ?.execution
                 ?.score
 
