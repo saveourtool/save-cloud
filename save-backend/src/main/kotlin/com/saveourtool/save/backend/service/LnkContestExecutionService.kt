@@ -14,17 +14,6 @@ class LnkContestExecutionService(
     private val lnkContestExecutionRepository: LnkContestExecutionRepository,
 ) {
     /**
-     * @param project
-     * @param contestName
-     * @return best score of a [Project] in contest with name [contestName]
-     */
-    @Transactional
-    fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
-            lnkContestExecutionRepository.findByExecutionProjectAndContestName(project, contestName)
-                ?.execution
-                ?.score
-
-    /**
      * @param contest
      * @param project
      * @param pageRequest

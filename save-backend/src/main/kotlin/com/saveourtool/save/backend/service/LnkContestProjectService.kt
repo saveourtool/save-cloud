@@ -45,6 +45,9 @@ class LnkContestProjectService(
             lnkContestProjectRepository.findByContestNameAndProjectIdIn(contestName, it)
         }
 
+    fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
+        lnkContestProjectRepository.findByProjectAndContestName(project, contestName)?.bestScore
+
     /**
      * @param project a [Project]
      * @param contest a [Contest]
