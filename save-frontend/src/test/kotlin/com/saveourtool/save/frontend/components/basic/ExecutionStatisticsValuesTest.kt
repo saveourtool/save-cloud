@@ -39,6 +39,7 @@ class ExecutionStatisticsValuesTest {
             expectedChecks = 25,
             unexpectedChecks = 5,
             testSuiteSourceName = "",
+            score = null,
         )
         val executionStatisticsValues = ExecutionStatisticsValues(executionDto)
         assertEquals("danger", executionStatisticsValues.style)
