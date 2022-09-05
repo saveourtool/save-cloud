@@ -15,7 +15,7 @@ import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toFileInfo
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -227,7 +227,7 @@ class CloneRepoTest {
         executionRepository.findAll().shouldExist {
             it.project.name == project.name &&
                     it.project.organization == project.organization &&
-                    it.type == ExecutionType.GIT &&
+                    it.type == TestingType.PRIVATE_TESTS &&
                     it.sdk == sdk.toString()
         }
     }

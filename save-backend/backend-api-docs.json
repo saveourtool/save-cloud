@@ -795,7 +795,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/run/trigger": {
@@ -804,6 +805,21 @@
           "run-execution-controller"
         ],
         "operationId": "trigger",
+        "parameters": [
+          {
+            "name": "testingType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CONTEST_MODE",
+                "PRIVATE_TESTS",
+                "PUBLIC_TESTS"
+              ]
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2103,7 +2119,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/execution/delete": {
@@ -4861,7 +4878,7 @@
         ],
         "summary": "Get contests that can be participated.",
         "description": "Get list of contest names that a given project can participate in.",
-        "operationId": "getAvaliableContestsForProject",
+        "operationId": "getAvailableContestsForProject",
         "parameters": [
           {
             "name": "organizationName",
@@ -5648,7 +5665,7 @@
         ],
         "summary": "Get projects that can participate in contest.",
         "description": "Get list of user\u0027s projects that can participate in a given contest.",
-        "operationId": "getAvaliableProjectsForContest",
+        "operationId": "getAvailableProjectsForContest",
         "parameters": [
           {
             "name": "contestName",
@@ -5668,7 +5685,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully fetched projects avaliable for contest.",
+            "description": "Successfully fetched projects available for contest.",
             "content": {
               "*/*": {
                 "schema": {
@@ -7347,9 +7364,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "CONTEST",
-              "GIT",
-              "STANDARD"
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
             ]
           },
           "version": {
@@ -7533,9 +7550,9 @@
           "type": {
             "type": "string",
             "enum": [
-              "CONTEST",
-              "GIT",
-              "STANDARD"
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
             ]
           },
           "version": {

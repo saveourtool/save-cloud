@@ -37,4 +37,13 @@
     <dropColumn tableName="lnk_contest_project" columnName="score"/>
   </changeSet>
 
+  <changeSet id="lnk_contest_project_add_best_execution" author="petertrr">
+    <addColumn tableName="lnk_contest_project">
+      <column name="best_execution_id" type="bigint" defaultValue="null">
+        <constraints foreignKeyName="fk_lnk_contest_project_execution" references="execution(id)" nullable="true"/>
+      </column>
+      <column name="best_score" type="bigint"/>
+    </addColumn>
+  </changeSet>
+
 </databaseChangeLog>

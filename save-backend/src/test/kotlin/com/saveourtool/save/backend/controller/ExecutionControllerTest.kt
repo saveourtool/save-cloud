@@ -8,7 +8,7 @@ import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -97,7 +97,7 @@ class ExecutionControllerTest {
             .expectBody<ExecutionDto>()
             .consumeWith {
                 requireNotNull(it.responseBody)
-                assertEquals(ExecutionType.GIT, it.responseBody!!.type)
+                assertEquals(TestingType.PRIVATE_TESTS, it.responseBody!!.type)
             }
     }
 

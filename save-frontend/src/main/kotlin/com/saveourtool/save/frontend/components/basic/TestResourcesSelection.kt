@@ -2,11 +2,12 @@
  * Utility methods for creation of the module window for the selection of test resources
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -25,16 +26,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
 val testResourcesSelection = prepareTestResourcesSelection()
-
-/**
- * Types of testing (that can be selected by user)
- */
-enum class TestingType {
-    CONTEST_MODE,
-    PRIVATE_TESTS,
-    PUBLIC_TESTS,
-    ;
-}
 
 /**
  * Properties for test resources

@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 data class ExecutionDto(
     val id: Long,
     val status: ExecutionStatus,
-    val type: ExecutionType,
+    val type: TestingType,
     val version: String?,
     val startTime: Long,
     val endTime: Long?,
@@ -44,7 +44,7 @@ data class ExecutionDto(
         val empty = ExecutionDto(
             id = -1,
             status = ExecutionStatus.PENDING,
-            type = ExecutionType.STANDARD,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             startTime = -1,
             endTime = null,

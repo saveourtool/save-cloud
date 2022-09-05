@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -135,6 +135,7 @@ class ExecutionService(
      * @param sdk
      * @param execCmd
      * @param batchSizeForAnalyzer
+     * @param testingType
      * @return new [Execution] with provided values
      */
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
@@ -147,6 +148,7 @@ class ExecutionService(
         sdk: Sdk,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
+        testingType: TestingType
     ): Execution {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
@@ -165,6 +167,7 @@ class ExecutionService(
             sdk = sdk.toString(),
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
+            testingType = testingType
         )
     }
 
@@ -187,6 +190,7 @@ class ExecutionService(
         sdk = execution.sdk,
         execCmd = execution.execCmd,
         batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+        testingType = execution.type,
     )
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -200,6 +204,7 @@ class ExecutionService(
         sdk: String,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
+        testingType: TestingType
     ): Execution {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
@@ -214,8 +219,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
-            // FIXME: remove this type
-            type = ExecutionType.GIT,
+            type = testingType,
             version = version,
             allTests = allTests,
             runningTests = 0,
