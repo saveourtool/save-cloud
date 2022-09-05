@@ -286,18 +286,6 @@ class SaveAgent(private val config: AgentConfiguration,
             append(" ${config.testSuitesDir}")
             append(" $cliArgs")
             with(config.save) {
-                batchSize?.let {
-                    append(" --batch-size $it")
-                }
-                batchSeparator?.let {
-                    append(" --batch-separator \"$it\"")
-                }
-                overrideExecCmd?.let {
-                    append(" --override-exec-cmd \"$it\"")
-                }
-                overrideExecFlags?.let {
-                    append(" --override-exec-flags \"$it\"")
-                }
                 append(" --report-type ${reportType.name.lowercase()}")
                 append(" --result-output ${resultOutput.name.lowercase()}")
                 append(" --report-dir $reportDir")
