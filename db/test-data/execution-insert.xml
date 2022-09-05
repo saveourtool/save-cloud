@@ -15,7 +15,7 @@
             <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="3" />
             <column name="passed_tests" value="9" />
@@ -43,7 +43,7 @@
             <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
@@ -71,7 +71,7 @@
             <column name="test_suite_ids" value="4" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="2" />
             <column name="passed_tests" value="0" />
@@ -99,7 +99,7 @@
             <column name="test_suite_ids" value="1, 2, 3" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
-            <column name="type" value="GIT" />
+            <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="3" />
             <column name="passed_tests" value="9" />
@@ -127,7 +127,7 @@
             <column name="test_suite_ids" value="11" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />
@@ -156,7 +156,7 @@
             <column name="test_suite_ids" value="11" />
             <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
-            <column name="type" value="STANDARD" />
+            <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
             <column name="running_tests" value="0" />
             <column name="passed_tests" value="0" />

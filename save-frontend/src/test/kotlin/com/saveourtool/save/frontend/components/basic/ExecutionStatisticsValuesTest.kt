@@ -2,7 +2,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +25,7 @@ class ExecutionStatisticsValuesTest {
         val executionDto = ExecutionDto(
             id = -1,
             status = ExecutionStatus.RUNNING,
-            type = ExecutionType.GIT,
+            type = TestingType.PRIVATE_TESTS,
             version = "N/A",
             startTime = 0L,
             endTime = null,

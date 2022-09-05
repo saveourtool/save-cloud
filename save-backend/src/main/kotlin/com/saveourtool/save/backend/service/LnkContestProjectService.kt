@@ -54,7 +54,7 @@ class LnkContestProjectService(
     fun saveLnkContestProject(project: Project, contest: Contest): Boolean = if (lnkContestProjectRepository.findByContestAndProject(contest, project).isPresent) {
         false
     } else {
-        lnkContestProjectRepository.save(LnkContestProject(project, contest))
+        lnkContestProjectRepository.save(LnkContestProject(project, contest, null, 0))
         true
     }
 }
