@@ -220,9 +220,9 @@ class TestDiscoveringService(
 
     @Suppress("TYPE_ALIAS")
     private fun Map<TestSuiteDto, List<TestDto>>.saveTests() =
-        values.flatten()
-        .toFlux()
-        .save()
+            values.flatten()
+                .toFlux()
+                .save()
 
     @Suppress("TYPE_ALIAS")
     private fun Sequence<Pair<TestSuiteDto, TestDto>>.convertToMap() = groupBy({ (testSuite, _) ->
