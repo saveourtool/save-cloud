@@ -87,7 +87,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                                 }
                             }
                             div {
-                                className = ClassName("col-lg-5")
+                                className = ClassName("col-lg-4")
                                 div {
                                     className = ClassName("card flex-md-row mb-1 box-shadow")
                                     style = jso {

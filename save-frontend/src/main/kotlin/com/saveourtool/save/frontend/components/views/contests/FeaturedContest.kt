@@ -137,7 +137,7 @@ private fun featuredContest() = VFC {
                         +"Featured Contest"
                     }
                     h3 {
-                        className = ClassName("mb-0")
+                        className = ClassName("mb-0 text-dark")
                         +"Stay turned..."
                     }
                     p {
