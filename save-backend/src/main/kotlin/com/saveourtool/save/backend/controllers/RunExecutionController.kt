@@ -105,6 +105,10 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { executionService.findExecution(executionId) }
         .switchIfEmptyToNotFound { "Not found execution id = $executionId" }
+        .filter { it.type != TestingType.CONTEST_MODE }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Rerun is not supported for executions that were performed under a contest"
+        }
         .validateAccess(authentication) { execution ->
             ProjectCoordinates(
                 execution.project.organization.name,

@@ -38,6 +38,7 @@ import javax.persistence.ManyToOne
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property testSuiteSourceName
+ * @property score a rating of this execution. Specific meaning may vary depending on [type]
  */
 @Suppress("LongParameterList")
 @Entity
@@ -95,28 +96,31 @@ class Execution(
 
     var testSuiteSourceName: String?,
 
+    var score: Double?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ExecutionDto(
-        id!!,
-        status,
-        type,
-        version,
-        startTime.toEpochSecond(ZoneOffset.UTC),
-        endTime?.toEpochSecond(ZoneOffset.UTC),
-        allTests,
-        runningTests,
-        passedTests,
-        failedTests,
-        skippedTests,
-        unmatchedChecks,
-        matchedChecks,
-        expectedChecks,
-        unexpectedChecks,
-        testSuiteSourceName,
+        id = id!!,
+        status = status,
+        type = type,
+        version = version,
+        startTime = startTime.toEpochSecond(ZoneOffset.UTC),
+        endTime = endTime?.toEpochSecond(ZoneOffset.UTC),
+        allTests = allTests,
+        runningTests = runningTests,
+        passedTests = passedTests,
+        failedTests = failedTests,
+        skippedTests = skippedTests,
+        unmatchedChecks = unmatchedChecks,
+        matchedChecks = matchedChecks,
+        expectedChecks = expectedChecks,
+        unexpectedChecks = unexpectedChecks,
+        testSuiteSourceName = testSuiteSourceName,
+        score = score,
     )
 
     /**
@@ -173,6 +177,7 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
             testSuiteSourceName = "",
+            score = null,
         )
 
         /**

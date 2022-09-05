@@ -236,6 +236,7 @@ class ExecutionService(
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
             testSuiteSourceName = testSuiteSourceName,
+            score = null,
         )
         val savedExecution = saveExecution(execution)
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")

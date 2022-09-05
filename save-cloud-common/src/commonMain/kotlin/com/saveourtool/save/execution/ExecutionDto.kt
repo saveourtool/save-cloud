@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
  * @property expectedChecks
  * @property unexpectedChecks
  * @property testSuiteSourceName
+ * @property score see [Execution.score]
  */
 @Serializable
 @Suppress("LongParameterList")
@@ -39,6 +40,7 @@ data class ExecutionDto(
     val expectedChecks: Long,
     val unexpectedChecks: Long,
     val testSuiteSourceName: String?,
+    val score: Double?,
 ) {
     companion object {
         val empty = ExecutionDto(
@@ -58,6 +60,7 @@ data class ExecutionDto(
             expectedChecks = 0,
             unexpectedChecks = 0,
             testSuiteSourceName = "",
+            score = null,
         )
     }
 }

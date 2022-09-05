@@ -33,4 +33,14 @@
     </rollback>
   </changeSet>
 
+  <changeSet id="move-score-from-lnk_contest_execution-to-execution" author="petertrr" context="dev or prod">
+    <addColumn tableName="execution">
+      <column name="score" type="double" defaultValue="0.0"/>
+    </addColumn>
+    <sql>
+      update execution set score = (select score from lnk_contest_execution lce inner join execution e on e.id = lce.execution_id);
+    </sql>
+    <dropColumn tableName="lnk_contest_execution" columnName="score"/>
+  </changeSet>
+
 </databaseChangeLog>
