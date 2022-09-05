@@ -79,6 +79,8 @@ data class Project(
         email ?: "",
     )
 
+    fun shortToString() = "[organization=${organization.name},name=$name]"
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.

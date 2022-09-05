@@ -42,4 +42,6 @@ class LnkContestExecutionService(
     fun getLatestExecutionByContestAndProjectIds(contest: Contest, projectIds: List<Long>) = lnkContestExecutionRepository
         .findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest, projectIds)
         .distinctBy { it.execution.project }
+
+    fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
 }
