@@ -195,19 +195,34 @@ class TestDiscoveringService(
     ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
 
     @Suppress("TYPE_ALIAS")
-    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = zipWhen {
+    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap {
         it.saveTestSuites()
-    }.flatMap { (testsMap, testSuites) ->
-        testsMap.saveTests().thenJust(testSuites)
+    }.map { testsMap ->
+        testsMap.mapValues { (testSuite, tests) ->
+            tests.map { it.copy(testSuiteId = testSuite.requiredId()) }
+        }
+    }.flatMap { testsMaps ->
+        testsMaps.values
+            .flatten()
+            .toFlux()
+            .save()
+            .thenJust(testsMaps.keys.toList())
     }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = keys.toList().save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = entries
+        .toFlux()
+        .flatMap { (testSuiteDto, tests) ->
+            listOf(testSuiteDto).save().map { it.first() to tests }
+        }
+        .collectList()
+        .map { it.toMap() }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() = values.flatten()
-        .toFlux()
-        .save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() =
+            values.flatten()
+                .toFlux()
+                .save()
 
     @Suppress("TYPE_ALIAS")
     private fun Sequence<Pair<TestSuiteDto, TestDto>>.convertToMap() = groupBy({ (testSuite, _) ->

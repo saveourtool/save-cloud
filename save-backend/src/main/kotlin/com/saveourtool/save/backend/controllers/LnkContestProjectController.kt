@@ -94,10 +94,11 @@ class LnkContestProjectController(
     ).getScores()
 
     private fun Flux<LnkContestProject>.getScores() = map {
-        it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+        it to lnkContestProjectService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
     }
         .map { (lnkContestProject, score) ->
-            lnkContestProject.toContestResult(score)
+            // fixme: score should be either Double or Int everywhere (or BigDecimal)
+            lnkContestProject.toContestResult(score?.toDouble())
         }
 
     @GetMapping("/{contestName}/eligible-projects")
