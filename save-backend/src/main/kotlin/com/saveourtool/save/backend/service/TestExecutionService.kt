@@ -239,6 +239,8 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     matchedChecks += counters.matchedChecks
                     expectedChecks += counters.expectedChecks
                     unexpectedChecks += counters.unexpectedChecks
+
+                    score = toDto().calculateScore()
                 }
                 executionRepository.save(execution)
             }

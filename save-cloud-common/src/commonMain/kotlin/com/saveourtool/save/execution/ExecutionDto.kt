@@ -42,6 +42,18 @@ data class ExecutionDto(
     val testSuiteSourceName: String?,
     val score: Double?,
 ) {
+    fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
+        ?.run { numerator.toDouble() / denominator }
+        ?.let { it * 100 }
+        ?.toInt()
+
+    fun getPrecisionRate() = calculateRate(matchedChecks, matchedChecks + unexpectedChecks) ?: 0
+
+    fun getRecallRate() = calculateRate(matchedChecks, matchedChecks + unmatchedChecks) ?: 0
+
+    // FixMe: do we need some other algorithm? for now it's F-measure
+    fun calculateScore() = (2 * getPrecisionRate() * getRecallRate()) / (getPrecisionRate() + getRecallRate()).toDouble()
+
     companion object {
         val empty = ExecutionDto(
             id = -1,
