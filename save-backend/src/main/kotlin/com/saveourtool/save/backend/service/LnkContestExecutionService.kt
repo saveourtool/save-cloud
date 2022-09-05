@@ -43,5 +43,10 @@ class LnkContestExecutionService(
         .findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest, projectIds)
         .distinctBy { it.execution.project }
 
+    /**
+     * @param execution
+     * @return a [Contest] under which [execution] has been performed, or `null` if [execution] is not associated
+     * with any [Contest]
+     */
     fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
 }

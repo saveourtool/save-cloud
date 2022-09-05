@@ -17,6 +17,7 @@ import kotlin.math.abs
 
 @ExtendWith(SpringExtension::class)
 @Import(LnkContestProjectService::class)
+@Suppress("UnsafeCallOnNullableType")
 class LnkContestProjectServiceTest {
     @Autowired private lateinit var lnkContestProjectService: LnkContestProjectService
     @MockBean private lateinit var lnkContestProjectRepository: LnkContestProjectRepository

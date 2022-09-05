@@ -70,6 +70,9 @@ class LnkContestProjectService(
         true
     }
 
+    /**
+     * @param newExecution
+     */
     @Transactional
     fun updateBestExecution(newExecution: Execution) {
         val newScore = requireNotNull(newExecution.score) {
@@ -86,8 +89,8 @@ class LnkContestProjectService(
         if (oldBestScore == null || oldBestScore <= newScore) {
             logger.debug {
                 "For project ${project.shortToString()} updating best_score from execution " +
-                    "[id=${lnkContestProject.bestExecution?.id},score=$oldBestScore] to " +
-                    "[id=${newExecution.id},score=$newScore]"
+                        "[id=${lnkContestProject.bestExecution?.id},score=$oldBestScore] to " +
+                        "[id=${newExecution.id},score=$newScore]"
             }
             lnkContestProject.bestExecution = newExecution
             lnkContestProject.bestScore = newExecution.score
@@ -96,6 +99,7 @@ class LnkContestProjectService(
     }
 
     companion object {
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<LnkContestProjectService>()
     }
 }
