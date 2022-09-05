@@ -171,10 +171,10 @@ class SaveAgent(private val config: AgentConfiguration,
                 overrideExecCmd?.let { put("execCmd", it) }
                 batchSize?.let { put("batchSize", it) }
                 batchSeparator?.let { put("batchSeparator", it) }
-            }.map { (key, value) -> "$key = $value" }
+            }.map { it.toTomlLine() }
             val fixAndWarnConfigs = buildMap {
                 overrideExecFlags?.let { put("execFlags", it) }
-            }.map { (key, value) -> "$key = $value" }
+            }.map { it.toTomlLine() }
             val saveOverridesTomlContent = buildString {
                 if (generalConfig.isNotEmpty()) {
                     appendLine("[general]")
@@ -193,6 +193,11 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
             }
         }
+    }
+
+    private fun Map.Entry<String, Any>.toTomlLine() = when (value) {
+        is String -> "$key = \"$value\""
+        else -> "$key = $value"
     }
 
     @Suppress("WHEN_WITHOUT_ELSE")  // when with sealed class
@@ -286,18 +291,6 @@ class SaveAgent(private val config: AgentConfiguration,
             append(" ${config.testSuitesDir}")
             append(" $cliArgs")
             with(config.save) {
-                batchSize?.let {
-                    append(" --batch-size $it")
-                }
-                batchSeparator?.let {
-                    append(" --batch-separator \"$it\"")
-                }
-                overrideExecCmd?.let {
-                    append(" --override-exec-cmd \"$it\"")
-                }
-                overrideExecFlags?.let {
-                    append(" --override-exec-flags \"$it\"")
-                }
                 append(" --report-type ${reportType.name.lowercase()}")
                 append(" --result-output ${resultOutput.name.lowercase()}")
                 append(" --report-dir $reportDir")
