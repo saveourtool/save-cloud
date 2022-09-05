@@ -4478,6 +4478,49 @@
         ]
       }
     },
+    "/api/v1/organizations/not-deleted": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get non-deleted organizations.",
+        "description": "Get non-deleted organizations.",
+        "operationId": "getNotDeletedOrganizations",
+        "responses": {
+          "200": {
+            "description": "Successfully fetched non-deleted projects.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/get/list": {
       "get": {
         "tags": [
