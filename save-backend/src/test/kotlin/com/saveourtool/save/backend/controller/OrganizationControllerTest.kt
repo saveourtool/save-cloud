@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
@@ -40,14 +41,28 @@ import java.util.*
     GitService::class,
     TestSuitesSourceService::class,
     TestSuitesService::class,
-    ExecutionService::class,
-    AgentStatusService::class,
-    AgentService::class,
     WebConfig::class,
-    ProjectService::class,
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
     UserDetailsService::class,
+)
+@MockBeans(
+    MockBean(ExecutionService::class),
+    MockBean(ProjectService::class),
+    MockBean(AgentService::class),
+    MockBean(AgentStatusService::class),
+    MockBean(TestSuitesSourceRepository::class),
+    MockBean(TestSuiteRepository::class),
+    MockBean(TestRepository::class),
+    MockBean(TestExecutionRepository::class),
+    MockBean(TestSuitesSourceSnapshotStorage::class),
+    MockBean(ExecutionRepository::class),
+    MockBean(AgentStatusRepository::class),
+    MockBean(AgentRepository::class),
+    MockBean(ProjectRepository::class),
+    MockBean(LnkUserProjectRepository::class),
+    MockBean(OriginalLoginRepository::class),
+    MockBean(LnkContestProjectService::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -85,39 +100,6 @@ class OrganizationControllerTest {
 
     @MockBean
     private lateinit var gitRepository: GitRepository
-
-    @MockBean
-    private lateinit var testSuitesSourceRepository: TestSuitesSourceRepository
-
-    @MockBean
-    private lateinit var testSuiteRepository: TestSuiteRepository
-
-    @MockBean
-    private lateinit var testRepository: TestRepository
-
-    @MockBean
-    private lateinit var testExecutionRepository: TestExecutionRepository
-
-    @MockBean
-    private lateinit var testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage
-
-    @MockBean
-    private lateinit var executionRepository: ExecutionRepository
-
-    @MockBean
-    private lateinit var agentStatusRepository: AgentStatusRepository
-
-    @MockBean
-    private lateinit var agentRepository: AgentRepository
-
-    @MockBean
-    private lateinit var projectRepository: ProjectRepository
-
-    @MockBean
-    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
-
-    @MockBean
-    private lateinit var originalLoginRepository: OriginalLoginRepository
 
     @BeforeEach
     internal fun setUp() {
