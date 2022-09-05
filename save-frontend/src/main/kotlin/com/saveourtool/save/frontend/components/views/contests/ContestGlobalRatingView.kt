@@ -156,14 +156,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
         scope.launch {
             val organizationsFromBackend: List<Organization> = get(
-                url = "$apiUrl/organizations/all",
+                url = "$apiUrl/organizations/not-deleted",
                 headers = jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             )
                 .decodeFromJsonString()
 
             val projectsFromBackend: List<Project> = get(
-                url = "$apiUrl/projects/all",
+                url = "$apiUrl/projects/not-deleted",
                 headers = jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             )

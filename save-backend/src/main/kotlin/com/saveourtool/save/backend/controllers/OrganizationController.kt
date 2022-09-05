@@ -14,11 +14,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.entities.toOrganization
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -76,6 +72,18 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations() = Mono.fromCallable {
         organizationService.findAll()
+    }
+
+    @GetMapping("/not-deleted")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get non-deleted organizations.",
+        description = "Get non-deleted organizations.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
+    fun getNotDeletedOrganizations() = Mono.fromCallable {
+        organizationService.getNotDeletedOrganizations()
     }
 
     @GetMapping("/{organizationName}")

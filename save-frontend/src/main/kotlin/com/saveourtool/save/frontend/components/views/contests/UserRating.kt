@@ -123,7 +123,7 @@ private fun userRating() = VFC {
     val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
     useRequest {
         val organizationsFromBackend: List<Organization> = get(
-            url = "$apiUrl/organizations/all",
+            url = "$apiUrl/organizations/not-deleted",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
@@ -134,7 +134,7 @@ private fun userRating() = VFC {
     val (projects, setProjects) = useState<Set<Project>>(emptySet())
     useRequest {
         val projectsFromBackend: List<Project> = get(
-            url = "$apiUrl/projects/all",
+            url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )

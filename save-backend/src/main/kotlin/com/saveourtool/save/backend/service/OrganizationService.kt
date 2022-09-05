@@ -51,6 +51,16 @@ class OrganizationService(
         }
 
     /**
+     * @return not deleted Organizations
+     */
+    fun getNotDeletedOrganizations(): List<Organization> {
+        val organizations = organizationRepository.findAll { root, _, cb ->
+            cb.notEqual(root.get<String>("status"), OrganizationStatus.DELETED)
+        }
+        return organizations
+    }
+
+    /**
      * @param organizationId
      * @return organization by id
      */
