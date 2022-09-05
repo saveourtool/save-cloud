@@ -132,7 +132,7 @@ fun Project.createStackDeployTask(profile: String) {
                 "Deploy to docker swarm. If swarm contains more than one node, some registry for built images is required."
         // this command puts env variables into compose file
         val composeCmd =
-                "docker compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
+                "docker-compose -f ${rootProject.buildDir}/docker-compose.yaml --env-file ${rootProject.buildDir}/.env config"
         val stackCmd = "docker stack deploy --compose-file -" +
                 if (useOverride && composeOverride.exists()) {
                     " --compose-file ${composeOverride.canonicalPath}"
@@ -158,9 +158,9 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startMysqlDbService") {
         dependsOn("generateComposeFile")
         doFirst {
-            logger.lifecycle("Running the following command: [docker compose --file $buildDir/docker-compose.yaml up -d mysql]")
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d mysql]")
         }
-        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "mysql")
         errorOutput = ByteArrayOutputStream()
         doLast {
             logger.lifecycle("Waiting $MYSQL_STARTUP_DELAY_MILLIS millis for mysql to start")
@@ -178,10 +178,10 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("startKafka") {
         dependsOn("generateComposeFile")
         doFirst {
-            logger.lifecycle("Running the following command: [docker compose --file $buildDir/docker-compose.yaml up -d kafka]")
+            logger.lifecycle("Running the following command: [docker-compose --file $buildDir/docker-compose.yaml up -d kafka]")
         }
         errorOutput = ByteArrayOutputStream()
-        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "kafka")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "up", "-d", "kafka")
         doLast {
             logger.lifecycle("Waiting $KAFKA_STARTUP_DELAY_MILLIS millis for kafka to start")
             Thread.sleep(KAFKA_STARTUP_DELAY_MILLIS)  // wait for kafka to start, can be manually increased when needed
@@ -190,14 +190,14 @@ fun Project.createStackDeployTask(profile: String) {
 
     tasks.register<Exec>("restartMysqlDb") {
         dependsOn("generateComposeFile")
-        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "mysql")
         finalizedBy("startMysqlDb")
     }
 
     tasks.register<Exec>("restartKafka") {
         dependsOn("generateComposeFile")
-        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
-        commandLine("docker", "compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "kafka")
+        commandLine("docker-compose", "--file", "$buildDir/docker-compose.yaml", "rm", "--force", "zookeeper")
         finalizedBy("startKafka")
     }
 
@@ -205,8 +205,7 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
         commandLine(
-            "docker",
-            "compose",
+            "docker-compose",
             "--file",
             "$buildDir/docker-compose.yaml",
             "up",
