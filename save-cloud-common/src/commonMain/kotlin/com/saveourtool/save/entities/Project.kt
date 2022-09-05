@@ -79,6 +79,9 @@ data class Project(
         email ?: "",
     )
 
+    /**
+     * Return the shortest unique representation of this [Project] as a string
+     */
     fun shortToString() = "[organization=${organization.name},name=$name]"
 
     companion object {
