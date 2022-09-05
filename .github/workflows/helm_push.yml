@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Helm
-        uses: azure/setup-helm@v2
+        uses: azure/setup-helm@v3
         with:
           version: 3.*
       - name: Login to GitHub Container Registry
