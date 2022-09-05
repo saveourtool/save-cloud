@@ -167,14 +167,14 @@ class SaveAgent(private val config: AgentConfiguration,
     // prepare save-overrides.toml based on config.save.*
     private fun prepareSaveOverridesToml(targetDirectory: Path) = runCatching {
         with(config.save) {
-            val generalConfig = buildMap {
-                overrideExecCmd?.let { put("execCmd", it) }
-                batchSize?.let { put("batchSize", it) }
-                batchSeparator?.let { put("batchSeparator", it) }
-            }.map { (key, value) -> "$key = $value" }
-            val fixAndWarnConfigs = buildMap {
-                overrideExecFlags?.let { put("execFlags", it) }
-            }.map { (key, value) -> "$key = $value" }
+            val generalConfig = buildList {
+                overrideExecCmd?.let { add("execCmd = \"$it\"") }
+                batchSize?.let { add("batchSize = $it") }
+                batchSeparator?.let { add("batchSeparator = \"$it\"") }
+            }
+            val fixAndWarnConfigs = buildList {
+                overrideExecFlags?.let { add("execFlags = \"$it\"") }
+            }
             val saveOverridesTomlContent = buildString {
                 if (generalConfig.isNotEmpty()) {
                     appendLine("[general]")
