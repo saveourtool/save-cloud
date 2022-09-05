@@ -25,7 +25,7 @@ class LnkContestProject(
     @JoinColumn(name = "best_execution_id")
     var bestExecution: Execution?,
 
-    var bestScore: Int,
+    var bestScore: Double?,
 
 ) : BaseEntity() {
     /**

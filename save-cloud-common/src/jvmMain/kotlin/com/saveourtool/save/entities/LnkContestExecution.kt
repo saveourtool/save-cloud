@@ -10,7 +10,6 @@ import javax.persistence.OneToOne
  *
  * @property contest
  * @property execution
- * @property score the result of an execution
  */
 @Entity
 class LnkContestExecution(
@@ -22,7 +21,6 @@ class LnkContestExecution(
     @JoinColumn(name = "contest_id")
     var contest: Contest,
 
-    var score: Double
 ) : BaseEntity() {
     /**
      * @return [ContestResult] from [LnkContestExecution]
@@ -31,7 +29,7 @@ class LnkContestExecution(
         execution.project.name,
         execution.project.organization.name,
         contest.name,
-        score,
+        execution.score,
         execution.startTime,
         execution.status,
         execution.sdk,

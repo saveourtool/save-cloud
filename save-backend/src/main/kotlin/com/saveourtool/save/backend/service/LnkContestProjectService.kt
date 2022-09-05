@@ -46,6 +46,14 @@ class LnkContestProjectService(
         }
 
     /**
+     * @param project
+     * @param contestName
+     * @return best score of [project] under [Contest] with name [contestName]
+     */
+    fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
+            lnkContestProjectRepository.findByProjectAndContestName(project, contestName)?.bestScore
+
+    /**
      * @param project a [Project]
      * @param contest a [Contest]
      * @return true if record is saved, false if is already present
@@ -54,7 +62,7 @@ class LnkContestProjectService(
     fun saveLnkContestProject(project: Project, contest: Contest): Boolean = if (lnkContestProjectRepository.findByContestAndProject(contest, project).isPresent) {
         false
     } else {
-        lnkContestProjectRepository.save(LnkContestProject(project, contest, null, 0))
+        lnkContestProjectRepository.save(LnkContestProject(project, contest, null, 0.0))
         true
     }
 }

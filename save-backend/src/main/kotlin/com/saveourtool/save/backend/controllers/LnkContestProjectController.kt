@@ -94,7 +94,7 @@ class LnkContestProjectController(
     ).getScores()
 
     private fun Flux<LnkContestProject>.getScores() = map {
-        it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+        it to lnkContestProjectService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
     }
         .map { (lnkContestProject, score) ->
             lnkContestProject.toContestResult(score)
