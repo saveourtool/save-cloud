@@ -53,4 +53,10 @@ interface LnkContestExecutionRepository : BaseEntityRepository<LnkContestExecuti
      * @return [LnkContestExecution] associated with [project] and [Contest] with name [contestName]
      */
     fun findByExecutionProjectAndContestName(project: Project, contestName: String): LnkContestExecution?
+
+    /**
+     * @param execution
+     * @return [LnkContestExecution] if any is associated with [execution]
+     */
+    fun findByExecution(execution: Execution): LnkContestExecution?
 }
