@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.preprocessor.config.ConfigProperties
 import com.saveourtool.save.preprocessor.utils.cloneBranchToDirectory
+import com.saveourtool.save.preprocessor.utils.cloneCommitToDirectory
 import com.saveourtool.save.preprocessor.utils.cloneTagToDirectory
 import com.saveourtool.save.utils.*
 import org.eclipse.jgit.util.FileUtils
@@ -72,6 +73,22 @@ class GitPreprocessorService(
         repositoryProcessor: GitRepositoryProcessor<T>,
     ): Mono<T> = doCloneAndProcessDirectory(gitDto, repositoryProcessor) {
         cloneBranchToDirectory(branchName, it)
+    }
+
+    /**
+     * @param gitDto
+     * @param commitId
+     * @param repositoryProcessor operation on folder should be finished here -- folder will be removed after it
+     * @return result of [repositoryProcessor]
+     * @throws IllegalStateException
+     * @throws Exception
+     */
+    fun <T> cloneCommitAndProcessDirectory(
+        gitDto: GitDto,
+        commitId: String,
+        repositoryProcessor: GitRepositoryProcessor<T>,
+    ): Mono<T> = doCloneAndProcessDirectory(gitDto, repositoryProcessor) {
+        cloneCommitToDirectory(commitId, it)
     }
 
     @Suppress("TooGenericExceptionCaught")
