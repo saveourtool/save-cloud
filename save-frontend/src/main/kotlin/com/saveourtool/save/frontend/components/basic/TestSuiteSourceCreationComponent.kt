@@ -146,6 +146,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             "Organization name",
             testSuiteSource.organizationName
         )
+        // TODO: need to remove git branch
         inputTextFormOptional {
             form = InputTypes.GIT_BRANCH
             textValue = testSuiteSource.branch

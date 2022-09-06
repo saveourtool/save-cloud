@@ -59,18 +59,6 @@ class TestSuitesController(
                 .map { testSuitesService.saveTestSuite(it) }
                 .defaultIfEmpty(emptyList())
 
-    @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get standard test suites.",
-        description = "Get list of standard TestSuiteDtos.",
-        deprecated = true,
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched standard test suites.")
-    fun getAllStandardTestSuites(): Mono<ResponseListTestSuites> =
-            testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }
-
     @PostMapping("/api/$v1/test-suites/get-by-ids")
     @PreAuthorize("permitAll()")
     @Operation(
