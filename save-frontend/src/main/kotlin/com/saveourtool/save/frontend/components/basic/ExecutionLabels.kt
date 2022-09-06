@@ -7,7 +7,6 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
