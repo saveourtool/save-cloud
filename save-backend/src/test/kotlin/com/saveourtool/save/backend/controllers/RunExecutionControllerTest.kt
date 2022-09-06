@@ -53,6 +53,10 @@ class RunExecutionControllerTest(
     @Autowired private lateinit var testRepository: TestRepository
     @Autowired private lateinit var testExecutionRepository: TestExecutionRepository
 
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "LongMethod"
+    )
     @WithMockUser("admin")
     @Test
     fun trigger() {
