@@ -206,7 +206,7 @@ class CloneRepoTest {
         )
 
         webClient.post()
-            .uri("/api/$v1/run/trigger")
+            .uri("/api/$v1/run/trigger?testingType={testingType}", TestingType.PRIVATE_TESTS.name)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(runExecutionRequest)
             .exchange()
@@ -253,7 +253,7 @@ class CloneRepoTest {
             batchSizeForAnalyzer = null,
         )
         webClient.post()
-            .uri("/api/$v1/run/trigger")
+            .uri("/api/$v1/run/trigger?testingType={testingType}", TestingType.PRIVATE_TESTS.name)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(runExecutionRequest)
             .exchange()
