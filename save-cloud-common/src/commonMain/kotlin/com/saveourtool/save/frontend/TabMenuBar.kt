@@ -17,16 +17,6 @@ interface TabMenuBar<T> {
     val regexForUrlClassification: Regex
 
     /**
-     * Contains the url of the default tab
-     */
-    var pathDefaultTab: String
-
-    /**
-     * Contains the prefix of the url of the tabs
-     */
-    var extendedViewPath: String
-
-    /**
      * @return Array of elements this Enum
      */
     fun values(): Array<T>
@@ -43,16 +33,6 @@ interface TabMenuBar<T> {
      */
     fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem.uppercase()) == it }
 
-    /**
-     * Function set shortPath and longPath in Pair path
-     *
-     * @param shortPath
-     * @param longPath
-     */
-    fun setPath(shortPath: String, longPath: String) {
-        pathDefaultTab = shortPath
-        extendedViewPath = longPath
-    }
 
     /**
      * @param role

@@ -45,9 +45,7 @@ enum class ContestMenuBar {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = Regex("/contest/[^/]+/[^/]+/($postfixInRegex)")
-        override var pathDefaultTab: String = ""
-        override var extendedViewPath: String = ""
+        override val regexForUrlClassification = Regex("/contests/[^/]+/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
@@ -87,12 +85,16 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
         console.log("component Did Update")
-        if (state.selectedMenu != prevState.selectedMenu) changeUrl(state.selectedMenu, ContestMenuBar) else urlAnalysis(ContestMenuBar, Role.NONE, false)
+        scope.launch {
+            if (state.selectedMenu != prevState.selectedMenu)
+                changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+            else
+                urlAnalysis(ContestMenuBar, Role.NONE, false)
+        }
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
-        ContestMenuBar.setPath("#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
     }

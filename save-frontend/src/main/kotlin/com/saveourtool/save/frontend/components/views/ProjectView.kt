@@ -283,7 +283,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, ProjectMenuBar) else urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        scope.launch {
+            if (prevState.selectedMenu != state.selectedMenu)
+                changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
+            else
+                urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION")
@@ -309,7 +314,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 selfRole = role
             }
 
-            ProjectMenuBar.setPath("#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
             urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)

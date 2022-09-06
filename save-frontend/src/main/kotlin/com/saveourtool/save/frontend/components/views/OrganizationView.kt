@@ -224,10 +224,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu)
-            changeUrl(state.selectedMenu, OrganizationMenuBar)
-        else
-            urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
+        console.log("${state.selectedMenu}  ,  ${props.organizationName}")
+        scope.launch {
+            if (state.selectedMenu != prevState.selectedMenu)
+                changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/organization/${props.organizationName}")
+            else {
+                urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
+            }
+        }
     }
 
     override fun componentDidMount() {
@@ -248,7 +252,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 selfRole = highestRole
                 usersInOrganization = users
             }
-            OrganizationMenuBar.setPath("#/${props.organizationName}", "#/organization/${props.organizationName}")
             urlAnalysis(OrganizationMenuBar, highestRole, state.organization?.canCreateContests)
         }
     }

@@ -91,7 +91,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     override fun componentDidMount() {
         super.componentDidMount()
 
-        BenchmarkCategoryEnum.setPath("#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         scope.launch {
             getBenchmarks()
@@ -99,7 +98,12 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
     }
 
     override fun componentDidUpdate(prevProps: PropsWithChildren, prevState: AwesomeBenchmarksState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) changeUrl(state.selectedMenu, BenchmarkCategoryEnum) else urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
+        scope.launch {
+            if (prevState.selectedMenu != state.selectedMenu)
+                changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            else
+                urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
