@@ -246,7 +246,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     private fun getProject(filterValue: ProjectFilters) {
         scope.launch {
             val projectsFromBackend: List<Project> = post(
-                url = "$apiUrl/projects/not-deleted-filter",
+                url = "$apiUrl/projects/not-deleted",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,

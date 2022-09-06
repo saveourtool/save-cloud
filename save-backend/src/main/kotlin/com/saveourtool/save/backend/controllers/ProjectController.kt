@@ -80,23 +80,7 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @GetMapping("/not-deleted")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get non-deleted projects.",
-        description = "Get non-deleted projects, avaliable for current user.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedProjects(
-        authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjects()
-        .toFlux()
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
-
-    @PostMapping("/not-deleted-filter")
+    @PostMapping("/not-deleted")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

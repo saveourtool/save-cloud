@@ -134,9 +134,10 @@ private fun userRating() = VFC {
 
     val (projects, setProjects) = useState<Set<Project>>(emptySet())
     useRequest {
-        val projectsFromBackend: List<Project> = get(
+        val projectsFromBackend: List<Project> = post(
             url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
