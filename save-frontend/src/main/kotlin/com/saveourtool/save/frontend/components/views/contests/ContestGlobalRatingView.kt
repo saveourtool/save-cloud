@@ -19,6 +19,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
+import history.Location
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -48,6 +49,8 @@ external interface ContestGlobalRatingProps : Props {
      * Filters for organization name
      */
     var organizationName: String?
+
+    var location: Location
 }
 
 /**
@@ -63,7 +66,6 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
      * All projects
      */
     var projects: Array<Project>
-    
 
     /**
      * All filters for project
@@ -146,7 +148,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 organizationFilters = filter
                             }
                             getOrganization(filter)
-                            //getProject(ProjectFilters(null))
+                            // getProject(ProjectFilters(null))
                             window.location.href = "${window.location.href.substringBefore("?")}?organizationName=$filterValue"
                         }
                     }
@@ -207,7 +209,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                             setState {
                                 projectFilters = filter
                             }
-                            //getOrganization(OrganizationFilters(null))
+                            // getOrganization(OrganizationFilters(null))
                             getProject(filter)
                             window.location.href = "${window.location.href.substringBefore("?")}?projectName=$filterValue"
                         }
@@ -258,15 +260,17 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     }
 
     override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
+        console.log("componentDidUpdate")
         if (state.selectedMenu != prevState.selectedMenu) {
             changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
                 "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
-        } else {
+        } else if (props.location != prevProps.location){
             urlAnalysis(UserRatingTab, Role.NONE, false)
         }
     }
 
     override fun componentDidMount() {
+        console.log("componentDidMount")
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
         val organizationFilters = OrganizationFilters(props.organizationName)
@@ -280,6 +284,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     }
 
     override fun ChildrenBuilder.render() {
+        console.log("render")
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
             h1 {

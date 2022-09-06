@@ -97,6 +97,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         ContestGlobalRatingView::class.react {
             organizationName = URLSearchParams(location.search).get("organizationName")
             projectName = URLSearchParams(location.search).get("projectName")
+            this.location = location
         }
     }
     private val contestView: FC<Props> = withRouter { location, params ->
