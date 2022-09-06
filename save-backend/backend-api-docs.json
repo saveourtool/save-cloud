@@ -1220,7 +1220,7 @@
         ]
       }
     },
-    "/api/v1/projects/not-deleted-filter": {
+    "/api/v1/projects/not-deleted": {
       "post": {
         "tags": [
           "projects"
@@ -3942,49 +3942,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/UserInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/projects/not-deleted": {
-      "get": {
-        "tags": [
-          "projects"
-        ],
-        "summary": "Get non-deleted projects.",
-        "description": "Get non-deleted projects, avaliable for current user.",
-        "operationId": "getNotDeletedProjects",
-        "responses": {
-          "200": {
-            "description": "Successfully fetched non-deleted projects.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
                   }
                 }
               }
