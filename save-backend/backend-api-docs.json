@@ -6871,6 +6871,14 @@
           }
         }
       },
+      "ProjectFilters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "Organization": {
         "required": [
           "canCreateContests",
@@ -6912,11 +6920,57 @@
           }
         }
       },
-      "ProjectFilters": {
+      "Project": {
+        "required": [
+          "contestRating",
+          "name",
+          "numberOfContainers",
+          "organization",
+          "public",
+          "status"
+        ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "contestRating": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -7180,60 +7234,6 @@
           "score": {
             "type": "number",
             "format": "double"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "Project": {
-        "required": [
-          "contestRating",
-          "name",
-          "numberOfContainers",
-          "organization",
-          "public",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "CREATED",
-              "DELETED"
-            ]
-          },
-          "public": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "email": {
-            "type": "string"
-          },
-          "numberOfContainers": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
-          },
-          "contestRating": {
-            "type": "integer",
-            "format": "int64"
           },
           "id": {
             "type": "integer",
