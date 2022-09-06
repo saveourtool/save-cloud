@@ -84,7 +84,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
     fun getNotDeletedOrganizations(@RequestBody(required = false) organizationFilters: OrganizationFilters?) =
-            organizationService.getNotDeletedOrganizations(organizationFilters?.name).toFlux()
+            organizationService.getNotDeletedOrganizations(organizationFilters).toFlux()
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")

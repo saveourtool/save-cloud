@@ -107,7 +107,7 @@ class ProjectController(
     fun getNotDeletedProjectsWithFilters(
         @RequestBody(required = false) projectFilters: ProjectFilters?,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters?.name)
+    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
