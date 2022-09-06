@@ -41,12 +41,6 @@ data class WebClientProperties(
  * @property organizationName
  * @property projectName
  * @property sdk
- * @property gitUrl
- * @property gitUserName
- * @property gitPassword
- * @property branch
- * @property commitHash
- * @property testRootPath
  * @property additionalFiles
  * @property testSuites
  * @property execCmd
@@ -57,12 +51,6 @@ data class EvaluatedToolProperties(
     val organizationName: String,
     val projectName: String,
     val sdk: String? = null,
-    val gitUrl: String,
-    val gitUserName: String? = null,
-    val gitPassword: String? = null,
-    val branch: String? = null,
-    val commitHash: String? = null,
-    val testRootPath: String,
     val additionalFiles: String? = null,
     val testSuites: String,
     val execCmd: String? = null,

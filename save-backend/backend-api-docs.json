@@ -755,50 +755,6 @@
         ]
       }
     },
-    "/api/v1/submitExecutionRequest": {
-      "post": {
-        "tags": [
-          "clone-repository-controller"
-        ],
-        "operationId": "submitExecutionRequest",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "required": [
-                  "executionRequest"
-                ],
-                "type": "object",
-                "properties": {
-                  "executionRequest": {
-                    "$ref": "#/components/schemas/ExecutionRequest"
-                  },
-                  "file": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/ShortFileInfo"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/api/v1/run/trigger": {
       "post": {
         "tags": [
@@ -2078,51 +2034,6 @@
         ]
       }
     },
-    "/api/v1/executionRequestStandardTests": {
-      "post": {
-        "tags": [
-          "clone-repository-controller"
-        ],
-        "operationId": "executionRequestStandardTests",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "required": [
-                  "execution",
-                  "file"
-                ],
-                "type": "object",
-                "properties": {
-                  "execution": {
-                    "$ref": "#/components/schemas/ExecutionRequestForStandardSuites"
-                  },
-                  "file": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/ShortFileInfo"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/api/v1/execution/delete": {
       "post": {
         "tags": [
@@ -2816,57 +2727,6 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/get-standard": {
-      "get": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "List of standard test suites sources.",
-        "description": "List of standard test suites sources.",
-        "operationId": "getStandardTestSuitesSources",
-        "parameters": [
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully listed standard test suites sources.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
     "/api/v1/execution": {
       "get": {
         "tags": [
@@ -2896,50 +2756,6 @@
             }
           }
         }
-      }
-    },
-    "/api/v1/allStandardTestSuites": {
-      "get": {
-        "tags": [
-          "test-suites"
-        ],
-        "summary": "Get standard test suites.",
-        "description": "Get list of standard TestSuiteDtos.",
-        "operationId": "getAllStandardTestSuites",
-        "responses": {
-          "200": {
-            "description": "Successfully fetched standard test suites.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true,
-        "security": [
-          {
-            "basic": []
-          }
-        ]
       }
     },
     "/api/v1/users/{userName}": {
@@ -6858,172 +6674,6 @@
           }
         }
       },
-      "ExecutionRequest": {
-        "required": [
-          "gitDto",
-          "project",
-          "sdk",
-          "testRootPath"
-        ],
-        "type": "object",
-        "properties": {
-          "project": {
-            "$ref": "#/components/schemas/Project"
-          },
-          "gitDto": {
-            "$ref": "#/components/schemas/GitDto"
-          },
-          "branchOrCommit": {
-            "type": "string"
-          },
-          "testRootPath": {
-            "type": "string"
-          },
-          "sdk": {
-            "$ref": "#/components/schemas/Sdk"
-          },
-          "executionId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "execCmd": {
-            "type": "string"
-          },
-          "batchSizeForAnalyzer": {
-            "type": "string"
-          }
-        }
-      },
-      "Organization": {
-        "required": [
-          "canCreateContests",
-          "name",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "CREATED",
-              "DELETED"
-            ]
-          },
-          "ownerId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "dateCreated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "avatar": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "canCreateContests": {
-            "type": "boolean"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "Project": {
-        "required": [
-          "contestRating",
-          "name",
-          "numberOfContainers",
-          "organization",
-          "public",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "CREATED",
-              "DELETED"
-            ]
-          },
-          "public": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "email": {
-            "type": "string"
-          },
-          "numberOfContainers": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
-          },
-          "contestRating": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "Sdk": {
-        "required": [
-          "name",
-          "version"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          }
-        }
-      },
-      "ShortFileInfo": {
-        "required": [
-          "isExecutable",
-          "name",
-          "uploadedMillis"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "isExecutable": {
-            "type": "boolean"
-          }
-        }
-      },
       "FileKey": {
         "required": [
           "name",
@@ -7091,6 +6741,21 @@
           }
         }
       },
+      "Sdk": {
+        "required": [
+          "name",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
       "SetRoleRequest": {
         "required": [
           "role",
@@ -7142,6 +6807,47 @@
           },
           "email": {
             "type": "string"
+          }
+        }
+      },
+      "Organization": {
+        "required": [
+          "canCreateContests",
+          "name",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "canCreateContests": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -7215,38 +6921,6 @@
           },
           "isExecutable": {
             "type": "boolean"
-          }
-        }
-      },
-      "ExecutionRequestForStandardSuites": {
-        "required": [
-          "project",
-          "sdk",
-          "testSuites"
-        ],
-        "type": "object",
-        "properties": {
-          "project": {
-            "$ref": "#/components/schemas/Project"
-          },
-          "testSuites": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "sdk": {
-            "$ref": "#/components/schemas/Sdk"
-          },
-          "execCmd": {
-            "type": "string"
-          },
-          "batchSizeForAnalyzer": {
-            "type": "string"
-          },
-          "executionId": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
@@ -7429,6 +7103,60 @@
           "score": {
             "type": "number",
             "format": "double"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Project": {
+        "required": [
+          "contestRating",
+          "name",
+          "numberOfContainers",
+          "organization",
+          "public",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "contestRating": {
+            "type": "integer",
+            "format": "int64"
           },
           "id": {
             "type": "integer",

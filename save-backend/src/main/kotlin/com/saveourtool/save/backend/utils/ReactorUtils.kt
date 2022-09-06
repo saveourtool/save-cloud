@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
@@ -93,18 +92,3 @@ fun <T : Any> T?.toMonoOrNotFound(message: String? = null) = toMono<T>().switchI
 fun <T> justOrNotFound(data: Optional<T>, message: String? = null) = Mono.justOrEmpty(data).switchIfEmptyToNotFound {
     message
 }
-
-/**
- * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
- *
- * @param supplier blocking operation like JDBC
- * @return [Mono] from result of blocking operation [T]
- */
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
-
-/**
- * @param supplier blocking operation like JDBC
- * @return [Flux] from result of blocking operation [List] of [T]
- */
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }

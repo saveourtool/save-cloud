@@ -61,6 +61,11 @@ fun String.toRole() = Role.values().find {
 } ?: throw IllegalStateException("Unknown role is passed: $this")
 
 /**
+ * @return lambda which does the same as receiver but takes unused arg
+ */
+fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
  *
  * @param text text to display
