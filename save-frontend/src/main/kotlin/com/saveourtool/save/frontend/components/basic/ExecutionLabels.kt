@@ -7,7 +7,6 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
@@ -101,25 +100,15 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
-                    "${it.getPrecisionRate()}"
-                } else {
-                    "N/A"
-                }
+                "${it.getPrecisionRate()}"
             }
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
-                    "${it.getRecallRate()}"
-                } else {
-                    "N/A"
-                }
+                "${it.getRecallRate()}"
             }
             ?: "0"
     }
-
-    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
 }
 
 /**
