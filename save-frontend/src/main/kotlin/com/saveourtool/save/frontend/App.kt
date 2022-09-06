@@ -212,7 +212,9 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = awesomeBenchmarksView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>("archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView.create())
+                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
+                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView.create()
+                                )
 
                                 Route {
                                     path = "/${FrontendRoutes.REGISTRATION.path}"
@@ -226,7 +228,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = contestView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<ContestMenuBar>("${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
@@ -298,7 +300,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/organization/:owner", organizationView.create())
+                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView.create())
 
                                 Route {
                                     path = "/:owner/:name/history"
@@ -310,7 +312,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = projectView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/project/:owner/:name", projectView.create())
+                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView.create())
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -354,6 +356,10 @@ inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachList
             path = "$href/$item"
             element = routeElement
         }
+    }
+    Route {
+        path = href
+        element = routeElement
     }
 }
 

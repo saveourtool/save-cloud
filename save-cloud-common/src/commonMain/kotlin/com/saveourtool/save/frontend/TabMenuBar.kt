@@ -12,7 +12,7 @@ interface TabMenuBar<T> {
     val defaultTab: T
 
     /**
-     * Regular expression for url classification
+     * Regular expression to determine tab based on URL
      */
     val regexForUrlClassification: Regex
 
