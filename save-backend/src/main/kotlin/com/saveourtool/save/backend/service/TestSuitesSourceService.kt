@@ -12,7 +12,6 @@ import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
@@ -86,6 +85,7 @@ class TestSuitesSourceService(
      * @param entity [TestSuitesSource] to be updated
      * @return status of updating [TestSuitesSource]
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
     fun update(entity: TestSuitesSource): Boolean {
         requireNotNull(entity.id) {

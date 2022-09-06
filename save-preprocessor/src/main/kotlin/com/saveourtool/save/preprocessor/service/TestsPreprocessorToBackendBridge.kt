@@ -70,18 +70,18 @@ class TestsPreprocessorToBackendBridge(
      * @return result of delete operation
      */
     fun deleteTestSuitesSourceVersion(testSuitesSource: TestSuitesSourceDto, version: String): Mono<Unit> =
-        webClientBackend.delete()
-            .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-snapshot?version={version}",
-                testSuitesSource.organizationName, testSuitesSource.name, version)
-            .retrieve()
-            .bodyToMono<Boolean>()
-            .map { isDeleted ->
-                with (testSuitesSource) {
-                    log.debug {
-                        "Result of delete operation for $name in $organizationName is $isDeleted"
+            webClientBackend.delete()
+                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/delete-snapshot?version={version}",
+                    testSuitesSource.organizationName, testSuitesSource.name, version)
+                .retrieve()
+                .bodyToMono<Boolean>()
+                .map { isDeleted ->
+                    with(testSuitesSource) {
+                        log.debug {
+                            "Result of delete operation for $name in $organizationName is $isDeleted"
+                        }
                     }
                 }
-            }
 
     /**
      * @param testSuiteDtos

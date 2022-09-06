@@ -211,8 +211,9 @@ class TestSuitesService(
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
-    fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) =
-            doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
+    fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
+        doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
+    }
 
     /**
      * Delete testSuites and related tests & test executions from DB
@@ -220,8 +221,9 @@ class TestSuitesService(
      * @param source
      * @param version
      */
-    fun deleteTestSuite(source: TestSuitesSource, version: String) =
-            doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
+    fun deleteTestSuite(source: TestSuitesSource, version: String) {
+        doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
+    }
 
     private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
         testSuites.forEach { testSuite ->
@@ -254,6 +256,7 @@ class TestSuitesService(
             executionService.updateExecutionStatus(executionService.findExecution(it).orNotFound(), ExecutionStatus.OBSOLETE)
         }
     }
+
     /**
      * @param testSuiteIds IDs of [TestSuite]
      * @return a single version got from test suites

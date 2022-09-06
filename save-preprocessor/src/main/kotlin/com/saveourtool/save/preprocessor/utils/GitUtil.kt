@@ -16,8 +16,6 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.time.Instant
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteExisting
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
@@ -56,7 +54,6 @@ fun GitDto.cloneBranchToDirectory(branch: String, pathToDirectory: Path): Instan
  */
 fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, branchWithPrefix = tagName to Constants.R_TAGS)
 
-
 /**
  * @param commitId
  * @param pathToDirectory
@@ -64,6 +61,26 @@ fun GitDto.cloneTagToDirectory(tagName: String, pathToDirectory: Path): Instant 
  * @throws IllegalStateException
  */
 fun GitDto.cloneCommitToDirectory(commitId: String, pathToDirectory: Path): Instant = doCloneToDirectory(pathToDirectory, commitToCheckout = commitId)
+
+/**
+ * Sorted set of tags for [GitDto]
+ *
+ * @return list of tags
+ * @throws IllegalStateException
+ */
+fun GitDto.detectTagList(): Collection<String> = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setRemote(url)
+    .setHeads(false)
+    .setTags(true)
+    .gitCallWithRethrow { it.callAsMap() }
+    .filterKeys { it.startsWith(Constants.R_TAGS) }
+    .mapKeys { (key, _) -> key.removePrefix(Constants.R_TAGS) }
+    .mapValues { (_, value) -> value.objectId.name }
+    .toSortedMap()
+    .entries
+    .map { it.toPair() }
+    .map { it.first }
 
 private fun GitDto.doCloneToDirectory(
     pathToDirectory: Path,
@@ -101,26 +118,6 @@ private fun GitDto.doCloneToDirectory(
             }
         }
     }
-
-/**
- * Sorted set of tags for [GitDto]
- *
- * @return list of tags
- * @throws IllegalStateException
- */
-fun GitDto.detectTagList(): Collection<String> = Git.lsRemoteRepository()
-    .setCredentialsProvider(credentialsProvider())
-    .setRemote(url)
-    .setHeads(false)
-    .setTags(true)
-    .gitCallWithRethrow { it.callAsMap() }
-    .filterKeys { it.startsWith(Constants.R_TAGS) }
-    .mapKeys { (key, _) -> key.removePrefix(Constants.R_TAGS) }
-    .mapValues { (_, value) -> value.objectId.name }
-    .toSortedMap()
-    .entries
-    .map { it.toPair() }
-    .map { it.first }
 
 private fun GitDto.credentialsProvider(): CredentialsProvider? = when {
     username != null && password != null -> UsernamePasswordCredentialsProvider(username, password)

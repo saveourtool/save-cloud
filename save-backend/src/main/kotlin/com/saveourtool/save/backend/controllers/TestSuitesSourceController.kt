@@ -409,7 +409,6 @@ class TestSuitesSourceController(
             }
         }
 
-
     @DeleteMapping(
         "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites",
         "/internal/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites"

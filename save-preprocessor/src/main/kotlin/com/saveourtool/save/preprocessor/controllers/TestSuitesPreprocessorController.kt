@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono
 import kotlin.io.path.div
 
 typealias TestSuiteList = List<TestSuite>
+typealias CloneAndProcessDirectory = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -51,11 +52,12 @@ class TestSuitesPreprocessorController(
         }
         .flatMap {
             fetchTestSuites(
-                GitPreprocessorService::cloneBranchAndProcessDirectory,
+                testSuitesSourceDto,
                 tagName,
-                testSuitesSourceDto
+                GitPreprocessorService::cloneBranchAndProcessDirectory
             )
-        }.lazyDefaultIfEmpty {
+        }
+        .lazyDefaultIfEmpty {
             with(testSuitesSourceDto) {
                 log.debug { "Test suites source $name in $organizationName already contains version $tagName" }
             }
@@ -90,11 +92,12 @@ class TestSuitesPreprocessorController(
             } else {
                 Mono.just(Unit)
             }
-        }.flatMap {
+        }
+        .flatMap {
             fetchTestSuites(
-                GitPreprocessorService::cloneBranchAndProcessDirectory,
+                testSuitesSourceDto,
                 branchName,
-                testSuitesSourceDto
+                GitPreprocessorService::cloneBranchAndProcessDirectory
             )
         }
 
@@ -115,22 +118,24 @@ class TestSuitesPreprocessorController(
         .filterWhen {
             testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, commitId)
                 .map(Boolean::not)
-        }.flatMap {
+        }
+        .flatMap {
             fetchTestSuites(
-                GitPreprocessorService::cloneCommitAndProcessDirectory,
+                testSuitesSourceDto,
                 commitId,
-                testSuitesSourceDto
+                GitPreprocessorService::cloneCommitAndProcessDirectory
             )
-        }.lazyDefaultIfEmpty {
+        }
+        .lazyDefaultIfEmpty {
             with(testSuitesSourceDto) {
                 log.debug { "There is no new version for $name in $organizationName" }
             }
         }
 
     private fun fetchTestSuites(
-        cloneAndProcessDirectory: GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>,
-        cloneObject: String,
         testSuitesSourceDto: TestSuitesSourceDto,
+        cloneObject: String,
+        cloneAndProcessDirectory: CloneAndProcessDirectory,
     ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectory(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, creationTime ->
         gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
