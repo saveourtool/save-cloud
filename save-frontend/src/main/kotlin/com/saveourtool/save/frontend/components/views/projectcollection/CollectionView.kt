@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
-import com.saveourtool.save.frontend.utils.get
+import com.saveourtool.save.frontend.utils.post
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
@@ -100,11 +100,12 @@ class CollectionView : AbstractView<CreationViewProps, State>() {
 
                 projectsTable {
                     getData = { _, _ ->
-                        val response = get(
+                        val response = post(
                             url = "$apiUrl/projects/not-deleted",
                             headers = Headers().also {
                                 it.set("Accept", "application/json")
                             },
+                            body = undefined,
                             loadingHandler = ::classLoadingHandler,
                         )
                         if (response.ok) {

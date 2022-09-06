@@ -1176,6 +1176,58 @@
         ]
       }
     },
+    "/api/v1/projects/not-deleted": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get non-deleted projects.",
+        "description": "Get non-deleted projects, available for current user.",
+        "operationId": "getNotDeletedProjectsWithFilters",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully fetched non-deleted projects.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/users/roles": {
       "get": {
         "tags": [
@@ -1690,6 +1742,58 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/not-deleted": {
+      "post": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get non-deleted organizations.",
+        "description": "Get non-deleted organizations.",
+        "operationId": "getNotDeletedOrganizations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully fetched non-deleted projects.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  }
                 }
               }
             }
@@ -3654,49 +3758,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/UserInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/projects/not-deleted": {
-      "get": {
-        "tags": [
-          "projects"
-        ],
-        "summary": "Get non-deleted projects.",
-        "description": "Get non-deleted projects, avaliable for current user.",
-        "operationId": "getNotDeletedProjects",
-        "responses": {
-          "200": {
-            "description": "Successfully fetched non-deleted projects.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
                   }
                 }
               }
@@ -6810,6 +6871,14 @@
           }
         }
       },
+      "ProjectFilters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "Organization": {
         "required": [
           "canCreateContests",
@@ -6844,6 +6913,60 @@
           },
           "canCreateContests": {
             "type": "boolean"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Project": {
+        "required": [
+          "contestRating",
+          "name",
+          "numberOfContainers",
+          "organization",
+          "public",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "numberOfContainers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/Organization"
+          },
+          "contestRating": {
+            "type": "integer",
+            "format": "int64"
           },
           "id": {
             "type": "integer",
@@ -6888,6 +7011,14 @@
                 "VIEWER"
               ]
             }
+          }
+        }
+      },
+      "OrganizationFilters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -7103,60 +7234,6 @@
           "score": {
             "type": "number",
             "format": "double"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "Project": {
-        "required": [
-          "contestRating",
-          "name",
-          "numberOfContainers",
-          "organization",
-          "public",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "CREATED",
-              "DELETED"
-            ]
-          },
-          "public": {
-            "type": "boolean"
-          },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "email": {
-            "type": "string"
-          },
-          "numberOfContainers": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/Organization"
-          },
-          "contestRating": {
-            "type": "integer",
-            "format": "int64"
           },
           "id": {
             "type": "integer",
