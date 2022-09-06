@@ -167,6 +167,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         "LongMethod",
         "MAGIC_NUMBER",
         "MagicNumber",
+        "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
