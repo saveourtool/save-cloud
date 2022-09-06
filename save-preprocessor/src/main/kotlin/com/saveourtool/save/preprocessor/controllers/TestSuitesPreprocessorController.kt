@@ -39,7 +39,7 @@ class TestSuitesPreprocessorController(
      * @return empty response
      */
     @PostMapping("/fetch-from-tag")
-    fun fetch(
+    fun fetchFromTag(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam tagName: String,
     ): Mono<Unit> = Mono.fromCallable {
@@ -49,12 +49,13 @@ class TestSuitesPreprocessorController(
             testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, tagName)
                 .map(Boolean::not)
         }
-        .flatMap { fetchTestSuites(
-            GitPreprocessorService::cloneBranchAndProcessDirectory,
-            tagName,
-            testSuitesSourceDto
-        ) }
-        .lazyDefaultIfEmpty {
+        .flatMap {
+            fetchTestSuites(
+                GitPreprocessorService::cloneBranchAndProcessDirectory,
+                tagName,
+                testSuitesSourceDto
+            )
+        }.lazyDefaultIfEmpty {
             with(testSuitesSourceDto) {
                 log.debug { "Test suites source $name in $organizationName already contains version $tagName" }
             }
@@ -71,36 +72,60 @@ class TestSuitesPreprocessorController(
     fun fetchFromBranch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam branchName: String,
-    ): Mono<Unit> = fetchTestSuites(
-        GitPreprocessorService::cloneBranchAndProcessDirectory,
-        branchName,
-        testSuitesSourceDto
-    ).lazyDefaultIfEmpty {
-        with(testSuitesSourceDto) {
-            log.debug { "There is no new version for $name in $organizationName" }
-        }
+    ): Mono<Unit> = Mono.fromCallable {
+        log.debug { "Checking if source ${testSuitesSourceDto.name} already contains such version and it should be overridden." }
     }
+        .flatMap {
+            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, branchName)
+        }
+        .flatMap { doesContain ->
+            if (doesContain) {
+                testsPreprocessorToBackendBridge.deleteTestSuites(testSuitesSourceDto, branchName)
+                    .then(
+                        testsPreprocessorToBackendBridge.deleteTestSuitesSourceVersion(
+                            testSuitesSourceDto,
+                            branchName
+                        )
+                    )
+            } else {
+                Mono.just(Unit)
+            }
+        }.flatMap {
+            fetchTestSuites(
+                GitPreprocessorService::cloneBranchAndProcessDirectory,
+                branchName,
+                testSuitesSourceDto
+            )
+        }
 
     /**
      * Fetch new tests suites from provided source from latest sha-1 in provided branch
      *
      * @param testSuitesSourceDto source from which test suites need to be loaded
-     * @param branchName branch from which the latest commit needs to be loaded, will be used as version
+     * @param commitId commit which needs to be loaded, will be used as version
      * @return empty response
      */
     @PostMapping("/fetch-from-commit")
     fun fetchFromCommit(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam commitId: String,
-    ): Mono<Unit> = fetchTestSuites(
-        GitPreprocessorService::cloneCommitAndProcessDirectory,
-        commitId,
-        testSuitesSourceDto
-    ).lazyDefaultIfEmpty {
-        with(testSuitesSourceDto) {
-            log.debug { "There is no new version for $name in $organizationName" }
-        }
+    ): Mono<Unit> = Mono.fromCallable {
+        log.debug { "Checking if source ${testSuitesSourceDto.name} needs to be fetched." }
     }
+        .filterWhen {
+            testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(testSuitesSourceDto, commitId)
+                .map(Boolean::not)
+        }.flatMap {
+            fetchTestSuites(
+                GitPreprocessorService::cloneCommitAndProcessDirectory,
+                commitId,
+                testSuitesSourceDto
+            )
+        }.lazyDefaultIfEmpty {
+            with(testSuitesSourceDto) {
+                log.debug { "There is no new version for $name in $organizationName" }
+            }
+        }
 
     private fun fetchTestSuites(
         cloneAndProcessDirectory: GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>,
@@ -121,14 +146,9 @@ class TestSuitesPreprocessorController(
                 )
             }
         }
-    }
-        .log(testSuitesSourceDto, cloneObject)
-        .then(Mono.just(Unit))
-
-    private fun Mono<TestSuiteList>.log(testSuitesSourceDto: TestSuitesSourceDto, version: String): Mono<TestSuiteList> = map { testSuites ->
+    }.map { testSuites ->
         with(testSuitesSourceDto) {
-            log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $version" }
-            testSuites
+            log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
         }
     }
 

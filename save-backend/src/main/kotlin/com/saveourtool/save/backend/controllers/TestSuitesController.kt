@@ -29,8 +29,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 
-typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
-
 /**
  * Controller for test suites
  */

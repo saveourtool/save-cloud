@@ -60,7 +60,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchLatestAlreadyContains() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any()))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, "tagName")
+        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, "tagName")
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any())
@@ -77,7 +77,7 @@ internal class TestSuitesPreprocessorControllerTest {
                 true
             }))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, "tagName")
+        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, "tagName")
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
@@ -94,7 +94,7 @@ internal class TestSuitesPreprocessorControllerTest {
         val version = "some"
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, version)
+        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, version)
             .block()
 
         verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
