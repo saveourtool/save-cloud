@@ -34,8 +34,9 @@ SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 ### Configuration of information about evaluated tool
 
 To specify information about project, that you would like to evaluate,
-it's necessary to create the fields below in command promt. The `organizationName`,
-`projectName` are required:
+it's necessary to create the fields below in command prompt.
+The `organizationName`, `projectName` are required.
+IDs of test suites should be provided for execution. Also need to provide a list of additional files:
 
 
 ```bash
@@ -48,12 +49,18 @@ projectName='"save"'
 # Optional
 sdkName='"openjdk"'
 sdkVersion='"11"'
+
+# Required
+testSuites='[1, 2]'
+
+# Required
+additionalFiles='[fileName1:123;fileName2:321]'
 ```
 
 **Note**: The `organizationName` here is intentionally don't contain quotes, since this value
 will be used in requests url, while other in requests bodies.
 
-IDs of test suites should be provided for execution. Also need to provide a list of additional files.
+
 
 #### Optional configuration
 <details>

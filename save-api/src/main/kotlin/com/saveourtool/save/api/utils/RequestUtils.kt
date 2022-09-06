@@ -8,7 +8,6 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.utils.LocalDateTimeSerializer
@@ -54,17 +53,6 @@ private object UserInformation {
     lateinit var username: String
     lateinit var source: String
 }
-
-/**
- * @param projectName
- * @param organizationName
- * @return Project instance
- */
-suspend fun HttpClient.getProjectByNameAndOrganizationName(
-    projectName: String, organizationName: String
-): Project = getRequestWithAuthAndJsonContentType(
-    "${Backend.url}/api/$v1/projects/get/organization-name?name=$projectName&organizationName=$organizationName"
-).body()
 
 /**
  * @return list of available files from storage

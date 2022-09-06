@@ -16,6 +16,7 @@ import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import io.ktor.client.*
 import io.ktor.http.*
@@ -90,7 +91,7 @@ class SaveCloudClient(
                 projectName = evaluatedToolProperties.projectName,
             ),
             testSuiteIds = evaluatedToolProperties.testSuites
-                .split(";")
+                .split(DATABASE_DELIMITER)
                 .map { it.toLong() },
             files = additionalFiles?.map { it.toStorageKey() }.orEmpty(),
             sdk = evaluatedToolProperties.sdk.toSdk(),
