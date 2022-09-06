@@ -14,11 +14,8 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.entities.toOrganization
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -39,6 +36,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
 
 import java.time.LocalDateTime
@@ -76,6 +74,17 @@ internal class OrganizationController(
     fun getAllOrganizations() = Mono.fromCallable {
         organizationService.findAll()
     }
+
+    @PostMapping("/not-deleted")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Get non-deleted organizations.",
+        description = "Get non-deleted organizations.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
+    fun getNotDeletedOrganizations(@RequestBody(required = false) organizationFilters: OrganizationFilters?) =
+            organizationService.getNotDeletedOrganizations(organizationFilters).toFlux()
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")

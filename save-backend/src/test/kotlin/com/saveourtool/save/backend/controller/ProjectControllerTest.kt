@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
@@ -54,9 +55,10 @@ class ProjectControllerTest {
         }
 
         webClient
-            .get()
+            .post()
             .uri("/api/$v1/projects/not-deleted")
             .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(ProjectFilters(null))
             .exchange()
             .expectStatus()
             .isOk

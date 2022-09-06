@@ -11,7 +11,7 @@ import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext

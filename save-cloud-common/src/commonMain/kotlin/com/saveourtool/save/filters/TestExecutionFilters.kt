@@ -1,4 +1,4 @@
-package com.saveourtool.save.execution
+package com.saveourtool.save.filters
 
 import com.saveourtool.save.domain.TestResultStatus
 import kotlinx.serialization.Serializable

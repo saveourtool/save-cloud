@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.*
@@ -121,9 +122,10 @@ private fun userRating() = VFC {
 
     val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
     useRequest {
-        val organizationsFromBackend: List<Organization> = get(
-            url = "$apiUrl/organizations/all",
+        val organizationsFromBackend: List<Organization> = post(
+            url = "$apiUrl/organizations/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -132,9 +134,10 @@ private fun userRating() = VFC {
 
     val (projects, setProjects) = useState<Set<Project>>(emptySet())
     useRequest {
-        val projectsFromBackend: List<Project> = get(
-            url = "$apiUrl/projects/all",
+        val projectsFromBackend: List<Project> = post(
+            url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -172,8 +175,7 @@ private fun userRating() = VFC {
 
                     a {
                         className = ClassName("mb-5")
-                        // FixMe: new view on this link
-                        href = ""
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
                         +"View more "
                     }
                 }

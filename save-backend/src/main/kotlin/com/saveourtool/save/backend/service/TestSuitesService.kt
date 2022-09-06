@@ -7,11 +7,12 @@ import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
+
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.extra.math.max
+
 import java.time.LocalDateTime
 
 typealias TestSuiteDtoList = List<TestSuiteDto>
