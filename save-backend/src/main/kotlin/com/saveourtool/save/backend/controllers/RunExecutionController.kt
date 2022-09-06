@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -63,11 +64,13 @@ class RunExecutionController(
     /**
      * @param request incoming request from frontend
      * @param authentication
+     * @param testingType type for this execution
      * @return response with ID of created [Execution]
      */
     @PostMapping("/trigger")
     fun trigger(
         @RequestBody request: RunExecutionRequest,
+        @RequestParam testingType: TestingType,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
@@ -79,7 +82,8 @@ class RunExecutionController(
                 username = authentication.username(),
                 sdk = request.sdk,
                 execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer
+                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                testingType = testingType
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
@@ -101,6 +105,10 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { executionService.findExecution(executionId) }
         .switchIfEmptyToNotFound { "Not found execution id = $executionId" }
+        .filter { it.type != TestingType.CONTEST_MODE }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Rerun is not supported for executions that were performed under a contest"
+        }
         .validateAccess(authentication) { execution ->
             ProjectCoordinates(
                 execution.project.organization.name,

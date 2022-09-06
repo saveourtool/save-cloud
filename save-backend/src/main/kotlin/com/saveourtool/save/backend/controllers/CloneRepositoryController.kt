@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
@@ -27,6 +28,7 @@ import reactor.kotlin.core.util.function.component2
  */
 @RestController
 @RequestMapping("/api")
+@Deprecated("All new logic should use RunExecutionController's endpoints")
 class CloneRepositoryController(
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceService: TestSuitesSourceService,
@@ -50,6 +52,7 @@ class CloneRepositoryController(
     ): Mono<StringResponse> =
             sendToTrigger(
                 executionRequest,
+                TestingType.PRIVATE_TESTS,
                 authentication,
                 files,
                 { true }
@@ -87,6 +90,7 @@ class CloneRepositoryController(
     ): Mono<StringResponse> =
             sendToTrigger(
                 executionRequestForStandardSuites,
+                TestingType.PUBLIC_TESTS,
                 authentication,
                 files,
                 { it.name in executionRequestForStandardSuites.testSuites }
@@ -94,9 +98,15 @@ class CloneRepositoryController(
                 testSuitesSourceService.getStandardTestSuitesSources()
             }
 
-    @Suppress("TOO_LONG_FUNCTION", "TOO_MANY_LINES_IN_LAMBDA")
+    @Suppress(
+        "TOO_LONG_FUNCTION",
+        "TOO_MANY_LINES_IN_LAMBDA",
+        "TOO_MANY_PARAMETERS",
+        "LongParameterList",
+    )
     private fun <T : ExecutionRequestBase> sendToTrigger(
         executionRequest: T,
+        testingType: TestingType,
         authentication: Authentication,
         shortFiles: Flux<ShortFileInfo>,
         testSuitesFilter: (TestSuite) -> Boolean,
@@ -143,7 +153,7 @@ class CloneRepositoryController(
                 )
             }
             .flatMap {
-                runExecutionController.trigger(it, authentication)
+                runExecutionController.trigger(it, testingType, authentication)
             }
     }
 

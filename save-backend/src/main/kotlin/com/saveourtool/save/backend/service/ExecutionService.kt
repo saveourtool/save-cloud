@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -34,6 +34,7 @@ class ExecutionService(
     private val testExecutionRepository: TestExecutionRepository,
     @Lazy private val testSuitesService: TestSuitesService,
     private val configProperties: ConfigProperties,
+    private val lnkContestProjectService: LnkContestProjectService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -65,6 +66,12 @@ class ExecutionService(
         if (updatedExecution.status == ExecutionStatus.FINISHED || updatedExecution.status == ExecutionStatus.ERROR) {
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
+
+            if (execution.type == TestingType.CONTEST_MODE) {
+                // maybe this execution is the new best execution under a certain contest
+                lnkContestProjectService.updateBestExecution(execution)
+            }
+
             // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
             testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.requiredId()).map { testExec ->
                 log.debug {
@@ -135,6 +142,7 @@ class ExecutionService(
      * @param sdk
      * @param execCmd
      * @param batchSizeForAnalyzer
+     * @param testingType
      * @return new [Execution] with provided values
      */
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
@@ -147,6 +155,7 @@ class ExecutionService(
         sdk: Sdk,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
+        testingType: TestingType
     ): Execution {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
@@ -165,6 +174,7 @@ class ExecutionService(
             sdk = sdk.toString(),
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
+            testingType = testingType
         )
     }
 
@@ -187,6 +197,7 @@ class ExecutionService(
         sdk = execution.sdk,
         execCmd = execution.execCmd,
         batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+        testingType = execution.type,
     )
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -200,6 +211,7 @@ class ExecutionService(
         sdk: String,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
+        testingType: TestingType
     ): Execution {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
@@ -214,8 +226,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
-            // FIXME: remove this type
-            type = ExecutionType.GIT,
+            type = testingType,
             version = version,
             allTests = allTests,
             runningTests = 0,
@@ -232,6 +243,7 @@ class ExecutionService(
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
             testSuiteSourceName = testSuiteSourceName,
+            score = null,
         )
         val savedExecution = saveExecution(execution)
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")

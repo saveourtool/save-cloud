@@ -29,11 +29,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
         with:
           version: 3.*
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -42,10 +42,10 @@ jobs:
         name: Prepare to build from branch
         run: |
           git checkout origin/${{ inputs.branch }}
-      - uses: gittools/actions/gitversion/setup@v0.9.7
+      - uses: gittools/actions/gitversion/setup@v0.9.13
         with:
           versionSpec: 5.x
-      - uses: gittools/actions/gitversion/execute@v0.9.7
+      - uses: gittools/actions/gitversion/execute@v0.9.13
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}

@@ -173,7 +173,7 @@ class KubernetesManager(
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
 
         val staticEnvs = env.mapToEnvs()
-        this.env = staticEnvs + agentIdEnv(AgentEnvName.AGENT_ID)
+        this.env = staticEnvs + agentIdEnv
 
         this.command = agentRunCmd.dropLast(1)
         this.args = listOf(agentRunCmd.last())
@@ -194,15 +194,6 @@ class KubernetesManager(
         }
     }
 
-    private fun agentIdEnv(agentIdEnv: AgentEnvName) = EnvVar().apply {
-        name = agentIdEnv.name
-        valueFrom = EnvVarSource().apply {
-            fieldRef = ObjectFieldSelector().apply {
-                fieldPath = "metadata.name"
-            }
-        }
-    }
-
     private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { (envName, envValue) ->
         EnvVar().apply {
             name = envName.name
@@ -217,5 +208,13 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
+        private val agentIdEnv = EnvVar().apply {
+            name = AgentEnvName.AGENT_ID.name
+            valueFrom = EnvVarSource().apply {
+                fieldRef = ObjectFieldSelector().apply {
+                    fieldPath = "metadata.name"
+                }
+            }
+        }
     }
 }

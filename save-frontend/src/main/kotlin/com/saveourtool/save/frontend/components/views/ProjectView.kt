@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
@@ -336,13 +337,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
+            else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>) {
+    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
@@ -352,10 +354,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             testSuiteIds = selectedTestSuiteIds,
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
-            execCmd = state.execCmd,
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer
+            execCmd = state.execCmd.takeUnless { it.isBlank() },
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() }
         )
-        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
+        submitRequest("/run/trigger?testingType=$testingType", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {
