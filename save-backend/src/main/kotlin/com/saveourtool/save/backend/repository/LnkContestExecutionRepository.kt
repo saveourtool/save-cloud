@@ -18,7 +18,7 @@ interface LnkContestExecutionRepository : BaseEntityRepository<LnkContestExecuti
      * @param pageable
      * @return record with a page of N best scores of a contests of the project
      */
-    fun findByExecutionProjectAndContestNameOrderByScoreDesc(project: Project, contestName: String, pageable: Pageable): Page<LnkContestExecution>
+    fun findByExecutionProjectAndContestNameOrderByExecutionScoreDesc(project: Project, contestName: String, pageable: Pageable): Page<LnkContestExecution>
 
     /**
      * Get N executions of a [Project] in [Contest]
@@ -46,4 +46,17 @@ interface LnkContestExecutionRepository : BaseEntityRepository<LnkContestExecuti
      */
     @Suppress("IDENTIFIER_LENGTH")
     fun findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest: Contest, projectIds: List<Long>): List<LnkContestExecution>
+
+    /**
+     * @param project
+     * @param contestName
+     * @return [LnkContestExecution] associated with [project] and [Contest] with name [contestName]
+     */
+    fun findByExecutionProjectAndContestName(project: Project, contestName: String): LnkContestExecution?
+
+    /**
+     * @param execution
+     * @return [LnkContestExecution] if any is associated with [execution]
+     */
+    fun findByExecution(execution: Execution): LnkContestExecution?
 }

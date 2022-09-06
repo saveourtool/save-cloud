@@ -33,6 +33,7 @@
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="100.0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="2" />
@@ -61,6 +62,7 @@
             <column name="expected_checks" value="0"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="75.0"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="3" />
@@ -89,6 +91,7 @@
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="24.4"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="4" />
@@ -117,6 +120,7 @@
             <column name="expected_checks" value="2"/>
             <column name="unexpected_checks" value="0"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="11.2"/>
         </insert>
         <insert dbms="mysql" tableName="execution">
             <column name="id" value="5" />
@@ -145,6 +149,7 @@
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="0.0"/>
         </insert>
 
         <insert dbms="mysql" tableName="execution">
@@ -174,6 +179,7 @@
             <column name="expected_checks" value="14"/>
             <column name="unexpected_checks" value="3"/>
             <column name="test_suite_source_name" value="unknown"/>
+            <column name="score" value="11.11"/>
         </insert>
     </changeSet>
 

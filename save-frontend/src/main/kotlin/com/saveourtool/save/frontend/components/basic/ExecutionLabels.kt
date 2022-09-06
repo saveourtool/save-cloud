@@ -12,6 +12,9 @@ import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.utils.calculateRate
+import com.saveourtool.save.utils.getPrecisionRate
+import com.saveourtool.save.utils.getRecallRate
 
 import csstype.ClassName
 import csstype.Width
@@ -94,12 +97,12 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.failedTests = executionDto?.failedTests?.toString() ?: "0"
         this.runningTests = executionDto?.runningTests?.toString() ?: "0"
         this.passRate = executionDto
-            ?.let { calculateRate(it.passedTests, it.allTests) }
+            ?.let { "${calculateRate(it.passedTests, it.allTests)}" }
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
                 if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
-                    calculateRate(it.matchedChecks, it.matchedChecks + it.unexpectedChecks)
+                    "${it.getPrecisionRate()}"
                 } else {
                     "N/A"
                 }
@@ -108,7 +111,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.recallRate = executionDto
             ?.let {
                 if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
-                    calculateRate(it.matchedChecks, it.matchedChecks + it.unmatchedChecks)
+                    "${it.getRecallRate()}"
                 } else {
                     "N/A"
                 }
@@ -117,12 +120,6 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
     }
 
     private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
-
-    private fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
-        ?.run { numerator.toDouble() / denominator }
-        ?.let { it * 100 }
-        ?.toInt()
-        ?.toString()
 }
 
 /**

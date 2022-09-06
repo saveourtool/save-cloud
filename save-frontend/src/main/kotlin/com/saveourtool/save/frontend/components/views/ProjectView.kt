@@ -348,8 +348,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             testSuiteIds = selectedTestSuiteIds,
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
-            execCmd = state.execCmd,
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer
+            execCmd = state.execCmd.takeUnless { it.isBlank() },
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() }
         )
         submitRequest("/run/trigger?testingType=$testingType", jsonHeaders, Json.encodeToString(executionRequest))
     }

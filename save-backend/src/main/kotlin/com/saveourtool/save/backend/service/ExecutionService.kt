@@ -34,6 +34,7 @@ class ExecutionService(
     private val testExecutionRepository: TestExecutionRepository,
     @Lazy private val testSuitesService: TestSuitesService,
     private val configProperties: ConfigProperties,
+    private val lnkContestProjectService: LnkContestProjectService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -65,6 +66,12 @@ class ExecutionService(
         if (updatedExecution.status == ExecutionStatus.FINISHED || updatedExecution.status == ExecutionStatus.ERROR) {
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
+
+            if (execution.type == TestingType.CONTEST_MODE) {
+                // maybe this execution is the new best execution under a certain contest
+                lnkContestProjectService.updateBestExecution(execution)
+            }
+
             // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
             testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.requiredId()).map { testExec ->
                 log.debug {
@@ -236,6 +243,7 @@ class ExecutionService(
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
             testSuiteSourceName = testSuiteSourceName,
+            score = null,
         )
         val savedExecution = saveExecution(execution)
         log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")

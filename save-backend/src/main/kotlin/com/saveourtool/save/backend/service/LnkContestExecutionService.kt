@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.LnkContestExecutionRepository
 import com.saveourtool.save.entities.*
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 /**
@@ -13,17 +12,6 @@ import org.springframework.stereotype.Service
 class LnkContestExecutionService(
     private val lnkContestExecutionRepository: LnkContestExecutionRepository,
 ) {
-    /**
-     * @param project
-     * @param contestName
-     * @return best score of a [Project] in contest with name [contestName]
-     */
-    fun getBestScoreOfProjectInContestWithName(project: Project, contestName: String) =
-            lnkContestExecutionRepository.findByExecutionProjectAndContestNameOrderByScoreDesc(project, contestName, Pageable.ofSize(1))
-                .content
-                .singleOrNull()
-                ?.score
-
     /**
      * @param contest
      * @param project
@@ -54,4 +42,11 @@ class LnkContestExecutionService(
     fun getLatestExecutionByContestAndProjectIds(contest: Contest, projectIds: List<Long>) = lnkContestExecutionRepository
         .findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest, projectIds)
         .distinctBy { it.execution.project }
+
+    /**
+     * @param execution
+     * @return a [Contest] under which [execution] has been performed, or `null` if [execution] is not associated
+     * with any [Contest]
+     */
+    fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
 }
