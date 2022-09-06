@@ -29,7 +29,6 @@ import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -39,11 +38,23 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * Custom properties retrieved from the router when a project is being created.
+ */
+external interface ProjectSaveViewProps : Props {
+    /**
+     * The name of the currently selected organization (parent to the newly
+     * created project).
+     */
+    var organizationName: String?
+}
 
 /**
  * [State] of project creation view component
@@ -58,6 +69,14 @@ external interface ProjectSaveViewState : State {
      * Error message
      */
     var errorMessage: String
+
+    /**
+     * The name of the parent organization, or `null` if the project is being
+     * created from scratch.
+     *
+     * @see ProjectSaveViewProps.organizationName
+     */
+    var initialOrganizationName: String?
 
     /**
      * Draft [ProjectDto]
@@ -77,7 +96,7 @@ external interface ProjectSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(true) {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val organizationSelectForm = selectFormRequired<String>()
     init {
@@ -112,6 +131,23 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                         isErrorWithProjectSave = true
                         errorMessage = it
                     }
+                }
+            }
+        }
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+
+        /*
+         * Update the state if there's a parent organization available.
+         */
+        val organizationName = props.organizationName
+        scope.launch {
+            setState {
+                initialOrganizationName = organizationName
+                if (!organizationName.isNullOrEmpty()) {
+                    projectCreationRequest = projectCreationRequest.copy(organizationName = organizationName)
                 }
             }
         }
@@ -155,12 +191,22 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 }
                                 div {
                                     button {
+                                        @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
+                                        val buttonText = "Add new organization"
+                                        val buttonEnabled = state.initialOrganizationName.isNullOrEmpty()
+
                                         type = ButtonType.button
                                         className = ClassName("btn btn-primary mb-2")
-                                        a {
-                                            className = ClassName("text-light")
-                                            href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
-                                            +"Add new organization"
+                                        disabled = !buttonEnabled
+
+                                        when {
+                                            buttonEnabled -> Link {
+                                                className = ClassName("text-light")
+                                                to = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
+                                                +buttonText
+                                            }
+
+                                            else -> +buttonText
                                         }
                                     }
                                 }
@@ -330,7 +376,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
-    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
+    companion object : RStatics<ProjectSaveViewProps, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
         init {
             contextType = requestStatusContext
         }
