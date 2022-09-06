@@ -65,68 +65,6 @@ class TestsPreprocessorToBackendBridge(
                 .bodyToMono()
 
     /**
-     * @param testSuitesSource
-     * @return list of [TestSuitesSourceSnapshotKey] related to [testSuitesSource]
-     */
-    fun listTestSuitesSourceVersions(testSuitesSource: TestSuitesSourceDto): Mono<TestSuitesSourceSnapshotKeyList> =
-            webClientBackend.get()
-                .uri("/test-suites-sources/{organizationName}/{testSuitesSourceName}/list-snapshot",
-                    testSuitesSource.organizationName, testSuitesSource.name)
-                .retrieve()
-                .bodyToMono()
-
-    /**
-     * @param organizationName
-     * @param testSuitesSourceName
-     * @param version
-     * @return list of [TestSuite]
-     */
-    fun getTestSuites(
-        organizationName: String,
-        testSuitesSourceName: String,
-        version: String
-    ) = webClientBackend.get()
-        .uri(
-            "/test-suites-sources/{organizationName}/{testSuitesSourceName}/get-test-suites?version={version}",
-            organizationName, testSuitesSourceName, version
-        )
-        .retrieve()
-        .bodyToMono<List<TestSuite>>()
-
-    /**
-     * @param organizationName
-     * @param gitUrl
-     * @param testRootPath
-     * @param branch
-     * @return created of existed [TestSuitesSourceDto]
-     */
-    fun getOrCreateTestSuitesSource(
-        organizationName: String,
-        gitUrl: String,
-        testRootPath: String,
-        branch: String
-    ): Mono<TestSuitesSourceDto> = webClientBackend.post()
-        .uri(
-            "/test-suites-sources/{organizationName}/get-or-create?gitUrl={gitUrl}&testRootPath={testRootPath}&branch={branch}",
-            organizationName,
-            gitUrl,
-            testRootPath,
-            branch
-        )
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * Will be removed in phase 3
-     *
-     * @return list of standard test suites sourcers
-     */
-    fun getStandardTestSuitesSources(): Mono<TestSuitesSourceDtoList> = webClientBackend.get()
-        .uri("/test-suites-sources/get-standard")
-        .retrieve()
-        .bodyToMono()
-
-    /**
      * @param testSuiteDtos
      * @return list of saved [TestSuite]
      */

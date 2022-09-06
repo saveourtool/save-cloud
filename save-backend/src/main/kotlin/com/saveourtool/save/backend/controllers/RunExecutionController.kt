@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
@@ -14,6 +13,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -192,9 +192,10 @@ class RunExecutionController(
         .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
-            ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")
+            ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()
+        internal const val RESPONSE_BODY_PREFIX = "Clone pending, execution id is "
     }
 }
