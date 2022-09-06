@@ -601,7 +601,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             topProject?.let {
                 scoreCard {
                     name = it.name
-                    contestScore = it.contestRating.toDouble()
+                    contestScore = it.contestRating
                     url = "#/${props.organizationName}/${it.name}"
                 }
             }

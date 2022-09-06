@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
+import com.saveourtool.save.utils.isValid
 
 import csstype.ClassName
 import csstype.Width
@@ -32,6 +33,7 @@ import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
+import react.dom.html.ReactHTML.pre
 
 /**
  * Class contains all execution statistics values for rending
@@ -101,8 +103,9 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
-                    "${it.getPrecisionRate()}"
+                val precisionRate = it.getPrecisionRate()
+                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks) && precisionRate.isValid()) {
+                    "$precisionRate"
                 } else {
                     "N/A"
                 }
@@ -110,8 +113,9 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
-                    "${it.getRecallRate()}"
+                val recallRate = it.getRecallRate()
+                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks) && recallRate.isValid()) {
+                    "$recallRate"
                 } else {
                     "N/A"
                 }

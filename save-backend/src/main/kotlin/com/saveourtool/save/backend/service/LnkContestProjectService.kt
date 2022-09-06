@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class LnkContestProjectService(
     private val lnkContestProjectRepository: LnkContestProjectRepository,
     private val lnkContestExecutionService: LnkContestExecutionService,
+    private val projectService: ProjectService,
 ) {
     /**
      * @param contestName name of a [Contest]
@@ -95,7 +96,19 @@ class LnkContestProjectService(
             lnkContestProject.bestExecution = newExecution
             lnkContestProject.bestScore = newExecution.score
             lnkContestProjectRepository.save(lnkContestProject)
+
+            updateProjectContestRating(project)
         }
+    }
+
+    private fun updateProjectContestRating(project: Project) {
+        val projectContestRating = lnkContestProjectRepository.findByProject(project).mapNotNull {
+            it.bestScore
+        }.sum()
+
+        projectService.updateProject(project.apply {
+            this.contestRating = projectContestRating
+        })
     }
 
     companion object {

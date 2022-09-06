@@ -16,8 +16,8 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.ScoreType
 import com.saveourtool.save.utils.calculateScore
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.isValid
 
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger
@@ -242,7 +242,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     expectedChecks += counters.expectedChecks
                     unexpectedChecks += counters.unexpectedChecks
 
-                    score = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
+                    val executionScore = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
+
+                    if (!executionScore.isValid()) {
+                        log.error("Execution score for execution id $id is invalid: $executionScore")
+                    }
+                    score = executionScore
                 }
                 executionRepository.save(execution)
             }

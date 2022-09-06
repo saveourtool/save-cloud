@@ -51,13 +51,17 @@ private fun ExecutionDto.calculateScoreForContestMode(scoreType: ScoreType): Dou
 }
 
 private fun ExecutionDto.calculateFmeasure(): Double {
-    val denominator = getPrecisionRate() + getRecallRate()
+    val denominator = (getPrecisionRate() + getRecallRate())
     return if (denominator == 0) {
         0.0
     } else {
         (2 * getPrecisionRate() * getRecallRate()) / (getPrecisionRate() + getRecallRate()).toDouble()
     }
 }
+
+fun Double.isValid() = this.toInt().isValid()
+
+fun Int.isValid() = this in 0..100
 
 /**
  * @param numerator
