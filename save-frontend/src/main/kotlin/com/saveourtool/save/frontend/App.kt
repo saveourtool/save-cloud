@@ -8,13 +8,13 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
-import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
+import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -221,7 +221,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
-                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView.create()
+                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView
                                 )
 
                                 Route {
@@ -236,12 +236,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = contestGlobalRatingView.create()
                                 }
 
+                                createRoutersWithPathAndEachListItem<UserRatingTab>("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", contestGlobalRatingView)
+
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView)
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
@@ -313,7 +315,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView.create())
+                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView)
 
                                 Route {
                                     path = "/:owner/:name/history"
@@ -325,7 +327,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = projectView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView.create())
+                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView)
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -358,21 +360,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 }
 
 /**
- * The function creates routers with the given [href] and ending of string with all the elements given Enum<T>
+ * The function creates routers with the given [basePath] and ending of string with all the elements given Enum<T>
  *
- * @param href
+ * @param basePath
  * @param routeElement
  */
-inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(href: String, routeElement: ReactNode?) {
+inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(basePath: String, routeElement: FC<Props>) {
     enumValues<T>().map { it.name.lowercase() }.forEach { item ->
         Route {
-            path = "$href/$item"
-            element = routeElement
+            path = "$basePath/$item"
+            element = routeElement.create()
         }
     }
     Route {
-        path = href
-        element = routeElement
+        path = basePath
+        element = routeElement.create()
     }
 }
 

@@ -87,7 +87,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         if (state.selectedMenu != prevState.selectedMenu) {
             changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
                 "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
-        } else {
+        } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
         }
     }

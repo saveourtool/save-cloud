@@ -132,7 +132,8 @@ fun topBar() = FC<TopBarProps> { props ->
                         forEachIndexed { index: Int, pathPart: String ->
                             currentPath = if (insideTab != null && index == 0) {
                                 when (insideTab) {
-                                    "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}"  // Replace when creating an OrganizationListView
+                                    "organization" -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    "project" -> "#/${FrontendRoutes.PROJECTS.path}"
                                     "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     else -> ""
                                 }

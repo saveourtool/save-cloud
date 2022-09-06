@@ -6,8 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -32,7 +34,21 @@ val userRating = userRating()
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGS, TOOLS
+    ORGS,
+    TOOLS,
+    ;
+
+    companion object : TabMenuBar<UserRatingTab> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: UserRatingTab = UserRatingTab.ORGS
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
+        override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
+        override fun values(): Array<UserRatingTab> = UserRatingTab.values()
+        override fun isNotAvailableWithThisRole(role: Role, elem: UserRatingTab?, isOrganizationCanCreateContest: Boolean?): Boolean = false
+    }
+
 }
 
 private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {

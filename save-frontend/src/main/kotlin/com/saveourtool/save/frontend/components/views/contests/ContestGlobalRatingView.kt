@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.filters.OrganizationFilters
@@ -14,6 +15,7 @@ import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
@@ -51,7 +53,7 @@ external interface ContestGlobalRatingProps : Props {
 /**
  * [State] of Contest Global Rating view component
  */
-external interface ContestGlobalRatingViewState : State {
+external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRatingTab> {
     /**
      * All organizations
      */
@@ -61,11 +63,7 @@ external interface ContestGlobalRatingViewState : State {
      * All projects
      */
     var projects: Array<Project>
-
-    /**
-     * Tab for selected organization or project tables
-     */
-    var selectedTab: UserRatingTab
+    
 
     /**
      * All filters for project
@@ -148,7 +146,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 organizationFilters = filter
                             }
                             getOrganization(filter)
-                            getProject(ProjectFilters(null))
+                            //getProject(ProjectFilters(null))
                             window.location.href = "${window.location.href.substringBefore("?")}?organizationName=$filterValue"
                         }
                     }
@@ -209,7 +207,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                             setState {
                                 projectFilters = filter
                             }
-                            getOrganization(OrganizationFilters(null))
+                            //getOrganization(OrganizationFilters(null))
                             getProject(filter)
                             window.location.href = "${window.location.href.substringBefore("?")}?projectName=$filterValue"
                         }
@@ -222,7 +220,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     init {
         state.organizations = emptyArray()
         state.projects = emptyArray()
-        state.selectedTab = UserRatingTab.ORGS
+        state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters(null)
         state.organizationFilters = OrganizationFilters(null)
     }
@@ -259,6 +257,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         }
     }
 
+    override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
+        if (state.selectedMenu != prevState.selectedMenu) {
+            changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
+                "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
+        } else {
+            urlAnalysis(UserRatingTab, Role.NONE, false)
+        }
+    }
+
     override fun componentDidMount() {
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
@@ -269,6 +276,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         }
         getOrganization(organizationFilters)
         getProject(projectFilters)
+        urlAnalysis(UserRatingTab, Role.NONE, false)
     }
 
     override fun ChildrenBuilder.render() {
@@ -280,12 +288,12 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
             }
         }
 
-        tab(state.selectedTab.name, UserRatingTab.values().map { it.name }) {
+        tab(state.selectedMenu.name, UserRatingTab.values().map { it.name }) {
             setState {
-                selectedTab = UserRatingTab.valueOf(it)
+                selectedMenu = UserRatingTab.valueOf(it)
             }
         }
-        when (state.selectedTab) {
+        when (state.selectedMenu) {
             UserRatingTab.ORGS -> renderingOrganizationChampionsTable()
             UserRatingTab.TOOLS -> renderingProjectChampionsTable()
         }
