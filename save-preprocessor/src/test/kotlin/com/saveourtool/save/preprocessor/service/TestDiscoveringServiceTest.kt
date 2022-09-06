@@ -120,7 +120,6 @@ class TestDiscoveringServiceTest {
             }
             .toList()
 
-
         logger.debug("Discovered the following tests: $testDtos")
         Assertions.assertEquals(16, testDtos.size)
         Assertions.assertEquals(testDtos.size, testDtos.map { it.hash + it.filePath + it.testSuiteId }.distinct().size) {
