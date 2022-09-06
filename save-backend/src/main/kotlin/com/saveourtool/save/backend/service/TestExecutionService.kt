@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
+import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
@@ -13,10 +14,7 @@ import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.ScoreType
-import com.saveourtool.save.utils.calculateScore
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 
 import org.apache.commons.io.FilenameUtils
@@ -170,7 +168,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
     )
     @Transactional
     fun saveTestResult(testExecutionsDtos: List<TestExecutionDto>): List<TestExecutionDto> {
-        log.debug("Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}")
+        log.debug { "Saving ${testExecutionsDtos.size} test results from agent ${testExecutionsDtos.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
         val agentContainerId = requireNotNull(testExecutionsDtos.first().agentContainerId) {
             "Attempt to save test results without assigned agent. testExecutionDtos=$testExecutionsDtos"
@@ -212,10 +210,12 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.expected = testExecDto.expected
                     it.unexpected = testExecDto.unexpected
 
-                    counters.unmatchedChecks += testExecDto.unmatched ?: 0L
-                    counters.matchedChecks += testExecDto.matched ?: 0L
-                    counters.expectedChecks += testExecDto.expected ?: 0L
-                    counters.unexpectedChecks += testExecDto.unexpected ?: 0L
+                    with (counters) {
+                        unmatchedChecks += unmatchedChecks.increaseIfApplicable(testExecDto.unmatched)
+                        matchedChecks += matchedChecks.increaseIfApplicable(testExecDto.matched)
+                        expectedChecks += expectedChecks.increaseIfApplicable(testExecDto.expected)
+                        unexpectedChecks += unexpectedChecks.increaseIfApplicable(testExecDto.unexpected)
+                    }
 
                     testExecutionRepository.save(it)
                 },
@@ -229,9 +229,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             transactionTemplate.execute {
                 val execution = executionRepository.findById(executionId).get()
                 execution.apply {
-                    log.debug("Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
-                            "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
-                    )
+                    log.debug {
+                        "Updating counters in execution id=$executionId: running=$runningTests-${counters.total()}, " +
+                                "passed=$passedTests+${counters.passed}, failed=$failedTests+${counters.failed}, skipped=$skippedTests+${counters.skipped}"
+                    }
                     runningTests -= counters.total()
                     passedTests += counters.passed
                     failedTests += counters.failed
@@ -241,8 +242,6 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     matchedChecks += counters.matchedChecks
                     expectedChecks += counters.expectedChecks
                     unexpectedChecks += counters.unexpectedChecks
-
-                    score = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
                 }
                 executionRepository.save(execution)
             }
@@ -351,6 +350,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
             }
         }
     }
+
+    private fun Long.increaseIfApplicable(delta: Long?) = takeUnless { CountWarnings.isNotApplicable(it.toInt()) }
+        ?.plus(delta ?: 0L)
+        ?: 0L
 
     @Suppress(
         "KDOC_NO_CONSTRUCTOR_PROPERTY",
