@@ -463,11 +463,6 @@ class TestSuitesSourceController(
                     "TestSuitesSource not found by name $name for organization $organizationName"
                 }
 
-    private fun getTestSuitesSource(id: Long): Mono<TestSuitesSource> =
-            blockingToMono {
-                testSuitesSourceService.findById(id)
-            }
-
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

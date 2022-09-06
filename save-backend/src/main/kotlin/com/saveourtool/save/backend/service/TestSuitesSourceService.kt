@@ -43,12 +43,6 @@ class TestSuitesSourceService(
             testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
 
     /**
-     * @param id [TestSuitesSource.id]
-     * @return entity of [TestSuitesSource] or null
-     */
-    fun findById(id: Long): TestSuitesSource? = testSuitesSourceRepository.findByIdOrNull(id)
-
-    /**
      * @param organization [TestSuitesSource.organization]
      * @param name [TestSuitesSource.name]
      * @return entity of [TestSuitesSource] or null
