@@ -5,8 +5,10 @@ import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
+import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
@@ -62,6 +64,7 @@ internal class OrganizationController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val projectService: ProjectService
 ) {
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
@@ -418,6 +421,51 @@ internal class OrganizationController(
         .map {
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
         }
+
+    @DeleteMapping("/{organizationName}/get-organization-contest-rank")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    fun getOrganizationContestRank(
+        @PathVariable organizationName: String,
+        @RequestParam url: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.just(organizationName)
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
+        }
+        .filter {
+            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for managing organization git credentials."
+        }
+        .map { organization ->
+            // Find and remove all corresponding data to the current git repository from DB and file system storage
+            val git = gitService.getByOrganizationAndUrl(organization, url)
+            val testSuitesSources = testSuitesSourceService.findByGit(git)
+            // List of test suites for removing data from storage at next step
+            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
+                val testSuites = testSuitesService.getBySource(testSuitesSource)
+                testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
+                testSuitesSourceService.delete(testSuitesSource)
+                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
+                testSuites.firstOrNull()
+            }
+            gitService.delete(organization, url)
+            testSuitesList
+        }
+        .flatMap { testSuitesList ->
+            Flux.fromIterable(testSuitesList).map { testSuite ->
+                cleanupStorageData(testSuite)
+            }.collectList()
+        }
+        .map {
+            ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
+        }
+
 
     private fun cleanupStorageData(testSuite: TestSuite) {
         testSuitesSourceSnapshotStorage.findKey(
