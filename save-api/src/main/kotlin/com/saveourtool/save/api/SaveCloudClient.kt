@@ -98,7 +98,7 @@ class SaveCloudClient(
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
         )
-        val response = httpClient.submitExecution(runExecutionRequest)
+        val response = httpClient.submitExecution(testingType, runExecutionRequest)
         if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
             log.error("Can't submit execution=$runExecutionRequest! Response status: ${response.status}")
             return null

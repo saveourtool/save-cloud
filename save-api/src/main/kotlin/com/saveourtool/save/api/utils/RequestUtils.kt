@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.v1
@@ -86,12 +87,13 @@ suspend fun HttpClient.uploadAdditionalFile(
 /**
  * Submit execution
  *
+ * @param testingType type of requested execution [TestingType]
  * @param runExecutionRequest execution request
  * @return HttpResponse
  */
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
-    url("${Backend.url}/api/$v1/run/trigger")
+suspend fun HttpClient.submitExecution(testingType: TestingType, runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
+    url("${Backend.url}/api/$v1/run/trigger?testingType=${testingType.name}")
     header("X-Authorization-Source", UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(runExecutionRequest)
