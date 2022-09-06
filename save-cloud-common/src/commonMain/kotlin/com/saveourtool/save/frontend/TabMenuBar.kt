@@ -5,7 +5,7 @@ import com.saveourtool.save.domain.Role
 /**
  * Interface for tab bar in many pages
  */
-interface TabMenuBar<T> {
+interface TabMenuBar<T: Enum<T>> {
     /**
      * Default value in every Enum classes
      */
