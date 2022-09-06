@@ -62,6 +62,5 @@ class UsersControllerTest {
                 requireNotNull(it.responseBody)
                 Assertions.assertEquals("admin2", it.responseBody!!.name)
             }
-
     }
 }
