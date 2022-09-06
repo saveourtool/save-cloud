@@ -35,7 +35,6 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
     } else {
         menu.defaultTab
     }
-    console.log("urlAnalysis   $tab")
     if (state.selectedMenu != tab) {
         if (menu.isNotAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
             window.alert("Your role is not suitable for opening this page")
@@ -52,13 +51,18 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
  *
  * @param selectedMenu
  * @param menuBar
+ * @param pathDefaultTab
+ * @param extendedViewPath
  */
-fun <T> changeUrl(selectedMenu: T, menuBar: TabMenuBar<T>, pathDefaultTab: String, extendedViewPath: String){
-    console.log("$selectedMenu")
+fun <T> changeUrl(
+    selectedMenu: T,
+    menuBar: TabMenuBar<T>,
+    pathDefaultTab: String,
+    extendedViewPath: String
+) {
     window.location.href = if (selectedMenu == menuBar.defaultTab) {
         pathDefaultTab
     } else {
-        "${extendedViewPath}/${selectedMenu.toString().lowercase()}"
+        "$extendedViewPath/${selectedMenu.toString().lowercase()}"
     }
-    console.log(window.location.href)
 }

@@ -10,12 +10,11 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.urlAnalysis
-import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -108,10 +107,11 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
     }
 
     override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu)
+        if (prevState.selectedMenu != state.selectedMenu) {
             changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
-        else if (props.location != prevProps.location)
+        } else if (props.location != prevProps.location) {
             urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")

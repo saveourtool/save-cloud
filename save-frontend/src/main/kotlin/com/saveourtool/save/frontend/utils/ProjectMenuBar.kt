@@ -22,6 +22,6 @@ enum class ProjectMenuBar {
         override fun valueOf(elem: String): ProjectMenuBar = ProjectMenuBar.valueOf(elem)
         override fun values(): Array<ProjectMenuBar> = ProjectMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: ProjectMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =
-            ((elem == SETTINGS) || (elem == RUN)) && role.isLowerThan(Role.ADMIN)
+                ((elem == SETTINGS) || (elem == RUN)) && role.isLowerThan(Role.ADMIN)
     }
 }

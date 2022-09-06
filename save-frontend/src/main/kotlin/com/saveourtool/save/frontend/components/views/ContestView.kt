@@ -9,21 +9,19 @@ import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
-import com.saveourtool.save.frontend.utils.urlAnalysis
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import history.Location
 import react.*
-
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
-
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
@@ -73,7 +71,6 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     var isFeatured: Boolean
 }
 
-
 /**
  * A view with collection of projects
  */
@@ -86,11 +83,12 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
-        console.log("component Did Update")
-        if (state.selectedMenu != prevState.selectedMenu)
-            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
-        else
+        if (state.selectedMenu != prevState.selectedMenu) {
+            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
+                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+        } else {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
+        }
     }
 
     override fun componentDidMount() {
@@ -100,7 +98,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun ChildrenBuilder.render() {
-        console.log("render")
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {

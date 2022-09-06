@@ -18,12 +18,12 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
@@ -226,10 +226,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu)
+        if (state.selectedMenu != prevState.selectedMenu) {
             changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/organization/${props.organizationName}")
-        else if (props.location != prevProps.location)
+        } else if (props.location != prevProps.location) {
             urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
+        }
     }
 
     override fun componentDidMount() {

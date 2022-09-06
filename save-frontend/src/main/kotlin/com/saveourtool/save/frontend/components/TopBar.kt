@@ -10,7 +10,6 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.modal.logoutModal
-import com.saveourtool.save.frontend.components.views.ContestMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.OrganizationMenuBar
 import com.saveourtool.save.frontend.utils.ProjectMenuBar
@@ -39,8 +38,8 @@ import react.router.useLocation
 import react.useState
 
 import kotlinx.browser.window
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.js.jso
@@ -74,7 +73,12 @@ private fun ChildrenBuilder.dropdownEntry(
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "ComplexMethod",
+    "TOO_MANY_LINES_IN_LAMBDA"
+)
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
@@ -91,7 +95,7 @@ fun topBar() = FC<TopBarProps> { props ->
         className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         id = "navigation-top-bar"
 
-        // Topbar Navbar
+        // Top bar Navbar
         nav {
             className = ClassName("navbar-nav mr-auto w-100")
             ariaLabel = "breadcrumb"
@@ -114,21 +118,27 @@ fun topBar() = FC<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         val insideTab = location.pathname.substringBeforeLast("?").let {
-                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) { "organization" }
-                            else if(it.contains(ProjectMenuBar.regexForUrlClassification)) { "project" }
-                            else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {"archive" }
-                            else { null }
+                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) {
+                                "organization"
+                            } else if (it.contains(ProjectMenuBar.regexForUrlClassification)) {
+                                "project"
+                            } else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+                                "archive"
+                            } else {
+                                null
+                            }
                         }
-
                         var currentPath = "#"
                         forEachIndexed { index: Int, pathPart: String ->
                             currentPath = if (insideTab != null && index == 0) {
                                 when (insideTab) {
-                                    "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}" // Replace when creating an OrganizationListView
+                                    "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}"  // Replace when creating an OrganizationListView
                                     "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     else -> ""
                                 }
-                            } else "$currentPath/$pathPart"
+                            } else {
+                                "$currentPath/$pathPart"
+                            }
                             li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
@@ -147,7 +157,9 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 }
                             }
-                            currentPath = if (insideTab != null && index == 0) "#" else "#/$pathPart"
+                            if (insideTab != null && index == 0) {
+                                currentPath = "#"
+                            }
                         }
                     }
             }

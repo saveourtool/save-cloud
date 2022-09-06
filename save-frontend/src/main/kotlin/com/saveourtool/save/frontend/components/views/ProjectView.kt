@@ -17,19 +17,20 @@ import com.saveourtool.save.frontend.components.basic.projects.projectStatisticM
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
+
 import csstype.ClassName
 import history.Location
 import org.w3c.dom.HTMLButtonElement
@@ -47,6 +48,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -283,10 +285,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu)
+        if (prevState.selectedMenu != state.selectedMenu) {
             changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
-        else if (props.location != prevProps.location)
+        } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        }
     }
 
     @Suppress("TOO_LONG_FUNCTION")

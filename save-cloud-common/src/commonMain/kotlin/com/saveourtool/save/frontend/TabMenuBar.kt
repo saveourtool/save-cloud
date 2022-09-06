@@ -33,7 +33,6 @@ interface TabMenuBar<T> {
      */
     fun valueOfOrNull(elem: String): T? = values().firstOrNull { valueOf(elem.uppercase()) == it }
 
-
     /**
      * @param role
      * @param elem

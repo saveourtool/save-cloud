@@ -64,11 +64,12 @@ external interface AppState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
-    private val projectView: FC<Props> = withRouter { _, params ->
+    private val projectView: FC<Props> = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
         }
     }
     private val historyView: FC<Props> = withRouter { _, params ->
@@ -90,10 +91,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
         }
     }
-    private val contestView: FC<Props> = withRouter { _, params ->
+    private val contestView: FC<Props> = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = state.userInfo
             currentContestName = params["contestName"]
+            this.location = location
         }
     }
     private val contestExecutionView: FC<Props> = withRouter { _, params ->
@@ -104,10 +106,16 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             projectName = params["projectName"]!!
         }
     }
-    private val organizationView: FC<Props> = withRouter { _, params ->
+    private val organizationView: FC<Props> = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
+        }
+    }
+    private val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+        AwesomeBenchmarksView::class.react {
+            this.location = location
         }
     }
     private val fallbackNode = FallbackView::class.react.create {
@@ -201,11 +209,10 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    element = AwesomeBenchmarksView::class.react.create()
+                                    element = awesomeBenchmarksView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>("archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                                    routeElement = AwesomeBenchmarksView::class.react.create())
+                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>("archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.REGISTRATION.path}"
@@ -219,7 +226,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = contestView.create()
                                 }
 
-                                createRoutersWithPathAndEachListItem<ContestMenuBar>("contests/${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("${FrontendRoutes.CONTESTS.path}/:contestName", contestView.create())
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
