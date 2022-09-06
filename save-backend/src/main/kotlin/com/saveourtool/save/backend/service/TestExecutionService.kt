@@ -13,6 +13,8 @@ import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.ScoreType
+import com.saveourtool.save.utils.calculateScore
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
@@ -240,7 +242,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     expectedChecks += counters.expectedChecks
                     unexpectedChecks += counters.unexpectedChecks
 
-                    score = toDto().calculateScore()
+                    score = toDto().calculateScore(scoreType = ScoreType.F_MEASURE)
                 }
                 executionRepository.save(execution)
             }

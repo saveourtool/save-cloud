@@ -42,33 +42,6 @@ data class ExecutionDto(
     val testSuiteSourceName: String?,
     val score: Double?,
 ) {
-    /**
-     * @param numerator
-     * @param denominator
-     * @return rate based on [numerator] and [denominator]
-     */
-    @Suppress("MagicNumber")
-    fun calculateRate(numerator: Long, denominator: Long) = denominator.takeIf { it > 0 }
-        ?.run { numerator.toDouble() / denominator }
-        ?.let { it * 100 }
-        ?.toInt()
-
-    /**
-     * @return precision rate
-     */
-    fun getPrecisionRate() = calculateRate(matchedChecks, matchedChecks + unexpectedChecks) ?: 0
-
-    /**
-     * @return recall rate
-     */
-    fun getRecallRate() = calculateRate(matchedChecks, matchedChecks + unmatchedChecks) ?: 0
-
-    /**
-     * @return F-measure
-     */
-    // FixMe: do we need some other algorithm? for now it's F-measure
-    fun calculateScore() = (2 * getPrecisionRate() * getRecallRate()) / (getPrecisionRate() + getRecallRate()).toDouble()
-
     companion object {
         val empty = ExecutionDto(
             id = -1,
