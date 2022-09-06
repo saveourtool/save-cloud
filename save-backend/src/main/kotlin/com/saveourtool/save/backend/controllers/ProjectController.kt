@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -90,6 +91,23 @@ class ProjectController(
     fun getNotDeletedProjects(
         authentication: Authentication?,
     ): Flux<Project> = projectService.getNotDeletedProjects()
+        .toFlux()
+        .filter {
+            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
+        }
+
+    @PostMapping("/not-deleted-filter")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Get non-deleted projects.",
+        description = "Get non-deleted projects, available for current user.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
+    fun getNotDeletedProjectsWithFilters(
+        @RequestBody(required = false) projectFilters: ProjectFilters?,
+        authentication: Authentication?,
+    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters?.name)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)

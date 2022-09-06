@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
@@ -88,6 +88,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                     tag = params.get("tag")
                 )
             }
+        }
+    }
+    private val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+        ContestGlobalRatingView::class.react {
+            organizationName = URLSearchParams(location.search).get("organizationName")
+            projectName = URLSearchParams(location.search).get("projectName")
         }
     }
     private val contestView: FC<Props> = withRouter { _, params ->
@@ -213,7 +219,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                                    element = ContestGlobalRatingView::class.react.create()
+                                    element = contestGlobalRatingView.create()
                                 }
 
                                 Route {

@@ -11,10 +11,9 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 
 import org.apache.commons.io.FilenameUtils

@@ -122,9 +122,10 @@ private fun userRating() = VFC {
 
     val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
     useRequest {
-        val organizationsFromBackend: List<Organization> = get(
+        val organizationsFromBackend: List<Organization> = post(
             url = "$apiUrl/organizations/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -173,7 +174,7 @@ private fun userRating() = VFC {
 
                     a {
                         className = ClassName("mb-5")
-                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/"
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
                         +"View more "
                     }
                 }

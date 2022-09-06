@@ -6,6 +6,9 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.ProjectFilters
+import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
@@ -20,15 +23,30 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
 import react.table.columns
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * `Props` retrieved from router
  */
-external interface ContestGlobalRatingProps : Props
+external interface ContestGlobalRatingProps : Props {
+    /**
+     * Filters for project name
+     */
+    var projectName: String?
+
+    /**
+     * Filters for organization name
+     */
+    var organizationName: String?
+}
 
 /**
  * [State] of Contest Global Rating view component
@@ -48,6 +66,16 @@ external interface ContestGlobalRatingViewState : State {
      * Tab for selected organization or project tables
      */
     var selectedTab: UserRatingTab
+
+    /**
+     * All filters for project
+     */
+    var projectFilters: ProjectFilters
+
+    /**
+     * All filters for organization
+     */
+    var organizationFilters: OrganizationFilters
 }
 
 /**
@@ -103,6 +131,29 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         usePageSelection = false,
         getAdditionalDependencies = {
             arrayOf(it)
+        },
+        commonHeader = { tableInstance ->
+            tr {
+                th {
+                    colSpan = tableInstance.columns.size
+                    nameFiltersRow {
+                        name = state.organizationFilters.name
+                        onChangeFilters = { filterValue ->
+                            val filter = if (filterValue.isNullOrEmpty()) {
+                                OrganizationFilters(null)
+                            } else {
+                                OrganizationFilters(filterValue)
+                            }
+                            setState {
+                                organizationFilters = filter
+                            }
+                            getOrganization(filter)
+                            getProject(ProjectFilters(null))
+                            window.location.href = "${window.location.href.substringBefore("?")}?organizationName=$filterValue"
+                        }
+                    }
+                }
+            }
         }
     )
 
@@ -142,6 +193,29 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         usePageSelection = false,
         getAdditionalDependencies = {
             arrayOf(it)
+        },
+        commonHeader = { tableInstance ->
+            tr {
+                th {
+                    colSpan = tableInstance.columns.size
+                    nameFiltersRow {
+                        name = state.projectFilters.name
+                        onChangeFilters = { filterValue ->
+                            val filter = if (filterValue.isNullOrEmpty()) {
+                                ProjectFilters(null)
+                            } else {
+                                ProjectFilters(filterValue)
+                            }
+                            setState {
+                                projectFilters = filter
+                            }
+                            getOrganization(OrganizationFilters(null))
+                            getProject(filter)
+                            window.location.href = "${window.location.href.substringBefore("?")}?projectName=$filterValue"
+                        }
+                    }
+                }
+            }
         }
     )
 
@@ -149,31 +223,52 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.organizations = emptyArray()
         state.projects = emptyArray()
         state.selectedTab = UserRatingTab.ORGS
+        state.projectFilters = ProjectFilters(null)
+        state.organizationFilters = OrganizationFilters(null)
     }
 
-    override fun componentDidMount() {
-        super.componentDidMount()
-
+    private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
-            val organizationsFromBackend: List<Organization> = get(
+            val organizationsFromBackend: List<Organization> = post(
                 url = "$apiUrl/organizations/not-deleted",
                 headers = jsonHeaders,
-                loadingHandler = ::classLoadingHandler,
-            )
-                .decodeFromJsonString()
-
-            val projectsFromBackend: List<Project> = get(
-                url = "$apiUrl/projects/not-deleted",
-                headers = jsonHeaders,
+                body = Json.encodeToString(filterValue),
                 loadingHandler = ::classLoadingHandler,
             )
                 .decodeFromJsonString()
 
             setState {
                 organizations = organizationsFromBackend.toTypedArray()
+            }
+        }
+    }
+
+    private fun getProject(filterValue: ProjectFilters) {
+        scope.launch {
+            val projectsFromBackend: List<Project> = post(
+                url = "$apiUrl/projects/not-deleted-filter",
+                headers = jsonHeaders,
+                body = Json.encodeToString(filterValue),
+                loadingHandler = ::classLoadingHandler,
+            )
+                .decodeFromJsonString()
+
+            setState {
                 projects = projectsFromBackend.toTypedArray()
             }
         }
+    }
+
+    override fun componentDidMount() {
+        super.componentDidMount()
+        val projectFilters = ProjectFilters(props.projectName)
+        val organizationFilters = OrganizationFilters(props.organizationName)
+        setState {
+            this.projectFilters = projectFilters
+            this.organizationFilters = organizationFilters
+        }
+        getOrganization(organizationFilters)
+        getProject(projectFilters)
     }
 
     override fun ChildrenBuilder.render() {

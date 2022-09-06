@@ -95,6 +95,21 @@ class ProjectService(
     }
 
     /**
+     * @param name
+     * @return project's with filter
+     */
+    fun getNotDeletedProjectsWithFilter(name: String?): List<Project> {
+        val projects = projectRepository.findAll { root, _, cb ->
+            val namePredicate = name?.let { cb.equal(root.get<String>("name"), name) } ?: cb.and()
+            cb.and(
+                namePredicate,
+                cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
+            )
+        }
+        return projects
+    }
+
+    /**
      * @param authentication [Authentication] of the user who wants to access the project
      * @param projectName name of the project
      * @param organizationName organization that owns the project
