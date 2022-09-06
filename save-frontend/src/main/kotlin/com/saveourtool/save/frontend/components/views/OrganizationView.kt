@@ -31,6 +31,7 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import history.Location
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -69,6 +70,7 @@ import kotlinx.serialization.json.Json
 external interface OrganizationProps : PropsWithChildren {
     var organizationName: String
     var currentUserInfo: UserInfo?
+    var location: Location
 }
 
 /**
@@ -224,14 +226,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        console.log("${state.selectedMenu}  ,  ${props.organizationName}")
-        scope.launch {
-            if (state.selectedMenu != prevState.selectedMenu)
-                changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/organization/${props.organizationName}")
-            else {
-                urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
-            }
-        }
+        if (state.selectedMenu != prevState.selectedMenu)
+            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/organization/${props.organizationName}")
+        else if (props.location != prevProps.location)
+            urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
     }
 
     override fun componentDidMount() {
@@ -252,7 +250,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 selfRole = highestRole
                 usersInOrganization = users
             }
-            urlAnalysis(OrganizationMenuBar, highestRole, state.organization?.canCreateContests)
+            urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
     }
 

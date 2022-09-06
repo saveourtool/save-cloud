@@ -30,8 +30,8 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
-
 import csstype.ClassName
+import history.Location
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -47,7 +47,6 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
-
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -64,6 +63,7 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
+    var location: Location
 }
 
 /**
@@ -283,12 +283,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
-        scope.launch {
-            if (prevState.selectedMenu != state.selectedMenu)
-                changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
-            else
-                urlAnalysis(ProjectMenuBar, state.selfRole, false)
-        }
+        if (prevState.selectedMenu != state.selectedMenu)
+            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/project/${props.owner}/${props.name}")
+        else if (props.location != prevProps.location)
+            urlAnalysis(ProjectMenuBar, state.selfRole, false)
     }
 
     @Suppress("TOO_LONG_FUNCTION")

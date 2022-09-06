@@ -18,6 +18,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import history.Location
 import react.*
 
 import react.dom.html.InputType
@@ -45,7 +46,7 @@ enum class ContestMenuBar {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
         private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = Regex("/contests/[^/]+/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
@@ -59,6 +60,7 @@ enum class ContestMenuBar {
 external interface ContestViewProps : Props {
     var currentUserInfo: UserInfo?
     var currentContestName: String?
+    var location: Location
 }
 
 /**
@@ -85,12 +87,10 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
         console.log("component Did Update")
-        scope.launch {
-            if (state.selectedMenu != prevState.selectedMenu)
-                changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/contests/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
-            else
-                urlAnalysis(ContestMenuBar, Role.NONE, false)
-        }
+        if (state.selectedMenu != prevState.selectedMenu)
+            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+        else
+            urlAnalysis(ContestMenuBar, Role.NONE, false)
     }
 
     override fun componentDidMount() {
@@ -100,6 +100,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     override fun ChildrenBuilder.render() {
+        console.log("render")
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {

@@ -114,8 +114,7 @@ fun topBar() = FC<TopBarProps> { props ->
                     .filterNot { it.isBlank() }
                     .apply {
                         val insideTab = location.pathname.substringBeforeLast("?").let {
-                            if (it.contains(ContestMenuBar.regexForUrlClassification)) { "contest" }
-                            else if (it.contains(OrganizationMenuBar.regexForUrlClassification)) { "organization" }
+                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) { "organization" }
                             else if(it.contains(ProjectMenuBar.regexForUrlClassification)) { "project" }
                             else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {"archive" }
                             else { null }
@@ -125,7 +124,6 @@ fun topBar() = FC<TopBarProps> { props ->
                         forEachIndexed { index: Int, pathPart: String ->
                             currentPath = if (insideTab != null && index == 0) {
                                 when (insideTab) {
-                                    "contest" -> "#/${FrontendRoutes.CONTESTS.path}"
                                     "organization", "project" -> "#/${FrontendRoutes.PROJECTS.path}" // Replace when creating an OrganizationListView
                                     "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     else -> ""

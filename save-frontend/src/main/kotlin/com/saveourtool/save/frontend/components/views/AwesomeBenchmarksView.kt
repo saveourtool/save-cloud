@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -23,6 +24,7 @@ import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
+import history.Location
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -54,6 +56,14 @@ import kotlinx.js.jso
 const val ALL_LANGS = "all"
 
 /**
+ * `Props` retrieved from router
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
+external interface AwesomeBenchmarksProps : PropsWithChildren {
+    var location: Location
+}
+
+/**
  * [RState] of project creation view component
  *
  */
@@ -81,7 +91,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
+class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>(true) {
     init {
         state.selectedMenu = BenchmarkCategoryEnum.defaultTab
         state.lang = ALL_LANGS
@@ -97,13 +107,11 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    override fun componentDidUpdate(prevProps: PropsWithChildren, prevState: AwesomeBenchmarksState, snapshot: Any) {
-        scope.launch {
-            if (prevState.selectedMenu != state.selectedMenu)
-                changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
-            else
-                urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
-        }
+    override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu)
+            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/archive/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+        else if (props.location != prevProps.location)
+            urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
@@ -508,7 +516,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
         init {
             contextType = requestStatusContext
         }
