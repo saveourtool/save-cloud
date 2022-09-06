@@ -212,7 +212,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.expected = testExecDto.expected
                     it.unexpected = testExecDto.unexpected
 
-                    with (counters) {
+                    with(counters) {
                         unmatchedChecks += unmatchedChecks.increaseIfApplicable(testExecDto.unmatched)
                         matchedChecks += matchedChecks.increaseIfApplicable(testExecDto.matched)
                         expectedChecks += expectedChecks.increaseIfApplicable(testExecDto.expected)
