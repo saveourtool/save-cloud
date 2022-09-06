@@ -2,7 +2,7 @@
  * Utilities for execution score calculation
  */
 
-@file:Suppress("MagicNumber", "MAGIC_NUMBER", "FILE_NAME_MATCH_CLASS")
+@file:Suppress("MatchingDeclarationName", "MagicNumber", "MAGIC_NUMBER", "FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.utils
 
