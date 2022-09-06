@@ -192,9 +192,10 @@ class RunExecutionController(
         .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
-            ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")
+            ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()
+        internal const val RESPONSE_BODY_PREFIX = "Clone pending, execution id is "
     }
 }

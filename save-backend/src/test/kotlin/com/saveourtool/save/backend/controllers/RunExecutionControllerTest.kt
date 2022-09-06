@@ -12,6 +12,7 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.RunExecutionRequest
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -43,7 +44,6 @@ import java.util.concurrent.TimeUnit
 @AutoConfigureWebTestClient
 @ExtendWith(MySqlExtension::class)
 @Suppress("TOO_LONG_FUNCTION")
-@Disabled("Test fails on github, but pass locally")
 class RunExecutionControllerTest(
     @Autowired private var webClient: WebTestClient,
 ) {
@@ -82,24 +82,26 @@ class RunExecutionControllerTest(
             log.info("Request $it")
         }
 
-        val originalExecutionIds = executionRepository.findAll()
-            .map { it.requiredId() }
-            .toList()
-        val originalTestExecutionIds = testExecutionRepository.findAll()
-            .map { it.requiredId() }
-            .toList()
-        webClient.post()
-            .uri("/api/$v1/run/trigger")
+        val executionId = webClient.post()
+            .uri("/api/$v1/run/trigger?testingType={testingType}", TestingType.PRIVATE_TESTS.name)
             .bodyValue(request)
             .exchange()
             .expectStatus()
             .isAccepted
+            .expectBody(String::class.java)
+            .consumeWith { result ->
+                val body = result.responseBody
+                Assertions.assertTrue(body?.startsWith(RunExecutionController.RESPONSE_BODY_PREFIX) == true)
+            }
+            .returnResult()
+            .responseBody
+            .toString()
+            .removePrefix(RunExecutionController.RESPONSE_BODY_PREFIX)
+            .toLong()
         Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
-        val newExecutions = executionRepository.findAll().toList()
-        Assertions.assertEquals(originalExecutionIds.size + 1, newExecutions.size)
-        val newExecution = newExecutions.first { it.requiredId() !in originalExecutionIds }
+        val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals("2,3", newExecution.testSuiteIds)
@@ -109,8 +111,8 @@ class RunExecutionControllerTest(
         Assertions.assertEquals("execCmd", newExecution.execCmd)
         Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
 
-        val newTestExecutions = testExecutionRepository.findAll().toList()
-        Assertions.assertEquals(originalTestExecutionIds.size + 24, newTestExecutions.size)
+        val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
+        Assertions.assertEquals(24, newTestExecutions.size)
     }
 
     @WithMockUser("admin")
@@ -133,23 +135,25 @@ class RunExecutionControllerTest(
         }
 
         val originalExecution = executionRepository.findById(EXECUTION_ID).get()
-        val originalExecutionIds = executionRepository.findAll()
-            .map { it.requiredId() }
-            .toList()
-        val originalTestExecutionIds = testExecutionRepository.findAll()
-            .map { it.requiredId() }
-            .toList()
-        webClient.post()
+        val executionId = webClient.post()
             .uri("/api/$v1/run/re-trigger?executionId=$EXECUTION_ID")
             .exchange()
             .expectStatus()
             .isAccepted
+            .expectBody(String::class.java)
+            .consumeWith { result ->
+                val body = result.responseBody
+                Assertions.assertTrue(body?.startsWith(RunExecutionController.RESPONSE_BODY_PREFIX) == true)
+            }
+            .returnResult()
+            .responseBody
+            .toString()
+            .removePrefix(RunExecutionController.RESPONSE_BODY_PREFIX)
+            .toLong()
         Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
-        val newExecutions = executionRepository.findAll().toList()
-        Assertions.assertEquals(originalExecutionIds.size + 1, newExecutions.size)
-        val newExecution = newExecutions.first { it.requiredId() !in originalExecutionIds }
+        val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(originalExecution.project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals(originalExecution.testSuiteIds, newExecution.testSuiteIds)
@@ -159,8 +163,8 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(originalExecution.execCmd, newExecution.execCmd)
         Assertions.assertEquals(originalExecution.batchSizeForAnalyzer, newExecution.batchSizeForAnalyzer)
 
-        val newTestExecutions = testExecutionRepository.findAll().toList()
-        Assertions.assertEquals(originalTestExecutionIds.size + 1, newTestExecutions.size)
+        val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
+        Assertions.assertEquals(1, newTestExecutions.size)
     }
 
     companion object {
