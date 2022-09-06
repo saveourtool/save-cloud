@@ -28,7 +28,7 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
  * @param role
  * @param isOrganizationCanCreateContest is state.organization?.canCreateContests in OrganizationView.kt
  */
-fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
+fun <T: Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<T>, role: Role, isOrganizationCanCreateContest: Boolean?) {
     val href = window.location.href
     val tab = if (href.contains(menu.regexForUrlClassification)) {
         href.substringAfterLast(URL_PATH_DELIMITER).let { menu.valueOfOrNull(it) ?: menu.defaultTab }
@@ -54,7 +54,7 @@ fun <T, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: TabMenuBar<
  * @param pathDefaultTab
  * @param extendedViewPath
  */
-fun <T> changeUrl(
+fun <T: Enum<T>> changeUrl(
     selectedMenu: T,
     menuBar: TabMenuBar<T>,
     pathDefaultTab: String,

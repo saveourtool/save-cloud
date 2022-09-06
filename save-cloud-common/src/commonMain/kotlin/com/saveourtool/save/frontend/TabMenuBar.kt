@@ -16,6 +16,9 @@ interface TabMenuBar<T> {
      */
     val regexForUrlClassification: Regex
 
+
+    val nameOfTheHeadSection: String
+
     /**
      * @return Array of elements this Enum
      */
