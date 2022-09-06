@@ -214,10 +214,10 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
                     it.unexpected = testExecDto.unexpected
 
                     with(counters) {
-                        unmatchedChecks += unmatchedChecks.increaseIfApplicable(testExecDto.unmatched)
-                        matchedChecks += matchedChecks.increaseIfApplicable(testExecDto.matched)
-                        expectedChecks += expectedChecks.increaseIfApplicable(testExecDto.expected)
-                        unexpectedChecks += unexpectedChecks.increaseIfApplicable(testExecDto.unexpected)
+                        unmatchedChecks += testExecDto.unmatched.orZeroIfNotApplicable()
+                        matchedChecks += testExecDto.matched.orZeroIfNotApplicable()
+                        expectedChecks += testExecDto.expected.orZeroIfNotApplicable()
+                        unexpectedChecks += testExecDto.unexpected.orZeroIfNotApplicable()
                     }
 
                     testExecutionRepository.save(it)
@@ -356,9 +356,7 @@ class TestExecutionService(private val testExecutionRepository: TestExecutionRep
         }
     }
 
-    private fun Long.increaseIfApplicable(delta: Long?) = takeUnless { CountWarnings.isNotApplicable(it.toInt()) }
-        ?.plus(delta ?: 0L)
-        ?: 0L
+    private fun Long?.orZeroIfNotApplicable() = this?.takeUnless { CountWarnings.isNotApplicable(it.toInt()) } ?: 0
 
     @Suppress(
         "KDOC_NO_CONSTRUCTOR_PROPERTY",
