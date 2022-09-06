@@ -48,7 +48,6 @@ enum class UserRatingTab {
         override fun values(): Array<UserRatingTab> = UserRatingTab.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: UserRatingTab?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
-
 }
 
 private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
