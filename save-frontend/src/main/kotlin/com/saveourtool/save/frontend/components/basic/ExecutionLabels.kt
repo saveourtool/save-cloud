@@ -101,25 +101,25 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks)) {
-                    "${it.getPrecisionRate()}"
-                } else {
+                if (isNoneApplicable(it.matchedChecks, it.unexpectedChecks)) {
                     "N/A"
+                } else {
+                    "${it.getPrecisionRate()}"
                 }
             }
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks)) {
-                    "${it.getRecallRate()}"
-                } else {
+                if (isNoneApplicable(it.matchedChecks, it.unmatchedChecks)) {
                     "N/A"
+                } else {
+                    "${it.getRecallRate()}"
                 }
             }
             ?: "0"
     }
 
-    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
+    private fun isNoneApplicable(vararg values: Long): Boolean = values.all { CountWarnings.isNotApplicable(it.toInt()) }
 }
 
 /**
