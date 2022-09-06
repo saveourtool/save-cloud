@@ -79,6 +79,11 @@ data class Project(
         email ?: "",
     )
 
+    /**
+     * Return the shortest unique representation of this [Project] as a string
+     */
+    fun shortToString() = "[organization=${organization.name},name=$name]"
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.

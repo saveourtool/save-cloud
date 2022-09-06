@@ -2,8 +2,11 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkContestProjectRepository
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.getLogger
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service of [LnkContestProject]
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service
 @Service
 class LnkContestProjectService(
     private val lnkContestProjectRepository: LnkContestProjectRepository,
+    private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     /**
      * @param contestName name of a [Contest]
@@ -64,5 +68,38 @@ class LnkContestProjectService(
     } else {
         lnkContestProjectRepository.save(LnkContestProject(project, contest, null, 0.0))
         true
+    }
+
+    /**
+     * @param newExecution
+     */
+    @Transactional
+    fun updateBestExecution(newExecution: Execution) {
+        val newScore = requireNotNull(newExecution.score) {
+            "Cannot update best score, because no score has been provided for execution id=${newExecution.id}"
+        }
+        val contest = lnkContestExecutionService.findContestByExecution(newExecution)
+            ?: error("Execution was performed not as a part of contest")
+        val project = newExecution.project
+        val lnkContestProject = lnkContestProjectRepository.findByContestAndProject(contest, project)
+            .orElseThrow {
+                IllegalStateException("Project ${project.shortToString()} is not bound to contest name=${contest.name}")
+            }
+        val oldBestScore = lnkContestProject.bestScore
+        if (oldBestScore == null || oldBestScore <= newScore) {
+            logger.debug {
+                "For project ${project.shortToString()} updating best_score from execution " +
+                        "[id=${lnkContestProject.bestExecution?.id},score=$oldBestScore] to " +
+                        "[id=${newExecution.id},score=$newScore]"
+            }
+            lnkContestProject.bestExecution = newExecution
+            lnkContestProject.bestScore = newExecution.score
+            lnkContestProjectRepository.save(lnkContestProject)
+        }
+    }
+
+    companion object {
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+        private val logger = getLogger<LnkContestProjectService>()
     }
 }
