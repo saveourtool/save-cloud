@@ -104,7 +104,9 @@ class RunExecutionControllerTest(
         Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
-        val testsCount = testRepository.findAll().filter { it.testSuite.requiredId() in testSuiteIds }
+        val testsCount = testRepository.findAll()
+            .count { it.testSuite.requiredId() in testSuiteIds }
+            .toLong()
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
@@ -115,8 +117,10 @@ class RunExecutionControllerTest(
         Assertions.assertEquals("execCmd", newExecution.execCmd)
         Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
 
-        val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
-        Assertions.assertEquals(testsCount, newTestExecutions.size)
+        val newTestExecutionsCount = testExecutionRepository.findAll()
+            .count { it.execution.requiredId() == executionId }
+            .toLong()
+        Assertions.assertEquals(testsCount, newTestExecutionsCount)
     }
 
     @WithMockUser("admin")
@@ -157,6 +161,9 @@ class RunExecutionControllerTest(
         Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
+        val testsCount = testRepository.findAll()
+            .count { it.testSuite.requiredId() in originalExecution.parseAndGetTestSuiteIds().orEmpty() }
+            .toLong()
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(originalExecution.project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
@@ -167,8 +174,10 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(originalExecution.execCmd, newExecution.execCmd)
         Assertions.assertEquals(originalExecution.batchSizeForAnalyzer, newExecution.batchSizeForAnalyzer)
 
-        val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
-        Assertions.assertEquals(newExecution.allTests, newTestExecutions.size)
+        val newTestExecutionsCount = testExecutionRepository.findAll()
+            .count { it.execution.requiredId() == executionId }
+            .toLong()
+        Assertions.assertEquals(testsCount, newTestExecutionsCount)
     }
 
     companion object {
