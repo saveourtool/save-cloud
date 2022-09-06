@@ -108,7 +108,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
 
     override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/${BenchmarkCategoryEnum.nameOfTheHeadSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+                "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
         } else if (props.location != prevProps.location) {
             urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         }

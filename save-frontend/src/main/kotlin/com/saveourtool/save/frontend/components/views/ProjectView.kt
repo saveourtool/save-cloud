@@ -287,7 +287,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadSection}/${props.owner}/${props.name}")
+            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
         }

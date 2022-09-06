@@ -22,10 +22,10 @@ enum class OrganizationMenuBar(private val title: String? = null) {
 
     companion object : TabMenuBar<OrganizationMenuBar> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString ("|")
-        override val nameOfTheHeadSection = "organization"
+        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        override val nameOfTheHeadUrlSection = "organization"
         override val defaultTab: OrganizationMenuBar = INFO
-        override val regexForUrlClassification = Regex("/${nameOfTheHeadSection}/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =

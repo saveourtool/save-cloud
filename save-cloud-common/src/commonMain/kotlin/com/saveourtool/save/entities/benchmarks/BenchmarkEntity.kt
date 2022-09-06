@@ -24,10 +24,10 @@ enum class BenchmarkCategoryEnum {
 
     companion object : TabMenuBar<BenchmarkCategoryEnum> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString ("|")
-        override val nameOfTheHeadSection = "archive"
+        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        override val nameOfTheHeadUrlSection = "archive"
         override val defaultTab: BenchmarkCategoryEnum = ALL
-        override val regexForUrlClassification: Regex = Regex("/${nameOfTheHeadSection}/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification: Regex = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
         override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false

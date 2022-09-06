@@ -226,9 +226,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        console.log("${OrganizationMenuBar.regexForUrlClassification}")
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadSection}/${props.organizationName}")
+            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
         } else if (props.location != prevProps.location) {
             urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
         }
