@@ -190,7 +190,10 @@ private fun userRating() = VFC {
 
                     a {
                         className = ClassName("mb-5")
-                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                        href = when (selectedTab) {
+                            UserRatingTab.ORGS -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                            UserRatingTab.TOOLS -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
+                        }
                         +"View more "
                     }
                 }
