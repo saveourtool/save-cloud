@@ -109,7 +109,6 @@ enum class InputTypes(
             """
         )
     ),
-    SOURCE_VERSION("source_version", placeholder = "HEAD"),
 
     // ==== execution run
     TEST_SUITE_IDS("test suite ids", placeholder = "click to open selector"),

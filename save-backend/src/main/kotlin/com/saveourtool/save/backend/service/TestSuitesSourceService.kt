@@ -93,12 +93,11 @@ class TestSuitesSourceService(
      * @return status of updating [TestSuitesSource]
      */
     @Transactional
-    fun update(entity: TestSuitesSource): SourceSaveStatus {
+    fun update(entity: TestSuitesSource): Boolean {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $this"
         }
-        val isSaved = save(entity)
-        return if (isSaved) SourceSaveStatus.UPDATED else SourceSaveStatus.CONFLICT
+        return save(entity)
     }
 
     /**
@@ -131,6 +130,7 @@ class TestSuitesSourceService(
         // Will be removed in phase 3
         val organizationName = "CQFN.org"
         val gitUrl = "https://github.com/saveourtool/save-cli"
+        val branch = "main"
         val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
         val organization = organizationService.getByName(organizationName)
         val git = gitService.getByOrganizationAndUrl(organization, gitUrl)
