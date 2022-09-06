@@ -171,6 +171,7 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "MAGIC_NUMBER",
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
+    "LongMethod",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
