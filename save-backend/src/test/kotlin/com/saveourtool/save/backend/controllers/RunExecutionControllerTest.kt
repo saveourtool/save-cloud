@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
@@ -49,6 +50,7 @@ class RunExecutionControllerTest(
 ) {
     @Autowired private lateinit var projectRepository: ProjectRepository
     @Autowired private lateinit var executionRepository: ExecutionRepository
+    @Autowired private lateinit var testRepository: TestRepository
     @Autowired private lateinit var testExecutionRepository: TestExecutionRepository
 
     @WithMockUser("admin")
@@ -58,12 +60,13 @@ class RunExecutionControllerTest(
             details = AuthenticationDetails(id = 1)
         }
         val project = projectRepository.findById(PROJECT_ID).get()
+        val testSuiteIds = listOf(2L, 3L)
         val request = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = project.organization.name,
                 projectName = project.name
             ),
-            testSuiteIds = listOf(2L, 3L),
+            testSuiteIds = testSuiteIds,
             files = listOf(FileKey("test1", 123L)),
             sdk = Jdk("8"),
             execCmd = "execCmd",
@@ -101,18 +104,19 @@ class RunExecutionControllerTest(
         Thread.sleep(2_500)  // Time for request to create required entities
 
         assertions.forEach { Assertions.assertNotNull(it) }
+        val testsCount = testRepository.findAll().filter { it.testSuite.requiredId() in testSuiteIds }
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
         Assertions.assertEquals("2,3", newExecution.testSuiteIds)
-        Assertions.assertEquals(24, newExecution.allTests)
+        Assertions.assertEquals(testsCount, newExecution.allTests)
         Assertions.assertEquals("test1:123", newExecution.additionalFiles)
         Assertions.assertEquals("eclipse-temurin:8", newExecution.sdk)
         Assertions.assertEquals("execCmd", newExecution.execCmd)
         Assertions.assertEquals("batchSizeForAnalyzer", newExecution.batchSizeForAnalyzer)
 
         val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
-        Assertions.assertEquals(24, newTestExecutions.size)
+        Assertions.assertEquals(testsCount, newTestExecutions.size)
     }
 
     @WithMockUser("admin")
@@ -164,7 +168,7 @@ class RunExecutionControllerTest(
         Assertions.assertEquals(originalExecution.batchSizeForAnalyzer, newExecution.batchSizeForAnalyzer)
 
         val newTestExecutions = testExecutionRepository.findAll().filter { it.execution.requiredId() == executionId }
-        Assertions.assertEquals(1, newTestExecutions.size)
+        Assertions.assertEquals(newExecution.allTests, newTestExecutions.size)
     }
 
     companion object {
