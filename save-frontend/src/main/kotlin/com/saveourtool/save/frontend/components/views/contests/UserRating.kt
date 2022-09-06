@@ -187,7 +187,6 @@ private fun userRating() = VFC {
                         alignItems = AlignItems.center
                         alignSelf = AlignSelf.start
                     }
-
                     a {
                         className = ClassName("mb-5")
                         href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"

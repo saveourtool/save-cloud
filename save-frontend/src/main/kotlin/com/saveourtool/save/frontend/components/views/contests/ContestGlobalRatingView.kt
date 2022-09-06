@@ -49,6 +49,10 @@ external interface ContestGlobalRatingProps : Props {
      * Filters for organization name
      */
     var organizationName: String?
+
+    /**
+     * Location for checking change url
+     */
     var location: Location
 }
 
@@ -259,14 +263,13 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     }
 
     override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
-        console.log("componentDidUpdate")
         if (state.selectedMenu != prevState.selectedMenu) {
             changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
                 "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
             val href = window.location.href
-            window.location.href = when(state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilters.name?.let {"${href.substringBefore("?")}?projectName=${state.organizationFilters.name}"} ?: href
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let {"${href.substringBefore("?")}?organizationName=${state.projectFilters.name}"} ?: href
+            window.location.href = when (state.selectedMenu) {
+                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "${href.substringBefore("?")}?projectName=${state.organizationFilters.name}" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "${href.substringBefore("?")}?organizationName=${state.projectFilters.name}" } ?: href
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -274,7 +277,6 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     }
 
     override fun componentDidMount() {
-        console.log("componentDidMount")
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
         val organizationFilters = OrganizationFilters(props.organizationName)
@@ -288,7 +290,6 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     }
 
     override fun ChildrenBuilder.render() {
-        console.log("render")
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
             h1 {
