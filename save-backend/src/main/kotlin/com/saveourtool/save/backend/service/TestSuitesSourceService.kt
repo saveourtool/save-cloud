@@ -7,17 +7,14 @@ import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
-import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 /**
