@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono
 import kotlin.io.path.div
 
 typealias TestSuiteList = List<TestSuite>
-typealias CloneAndProcessDirectory = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>
+typealias CloneAndProcessDirectoryAction = GitPreprocessorService.(GitDto, String, GitRepositoryProcessor<TestSuiteList>) -> Mono<TestSuiteList>
 
 /**
  * Preprocessor's controller for [com.saveourtool.save.entities.TestSuitesSource]
@@ -129,8 +129,8 @@ class TestSuitesPreprocessorController(
     private fun fetchTestSuites(
         testSuitesSourceDto: TestSuitesSourceDto,
         cloneObject: String,
-        cloneAndProcessDirectory: CloneAndProcessDirectory,
-    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectory(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, creationTime ->
+        cloneAndProcessDirectoryAction: CloneAndProcessDirectoryAction,
+    ): Mono<Unit> = gitPreprocessorService.cloneAndProcessDirectoryAction(testSuitesSourceDto.gitDto, cloneObject) { repositoryDirectory, creationTime ->
         gitPreprocessorService.archiveToTar(repositoryDirectory / testSuitesSourceDto.testRootPath) { archive ->
             testsPreprocessorToBackendBridge.saveTestsSuiteSourceSnapshot(
                 testSuitesSource = testSuitesSourceDto,

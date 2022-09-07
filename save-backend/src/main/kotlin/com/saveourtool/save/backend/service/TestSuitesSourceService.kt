@@ -177,12 +177,12 @@ class TestSuitesSourceService(
                 .bodyValue(testSuitesSource.gitDto)
                 .retrieve()
                 .bodyToMono<String>()
-                .flatMap { branchName ->
-                    preprocessorWebClient.post()
-                        .uri("/test-suites-sources/fetch-from-branch?branchName={branchName}", branchName)
-                        .bodyValue(testSuitesSource)
-                        .retrieve()
-                        .toBodilessEntity()
-                }
+        }
+        .flatMap { branchName ->
+            preprocessorWebClient.post()
+                .uri("/test-suites-sources/fetch-from-branch?branchName={branchName}", branchName)
+                .bodyValue(testSuitesSource)
+                .retrieve()
+                .toBodilessEntity()
         }
 }
