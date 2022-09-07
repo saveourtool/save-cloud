@@ -92,8 +92,8 @@ suspend fun HttpClient.uploadAdditionalFile(
  * @return HttpResponse
  */
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(testingType: TestingType, runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
-    url("${Backend.url}/api/$v1/run/trigger?testingType=${testingType.name}")
+suspend fun HttpClient.submitExecution(runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
+    url("${Backend.url}/api/$v1/run/trigger")
     header("X-Authorization-Source", UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(runExecutionRequest)

@@ -97,8 +97,11 @@ class SaveCloudClient(
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
+            testingType = testingType,
+            // todo: should send contest name here; must be passed from properties/arguments
+            contestName = null,
         )
-        val response = httpClient.submitExecution(testingType, runExecutionRequest)
+        val response = httpClient.submitExecution(runExecutionRequest)
         if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
             log.error("Can't submit execution=$runExecutionRequest! Response status: ${response.status}")
             return null
