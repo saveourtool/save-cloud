@@ -56,9 +56,9 @@ class OrganizationService(
      * @return not deleted Organizations
      */
     fun getNotDeletedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
-        val name = organizationFilters?.name
+        val name = organizationFilters?.name?.let { "%${it}%" }
         val organizations = organizationRepository.findAll { root, _, cb ->
-            val namePredicate = name?.let { cb.equal(root.get<String>("name"), name) } ?: cb.and()
+            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
                 cb.notEqual(root.get<String>("status"), OrganizationStatus.DELETED)
