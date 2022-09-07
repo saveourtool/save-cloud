@@ -46,7 +46,7 @@ enum class UserRatingTab {
         override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
         override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
         override fun values(): Array<UserRatingTab> = UserRatingTab.values()
-        override fun isNotAvailableWithThisRole(role: Role, elem: UserRatingTab?, isOrganizationCanCreateContest: Boolean?): Boolean = false
+        //override fun isAvailableWithThisRole(role: Role, elem: UserRatingTab?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 

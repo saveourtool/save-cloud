@@ -30,7 +30,7 @@ enum class BenchmarkCategoryEnum {
         override val regexForUrlClassification: Regex = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
-        override fun isNotAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false
+        // override fun isAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 

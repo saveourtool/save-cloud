@@ -44,5 +44,5 @@ interface TabMenuBar<T : Enum<T>> {
      * @param isOrganizationCanCreateContest
      * @return Returns true if the check for this tab and role is not passed, else return false
      */
-    fun isNotAvailableWithThisRole(role: Role, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean
+    fun isAvailableWithThisRole(role: Role, elem: T?, isOrganizationCanCreateContest: Boolean?): Boolean = true
 }

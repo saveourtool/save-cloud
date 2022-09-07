@@ -48,7 +48,7 @@ enum class ContestMenuBar {
         override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
-        override fun isNotAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
+        // override fun isAvailableWithThisRole(role: Role, elem: ContestMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 

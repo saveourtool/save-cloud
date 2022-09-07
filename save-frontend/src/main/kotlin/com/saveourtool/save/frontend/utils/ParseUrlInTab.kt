@@ -36,12 +36,12 @@ fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: T
         menu.defaultTab
     }
     if (state.selectedMenu != tab) {
-        if (menu.isNotAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
+        if (menu.isAvailableWithThisRole(role, tab, isOrganizationCanCreateContest)) {
+            setState { selectedMenu = tab }
+        } else {
             window.alert("Your role is not suitable for opening this page")
             window.location.reload()
             setState { selectedMenu = menu.defaultTab }
-        } else {
-            setState { selectedMenu = tab }
         }
     }
 }
