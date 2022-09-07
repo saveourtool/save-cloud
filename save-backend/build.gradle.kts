@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-data-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
@@ -22,8 +24,6 @@ openApi {
         jvmArgs.add("-Dbackend.fileStorage.location=\${HOME}/cnb/files")
     }
 }
-
-configureSpringBoot(true)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
