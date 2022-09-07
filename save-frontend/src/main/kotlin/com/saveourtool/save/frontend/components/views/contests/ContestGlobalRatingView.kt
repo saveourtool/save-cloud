@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.filters.OrganizationFilters
@@ -14,9 +15,11 @@ import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
+import history.Location
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -46,12 +49,17 @@ external interface ContestGlobalRatingProps : Props {
      * Filters for organization name
      */
     var organizationName: String?
+
+    /**
+     * Location for checking change url
+     */
+    var location: Location
 }
 
 /**
  * [State] of Contest Global Rating view component
  */
-external interface ContestGlobalRatingViewState : State {
+external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRatingTab> {
     /**
      * All organizations
      */
@@ -61,11 +69,6 @@ external interface ContestGlobalRatingViewState : State {
      * All projects
      */
     var projects: Array<Project>
-
-    /**
-     * Tab for selected organization or project tables
-     */
-    var selectedTab: UserRatingTab
 
     /**
      * All filters for project
@@ -226,7 +229,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     init {
         state.organizations = emptyArray()
         state.projects = emptyArray()
-        state.selectedTab = UserRatingTab.ORGS
+        state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters(null)
         state.organizationFilters = OrganizationFilters(null)
     }
@@ -263,6 +266,20 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         }
     }
 
+    override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
+        if (state.selectedMenu != prevState.selectedMenu) {
+            changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
+                "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
+            val href = window.location.href.substringBeforeLast("?")
+            window.location.href = when (state.selectedMenu) {
+                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "$href?projectName=$it" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?organizationName=$it" } ?: href
+            }
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(UserRatingTab, Role.NONE, false)
+        }
+    }
+
     override fun componentDidMount() {
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
@@ -271,6 +288,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
             this.projectFilters = projectFilters
             this.organizationFilters = organizationFilters
         }
+        urlAnalysis(UserRatingTab, Role.NONE, false)
         getOrganization(organizationFilters)
         getProject(projectFilters)
     }
@@ -284,12 +302,12 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
             }
         }
 
-        tab(state.selectedTab.name, UserRatingTab.values().map { it.name }) {
+        tab(state.selectedMenu.name, UserRatingTab.values().map { it.name }) {
             setState {
-                selectedTab = UserRatingTab.valueOf(it)
+                selectedMenu = UserRatingTab.valueOf(it)
             }
         }
-        when (state.selectedTab) {
+        when (state.selectedMenu) {
             UserRatingTab.ORGS -> renderingOrganizationChampionsTable()
             UserRatingTab.TOOLS -> renderingProjectChampionsTable()
         }
