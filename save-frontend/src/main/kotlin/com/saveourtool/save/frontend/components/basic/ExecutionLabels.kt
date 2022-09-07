@@ -103,7 +103,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?.let {
                 val precisionRate = it.getPrecisionRate()
                 if (precisionRate.isValid()) {
-                    precisionRate
+                    @Suppress("STRING_TEMPLATE_QUOTES")
+                    "$precisionRate"
                 } else {
                     "N/A"
                 }
@@ -113,7 +114,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?.let {
                 val recallRate = it.getRecallRate()
                 if (recallRate.isValid()) {
-                    recallRate
+                    @Suppress("STRING_TEMPLATE_QUOTES")
+                    "$recallRate"
                 } else {
                     "N/A"
                 }
