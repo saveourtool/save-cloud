@@ -88,10 +88,17 @@ fun Project.createStackDeployTask(profile: String) {
         }
 
         doLast {
+            val defaultVersionOrProperty: (propertyName: String) -> String = { propertyName ->
+                findProperty(propertyName) as String?
+                    ?: versionForDockerImages()
+            }
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
-                    TAG=${versionForDockerImages()}
+                    BACKEND_TAG=${defaultVersionOrProperty("backendTag")}
+                    GATEWAY_TAG=${defaultVersionOrProperty("gatewayTag")}
+                    ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestratorTag")}
+                    PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessorTag")}
                     PROFILE=$profile
                 """.trimIndent()
             )
