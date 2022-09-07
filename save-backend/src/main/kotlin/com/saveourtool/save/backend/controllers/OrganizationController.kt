@@ -431,16 +431,25 @@ internal class OrganizationController(
 
     /**
      * @param organizationName
-     * @param url
      * @param authentication
      * @return contest rating for organization
      */
-    @DeleteMapping("/{organizationName}/get-organization-contest-rating")
+    @GetMapping("/{organizationName}/get-organization-contest-rating")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "Get",
+        summary = "Get organization contest rating.",
+        description = "Get organization contest rating.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully get an organization contest rating.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for get organization contest rating.")
+    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun getOrganizationContestRating(
         @PathVariable organizationName: String,
-        @RequestParam url: String,
         authentication: Authentication,
     ): Mono<Double> = Mono.just(organizationName)
         .flatMap {
