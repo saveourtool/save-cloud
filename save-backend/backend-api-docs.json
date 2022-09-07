@@ -5953,14 +5953,14 @@
         }
       }
     },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites": {
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot": {
       "delete": {
         "tags": [
           "test-suites-source"
         ],
-        "summary": "List of test suites in requested test suites source.",
-        "description": "List of test suites in requested test suites source.",
-        "operationId": "deleteTestSuites",
+        "summary": "Delete test suites and snapshot for requested version from provided test suites source.",
+        "description": "Delete test suites and snapshot for requested version from provided test suites source.",
+        "operationId": "deleteTestSuitesAndSnapshot",
         "parameters": [
           {
             "name": "organizationName",
@@ -5997,89 +5997,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully deleted test suites for requested version from provided source.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-snapshot": {
-      "delete": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "Delete snapshot with provided version from test suites source.",
-        "description": "Delete snapshot with provided version from test suites source.",
-        "operationId": "deleteSnapshot",
-        "parameters": [
-          {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sourceName",
-            "in": "path",
-            "description": "name of test suites source",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "version of checking snapshot",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "404": {
-            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+            "description": "Successfully deleted test suites and snapshot for requested version from provided source.",
             "content": {
               "*/*": {
                 "schema": {
@@ -6088,8 +6006,8 @@
               }
             }
           },
-          "200": {
-            "description": "Successfully checked snapshot with provided values.",
+          "404": {
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
             "content": {
               "*/*": {
                 "schema": {
