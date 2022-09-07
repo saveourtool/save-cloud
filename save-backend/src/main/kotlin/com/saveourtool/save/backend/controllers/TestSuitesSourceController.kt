@@ -229,7 +229,7 @@ class TestSuitesSourceController(
             testSuitesSourceSnapshotStorage.doesContain(it.organizationName, it.name, version)
         }
 
-    @GetMapping(
+    @DeleteMapping(
         path = [
             "/internal/test-suites-sources/{organizationName}/{sourceName}/delete-snapshot",
             "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/delete-snapshot",
