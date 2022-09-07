@@ -24,6 +24,8 @@ external interface ProjectRatingProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
+// TODO: investigate why user properties are not propagated into the FC if we refresh the page (F5),
+//  but are propagated if we come from router or other page
 val myProjectsRatings = myProjectsRatings()
 
 private fun myProjectsRatings() = FC<ProjectRatingProps> { props ->
