@@ -15,6 +15,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 /**
@@ -82,14 +83,15 @@ class TestSuitesSourceService(
      * Raw update
      *
      * @param entity [TestSuitesSource] to be updated
-     * @return updated [TestSuitesSource]
+     * @return status of updating [TestSuitesSource]
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
-    fun update(entity: TestSuitesSource): TestSuitesSource {
+    fun update(entity: TestSuitesSource): Boolean {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $this"
         }
-        return testSuitesSourceRepository.save(entity)
+        return save(entity)
     }
 
     /**
@@ -156,8 +158,31 @@ class TestSuitesSourceService(
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
     ): Mono<EmptyResponse> = preprocessorWebClient.post()
-        .uri("/test-suites-sources/fetch")
-        .bodyValue(testSuitesSource)
+        .uri("/git/tag-list")
+        .bodyValue(testSuitesSource.gitDto)
         .retrieve()
-        .toBodilessEntity()
+        .bodyToMono<List<String>>()
+        .flatMapIterable { it }
+        .flatMap { tagName ->
+            preprocessorWebClient.post()
+                .uri("/test-suites-sources/fetch-from-tag?tagName={tagName}", tagName)
+                .bodyValue(testSuitesSource)
+                .retrieve()
+                .toBodilessEntity()
+        }
+        .collectList()
+        .flatMap {
+            preprocessorWebClient.post()
+                .uri("/git/default-branch-name")
+                .bodyValue(testSuitesSource.gitDto)
+                .retrieve()
+                .bodyToMono<String>()
+        }
+        .flatMap { branchName ->
+            preprocessorWebClient.post()
+                .uri("/test-suites-sources/fetch-from-branch?branchName={branchName}", branchName)
+                .bodyValue(testSuitesSource)
+                .retrieve()
+                .toBodilessEntity()
+        }
 }

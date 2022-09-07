@@ -66,8 +66,8 @@ class TestDiscoveringServiceTest {
             "Test",
             null,
             GitDto("https://github.com/saveourtool/save-cli"),
-            "examples/kotlin-diktat",
             "main",
+            "examples/kotlin-diktat",
             "aaaaaa",
         )
     }

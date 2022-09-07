@@ -211,12 +211,24 @@ class TestSuitesService(
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
-        val testSuitesNamesAndIds = testSuiteDtos.map { it.name to getSavedIdByDto(it) }
-        testSuitesNamesAndIds.forEach { (testSuiteName, testSuiteId) ->
+        doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
+    }
+
+    /**
+     * Delete testSuites and related tests & test executions from DB
+     *
+     * @param source
+     * @param version
+     */
+    fun deleteTestSuite(source: TestSuitesSource, version: String) {
+        doDeleteTestSuite(testSuiteRepository.findAllBySourceAndVersion(source, version))
+    }
+
+    private fun doDeleteTestSuite(testSuites: List<TestSuite>) {
+        testSuites.forEach { testSuite ->
             // Get test ids related to the current testSuiteId
-            val testIds = testRepository.findAllByTestSuiteId(testSuiteId).map { it.requiredId() }
+            val testIds = testRepository.findAllByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
             testIds.forEach { testId ->
                 testExecutionRepository.findByTestId(testId).forEach { testExecution ->
                     // Delete test executions
@@ -228,20 +240,20 @@ class TestSuitesService(
                 log.debug { "Delete test with id $testId" }
                 testRepository.deleteById(testId)
             }
-            log.info("Delete test suite $testSuiteName with id $testSuiteId")
-            testSuiteRepository.deleteById(testSuiteId)
+            log.info("Delete test suite ${testSuite.name} with id ${testSuite.requiredId()}")
+            testSuiteRepository.deleteById(testSuite.requiredId())
         }
 
         // Delete agents, which related to the test suites
-        val executionIds = testSuitesNamesAndIds.flatMap { (_, testSuiteId) ->
-            executionService.getExecutionsByTestSuiteId(testSuiteId).map { it.id!! }
+        val executionIds = testSuites.flatMap { testSuite ->
+            executionService.getExecutionsByTestSuiteId(testSuite.requiredId()).map { it.requiredId() }
         }.distinct()
 
         agentStatusService.deleteAgentStatusWithExecutionIds(executionIds)
         agentService.deleteAgentByExecutionIds(executionIds)
 
         executionIds.forEach {
-            executionService.updateExecutionStatus(executionService.findExecution(it)!!, ExecutionStatus.OBSOLETE)
+            executionService.updateExecutionStatus(executionService.findExecution(it).orNotFound(), ExecutionStatus.OBSOLETE)
         }
     }
 
@@ -271,16 +283,14 @@ class TestSuitesService(
             .single()
     }
 
-    private fun getSavedIdByDto(
+    private fun getSavedEntityByDto(
         dto: TestSuiteDto,
-    ): Long = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
+    ): TestSuite = testSuiteRepository.findByNameAndTagsAndSourceAndVersion(
         dto.name,
         dto.tags?.let(TestSuite::tagsFromList),
         testSuitesSourceService.getByName(dto.source.organizationName, dto.source.name),
         dto.version
-    )
-        ?.requiredId()
-        .orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
+    ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
 
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)
