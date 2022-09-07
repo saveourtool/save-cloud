@@ -45,6 +45,16 @@ fun ExecutionDto.calculateScore(scoreType: ScoreType): Double = when (type) {
     else -> 0.0
 }
 
+/**
+ * @return true if value is in range (0, 100); false otherwise
+ */
+fun Double.isValid() = this.toInt().isValid()
+
+/**
+ * @return true if value is in range (0, 100); false otherwise
+ */
+fun Int.isValid() = this in 0..100
+
 private fun ExecutionDto.calculateScoreForContestMode(scoreType: ScoreType): Double = when (scoreType) {
     ScoreType.F_MEASURE -> calculateFmeasure()
     else -> TODO("Invalid score type for contest mode!")
@@ -58,10 +68,6 @@ private fun ExecutionDto.calculateFmeasure(): Double {
         (2 * getPrecisionRate() * getRecallRate()) / (getPrecisionRate() + getRecallRate()).toDouble()
     }
 }
-
-fun Double.isValid() = this.toInt().isValid()
-
-fun Int.isValid() = this in 0..100
 
 /**
  * @param numerator

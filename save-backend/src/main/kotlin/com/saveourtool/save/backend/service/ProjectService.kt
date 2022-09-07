@@ -94,18 +94,21 @@ class ProjectService(
         return projects
     }
 
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return list of not deleted projects
+     */
     fun getNotDeletedProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> {
-        return findByOrganizationName(organizationName)
-            .filter {
-                it.status != ProjectStatus.DELETED
-            }
-            .filter {
-                projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-            }
-    }
+    ): Flux<Project> = findByOrganizationName(organizationName)
+        .filter {
+            it.status != ProjectStatus.DELETED
+        }
+        .filter {
+            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
+        }
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project

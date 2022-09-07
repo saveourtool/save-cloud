@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
-import com.saveourtool.save.backend.service.LnkContestProjectService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
@@ -422,10 +421,16 @@ internal class OrganizationController(
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
         }
 
-    @DeleteMapping("/{organizationName}/get-organization-contest-rank")
+    /**
+     * @param organizationName
+     * @param url
+     * @param authentication
+     * @return contest rating for organization
+     */
+    @DeleteMapping("/{organizationName}/get-organization-contest-rating")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
-    fun getOrganizationContestRank(
+    fun getOrganizationContestRating(
         @PathVariable organizationName: String,
         @RequestParam url: String,
         authentication: Authentication,
@@ -446,9 +451,8 @@ internal class OrganizationController(
             projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication).collectList()
         }
         .map { projectsList ->
-            projectsList.map { it.contestRating }.sum()
+            projectsList.sumOf { it.contestRating }
         }
-
 
     private fun cleanupStorageData(testSuite: TestSuite) {
         testSuitesSourceSnapshotStorage.findKey(

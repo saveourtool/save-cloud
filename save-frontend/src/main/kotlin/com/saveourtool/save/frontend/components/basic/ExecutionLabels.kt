@@ -33,7 +33,6 @@ import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
 
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.pre
 
 /**
  * Class contains all execution statistics values for rending
@@ -105,7 +104,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?.let {
                 val precisionRate = it.getPrecisionRate()
                 if (isAllApplicable(it.matchedChecks, it.unexpectedChecks) && precisionRate.isValid()) {
-                    "$precisionRate"
+                    precisionRate
                 } else {
                     "N/A"
                 }
@@ -115,7 +114,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?.let {
                 val recallRate = it.getRecallRate()
                 if (isAllApplicable(it.matchedChecks, it.unmatchedChecks) && recallRate.isValid()) {
-                    "$recallRate"
+                    recallRate
                 } else {
                     "N/A"
                 }
