@@ -10,7 +10,6 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.v1
