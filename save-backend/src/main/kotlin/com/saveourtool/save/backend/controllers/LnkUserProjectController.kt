@@ -9,12 +9,17 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -27,6 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -46,6 +52,30 @@ class LnkUserProjectController(
     private val projectService: ProjectService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
+    @GetMapping(path = ["/current-user"])
+    @RequiresAuthorizationSourceHeader
+    @Operation(
+        method = "GET",
+        summary = "Get users from project with their roles.",
+        description = "Get list of users that are connected with given project and their roles in it.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
+    @ApiResponse(responseCode = "404", description = "Project with such name was not found.")
+    fun getProjectsOfCurrentUser(@RequestBody userId: Long?, authentication: Authentication): Flux<Project> {
+        val userIdFromAuth = (authentication.details as AuthenticationDetails).id
+        return Flux.fromIterable(
+            if (userId == userIdFromAuth) lnkUserProjectService.getNonDeletedProjectsByUserId(userId) else emptyList()
+        ).switchIfEmptyToNotFound {
+            "You have requested projects for a user that isn't you. Are you a hacker? Please don't"
+        }.filter {
+            it.public
+        }
+    }
+
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

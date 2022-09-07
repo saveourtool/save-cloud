@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
+import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.LocalDateTime
@@ -21,6 +22,8 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
 
 import kotlinx.js.jso
+import react.dom.html.ReactHTML
+import statistics
 
 /**
  * TODO:
@@ -69,6 +72,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                     className = ClassName("row justify-content-center")
                     div {
                         className = ClassName("col-lg-9")
+
                         div {
                             className = ClassName("row mb-2")
                             featuredContest()
@@ -77,25 +81,8 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
 
                         div {
                             className = ClassName("row mb-2")
-                            div {
-                                className = ClassName("col-lg-5")
-                                div {
-                                    className = ClassName("card flex-md-row mb-1 box-shadow")
-                                    style = jso {
-                                        minHeight = 7.rem
-                                    }
-                                }
-                            }
-                            div {
-                                className = ClassName("col-lg-4")
-                                div {
-                                    className = ClassName("card flex-md-row mb-1 box-shadow")
-                                    style = jso {
-                                        minHeight = 7.rem
-                                    }
-                                }
-                            }
-
+                            yourContests()
+                            statistics()
                             proposeContest()
                         }
 
@@ -103,6 +90,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             className = ClassName("row mb-2")
                             userRating()
                             contestList()
+                            myProjectsRatings()
                         }
                     }
                 }

@@ -26,7 +26,6 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
         className = ClassName("row")
         style = jso {
             justifyContent = JustifyContent.center
-            display = Display.flex
         }
         h4 {
             style = jso {
@@ -34,7 +33,7 @@ fun ChildrenBuilder.title(title: String, icon: FontAwesomeIconModule) {
             }
             fontAwesomeIcon(icon = icon)
 
-            className = ClassName("mt-2 mb-4")
+            className = ClassName("mt-3 mb-4")
             +title
         }
     }

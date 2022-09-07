@@ -28,7 +28,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
 
             ul {
                 className = ClassName("list-group list-group-flush")
-                for (organizationDto in state.selfOrganizationDtos) {
+                state.selfOrganizationDtos.forEach { organizationDto ->
                     li {
                         className = ClassName("list-group-item")
                         div {
@@ -36,7 +36,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3")
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className =
+                                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
