@@ -50,8 +50,8 @@ import kotlinx.serialization.json.Json
  */
 external interface ProjectSaveViewProps : Props {
     /**
-     * The name of the currently selected organization (parent to the newly
-     * created project).
+     * The name of the parent organization, or `null` if the project is being
+     * created from scratch.
      */
     var organizationName: String?
 }
@@ -69,14 +69,6 @@ external interface ProjectSaveViewState : State {
      * Error message
      */
     var errorMessage: String
-
-    /**
-     * The name of the parent organization, or `null` if the project is being
-     * created from scratch.
-     *
-     * @see ProjectSaveViewProps.organizationName
-     */
-    var initialOrganizationName: String?
 
     /**
      * Draft [ProjectDto]
@@ -143,10 +135,9 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
          * Update the state if there's a parent organization available.
          */
         val organizationName = props.organizationName
-        scope.launch {
-            setState {
-                initialOrganizationName = organizationName
-                if (!organizationName.isNullOrEmpty()) {
+        if (!organizationName.isNullOrEmpty()) {
+            scope.launch {
+                setState {
                     projectCreationRequest = projectCreationRequest.copy(organizationName = organizationName)
                 }
             }
@@ -193,7 +184,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                     button {
                                         @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
                                         val buttonText = "Add new organization"
-                                        val buttonEnabled = state.initialOrganizationName.isNullOrEmpty()
+                                        val buttonEnabled = props.organizationName.isNullOrEmpty()
 
                                         type = ButtonType.button
                                         className = ClassName("btn btn-primary mb-2")
