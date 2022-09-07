@@ -1866,36 +1866,6 @@
         }
       }
     },
-    "/api/v1/git/check-connectivity": {
-      "post": {
-        "tags": [
-          "git-controller"
-        ],
-        "operationId": "checkConnectivity",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GitDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "tags": [
