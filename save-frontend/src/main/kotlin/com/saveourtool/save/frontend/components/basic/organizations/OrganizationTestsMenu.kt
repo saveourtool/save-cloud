@@ -17,10 +17,8 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+
 import csstype.ClassName
-import kotlinx.coroutines.await
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -28,6 +26,10 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.coroutines.await
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 typealias TestSuitesSourceWithBranch = Pair<TestSuitesSourceDto, String>
 
