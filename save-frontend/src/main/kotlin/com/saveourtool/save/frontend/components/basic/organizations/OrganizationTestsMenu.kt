@@ -127,6 +127,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
+        setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
     val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
