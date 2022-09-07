@@ -124,22 +124,19 @@ class TestSuitesSourceService(
         // Will be removed in phase 3
         val organizationName = "CQFN.org"
         val gitUrl = "https://github.com/saveourtool/save-cli"
-        val branch = "main"
         val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
         val organization = organizationService.getByName(organizationName)
         val git = gitService.getByOrganizationAndUrl(organization, gitUrl)
         return testRootPaths.map { testRootPath ->
-            testSuitesSourceRepository.findByOrganizationAndGitAndBranchAndTestRootPath(
+            testSuitesSourceRepository.findByOrganizationAndGitAndTestRootPath(
                 organization,
                 git,
-                branch,
                 testRootPath
             ) ?: testSuitesSourceRepository.save(TestSuitesSource(
                 organization = organization,
                 name = "Standard-${testRootPath.removePrefix("examples/")}",
                 description = "Standard test suites from $organizationName: $testRootPath",
                 git = git,
-                branch = branch,
                 testRootPath = testRootPath,
                 latestFetchedVersion = null,
             ))
