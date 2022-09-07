@@ -29,6 +29,6 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
         override fun isAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =
-            !(((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) || ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || isOrganizationCanCreateContest == false)))
+                !(((elem == SETTINGS) && role.isLowerThan(Role.ADMIN)) || ((elem == CONTESTS) && (role.isLowerThan(Role.OWNER) || isOrganizationCanCreateContest == false)))
     }
 }

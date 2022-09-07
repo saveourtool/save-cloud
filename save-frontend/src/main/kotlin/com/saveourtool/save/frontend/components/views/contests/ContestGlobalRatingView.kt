@@ -12,7 +12,6 @@ import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.components.views.ContestMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
@@ -273,8 +272,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
             val href = window.location.href.substringBeforeLast("?")
             window.location.href = when (state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "${href}?projectName=${it}" } ?: href
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "${href}?organizationName=${it}" } ?: href
+                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "$href?projectName=$it" } ?: href
+                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?organizationName=$it" } ?: href
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)

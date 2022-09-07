@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.entities.benchmarks
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.TabMenuBar
 import kotlinx.serialization.Serializable
 
@@ -30,7 +29,6 @@ enum class BenchmarkCategoryEnum {
         override val regexForUrlClassification: Regex = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
         override fun valueOf(elem: String): BenchmarkCategoryEnum = BenchmarkCategoryEnum.valueOf(elem)
         override fun values(): Array<BenchmarkCategoryEnum> = BenchmarkCategoryEnum.values()
-        // override fun isAvailableWithThisRole(role: Role, elem: BenchmarkCategoryEnum?, isOrganizationCanCreateContest: Boolean?): Boolean = false
     }
 }
 
