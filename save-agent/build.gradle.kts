@@ -1,6 +1,7 @@
 import com.saveourtool.save.buildutils.configureSpotless
 import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     kotlin("multiplatform")
@@ -122,4 +123,26 @@ val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
 kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
     dependsOn(generateVersionFileTaskProvider)
+}
+
+/*
+ * On Windows, it's impossible to link a Linux executable against
+ * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ */
+tasks.named("linkDebugExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}
+
+tasks.named("linkReleaseExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}
+
+tasks.named("linkDebugTestLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
 }
