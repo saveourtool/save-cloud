@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTime
 
 import react.create
