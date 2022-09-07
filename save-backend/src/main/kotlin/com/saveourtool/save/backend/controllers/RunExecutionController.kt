@@ -49,6 +49,7 @@ class RunExecutionController(
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
@@ -64,7 +65,6 @@ class RunExecutionController(
     /**
      * @param request incoming request from frontend
      * @param authentication
-     * @param testingType type for this execution
      * @return response with ID of created [Execution]
      */
     @PostMapping("/trigger")
@@ -73,6 +73,7 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
+        .validateContestEnrollment(request)
         .flatMap {
             executionService.createNew(
                 projectCoordinates = request.projectCoordinates,
@@ -139,6 +140,18 @@ class RunExecutionController(
                 }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
                     "User ${authentication.username()} doesn't have access to $projectCoordinates"
                 }.map { value }
+            }
+
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
+        filter { projectCoordinates ->
+            if (request.testingType == TestingType.CONTEST_MODE) {
+                lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+            } else {
+                true
+            }
+        }
+            .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
             }
 
     @Suppress("TOO_LONG_FUNCTION")

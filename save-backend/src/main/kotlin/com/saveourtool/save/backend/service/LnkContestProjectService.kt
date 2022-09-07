@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkContestProjectRepository
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -96,6 +97,12 @@ class LnkContestProjectService(
             lnkContestProject.bestScore = newExecution.score
             lnkContestProjectRepository.save(lnkContestProject)
         }
+    }
+
+    fun isEnrolled(projectCoordinates: ProjectCoordinates, contestName: String): Boolean {
+        return lnkContestProjectRepository.findByContestNameAndProjectOrganizationNameAndProjectName(
+            contestName, projectCoordinates.organizationName, projectCoordinates.projectName
+        ) != null
     }
 
     companion object {
