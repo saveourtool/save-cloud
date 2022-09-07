@@ -151,7 +151,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 organizationFilters = filter
                             }
                             getOrganization(filter)
-                            window.location.href = "${window.location.href.substringBefore("?")}?organizationName=$filterValue"
+                            window.location.href = buildString {
+                                append(window.location.href.substringBefore("?"))
+                                filterValue?.let { append("?organizationName=$filterValue") }
+                            }
                         }
                     }
                 }
@@ -212,7 +215,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 projectFilters = filter
                             }
                             getProject(filter)
-                            window.location.href = "${window.location.href.substringBefore("?")}?projectName=$filterValue"
+                            window.location.href = buildString {
+                                append(window.location.href.substringBefore("?"))
+                                filterValue?.let { append("?projectName=$filterValue") }
+                            }
                         }
                     }
                 }
