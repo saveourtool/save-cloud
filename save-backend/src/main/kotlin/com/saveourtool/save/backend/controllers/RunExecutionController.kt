@@ -70,11 +70,10 @@ class RunExecutionController(
     @PostMapping("/trigger")
     fun trigger(
         @RequestBody request: RunExecutionRequest,
-        @RequestParam testingType: TestingType,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
-        .map {
+        .flatMap {
             executionService.createNew(
                 projectCoordinates = request.projectCoordinates,
                 testSuiteIds = request.testSuiteIds,
@@ -83,7 +82,8 @@ class RunExecutionController(
                 sdk = request.sdk,
                 execCmd = request.execCmd,
                 batchSizeForAnalyzer = request.batchSizeForAnalyzer,
-                testingType = testingType
+                testingType = request.testingType,
+                contestName = request.contestName,
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
@@ -115,7 +115,7 @@ class RunExecutionController(
                 execution.project.name
             )
         }
-        .map { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { executionService.createNewCopy(it, authentication.username()) }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {

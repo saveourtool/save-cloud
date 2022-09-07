@@ -3,6 +3,7 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.execution.TestingType
 import kotlinx.serialization.Serializable
 
 /**
@@ -23,4 +24,13 @@ data class RunExecutionRequest(
     val sdk: Sdk,
     val execCmd: String? = null,
     val batchSizeForAnalyzer: String? = null,
-)
+
+    val testingType: TestingType,
+    val contestName: String? = null,
+) {
+    init {
+        require((testingType == TestingType.CONTEST_MODE) xor (contestName == null)) {
+            "RunExecutionRequest.contestName shouldn't be set unless testingType is ${TestingType.CONTEST_MODE}"
+        }
+    }
+}

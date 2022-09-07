@@ -1,15 +1,20 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.backend.repository.LnkContestExecutionRepository
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
 
 /**
  * Service of [LnkContestExecution]
  */
 @Service
 class LnkContestExecutionService(
+    private val contestRepository: ContestRepository,
     private val lnkContestExecutionRepository: LnkContestExecutionRepository,
 ) {
     /**
@@ -49,4 +54,15 @@ class LnkContestExecutionService(
      * with any [Contest]
      */
     fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
+
+    fun createLink(execution: Execution, contestName: String) = blockingToMono {
+        contestRepository.findByName(contestName)
+    }
+        .filter { it.isPresent }
+        .map {
+            lnkContestExecutionRepository.save(
+                LnkContestExecution(execution = execution, contest = it.get())
+            )
+        }
+        .switchIfEmptyToNotFound()
 }
