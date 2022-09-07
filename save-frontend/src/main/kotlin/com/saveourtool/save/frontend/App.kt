@@ -110,6 +110,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             projectName = params["projectName"]!!
         }
     }
+    private val creationView: FC<Props> = withRouter { location, params ->
+        CreationView::class.react {
+            organizationName = params["owner"]
+        }
+    }
     private val organizationView: FC<Props> = withRouter { _, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
@@ -271,6 +276,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CREATE_PROJECT.path}"
                                     element = CreationView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
+                                    element = creationView.create()
                                 }
 
                                 Route {
