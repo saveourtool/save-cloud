@@ -377,6 +377,39 @@ class TestSuitesSourceController(
             }
         }
 
+    @DeleteMapping(
+        "/api/$v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot",
+        "/internal/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot"
+    )
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "DELETE",
+        summary = "Delete test suites and snapshot for requested version from provided test suites source.",
+        description = "Delete test suites and snapshot for requested version from provided test suites source.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully deleted test suites and snapshot for requested version from provided source.")
+    @ApiResponse(
+        responseCode = "404",
+        description = "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+    )
+    fun deleteTestSuitesAndSnapshot(
+        @PathVariable organizationName: String,
+        @PathVariable sourceName: String,
+        @RequestParam version: String,
+    ): Mono<Boolean> = getTestSuitesSource(organizationName, sourceName)
+        .map {
+            testSuitesService.deleteTestSuite(it, version)
+        }
+        .then(testSuitesSourceSnapshotStorage.findKey(organizationName, sourceName, version))
+        .flatMap {
+            testSuitesSourceSnapshotStorage.delete(it)
+        }
+
     private fun getOrganization(organizationName: String): Mono<Organization> = blockingToMono {
         organizationService.findByName(organizationName)
     }.switchIfEmptyToNotFound {

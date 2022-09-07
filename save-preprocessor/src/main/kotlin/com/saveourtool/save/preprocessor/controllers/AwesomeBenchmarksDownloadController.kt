@@ -48,18 +48,12 @@ class AwesomeBenchmarksDownloadController(
     fun downloadAwesomeBenchmarks(): Mono<ResponseEntity<String>> =
             Mono.just(ResponseEntity("Downloading awesome-benchmarks", HttpStatus.ACCEPTED))
                 .doOnSuccess {
-                    Mono.fromCallable {
-                        gitDto.detectDefaultBranchName()
-                    }
-                        .map { branch ->
-                            branch to gitDto.detectLatestSha1(branch)
-                        }
-                        .flatMap { (branch, version) ->
+                    Mono.fromCallable { gitDto.detectDefaultBranchName() }
+                        .flatMap { branch ->
                             log.debug("Starting to download awesome-benchmarks")
-                            gitPreprocessorService.cloneAndProcessDirectory(
+                            gitPreprocessorService.cloneBranchAndProcessDirectory(
                                 gitDto,
-                                branch,
-                                version
+                                branch
                             ) { repositoryDir: Path, _ ->
                                 log.info("Awesome-benchmarks were downloaded to ${repositoryDir.absolutePathString()}")
                                 processDirectoryAndCleanUp(repositoryDir)
