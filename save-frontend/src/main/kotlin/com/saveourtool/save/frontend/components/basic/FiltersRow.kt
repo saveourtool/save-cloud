@@ -222,7 +222,7 @@ private fun nameFiltersRow(
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filtersName
+                        value = filtersName ?: ""
                         required = false
                         onChange = {
                             setFiltersName(it.target.value)
@@ -231,10 +231,18 @@ private fun nameFiltersRow(
                 }
             }
             button {
-                className = ClassName("btn btn-secondary")
+                className = ClassName("btn btn-secondary mr-3")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     props.onChangeFilters(filtersName)
+                }
+            }
+            button {
+                className = ClassName("btn btn-secondary")
+                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                onClick = {
+                    setFiltersName(null)
+                    props.onChangeFilters(null)
                 }
             }
         }

@@ -55,6 +55,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 import react.table.columns
 
 import kotlinx.browser.window
@@ -702,8 +703,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                    a {
-                        href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+                    Link {
+                        to = "/${FrontendRoutes.CREATE_PROJECT.path}/${this@OrganizationView.state.organization?.name}"
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-outline-info")
