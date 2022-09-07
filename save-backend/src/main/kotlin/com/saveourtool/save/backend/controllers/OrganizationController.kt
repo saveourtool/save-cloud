@@ -429,7 +429,7 @@ internal class OrganizationController(
         @PathVariable organizationName: String,
         @RequestParam url: String,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organizationName)
+    ): Mono<Double> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
         }
@@ -442,28 +442,11 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for managing organization git credentials."
         }
-        .map { organization ->
-            // Find and remove all corresponding data to the current git repository from DB and file system storage
-            val git = gitService.getByOrganizationAndUrl(organization, url)
-            val testSuitesSources = testSuitesSourceService.findByGit(git)
-            // List of test suites for removing data from storage at next step
-            val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
-                val testSuites = testSuitesService.getBySource(testSuitesSource)
-                testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
-                testSuitesSourceService.delete(testSuitesSource)
-                // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
-                testSuites.firstOrNull()
-            }
-            gitService.delete(organization, url)
-            testSuitesList
+        .flatMap {
+            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication).collectList()
         }
-        .flatMap { testSuitesList ->
-            Flux.fromIterable(testSuitesList).map { testSuite ->
-                cleanupStorageData(testSuite)
-            }.collectList()
-        }
-        .map {
-            ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
+        .map { projectsList ->
+            projectsList.map { it.contestRating }.sum()
         }
 
 
