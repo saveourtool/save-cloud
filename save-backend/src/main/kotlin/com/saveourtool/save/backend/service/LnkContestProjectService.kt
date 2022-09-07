@@ -99,11 +99,14 @@ class LnkContestProjectService(
         }
     }
 
-    fun isEnrolled(projectCoordinates: ProjectCoordinates, contestName: String): Boolean {
-        return lnkContestProjectRepository.findByContestNameAndProjectOrganizationNameAndProjectName(
-            contestName, projectCoordinates.organizationName, projectCoordinates.projectName
-        ) != null
-    }
+    /**
+     * @param projectCoordinates
+     * @param contestName
+     * @return whether project by [projectCoordinates] is enrolled into a contest by [contestName]
+     */
+    fun isEnrolled(projectCoordinates: ProjectCoordinates, contestName: String): Boolean = lnkContestProjectRepository.findByContestNameAndProjectOrganizationNameAndProjectName(
+        contestName, projectCoordinates.organizationName, projectCoordinates.projectName
+    ) != null
 
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")

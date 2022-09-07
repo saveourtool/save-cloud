@@ -87,7 +87,6 @@ suspend fun HttpClient.uploadAdditionalFile(
 /**
  * Submit execution
  *
- * @param testingType type of requested execution [TestingType]
  * @param runExecutionRequest execution request
  * @return HttpResponse
  */

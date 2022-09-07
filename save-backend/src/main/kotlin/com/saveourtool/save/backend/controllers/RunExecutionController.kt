@@ -143,16 +143,16 @@ class RunExecutionController(
             }
 
     private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
-        filter { projectCoordinates ->
-            if (request.testingType == TestingType.CONTEST_MODE) {
-                lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
-            } else {
-                true
+            filter { projectCoordinates ->
+                if (request.testingType == TestingType.CONTEST_MODE) {
+                    lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+                } else {
+                    true
+                }
             }
-        }
-            .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
-            }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
+                }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
