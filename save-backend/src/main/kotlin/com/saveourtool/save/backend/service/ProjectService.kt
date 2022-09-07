@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 
 import org.springframework.http.HttpStatus
@@ -109,6 +110,22 @@ class ProjectService(
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
+
+    /**
+     * @param projectFilters
+     * @return project's with filter
+     */
+    fun getNotDeletedProjectsWithFilter(projectFilters: ProjectFilters?): List<Project> {
+        val name = projectFilters?.name?.let { "%$it%" }
+        val projects = projectRepository.findAll { root, _, cb ->
+            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
+            cb.and(
+                namePredicate,
+                cb.notEqual(root.get<String>("status"), ProjectStatus.DELETED)
+            )
+        }
+        return projects
+    }
 
     /**
      * @param authentication [Authentication] of the user who wants to access the project

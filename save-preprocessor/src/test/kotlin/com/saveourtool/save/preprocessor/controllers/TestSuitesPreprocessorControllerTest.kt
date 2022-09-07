@@ -6,6 +6,7 @@ import com.saveourtool.save.preprocessor.service.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.*
 import reactor.core.publisher.Mono
 import java.nio.file.Paths
@@ -35,14 +36,23 @@ internal class TestSuitesPreprocessorControllerTest {
     private val repositoryDirectory = Paths.get("./some-folder")
     private val testLocations = repositoryDirectory.resolve(testSuitesSourceDto.testRootPath)
     private val creationTime = Instant.now()
+    private val tag = "v0.1"
+    private val branch = "main"
+    private val commit = "1234567"
 
     @BeforeEach
     fun setup() {
-        doAnswer { answer ->
+        val answerCall = { answer: InvocationOnMock ->
             @Suppress("UNCHECKED_CAST")
-            val processor = answer.arguments[3] as GitRepositoryProcessor<TestSuiteList>
+            val processor = answer.arguments[2] as GitRepositoryProcessor<TestSuiteList>
             processor(repositoryDirectory, creationTime)
-        }.whenever(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), any(), any())
+        }
+        doAnswer(answerCall).whenever(gitPreprocessorService)
+            .cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
+        doAnswer(answerCall).whenever(gitPreprocessorService)
+            .cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
+        doAnswer(answerCall).whenever(gitPreprocessorService)
+            .cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
         doAnswer { answer ->
             @Suppress("UNCHECKED_CAST")
             val processor = answer.arguments[1] as ArchiveProcessor<TestSuiteList>
@@ -57,50 +67,69 @@ internal class TestSuitesPreprocessorControllerTest {
     }
 
     @Test
-    fun fetchLatestAlreadyContains() {
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any()))
-            .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, null)
+    fun fetchFromTagSuccessful() {
+        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(tag)))
+            .thenReturn(Mono.just(false))
+        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, tag)
             .block()
 
-        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), any())
+        verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
+        verifySuccessful(tag)
+    }
+
+    @Test
+    fun fetchFromTagAlreadyContains() {
+        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(tag)))
+            .thenReturn(Mono.just(true))
+        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, tag)
+            .block()
+
+        verifyNotSuccessful(tag)
+    }
+
+    @Test
+    fun fetchFromBranchSuccessful() {
+        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(branch)))
+            .thenReturn(Mono.just(false))
+        testSuitesPreprocessorController.fetchFromBranch(testSuitesSourceDto, branch)
+            .block()
+
+        verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
+        verifySuccessful(branch)
+    }
+
+    @Test
+    fun fetchCommitSuccessful() {
+        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(commit)))
+            .thenReturn(Mono.just(false))
+        testSuitesPreprocessorController.fetchFromCommit(testSuitesSourceDto, commit)
+            .block()
+
+        verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
+        verifySuccessful(commit)
+    }
+
+    @Test
+    fun fetchCommitAlreadyContains() {
+        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(commit)))
+            .thenReturn(Mono.just(true))
+        testSuitesPreprocessorController.fetchFromCommit(testSuitesSourceDto, commit)
+            .block()
+
+        verifyNotSuccessful(commit)
+    }
+
+    private fun verifySuccessful(version: String) {
+        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
+        verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
+        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
+        verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
+        verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
+    }
+
+    private fun verifyNotSuccessful(version: String) {
+        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
         verifyNoMoreInteractions(testsPreprocessorToBackendBridge)
         verifyNoInteractions(gitPreprocessorService, testDiscoveringService)
-    }
-
-    @Test
-    fun fetchLatestSuccessful() {
-        var version: String = "N/A"
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto),
-            argThat { latestVersion ->
-                version = latestVersion
-                true
-            }))
-            .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, null)
-            .block()
-
-        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
-        verify(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), eq(version), any())
-        verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
-        verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
-        verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
-    }
-
-    @Test
-    fun fetchSpecificSuccessful() {
-        val version = "some"
-        whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version)))
-            .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetch(testSuitesSourceDto, version)
-            .block()
-
-        verify(testsPreprocessorToBackendBridge).doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(version))
-        verify(gitPreprocessorService).cloneAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(testSuitesSourceDto.branch), eq(version), any())
-        verify(gitPreprocessorService).archiveToTar<TestSuiteList>(eq(testLocations), any())
-        verify(testsPreprocessorToBackendBridge).saveTestsSuiteSourceSnapshot(eq(testSuitesSourceDto), eq(version), eq(creationTime), any())
-        verify(testDiscoveringService).detectAndSaveAllTestSuitesAndTests(eq(repositoryDirectory), eq(testSuitesSourceDto), eq(version))
-        verifyNoMoreInteractions(testsPreprocessorToBackendBridge, gitPreprocessorService, testDiscoveringService)
     }
 }

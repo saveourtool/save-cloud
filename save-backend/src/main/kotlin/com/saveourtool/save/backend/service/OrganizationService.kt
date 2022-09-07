@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.filters.OrganizationFilters
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -49,6 +50,22 @@ class OrganizationService(
         .let {
             organizationRepository.save(it)
         }
+
+    /**
+     * @param organizationFilters
+     * @return not deleted Organizations
+     */
+    fun getNotDeletedOrganizations(organizationFilters: OrganizationFilters?): List<Organization> {
+        val name = organizationFilters?.name?.let { "%$it%" }
+        val organizations = organizationRepository.findAll { root, _, cb ->
+            val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
+            cb.and(
+                namePredicate,
+                cb.notEqual(root.get<String>("status"), OrganizationStatus.DELETED)
+            )
+        }
+        return organizations
+    }
 
     /**
      * @param organizationId

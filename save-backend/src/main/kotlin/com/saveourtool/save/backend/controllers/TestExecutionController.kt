@@ -15,7 +15,7 @@ import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.test.TestDto

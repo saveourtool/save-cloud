@@ -7,10 +7,11 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
@@ -89,6 +90,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
         }
     }
+    private val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+        ContestGlobalRatingView::class.react {
+            organizationName = URLSearchParams(location.search).get("organizationName")
+            projectName = URLSearchParams(location.search).get("projectName")
+        }
+    }
     private val contestView: FC<Props> = withRouter { _, params ->
         ContestView::class.react {
             currentUserInfo = state.userInfo
@@ -101,6 +108,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             contestName = params["contestName"]!!
             organizationName = params["organizationName"]!!
             projectName = params["projectName"]!!
+        }
+    }
+    private val creationView: FC<Props> = withRouter { location, params ->
+        CreationView::class.react {
+            organizationName = params["owner"]
         }
     }
     private val organizationView: FC<Props> = withRouter { _, params ->
@@ -211,6 +223,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    element = contestGlobalRatingView.create()
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
@@ -259,6 +276,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CREATE_PROJECT.path}"
                                     element = CreationView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
+                                    element = creationView.create()
                                 }
 
                                 Route {

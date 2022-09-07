@@ -33,12 +33,11 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.util.FileSystemUtils
 
+import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Paths
 
 import kotlin.io.path.*
-import kotlinx.serialization.encodeToString
-import java.net.InetSocketAddress
 
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)

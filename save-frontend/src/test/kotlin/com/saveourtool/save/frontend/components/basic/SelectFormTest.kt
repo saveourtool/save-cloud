@@ -13,8 +13,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
-    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-    private val selectFormRequired = selectFormRequired<Organization>()
+    private val selectFormRequired: FC<SelectFormRequiredProps<Organization>> = selectFormRequired()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organizations/get/list") { _, res, _ ->
             res { response ->
