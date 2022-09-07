@@ -3,16 +3,22 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
+import history.Location
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
@@ -33,6 +39,16 @@ enum class ContestMenuBar {
     SUBMISSIONS,
     SUMMARY,
     ;
+
+    companion object : TabMenuBar<ContestMenuBar> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: ContestMenuBar = INFO
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
+        override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
+        override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
+    }
 }
 
 /**
@@ -42,17 +58,13 @@ enum class ContestMenuBar {
 external interface ContestViewProps : Props {
     var currentUserInfo: UserInfo?
     var currentContestName: String?
+    var location: Location
 }
 
 /**
  * [State] for [ContestView]
  */
-external interface ContestViewState : State {
-    /**
-     * Current selected menu
-     */
-    var selectedMenu: ContestMenuBar?
-
+external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
      * Flag that shows if current contest is featured or not
      */
@@ -66,12 +78,22 @@ external interface ContestViewState : State {
 @OptIn(ExperimentalJsExport::class)
 class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
-        state.selectedMenu = ContestMenuBar.INFO
+        state.selectedMenu = ContestMenuBar.defaultTab
         state.isFeatured = false
+    }
+
+    override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
+        if (state.selectedMenu != prevState.selectedMenu) {
+            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
+                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(ContestMenuBar, Role.NONE, false)
+        }
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
+        urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
     }
 
@@ -88,7 +110,6 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             ContestMenuBar.INFO -> renderInfo()
             ContestMenuBar.SUBMISSIONS -> renderSubmissions()
             ContestMenuBar.SUMMARY -> renderSummary()
-            else -> throw NotImplementedError()
         }
     }
 
@@ -144,22 +165,15 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
             nav {
                 className = ClassName("nav nav-tabs mb-4")
                 ContestMenuBar.values()
-                    .forEachIndexed { i, contestMenu ->
+                    .forEach { contestMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == contestMenu) {
-                                        " active font-weight-bold"
-                                    } else {
-                                        ""
-                                    }
+                            val classVal = if (state.selectedMenu == contestMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != contestMenu) {
-                                        setState {
-                                            selectedMenu = contestMenu
-                                        }
+                                        setState { selectedMenu = contestMenu }
                                     }
                                 }
                                 +contestMenu.name

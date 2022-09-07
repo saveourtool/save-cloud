@@ -21,6 +21,8 @@ fun useOnce(action: () -> Unit) {
 }
 
 /**
+ * Can only be called from functional components
+ *
  * @param updateNotificationMessage callback to show notification message
  * @return current value and callback for showGlobalRoleWarning
  */
