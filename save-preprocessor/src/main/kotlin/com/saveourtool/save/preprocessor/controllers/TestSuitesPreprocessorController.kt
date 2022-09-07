@@ -151,13 +151,16 @@ class TestSuitesPreprocessorController(
                 )
             }
         }
-    }.map { testSuites ->
-        with(testSuitesSourceDto) {
-            log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
+    }
+        .map { testSuites ->
+            with(testSuitesSourceDto) {
+                log.info { "Loaded ${testSuites.size} test suites from test suites source $name in $organizationName with version $cloneObject" }
+            }
         }
-    }.doOnError(Exception::class.java) { ex ->
-        log.error(ex) { "Failed to fetch from $cloneObject" }
-    }.onErrorReturn(Unit)
+        .doOnError(Exception::class.java) { ex ->
+            log.error(ex) { "Failed to fetch from $cloneObject" }
+        }
+        .onErrorReturn(Unit)
 
     companion object {
         private val log: Logger = getLogger<TestSuitesPreprocessorController>()
