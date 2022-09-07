@@ -65,7 +65,7 @@ class LnkUserProjectController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
     @ApiResponse(responseCode = "404", description = "Project with such name was not found.")
-    fun getProjectsOfCurrentUser(@RequestBody userId: Long?, authentication: Authentication): Flux<Project> {
+    fun getProjectsOfCurrentUser(@RequestParam userId: Long?, authentication: Authentication): Flux<Project> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
         return Flux.fromIterable(
             if (userId == userIdFromAuth) lnkUserProjectService.getNonDeletedProjectsByUserId(userId) else emptyList()

@@ -27,11 +27,9 @@ import statistics
 
 /**
  * TODO:
- * 1. Хотите создавать контесты - напишите нам
- * 2. Добавить свой контест: выбираем организацию и дальше добавляем
- * 3. Гранд чемпионы SAVE
- * 4. Обратный отсчет
- * 5. Количество контествов и участников
+ * 2. Link to create contests
+ * 3. Grand champions
+ * 4. Countdown till the end of contests
  */
 
 /**
@@ -90,7 +88,9 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             className = ClassName("row mb-2")
                             userRating()
                             contestList()
-                            myProjectsRatings()
+                            myProjectsRatings {
+                                userInfo = props.currentUserInfo
+                            }
                         }
                     }
                 }
