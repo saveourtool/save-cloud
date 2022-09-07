@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
+import com.saveourtool.save.utils.isValid
 
 import csstype.ClassName
 import csstype.Width
@@ -101,7 +102,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.precisionRate = executionDto
             ?.let {
                 val precisionRate = it.getPrecisionRate()
-                if (isAllApplicable(it.matchedChecks, it.unexpectedChecks) && precisionRate.isValid()) {
+                if (precisionRate.isValid()) {
                     precisionRate
                 } else {
                     "N/A"
@@ -111,7 +112,7 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.recallRate = executionDto
             ?.let {
                 val recallRate = it.getRecallRate()
-                if (isAllApplicable(it.matchedChecks, it.unmatchedChecks) && recallRate.isValid()) {
+                if (recallRate.isValid()) {
                     recallRate
                 } else {
                     "N/A"
@@ -119,8 +120,6 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             }
             ?: "0"
     }
-
-    private fun isAllApplicable(vararg values: Long): Boolean = values.all { !CountWarnings.isNotApplicable(it.toInt()) }
 }
 
 /**
