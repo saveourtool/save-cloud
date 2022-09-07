@@ -9,7 +9,6 @@ import javax.persistence.ManyToOne
  * @property name unique name of [TestSuitesSource]
  * @property description free text
  * @property git git credentials for this test suites source
- * @property branch branch which is used for this test suites source
  * @property testRootPath relative path to tests in source
  * @property latestFetchedVersion
  */
@@ -26,7 +25,6 @@ class TestSuitesSource(
     @ManyToOne
     @JoinColumn(name = "git_id")
     var git: Git,
-    var branch: String,
     var testRootPath: String,
     var latestFetchedVersion: String?,
 ) : BaseEntity() {
@@ -38,7 +36,6 @@ class TestSuitesSource(
         name = name,
         description = description,
         gitDto = git.toDto(),
-        branch = branch,
         testRootPath = testRootPath,
         latestFetchedVersion = latestFetchedVersion
     )
@@ -49,7 +46,6 @@ class TestSuitesSource(
             "",
             null,
             Git.empty,
-            "",
             "",
             null,
         )
@@ -76,7 +72,6 @@ class TestSuitesSource(
                 name,
                 description,
                 git,
-                branch,
                 testRootPath,
                 latestFetchedVersion,
             )

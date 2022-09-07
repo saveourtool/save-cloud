@@ -1851,6 +1851,66 @@
         ]
       }
     },
+    "/api/v1/git/default-branch-name": {
+      "post": {
+        "tags": [
+          "git-controller"
+        ],
+        "operationId": "defaultBranchName",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/git/check-connectivity": {
+      "post": {
+        "tags": [
+          "git-controller"
+        ],
+        "operationId": "checkConnectivity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "tags": [
@@ -5884,52 +5944,6 @@
         ]
       }
     },
-    "/api/v1/check-git-connectivity-adaptor": {
-      "get": {
-        "tags": [
-          "check-git-connectivity-controller"
-        ],
-        "operationId": "checkGitConnectivity",
-        "parameters": [
-          {
-            "name": "user",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "token",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/awesome-benchmarks": {
       "get": {
         "tags": [
@@ -6664,7 +6678,6 @@
       },
       "TestSuitesSourceDto": {
         "required": [
-          "branch",
           "gitDto",
           "name",
           "organizationName",
@@ -6683,9 +6696,6 @@
           },
           "gitDto": {
             "$ref": "#/components/schemas/GitDto"
-          },
-          "branch": {
-            "type": "string"
           },
           "testRootPath": {
             "type": "string"

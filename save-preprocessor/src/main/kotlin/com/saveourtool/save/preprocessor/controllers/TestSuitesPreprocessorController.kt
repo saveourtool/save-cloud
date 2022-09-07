@@ -96,7 +96,7 @@ class TestSuitesPreprocessorController(
         }
 
     /**
-     * Fetch new tests suites from provided source from latest sha-1 in provided branch
+     * Fetch new tests suites from provided source from commitId
      *
      * @param testSuitesSourceDto source from which test suites need to be loaded
      * @param commitId commit which needs to be loaded, will be used as version
