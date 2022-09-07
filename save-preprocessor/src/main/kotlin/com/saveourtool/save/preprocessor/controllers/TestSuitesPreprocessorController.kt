@@ -82,13 +82,7 @@ class TestSuitesPreprocessorController(
         }
         .flatMap { doesContain ->
             if (doesContain) {
-                testsPreprocessorToBackendBridge.deleteTestSuites(testSuitesSourceDto, branchName)
-                    .then(
-                        testsPreprocessorToBackendBridge.deleteTestSuitesSourceVersion(
-                            testSuitesSourceDto,
-                            branchName
-                        )
-                    )
+                testsPreprocessorToBackendBridge.deleteTestSuitesAndSourceSnapshot(testSuitesSourceDto, branchName)
             } else {
                 Mono.just(Unit)
             }
