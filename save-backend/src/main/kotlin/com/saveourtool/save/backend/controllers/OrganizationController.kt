@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
@@ -35,10 +36,14 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.time.LocalDateTime
 
@@ -61,7 +66,10 @@ internal class OrganizationController(
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
     private val projectService: ProjectService
+    config: ConfigProperties,
 ) {
+    private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
+
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -379,8 +387,13 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for saving git of $organizationName."
         }
-        .map {
-            gitService.upsert(it, gitDto)
+        .zipWith(validateGitCredentials(gitDto))
+        .filter { (_, isValid) -> isValid }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "Invalid git credentials for url ${gitDto.url}"
+        }
+        .map { (organization, _) ->
+            gitService.upsert(organization, gitDto)
             ResponseEntity.ok("Git credential saved")
         }
 
@@ -473,15 +486,20 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun cleanupStorageData(testSuite: TestSuite) {
-        testSuitesSourceSnapshotStorage.findKey(
-            testSuite.source.organization.name,
-            testSuite.source.name,
-            testSuite.version,
-        ).flatMap { key ->
-            testSuitesSourceSnapshotStorage.delete(key)
-        }
+    private fun cleanupStorageData(testSuite: TestSuite) = testSuitesSourceSnapshotStorage.findKey(
+        testSuite.source.organization.name,
+        testSuite.source.name,
+        testSuite.version,
+    ).flatMap { key ->
+        testSuitesSourceSnapshotStorage.delete(key)
     }
+
+    private fun validateGitCredentials(gitDto: GitDto) = webClientToPreprocessor
+        .post()
+        .uri("/git/check-connectivity")
+        .bodyValue(gitDto)
+        .retrieve()
+        .bodyToMono<Boolean>()
 
     companion object {
         @JvmStatic

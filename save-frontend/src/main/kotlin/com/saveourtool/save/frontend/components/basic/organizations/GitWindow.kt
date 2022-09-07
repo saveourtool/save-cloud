@@ -8,15 +8,26 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.defaultModalStyle
+import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.modal
+import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
+import com.saveourtool.save.frontend.externals.modal.CssProperties
+import com.saveourtool.save.frontend.externals.modal.Styles
+import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
+import kotlinx.coroutines.await
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import kotlin.js.json
 
 /**
  * Component that allows to change git settings in ManageGitCredentialsCard.kt
@@ -24,13 +35,13 @@ import react.dom.html.ReactHTML.input
 val gitWindow = createGitWindow()
 
 /**
- * RunSettingGitWindow component props
+ * GitWindow component props
  */
 external interface GitWindowProps : Props {
     /**
-     * Flag to open window
+     * Window openness
      */
-    var isOpen: Boolean
+    var windowOpenness: WindowOpenness
 
     /**
      * name of organization, assumption that it's checked by previous views and valid here
@@ -40,17 +51,7 @@ external interface GitWindowProps : Props {
     /**
      * Git credential to update, it's null in case of creating a new one
      */
-    var gitDto: GitDto?
-
-    /**
-     * Lambda to upsert git dto
-     */
-    var onGitUpdate: (GitDto) -> Unit
-
-    /**
-     * Lambda to set state about current modal window to closed
-     */
-    var setClosedState: () -> Unit
+    var initialGitDto: GitDto?
 }
 
 private fun GitDto?.toMutableMap(): MutableMap<InputTypes, String> = mutableMapOf<InputTypes, String>().also {
@@ -71,10 +72,41 @@ private fun MutableMap<InputTypes, String>.toGitDto(): GitDto = GitDto(
     "LongMethod",
 )
 private fun createGitWindow() = FC<GitWindowProps> { props ->
-    val fieldsWithGitInfo = props.gitDto.toMutableMap()
+    val fieldsWithGitInfo = props.initialGitDto.toMutableMap()
 
-    modal { modalProps ->
-        modalProps.isOpen = props.isOpen
+    val failedResponseWindowOpenness = useWindowOpenness()
+    val (failedReason, setFailedReason) = useState<String>()
+    displayModal(
+        failedResponseWindowOpenness.isOpen(),
+        "Error",
+        failedReason?.let {
+            "Failed to ${props.initialGitDto?.let { "update" } ?: "create"} git credential for ${fieldsWithGitInfo[InputTypes.GIT_URL]}: $it"
+        } ?: "N/A",
+        smallTransparentModalStyle,
+        failedResponseWindowOpenness.closeWindowAction()
+    ) {
+        buttonBuilder(
+            label = "Ok",
+            style = "secondary",
+            onClickFun = failedResponseWindowOpenness.closeWindowAction().withUnusedArg()
+        )
+    }
+
+    val (_, setGitCredentialToUpsert, upsertGitCredentialRequest) =
+        prepareUpsertGitCredential(props.organizationName, setFailedReason, props.windowOpenness.closeWindowAction())
+
+    val styles = Styles(
+        content = json(
+            "top" to "25%",
+            "left" to "35%",
+            "right" to "35%",
+            "bottom" to "auto",
+            "overflow" to "hide",
+            "z-index" to "2"
+        ).unsafeCast<CssProperties>()
+    )
+    modal(styles) { modalProps ->
+        modalProps.isOpen = props.windowOpenness.isOpen()
 
         div {
             className = ClassName("row mt-2 ml-2 mr-2")
@@ -88,10 +120,15 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                     type = InputType.text
                     className = ClassName("form-control")
                     defaultValue = fieldsWithGitInfo[InputTypes.GIT_URL]
-                    readOnly = props.gitDto != null
+                    readOnly = props.initialGitDto != null
                     required = true
                     onChange = {
                         fieldsWithGitInfo[InputTypes.GIT_URL] = it.target.value
+                    }
+                    props.initialGitDto?.also {
+                        asDynamic()["data-toggle"] = "tooltip"
+                        asDynamic()["data-placement"] = "bottom"
+                        title = "Cannot be changed on update"
                     }
                 }
             }
@@ -137,20 +174,42 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
                 type = ButtonType.button
                 className = ClassName("btn btn-primary mr-3")
                 onClick = {
-                    props.setClosedState()
-                    props.onGitUpdate(fieldsWithGitInfo.toGitDto())
+                    setGitCredentialToUpsert(fieldsWithGitInfo.toGitDto())
+                    upsertGitCredentialRequest()
                 }
-                val buttonName = props.gitDto?.let { "Save" } ?: "Create"
+                val buttonName = props.initialGitDto?.let { "Update" } ?: "Create"
                 +buttonName
             }
             button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
-                onClick = {
-                    props.setClosedState()
-                }
+                onClick = props.windowOpenness.closeWindowAction().withUnusedArg()
                 +"Cancel"
             }
         }
     }
+
+    useTooltip()
+}
+
+private fun prepareUpsertGitCredential(
+    organizationName: String,
+    setFailedResponse: StateSetter<String?>,
+    closeGitWindow: () -> Unit,
+): RequestWithDependency<GitDto?> {
+    val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto?>(null)
+    val upsertGitCredentialRequest = useDeferredRequest {
+        val response = post(
+            "$apiUrl/organizations/$organizationName/upsert-git",
+            headers = jsonHeaders,
+            body = Json.encodeToString(requireNotNull(gitCredentialToUpsert)),
+            loadingHandler = ::loadingHandler,
+        )
+        if (!response.ok) {
+            setFailedResponse("${response.statusText} ${response.text().await()}")
+        } else {
+            closeGitWindow()
+        }
+    }
+    return Triple(gitCredentialToUpsert, setGitCredentialToUpsert, upsertGitCredentialRequest)
 }
