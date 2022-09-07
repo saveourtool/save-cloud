@@ -35,6 +35,7 @@ class SaveCloudClient(
     webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
     private val testingType: TestingType,
+    private val contestName: String?,
     authorization: Authorization,
 ) {
     private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
@@ -63,7 +64,7 @@ class SaveCloudClient(
         }
         log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(additionalFileInfoList) ?: return
+        val executionRequest = submitExecution(additionalFileInfoList, contestName) ?: return
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
@@ -83,7 +84,8 @@ class SaveCloudClient(
      * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
-        additionalFiles: List<ShortFileInfo>?
+        additionalFiles: List<ShortFileInfo>?,
+        contestName: String?,
     ): RunExecutionRequest? {
         val runExecutionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
@@ -98,8 +100,7 @@ class SaveCloudClient(
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
             testingType = testingType,
-            // todo: should send contest name here; must be passed from properties/arguments
-            contestName = null,
+            contestName = contestName,
         )
         val response = httpClient.submitExecution(runExecutionRequest)
         if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {

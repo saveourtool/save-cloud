@@ -142,6 +142,7 @@ class RunExecutionController(
                 }.map { value }
             }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
             filter { projectCoordinates ->
                 if (request.testingType == TestingType.CONTEST_MODE) {
