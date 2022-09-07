@@ -80,9 +80,8 @@ tasks.named<BootBuildImage>("bootBuildImage") {
                         "-Dspring.config.additional-location=optional:file:/home/cnb/config/application.properties"
     )
     isVerboseLogging = true
-    val registryPassword: String? = System.getenv("GHCR_PWD")
-    isPublish = registryPassword != null
-    if (isPublish) {
+    System.getenv("GHCR_PWD")?.let { registryPassword ->
+        isPublish = true
         docker {
             publishRegistry {
                 username = "saveourtool"
