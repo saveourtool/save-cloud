@@ -10,6 +10,7 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.asyncEffectIf
 import com.saveourtool.save.utils.orNotFound
 
 import org.slf4j.LoggerFactory
@@ -256,16 +257,12 @@ class ExecutionService(
         return blockingToMono {
             saveExecution(execution)
         }
-            .flatMap { savedExecution ->
-                if (testingType == TestingType.CONTEST_MODE) {
-                    lnkContestExecutionService.createLink(
-                        savedExecution, requireNotNull(contestName) {
-                            "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
-                        }
-                    ).map { savedExecution }
-                } else {
-                    Mono.just(savedExecution)
-                }
+            .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
+                lnkContestExecutionService.createLink(
+                    savedExecution, requireNotNull(contestName) {
+                        "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
+                    }
+                )
             }
             .doOnSuccess { savedExecution ->
                 log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
