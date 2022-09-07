@@ -14,6 +14,7 @@ import com.saveourtool.save.utils.LocalDateTime
 
 import react.create
 import react.react
+import react.router.dom.HashRouter
 
 import kotlin.js.Promise
 import kotlin.test.*
@@ -113,9 +114,11 @@ class OrganizationViewTest {
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = wrapper.create {
-        OrganizationView::class.react {
-            organizationName = testOrganization.name
-            currentUserInfo = userInfo
+        HashRouter {
+            OrganizationView::class.react {
+                organizationName = testOrganization.name
+                currentUserInfo = userInfo
+            }
         }
     }
         .let {
