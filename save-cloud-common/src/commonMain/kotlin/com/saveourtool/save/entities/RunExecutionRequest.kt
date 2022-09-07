@@ -13,6 +13,8 @@ import kotlinx.serialization.Serializable
  * @property sdk
  * @property execCmd
  * @property batchSizeForAnalyzer
+ * @property testingType a [TestingType] for this execution
+ * @property contestName if [testingType] is [TestingType.CONTEST_MODE], then this property contains name of the associated contest
  */
 @Serializable
 data class RunExecutionRequest(

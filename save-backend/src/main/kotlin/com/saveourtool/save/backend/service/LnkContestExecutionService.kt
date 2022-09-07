@@ -55,6 +55,11 @@ class LnkContestExecutionService(
      */
     fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
 
+    /**
+     * @param execution
+     * @param contestName
+     * @return [Mono] containing a created [LnkContestExecution] or `Mono.error` with code 404
+     */
     fun createLink(execution: Execution, contestName: String) = blockingToMono {
         contestRepository.findByName(contestName)
     }
