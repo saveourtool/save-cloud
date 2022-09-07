@@ -54,7 +54,7 @@ class TestSuitesPreprocessorController(
             fetchTestSuites(
                 testSuitesSourceDto,
                 tagName,
-                GitPreprocessorService::cloneBranchAndProcessDirectory
+                GitPreprocessorService::cloneTagAndProcessDirectory
             )
         }
         .lazyDefaultIfEmpty {

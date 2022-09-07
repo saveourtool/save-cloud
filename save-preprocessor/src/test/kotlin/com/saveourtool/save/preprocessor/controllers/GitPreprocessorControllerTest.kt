@@ -68,7 +68,7 @@ class GitPreprocessorControllerTest(
     ) {
         webClient
             .post()
-            .uri("/git/detect-default-branch-name")
+            .uri("/git/default-branch-name")
             .bodyValue(GitDto(url))
             .exchange()
             .expectStatus()
