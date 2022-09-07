@@ -1,14 +1,12 @@
 import com.saveourtool.save.buildutils.configureJacoco
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.configureSpringBoot
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("com.saveourtool.save.buildutils.spring-boot-configuration")
 }
-
-configureSpringBoot()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
