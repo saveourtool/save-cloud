@@ -148,8 +148,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 organizationFilters = filter
                             }
                             getOrganization(filter)
-                            getProject(ProjectFilters(null))
-                            window.location.href = filterValue?.let {"${window.location.href.substringBefore("?")}?organizationName=$filterValue"} ?: window.location.href.substringBefore("?")
+                            window.location.href = filterValue?.let { "${window.location.href.substringBefore("?")}?organizationName=$filterValue" }
+                                ?: window.location.href.substringBefore("?")
                         }
                     }
                 }
@@ -209,9 +209,9 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                             setState {
                                 projectFilters = filter
                             }
-                            getOrganization(OrganizationFilters(null))
                             getProject(filter)
-                            window.location.href = filterValue?. let { "${window.location.href.substringBefore("?")}?projectName=$filterValue" } ?: window.location.href.substringBefore("?")
+                            window.location.href = filterValue?.let { "${window.location.href.substringBefore("?")}?projectName=$filterValue" }
+                                ?: window.location.href.substringBefore("?")
                         }
                     }
                 }
