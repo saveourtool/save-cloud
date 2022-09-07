@@ -4074,6 +4074,91 @@
         ]
       }
     },
+    "/api/v1/projects/current-user": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get users from project with their roles.",
+        "description": "Get list of users that are connected with given project and their roles in it.",
+        "operationId": "getProjectsOfCurrentUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true
+          },
+          {
+            "name": "projectName",
+            "in": "path",
+            "description": "name of a project",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Project with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched users from project.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/projects/all": {
       "get": {
         "tags": [
