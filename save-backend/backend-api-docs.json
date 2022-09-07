@@ -761,21 +761,6 @@
           "run-execution-controller"
         ],
         "operationId": "trigger",
-        "parameters": [
-          {
-            "name": "testingType",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CONTEST_MODE",
-                "PRIVATE_TESTS",
-                "PUBLIC_TESTS"
-              ]
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6852,7 +6837,8 @@
           "files",
           "projectCoordinates",
           "sdk",
-          "testSuiteIds"
+          "testSuiteIds",
+          "testingType"
         ],
         "type": "object",
         "properties": {
@@ -6879,6 +6865,17 @@
             "type": "string"
           },
           "batchSizeForAnalyzer": {
+            "type": "string"
+          },
+          "testingType": {
+            "type": "string",
+            "enum": [
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
+            ]
+          },
+          "contestName": {
             "type": "string"
           }
         }
