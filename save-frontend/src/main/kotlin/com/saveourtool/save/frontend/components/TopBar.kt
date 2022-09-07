@@ -8,8 +8,11 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.OrganizationMenuBar
+import com.saveourtool.save.frontend.utils.ProjectMenuBar
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -70,7 +73,12 @@ private fun ChildrenBuilder.dropdownEntry(
  *
  * @return a function component
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "ComplexMethod",
+    "TOO_MANY_LINES_IN_LAMBDA"
+)
 fun topBar() = FC<TopBarProps> { props ->
     val (isLogoutModalOpen, setIsLogoutModalOpen) = useState(false)
     val location = useLocation()
@@ -87,7 +95,7 @@ fun topBar() = FC<TopBarProps> { props ->
         className = ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
         id = "navigation-top-bar"
 
-        // Topbar Navbar
+        // Top bar Navbar
         nav {
             className = ClassName("navbar-nav mr-auto w-100")
             ariaLabel = "breadcrumb"
@@ -109,10 +117,29 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        foldIndexed("#") { index: Int, acc: String, pathPart: String ->
-
-                            val currentLink = "$acc/$pathPart"
-
+                        val insideTab = location.pathname.substringBeforeLast("?").let {
+                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) {
+                                "organization"
+                            } else if (it.contains(ProjectMenuBar.regexForUrlClassification)) {
+                                "project"
+                            } else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+                                "archive"
+                            } else {
+                                null
+                            }
+                        }
+                        var currentPath = "#"
+                        forEachIndexed { index: Int, pathPart: String ->
+                            currentPath = if (insideTab != null && index == 0) {
+                                when (insideTab) {
+                                    "organization" -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    "project" -> "#/${FrontendRoutes.PROJECTS.path}"
+                                    "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                                    else -> ""
+                                }
+                            } else {
+                                "$currentPath/$pathPart"
+                            }
                             li {
                                 className = ClassName("breadcrumb-item")
                                 ariaCurrent = "page".unsafeCast<AriaCurrent>()
@@ -123,7 +150,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 } else {
                                     // small hack to redirect from history/execution to history
-                                    val resultingLink = currentLink.removeSuffix("/execution")
+                                    val resultingLink = currentPath.removeSuffix("/execution")
                                     a {
                                         href = resultingLink
                                         className = ClassName("text-light")
@@ -131,7 +158,9 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 }
                             }
-                            currentLink
+                            if (insideTab != null && index == 0) {
+                                currentPath = "#"
+                            }
                         }
                     }
             }
@@ -282,6 +311,7 @@ fun topBar() = FC<TopBarProps> { props ->
             }
         }
     }
+
     logoutModal {
         setIsLogoutModalOpen(false)
     }() {

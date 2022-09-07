@@ -24,12 +24,16 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
+import history.Location
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -62,6 +66,7 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
+    var location: Location
 }
 
 /**
@@ -82,7 +87,7 @@ external interface ContestRunState : State {
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole, ContestRunState {
+external interface ProjectViewState : StateWithRole, ContestRunState, HasSelectedMenu<ProjectMenuBar> {
     /**
      * Currently loaded for display Project
      */
@@ -194,11 +199,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
     var isEditDisabled: Boolean?
 
     /**
-     * project selected menu
-     */
-    var selectedMenu: ProjectMenuBar?
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -271,7 +271,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.INFO
+        state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
     }
@@ -282,6 +282,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             errorLabel = notificationLabel
             errorMessage = notificationMessage
             closeButtonLabel = "Confirm"
+        }
+    }
+
+    override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu) {
+            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(ProjectMenuBar, state.selfRole, false)
         }
     }
 
@@ -296,21 +304,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             } else {
                 result.getOrThrow()
             }
-            setState {
-                this.project = project
-            }
-            val headers = Headers().apply {
-                set("Accept", "application/json")
-                set("Content-Type", "application/json")
-            }
+            setState { this.project = project }
+
             val currentUserRole: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
-                headers,
+                jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+            val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
-                selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
+                selfRole = role
             }
+
+            urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
@@ -398,6 +404,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             privacySpan(state.project)
         }
 
+        renderProjectMenuBar()
+
+        when (state.selectedMenu) {
+            ProjectMenuBar.RUN -> renderRun()
+            ProjectMenuBar.STATISTICS -> renderStatistics()
+            ProjectMenuBar.SETTINGS -> renderSettings()
+            ProjectMenuBar.INFO -> renderInfo()
+        }
+    }
+
+    private fun ChildrenBuilder.renderProjectMenuBar() {
         div {
             className = ClassName("row align-items-center justify-content-center")
             nav {
@@ -406,34 +423,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .filterNot {
                         (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
-                    .forEachIndexed { i, projectMenu ->
+                    .forEach { projectMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
-                                        }
+                                        setState { selectedMenu = projectMenu }
                                     }
                                 }
                                 +projectMenu.name
                             }
                         }
                     }
-            }
-        }
-
-        when (state.selectedMenu!!) {
-            ProjectMenuBar.RUN -> renderRun()
-            ProjectMenuBar.STATISTICS -> renderStatistics()
-            ProjectMenuBar.SETTINGS -> renderSettings()
-            ProjectMenuBar.INFO -> renderInfo()
-            else -> {
-                // this is a generated else block
             }
         }
     }

@@ -5953,6 +5953,87 @@
         }
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/delete-test-suites-and-snapshot": {
+      "delete": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Delete test suites and snapshot for requested version from provided test suites source.",
+        "description": "Delete test suites and snapshot for requested version from provided test suites source.",
+        "operationId": "deleteTestSuitesAndSnapshot",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceName",
+            "in": "path",
+            "description": "name of test suites source",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted test suites and snapshot for requested version from provided source.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Either organization was not found by provided name or test suites source with such name in organization name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
       "delete": {
         "tags": [
