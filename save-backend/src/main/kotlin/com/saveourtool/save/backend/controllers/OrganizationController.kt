@@ -521,9 +521,17 @@ internal class OrganizationController(
             }
             if (isUpdate) {
                 // expected that git already existed in case of update
-                existedGit.switchIfEmptyToNotFound {
-                    "Not found git credential with url [${gitDto.url}] in $organizationName"
-                }
+                existedGit
+                    .switchIfEmptyToNotFound {
+                        "Not found git credential with url [${gitDto.url}] in $organizationName"
+                    }
+                    .map {
+                        it.apply {
+                            url = gitDto.url
+                            username = gitDto.username
+                            password = gitDto.password
+                        }
+                    }
             } else {
                 // if git already existed -> maps to error
                 existedGit
