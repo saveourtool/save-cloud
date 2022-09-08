@@ -85,8 +85,20 @@ internal class OrganizationController(
         description = "Get non-deleted organizations.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedOrganizations(@RequestBody(required = false) organizationFilters: OrganizationFilters?) =
-            organizationService.getNotDeletedOrganizations(organizationFilters).toFlux()
+    fun getNotDeletedOrganizations(
+        @RequestBody(required = false) organizationFilters: OrganizationFilters?,
+        authentication: Authentication,
+    ): Flux<OrganizationDto> =
+            organizationService.getNotDeletedOrganizations(organizationFilters)
+                .toFlux<Organization>()
+                .flatMap { organization ->
+                    organizationService.getGlobalRating(organization.name, authentication).map {
+                        organization to it
+                    }
+                }
+                .map { (organization, rating) ->
+                    organization.toDto().copy(globalRating = rating)
+                }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -465,10 +477,7 @@ internal class OrganizationController(
             "Not enough permission for managing organization git credentials."
         }
         .flatMap {
-            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication).collectList()
-        }
-        .map { projectsList ->
-            projectsList.sumOf { it.contestRating }
+            organizationService.getGlobalRating(organizationName, authentication)
         }
 
     private fun cleanupStorageData(testSuite: TestSuite) {
