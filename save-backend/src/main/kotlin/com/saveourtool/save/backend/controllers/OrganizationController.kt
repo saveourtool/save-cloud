@@ -84,7 +84,7 @@ internal class OrganizationController(
         summary = "Get non-deleted organizations.",
         description = "Get non-deleted organizations.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
+    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getNotDeletedOrganizations(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication,

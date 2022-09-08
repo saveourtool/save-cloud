@@ -1758,7 +1758,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully fetched non-deleted projects.",
+            "description": "Successfully fetched non-deleted organizations.",
             "content": {
               "*/*": {
                 "schema": {
