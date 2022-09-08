@@ -108,3 +108,8 @@ internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
+
+/**
+ * @param digits number of digits to round to
+ */
+internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)

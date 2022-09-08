@@ -79,7 +79,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"${project.contestRating}"
+                    +"${project.contestRating.toFixed(2)}"
                 }
             }
         }
@@ -117,7 +117,7 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"${organization.globalRating}"
+                    +"${organization.globalRating?.toFixed(2)}"
                 }
             }
         }
