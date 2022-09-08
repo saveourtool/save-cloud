@@ -89,7 +89,11 @@ fun Project.createStackDeployTask(profile: String) {
 
         doLast {
             val defaultVersionOrProperty: (propertyName: String) -> String = { propertyName ->
+                // Image tag can be specified explicitly for a particular service,
+                // or specified explicitly for the whole app,
+                // or be inferred based on the project.version
                 findProperty(propertyName) as String?
+                    ?: findProperty("dockerTag") as String?
                     ?: versionForDockerImages()
             }
             // https://docs.docker.com/compose/environment-variables/#the-env-file
