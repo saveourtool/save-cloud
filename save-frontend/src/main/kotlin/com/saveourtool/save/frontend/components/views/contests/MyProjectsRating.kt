@@ -1,46 +1,43 @@
+/**
+ * Rating of projects linked to current user (where this user is added)
+ */
+
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
+
 import csstype.*
-import kotlinx.js.jso
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
 
+import kotlinx.js.jso
+
+val myProjectsRating = myProjectsRatings()
+
 /**
- * [Props] of the project rating functional interface
+ * @return functional component
  */
-external interface ProjectRatingProps : PropsWithChildren {
-    /**
-     * logged-in user or null
-     */
-    var userInfo: UserInfo?
-}
-
-// TODO: investigate why user properties are not propagated into the FC if we refresh the page (F5),
-//  but are propagated if we come from router or other page
-val myProjectsRatings = myProjectsRatings()
-
-private fun myProjectsRatings() = FC<ProjectRatingProps> { props ->
+fun myProjectsRatings() = FC<ContestListViewProps> { props ->
     val (myProjects, setMyProjects) = useState<Set<Project>>(emptySet())
-    useRequest {
-        val projects: Response = get(
-            url = "$apiUrl/projects/current-user?userId=${props.userInfo?.id}",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
+    val getMyProjects = useDeferredRequest {
+        setMyProjects(
+            get(
+                url = "$apiUrl/projects/current-user?userId=${props.currentUserInfo?.id}",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            ).decodeFromJsonString<List<Project>>()
+                .toSet()
         )
-        console.log(props.userInfo?.id)
-        val decoded = projects.decodeFromJsonString<List<Project>>()
-        setMyProjects(decoded.toSet())
     }
 
+    props.currentUserInfo?.let {
+        getMyProjects()
+    }
 
     div {
         className = ClassName("col-lg-2")

@@ -1,11 +1,16 @@
+/**
+ * Preparation for a participation card
+ */
+
 package com.saveourtool.save.frontend.components.views.contests
 
 import csstype.ClassName
 import csstype.rem
-import kotlinx.js.jso
 import react.VFC
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+
+import kotlinx.js.jso
 
 val yourContests = yourContests()
 

@@ -1,20 +1,28 @@
+/**
+ * Statistics of SAVE contests: active and finished contests
+ */
+
+package com.saveourtool.save.frontend.components.views.contests
+
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.utils.*
+
 import csstype.AlignItems
 import csstype.ClassName
 import csstype.JustifyContent
 import csstype.rem
-import kotlinx.js.jso
 import react.VFC
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.strong
 import react.useState
 
+import kotlinx.js.jso
+
 val statistics = statistics()
 
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun statistics() = VFC {
     val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
     useRequest {
@@ -57,7 +65,6 @@ private fun statistics() = VFC {
                         className = ClassName("d-inline-block mb-2 card-text")
                         +"Active contests:"
                     }
-
                 }
                 div {
                     className = ClassName("row")
