@@ -1758,13 +1758,13 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully fetched non-deleted projects.",
+            "description": "Successfully fetched non-deleted organizations.",
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -1777,7 +1777,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -7166,6 +7166,10 @@
                 "VIEWER"
               ]
             }
+          },
+          "globalRating": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

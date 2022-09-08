@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property description
  * @property canCreateContests
  * @property userRoles map where keys are usernames and values are their [Role]s
+ * @property globalRating
  */
 @Serializable
 data class OrganizationDto(
@@ -25,6 +26,7 @@ data class OrganizationDto(
     val description: String = "",
     val canCreateContests: Boolean = false,
     val userRoles: Map<String, Role> = emptyMap(),
+    val globalRating: Double? = null,
 ) : Validatable {
     /**
      * Validation of organization name
@@ -47,12 +49,13 @@ data class OrganizationDto(
          * Value that represents an empty [OrganizationDto]
          */
         val empty = OrganizationDto(
-            "",
-            null,
-            null,
-            "",
-            false,
-            emptyMap(),
+            name = "",
+            dateCreated = null,
+            avatar = null,
+            description = "",
+            canCreateContests = false,
+            userRoles = emptyMap(),
+            globalRating = null,
         )
     }
 }
