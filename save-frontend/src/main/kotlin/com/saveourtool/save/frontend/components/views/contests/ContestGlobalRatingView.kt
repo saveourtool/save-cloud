@@ -185,10 +185,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                     }
                 }
             }
-            column(id = "rating", header = "Rating") {
+            column(id = "rating", header = "Rating") { cellProps ->
                 Fragment.create {
                     td {
-                        +"1370"
+                        +"${cellProps.value.contestRating}"
                     }
                 }
             }
