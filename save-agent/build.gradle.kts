@@ -85,7 +85,9 @@ kotlin {
                 }
             }
         }
-        tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
+        tasks.named("${hostTarget.name}Test") {
+            finalizedBy(createCoverageReportTask)
+        }
     }
 }
 
