@@ -43,7 +43,7 @@ data class Project(
         columnDefinition = "",
     )
     var organization: Organization,
-    var contestRating: Long = 0,
+    var contestRating: Double = 0.0,
 ) {
     /**
      * id of project

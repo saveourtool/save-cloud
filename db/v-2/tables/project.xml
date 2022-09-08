@@ -64,4 +64,8 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-make-contest-rating-double" author="kgevorkyan">
+        <modifyDataType tableName="project" columnName="contest_rating" newDataType="double DEFAULT 0.0"/>
+    </changeSet>
+
 </databaseChangeLog>
