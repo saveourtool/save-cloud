@@ -25,7 +25,7 @@ java {
 }
 
 dependencies {
-    implementation(projects.saveCloudCommon)
+    api(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.log4j)
     implementation(libs.log4j.slf4j.impl)
@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.serialization)
     implementation(libs.ktor.client.logging)
+    api(libs.arrow.kt.core)
 }
 
 publishing {
