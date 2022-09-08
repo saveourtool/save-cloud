@@ -95,10 +95,10 @@ fun Project.createStackDeployTask(profile: String) {
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
-                    BACKEND_TAG=${defaultVersionOrProperty("backendTag")}
-                    GATEWAY_TAG=${defaultVersionOrProperty("gatewayTag")}
-                    ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestratorTag")}
-                    PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessorTag")}
+                    BACKEND_TAG=${defaultVersionOrProperty("backend.dockerTag")}
+                    GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
+                    ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()
             )
