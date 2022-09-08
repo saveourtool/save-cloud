@@ -48,12 +48,12 @@ fun ExecutionDto.calculateScore(scoreType: ScoreType): Double = when (type) {
 /**
  * @return true if value is in range (0, 100); false otherwise
  */
-fun Double.isValid() = this.toInt().isValid()
+fun Double.isValidScore() = this.toInt().isValidScore()
 
 /**
  * @return true if value is in range (0, 100); false otherwise
  */
-fun Int.isValid() = this in 0..100
+fun Int.isValidScore() = this in 0..100
 
 private fun ExecutionDto.calculateScoreForContestMode(scoreType: ScoreType): Double = when (scoreType) {
     ScoreType.F_MEASURE -> calculateFmeasure()

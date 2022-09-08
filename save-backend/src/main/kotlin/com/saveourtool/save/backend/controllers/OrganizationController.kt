@@ -446,7 +446,6 @@ internal class OrganizationController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully get an organization contest rating.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for get organization contest rating.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
     fun getOrganizationContestRating(
         @PathVariable organizationName: String,
@@ -457,12 +456,6 @@ internal class OrganizationController(
         }
         .switchIfEmptyToNotFound {
             "Could not find an organization with name $organizationName."
-        }
-        .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for managing organization git credentials."
         }
         .flatMap {
             projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication).collectList()
