@@ -12,7 +12,7 @@ enum class SourceSaveStatus(val message: String) {
     /**
      * Conflict while saving source
      */
-    CONFLICT("Test suite source with such branch, test root path and git id is already present"),
+    CONFLICT("Test suite source with such test root path and git id is already present"),
 
     /**
      * Source exists

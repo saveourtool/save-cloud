@@ -13,7 +13,6 @@ typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
  * @property name
  * @property description
  * @property gitDto
- * @property branch
  * @property testRootPath
  * @property latestFetchedVersion
  */
@@ -23,7 +22,6 @@ data class TestSuitesSourceDto(
     val name: String,
     val description: String?,
     val gitDto: GitDto,
-    val branch: String,
     val testRootPath: String,
     val latestFetchedVersion: String?,
 ) : Validatable {
@@ -53,7 +51,6 @@ data class TestSuitesSourceDto(
             "",
             "",
             GitDto.empty,
-            "",
             "",
             null,
         )
