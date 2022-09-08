@@ -19,6 +19,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -38,6 +39,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -356,13 +358,13 @@ internal class OrganizationController(
         }
         .map { it.toDto() }
 
-    @PostMapping("/{organizationName}/upsert-git")
+    @PostMapping("/{organizationName}/create-git")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
-        summary = "Upsert organization git.",
-        description = "Upsert organization git.",
+        summary = "Create git in organization.",
+        description = "Create git in organization.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
@@ -370,32 +372,33 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully saved an organization git.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for saving organization git.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
-    fun upsertGit(
+    @ApiResponse(responseCode = "409", description = "Provided invalid git credential.")
+    fun createGit(
         @PathVariable organizationName: String,
         @RequestBody gitDto: GitDto,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(organizationName)
-        .flatMap {
-            organizationService.findByName(organizationName).toMono()
-        }
-        .switchIfEmptyToNotFound {
-            "Could not find organization with name $organizationName"
-        }
-        .filter {
-            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for saving git of $organizationName."
-        }
-        .zipWith(validateGitCredentials(gitDto))
-        .filter { (_, isValid) -> isValid }
-        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
-            "Invalid git credentials for url ${gitDto.url}"
-        }
-        .map { (organization, _) ->
-            gitService.upsert(organization, gitDto)
-            ResponseEntity.ok("Git credential saved")
-        }
+    ): Mono<StringResponse> = upsertGitCredential(organizationName, gitDto, authentication, isUpdate = false)
+
+    @PostMapping("/{organizationName}/update-git")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "POST",
+        summary = "Update existed git in organization.",
+        description = "Update existed git in organization.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully saved an organization git.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for saving organization git.")
+    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name or git credential with provided url.")
+    @ApiResponse(responseCode = "409", description = "Provided invalid git credential.")
+    fun updateGit(
+        @PathVariable organizationName: String,
+        @RequestBody gitDto: GitDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = upsertGitCredential(organizationName, gitDto, authentication, isUpdate = true)
 
     @DeleteMapping("/{organizationName}/delete-git")
     @RequiresAuthorizationSourceHeader
@@ -494,7 +497,62 @@ internal class OrganizationController(
         testSuitesSourceSnapshotStorage.delete(key)
     }
 
-    private fun validateGitCredentials(gitDto: GitDto) = webClientToPreprocessor
+    private fun upsertGitCredential(
+        organizationName: String,
+        gitDto: GitDto,
+        authentication: Authentication,
+        isUpdate: Boolean
+    ): Mono<StringResponse> = blockingToMono { organizationService.findByName(organizationName) }
+        .switchIfEmptyToNotFound {
+            "Could not find organization with name $organizationName"
+        }
+        .filter {
+            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission to manage git in $organizationName."
+        }
+        .zipWith(validateGitCredential(gitDto))
+        .filter { (_, isValid) -> isValid }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Invalid git credential for url [${gitDto.url}]"
+        }
+        .flatMap { (organization, _) ->
+            val existedGit = blockingToMono {
+                gitService.findByOrganizationAndUrl(organization, gitDto.url)
+            }
+            if (isUpdate) {
+                // expected that git already existed in case of update
+                existedGit.switchIfEmptyToNotFound {
+                    "Not found git credential with url [${gitDto.url}] in $organizationName"
+                }
+            } else {
+                // if git already existed -> maps to error
+                existedGit
+                    .flatMap<Git?> {
+                        Mono.error(
+                            ResponseStatusException(
+                                HttpStatus.CONFLICT,
+                                "Already exist git credential with url [${gitDto.url}] in $organizationName"
+                            )
+                        )
+                    }
+                    .defaultIfEmpty(
+                        Git(
+                            url = gitDto.url,
+                            username = gitDto.username,
+                            password = gitDto.password,
+                            organization = organization,
+                        )
+                    )
+            }
+        }
+        .map {
+            gitService.save(it)
+            ResponseEntity.ok("Git credential saved")
+        }
+
+    private fun validateGitCredential(gitDto: GitDto) = webClientToPreprocessor
         .post()
         .uri("/git/check-connectivity")
         .bodyValue(gitDto)

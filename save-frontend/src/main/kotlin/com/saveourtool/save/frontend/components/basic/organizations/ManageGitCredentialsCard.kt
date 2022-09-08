@@ -82,7 +82,9 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
 
     val (gitCredentials, _, fetchGitCredentialsRequest) = prepareFetchGitCredentials(props.organizationName)
 
-    val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto>()
+    val (isUpdate, setUpdateFlag) = useState(false)
+    val gitCredentialToUpsertState = useState(GitDto.empty)
+    val (_, setGitCredentialToUpsert) = gitCredentialToUpsertState
 
     val (gitCredentialToDelete, setGitCredentialToDelete, deleteGitCredentialRequest) =
             prepareDeleteGitCredential(props.organizationName, props.updateErrorMessage, fetchGitCredentialsRequest)
@@ -91,7 +93,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
     gitWindow {
         windowOpenness = gitWindowOpenness
         organizationName = props.organizationName
-        initialGitDto = gitCredentialToUpsert
+        gitToUpsertState = gitCredentialToUpsertState
+        this.isUpdate = isUpdate
     }
 
     val (isConfirmDeleteGitCredentialWindowOpened, setConfirmDeleteGitCredentialWindowOpened) = useState(false)
@@ -145,6 +148,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                         id = "edit-git-credential-$index"
                         onClick = {
                             setGitCredentialToUpsert(gitCredential)
+                            setUpdateFlag(true)
                             gitWindowOpenness.openWindow()
                         }
                     }
@@ -171,7 +175,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                     type = ButtonType.button
                     className = ClassName("btn btn-sm btn-primary")
                     onClick = {
-                        setGitCredentialToUpsert(null)
+                        setGitCredentialToUpsert(GitDto.empty)
+                        setUpdateFlag(false)
                         gitWindowOpenness.openWindow()
                     }
                     +"Add new"
