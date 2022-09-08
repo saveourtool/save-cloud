@@ -48,6 +48,11 @@ external interface GitWindowProps : Props {
      * Flag controls that current window is for update
      */
     var isUpdate: Boolean
+
+    /**
+     * Request to fetch git credentials
+     */
+    var fetchGitCredentials: () -> Unit
 }
 
 @Suppress(
@@ -95,6 +100,8 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
         if (!response.ok) {
             setFailedReason(response.decodeFieldFromJsonString("message"))
             failedResponseWindowOpenness.openWindow()
+        } else if (!props.isUpdate) {
+            props.fetchGitCredentials()
         }
     }
 

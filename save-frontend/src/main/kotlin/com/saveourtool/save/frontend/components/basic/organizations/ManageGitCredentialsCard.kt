@@ -95,13 +95,14 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         organizationName = props.organizationName
         gitToUpsertState = gitCredentialToUpsertState
         this.isUpdate = isUpdate
+        fetchGitCredentials = fetchGitCredentialsRequest
     }
 
     val (isConfirmDeleteGitCredentialWindowOpened, setConfirmDeleteGitCredentialWindowOpened) = useState(false)
     displayModal(
         isConfirmDeleteGitCredentialWindowOpened,
         "Deletion of git credential",
-        "Please confirm deletion of git credential for ${gitCredentialToDelete.url}.\n" +
+        "Please confirm deletion of git credential for ${gitCredentialToDelete.url}. " +
                 "Note! This action will also delete all corresponding data to that repository, such as test suites sources, test executions and so on.",
         mediumTransparentModalStyle,
         { setConfirmDeleteGitCredentialWindowOpened(false) },
