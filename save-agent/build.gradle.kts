@@ -1,6 +1,7 @@
 import com.saveourtool.save.buildutils.configureSpotless
 import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
@@ -51,7 +52,7 @@ kotlin {
         }
     }
 
-    val linkTask = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
+    val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
     val copyAgentDistribution by tasks.registering(Jar::class) {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
