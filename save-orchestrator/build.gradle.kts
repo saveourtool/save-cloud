@@ -4,11 +4,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("com.saveourtool.save.buildutils.spring-boot-configuration")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
-    id("org.gradle.test-retry") version "1.4.0"
+    id("org.gradle.test-retry") version "1.4.1"
 }
 
-configureSpringBoot()
 configureJacoco()
 configureSpotless()
 
@@ -51,7 +51,6 @@ val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("genera
 
     dependsOn(rootProject.tasks.named("getSaveCliVersion"))
     inputs.file(pathToSaveCliVersion)
-    inputs.property("project version", version.toString())
     outputs.file(versionsFile)
 
     doFirst {
@@ -62,7 +61,6 @@ val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("genera
             package generated
 
             internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-            internal const val SAVE_CLOUD_VERSION = "$version"
 
             """.trimIndent()
         )

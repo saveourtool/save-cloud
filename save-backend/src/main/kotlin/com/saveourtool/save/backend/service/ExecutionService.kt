@@ -7,7 +7,9 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.utils.asyncEffectIf
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -17,6 +19,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
 import java.util.Optional
@@ -34,6 +37,8 @@ class ExecutionService(
     private val testExecutionRepository: TestExecutionRepository,
     @Lazy private val testSuitesService: TestSuitesService,
     private val configProperties: ConfigProperties,
+    private val lnkContestProjectService: LnkContestProjectService,
+    private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -65,6 +70,12 @@ class ExecutionService(
         if (updatedExecution.status == ExecutionStatus.FINISHED || updatedExecution.status == ExecutionStatus.ERROR) {
             // execution is completed, we can update end time
             updatedExecution.endTime = LocalDateTime.now()
+
+            if (execution.type == TestingType.CONTEST_MODE) {
+                // maybe this execution is the new best execution under a certain contest
+                lnkContestProjectService.updateBestExecution(execution)
+            }
+
             // if the tests are stuck in the READY_FOR_TESTING or RUNNING status
             testExecutionRepository.findByStatusListAndExecutionId(listOf(TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING), execution.requiredId()).map { testExec ->
                 log.debug {
@@ -135,6 +146,8 @@ class ExecutionService(
      * @param sdk
      * @param execCmd
      * @param batchSizeForAnalyzer
+     * @param testingType
+     * @param contestName
      * @return new [Execution] with provided values
      */
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
@@ -147,7 +160,9 @@ class ExecutionService(
         sdk: Sdk,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
-    ): Execution {
+        testingType: TestingType,
+        contestName: String?,
+    ): Mono<Execution> {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
@@ -165,6 +180,8 @@ class ExecutionService(
             sdk = sdk.toString(),
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
+            testingType = testingType,
+            contestName,
         )
     }
 
@@ -177,7 +194,7 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Execution = doCreateNew(
+    ): Mono<Execution> = doCreateNew(
         project = execution.project,
         formattedTestSuiteIds = execution.testSuiteIds,
         version = execution.version,
@@ -187,6 +204,9 @@ class ExecutionService(
         sdk = execution.sdk,
         execCmd = execution.execCmd,
         batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+        testingType = execution.type,
+        contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
+            ?.findContestByExecution(execution)?.name,
     )
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -200,7 +220,9 @@ class ExecutionService(
         sdk: String,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
-    ): Execution {
+        testingType: TestingType,
+        contestName: String?,
+    ): Mono<Execution> {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
@@ -214,8 +236,7 @@ class ExecutionService(
             status = ExecutionStatus.PENDING,
             testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
-            // FIXME: remove this type
-            type = ExecutionType.GIT,
+            type = testingType,
             version = version,
             allTests = allTests,
             runningTests = 0,
@@ -232,9 +253,20 @@ class ExecutionService(
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
             testSuiteSourceName = testSuiteSourceName,
+            score = null,
         )
-        val savedExecution = saveExecution(execution)
-        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
-        return savedExecution
+        return blockingToMono {
+            saveExecution(execution)
+        }
+            .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
+                lnkContestExecutionService.createLink(
+                    savedExecution, requireNotNull(contestName) {
+                        "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
+                    }
+                )
+            }
+            .doOnSuccess { savedExecution ->
+                log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
+            }
     }
 }

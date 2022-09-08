@@ -1,13 +1,11 @@
 import com.saveourtool.save.buildutils.configureJacoco
 import com.saveourtool.save.buildutils.configureSpotless
-import com.saveourtool.save.buildutils.configureSpringBoot
 
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.spring-boot-configuration")
 }
-
-configureSpringBoot()
 
 dependencies {
     implementation(projects.saveCloudCommon)

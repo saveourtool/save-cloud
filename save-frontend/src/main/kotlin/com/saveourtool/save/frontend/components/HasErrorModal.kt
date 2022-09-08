@@ -67,7 +67,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 status = response.status,
             )
             404.toShort() -> ErrorModalState(
-                isErrorModalOpen = false,
+                isErrorModalOpen = !redirectToFallbackView,
                 errorMessage = "${response.status} ${response.statusText}",
                 errorLabel = response.status.toString(),
                 status = response.status,

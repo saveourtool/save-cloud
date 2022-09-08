@@ -6,13 +6,13 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
+import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName

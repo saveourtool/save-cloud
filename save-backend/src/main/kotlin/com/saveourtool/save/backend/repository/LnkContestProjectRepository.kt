@@ -49,7 +49,26 @@ interface LnkContestProjectRepository : BaseEntityRepository<LnkContestProject> 
 
     /**
      * @param contestName
+     * @param organizationName
+     * @param projectName
+     * @return a [LnkContestProject] if any has been found
+     */
+    fun findByContestNameAndProjectOrganizationNameAndProjectName(
+        contestName: String,
+        organizationName: String,
+        projectName: String,
+    ): LnkContestProject?
+
+    /**
+     * @param contestName
      * @return list of [LnkContestProject] linked to contest with name [contestName]
      */
     fun findByContestName(contestName: String): List<LnkContestProject>
+
+    /**
+     * @param project
+     * @param contestName
+     * @return a [LnkContestProject], if any, associated with [project] and [Contest] named [contestName]
+     */
+    fun findByProjectAndContestName(project: Project, contestName: String): LnkContestProject?
 }

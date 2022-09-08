@@ -147,19 +147,6 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             testSuiteSource.organizationName
         )
         inputTextFormOptional {
-            form = InputTypes.GIT_BRANCH
-            textValue = testSuiteSource.branch
-            classes = "mb-2"
-            name = "Branch"
-            validInput = saveStatus != SourceSaveStatus.CONFLICT
-            onChangeFun = {
-                setTestSuiteSource(testSuiteSource.copy(branch = it.target.value))
-                if (saveStatus == SourceSaveStatus.CONFLICT) {
-                    setSaveStatus(null)
-                }
-            }
-        }
-        inputTextFormOptional {
             form = InputTypes.SOURCE_TEST_ROOT_PATH
             textValue = testSuiteSource.testRootPath
             classes = "mb-2"

@@ -151,48 +151,6 @@ class TestSuitesControllerTest {
             .spec()
     }
 
-    @Suppress("TOO_LONG_FUNCTION")
-    @Test
-    @WithMockUser
-    fun testAllStandardTestSuites() {
-        val testSuitesSource = testSuitesSourceRepository.findById(STANDARD_TEST_SUITES_SOURCE_ID).get()
-        val version = "1"
-        val testSuite = TestSuiteDto(
-            "tester",
-            null,
-            testSuitesSource.toDto(),
-            version,
-        )
-        saveTestSuites(listOf(testSuite)) {
-            expectBody<List<TestSuite>>().consumeWith {
-                assertEquals(1, it.responseBody!!.size)
-            }
-        }
-        val tmpContent = createTempFile()
-        tmpContent.writeText("test")
-        val storageKey = TestSuitesSourceSnapshotKey(
-            testSuite.source.organizationName,
-            testSuite.source.name,
-            testSuite.version,
-            LocalDateTime.now().toKotlinLocalDateTime(),
-        )
-        testSuitesSourceSnapshotStorage.upload(storageKey, tmpContent.toByteBufferFlux())
-            .block()
-        tmpContent.deleteExisting()
-        val allStandardTestSuite = testSuiteRepository.findAll()
-            .count { it.source.git.url == testSuitesSource.git.url && it.version == version }
-        webClient.get()
-            .uri("/api/$v1/allStandardTestSuites")
-            .exchange()
-            .expectStatus()
-            .isOk
-            .expectBody<List<TestSuiteDto>>()
-            .consumeWith {
-                requireNotNull(it.responseBody)
-                assertEquals(allStandardTestSuite, it.responseBody!!.size)
-            }
-    }
-
     @Test
     @WithMockUser(roles = ["SUPER_ADMIN"])
     fun testUpdateStandardTestSuites() {

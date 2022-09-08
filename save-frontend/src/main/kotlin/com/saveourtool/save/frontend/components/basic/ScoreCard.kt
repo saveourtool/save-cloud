@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.utils.toFixed
 import csstype.*
 import react.FC
 import react.Props
@@ -80,7 +81,7 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                 alignItems = AlignItems.center
                                 alignSelf = AlignSelf.start
                             }
-                            +"${props.contestScore}"
+                            +"${props.contestScore.toFixed(2)}"
                         }
                     }
                     div {

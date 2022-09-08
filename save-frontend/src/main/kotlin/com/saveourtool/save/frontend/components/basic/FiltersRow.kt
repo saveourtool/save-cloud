@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
@@ -25,6 +25,8 @@ import react.useState
 
 val testExecutionFiltersRow = testExecutionFiltersRow()
 
+val nameFiltersRow = nameFiltersRow()
+
 @Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
 class SelectOption {
     companion object {
@@ -45,6 +47,21 @@ external interface FiltersRowProps : Props {
      * lambda to change [filters]
      */
     var onChangeFilters: (TestExecutionFilters) -> Unit
+}
+
+/**
+ * [Props] for filters name
+ */
+external interface NameFilterRowProps : Props {
+    /**
+     * All filters in one class property [name]
+     */
+    var name: String?
+
+    /**
+     * lambda to change [name]
+     */
+    var onChangeFilters: (String?) -> Unit
 }
 
 /**
@@ -171,6 +188,61 @@ private fun testExecutionFiltersRow(
                 onClick = {
                     setFilters(TestExecutionFilters.empty)
                     props.onChangeFilters(TestExecutionFilters.empty)
+                }
+            }
+        }
+    }
+}
+private fun nameFiltersRow(
+) = FC<NameFilterRowProps> { props ->
+
+    val (filtersName, setFiltersName) = useState(props.name)
+    useEffect(props.name) {
+        if (filtersName != props.name) {
+            setFiltersName(props.name)
+        }
+    }
+
+    div {
+        className = ClassName("container-fluid")
+        div {
+            className = ClassName("row d-flex")
+            div {
+                className = ClassName("col-0 mr-3 align-self-center")
+                fontAwesomeIcon(icon = faFilter)
+            }
+            div {
+                className = ClassName("row")
+                div {
+                    className = ClassName("col-auto align-self-center")
+                    +"Name: "
+                }
+                div {
+                    className = ClassName("col-auto mr-3")
+                    input {
+                        type = InputType.text
+                        className = ClassName("form-control")
+                        value = filtersName ?: ""
+                        required = false
+                        onChange = {
+                            setFiltersName(it.target.value)
+                        }
+                    }
+                }
+            }
+            button {
+                className = ClassName("btn btn-secondary mr-3")
+                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
+                onClick = {
+                    props.onChangeFilters(filtersName)
+                }
+            }
+            button {
+                className = ClassName("btn btn-secondary")
+                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                onClick = {
+                    setFiltersName(null)
+                    props.onChangeFilters(null)
                 }
             }
         }

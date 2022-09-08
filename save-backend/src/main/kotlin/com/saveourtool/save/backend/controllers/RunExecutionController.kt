@@ -5,14 +5,15 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
-import com.saveourtool.save.backend.utils.blockingToMono
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -48,6 +49,7 @@ class RunExecutionController(
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
@@ -71,7 +73,8 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
-        .map {
+        .validateContestEnrollment(request)
+        .flatMap {
             executionService.createNew(
                 projectCoordinates = request.projectCoordinates,
                 testSuiteIds = request.testSuiteIds,
@@ -79,7 +82,9 @@ class RunExecutionController(
                 username = authentication.username(),
                 sdk = request.sdk,
                 execCmd = request.execCmd,
-                batchSizeForAnalyzer = request.batchSizeForAnalyzer
+                batchSizeForAnalyzer = request.batchSizeForAnalyzer,
+                testingType = request.testingType,
+                contestName = request.contestName,
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
@@ -101,13 +106,17 @@ class RunExecutionController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { executionService.findExecution(executionId) }
         .switchIfEmptyToNotFound { "Not found execution id = $executionId" }
+        .filter { it.type != TestingType.CONTEST_MODE }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Rerun is not supported for executions that were performed under a contest"
+        }
         .validateAccess(authentication) { execution ->
             ProjectCoordinates(
                 execution.project.organization.name,
                 execution.project.name
             )
         }
-        .map { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { executionService.createNewCopy(it, authentication.username()) }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
@@ -132,6 +141,19 @@ class RunExecutionController(
                     "User ${authentication.username()} doesn't have access to $projectCoordinates"
                 }.map { value }
             }
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
+            filter { projectCoordinates ->
+                if (request.testingType == TestingType.CONTEST_MODE) {
+                    lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+                } else {
+                    true
+                }
+            }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
+                }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
@@ -184,9 +206,10 @@ class RunExecutionController(
         .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
-            ResponseEntity.accepted().body("Clone pending, execution id is ${requiredId()}")
+            ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()
+        internal const val RESPONSE_BODY_PREFIX = "Clone pending, execution id is "
     }
 }

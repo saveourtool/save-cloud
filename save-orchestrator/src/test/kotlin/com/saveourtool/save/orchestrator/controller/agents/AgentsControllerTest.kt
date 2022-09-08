@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.controller.agents
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
@@ -45,7 +45,6 @@ import reactor.core.publisher.Flux
 
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 
 import kotlin.io.path.*
@@ -75,7 +74,7 @@ class AgentsControllerTest {
     fun `should build image, query backend and start containers`() {
         val project = Project.stub(null)
         val execution = Execution.stub(project).apply {
-            type = ExecutionType.STANDARD
+            type = TestingType.PUBLIC_TESTS
             status = ExecutionStatus.PENDING
             testSuiteIds = "1"
             id = 42L
@@ -248,7 +247,6 @@ class AgentsControllerTest {
     }
 
     companion object {
-        @OptIn(ExperimentalPathApi::class)
         private val volume: String by lazy {
             createTempDirectory("executionLogs").toAbsolutePath().toString()
         }

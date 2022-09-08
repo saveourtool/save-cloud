@@ -1,4 +1,4 @@
-package com.saveourtool.save.testsuite
+package com.saveourtool.save.filters
 
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import kotlinx.serialization.Serializable

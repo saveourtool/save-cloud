@@ -7,11 +7,14 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.TestExecutionFilters
+import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
 import com.saveourtool.save.frontend.components.views.contests.ContestListView
+import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
@@ -63,11 +66,12 @@ external interface AppState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class App : ComponentWithScope<PropsWithChildren, AppState>() {
-    private val projectView: FC<Props> = withRouter { _, params ->
+    private val projectView: FC<Props> = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
         }
     }
     private val historyView: FC<Props> = withRouter { _, params ->
@@ -89,10 +93,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
         }
     }
-    private val contestView: FC<Props> = withRouter { _, params ->
+    private val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+        ContestGlobalRatingView::class.react {
+            organizationName = URLSearchParams(location.search).get("organizationName")
+            projectName = URLSearchParams(location.search).get("projectName")
+            this.location = location
+        }
+    }
+    private val contestView: FC<Props> = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = state.userInfo
             currentContestName = params["contestName"]
+            this.location = location
         }
     }
     private val contestExecutionView: FC<Props> = withRouter { _, params ->
@@ -103,10 +115,21 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             projectName = params["projectName"]!!
         }
     }
-    private val organizationView: FC<Props> = withRouter { _, params ->
+    private val creationView: FC<Props> = withRouter { location, params ->
+        CreationView::class.react {
+            organizationName = params["owner"]
+        }
+    }
+    private val organizationView: FC<Props> = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = state.userInfo
+            this.location = location
+        }
+    }
+    private val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+        AwesomeBenchmarksView::class.react {
+            this.location = location
         }
     }
     private val fallbackNode = FallbackView::class.react.create {
@@ -200,8 +223,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                                 Route {
                                     path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    element = AwesomeBenchmarksView::class.react.create()
+                                    element = awesomeBenchmarksView.create()
                                 }
+
+                                createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
+                                    "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}", awesomeBenchmarksView
+                                )
 
                                 Route {
                                     path = "/${FrontendRoutes.REGISTRATION.path}"
@@ -211,9 +238,18 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                                    element = contestGlobalRatingView.create()
+                                }
+
+                                createRoutersWithPathAndEachListItem<UserRatingTab>("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", contestGlobalRatingView)
+
+                                Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName"
                                     element = contestView.create()
                                 }
+
+                                createRoutersWithPathAndEachListItem<ContestMenuBar>("/${FrontendRoutes.CONTESTS.path}/:contestName", contestView)
 
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
@@ -262,6 +298,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.CREATE_PROJECT.path}/:owner"
+                                    element = creationView.create()
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
                                     element = CreateOrganizationView::class.react.create()
                                 }
@@ -285,15 +326,19 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     element = organizationView.create()
                                 }
 
-                                Route {
-                                    path = "/:owner/:name"
-                                    element = projectView.create()
-                                }
+                                createRoutersWithPathAndEachListItem<OrganizationMenuBar>("/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner", organizationView)
 
                                 Route {
                                     path = "/:owner/:name/history"
                                     element = historyView.create()
                                 }
+
+                                Route {
+                                    path = "/:owner/:name"
+                                    element = projectView.create()
+                                }
+
+                                createRoutersWithPathAndEachListItem<ProjectMenuBar>("/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name", projectView)
 
                                 Route {
                                     path = "/:owner/:name/history/execution/:executionId"
@@ -322,6 +367,25 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             }
             scrollToTopButton()
         }
+    }
+}
+
+/**
+ * The function creates routers with the given [basePath] and ending of string with all the elements given Enum<T>
+ *
+ * @param basePath
+ * @param routeElement
+ */
+inline fun <reified T : Enum<T>>ChildrenBuilder.createRoutersWithPathAndEachListItem(basePath: String, routeElement: FC<Props>) {
+    enumValues<T>().map { it.name.lowercase() }.forEach { item ->
+        Route {
+            path = "$basePath/$item"
+            element = routeElement.create()
+        }
+    }
+    Route {
+        path = basePath
+        element = routeElement.create()
     }
 }
 

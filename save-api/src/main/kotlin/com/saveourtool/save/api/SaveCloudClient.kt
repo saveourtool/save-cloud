@@ -7,20 +7,16 @@ import com.saveourtool.save.api.config.toSdk
 import com.saveourtool.save.api.utils.getAvailableFilesList
 import com.saveourtool.save.api.utils.getExecutionById
 import com.saveourtool.save.api.utils.getLatestExecution
-import com.saveourtool.save.api.utils.getProjectByNameAndOrganizationName
-import com.saveourtool.save.api.utils.getStandardTestSuites
 import com.saveourtool.save.api.utils.initializeHttpClient
 import com.saveourtool.save.api.utils.submitExecution
 import com.saveourtool.save.api.utils.uploadAdditionalFile
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.ExecutionRequest
-import com.saveourtool.save.entities.ExecutionRequestBase
-import com.saveourtool.save.entities.ExecutionRequestForStandardSuites
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import io.ktor.client.*
 import io.ktor.http.*
@@ -38,7 +34,8 @@ import kotlinx.coroutines.delay
 class SaveCloudClient(
     webClientProperties: WebClientProperties,
     private val evaluatedToolProperties: EvaluatedToolProperties,
-    private val executionType: ExecutionType,
+    private val testingType: TestingType,
+    private val contestName: String?,
     authorization: Authorization,
 ) {
     private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
@@ -65,9 +62,9 @@ class SaveCloudClient(
         } ?: {
             "without additional files"
         }
-        log.info("Starting submit execution $msg, type: $executionType")
+        log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(executionType, additionalFileInfoList) ?: return
+        val executionRequest = submitExecution(additionalFileInfoList, contestName) ?: return
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
@@ -81,126 +78,53 @@ class SaveCloudClient(
     }
 
     /**
-     * Submit execution according [executionType]
+     * Submit execution
      *
-     * @param executionType
      * @param additionalFiles
      * @return pair of organization and submitted execution request
      */
     private suspend fun submitExecution(
-        executionType: ExecutionType,
-        additionalFiles: List<ShortFileInfo>?
-    ): ExecutionRequestBase? {
-        val executionRequest = if (executionType == ExecutionType.GIT) {
-            buildExecutionRequest()
-        } else {
-            val userProvidedTestSuites = verifyTestSuites() ?: return null
-            buildExecutionRequestForStandardSuites(userProvidedTestSuites)
-        }
-        val response = httpClient.submitExecution(executionType, executionRequest, additionalFiles)
-        if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
-            log.error("Can't submit execution=$executionRequest! Response status: ${response.status}")
-            return null
-        }
-        return executionRequest
-    }
-
-    /**
-     * Build execution request for git mode according provided configuration
-     *
-     */
-    private suspend fun buildExecutionRequest(): ExecutionRequest {
-        val project = getProject()
-
-        val gitDto = GitDto(
-            url = evaluatedToolProperties.gitUrl,
-            username = evaluatedToolProperties.gitUserName,
-            password = evaluatedToolProperties.gitPassword,
-        )
-
-        // executionId will be calculated at the server side
-        val executionId = null
-
-        return ExecutionRequest(
-            project = project,
-            gitDto = gitDto,
-            branchOrCommit = evaluatedToolProperties.branch ?: evaluatedToolProperties.commitHash,
-            testRootPath = evaluatedToolProperties.testRootPath,
-            sdk = evaluatedToolProperties.sdk.toSdk(),
-            executionId = executionId,
-        )
-    }
-
-    /**
-     * Build execution request for standard mode according provided configuration
-     *
-     * @param userProvidedTestSuites test suites, specified by user in config file
-     */
-    private suspend fun buildExecutionRequestForStandardSuites(
-        userProvidedTestSuites: List<String>
-    ): ExecutionRequestForStandardSuites {
-        val project = getProject()
-
-        // executionId will be calculated at the server side
-        val executionId = null
-
-        return ExecutionRequestForStandardSuites(
-            project = project,
-            testSuites = userProvidedTestSuites,
+        additionalFiles: List<ShortFileInfo>?,
+        contestName: String?,
+    ): RunExecutionRequest? {
+        val runExecutionRequest = RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = evaluatedToolProperties.organizationName,
+                projectName = evaluatedToolProperties.projectName,
+            ),
+            testSuiteIds = evaluatedToolProperties.testSuites
+                .split(DATABASE_DELIMITER)
+                .map { it.toLong() },
+            files = additionalFiles?.map { it.toStorageKey() }.orEmpty(),
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
-            executionId = executionId,
+            testingType = testingType,
+            contestName = contestName,
         )
-    }
-
-    /**
-     * Verify for correctness test suites, specified by user, return them or nothing if they are incorrect
-     *
-     * @return list of test suites or nothing
-     */
-    private suspend fun verifyTestSuites(): List<String>? {
-        val userProvidedTestSuites = evaluatedToolProperties.testSuites.split(";")
-        if (userProvidedTestSuites.isEmpty()) {
-            log.error("Set of test suites couldn't be empty in standard mode!")
+        val response = httpClient.submitExecution(runExecutionRequest)
+        if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
+            log.error("Can't submit execution=$runExecutionRequest! Response status: ${response.status}")
             return null
         }
-
-        val existingTestSuites = httpClient.getStandardTestSuites().map { it.name }
-
-        userProvidedTestSuites.forEach {
-            if (it !in existingTestSuites) {
-                log.error("Incorrect standard test suite $it, available are $existingTestSuites")
-                return null
-            }
-        }
-        return userProvidedTestSuites
+        return runExecutionRequest
     }
 
     /**
-     * Return pair of organization and project according information from config file
-     *
-     */
-    private suspend fun getProject(): Project = httpClient.getProjectByNameAndOrganizationName(
-        evaluatedToolProperties.projectName,
-        evaluatedToolProperties.organizationName
-    )
-
-    /**
-     * Get results for current [executionRequest]:
+     * Get results for current [runExecutionRequest]:
      * sending requests, which checks current state of execution, until it will be finished, or timeout will be reached
      *
-     * @param executionRequest
+     * @param runExecutionRequest
      */
     @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
-        executionRequest: ExecutionRequestBase,
+        runExecutionRequest: RunExecutionRequest,
     ): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
         delay(1_000)
 
         // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
-        val executionId = httpClient.getLatestExecution(executionRequest.project.name, evaluatedToolProperties.organizationName).id
+        val executionId = httpClient.getLatestExecution(runExecutionRequest.projectCoordinates.projectName, runExecutionRequest.projectCoordinates.organizationName).id
 
         var executionDto = httpClient.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()
@@ -220,7 +144,7 @@ class SaveCloudClient(
 
     /**
      * Calculate list of FileInfo for additional files, take files from storage,
-     * if they are exist or upload them into it
+     * if they are existed or upload them into it
      *
      * @param files
      */

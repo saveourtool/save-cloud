@@ -4,7 +4,7 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionType
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -38,6 +38,7 @@ import javax.persistence.ManyToOne
  * @property execCmd
  * @property batchSizeForAnalyzer
  * @property testSuiteSourceName
+ * @property score a rating of this execution. Specific meaning may vary depending on [type]
  */
 @Suppress("LongParameterList")
 @Entity
@@ -59,7 +60,7 @@ class Execution(
     var batchSize: Int?,
 
     @Enumerated(EnumType.STRING)
-    var type: ExecutionType,
+    var type: TestingType,
 
     var version: String?,
 
@@ -95,28 +96,31 @@ class Execution(
 
     var testSuiteSourceName: String?,
 
+    var score: Double?,
+
 ) : BaseEntity() {
     /**
      * @return Execution dto
      */
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ExecutionDto(
-        id!!,
-        status,
-        type,
-        version,
-        startTime.toEpochSecond(ZoneOffset.UTC),
-        endTime?.toEpochSecond(ZoneOffset.UTC),
-        allTests,
-        runningTests,
-        passedTests,
-        failedTests,
-        skippedTests,
-        unmatchedChecks,
-        matchedChecks,
-        expectedChecks,
-        unexpectedChecks,
-        testSuiteSourceName,
+        id = id!!,
+        status = status,
+        type = type,
+        version = version,
+        startTime = startTime.toEpochSecond(ZoneOffset.UTC),
+        endTime = endTime?.toEpochSecond(ZoneOffset.UTC),
+        allTests = allTests,
+        runningTests = runningTests,
+        passedTests = passedTests,
+        failedTests = failedTests,
+        skippedTests = skippedTests,
+        unmatchedChecks = unmatchedChecks,
+        matchedChecks = matchedChecks,
+        expectedChecks = expectedChecks,
+        unexpectedChecks = unexpectedChecks,
+        testSuiteSourceName = testSuiteSourceName,
+        score = score,
     )
 
     /**
@@ -156,7 +160,7 @@ class Execution(
             status = ExecutionStatus.RUNNING,
             testSuiteIds = null,
             batchSize = 20,
-            type = ExecutionType.GIT,
+            type = TestingType.PUBLIC_TESTS,
             version = null,
             allTests = 0,
             runningTests = 0,
@@ -173,6 +177,7 @@ class Execution(
             execCmd = null,
             batchSizeForAnalyzer = null,
             testSuiteSourceName = "",
+            score = null,
         )
 
         /**

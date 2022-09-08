@@ -12,11 +12,11 @@ import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.blockingToFlux
 import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -94,7 +94,7 @@ class LnkContestProjectController(
     ).getScores()
 
     private fun Flux<LnkContestProject>.getScores() = map {
-        it to lnkContestExecutionService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
+        it to lnkContestProjectService.getBestScoreOfProjectInContestWithName(it.project, it.contest.name)
     }
         .map { (lnkContestProject, score) ->
             lnkContestProject.toContestResult(score)
@@ -111,8 +111,8 @@ class LnkContestProjectController(
     @Parameters(
         Parameter(name = "contestName", `in` = ParameterIn.PATH, description = "name of a contest", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched projects avaliable for contest.")
-    fun getAvaliableProjectsForContest(
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects available for contest.")
+    fun getAvailableProjectsForContest(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
@@ -138,7 +138,7 @@ class LnkContestProjectController(
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched contests avaliable for project.")
-    fun getAvaliableContestsForProject(
+    fun getAvailableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         authentication: Authentication,

@@ -67,7 +67,6 @@ class TestDiscoveringServiceTest {
             null,
             GitDto("https://github.com/saveourtool/save-cli"),
             "examples/kotlin-diktat",
-            "main",
             "aaaaaa",
         )
     }
@@ -119,7 +118,6 @@ class TestDiscoveringServiceTest {
                 it.second
             }
             .toList()
-
 
         logger.debug("Discovered the following tests: $testDtos")
         Assertions.assertEquals(16, testDtos.size)
