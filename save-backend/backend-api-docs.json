@@ -1758,13 +1758,13 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully fetched non-deleted projects.",
+            "description": "Successfully fetched non-deleted organizations.",
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -1777,7 +1777,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -3598,8 +3598,8 @@
         "tags": [
           "projects"
         ],
-        "summary": "Get all avaliable projects.",
-        "description": "Get all projects, avaliable for current user.",
+        "summary": "Get all available projects.",
+        "description": "Get all projects, available for current user.",
         "operationId": "getProjects",
         "parameters": [
           {
@@ -4340,6 +4340,73 @@
                   "items": {
                     "$ref": "#/components/schemas/GitDto"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationName}/get-organization-contest-rating": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get organization contest rating.",
+        "description": "Get organization contest rating.",
+        "operationId": "getOrganizationContestRating",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully get an organization contest rating.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
                 }
               }
             }
@@ -7053,8 +7120,8 @@
             "$ref": "#/components/schemas/Organization"
           },
           "contestRating": {
-            "type": "integer",
-            "format": "int64"
+            "type": "number",
+            "format": "double"
           },
           "id": {
             "type": "integer",
@@ -7099,6 +7166,10 @@
                 "VIEWER"
               ]
             }
+          },
+          "globalRating": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
