@@ -4400,17 +4400,6 @@
               }
             }
           },
-          "403": {
-            "description": "Not enough permission for get organization contest rating.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "number",
-                  "format": "double"
-                }
-              }
-            }
-          },
           "401": {
             "description": "Unauthorized",
             "content": {
