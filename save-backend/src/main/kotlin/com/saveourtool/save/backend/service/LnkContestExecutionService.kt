@@ -64,10 +64,10 @@ class LnkContestExecutionService(
         contestRepository.findByName(contestName)
     }
         .filter { it.isPresent }
+        .switchIfEmptyToNotFound()
         .map {
             lnkContestExecutionRepository.save(
                 LnkContestExecution(execution = execution, contest = it.get())
             )
         }
-        .switchIfEmptyToNotFound()
 }
