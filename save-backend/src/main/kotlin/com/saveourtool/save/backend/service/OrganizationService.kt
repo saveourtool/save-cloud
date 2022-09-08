@@ -118,10 +118,15 @@ class OrganizationService(
      */
     fun findAll(): List<Organization> = organizationRepository.findAll()
 
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
+     */
     fun getGlobalRating(organizationName: String, authentication: Authentication) =
-        projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
-            .collectList()
-            .map { projectsList ->
-                projectsList.sumOf { it.contestRating }
-            }
+            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
+                .collectList()
+                .map { projectsList ->
+                    projectsList.sumOf { it.contestRating }
+                }
 }

@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property description
  * @property canCreateContests
  * @property userRoles map where keys are usernames and values are their [Role]s
+ * @property globalRating
  */
 @Serializable
 data class OrganizationDto(
