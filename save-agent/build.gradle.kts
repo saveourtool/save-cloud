@@ -52,6 +52,7 @@ kotlin {
         }
     }
 
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
     val copyAgentDistribution by tasks.registering(Jar::class) {
         dependsOn(linkTask)
