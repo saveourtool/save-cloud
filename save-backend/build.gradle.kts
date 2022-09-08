@@ -32,7 +32,9 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.getByName("processTestResources").dependsOn("copyLiquibase")
+tasks.named("processTestResources") {
+    dependsOn("copyLiquibase")
+}
 
 tasks.register<Copy>("copyLiquibase") {
     from("$rootDir/db")
