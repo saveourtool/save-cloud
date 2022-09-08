@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkContestProjectRepository
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -110,6 +111,15 @@ class LnkContestProjectService(
             this.contestRating = projectContestRating
         })
     }
+
+    /**
+     * @param projectCoordinates
+     * @param contestName
+     * @return whether project by [projectCoordinates] is enrolled into a contest by [contestName]
+     */
+    fun isEnrolled(projectCoordinates: ProjectCoordinates, contestName: String): Boolean = lnkContestProjectRepository.findByContestNameAndProjectOrganizationNameAndProjectName(
+        contestName, projectCoordinates.organizationName, projectCoordinates.projectName
+    ) != null
 
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")

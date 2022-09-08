@@ -14,7 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
-import com.saveourtool.save.utils.isValid
+import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
@@ -102,9 +102,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.precisionRate = executionDto
             ?.let {
                 val precisionRate = it.getPrecisionRate()
-                if (precisionRate.isValid()) {
-                    @Suppress("STRING_TEMPLATE_QUOTES")
-                    "$precisionRate"
+                if (precisionRate.isValidScore()) {
+                    precisionRate.toString()
                 } else {
                     "N/A"
                 }
@@ -113,9 +112,8 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
         this.recallRate = executionDto
             ?.let {
                 val recallRate = it.getRecallRate()
-                if (recallRate.isValid()) {
-                    @Suppress("STRING_TEMPLATE_QUOTES")
-                    "$recallRate"
+                if (recallRate.isValidScore()) {
+                    recallRate.toString()
                 } else {
                     "N/A"
                 }

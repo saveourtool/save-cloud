@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
  * @property organization
  * @property email
  * @property numberOfContainers
- * @property contestRating
+ * @property contestRating global rating based on all contest results associated with this project
  */
 @Entity
 @Serializable
