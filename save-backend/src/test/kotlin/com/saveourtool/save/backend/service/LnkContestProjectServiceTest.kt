@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.util.Optional
@@ -17,6 +18,9 @@ import kotlin.math.abs
 
 @ExtendWith(SpringExtension::class)
 @Import(LnkContestProjectService::class)
+@MockBeans(
+    MockBean(ProjectService::class),
+)
 @Suppress("UnsafeCallOnNullableType")
 class LnkContestProjectServiceTest {
     @Autowired private lateinit var lnkContestProjectService: LnkContestProjectService

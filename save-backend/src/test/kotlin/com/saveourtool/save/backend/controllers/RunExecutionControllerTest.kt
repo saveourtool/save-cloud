@@ -75,6 +75,7 @@ class RunExecutionControllerTest(
             sdk = Jdk("8"),
             execCmd = "execCmd",
             batchSizeForAnalyzer = "batchSizeForAnalyzer",
+            testingType = TestingType.PUBLIC_TESTS,
         )
 
         // /initializeAgents

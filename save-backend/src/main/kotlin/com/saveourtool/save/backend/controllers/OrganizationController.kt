@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
@@ -59,6 +60,7 @@ internal class OrganizationController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesService: TestSuitesService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
+    private val projectService: ProjectService
 ) {
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
@@ -82,9 +84,21 @@ internal class OrganizationController(
         summary = "Get non-deleted organizations.",
         description = "Get non-deleted organizations.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedOrganizations(@RequestBody(required = false) organizationFilters: OrganizationFilters?) =
-            organizationService.getNotDeletedOrganizations(organizationFilters).toFlux()
+    @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
+    fun getNotDeletedOrganizations(
+        @RequestBody(required = false) organizationFilters: OrganizationFilters?,
+        authentication: Authentication,
+    ): Flux<OrganizationDto> =
+            organizationService.getNotDeletedOrganizations(organizationFilters)
+                .toFlux<Organization>()
+                .flatMap { organization ->
+                    organizationService.getGlobalRating(organization.name, authentication).map {
+                        organization to it
+                    }
+                }
+                .map { (organization, rating) ->
+                    organization.toDto().copy(globalRating = rating)
+                }
 
     @GetMapping("/{organizationName}")
     @PreAuthorize("permitAll()")
@@ -425,6 +439,38 @@ internal class OrganizationController(
         }
         .map {
             ResponseEntity.ok("Git credentials and corresponding data successfully deleted")
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return contest rating for organization
+     */
+    @GetMapping("/{organizationName}/get-organization-contest-rating")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "Get",
+        summary = "Get organization contest rating.",
+        description = "Get organization contest rating.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully get an organization contest rating.")
+    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    fun getOrganizationContestRating(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<Double> = Mono.just(organizationName)
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
+        }
+        .flatMap {
+            organizationService.getGlobalRating(organizationName, authentication)
         }
 
     private fun cleanupStorageData(testSuite: TestSuite) {
