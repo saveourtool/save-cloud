@@ -13,16 +13,19 @@ import org.slf4j.LoggerFactory
 
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import kotlinx.cli.required
 
 private val log = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 
 /**
  * @property authorization authorization data
- * @property mode mode of execution: git/standard
+ * @property mode mode of execution (one of [TestingType])
+ * @property contestName name of the contest in which the tool participates
  */
 data class CliArguments(
     val authorization: Authorization,
     val mode: TestingType,
+    val contestName: String? = null,
 )
 
 /**
@@ -58,6 +61,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
         shortName = "t",
         description = "OAuth token for SAVE-cloud system"
     )
+        .required()
 
     val mode by parser.option(
         ArgType.Choice<TestingType>(),
@@ -65,6 +69,15 @@ fun parseArguments(args: Array<String>): CliArguments? {
         shortName = "m",
         description = "Mode of execution: git/standard"
     )
+        .required()
+
+    val contestName by parser.option(
+        ArgType.String,
+        fullName = "contest-name",
+        shortName = "cn",
+        description = "Name of the contest that this tool participates in",
+    )
+
     parser.parse(args)
 
     val authorization = oauth2Source?.let {
@@ -73,6 +86,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
 
     return CliArguments(
         authorization,
-        mode!!
+        mode,
+        contestName,
     )
 }

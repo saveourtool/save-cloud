@@ -51,6 +51,22 @@ fun <T> Mono<T>.lazyDefaultIfEmpty(lazyValue: () -> T): Mono<T> = switchIfEmpty 
 fun <T : Any> Flux<*>.thenJust(other: T): Mono<T> = then(Mono.just(other))
 
 /**
+ * If content of [this] [Mono] matches [predicate], run [effect].
+ *
+ * @param predicate
+ * @param effect
+ * @return always returns [Mono] with the original value. Uses [Mono.flatMap] under the hood,
+ * so all signals are treated accordingly.
+ */
+fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> Mono<out Any>): Mono<T> = flatMap { value ->
+    if (predicate(value)) {
+        effect(value).map { value }
+    } else {
+        Mono.just(value)
+    }
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC

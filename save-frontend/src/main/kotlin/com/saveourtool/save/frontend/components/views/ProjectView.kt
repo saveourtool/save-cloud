@@ -355,9 +355,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() }
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
+            testingType = testingType,
+            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { state.selectedContest.name }
         )
-        submitRequest("/run/trigger?testingType=$testingType", jsonHeaders, Json.encodeToString(executionRequest))
+        submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
     private fun submitRequest(url: String, headers: Headers, body: dynamic) {

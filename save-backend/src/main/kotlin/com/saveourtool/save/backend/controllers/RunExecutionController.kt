@@ -49,6 +49,7 @@ class RunExecutionController(
     private val executionInfoStorage: ExecutionInfoStorage,
     private val testService: TestService,
     private val testExecutionService: TestExecutionService,
+    private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
     configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
@@ -64,17 +65,16 @@ class RunExecutionController(
     /**
      * @param request incoming request from frontend
      * @param authentication
-     * @param testingType type for this execution
      * @return response with ID of created [Execution]
      */
     @PostMapping("/trigger")
     fun trigger(
         @RequestBody request: RunExecutionRequest,
-        @RequestParam testingType: TestingType,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
-        .map {
+        .validateContestEnrollment(request)
+        .flatMap {
             executionService.createNew(
                 projectCoordinates = request.projectCoordinates,
                 testSuiteIds = request.testSuiteIds,
@@ -83,7 +83,8 @@ class RunExecutionController(
                 sdk = request.sdk,
                 execCmd = request.execCmd,
                 batchSizeForAnalyzer = request.batchSizeForAnalyzer,
-                testingType = testingType
+                testingType = request.testingType,
+                contestName = request.contestName,
             )
         }
         .subscribeOn(Schedulers.boundedElastic())
@@ -115,7 +116,7 @@ class RunExecutionController(
                 execution.project.name
             )
         }
-        .map { executionService.createNewCopy(it, authentication.username()) }
+        .flatMap { executionService.createNewCopy(it, authentication.username()) }
         .flatMap { execution ->
             Mono.just(execution.toAcceptedResponse())
                 .doOnSuccess {
@@ -140,6 +141,19 @@ class RunExecutionController(
                     "User ${authentication.username()} doesn't have access to $projectCoordinates"
                 }.map { value }
             }
+
+    @Suppress("UnsafeCallOnNullableType")
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
+            filter { projectCoordinates ->
+                if (request.testingType == TestingType.CONTEST_MODE) {
+                    lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+                } else {
+                    true
+                }
+            }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
+                }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
