@@ -525,8 +525,8 @@ internal class OrganizationController(
                     .switchIfEmptyToNotFound {
                         "Not found git credential with url [${gitDto.url}] in $organizationName"
                     }
-                    .map {
-                        it.apply {
+                    .map { git ->
+                        git.apply {
                             url = gitDto.url
                             username = gitDto.username
                             password = gitDto.password
