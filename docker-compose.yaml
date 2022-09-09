@@ -17,7 +17,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/saveourtool/save-orchestrator:${TAG}
+    image: ghcr.io/saveourtool/save-orchestrator:${ORCHESTRATOR_TAG}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
@@ -35,7 +35,7 @@ services:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
   backend:
-    image: ghcr.io/saveourtool/save-backend:${TAG}
+    image: ghcr.io/saveourtool/save-backend:${BACKEND_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
       - "MYSQL_USER=/run/secrets/db_username"
@@ -60,7 +60,7 @@ services:
     ports:
       - "5610:5610"
   preprocessor:
-    image: ghcr.io/saveourtool/save-preprocessor:${TAG}
+    image: ghcr.io/saveourtool/save-preprocessor:${PREPROCESSOR_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     volumes:
@@ -78,7 +78,7 @@ services:
         max_attempts: 3
     logging: *loki-logging-jvm
   gateway:
-    image: ghcr.io/saveourtool/api-gateway:${TAG}
+    image: ghcr.io/saveourtool/api-gateway:${GATEWAY_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
@@ -107,7 +107,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.1.1
+    image: grafana/grafana:9.1.2
     ports:
       - "9100:3000"
     volumes:

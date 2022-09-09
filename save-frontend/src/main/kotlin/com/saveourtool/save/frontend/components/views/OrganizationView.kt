@@ -14,11 +14,16 @@ import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
@@ -26,6 +31,7 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import history.Location
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -49,6 +55,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 import react.table.columns
 
 import kotlinx.browser.window
@@ -64,12 +71,13 @@ import kotlinx.serialization.json.Json
 external interface OrganizationProps : PropsWithChildren {
     var organizationName: String
     var currentUserInfo: UserInfo?
+    var location: Location
 }
 
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : StateWithRole, State {
+external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
     /**
      * Flag to handle uploading a file
      */
@@ -86,11 +94,6 @@ external interface OrganizationViewState : StateWithRole, State {
     var organization: Organization?
 
     /**
-     * project selected menu
-     */
-    var selectedMenu: OrganizationMenuBar?
-
-    /**
      * List of projects for `this` organization
      */
     var projects: Array<Project>?
@@ -103,7 +106,7 @@ external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle error
      */
-    var isErrorOpen: Boolean?
+    var isErrorOpen: Boolean
 
     /**
      * Error label
@@ -123,7 +126,7 @@ external interface OrganizationViewState : StateWithRole, State {
     /**
      * Flag to handle confirm Window
      */
-    var isConfirmWindowOpen: Boolean?
+    var isConfirmWindowOpen: Boolean
 
     /**
      * Label of confirm Window
@@ -191,11 +194,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.isUploading = false
         state.organization = Organization("", OrganizationStatus.CREATED, null, null, null)
-        state.selectedMenu = OrganizationMenuBar.INFO
+        state.selectedMenu = OrganizationMenuBar.defaultTab
         state.projects = emptyArray()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
+        state.isConfirmWindowOpen = false
+        state.isErrorOpen = false
+        state.confirmationType = ConfirmationType.DELETE_CONFIRM
     }
 
     private fun deleteOrganization() {
@@ -220,50 +226,64 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
+        if (state.selectedMenu != prevState.selectedMenu) {
+            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
+        }
+    }
+
     override fun componentDidMount() {
         super.componentDidMount()
+
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
             val projectsLoaded = getProjectsForOrganization()
             val role = getRoleInOrganization()
             val users = getUsers()
+            val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
                 projects = projectsLoaded
                 isEditDisabled = true
-                selfRole = getHighestRole(role, props.currentUserInfo?.globalRole)
+                selfRole = highestRole
                 usersInOrganization = users
             }
+            urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+        val errorCloseCallback = {
             setState {
                 isErrorOpen = false
                 closeButtonLabel = null
             }
         }
-        runConfirmWindowModal(
-            state.isConfirmWindowOpen,
-            state.confirmLabel,
-            state.confirmMessage,
-            "Ok",
-            "Cancel",
-            { setState { isConfirmWindowOpen = false } }) {
-            when (state.confirmationType) {
-                ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                else -> throw IllegalStateException("Not implemented yet")
+        displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
+            buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
+        }
+
+        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
+            buttonBuilder("Ok") {
+                when (state.confirmationType) {
+                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                    else -> throw IllegalStateException("Not implemented yet")
+                }
+                setState { isConfirmWindowOpen = false }
             }
-            setState { isConfirmWindowOpen = false }
+            buttonBuilder("Close", "secondary") {
+                setState { isConfirmWindowOpen = false }
+            }
         }
 
         renderOrganizationMenuBar()
 
-        when (state.selectedMenu!!) {
+        when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
             OrganizationMenuBar.TESTS -> renderTests()
@@ -593,7 +613,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             topProject?.let {
                 scoreCard {
                     name = it.name
-                    contestScore = it.contestRating.toDouble()
+                    contestScore = it.contestRating
                     url = "#/${props.organizationName}/${it.name}"
                 }
             }
@@ -656,24 +676,18 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .filter {
                             it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
                         }
-                        .forEachIndexed { i, projectMenu ->
+                        .forEach { organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
-                                val classVal = if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) {
-                                    " active font-weight-bold"
-                                } else {
-                                    ""
-                                }
+                                val classVal = if (state.selectedMenu == organizationMenu) " active font-weight-bold" else ""
                                 p {
                                     className = ClassName("nav-link $classVal text-gray-800")
                                     onClick = {
-                                        if (state.selectedMenu != projectMenu) {
-                                            setState {
-                                                selectedMenu = projectMenu
-                                            }
+                                        if (state.selectedMenu != organizationMenu) {
+                                            setState { selectedMenu = organizationMenu }
                                         }
                                     }
-                                    +projectMenu.getTitle()
+                                    +organizationMenu.getTitle()
                                 }
                             }
                         }
@@ -689,8 +703,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 }
 
                 if (state.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
-                    a {
-                        href = "#/${FrontendRoutes.CREATE_PROJECT.path}/"
+                    Link {
+                        to = "/${FrontendRoutes.CREATE_PROJECT.path}/${this@OrganizationView.state.organization?.name}"
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-outline-info")

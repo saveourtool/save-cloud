@@ -109,6 +109,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                 className = ClassName("form-control")
                 id = props.formType.name
                 required = true
+                // TODO: why we need an extra option
                 option {
                     disabled = true
                     +""

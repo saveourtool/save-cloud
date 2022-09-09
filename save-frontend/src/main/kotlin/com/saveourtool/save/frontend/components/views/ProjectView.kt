@@ -9,11 +9,14 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.projects.projectInfoMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectSettingsMenu
 import com.saveourtool.save.frontend.components.basic.projects.projectStatisticMenu
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faEdit
@@ -21,12 +24,16 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
+import history.Location
 import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
@@ -59,6 +66,7 @@ external interface ProjectExecutionRouteProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
+    var location: Location
 }
 
 /**
@@ -79,7 +87,7 @@ external interface ContestRunState : State {
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole, ContestRunState {
+external interface ProjectViewState : StateWithRole, ContestRunState, HasSelectedMenu<ProjectMenuBar> {
     /**
      * Currently loaded for display Project
      */
@@ -103,7 +111,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
     /**
      * Flag to handle error
      */
-    var isErrorOpen: Boolean?
+    var isErrorOpen: Boolean
 
     /**
      * Error label
@@ -191,11 +199,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState {
     var isEditDisabled: Boolean?
 
     /**
-     * project selected menu
-     */
-    var selectedMenu: ProjectMenuBar?
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -268,7 +271,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
         state.isEditDisabled = true
-        state.selectedMenu = ProjectMenuBar.INFO
+        state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
     }
@@ -279,6 +282,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             errorLabel = notificationLabel
             errorMessage = notificationMessage
             closeButtonLabel = "Confirm"
+        }
+    }
+
+    override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu) {
+            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(ProjectMenuBar, state.selfRole, false)
         }
     }
 
@@ -293,21 +304,19 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             } else {
                 result.getOrThrow()
             }
-            setState {
-                this.project = project
-            }
-            val headers = Headers().apply {
-                set("Accept", "application/json")
-                set("Content-Type", "application/json")
-            }
+            setState { this.project = project }
+
             val currentUserRole: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
-                headers,
+                jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+            val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
-                selfRole = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
+                selfRole = role
             }
+
+            urlAnalysis(ProjectMenuBar, role, false)
 
             val availableFiles = getFilesList(project.organization.name, project.name)
             setState {
@@ -328,14 +337,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
             else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>) {
+    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
@@ -345,8 +354,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             testSuiteIds = selectedTestSuiteIds,
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
-            execCmd = state.execCmd,
-            batchSizeForAnalyzer = state.batchSizeForAnalyzer
+            execCmd = state.execCmd.takeUnless { it.isBlank() },
+            batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
+            testingType = testingType,
+            contestName = testingType.takeIf { it == TestingType.CONTEST_MODE }?.let { state.selectedContest.name }
         )
         submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
@@ -367,11 +378,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
     override fun ChildrenBuilder.render() {
-        // modal windows are initially hidden
-        runErrorModal(state.isErrorOpen, state.errorLabel, state.errorMessage, state.closeButtonLabel ?: "Close") {
+        val modalCloseCallback = {
             setState {
                 isErrorOpen = false
                 closeButtonLabel = null
+            }
+        }
+        displayModal(
+            state.isErrorOpen,
+            state.errorLabel,
+            state.errorMessage,
+            mediumTransparentModalStyle,
+            modalCloseCallback,
+        ) {
+            buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") {
+                modalCloseCallback()
             }
         }
 
@@ -385,6 +406,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             privacySpan(state.project)
         }
 
+        renderProjectMenuBar()
+
+        when (state.selectedMenu) {
+            ProjectMenuBar.RUN -> renderRun()
+            ProjectMenuBar.STATISTICS -> renderStatistics()
+            ProjectMenuBar.SETTINGS -> renderSettings()
+            ProjectMenuBar.INFO -> renderInfo()
+        }
+    }
+
+    private fun ChildrenBuilder.renderProjectMenuBar() {
         div {
             className = ClassName("row align-items-center justify-content-center")
             nav {
@@ -393,34 +425,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     .filterNot {
                         (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
-                    .forEachIndexed { i, projectMenu ->
+                    .forEach { projectMenu ->
                         li {
                             className = ClassName("nav-item")
-                            val classVal =
-                                    if ((i == 0 && state.selectedMenu == null) || state.selectedMenu == projectMenu) " active font-weight-bold" else ""
+                            val classVal = if (state.selectedMenu == projectMenu) " active font-weight-bold" else ""
                             p {
                                 className = ClassName("nav-link $classVal text-gray-800")
                                 onClick = {
                                     if (state.selectedMenu != projectMenu) {
-                                        setState {
-                                            selectedMenu = projectMenu
-                                        }
+                                        setState { selectedMenu = projectMenu }
                                     }
                                 }
                                 +projectMenu.name
                             }
                         }
                     }
-            }
-        }
-
-        when (state.selectedMenu!!) {
-            ProjectMenuBar.RUN -> renderRun()
-            ProjectMenuBar.STATISTICS -> renderStatistics()
-            ProjectMenuBar.SETTINGS -> renderSettings()
-            ProjectMenuBar.INFO -> renderInfo()
-            else -> {
-                // this is a generated else block
             }
         }
     }

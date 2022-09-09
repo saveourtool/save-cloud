@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-data-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
@@ -23,8 +25,6 @@ openApi {
     }
 }
 
-configureSpringBoot(true)
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = Versions.jdk
@@ -32,7 +32,9 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.getByName("processTestResources").dependsOn("copyLiquibase")
+tasks.named("processTestResources") {
+    dependsOn("copyLiquibase")
+}
 
 tasks.register<Copy>("copyLiquibase") {
     from("$rootDir/db")

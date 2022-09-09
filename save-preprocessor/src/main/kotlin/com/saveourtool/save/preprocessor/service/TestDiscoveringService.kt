@@ -15,6 +15,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.info
+import com.saveourtool.save.utils.thenJust
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -194,21 +195,34 @@ class TestDiscoveringService(
     ) = getAllTests(rootTestConfig, testSuites).convertToMap().updatePluginNames()
 
     @Suppress("TYPE_ALIAS")
-    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap { testsMap ->
-        testsMap.run {
-            saveTestSuites().also {
-                saveTests()
-            }
+    private fun Mono<Map<TestSuiteDto, List<TestDto>>>.saveTestSuitesAndTests() = flatMap {
+        it.saveTestSuites()
+    }.map { testsMap ->
+        testsMap.mapValues { (testSuite, tests) ->
+            tests.map { it.copy(testSuiteId = testSuite.requiredId()) }
         }
+    }.flatMap { testsMaps ->
+        testsMaps.values
+            .flatten()
+            .toFlux()
+            .save()
+            .thenJust(testsMaps.keys.toList())
     }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = keys.toList().save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = entries
+        .toFlux()
+        .flatMap { (testSuiteDto, tests) ->
+            listOf(testSuiteDto).save().map { it.first() to tests }
+        }
+        .collectList()
+        .map { it.toMap() }
 
     @Suppress("TYPE_ALIAS")
-    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() = values.flatten()
-        .toFlux()
-        .save()
+    private fun Map<TestSuiteDto, List<TestDto>>.saveTests() =
+            values.flatten()
+                .toFlux()
+                .save()
 
     @Suppress("TYPE_ALIAS")
     private fun Sequence<Pair<TestSuiteDto, TestDto>>.convertToMap() = groupBy({ (testSuite, _) ->

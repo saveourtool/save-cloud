@@ -2,17 +2,19 @@
  * Utility methods for creation of the module window for the selection of test resources
  */
 
-@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
+@file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS", "FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.useWindowOpenness
+import com.saveourtool.save.frontend.utils.withUnusedArg
 
 import csstype.ClassName
 import react.*
@@ -25,16 +27,6 @@ import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
 val testResourcesSelection = prepareTestResourcesSelection()
-
-/**
- * Types of testing (that can be selected by user)
- */
-enum class TestingType {
-    CONTEST_MODE,
-    PRIVATE_TESTS,
-    PUBLIC_TESTS,
-    ;
-}
 
 /**
  * Properties for test resources
@@ -164,14 +156,15 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
             // ==== test suite ids selector
             div {
                 className = ClassName("mt-2")
-                inputTextFormRequired(
-                    InputTypes.TEST_SUITE_IDS,
-                    selectedTestSuiteIds.joinToString(", "),
-                    true,
-                    "col-12 pl-2 pr-2 text-center",
-                    "Test Suites:",
+                inputTextFormRequired {
+                    form = InputTypes.TEST_SUITE_IDS
+                    textValue = selectedTestSuiteIds.joinToString(", ")
+                    validInput = true
+                    classes = "col-12 pl-2 pr-2 text-center"
+                    name = "Test Suites:"
+                    conflictMessage = null
                     onClickFun = testSuiteSelectorWindowOpenness.openWindowAction()
-                )
+                }
             }
         }
     }
@@ -197,9 +190,7 @@ private fun ChildrenBuilder.renderForContestMode(
             button {
                 className = ClassName("d-flex justify-content-center btn btn-primary")
                 +"Enroll for a contest"
-                onClick = {
-                    contestEnrollerWindowOpenness.openWindow()
-                }
+                onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
             }
         }
     }

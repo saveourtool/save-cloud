@@ -61,6 +61,11 @@ fun String.toRole() = Role.values().find {
 } ?: throw IllegalStateException("Unknown role is passed: $this")
 
 /**
+ * @return lambda which does the same as receiver but takes unused arg
+ */
+fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
  *
  * @param text text to display
@@ -103,3 +108,8 @@ internal fun ChildrenBuilder.multilineTextWithIndices(text: String) {
  * @return true if string is invalid
  */
 internal fun String?.isInvalid(maxLength: Int) = this.isNullOrBlank() || this.contains(" ") || this.length > maxLength
+
+/**
+ * @param digits number of digits to round to
+ */
+internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)

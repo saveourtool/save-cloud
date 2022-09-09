@@ -2,6 +2,9 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
+
+import com.fasterxml.jackson.annotation.JsonIgnore
+
 import javax.persistence.Entity
 import javax.persistence.FetchType
 import javax.persistence.OneToMany
@@ -41,6 +44,7 @@ class User(
         mappedBy = "user",
         targetEntity = OriginalLogin::class
     )
+    @JsonIgnore
     var originalLogins: List<OriginalLogin> = emptyList(),
 ) : BaseEntity() {
     /**

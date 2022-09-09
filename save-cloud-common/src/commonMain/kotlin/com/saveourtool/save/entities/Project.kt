@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
  * @property organization
  * @property email
  * @property numberOfContainers
- * @property contestRating
+ * @property contestRating global rating based on all contest results associated with this project
  */
 @Entity
 @Serializable
@@ -43,7 +43,7 @@ data class Project(
         columnDefinition = "",
     )
     var organization: Organization,
-    var contestRating: Long = 0,
+    var contestRating: Double = 0.0,
 ) {
     /**
      * id of project
@@ -78,6 +78,11 @@ data class Project(
         url ?: "",
         email ?: "",
     )
+
+    /**
+     * Return the shortest unique representation of this [Project] as a string
+     */
+    fun shortToString() = "[organization=${organization.name},name=$name]"
 
     companion object {
         /**

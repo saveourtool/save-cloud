@@ -32,7 +32,8 @@ fun main(args: Array<String>) {
         webClientProperties,
         evaluatedToolProperties,
         cliArgs.mode,
-        cliArgs.authorization
+        cliArgs.contestName,
+        cliArgs.authorization,
     )
 
     runBlocking {

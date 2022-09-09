@@ -1,6 +1,9 @@
 import com.saveourtool.save.buildutils.configureSpotless
 import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
     kotlin("multiplatform")
@@ -39,6 +42,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
         val linuxX64Test by getting {
@@ -48,16 +52,16 @@ kotlin {
         }
     }
 
-    val distribution by configurations.creating
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
     val copyAgentDistribution by tasks.registering(Jar::class) {
-        dependsOn("linkReleaseExecutableLinuxX64")
+        dependsOn(linkTask)
         archiveClassifier.set("distribution")
-        from(file("$buildDir/bin/linuxX64/releaseExecutable")) {
-            include("*")
-        }
+        from(linkTask.flatMap { it.outputFile })
         from(file("$projectDir/src/linuxX64Main/resources/agent.properties"))
     }
-    artifacts.add(distribution.name, file("$buildDir/libs/${project.name}-${project.version}-distribution.jar")) {
+    val distribution by configurations.creating
+    artifacts.add(distribution.name, copyAgentDistribution.flatMap { it.archiveFile }) {
         builtBy(copyAgentDistribution)
     }
 
@@ -83,7 +87,9 @@ kotlin {
                 }
             }
         }
-        tasks.getByName("${hostTarget.name}Test").finalizedBy(createCoverageReportTask)
+        tasks.named("${hostTarget.name}Test") {
+            finalizedBy(createCoverageReportTask)
+        }
     }
 }
 
@@ -121,4 +127,26 @@ val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
 kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
     dependsOn(generateVersionFileTaskProvider)
+}
+
+/*
+ * On Windows, it's impossible to link a Linux executable against
+ * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ */
+tasks.named("linkDebugExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}
+
+tasks.named("linkReleaseExecutableLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
+}
+
+tasks.named("linkDebugTestLinuxX64") {
+    onlyIf {
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+    }
 }

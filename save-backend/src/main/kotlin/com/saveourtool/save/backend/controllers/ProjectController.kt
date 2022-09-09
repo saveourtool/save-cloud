@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -68,8 +69,8 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get all avaliable projects.",
-        description = "Get all projects, avaliable for current user.",
+        summary = "Get all available projects.",
+        description = "Get all projects, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjects(
@@ -79,17 +80,18 @@ class ProjectController(
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }
 
-    @GetMapping("/not-deleted")
+    @PostMapping("/not-deleted")
     @PreAuthorize("permitAll()")
     @Operation(
-        method = "GET",
+        method = "POST",
         summary = "Get non-deleted projects.",
-        description = "Get non-deleted projects, avaliable for current user.",
+        description = "Get non-deleted projects, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted projects.")
-    fun getNotDeletedProjects(
+    fun getNotDeletedProjectsWithFilters(
+        @RequestBody(required = false) projectFilters: ProjectFilters?,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.getNotDeletedProjects()
+    ): Flux<Project> = projectService.getNotDeletedProjectsWithFilter(projectFilters)
         .toFlux()
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
@@ -157,13 +159,7 @@ class ProjectController(
     fun getNonDeletedProjectsByOrganizationName(
         @RequestParam organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
-        .filter {
-            it.status != ProjectStatus.DELETED
-        }
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
+    ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
 
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader

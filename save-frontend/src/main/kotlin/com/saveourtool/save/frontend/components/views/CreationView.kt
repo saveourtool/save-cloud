@@ -11,8 +11,10 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptionalWrapperConst
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -27,7 +29,6 @@ import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -37,11 +38,23 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/**
+ * Custom properties retrieved from the router when a project is being created.
+ */
+external interface ProjectSaveViewProps : Props {
+    /**
+     * The name of the parent organization, or `null` if the project is being
+     * created from scratch.
+     */
+    var organizationName: String?
+}
 
 /**
  * [State] of project creation view component
@@ -50,7 +63,7 @@ external interface ProjectSaveViewState : State {
     /**
      * Flag to handle error
      */
-    var isErrorWithProjectSave: Boolean?
+    var isErrorWithProjectSave: Boolean
 
     /**
      * Error message
@@ -75,7 +88,7 @@ external interface ProjectSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(true) {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val organizationSelectForm = selectFormRequired<String>()
     init {
@@ -115,17 +128,37 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
+    override fun componentDidMount() {
+        super.componentDidMount()
+
+        /*
+         * Update the state if there's a parent organization available.
+         */
+        val organizationName = props.organizationName
+        if (!organizationName.isNullOrEmpty()) {
+            scope.launch {
+                setState {
+                    projectCreationRequest = projectCreationRequest.copy(organizationName = organizationName)
+                }
+            }
+        }
+    }
+
     @Suppress(
         "TOO_LONG_FUNCTION",
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
-        runErrorModal(
+        displayModal(
             state.isErrorWithProjectSave,
             "Error appeared during project creation",
-            state.errorMessage
+            state.errorMessage,
+            mediumTransparentModalStyle,
+            { setState { isErrorWithProjectSave = false } },
         ) {
-            setState { isErrorWithProjectSave = false }
+            buttonBuilder("Close", "secondary") {
+                setState { isErrorWithProjectSave = false }
+            }
         }
 
         main {
@@ -149,12 +182,22 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                 }
                                 div {
                                     button {
+                                        @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
+                                        val buttonText = "Add new organization"
+                                        val buttonEnabled = props.organizationName.isNullOrEmpty()
+
                                         type = ButtonType.button
                                         className = ClassName("btn btn-primary mb-2")
-                                        a {
-                                            className = ClassName("text-light")
-                                            href = "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/"
-                                            +"Add new organization"
+                                        disabled = !buttonEnabled
+
+                                        when {
+                                            buttonEnabled -> Link {
+                                                className = ClassName("text-light")
+                                                to = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
+                                                +buttonText
+                                            }
+
+                                            else -> +buttonText
                                         }
                                     }
                                 }
@@ -188,21 +231,24 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
                                                 }
                                             }
                                         }
-                                        inputTextFormRequired(
-                                            InputTypes.PROJECT_NAME,
-                                            state.projectCreationRequest.name,
-                                            (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
-                                                    state.conflictErrorMessage == null,
-                                            "col-md-12 pl-2 pr-2 mt-3",
-                                            "Tested tool name",
-                                        ) {
-                                            setState {
-                                                projectCreationRequest = projectCreationRequest.copy(name = it.target.value)
-                                                conflictErrorMessage = null
+                                        inputTextFormRequired {
+                                            form = InputTypes.PROJECT_NAME
+                                            textValue = state.projectCreationRequest.name
+                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
+                                                    state.conflictErrorMessage == null
+                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            name = "Tested tool name"
+                                            conflictMessage = state.conflictErrorMessage
+                                            onChangeFun = {
+                                                setState {
+                                                    projectCreationRequest =
+                                                            projectCreationRequest.copy(name = it.target.value)
+                                                    conflictErrorMessage = null
+                                                }
                                             }
                                         }
 
-                                        inputTextFormOptionalWrapperConst {
+                                        inputTextFormOptional {
                                             form = InputTypes.PROJECT_EMAIL
                                             textValue = state.projectCreationRequest.email
                                             classes = "col-md-12 pl-2 pr-2 mt-3"
@@ -321,7 +367,7 @@ class CreationView : AbstractView<Props, ProjectSaveViewState>(true) {
         }
     }
 
-    companion object : RStatics<Props, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
+    companion object : RStatics<ProjectSaveViewProps, ProjectSaveViewState, CreationView, Context<RequestStatusContext>>(CreationView::class) {
         init {
             contextType = requestStatusContext
         }

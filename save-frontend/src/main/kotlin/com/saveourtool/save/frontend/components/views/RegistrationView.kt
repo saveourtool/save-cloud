@@ -213,16 +213,18 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         form {
             val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
             div {
-                inputTextFormRequired(
-                    InputTypes.USER_NAME,
-                    input,
-                    (input.isEmpty() || input.isValidName()) && state.conflictErrorMessage == null,
-                    "",
-                    "User name",
-                ) {
-                    changeFields(InputTypes.USER_NAME, it)
-                    setState {
-                        conflictErrorMessage = null
+                inputTextFormRequired {
+                    form = InputTypes.USER_NAME
+                    textValue = input
+                    validInput = input.isEmpty() || input.isValidName()
+                    classes = ""
+                    name = "User name"
+                    conflictMessage = state.conflictErrorMessage
+                    onChangeFun = {
+                        changeFields(InputTypes.USER_NAME, it)
+                        setState {
+                            conflictErrorMessage = null
+                        }
                     }
                 }
             }

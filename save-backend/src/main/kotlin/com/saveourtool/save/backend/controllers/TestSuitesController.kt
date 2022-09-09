@@ -7,9 +7,10 @@ import com.saveourtool.save.backend.service.TestSuiteDtoList
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.TestSuite
+import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.testsuite.TestSuiteFilters
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -17,7 +18,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-
 import org.quartz.Scheduler
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,8 +28,6 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-
-typealias ResponseListTestSuites = ResponseEntity<List<TestSuiteDto>>
 
 /**
  * Controller for test suites
@@ -58,18 +56,6 @@ class TestSuitesController(
                 .filter { it.isNotEmpty() }
                 .map { testSuitesService.saveTestSuite(it) }
                 .defaultIfEmpty(emptyList())
-
-    @GetMapping(path = ["/api/$v1/allStandardTestSuites", "/internal/allStandardTestSuites"])
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get standard test suites.",
-        description = "Get list of standard TestSuiteDtos.",
-        deprecated = true,
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched standard test suites.")
-    fun getAllStandardTestSuites(): Mono<ResponseListTestSuites> =
-            testSuitesService.getStandardTestSuites().map { ResponseEntity.status(HttpStatus.OK).body(it) }
 
     @PostMapping("/api/$v1/test-suites/get-by-ids")
     @PreAuthorize("permitAll()")

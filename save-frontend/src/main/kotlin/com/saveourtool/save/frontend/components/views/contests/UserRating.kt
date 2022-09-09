@@ -6,12 +6,14 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.*
@@ -31,7 +33,19 @@ val userRating = userRating()
  * Enum that contains values for the tab that is used in rating card
  */
 enum class UserRatingTab {
-    ORGS, TOOLS
+    ORGS,
+    TOOLS,
+    ;
+
+    companion object : TabMenuBar<UserRatingTab> {
+        // The string is the postfix of a [regexForUrlClassification] for parsing the url
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
+        override val nameOfTheHeadUrlSection = ""
+        override val defaultTab: UserRatingTab = UserRatingTab.ORGS
+        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
+        override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
+        override fun values(): Array<UserRatingTab> = UserRatingTab.values()
+    }
 }
 
 private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project>) {
@@ -62,18 +76,17 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +"${project.contestRating.toFixed(2)}"
                 }
             }
         }
     }
 }
 
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationDto>) {
     organizations.forEachIndexed { i, organization ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
@@ -101,11 +114,10 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +"${organization.globalRating?.toFixed(2)}"
                 }
             }
         }
@@ -119,11 +131,12 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
 private fun userRating() = VFC {
     val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
-    val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
+    val (organizations, setOrganizations) = useState<Set<OrganizationDto>>(emptySet())
     useRequest {
-        val organizationsFromBackend: List<Organization> = get(
-            url = "$apiUrl/organizations/all",
+        val organizationsFromBackend: List<OrganizationDto> = post(
+            url = "$apiUrl/organizations/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -132,9 +145,10 @@ private fun userRating() = VFC {
 
     val (projects, setProjects) = useState<Set<Project>>(emptySet())
     useRequest {
-        val projectsFromBackend: List<Project> = get(
-            url = "$apiUrl/projects/all",
+        val projectsFromBackend: List<Project> = post(
+            url = "$apiUrl/projects/not-deleted",
             headers = jsonHeaders,
+            body = undefined,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -169,11 +183,9 @@ private fun userRating() = VFC {
                         alignItems = AlignItems.center
                         alignSelf = AlignSelf.start
                     }
-
                     a {
                         className = ClassName("mb-5")
-                        // FixMe: new view on this link
-                        href = ""
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
                 }

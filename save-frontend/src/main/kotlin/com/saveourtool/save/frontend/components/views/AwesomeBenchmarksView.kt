@@ -6,11 +6,15 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.HasSelectedMenu
+import com.saveourtool.save.frontend.utils.changeUrl
+import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -19,6 +23,7 @@ import csstype.ClassName
 import csstype.Cursor
 import csstype.FontWeight
 import csstype.rem
+import history.Location
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
@@ -50,19 +55,22 @@ import kotlinx.js.jso
 const val ALL_LANGS = "all"
 
 /**
+ * `Props` retrieved from router
+ */
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS")
+external interface AwesomeBenchmarksProps : PropsWithChildren {
+    var location: Location
+}
+
+/**
  * [RState] of project creation view component
  *
  */
-external interface AwesomeBenchmarksState : State {
+external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCategoryEnum> {
     /**
      * list of benchmarks from DB
      */
     var benchmarks: List<AwesomeBenchmarks>
-
-    /**
-     * list of buttons from DB
-     */
-    var selectedMenuBench: BenchmarkCategoryEnum?
 
     /**
      * list of unique languages from benchmarks
@@ -82,17 +90,28 @@ external interface AwesomeBenchmarksState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksState>(true) {
+class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>(true) {
     init {
-        state.selectedMenuBench = BenchmarkCategoryEnum.ALL
+        state.selectedMenu = BenchmarkCategoryEnum.defaultTab
         state.lang = ALL_LANGS
         state.benchmarks = emptyList()
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
+
+        urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         scope.launch {
             getBenchmarks()
+        }
+    }
+
+    override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
+        if (prevState.selectedMenu != state.selectedMenu) {
+            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+                "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+        } else if (props.location != prevProps.location) {
+            urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         }
     }
 
@@ -231,10 +250,10 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                     className = ClassName("row")
                                     nav {
                                         className = ClassName("nav nav-tabs mb-4")
-                                        BenchmarkCategoryEnum.values().forEachIndexed { i, value ->
+                                        BenchmarkCategoryEnum.values().forEach { value ->
                                             li {
                                                 className = ClassName("nav-item")
-                                                val classVal = if ((i == 0 && state.selectedMenuBench == null) || state.selectedMenuBench == value) {
+                                                val classVal = if (state.selectedMenu == value) {
                                                     " active font-weight-bold"
                                                 } else {
                                                     ""
@@ -242,16 +261,13 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                 p {
                                                     className = ClassName("nav-link $classVal text-gray-800")
                                                     onClick = {
-                                                        if (state.selectedMenuBench != value) {
-                                                            setState {
-                                                                selectedMenuBench = value
-                                                            }
+                                                        if (state.selectedMenu != value) {
+                                                            setState { selectedMenu = value }
                                                         }
                                                     }
                                                     style = jso {
                                                         cursor = "pointer".unsafeCast<Cursor>()
                                                     }
-
                                                     +value.name
                                                 }
                                             }
@@ -265,8 +281,8 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                         className = ClassName("col-lg-8")
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
-                                        state.benchmarks.forEachIndexed { i, benchmark ->
-                                            if ((state.selectedMenuBench == BenchmarkCategoryEnum.ALL || state.selectedMenuBench == benchmark.category) &&
+                                        state.benchmarks.forEach { benchmark ->
+                                            if ((state.selectedMenu == BenchmarkCategoryEnum.ALL || state.selectedMenu == benchmark.category) &&
                                                     (state.lang == ALL_LANGS || state.lang == benchmark.language)
                                             ) {
                                                 ++matchingBenchmarksCount
@@ -274,7 +290,6 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
                                                     className = ClassName("media text-muted pb-3")
                                                     img {
                                                         className = ClassName("rounded")
-
                                                         src = "img/undraw_code_inspection_bdl7.svg"
                                                         asDynamic()["data-holder-rendered"] = "true"
                                                         style = jso {
@@ -502,7 +517,7 @@ class AwesomeBenchmarksView : AbstractView<PropsWithChildren, AwesomeBenchmarksS
         }
     }
 
-    companion object : RStatics<PropsWithChildren, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
         init {
             contextType = requestStatusContext
         }

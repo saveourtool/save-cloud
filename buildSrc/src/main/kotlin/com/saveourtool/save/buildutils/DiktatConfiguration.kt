@@ -27,6 +27,7 @@ fun Project.configureDiktat() {
             // using `Project#path` here, because it must be unique in gradle's project hierarchy
             if (path == rootProject.path) {
                 include("buildSrc/src/**/*.kt", "*.kts", "buildSrc/**/*.kts")
+                exclude("buildSrc/build/**")
             } else {
                 include("src/**/*.kt", "**/*.kts")
                 exclude("src/test/**/*.kt", "src/*Test/**/*.kt")

@@ -61,14 +61,6 @@ class ProjectViewTest {
                 )
             }
         },
-        rest.get("$apiUrl/allStandardTestSuites") { _, res, _ ->
-            res { response ->
-                mockMswResponse(
-                    response,
-                    emptyList<TestSuiteDto>()
-                )
-            }
-        },
         rest.get("$apiUrl/files/${testOrganization.name}/${testProject.name}/list") { _, res, _ ->
             res { response ->
                 mockMswResponse(
