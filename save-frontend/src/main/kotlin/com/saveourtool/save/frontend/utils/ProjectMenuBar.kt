@@ -16,7 +16,7 @@ enum class ProjectMenuBar {
 
     companion object : TabMenuBar<ProjectMenuBar> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString { "|" }
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "project"
         override val defaultTab: ProjectMenuBar = INFO
         override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/[^/]+/($postfixInRegex)")
