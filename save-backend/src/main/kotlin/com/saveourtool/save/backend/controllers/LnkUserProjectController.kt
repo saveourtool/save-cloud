@@ -66,13 +66,22 @@ class LnkUserProjectController(
     @ApiResponse(responseCode = "404", description = "Project with such name was not found.")
     fun getProjectsOfCurrentUser(@RequestParam userId: Long?, authentication: Authentication): Flux<Project> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
-        return if (userId != userIdFromAuth) Flux.error(
-            ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "You have requested projects for a user that isn't you. Are you a hacker?"
+        return when {
+            userId == null -> Flux.error(
+                ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "To see the list with your projects - you should be authorized"
+                )
             )
-        ) else {
-            Flux.fromIterable(
+
+            (userId != userIdFromAuth) -> Flux.error(
+                ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "You have requested projects for a user that isn't you. Are you a hacker?"
+                )
+            )
+
+            else -> Flux.fromIterable(
                 lnkUserProjectService.getNonDeletedProjectsByUserId(userId)
             ).filter {
                 it.public

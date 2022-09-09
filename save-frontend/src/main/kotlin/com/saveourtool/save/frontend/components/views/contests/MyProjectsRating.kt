@@ -25,15 +25,13 @@ val myProjectsRating = myProjectsRatings()
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
     val (myProjects, setMyProjects) = useState(emptySet<Project>())
     val getMyProjects = useDeferredRequest {
-        if (props.currentUserInfo != null && props.currentUserInfo?.id != null) {
             setMyProjects(
                 get(
-                    url = "$apiUrl/projects/get-by-user?userId=${props.currentUserInfo!!.id}",
+                    url = "$apiUrl/projects/get-by-user?userId=${props.currentUserInfo?.id}",
                     headers = jsonHeaders,
                     loadingHandler = ::loadingHandler,
                 ).decodeFromJsonString<Set<Project>>()
             )
-        }
     }
 
     props.currentUserInfo?.let {
