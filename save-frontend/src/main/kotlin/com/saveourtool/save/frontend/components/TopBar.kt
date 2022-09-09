@@ -128,7 +128,8 @@ class TopBarUrl(href: String) {
                         KEYWORD_PROCESS
                     }
 
-            /**
+            /** Function check exception and generate currentPath before the buttons creating
+             *
              * @param exception
              * @param pathPart
              * @param allPath
@@ -145,7 +146,8 @@ class TopBarUrl(href: String) {
                 else -> mergeUrls(allPath, pathPart)
             }
 
-            /**
+            /** Function check exception and generate currentPath after the buttons creating
+             *
              * @param exception
              * @param pathPart
              * @param allPath
@@ -160,7 +162,8 @@ class TopBarUrl(href: String) {
                 else -> allPath
             }
 
-            /**
+            /** The function changes the exception after the button is created
+             *
              * @param exception
              * @param isNumber
              */
@@ -173,7 +176,8 @@ class TopBarUrl(href: String) {
                 else -> exception
             }
 
-            /**
+            /** The function returns a flag whether to create this button or not
+             *
              * @param exception
              * @param index
              * @param size
