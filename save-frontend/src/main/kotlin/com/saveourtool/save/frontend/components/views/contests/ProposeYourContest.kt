@@ -23,7 +23,7 @@ fun ChildrenBuilder.proposeContest() {
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 10.rem
+                minHeight = 7.rem
             }
 
             div {
