@@ -4087,7 +4087,7 @@
         ]
       }
     },
-    "/api/v1/projects/get-by-user": {
+    "/api/v1/projects/get-for-current-user": {
       "get": {
         "tags": [
           "projects"

@@ -51,41 +51,20 @@ class LnkUserProjectController(
     private val projectService: ProjectService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
-    @GetMapping(path = ["/get-by-user"])
+    @GetMapping(path = ["/get-for-current-user"])
     @RequiresAuthorizationSourceHeader
     @Operation(
         method = "GET",
-        summary = "Get users from project with their roles.",
-        description = "Get list of users that are connected with given project and their roles in it.",
-    )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
+        summary = "Get projects of current authenticated user",
+        description = "Get list of projects related to current user",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
-    @ApiResponse(responseCode = "404", description = "Project with such name was not found.")
-    fun getProjectsOfCurrentUser(@RequestParam userId: Long?, authentication: Authentication): Flux<Project> {
+    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<Project> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
-        return when {
-            userId == null -> Flux.error(
-                ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "To see the list with your projects - you should be authorized"
-                )
-            )
-
-            (userId != userIdFromAuth) -> Flux.error(
-                ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "You have requested projects for a user that isn't you. Are you a hacker?"
-                )
-            )
-
-            else -> Flux.fromIterable(
-                lnkUserProjectService.getNonDeletedProjectsByUserId(userId)
-            ).filter {
-                it.public
-            }
+        return Flux.fromIterable(
+            lnkUserProjectService.getNonDeletedProjectsByUserId(userIdFromAuth)
+        ).filter {
+            it.public
         }
     }
 
