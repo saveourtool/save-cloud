@@ -26,7 +26,7 @@ on:
       frontend:
         type: boolean
         default: true
-        description: Build new image of save-backend
+        description: Build new image of save-frontend
         required: false
       orchestrator:
         type: boolean
