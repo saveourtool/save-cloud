@@ -54,21 +54,13 @@ external interface TopBarProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-private fun ChildrenBuilder.dropdownEntry(
-    faIcon: dynamic,
-    text: String,
-    handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
-) = button {
-    type = ButtonType.button
-    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
-    fontAwesomeIcon(icon = faIcon) {
-        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
-    }
-    +text
-    handler(this)
-}
-
-class Url(href: String) {
+/**
+ * The class for analyzing url address and creating links in topBar
+ */
+class TopBarUrl(href: String) {
+    /**
+     * currentPath is the link that we put in buttons
+     */
     var currentPath = ""
     private var exception: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
     private val sizeUrlSegments: Int
@@ -79,45 +71,68 @@ class Url(href: String) {
         sizeUrlSegments = href.split("/").size
     }
 
-    fun checkUrlBefore(pathPart: String){
+    /**
+     * The function is called to specify the link address in the button before creating the button itself
+     *
+     * @param pathPart is an appended suffix to an already existing [currentPath]
+     */
+    fun checkUrlBefore(pathPart: String) {
         currentPath = ExceptionUrlClassification.checkCurrentPathBefore(exception, pathPart, currentPath)
     }
 
+    /**
+     * The function is called to specify the link address in the button after creating the button itself
+     *
+     * @param pathPart is an appended suffix to an already existing [currentPath]
+     */
     fun checkUrlAfter(pathPart: String) {
         currentPath = ExceptionUrlClassification.checkCurrentPathAfter(exception, pathPart, currentPath)
         exception = ExceptionUrlClassification.checkExceptionAfter(exception, "\\d+".toRegex().matches(pathPart))
     }
 
+    /**
+     * The function returns a flag whether to create this button or not
+     *
+     * @param index is index of this segment in url address
+     */
     fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(exception, index, sizeUrlSegments)
 
-    enum class ExceptionUrlClassification {
+    private enum class ExceptionUrlClassification {
         ARCHIVE,
-        ORGANIZATION,
-        PROJECT,
         DETAILS,
         EXECUTION,
-
-        KEYWORD_PROCESS,
         KEYWORD_NOT_PROCESS,
+        KEYWORD_PROCESS,
+
         KEYWORD_PROCESS_ONLY_LAST_SEGMENT,
+        ORGANIZATION,
+        PROJECT,
         ;
 
         companion object {
+            /**
+             * @param href
+             */
             fun findException(href: String) =
-                if (href.contains(OrganizationMenuBar.regexForUrlClassification)) {
-                    ORGANIZATION
-                } else if (href.contains(ProjectMenuBar.regexForUrlClassification)) {
-                    PROJECT
-                } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
-                    ARCHIVE
-                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
-                    DETAILS
-                } else if (href.contains("/[^/]+/[^/]+/history/execution")) {
-                    EXECUTION
-                } else {
-                    KEYWORD_PROCESS
-                }
+                    if (href.contains(OrganizationMenuBar.regexForUrlClassification)) {
+                        ORGANIZATION
+                    } else if (href.contains(ProjectMenuBar.regexForUrlClassification)) {
+                        PROJECT
+                    } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+                        ARCHIVE
+                    } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
+                        DETAILS
+                    } else if (href.contains("/[^/]+/[^/]+/history/execution")) {
+                        EXECUTION
+                    } else {
+                        KEYWORD_PROCESS
+                    }
 
+            /**
+             * @param exception
+             * @param pathPart
+             * @param allPath
+             */
             fun checkCurrentPathBefore(
                 exception: ExceptionUrlClassification,
                 pathPart: String,
@@ -130,16 +145,25 @@ class Url(href: String) {
                 else -> mergeUrls(allPath, pathPart)
             }
 
+            /**
+             * @param exception
+             * @param pathPart
+             * @param allPath
+             */
             fun checkCurrentPathAfter(
                 exception: ExceptionUrlClassification,
                 pathPart: String,
                 allPath: String
-            ) = when(exception) {
+            ) = when (exception) {
                 ORGANIZATION, PROJECT, ARCHIVE -> "#"
                 DETAILS, EXECUTION -> if (pathPart == "execution") mergeUrls(allPath, pathPart) else allPath
                 else -> allPath
             }
 
+            /**
+             * @param exception
+             * @param isNumber
+             */
             fun checkExceptionAfter(
                 exception: ExceptionUrlClassification,
                 isNumber: Boolean
@@ -149,6 +173,11 @@ class Url(href: String) {
                 else -> exception
             }
 
+            /**
+             * @param exception
+             * @param index
+             * @param size
+             */
             fun isCreateButton(exception: ExceptionUrlClassification, index: Int, size: Int) = when (exception) {
                 KEYWORD_PROCESS_ONLY_LAST_SEGMENT -> index == size - 2
                 KEYWORD_NOT_PROCESS -> false
@@ -157,6 +186,20 @@ class Url(href: String) {
             private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
         }
     }
+}
+
+private fun ChildrenBuilder.dropdownEntry(
+    faIcon: dynamic,
+    text: String,
+    handler: ChildrenBuilder.(ButtonHTMLAttributes<HTMLButtonElement>) -> Unit = { },
+) = button {
+    type = ButtonType.button
+    className = ClassName("btn btn-no-outline dropdown-item rounded-0 shadow-none")
+    fontAwesomeIcon(icon = faIcon) {
+        it.className = "fas fa-sm fa-fw mr-2 text-gray-400"
+    }
+    +text
+    handler(this)
 }
 
 /**
@@ -208,7 +251,7 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        val url = Url(location.pathname.substringBeforeLast("?"))
+                        val url = TopBarUrl(location.pathname.substringBeforeLast("?"))
                         forEachIndexed { index: Int, pathPart: String ->
                             url.checkUrlBefore(pathPart)
                             if (url.isCreateButton(index)) {
