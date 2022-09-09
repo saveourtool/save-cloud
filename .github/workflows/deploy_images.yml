@@ -67,7 +67,7 @@ jobs:
           GRADLE_TASKS=""
           if ${{ inputs.gateway }} == 'true'; then GRADLE_TASKS+=":api-gateway:bootBuildImage "; fi
           if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
-          if ${{ inputs.frontend }} == 'true'; then GRADLE_TASKS+=":save-frontend:bootImage "; fi
+          if ${{ inputs.frontend }} == 'true'; then GRADLE_TASKS+=":save-frontend:buildImage "; fi
           if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
           if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
