@@ -35,19 +35,10 @@ class GitService(private val gitRepository: GitRepository) {
         ?: throw NoSuchElementException("There is no git credential with url $url in ${organization.name}")
 
     /**
-     * @param organization associate Git with this organization
-     * @param gitDto
+     * @param git
      * @return saved or updated git
      */
-    fun upsert(organization: Organization, gitDto: GitDto): Git =
-            Git(
-                url = gitDto.url,
-                username = gitDto.username,
-                password = gitDto.password,
-                organization = organization,
-            ).also {
-                it.id = gitRepository.findByOrganizationAndUrl(organization, gitDto.url)?.id
-            }.let { gitRepository.save(it) }
+    fun save(git: Git): Git = gitRepository.save(git)
 
     /**
      * @param organization

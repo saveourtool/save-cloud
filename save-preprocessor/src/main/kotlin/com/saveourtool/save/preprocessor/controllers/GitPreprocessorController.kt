@@ -33,7 +33,7 @@ class GitPreprocessorController {
             // a simple operation by detecting a default branch
             gitDto.detectDefaultBranchName()
             true
-        } catch (e: IllegalStateException) {
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             false
         }
     }

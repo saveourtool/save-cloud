@@ -22,7 +22,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
 
     companion object : TabMenuBar<OrganizationMenuBar> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "organization"
         override val defaultTab: OrganizationMenuBar = INFO
         override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
