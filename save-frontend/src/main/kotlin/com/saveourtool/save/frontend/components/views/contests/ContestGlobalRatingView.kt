@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
@@ -63,7 +63,7 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     /**
      * All organizations
      */
-    var organizations: Array<Organization>
+    var organizations: Array<OrganizationDto>
 
     /**
      * All projects
@@ -91,7 +91,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         "STRING_TEMPLATE_QUOTES",
     )
     private val tableWithOrganizationRating = tableComponent(
-        columns = columns<Organization> {
+        columns = columns<OrganizationDto> {
             column(id = "index", header = "Position") {
                 Fragment.create {
                     td {
@@ -121,10 +121,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                     }
                 }
             }
-            column(id = "rating", header = "Rating") {
+            column(id = "rating", header = "Rating") { cellProps ->
                 Fragment.create {
                     td {
-                        +"4560"
+                        +"${cellProps.value.globalRating?.toFixed(2)}"
                     }
                 }
             }
@@ -185,10 +185,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                     }
                 }
             }
-            column(id = "rating", header = "Rating") {
+            column(id = "rating", header = "Rating") { cellProps ->
                 Fragment.create {
                     td {
-                        +"1370"
+                        +"${cellProps.value.contestRating.toFixed(2)}"
                     }
                 }
             }
@@ -236,7 +236,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     private fun getOrganization(filterValue: OrganizationFilters) {
         scope.launch {
-            val organizationsFromBackend: List<Organization> = post(
+            val organizationsFromBackend: List<OrganizationDto> = post(
                 url = "$apiUrl/organizations/not-deleted",
                 headers = jsonHeaders,
                 body = Json.encodeToString(filterValue),

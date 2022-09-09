@@ -29,7 +29,6 @@ internal class TestSuitesPreprocessorControllerTest {
         "TestSuitesSource",
         null,
         gitDto,
-        "main",
         "examples/discovery-test",
         "aaaaaa",
     )

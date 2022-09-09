@@ -761,21 +761,6 @@
           "run-execution-controller"
         ],
         "operationId": "trigger",
-        "parameters": [
-          {
-            "name": "testingType",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "CONTEST_MODE",
-                "PRIVATE_TESTS",
-                "PUBLIC_TESTS"
-              ]
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1428,90 +1413,6 @@
         ]
       }
     },
-    "/api/v1/organizations/{organizationName}/upsert-git": {
-      "post": {
-        "tags": [
-          "organizations"
-        ],
-        "summary": "Upsert organization git.",
-        "description": "Upsert organization git.",
-        "operationId": "upsertGit",
-        "parameters": [
-          {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of an organization",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GitDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully saved an organization git.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Not enough permission for saving organization git.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Could not find an organization with such name.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
     "/api/v1/organizations/{organizationName}/update": {
       "post": {
         "tags": [
@@ -1606,6 +1507,100 @@
         ]
       }
     },
+    "/api/v1/organizations/{organizationName}/update-git": {
+      "post": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Update existed git in organization.",
+        "description": "Update existed git in organization.",
+        "operationId": "updateGit",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully saved an organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for saving organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name or git credential with provided url.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Provided invalid git credential.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/manage-contest-permission": {
       "post": {
         "tags": [
@@ -1663,6 +1658,100 @@
           },
           "200": {
             "description": "Successfully changed ability to create contests.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationName}/create-git": {
+      "post": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Create git in organization.",
+        "description": "Create git in organization.",
+        "operationId": "createGit",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully saved an organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not enough permission for saving organization git.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Provided invalid git credential.",
             "content": {
               "*/*": {
                 "schema": {
@@ -1773,13 +1862,13 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully fetched non-deleted projects.",
+            "description": "Successfully fetched non-deleted organizations.",
             "content": {
               "*/*": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -1792,7 +1881,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Organization"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -1849,6 +1938,36 @@
             "basic": []
           }
         ]
+      }
+    },
+    "/api/v1/git/default-branch-name": {
+      "post": {
+        "tags": [
+          "git-controller"
+        ],
+        "operationId": "defaultBranchName",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
@@ -3553,8 +3672,8 @@
         "tags": [
           "projects"
         ],
-        "summary": "Get all avaliable projects.",
-        "description": "Get all projects, avaliable for current user.",
+        "summary": "Get all available projects.",
+        "description": "Get all projects, available for current user.",
         "operationId": "getProjects",
         "parameters": [
           {
@@ -4295,6 +4414,73 @@
                   "items": {
                     "$ref": "#/components/schemas/GitDto"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationName}/get-organization-contest-rating": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get organization contest rating.",
+        "description": "Get organization contest rating.",
+        "operationId": "getOrganizationContestRating",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully get an organization contest rating.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Could not find an organization with such name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number",
+                  "format": "double"
                 }
               }
             }
@@ -5884,52 +6070,6 @@
         ]
       }
     },
-    "/api/v1/check-git-connectivity-adaptor": {
-      "get": {
-        "tags": [
-          "check-git-connectivity-controller"
-        ],
-        "operationId": "checkGitConnectivity",
-        "parameters": [
-          {
-            "name": "user",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "token",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/awesome-benchmarks": {
       "get": {
         "tags": [
@@ -6664,7 +6804,6 @@
       },
       "TestSuitesSourceDto": {
         "required": [
-          "branch",
           "gitDto",
           "name",
           "organizationName",
@@ -6683,9 +6822,6 @@
           },
           "gitDto": {
             "$ref": "#/components/schemas/GitDto"
-          },
-          "branch": {
-            "type": "string"
           },
           "testRootPath": {
             "type": "string"
@@ -6852,7 +6988,8 @@
           "files",
           "projectCoordinates",
           "sdk",
-          "testSuiteIds"
+          "testSuiteIds",
+          "testingType"
         ],
         "type": "object",
         "properties": {
@@ -6879,6 +7016,17 @@
             "type": "string"
           },
           "batchSizeForAnalyzer": {
+            "type": "string"
+          },
+          "testingType": {
+            "type": "string",
+            "enum": [
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
+            ]
+          },
+          "contestName": {
             "type": "string"
           }
         }
@@ -7046,8 +7194,8 @@
             "$ref": "#/components/schemas/Organization"
           },
           "contestRating": {
-            "type": "integer",
-            "format": "int64"
+            "type": "number",
+            "format": "double"
           },
           "id": {
             "type": "integer",
@@ -7092,6 +7240,10 @@
                 "VIEWER"
               ]
             }
+          },
+          "globalRating": {
+            "type": "number",
+            "format": "double"
           }
         }
       },

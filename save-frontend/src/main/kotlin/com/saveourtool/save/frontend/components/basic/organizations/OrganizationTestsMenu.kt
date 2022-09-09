@@ -17,8 +17,8 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
 import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -26,6 +26,12 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.coroutines.await
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+typealias TestSuitesSourceWithBranch = Pair<TestSuitesSourceDto, String>
 
 /**
  * TESTS tab in OrganizationView
@@ -51,20 +57,34 @@ external interface OrganizationTestsMenuProps : Props {
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val testSuitesSourceCreationWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
+    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceWithBranch>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
             url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
-            headers = Headers().also {
-                it.set("Accept", "application/json")
-            },
+            headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-        if (response.ok) {
-            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
-        } else {
+        if (!response.ok) {
             setTestSuitesSources(emptyList())
+            return@useRequest
         }
+        response.decodeFromJsonString<TestSuitesSourceDtoList>()
+            .map { testSuitesSource ->
+                val defaultBranchResponse = post(
+                    url = "$apiUrl/git/default-branch-name",
+                    headers = jsonHeaders,
+                    loadingHandler = ::loadingHandler,
+                    body = Json.encodeToString(testSuitesSource.gitDto)
+                )
+                if (!defaultBranchResponse.ok) {
+                    setTestSuitesSources(emptyList())
+                    return@useRequest
+                }
+                testSuitesSource to defaultBranchResponse.text().await()
+            }
+            .let {
+                setTestSuitesSources(it)
+            }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
     val triggerFetchTestSuiteSource = useDeferredRequest {
@@ -196,9 +216,9 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
+): FC<TablePropsWithContent<TestSuitesSourceWithBranch>> = tableComponent(
     columns = columns {
-        column(id = "organizationName", header = "Organization", { this }) { cellProps ->
+        column(id = "organizationName", header = "Organization", { this.first }) { cellProps ->
             Fragment.create {
                 td {
                     onClick = {
@@ -208,7 +228,7 @@ private fun prepareTestSuitesSourcesTable(
                 }
             }
         }
-        column(id = "name", header = "Name", { this }) { cellProps ->
+        column(id = "name", header = "Name", { this.first }) { cellProps ->
             Fragment.create {
                 td {
                     onClick = {
@@ -218,7 +238,7 @@ private fun prepareTestSuitesSourcesTable(
                 }
             }
         }
-        column(id = "description", header = "Description", { this }) { cellProps ->
+        column(id = "description", header = "Description", { this.first }) { cellProps ->
             Fragment.create {
                 td {
                     onClick = {
@@ -232,17 +252,17 @@ private fun prepareTestSuitesSourcesTable(
             Fragment.create {
                 td {
                     onClick = {
-                        selectHandler(cellProps.value)
+                        selectHandler(cellProps.value.first)
                     }
                     a {
                         // TODO: need to detect a default branch here
-                        href = "${cellProps.value.gitDto.url}/tree/${cellProps.value.branch}/${cellProps.value.testRootPath}"
+                        href = "${cellProps.value.first.gitDto.url}/tree/${cellProps.value.second}/${cellProps.value.first.testRootPath}"
                         +"source"
                     }
                 }
             }
         }
-        column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+        column(id = "fetch", header = "Fetch new version", { this.first }) { cellProps ->
             Fragment.create {
                 td {
                     button {
