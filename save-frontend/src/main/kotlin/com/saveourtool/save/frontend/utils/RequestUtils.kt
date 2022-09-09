@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
-import com.saveourtool.save.utils.castOrNull
 import com.saveourtool.save.v1
 
 import org.w3c.fetch.Headers
@@ -97,9 +96,9 @@ suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFrom
  */
 suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = text().await()
     .let { Json.parseToJsonElement(it) }
-    .castOrNull<JsonElement, JsonObject>()
+    .let { it as? JsonObject }
     ?.let { it[fieldName] }
-    ?.castOrNull<JsonElement, JsonPrimitive>()
+    ?.let { it as? JsonPrimitive }
     ?.content
     ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
 
