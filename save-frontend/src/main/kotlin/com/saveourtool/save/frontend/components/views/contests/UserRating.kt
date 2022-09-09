@@ -17,14 +17,13 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.strong
 
 val userRating = userRating()
 

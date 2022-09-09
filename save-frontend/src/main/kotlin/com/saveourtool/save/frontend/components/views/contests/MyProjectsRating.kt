@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.utils.*
 
 import csstype.*
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
@@ -22,16 +21,17 @@ val myProjectsRating = myProjectsRatings()
 /**
  * @return functional component
  */
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
     val (myProjects, setMyProjects) = useState(emptySet<Project>())
     val getMyProjects = useDeferredRequest {
-            setMyProjects(
-                get(
-                    url = "$apiUrl/projects/get-by-user?userId=${props.currentUserInfo?.id}",
-                    headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
-                ).decodeFromJsonString<Set<Project>>()
-            )
+        setMyProjects(
+            get(
+                url = "$apiUrl/projects/get-by-user?userId=${props.currentUserInfo?.id}",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            ).decodeFromJsonString<Set<Project>>()
+        )
     }
 
     props.currentUserInfo?.let {
