@@ -124,7 +124,7 @@ private fun GitDto.credentialsProvider(): CredentialsProvider? = when {
     // https://stackoverflow.com/questions/28073266/how-to-use-jgit-to-push-changes-to-remote-with-oauth-access-token
     username == null && password != null -> UsernamePasswordCredentialsProvider(password, "")
     username == null && password == null -> CredentialsProvider.getDefault()
-    else -> throw NotImplementedError("Unexpected git credentials")
+    else -> throw IllegalArgumentException("Unexpected git credentials")
 }
 
 private fun <R, T : GitCommand<*>> T.gitCallWithRethrow(call: (T) -> R): R = withRethrow {
