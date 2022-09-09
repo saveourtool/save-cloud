@@ -23,20 +23,6 @@ class GitController(
 
     /**
      * @param gitDto
-     * @return true if credentials are valid
-     */
-    @PostMapping("/check-connectivity")
-    fun checkConnectivity(
-        @RequestBody gitDto: GitDto
-    ): Mono<Boolean> = webClientToPreprocessor
-        .post()
-        .uri("/git/check-connectivity")
-        .bodyValue(gitDto)
-        .retrieve()
-        .bodyToMono()
-
-    /**
-     * @param gitDto
      * @return default branch name for provided credentials
      */
     @PostMapping("/default-branch-name")

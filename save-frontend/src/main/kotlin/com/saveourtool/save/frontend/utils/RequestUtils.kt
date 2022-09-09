@@ -22,7 +22,10 @@ import react.useState
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 val apiUrl = "${window.location.origin}/api/$v1"
 
@@ -83,6 +86,25 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
  * @return response body deserialized as [T]
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
+
+/**
+ * Read [this] Response body as text and deserialize it using [Json] to [JsonObject] and take [fieldName]
+ *
+ * @param fieldName
+ * @return content of [fieldName] taken from response body
+ */
+suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = text().await()
+    .let { Json.parseToJsonElement(it) }
+    .let { it as? JsonObject }
+    ?.let { it[fieldName] }
+    ?.let { it as? JsonPrimitive }
+    ?.content
+    ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
+
+/**
+ * @return content of [this] with type [T] encoded as JSON
+ */
+inline fun <reified T : Any> T.toJsonBody(): String = Json.encodeToString(this)
 
 /**
  * Perform GET request from a class component. See [request] for parameter description.
