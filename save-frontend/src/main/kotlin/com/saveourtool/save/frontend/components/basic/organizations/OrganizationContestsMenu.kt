@@ -9,11 +9,14 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
-import org.w3c.fetch.Headers
 
 import org.w3c.fetch.Response
 import react.*
@@ -32,35 +35,51 @@ val organizationContestsMenu = organizationContestsMenu()
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tableComponent(
-    columns = columns {
-        column(id = "name", header = "Contest Name", { name }) { cellProps ->
-            Fragment.create {
-                td {
-                    a {
-                        href = "#/contests/${cellProps.row.original.name}"
-                        +cellProps.value
+    columns = {props ->
+        columns {
+            column(id = "name", header = "Contest Name", { name }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = "#/contests/${cellProps.row.original.name}"
+                            +cellProps.value
+                        }
                     }
                 }
             }
-        }
-        column(id = "description", header = "Description", { description }) { cellProps ->
-            Fragment.create {
-                td {
-                    +(cellProps.value ?: "Description is not provided")
+            column(id = "description", header = "Description", { description }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +(cellProps.value ?: "Description is not provided")
+                    }
                 }
             }
-        }
-        column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value.replace("T", " ")
+            column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value.replace("T", " ")
+                    }
                 }
             }
-        }
-        column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value.replace("T", " ")
+            column(id = "end_time", header = "End Time", { endTime.toString() }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value.replace("T", " ")
+                    }
+                }
+            }
+            column("checkBox", "") { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-small")
+                            fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                            onClick = {
+                                props.updateContest(cellProps.row.original)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -91,6 +110,11 @@ external interface OrganizationContestsMenuProps : Props {
      * Callback to show error message
      */
     var updateErrorMessage: (Response) -> Unit
+
+    /**
+     * Callback to update contest
+     */
+    var updateContestCallback: (ContestDto) -> Unit
 }
 
 /**
@@ -101,6 +125,11 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
      * Flag to update table data when contest is created
      */
     var isContestCreated: Boolean
+
+    /**
+     * Fun update contest
+     */
+    var updateContest: (ContestDto) -> Unit
 }
 
 @Suppress(
@@ -112,7 +141,53 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
 private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
     val (isToUpdateTable, setIsToUpdateTable) = useState(false)
     val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
+    val (isDeleteContestModalOpen, setDeleteContestModalOpen) = useState(false)
+    val (deletingContest, setDeletingContest) = useState<ContestDto?>(null)
+    val (confirmLabel, setConfirmLabel) = useState("")
+    val (confirmMessage, setConfirmMessage) = useState("")
+    val (contests, setContests) = useState<MutableSet<ContestDto>>(mutableSetOf())
     val refreshTable = { setIsToUpdateTable { !it } }
+    val deleteCont: (ContestDto) -> Unit = { contest ->
+        contests.remove(contest)
+        setContests(contests)
+        setIsToUpdateTable { !it }
+    }
+
+    useRequest {
+        val response = get(
+            url = "$apiUrl/contests/by-organization?organizationName=${props.organizationName}",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+        val newContests = if (response.ok) {
+            response.unsafeMap {
+                it.decodeFromJsonString<List<ContestDto>>()
+            }
+                .toMutableSet()
+        } else {
+            mutableSetOf()
+        }
+        setContests(newContests)
+        refreshTable()
+    }
+
+    displayModal(
+        isDeleteContestModalOpen,
+        confirmLabel,
+        confirmMessage,
+        mediumTransparentModalStyle,
+        { setDeleteContestModalOpen(false) }
+    ) {
+        buttonBuilder("Ok") {
+            deletingContest?.let { props.updateContestCallback(it) }
+            setDeleteContestModalOpen(false)
+            deletingContest?.let { deleteCont(it) }
+        }
+        buttonBuilder("Cancel", "secondary") {
+            setDeleteContestModalOpen(false)
+        }
+    }
+
     showContestCreationModal(
         props.organizationName,
         isContestCreationModalOpen,
@@ -137,30 +212,22 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             onClick = {
                 setIsContestCreationModalOpen(true)
             }
-            +"+ Create contest"
+            +"Create contest"
         }
     }
     div {
         className = ClassName("mb-2")
         contestsTable {
             getData = { _, _ ->
-                val response = get(
-                    url = "$apiUrl/contests/by-organization?organizationName=${props.organizationName}",
-                    headers = Headers().also {
-                        it.set("Accept", "application/json")
-                    },
-                    loadingHandler = ::loadingHandler,
-                )
-                if (response.ok) {
-                    response.unsafeMap {
-                        it.decodeFromJsonString<List<ContestDto>>()
-                    }
-                        .toTypedArray()
-                } else {
-                    emptyArray()
-                }
+                contests.toTypedArray()
             }
             isContestCreated = isToUpdateTable
+            updateContest = { contest ->
+                setDeletingContest(contest)
+                setConfirmLabel("")
+                setConfirmMessage("Are you sure you want to delete this contest?")
+                setDeleteContestModalOpen(true)
+            }
         }
     }
 }

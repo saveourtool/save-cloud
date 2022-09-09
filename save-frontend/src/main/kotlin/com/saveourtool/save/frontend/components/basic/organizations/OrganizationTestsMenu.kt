@@ -217,61 +217,64 @@ private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceWithBranch>> = tableComponent(
-    columns = columns {
-        column(id = "organizationName", header = "Organization", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.organizationName
-                }
-            }
-        }
-        column(id = "name", header = "Name", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.name
-                }
-            }
-        }
-        column(id = "description", header = "Description", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +(cellProps.value.description ?: "Description is not provided")
-                }
-            }
-        }
-        column(id = "location", header = "Git location", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value.first)
-                    }
-                    a {
-                        // TODO: need to detect a default branch here
-                        href = "${cellProps.value.first.gitDto.url}/tree/${cellProps.value.second}/${cellProps.value.first.testRootPath}"
-                        +"source"
-                    }
-                }
-            }
-        }
-        column(id = "fetch", header = "Fetch new version", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
+    columns = {
+        columns {
+            column(id = "organizationName", header = "Organization", { this.first }) { cellProps ->
+                Fragment.create {
+                    td {
                         onClick = {
-                            fetchHandler(cellProps.value)
+                            selectHandler(cellProps.value)
                         }
-                        +"fetch"
+                        +cellProps.value.organizationName
+                    }
+                }
+            }
+            column(id = "name", header = "Name", { this.first }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value)
+                        }
+                        +cellProps.value.name
+                    }
+                }
+            }
+            column(id = "description", header = "Description", { this.first }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value)
+                        }
+                        +(cellProps.value.description ?: "Description is not provided")
+                    }
+                }
+            }
+            column(id = "location", header = "Git location", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value.first)
+                        }
+                        a {
+                            // TODO: need to detect a default branch here
+                            href =
+                                    "${cellProps.value.first.gitDto.url}/tree/${cellProps.value.second}/${cellProps.value.first.testRootPath}"
+                            +"source"
+                        }
+                    }
+                }
+            }
+            column(id = "fetch", header = "Fetch new version", { this.first }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                fetchHandler(cellProps.value)
+                            }
+                            +"fetch"
+                        }
                     }
                 }
             }
@@ -289,31 +292,33 @@ private fun prepareTestSuitesSourcesTable(
 private fun prepareTestSuitesSourceSnapshotKeysTable(
     deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit
 ): FC<TablePropsWithContent<TestSuitesSourceSnapshotKey>> = tableComponent(
-    columns = columns {
-        column(id = "version", header = "Version", { version }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value
+    columns = {
+        columns {
+            column(id = "version", header = "Version", { version }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value
+                    }
                 }
             }
-        }
-        column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value.toString()
+            column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value.toString()
+                    }
                 }
             }
-        }
-        column(id = "delete", header = "Delete version", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
-                        onClick = {
-                            deleteHandler(cellProps.value)
+            column(id = "delete", header = "Delete version", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                deleteHandler(cellProps.value)
+                            }
+                            +"delete"
                         }
-                        +"delete"
                     }
                 }
             }

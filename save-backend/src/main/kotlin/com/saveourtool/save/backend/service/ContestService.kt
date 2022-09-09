@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.ContestRepository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.entities.Organization
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -90,7 +91,14 @@ class ContestService(
      * @param pageable
      * @return page of contests
      */
-    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findByOrganizationName(organizationName, pageable)
+    fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findAll({ root, _, cb ->
+        cb.and(
+            cb.like(root.get<Organization>("organization").get("name"), organizationName),
+            cb.notEqual(root.get<String>("status"), ContestStatus.DELETED)
+        )
+    },
+        pageable
+    )
 
     /**
      * @param newContest
