@@ -39,7 +39,7 @@ enum class UserRatingTab {
 
     companion object : TabMenuBar<UserRatingTab> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserRatingTab = UserRatingTab.ORGS
         override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)")
