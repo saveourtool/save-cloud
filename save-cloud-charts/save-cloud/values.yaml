@@ -17,7 +17,7 @@ backend:
 frontend:
   name: frontend
   imageName: save-frontend
-  containerPort: 5610
+  containerPort: 5810
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator
