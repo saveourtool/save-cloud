@@ -69,7 +69,6 @@ class TopBarUrl(href: String) {
         currentPath = "#"
         exception = ExceptionUrlClassification.findException(href)
         sizeUrlSegments = href.split("/").size
-        console.log(currentPath,  exception.name)
     }
 
     /**
