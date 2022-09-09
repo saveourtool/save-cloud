@@ -4092,31 +4092,10 @@
         "tags": [
           "projects"
         ],
-        "summary": "Get users from project with their roles.",
-        "description": "Get list of users that are connected with given project and their roles in it.",
+        "summary": "Get projects of current authenticated user",
+        "description": "Get list of projects related to current user",
         "operationId": "getProjectsOfCurrentUser",
         "parameters": [
-          {
-            "name": "userId",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of an organization",
-            "required": true
-          },
-          {
-            "name": "projectName",
-            "in": "path",
-            "description": "name of a project",
-            "required": true
-          },
           {
             "name": "X-Authorization-Source",
             "in": "header",
@@ -4125,19 +4104,6 @@
           }
         ],
         "responses": {
-          "404": {
-            "description": "Project with such name was not found.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
-                }
-              }
-            }
-          },
           "200": {
             "description": "Successfully fetched users from project.",
             "content": {
