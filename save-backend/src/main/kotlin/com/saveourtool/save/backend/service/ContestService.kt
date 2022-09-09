@@ -93,7 +93,7 @@ class ContestService(
      */
     fun findPageOfContestsByOrganizationName(organizationName: String, pageable: Pageable) = contestRepository.findAll({ root, _, cb ->
         cb.and(
-            cb.like(root.get<Organization>("organization").get("name"), organizationName),
+            cb.equal(root.get<Organization>("organization").get<String>("name"), organizationName),
             cb.notEqual(root.get<String>("status"), ContestStatus.DELETED)
         )
     },
