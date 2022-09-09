@@ -16,7 +16,7 @@ import reactor.kotlin.core.publisher.toMono
 /**
  * @param status
  * @param messageCreator
- * @return original [Mono] or [Mono.error] with 404 status otherwise
+ * @return original [Mono] or [Mono.error] with [status] otherwise
  */
 fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCreator: (() -> String?) = { null }) = switchIfEmpty {
     Mono.error(ResponseStatusException(status, messageCreator()))
@@ -35,6 +35,19 @@ fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
 fun <T> Flux<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null }) = switchIfEmptyDeferred {
     Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageCreator()))
 }
+
+/**
+ * @param predicate
+ * @param status
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with [status] if [predicate] is true for value in [Mono]
+ */
+@Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
+fun <T> Mono<T>.switchIfToResponseException(
+    predicate: T.() -> Boolean,
+    status: HttpStatus,
+    messageCreator: (() -> String?) = { null }
+) = filter(predicate).switchIfEmptyToResponseException(status, messageCreator)
 
 /**
  * @param lazyValue default value creator

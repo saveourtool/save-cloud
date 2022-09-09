@@ -1,5 +1,6 @@
 package com.saveourtool.save.frontend.components.basic.testsuitessources
 
+import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import react.FC
 import react.Props
 
@@ -8,11 +9,12 @@ import react.Props
  */
 external interface TestSuitesSourceFetchComponent : Props {
     /**
-     * Just a stub
+     * TestSuitesSource to be fetched
      */
-    var executionId: Long
+    var testSuitesSourceDto: TestSuitesSourceDto
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun testSuitesSourceFetchComponent() = FC<TestSuitesSourceFetchComponent> { props ->
-    }
+
+}

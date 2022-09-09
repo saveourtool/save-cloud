@@ -21,16 +21,22 @@ class Git(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
-) : BaseEntity() {
+) : BaseEntityWithDto<GitDto>() {
     /**
      * @return git dto
      */
-    fun toDto() = GitDto(
+    override fun toDto() = GitDto(
         url = url,
         username = username,
         password = password,
     )
+
     companion object {
-        val empty = Git("", null, null, Organization.stub(-1))
+        val empty = Git(
+            url = "",
+            username = null,
+            password = null,
+            organization = Organization.stub(-1)
+        )
     }
 }

@@ -329,25 +329,30 @@ class TestSuitesSourceController(
         @RequestParam("id") id: Long,
         @RequestBody dtoToUpdate: TestSuitesSourceDto
     ): Mono<SourceSaveStatusResponse> = getTestSuitesSource(id)
-        .map { savedEntity ->
-            require(savedEntity.organization.name == dtoToUpdate.organizationName) {
-                "Organization cannot be changed in TestSuitesSource"
-            }
-            require(savedEntity.git.url == dtoToUpdate.gitDto.url) {
-                "Git cannot be changed in TestSuitesSource"
-            }
-            savedEntity.apply {
+        .switchIfToResponseException({ organization.name != dtoToUpdate.organizationName }, HttpStatus.CONFLICT) {
+            "Organization cannot be changed in TestSuitesSource"
+        }
+        .switchIfToResponseException({ git.url == dtoToUpdate.gitDto.url }, HttpStatus.CONFLICT) {
+            "Git cannot be changed in TestSuitesSource"
+        }
+        .map { originalEntity ->
+            originalEntity.name to originalEntity.apply {
                 name = dtoToUpdate.name
                 description = dtoToUpdate.description
                 testRootPath = dtoToUpdate.testRootPath
                 latestFetchedVersion = dtoToUpdate.latestFetchedVersion
             }
         }
-        .flatMap { testSuitesSource ->
-            when (testSuitesSourceService.update(testSuitesSource)) {
+        .flatMap { (originalName, updatedEntity) ->
+            when (testSuitesSourceService.update(updatedEntity)) {
                 SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
                 SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
-                SourceSaveStatus.UPDATED -> Mono.just(ResponseEntity.ok(SourceSaveStatus.UPDATED))
+                SourceSaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
+                    .map { it.copy(testSuitesSourceName = originalName) to it }
+                    .flatMap { (sourceKey, targeKey) ->
+                        testSuitesSourceSnapshotStorage.move(sourceKey, targeKey)
+                    }
+                    .then(Mono.just(ResponseEntity.ok(SourceSaveStatus.UPDATED)))
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
