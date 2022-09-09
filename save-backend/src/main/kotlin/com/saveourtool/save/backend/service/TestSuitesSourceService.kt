@@ -94,7 +94,6 @@ class TestSuitesSourceService(
      */
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
-    @Transactional
     fun update(entity: TestSuitesSource): SourceSaveStatus {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $this"
