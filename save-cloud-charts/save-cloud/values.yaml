@@ -146,12 +146,16 @@ promtail:
             - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
-  image:
-    tag: 2.5.0
-  persistence:
-    enabled: true
-  config:
-    ingester:
-      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
-      max_chunk_age: 2h
-      chunk_idle_period: 2h
+  loki:
+    image:
+      tag: 2.6.1
+    storage_config: |
+        # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+        max_chunk_age: 2h
+        chunk_idle_period: 2h
+  singleBinary:
+    persistence:
+      enabled: true
+      annotations:
+        everest.io/disk-volume-type: SAS
+        volume.beta.kubernetes.io/storage-provisioner: everest-csi-provisioner
