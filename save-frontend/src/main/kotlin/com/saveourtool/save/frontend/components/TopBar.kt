@@ -76,8 +76,8 @@ class TopBarUrl(href: String) {
      *
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
-    fun checkUrlBefore(pathPart: String) {
-        currentPath = ExceptionUrlClassification.checkCurrentPathBefore(exception, pathPart, currentPath)
+    fun changeUrlBefore(pathPart: String) {
+        currentPath = ExceptionUrlClassification.fixCurrentPathBefore(exception, pathPart, currentPath)
     }
 
     /**
@@ -85,9 +85,9 @@ class TopBarUrl(href: String) {
      *
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
-    fun checkUrlAfter(pathPart: String) {
-        currentPath = ExceptionUrlClassification.checkCurrentPathAfter(exception, pathPart, currentPath)
-        exception = ExceptionUrlClassification.checkExceptionAfter(exception, "\\d+".toRegex().matches(pathPart))
+    fun changeUrlAfter(pathPart: String) {
+        currentPath = ExceptionUrlClassification.fixCurrentPathAfter(exception, pathPart, currentPath)
+        exception = ExceptionUrlClassification.fixExceptionAfter(exception, "\\d+".toRegex().matches(pathPart))
     }
 
     /**
@@ -134,7 +134,7 @@ class TopBarUrl(href: String) {
              * @param pathPart
              * @param allPath
              */
-            fun checkCurrentPathBefore(
+            fun fixCurrentPathBefore(
                 exception: ExceptionUrlClassification,
                 pathPart: String,
                 allPath: String,
@@ -152,7 +152,7 @@ class TopBarUrl(href: String) {
              * @param pathPart
              * @param allPath
              */
-            fun checkCurrentPathAfter(
+            fun fixCurrentPathAfter(
                 exception: ExceptionUrlClassification,
                 pathPart: String,
                 allPath: String
@@ -167,7 +167,7 @@ class TopBarUrl(href: String) {
              * @param exception
              * @param isNumber
              */
-            fun checkExceptionAfter(
+            fun fixExceptionAfter(
                 exception: ExceptionUrlClassification,
                 isNumber: Boolean
             ) = when (exception) {
@@ -257,7 +257,7 @@ fun topBar() = FC<TopBarProps> { props ->
                     .apply {
                         val url = TopBarUrl(location.pathname.substringBeforeLast("?"))
                         forEachIndexed { index: Int, pathPart: String ->
-                            url.checkUrlBefore(pathPart)
+                            url.changeUrlBefore(pathPart)
                             if (url.isCreateButton(index)) {
                                 li {
                                     className = ClassName("breadcrumb-item")
@@ -276,7 +276,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 }
                             }
-                            url.checkUrlAfter(pathPart)
+                            url.changeUrlAfter(pathPart)
                         }
                     }
             }
