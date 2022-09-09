@@ -51,7 +51,7 @@ private fun statistics() = VFC {
         ReactHTML.div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 7.rem
+                minHeight = 10.rem
             }
             div {
                 className = ClassName("col-lg-6 mt-2")

@@ -17,10 +17,10 @@ val yourContests = yourContests()
 private fun yourContests() = VFC {
     div {
         className = ClassName("col-lg-5")
-        ReactHTML.div {
+        div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 7.rem
+                minHeight = 10.rem
             }
             ReactHTML.strong {
                 className = ClassName("d-inline-block mb-2 text-info")

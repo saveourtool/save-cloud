@@ -56,6 +56,7 @@ fun ChildrenBuilder.tab(selectedTab: String, tabsList: List<String>, setSelected
             className = ClassName("nav nav-tabs mb-4")
             tabsList.forEachIndexed { i, value ->
                 li {
+                    key = i.toString()
                     className = ClassName("nav-item")
                     val classVal =
                             if (selectedTab == value) {

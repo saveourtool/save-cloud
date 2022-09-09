@@ -23,16 +23,17 @@ val myProjectsRating = myProjectsRatings()
  * @return functional component
  */
 fun myProjectsRatings() = FC<ContestListViewProps> { props ->
-    val (myProjects, setMyProjects) = useState<Set<Project>>(emptySet())
+    val (myProjects, setMyProjects) = useState(emptySet<Project>())
     val getMyProjects = useDeferredRequest {
-        setMyProjects(
-            get(
-                url = "$apiUrl/projects/current-user?userId=${props.currentUserInfo?.id}",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<List<Project>>()
-                .toSet()
-        )
+        if (props.currentUserInfo != null && props.currentUserInfo?.id != null) {
+            setMyProjects(
+                get(
+                    url = "$apiUrl/projects/get-by-user?userId=${props.currentUserInfo!!.id}",
+                    headers = jsonHeaders,
+                    loadingHandler = ::loadingHandler,
+                ).decodeFromJsonString<Set<Project>>()
+            )
+        }
     }
 
     props.currentUserInfo?.let {
@@ -41,10 +42,10 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
 
     div {
         className = ClassName("col-lg-2")
-        ReactHTML.div {
+        div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 30.rem
+                minHeight = 40.rem
             }
             div {
                 className = ClassName("col")
@@ -52,6 +53,18 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                     minHeight = 7.rem
                 }
                 title(" Your stats ", icon = faUser)
+                if (myProjects.isEmpty()) {
+                    div {
+                        className = ClassName("row")
+                        style = jso {
+                            alignItems = AlignItems.center
+                            justifyContent = JustifyContent.center
+                        }
+                        p {
+                            +"You don't have any projects"
+                        }
+                    }
+                }
                 myProjects.forEach {
                     div {
                         className = ClassName("row")
