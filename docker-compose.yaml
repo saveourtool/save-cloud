@@ -54,7 +54,7 @@ services:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
   frontend:
-    image: ghcr.io/saveourtool/save-frontend:${TAG}
+    image: ghcr.io/saveourtool/save-frontend:${FRONTEND_TAG}
     environment:
       - "PORT=5810"
     ports:

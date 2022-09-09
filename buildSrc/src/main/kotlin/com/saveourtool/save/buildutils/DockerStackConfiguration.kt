@@ -100,6 +100,7 @@ fun Project.createStackDeployTask(profile: String) {
             file(envFile).writeText(
                 """
                     BACKEND_TAG=${defaultVersionOrProperty("backend.dockerTag")}
+                    FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
