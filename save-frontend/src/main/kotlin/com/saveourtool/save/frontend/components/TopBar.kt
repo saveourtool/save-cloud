@@ -69,6 +69,7 @@ class TopBarUrl(href: String) {
         currentPath = "#"
         exception = ExceptionUrlClassification.findException(href)
         sizeUrlSegments = href.split("/").size
+        console.log(currentPath,  exception.name)
     }
 
     /**
@@ -122,7 +123,7 @@ class TopBarUrl(href: String) {
                         ARCHIVE
                     } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
                         DETAILS
-                    } else if (href.contains("/[^/]+/[^/]+/history/execution")) {
+                    } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
                         EXECUTION
                     } else {
                         KEYWORD_PROCESS
