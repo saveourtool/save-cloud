@@ -237,9 +237,7 @@ tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("b
         "BP_WEB_SERVER_ROOT" to "static",
     )
     isVerboseLogging = true
-    val registryPassword: String? = System.getenv("GHCR_PWD")
-    isPublish = registryPassword != null
-    if (isPublish) {
+    System.getenv("GHCR_PWD")?.let { registryPassword ->
         docker {
             publishRegistry {
                 username = "saveourtool"
