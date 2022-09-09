@@ -5,6 +5,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationFilters
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class OrganizationService(
+    private val projectService: ProjectService,
     private val organizationRepository: OrganizationRepository,
 ) {
     /**
@@ -115,4 +117,16 @@ class OrganizationService(
      * @return all organizations that were registered in SAVE
      */
     fun findAll(): List<Organization> = organizationRepository.findAll()
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
+     */
+    fun getGlobalRating(organizationName: String, authentication: Authentication) =
+            projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
+                .collectList()
+                .map { projectsList ->
+                    projectsList.sumOf { it.contestRating }
+                }
 }

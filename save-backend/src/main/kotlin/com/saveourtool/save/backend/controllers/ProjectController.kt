@@ -69,8 +69,8 @@ class ProjectController(
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
-        summary = "Get all avaliable projects.",
-        description = "Get all projects, avaliable for current user.",
+        summary = "Get all available projects.",
+        description = "Get all projects, available for current user.",
     )
     @ApiResponse(responseCode = "200", description = "Projects successfully fetched.")
     fun getProjects(
@@ -159,13 +159,7 @@ class ProjectController(
     fun getNonDeletedProjectsByOrganizationName(
         @RequestParam organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
-        .filter {
-            it.status != ProjectStatus.DELETED
-        }
-        .filter {
-            projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
-        }
+    ): Flux<Project> = projectService.getNotDeletedProjectsByOrganizationName(organizationName, authentication)
 
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader

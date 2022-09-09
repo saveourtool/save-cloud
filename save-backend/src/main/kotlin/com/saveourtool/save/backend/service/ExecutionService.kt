@@ -8,6 +8,8 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.utils.asyncEffectIf
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -17,6 +19,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 import java.time.LocalDateTime
 import java.util.Optional
@@ -35,6 +38,7 @@ class ExecutionService(
     @Lazy private val testSuitesService: TestSuitesService,
     private val configProperties: ConfigProperties,
     private val lnkContestProjectService: LnkContestProjectService,
+    private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -143,6 +147,7 @@ class ExecutionService(
      * @param execCmd
      * @param batchSizeForAnalyzer
      * @param testingType
+     * @param contestName
      * @return new [Execution] with provided values
      */
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
@@ -155,8 +160,9 @@ class ExecutionService(
         sdk: Sdk,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
-        testingType: TestingType
-    ): Execution {
+        testingType: TestingType,
+        contestName: String?,
+    ): Mono<Execution> {
         val project = with(projectCoordinates) {
             projectService.findByNameAndOrganizationName(projectName, organizationName).orNotFound {
                 "Not found project $projectName in $organizationName"
@@ -174,7 +180,8 @@ class ExecutionService(
             sdk = sdk.toString(),
             execCmd = execCmd,
             batchSizeForAnalyzer = batchSizeForAnalyzer,
-            testingType = testingType
+            testingType = testingType,
+            contestName,
         )
     }
 
@@ -187,7 +194,7 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Execution = doCreateNew(
+    ): Mono<Execution> = doCreateNew(
         project = execution.project,
         formattedTestSuiteIds = execution.testSuiteIds,
         version = execution.version,
@@ -198,6 +205,8 @@ class ExecutionService(
         execCmd = execution.execCmd,
         batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
         testingType = execution.type,
+        contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
+            ?.findContestByExecution(execution)?.name,
     )
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
@@ -211,8 +220,9 @@ class ExecutionService(
         sdk: String,
         execCmd: String?,
         batchSizeForAnalyzer: String?,
-        testingType: TestingType
-    ): Execution {
+        testingType: TestingType,
+        contestName: String?,
+    ): Mono<Execution> {
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
@@ -245,8 +255,18 @@ class ExecutionService(
             testSuiteSourceName = testSuiteSourceName,
             score = null,
         )
-        val savedExecution = saveExecution(execution)
-        log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
-        return savedExecution
+        return blockingToMono {
+            saveExecution(execution)
+        }
+            .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
+                lnkContestExecutionService.createLink(
+                    savedExecution, requireNotNull(contestName) {
+                        "Requested execution type is ${TestingType.CONTEST_MODE} but no contest name has been specified"
+                    }
+                )
+            }
+            .doOnSuccess { savedExecution ->
+                log.info("Created a new execution id=${savedExecution.id} for project id=${project.id}")
+            }
     }
 }

@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
+import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
@@ -100,12 +101,22 @@ internal class ExecutionStatisticsValues(executionDto: ExecutionDto?) {
             ?: "0"
         this.precisionRate = executionDto
             ?.let {
-                "${it.getPrecisionRate()}"
+                val precisionRate = it.getPrecisionRate()
+                if (precisionRate.isValidScore()) {
+                    precisionRate.toString()
+                } else {
+                    "N/A"
+                }
             }
             ?: "0"
         this.recallRate = executionDto
             ?.let {
-                "${it.getRecallRate()}"
+                val recallRate = it.getRecallRate()
+                if (recallRate.isValidScore()) {
+                    recallRate.toString()
+                } else {
+                    "N/A"
+                }
             }
             ?: "0"
     }

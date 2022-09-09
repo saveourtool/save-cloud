@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
@@ -76,18 +76,17 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +"${project.contestRating.toFixed(2)}"
                 }
             }
         }
     }
 }
 
-private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<Organization>) {
+private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: Set<OrganizationDto>) {
     organizations.forEachIndexed { i, organization ->
         div {
             className = ClassName("row text-muted pb-3 mb-3 border-bottom border-gray mx-2")
@@ -115,11 +114,10 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                 }
             }
 
-            // FixMe: add rating after kirill's changes
             div {
                 className = ClassName("col-lg-4")
                 p {
-                    +"4560"
+                    +"${organization.globalRating?.toFixed(2)}"
                 }
             }
         }
@@ -133,9 +131,9 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
 private fun userRating() = VFC {
     val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
-    val (organizations, setOrganizations) = useState<Set<Organization>>(emptySet())
+    val (organizations, setOrganizations) = useState<Set<OrganizationDto>>(emptySet())
     useRequest {
-        val organizationsFromBackend: List<Organization> = post(
+        val organizationsFromBackend: List<OrganizationDto> = post(
             url = "$apiUrl/organizations/not-deleted",
             headers = jsonHeaders,
             body = undefined,
