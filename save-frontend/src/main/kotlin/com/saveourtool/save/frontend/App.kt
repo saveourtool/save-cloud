@@ -257,6 +257,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName"
+                                    element = Navigate.create { to = "/${FrontendRoutes.CONTESTS.path}" }
+                                }
+
+                                Route {
                                     path = "/${state.userInfo?.name}/${FrontendRoutes.SETTINGS_PROFILE.path}"
                                     element = state.userInfo?.name?.let {
                                         UserSettingsProfileMenuView::class.react.create {

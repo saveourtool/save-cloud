@@ -68,6 +68,97 @@ private fun ChildrenBuilder.dropdownEntry(
     handler(this)
 }
 
+class Url(href: String) {
+    var currentPath = ""
+    private var exception: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
+    private val sizeUrlSegments: Int
+
+    init {
+        currentPath = "#"
+        exception = ExceptionUrlClassification.findException(href)
+        sizeUrlSegments = href.split("/").size
+    }
+
+    fun checkUrlBefore(pathPart: String){
+        currentPath = ExceptionUrlClassification.checkCurrentPathBefore(exception, pathPart, currentPath)
+    }
+
+    fun checkUrlAfter(pathPart: String) {
+        currentPath = ExceptionUrlClassification.checkCurrentPathAfter(exception, pathPart, currentPath)
+        exception = ExceptionUrlClassification.checkExceptionAfter(exception, "\\d+".toRegex().matches(pathPart))
+    }
+
+    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(exception, index, sizeUrlSegments)
+
+    enum class ExceptionUrlClassification {
+        ARCHIVE,
+        ORGANIZATION,
+        PROJECT,
+        DETAILS,
+        EXECUTION,
+
+        KEYWORD_PROCESS,
+        KEYWORD_NOT_PROCESS,
+        KEYWORD_PROCESS_ONLY_LAST_SEGMENT,
+        ;
+
+        companion object {
+            fun findException(href: String) =
+                if (href.contains(OrganizationMenuBar.regexForUrlClassification)) {
+                    ORGANIZATION
+                } else if (href.contains(ProjectMenuBar.regexForUrlClassification)) {
+                    PROJECT
+                } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+                    ARCHIVE
+                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
+                    DETAILS
+                } else if (href.contains("/[^/]+/[^/]+/history/execution")) {
+                    EXECUTION
+                } else {
+                    KEYWORD_PROCESS
+                }
+
+            fun checkCurrentPathBefore(
+                exception: ExceptionUrlClassification,
+                pathPart: String,
+                allPath: String,
+            ) = when (exception) {
+                ORGANIZATION -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
+                PROJECT -> "#/${FrontendRoutes.PROJECTS.path}"
+                ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+                DETAILS, EXECUTION -> if (pathPart == "execution") allPath else mergeUrls(allPath, pathPart)
+                else -> mergeUrls(allPath, pathPart)
+            }
+
+            fun checkCurrentPathAfter(
+                exception: ExceptionUrlClassification,
+                pathPart: String,
+                allPath: String
+            ) = when(exception) {
+                ORGANIZATION, PROJECT, ARCHIVE -> "#"
+                DETAILS, EXECUTION -> if (pathPart == "execution") mergeUrls(allPath, pathPart) else allPath
+                else -> allPath
+            }
+
+            fun checkExceptionAfter(
+                exception: ExceptionUrlClassification,
+                isNumber: Boolean
+            ) = when (exception) {
+                ORGANIZATION, PROJECT, ARCHIVE -> KEYWORD_PROCESS
+                DETAILS -> if (isNumber) KEYWORD_PROCESS_ONLY_LAST_SEGMENT else DETAILS
+                else -> exception
+            }
+
+            fun isCreateButton(exception: ExceptionUrlClassification, index: Int, size: Int) = when (exception) {
+                KEYWORD_PROCESS_ONLY_LAST_SEGMENT -> index == size - 2
+                KEYWORD_NOT_PROCESS -> false
+                else -> true
+            }
+            private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
+        }
+    }
+}
+
 /**
  * A component for web page top bar
  *
@@ -117,50 +208,28 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        val insideTab = location.pathname.substringBeforeLast("?").let {
-                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) {
-                                "organization"
-                            } else if (it.contains(ProjectMenuBar.regexForUrlClassification)) {
-                                "project"
-                            } else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
-                                "archive"
-                            } else {
-                                null
-                            }
-                        }
-                        var currentPath = "#"
+                        val url = Url(location.pathname.substringBeforeLast("?"))
                         forEachIndexed { index: Int, pathPart: String ->
-                            currentPath = if (insideTab != null && index == 0) {
-                                when (insideTab) {
-                                    "organization" -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                                    "project" -> "#/${FrontendRoutes.PROJECTS.path}"
-                                    "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    else -> ""
-                                }
-                            } else {
-                                "$currentPath/$pathPart"
-                            }
-                            li {
-                                className = ClassName("breadcrumb-item")
-                                ariaCurrent = "page".unsafeCast<AriaCurrent>()
-                                if (index == size - 1) {
-                                    a {
-                                        className = ClassName("text-warning")
-                                        +pathPart
-                                    }
-                                } else {
-                                    // small hack to redirect from history/execution to history
-                                    val resultingLink = currentPath.removeSuffix("/execution")
-                                    a {
-                                        href = resultingLink
-                                        className = ClassName("text-light")
-                                        +pathPart
+                            url.checkUrlBefore(pathPart)
+                            if (url.isCreateButton(index)) {
+                                li {
+                                    className = ClassName("breadcrumb-item")
+                                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
+                                    if (index == size - 1) {
+                                        a {
+                                            className = ClassName("text-warning")
+                                            +pathPart
+                                        }
+                                    } else {
+                                        a {
+                                            href = url.currentPath
+                                            className = ClassName("text-light")
+                                            +pathPart
+                                        }
                                     }
                                 }
                             }
-                            if (insideTab != null && index == 0) {
-                                currentPath = "#"
-                            }
+                            url.checkUrlAfter(pathPart)
                         }
                     }
             }
