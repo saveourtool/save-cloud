@@ -156,7 +156,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         deleteTestSuitesSourcesSnapshotKey()
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
     showTestSuiteSourceCreationModal(
@@ -296,7 +295,7 @@ private fun prepareTestSuitesSourcesTable(
                 }
             }
         }
-        column(id = "edit", header = "Edit", { this }) { cellProps ->
+        column(id = "edit", header = "Edit", { this.first }) { cellProps ->
             Fragment.create {
                 td {
                     button {
