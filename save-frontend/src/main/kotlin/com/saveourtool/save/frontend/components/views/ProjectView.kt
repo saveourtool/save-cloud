@@ -675,10 +675,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
             }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
-                    errorLabel = "Failed to save project info"
-                    errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                     isErrorOpen = true
                 }
             }
