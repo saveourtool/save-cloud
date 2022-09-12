@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.SourceSaveStatus
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.frontend.components.basic.organizations.gitWindow
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
@@ -21,8 +22,10 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
@@ -125,6 +128,15 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
         }
     }
 
+    val gitWindowState = useState(false)
+    val gitWindowOpenness = WindowOpenness(gitWindowState)
+    val gitCredentialToUpsertState = useState(GitDto.empty)
+    gitWindow {
+        windowOpenness = gitWindowOpenness
+        organizationName = props.organizationName
+        gitToUpsertState = gitCredentialToUpsertState
+    }
+
     div {
         inputTextFormRequired {
             form = InputTypes.SOURCE_NAME
@@ -174,8 +186,21 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                         it.decodeFromJsonString()
                     }
             }
+            getDataRequestDependencies = arrayOf(gitWindowState.component1())
             dataToString = { it.url }
-            notFoundErrorMessage = "You have no avaliable git credentials in organization ${props.organizationName}"
+            notFoundErrorMessage = "You have no avaliable git credentials in organization ${props.organizationName}."
+            addNewItemChildrenBuilder = { childrenBuilder ->
+                with(childrenBuilder) {
+                    a {
+                        className = ClassName("text-primary")
+                        role = "button".unsafeCast<AriaRole>()
+                        onClick = {
+                            gitWindowOpenness.openWindow()
+                        }
+                        +"Add new git credentials"
+                    }
+                }
+            }
             selectedValue = testSuiteSource.gitDto.url
             onChangeFun = { git ->
                 git?.let {
