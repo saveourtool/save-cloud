@@ -489,9 +489,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
                 }
             }
-            updateContestCallback = { contest ->
-                deleteContest(contest)
-            }
         }
     }
 
@@ -560,21 +557,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 setState {
                     organization = organization?.copy(canCreateContests = canCreateContests)
                 }
-            }
-        }
-    }
-
-    private fun deleteContest(contest: ContestDto) {
-        val deleteContest = contest.copy(status = ContestStatus.DELETED)
-        scope.launch {
-            val response = post(
-                "$apiUrl/contests/update",
-                jsonHeaders,
-                Json.encodeToString(deleteContest),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                window.location.href = "${window.location.origin}#/organization/${props.organizationName}/contests"
             }
         }
     }

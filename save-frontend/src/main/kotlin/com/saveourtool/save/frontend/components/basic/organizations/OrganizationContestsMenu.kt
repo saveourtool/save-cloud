@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -16,17 +17,20 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import csstype.ClassName
 
+import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * CONTESTS tab in OrganizationView
@@ -110,11 +114,6 @@ external interface OrganizationContestsMenuProps : Props {
      * Callback to show error message
      */
     var updateErrorMessage: (Response) -> Unit
-
-    /**
-     * Callback to update contest
-     */
-    var updateContestCallback: (ContestDto) -> Unit
 }
 
 /**
@@ -145,12 +144,24 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
     val (deletingContest, setDeletingContest) = useState<ContestDto?>(null)
     val (confirmLabel, setConfirmLabel) = useState("")
     val (confirmMessage, setConfirmMessage) = useState("")
-    val (contests, setContests) = useState<MutableSet<ContestDto>>(mutableSetOf())
+    val (contests, setContests) = useState<Set<ContestDto>>(setOf())
     val refreshTable = { setIsToUpdateTable { !it } }
-    val deleteCont: (ContestDto) -> Unit = { contest ->
-        contests.remove(contest)
-        setContests(contests)
-        setIsToUpdateTable { !it }
+    val deleteCont = useDeferredRequest {
+        val deleteContest = deletingContest?.copy(status = ContestStatus.DELETED)
+        val response = post(
+            "$apiUrl/contests/update",
+            jsonHeaders,
+            Json.encodeToString(deleteContest),
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            window.location.href = "${window.location.origin}#/organization/${props.organizationName}/contests"
+        }
+
+        val newContests = contests.toMutableSet()
+        newContests.remove(deletingContest)
+        setContests(newContests.toSet())
+        refreshTable()
     }
 
     useRequest {
@@ -179,9 +190,8 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         { setDeleteContestModalOpen(false) }
     ) {
         buttonBuilder("Ok") {
-            deletingContest?.let { props.updateContestCallback(it) }
+            deletingContest?.let { deleteCont() }
             setDeleteContestModalOpen(false)
-            deletingContest?.let { deleteCont(it) }
         }
         buttonBuilder("Cancel", "secondary") {
             setDeleteContestModalOpen(false)
