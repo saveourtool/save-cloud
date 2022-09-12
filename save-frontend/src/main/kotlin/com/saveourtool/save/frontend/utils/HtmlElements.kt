@@ -11,12 +11,12 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.BorderRadius
 import csstype.ClassName
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML.span
-
-import kotlinx.js.jso
 import react.StateInstance
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.span
+
+import kotlinx.js.jso
 
 /**
  * @param project
@@ -59,9 +59,7 @@ fun ChildrenBuilder.buttonWithIcon(
         asDynamic()["data-toggle"] = "tooltip"
         asDynamic()["data-placement"] = "bottom"
     }
-//    useTooltipAndPopover()
-    enableTooltip()
-//    useTooltip()
+    useTooltip()
 }
 
 /**
@@ -74,16 +72,16 @@ fun <T : Enum<T>> ChildrenBuilder.buttonWithIcon(
     icon: FontAwesomeIconModule,
     tooltipText: String,
     buttonMode: T,
-    currentModeState: StateInstance<T>
+    currentModeState: StateInstance<T>,
+    onClickFun: () -> Unit,
 ) {
-    console.log("render button")
     val (currentMode, setCurrentMode) = currentModeState
     buttonWithIcon(
         icon = icon,
         isActive = buttonMode == currentMode,
         tooltipText = tooltipText,
     ) {
-        console.log("I'm here")
         setCurrentMode(buttonMode)
+        onClickFun()
     }
 }

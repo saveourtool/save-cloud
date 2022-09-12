@@ -1,24 +1,34 @@
+/**
+ * This file contains a modal window to fetch TestSuitesSource and related classes
+ */
+
 package com.saveourtool.save.frontend.components.basic.testsuitessources.fetch
 
+import com.saveourtool.save.frontend.components.basic.selectFormRequired
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.WindowOpenness
-import com.saveourtool.save.frontend.utils.buttonWithIcon
-import com.saveourtool.save.frontend.utils.withUnusedArg
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import csstype.ClassName
-import react.ChildrenBuilder
-import react.FC
-import react.Props
+import react.*
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
-import react.useState
 
+private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()
+private val tagSelector = selectFormRequired<String>()
+private val branchSelector = selectFormRequired<String>()
+
+/**
+ * Properties for testSuitesSourceFetcher
+ */
 external interface TestSuitesSourceFetcherProps : Props {
     /**
      * Control openness of modal window
@@ -29,22 +39,45 @@ external interface TestSuitesSourceFetcherProps : Props {
      * [TestSuitesSourceDto] to be fetched
      */
     var testSuitesSource: TestSuitesSourceDto
+
+    /**
+     * Selected fetch mode
+     */
+    var selectedFetchModeState: StateInstance<TestSuitesSourceFetchMode>
+
+    /**
+     * Selected value
+     */
+    var selectedValueState: StateInstance<String?>
 }
 
 /**
- * Enum that represents different modes of []
+ * @param windowOpenness
+ * @param testSuitesSource
  */
-enum class TestSuitesSourceFetcherMode {
-    BY_TAG,
-    BY_BRANCH,
-    BY_COMMIT,
-}
-
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 fun ChildrenBuilder.testSuitesSourceFetcher(
     windowOpenness: WindowOpenness,
     testSuitesSource: TestSuitesSourceDto,
 ) {
-    console.log("render testSuitesSourceFetcher")
+    val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
+    val (selectedFetchMode, _) = selectedFetchModeState
+    val selectedValueState = useState<String>()
+    val (selectedValue, _) = selectedValueState
+    val triggerFetchTestSuiteSource = useDeferredRequest {
+        post(
+            url = with(testSuitesSource) {
+                "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}/fetch?mode=${selectedFetchMode}&version=$selectedValue"
+            },
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+            body = undefined
+        )
+    }
+
     modal { modalProps ->
         modalProps.isOpen = windowOpenness.isOpen()
         modalProps.style = largeTransparentModalStyle
@@ -73,6 +106,8 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                     innerTestSuitesSourceFetcher {
                         this.windowOpenness = windowOpenness
                         this.testSuitesSource = testSuitesSource
+                        this.selectedFetchModeState = selectedFetchModeState
+                        this.selectedValueState = selectedValueState
                     }
                 }
 
@@ -80,18 +115,19 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
                     className = ClassName("modal-footer")
                     div {
                         className = ClassName("d-flex justify-content-center")
-                        ReactHTML.button {
+                        button {
                             type = ButtonType.button
                             className = ClassName("btn btn-primary mt-4")
                             +"Fetch"
                             onClick = {
-                                console.log("fetch is runne")
+                                triggerFetchTestSuiteSource()
+                                windowOpenness.closeWindow()
                             }
                         }
                     }
                     div {
                         className = ClassName("d-flex justify-content-center")
-                        ReactHTML.button {
+                        button {
                             type = ButtonType.button
                             className = ClassName("btn btn-secondary mt-4")
                             +"Cancel"
@@ -104,31 +140,108 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     }
 }
 
-private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()
-
 private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { props ->
-    val currentModeState = useState(TestSuitesSourceFetcherMode.BY_TAG)
-    val (currentMode, setCurrentMode) = currentModeState
+    val (selectedFetchMode, _) = props.selectedFetchModeState
+    val (selectedValue, setSelectedValue) = props.selectedValueState
 
     div {
         className = ClassName("d-flex align-self-center justify-content-around mb-2")
         buttonWithIcon(
             icon = faTag,
             tooltipText = "Fetch test suites source by tag",
-            buttonMode = TestSuitesSourceFetcherMode.BY_TAG,
-            currentModeState = currentModeState
-        )
+            buttonMode = TestSuitesSourceFetchMode.BY_TAG,
+            currentModeState = props.selectedFetchModeState
+        ) {
+            setSelectedValue(null)
+        }
         buttonWithIcon(
             icon = faCodeBranch,
             tooltipText = "Fetch test suites source by branch",
-            buttonMode = TestSuitesSourceFetcherMode.BY_BRANCH,
-            currentModeState = currentModeState
-        )
+            buttonMode = TestSuitesSourceFetchMode.BY_BRANCH,
+            currentModeState = props.selectedFetchModeState
+        ) {
+            setSelectedValue(null)
+        }
         buttonWithIcon(
             icon = faCheckCircle,
             tooltipText = "Fetch test suites source by commit",
-            buttonMode = TestSuitesSourceFetcherMode.BY_COMMIT,
-            currentModeState = currentModeState
-        )
+            buttonMode = TestSuitesSourceFetchMode.BY_COMMIT,
+            currentModeState = props.selectedFetchModeState
+        ) {
+            setSelectedValue(null)
+        }
+    }
+
+    val urlPrefix = with(props.testSuitesSource) {
+        "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}"
+    }
+    when (selectedFetchMode) {
+        TestSuitesSourceFetchMode.BY_TAG -> {
+            div {
+                tagSelector {
+                    formType = InputTypes.SOURCE_TAG
+                    validInput = true
+                    classes = "mb-2"
+                    formName = "Source tag:"
+                    getData = {
+                        get(
+                            url = "$urlPrefix/tag-list-to-fetch",
+                            headers = jsonHeaders,
+                            loadingHandler = ::loadingHandler,
+                        )
+                            .unsafeMap {
+                                it.decodeFromJsonString()
+                            }
+                    }
+                    dataToString = { it }
+                    notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
+                    this.selectedValue = selectedValue ?: ""
+                    disabled = false
+                    onChangeFun = { tag ->
+                        setSelectedValue(tag)
+                    }
+                }
+            }
+        }
+        TestSuitesSourceFetchMode.BY_BRANCH -> {
+            div {
+                branchSelector {
+                    formType = InputTypes.SOURCE_BRANCH
+                    validInput = true
+                    classes = "mb-2"
+                    formName = "Source branch:"
+                    getData = {
+                        get(
+                            url = "$urlPrefix/branch-list-to-fetch",
+                            headers = jsonHeaders,
+                            loadingHandler = ::loadingHandler,
+                        )
+                            .unsafeMap {
+                                it.decodeFromJsonString()
+                            }
+                    }
+                    dataToString = { it }
+                    notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
+                    this.selectedValue = selectedValue ?: ""
+                    disabled = false
+                    onChangeFun = { tag ->
+                        setSelectedValue(tag)
+                    }
+                }
+            }
+        }
+        TestSuitesSourceFetchMode.BY_COMMIT -> {
+            div {
+                inputTextFormRequired {
+                    form = InputTypes.SOURCE_COMMIT
+                    textValue = null
+                    validInput = true
+                    classes = "mb-2"
+                    name = "Commit (sha-1):"
+                    conflictMessage = null
+                    onChangeFun = setSelectedValue.fromInput()
+                }
+            }
+        }
     }
 }

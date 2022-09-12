@@ -24,7 +24,7 @@ val smallTransparentModalStyle = Styles(
         "right" to "35%",
         "bottom" to "auto",
         "overflow" to "hide",
-        "background-color" to "transparent",
+        "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CssProperties>()
 )
@@ -36,7 +36,7 @@ val mediumTransparentModalStyle = Styles(
         "right" to "20%",
         "bottom" to "auto",
         "overflow" to "hide",
-        "background-color" to "transparent",
+        "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CssProperties>()
 )
@@ -60,7 +60,7 @@ val loaderModalStyle = Styles(
         "right" to "35%",
         "bottom" to "45%",
         "overflow" to "hide",
-        "background-color" to "transparent",
+        "backgroundColor" to "transparent",
         // small hack to remove modal border and make loader prettier
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CssProperties>()

@@ -77,6 +77,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         }
     }
     val testSuitesSourceFetcherWindowOpenness = useWindowOpenness()
+    @Suppress("DEBUG_PRINT")
     console.log("create testSuitesSourceFetcher")
     div {
         testSuitesSourceFetcher(
@@ -130,7 +131,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
-//        triggerFetchTestSuiteSource()
+        // triggerFetchTestSuiteSource()
     }
     val editHandler: (TestSuitesSourceDto) -> Unit = {
         // do nothing for now
@@ -210,88 +211,88 @@ private fun prepareTestSuitesSourcesTable(
     fetchHandler: (TestSuitesSourceDto) -> Unit,
     editHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
-        columns = columns {
-            column(id = "organizationName", header = "Organization", { this }) { cellProps ->
-                Fragment.create {
-                    td {
+    columns = columns {
+        column(id = "organizationName", header = "Organization", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +cellProps.value.organizationName
+                }
+            }
+        }
+        column(id = "name", header = "Name", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +cellProps.value.name
+                }
+            }
+        }
+        column(id = "description", header = "Description", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    +(cellProps.value.description ?: "Description is not provided")
+                }
+            }
+        }
+        column(id = "git-url", header = "Git location", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    onClick = {
+                        selectHandler(cellProps.value)
+                    }
+                    a {
+                        // a little hack -- GitHub redirect from master to main if it's required
+                        href = "${cellProps.value.gitDto.url}/tree/master/${cellProps.value.testRootPath}"
+                        +"source"
+                    }
+                }
+            }
+        }
+        column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
                         onClick = {
-                            selectHandler(cellProps.value)
+                            fetchHandler(cellProps.value)
+                            // testSuitesSourceFetcherWindowOpenness.openWindow()
                         }
-                        +cellProps.value.organizationName
+                        +"fetch"
                     }
                 }
             }
-            column(id = "name", header = "Name", { this }) { cellProps ->
-                Fragment.create {
-                    td {
+        }
+        column(id = "edit", header = "Edit", { this }) { cellProps ->
+            Fragment.create {
+                td {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("btn btn-sm btn-primary")
                         onClick = {
-                            selectHandler(cellProps.value)
+                            editHandler(cellProps.value)
                         }
-                        +cellProps.value.name
+                        +"edit"
                     }
                 }
             }
-            column(id = "description", header = "Description", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        +(cellProps.value.description ?: "Description is not provided")
-                    }
-                }
-            }
-            column(id = "git-url", header = "Git location", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        onClick = {
-                            selectHandler(cellProps.value)
-                        }
-                        a {
-                            // a little hack -- GitHub redirect from master to main if it's required
-                            href = "${cellProps.value.gitDto.url}/tree/master/${cellProps.value.testRootPath}"
-                            +"source"
-                        }
-                    }
-                }
-            }
-            column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                fetchHandler(cellProps.value)
-//                                testSuitesSourceFetcherWindowOpenness.openWindow()
-                            }
-                            +"fetch"
-                        }
-                    }
-                }
-            }
-            column(id = "edit", header = "Edit", { this }) { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                editHandler(cellProps.value)
-                            }
-                            +"edit"
-                        }
-                    }
-                }
-            }
-        },
-        initialPageSize = 10,
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(it.content)
-        },
-    )
+        }
+    },
+    initialPageSize = 10,
+    useServerPaging = false,
+    usePageSelection = false,
+    getAdditionalDependencies = {
+        arrayOf(it.content)
+    },
+)
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private fun prepareTestSuitesSourceSnapshotKeysTable(

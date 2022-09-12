@@ -13,6 +13,7 @@ import kotlin.js.Promise
 import kotlin.test.*
 
 class SelectFormTest {
+    @Suppress("TYPE_ALIAS")
     private val selectFormRequired: FC<SelectFormRequiredProps<Organization>> = selectFormRequired()
     private fun createWorker() = setupWorker(
         rest.get("$apiUrl/organizations/get/list") { _, res, _ ->

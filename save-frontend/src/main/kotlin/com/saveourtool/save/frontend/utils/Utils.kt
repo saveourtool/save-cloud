@@ -25,6 +25,9 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.HTMLInputElement
+import react.StateSetter
+import react.dom.events.ChangeEvent
 
 /**
  * @return a nicely formatted string representation of [FileInfo]
@@ -64,6 +67,19 @@ fun String.toRole() = Role.values().find {
  * @return lambda which does the same as receiver but takes unused arg
  */
 fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+    { event -> this(event.target.value) }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+    { event -> this(event.target.value) }
+
 
 /**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`

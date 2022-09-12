@@ -17,4 +17,4 @@ external interface TestSuitesSourceFetchComponent : Props {
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun testSuitesSourceFetchComponent() = FC<TestSuitesSourceFetchComponent> { props ->
 
-}
+    }

@@ -7,6 +7,7 @@ import com.saveourtool.save.preprocessor.service.GitRepositoryProcessor
 import com.saveourtool.save.preprocessor.service.TestDiscoveringService
 import com.saveourtool.save.preprocessor.service.TestsPreprocessorToBackendBridge
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -33,6 +34,25 @@ class TestSuitesPreprocessorController(
     private val testsPreprocessorToBackendBridge: TestsPreprocessorToBackendBridge,
 ) {
     /**
+     * Fetch new tests suites from provided source from provided version
+     *
+     * @param testSuitesSourceDto source from which test suites need to be loaded
+     * @param mode mode of fetching, it controls how [version] is used
+     * @param version tag, branch or commit (depends on [mode]) which needs to be loaded, will be used as version
+     * @return empty response
+     */
+    @PostMapping("/fetch")
+    fun fetch(
+        @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
+        @RequestParam mode: TestSuitesSourceFetchMode,
+        @RequestParam version: String,
+    ): Mono<Unit> = when (mode) {
+        TestSuitesSourceFetchMode.BY_BRANCH -> fetchFromBranch(testSuitesSourceDto, version)
+        TestSuitesSourceFetchMode.BY_COMMIT -> fetchFromCommit(testSuitesSourceDto, version)
+        TestSuitesSourceFetchMode.BY_TAG -> fetchFromTag(testSuitesSourceDto, version)
+    }
+
+    /**
      * Fetch new tests suites from provided source from provided tag
      *
      * @param testSuitesSourceDto source from which test suites need to be loaded
@@ -40,7 +60,7 @@ class TestSuitesPreprocessorController(
      * @return empty response
      */
     @PostMapping("/fetch-from-tag")
-    fun fetchFromTag(
+    private fun fetchFromTag(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam tagName: String,
     ): Mono<Unit> = Mono.fromCallable {
@@ -71,7 +91,7 @@ class TestSuitesPreprocessorController(
      * @return empty response
      */
     @PostMapping("/fetch-from-branch")
-    fun fetchFromBranch(
+    private fun fetchFromBranch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam branchName: String,
     ): Mono<Unit> = Mono.fromCallable {
@@ -103,7 +123,7 @@ class TestSuitesPreprocessorController(
      * @return empty response
      */
     @PostMapping("/fetch-from-commit")
-    fun fetchFromCommit(
+    private fun fetchFromCommit(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam commitId: String,
     ): Mono<Unit> = Mono.fromCallable {
