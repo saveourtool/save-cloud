@@ -45,12 +45,6 @@ class TestSuitesSourceService(
             testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
 
     /**
-     * @param id [TestSuitesSource.id]
-     * @return entity of [TestSuitesSource] or null
-     */
-    fun findById(id: Long): TestSuitesSource? = testSuitesSourceRepository.findByIdOrNull(id)
-
-    /**
      * @param organization [TestSuitesSource.organization]
      * @param name [TestSuitesSource.name]
      * @return entity of [TestSuitesSource] or null
@@ -94,8 +88,9 @@ class TestSuitesSourceService(
      * @param entity [TestSuitesSource] to be updated
      * @return status of updating [TestSuitesSource]
      */
+    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
-    fun update(entity: TestSuitesSource): SourceSaveStatus {
+    fun update(entity: TestSuitesSource): Boolean {
         requireNotNull(entity.id) {
             "Cannot update entity as it is not saved yet: $entity"
         }
@@ -109,30 +104,18 @@ class TestSuitesSourceService(
     @Transactional
     fun createSourceIfNotPresent(
         entity: TestSuitesSource,
-    ): SourceSaveStatus {
-        require(entity.id == null) {
-            "Cannot create a new entity as it is saved already: $entity"
-        }
-        return save(entity)
+    ): SourceSaveStatus = findByName(entity.organization, entity.name)?.let {
+        SourceSaveStatus.EXIST
+    } ?: run {
+        val isSaved = save(entity)
+        if (isSaved) SourceSaveStatus.NEW else SourceSaveStatus.CONFLICT
     }
 
-    private fun save(entity: TestSuitesSource): SourceSaveStatus {
-        findByName(entity.organization, entity.name)?.run {
-            if (entity.id != id) {
-                return SourceSaveStatus.EXIST
-            }
-        }
-        return try {
-            val isUpdate = entity.id != null
-            testSuitesSourceRepository.save(entity)
-            if (isUpdate) {
-                SourceSaveStatus.UPDATED
-            } else {
-                SourceSaveStatus.NEW
-            }
-        } catch (e: DataIntegrityViolationException) {
-            SourceSaveStatus.CONFLICT
-        }
+    private fun save(entity: TestSuitesSource) = try {
+        testSuitesSourceRepository.save(entity)
+        true
+    } catch (e: DataIntegrityViolationException) {
+        false
     }
 
     /**

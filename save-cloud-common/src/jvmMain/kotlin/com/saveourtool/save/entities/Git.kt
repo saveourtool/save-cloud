@@ -21,11 +21,11 @@ class Git(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
-) : BaseEntityWithDto<GitDto>() {
+) : BaseEntity() {
     /**
      * @return git dto
      */
-    override fun toDto() = GitDto(
+    fun toDto() = GitDto(
         url = url,
         username = username,
         password = password,
