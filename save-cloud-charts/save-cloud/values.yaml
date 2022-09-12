@@ -14,6 +14,10 @@ backend:
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
   dbPasswordFile: /home/cnb/secrets/db_secrets
+frontend:
+  name: frontend
+  imageName: save-frontend
+  containerPort: 5810
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator

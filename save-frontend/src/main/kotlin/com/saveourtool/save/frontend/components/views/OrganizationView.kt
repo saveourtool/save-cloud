@@ -508,11 +508,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     deleteOrganization()
                 }
             }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
                     isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                 }
             }
             updateNotificationMessage = ::showNotification

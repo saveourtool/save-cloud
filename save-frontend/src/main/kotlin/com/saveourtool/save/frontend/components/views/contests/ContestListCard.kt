@@ -25,7 +25,6 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
@@ -70,7 +69,7 @@ private fun ChildrenBuilder.contestListTable(
                 }
             }
 
-            p {
+            div {
                 className = ClassName("media-body pb-3 mb-0 small lh-125 border-bottom border-gray text-left")
                 strong {
                     className = ClassName("d-block text-gray-dark")
@@ -158,11 +157,11 @@ private fun contestList() = VFC {
 
     val (selectedTab, setSelectedTab) = useState(ContestTypesTab.ACTIVE)
     div {
-        className = ClassName("col-lg-9")
+        className = ClassName("col-lg-6")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 30.rem
+                minHeight = 40.rem
             }
 
             div {

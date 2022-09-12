@@ -54,9 +54,9 @@ private fun newContestsCard() = VFC {
                 }
                 h3 {
                     className = ClassName("mb-0")
-                    a {
+
+                    p {
                         className = ClassName("text-dark")
-                        href = "#/contests"
                         +"Hurry up! 🔥"
                     }
                 }
