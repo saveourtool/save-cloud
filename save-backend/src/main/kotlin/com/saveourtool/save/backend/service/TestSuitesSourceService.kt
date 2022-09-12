@@ -168,7 +168,7 @@ class TestSuitesSourceService(
         .toBodilessEntity()
 
     /**
-     * @param testSuitesSource  test suites source for which a list of tags is requested
+     * @param testSuitesSource test suites source for which a list of tags is requested
      * @return list of all tags
      */
     fun tagList(
@@ -180,9 +180,8 @@ class TestSuitesSourceService(
         .retrieve()
         .bodyToMono()
 
-
     /**
-     * @param testSuitesSource  test suites source for which a list of branches is requested
+     * @param testSuitesSource test suites source for which a list of branches is requested
      * @return list of all branches
      */
     fun branchList(

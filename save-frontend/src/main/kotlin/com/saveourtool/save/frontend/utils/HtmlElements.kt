@@ -66,6 +66,7 @@ fun ChildrenBuilder.buttonWithIcon(
  * @param tooltipText
  * @param buttonMode
  * @param currentModeState
+ * @param onClickFun
  */
 fun <T : Enum<T>> ChildrenBuilder.buttonWithIcon(
     icon: FontAwesomeIconModule,

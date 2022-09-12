@@ -2,6 +2,8 @@
  * This file contains a modal window to fetch TestSuitesSource and related classes
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.testsuitessources.fetch
 
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
@@ -21,8 +23,11 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val tagSelector = selectFormRequired<String>()
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val branchSelector = selectFormRequired<String>()
 
 /**
@@ -64,12 +69,12 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
 ) {
     val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
     val (selectedFetchMode, _) = selectedFetchModeState
-    val selectedValueState = useState<String>()
+    val selectedValueState: StateInstance<String?> = useState<String>()
     val (selectedValue, _) = selectedValueState
     val triggerFetchTestSuiteSource = useDeferredRequest {
         post(
             url = with(testSuitesSource) {
-                "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}/fetch?mode=${selectedFetchMode}&version=$selectedValue"
+                "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}/fetch?mode=$selectedFetchMode&version=$selectedValue"
             },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
@@ -139,6 +144,10 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     }
 }
 
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { props ->
     val (selectedFetchMode, _) = props.selectedFetchModeState
     val (selectedValue, setSelectedValue) = props.selectedValueState
@@ -176,69 +185,63 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
         "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}"
     }
     when (selectedFetchMode) {
-        TestSuitesSourceFetchMode.BY_TAG -> {
-            div {
-                tagSelector {
-                    formType = InputTypes.SOURCE_TAG
-                    validInput = true
-                    classes = "mb-2"
-                    formName = "Source tag:"
-                    getData = {
-                        get(
-                            url = "$urlPrefix/tag-list-to-fetch",
-                            headers = jsonHeaders,
-                            loadingHandler = ::loadingHandler,
-                        )
-                            .unsafeMap {
-                                it.decodeFromJsonString()
-                            }
-                    }
-                    dataToString = { it }
-                    notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
-                    this.selectedValue = selectedValue ?: ""
-                    onChangeFun = { tag ->
-                        setSelectedValue(tag)
-                    }
+        TestSuitesSourceFetchMode.BY_TAG -> div {
+            tagSelector {
+                formType = InputTypes.SOURCE_TAG
+                validInput = true
+                classes = "mb-2"
+                formName = "Source tag:"
+                getData = {
+                    get(
+                        url = "$urlPrefix/tag-list-to-fetch",
+                        headers = jsonHeaders,
+                        loadingHandler = ::loadingHandler,
+                    )
+                        .unsafeMap {
+                            it.decodeFromJsonString()
+                        }
+                }
+                dataToString = { it }
+                notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
+                this.selectedValue = selectedValue ?: ""
+                onChangeFun = { tag ->
+                    setSelectedValue(tag)
                 }
             }
         }
-        TestSuitesSourceFetchMode.BY_BRANCH -> {
-            div {
-                branchSelector {
-                    formType = InputTypes.SOURCE_BRANCH
-                    validInput = true
-                    classes = "mb-2"
-                    formName = "Source branch:"
-                    getData = {
-                        get(
-                            url = "$urlPrefix/branch-list-to-fetch",
-                            headers = jsonHeaders,
-                            loadingHandler = ::loadingHandler,
-                        )
-                            .unsafeMap {
-                                it.decodeFromJsonString()
-                            }
-                    }
-                    dataToString = { it }
-                    notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
-                    this.selectedValue = selectedValue ?: ""
-                    onChangeFun = { tag ->
-                        setSelectedValue(tag)
-                    }
+        TestSuitesSourceFetchMode.BY_BRANCH -> div {
+            branchSelector {
+                formType = InputTypes.SOURCE_BRANCH
+                validInput = true
+                classes = "mb-2"
+                formName = "Source branch:"
+                getData = {
+                    get(
+                        url = "$urlPrefix/branch-list-to-fetch",
+                        headers = jsonHeaders,
+                        loadingHandler = ::loadingHandler,
+                    )
+                        .unsafeMap {
+                            it.decodeFromJsonString()
+                        }
+                }
+                dataToString = { it }
+                notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
+                this.selectedValue = selectedValue ?: ""
+                onChangeFun = { tag ->
+                    setSelectedValue(tag)
                 }
             }
         }
-        TestSuitesSourceFetchMode.BY_COMMIT -> {
-            div {
-                inputTextFormRequired {
-                    form = InputTypes.SOURCE_COMMIT
-                    textValue = null
-                    validInput = true
-                    classes = "mb-2"
-                    name = "Commit (sha-1):"
-                    conflictMessage = null
-                    onChangeFun = setSelectedValue.fromInput()
-                }
+        TestSuitesSourceFetchMode.BY_COMMIT -> div {
+            inputTextFormRequired {
+                form = InputTypes.SOURCE_COMMIT
+                textValue = null
+                validInput = true
+                classes = "mb-2"
+                name = "Commit (sha-1):"
+                conflictMessage = null
+                onChangeFun = setSelectedValue.fromInput()
             }
         }
     }
