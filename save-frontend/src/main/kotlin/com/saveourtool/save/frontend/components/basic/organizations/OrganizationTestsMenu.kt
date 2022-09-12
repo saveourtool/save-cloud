@@ -67,12 +67,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
     val testSuitesSourceFetcherWindowOpenness = useWindowOpenness()
-    div {
-        testSuitesSourceFetcher(
-            testSuitesSourceFetcherWindowOpenness,
-            testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
-        )
-    }
+    testSuitesSourceFetcher(
+        testSuitesSourceFetcherWindowOpenness,
+        testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
+    )
 
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
@@ -120,12 +118,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
     showTestSuiteSourceCreationModal(

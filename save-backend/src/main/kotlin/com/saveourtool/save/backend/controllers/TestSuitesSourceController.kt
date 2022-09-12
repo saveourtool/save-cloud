@@ -311,7 +311,6 @@ class TestSuitesSourceController(
                 SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
                 SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
                 SourceSaveStatus.NEW -> Mono.just(ResponseEntity.ok(SourceSaveStatus.NEW))
-                else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
 

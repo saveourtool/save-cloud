@@ -170,6 +170,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
             setSelectedValue(null)
         }
     }
+    useTooltip()
 
     val urlPrefix = with(props.testSuitesSource) {
         "$apiUrl/test-suites-sources/$organizationName/${encodeURIComponent(name)}"

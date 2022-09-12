@@ -59,7 +59,6 @@ fun ChildrenBuilder.buttonWithIcon(
         asDynamic()["data-toggle"] = "tooltip"
         asDynamic()["data-placement"] = "bottom"
     }
-    useTooltip()
 }
 
 /**
