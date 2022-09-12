@@ -40,7 +40,6 @@ class WebConfiguration(
         resources("/api/$v1/resource/**", FileSystemResource("${configProperties.fileStorage.location}/storage/"))
     }
 
-
     /**
      * @param errorPage resource for error.html
      * @return router bean
