@@ -25,8 +25,6 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
-private val projectPermissionManagerCard = manageUserRoleCardComponent()
-
 /**
  * SETTINGS tab in ProjectView
  */
@@ -64,7 +62,8 @@ external interface ProjectSettingsMenuProps : Props {
     /**
      * Callback to show error message
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Callback to show notification message
@@ -104,7 +103,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
             }
-            projectPermissionManagerCard {
+            manageUserRoleCardComponent {
                 selfUserInfo = props.currentUserInfo
                 groupPath = projectPath
                 groupType = "project"

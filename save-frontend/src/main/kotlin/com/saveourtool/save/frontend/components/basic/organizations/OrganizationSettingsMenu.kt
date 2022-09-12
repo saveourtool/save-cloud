@@ -19,8 +19,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 
-private val organizationPermissionManagerCard = manageUserRoleCardComponent()
-
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
 /**
@@ -55,7 +53,8 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Callback to show error message
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Callback to show notification message
@@ -92,7 +91,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
             }
-            organizationPermissionManagerCard {
+            manageUserRoleCardComponent {
                 selfUserInfo = props.currentUserInfo
                 groupPath = organizationPath
                 groupType = "organization"
