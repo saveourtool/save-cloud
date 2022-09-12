@@ -19,7 +19,7 @@ spec:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}

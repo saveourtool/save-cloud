@@ -65,7 +65,7 @@ fun Project.configureVersioning() {
  * @return correctly formatted version
  */
 fun Project.versionForDockerImages(): String =
-        (project.findProperty("dockerTag") as String? ?: version.toString())
+        (project.findProperty("build.dockerTag") as String? ?: version.toString())
             .replace(Regex("[^._\\-a-zA-Z0-9]"), "-")
 
 /**

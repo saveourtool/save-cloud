@@ -21,7 +21,7 @@ spec:
       {{- if .Values.orchestrator.nodeName }}
       nodeName: {{ .Values.orchestrator.nodeName }}
       {{- end }}
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: orchestrator
           {{- include "spring-boot.common" (merge (dict "service" .Values.orchestrator) .) | nindent 10 }}
