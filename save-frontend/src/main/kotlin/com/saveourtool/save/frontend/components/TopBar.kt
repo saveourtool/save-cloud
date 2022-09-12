@@ -61,13 +61,12 @@ class TopBarUrl(href: String) {
     /**
      * currentPath is the link that we put in buttons
      */
-    var currentPath = ""
-    private var exception: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
+    var currentPath = "#"
+    private var circumstance: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
     private val sizeUrlSegments: Int
 
     init {
-        currentPath = "#"
-        exception = ExceptionUrlClassification.findException(href)
+        circumstance = ExceptionUrlClassification.findException(href)
         sizeUrlSegments = href.split("/").size
     }
 
@@ -76,8 +75,8 @@ class TopBarUrl(href: String) {
      *
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
-    fun changeUrlBefore(pathPart: String) {
-        currentPath = ExceptionUrlClassification.fixCurrentPathBefore(exception, pathPart, currentPath)
+    fun changeUrlBeforeButton(pathPart: String) {
+        currentPath = ExceptionUrlClassification.fixCurrentPathBefore(circumstance, pathPart, currentPath)
     }
 
     /**
@@ -85,9 +84,9 @@ class TopBarUrl(href: String) {
      *
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
-    fun changeUrlAfter(pathPart: String) {
-        currentPath = ExceptionUrlClassification.fixCurrentPathAfter(exception, pathPart, currentPath)
-        exception = ExceptionUrlClassification.fixExceptionAfter(exception, "\\d+".toRegex().matches(pathPart))
+    fun changeUrlAfterButton(pathPart: String) {
+        currentPath = ExceptionUrlClassification.fixCurrentPathAfter(circumstance, pathPart, currentPath)
+        circumstance = ExceptionUrlClassification.fixExceptionAfter(circumstance, "\\d+".toRegex().matches(pathPart))
     }
 
     /**
@@ -95,18 +94,17 @@ class TopBarUrl(href: String) {
      *
      * @param index is index of this segment in url address
      */
-    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(exception, index, sizeUrlSegments)
+    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index, sizeUrlSegments)
 
     private enum class ExceptionUrlClassification {
-        ARCHIVE,
+        ARCHIVE, //
         DETAILS,
         EXECUTION,
+        PROJECT_OR_ORGANIZATION,
+
         KEYWORD_NOT_PROCESS,
         KEYWORD_PROCESS,
-
-        KEYWORD_PROCESS_ONLY_LAST_SEGMENT,
-        ORGANIZATION,
-        PROJECT,
+        KEYWORD_PROCESS_LAST_SEGMENTS,
         ;
 
         companion object {
@@ -114,10 +112,8 @@ class TopBarUrl(href: String) {
              * @param href
              */
             fun findException(href: String) =
-                    if (href.contains(OrganizationMenuBar.regexForUrlClassification)) {
-                        ORGANIZATION
-                    } else if (href.contains(ProjectMenuBar.regexForUrlClassification)) {
-                        PROJECT
+                    if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
+                        PROJECT_OR_ORGANIZATION
                     } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
                         ARCHIVE
                     } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
@@ -139,8 +135,7 @@ class TopBarUrl(href: String) {
                 pathPart: String,
                 allPath: String,
             ) = when (exception) {
-                ORGANIZATION -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                PROJECT -> "#/${FrontendRoutes.PROJECTS.path}"
+                PROJECT_OR_ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
                 ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                 DETAILS, EXECUTION -> if (pathPart == "execution") allPath else mergeUrls(allPath, pathPart)
                 else -> mergeUrls(allPath, pathPart)
@@ -157,7 +152,7 @@ class TopBarUrl(href: String) {
                 pathPart: String,
                 allPath: String
             ) = when (exception) {
-                ORGANIZATION, PROJECT, ARCHIVE -> "#"
+                PROJECT_OR_ORGANIZATION, ARCHIVE -> "#"
                 DETAILS, EXECUTION -> if (pathPart == "execution") mergeUrls(allPath, pathPart) else allPath
                 else -> allPath
             }
@@ -171,8 +166,8 @@ class TopBarUrl(href: String) {
                 exception: ExceptionUrlClassification,
                 isNumber: Boolean
             ) = when (exception) {
-                ORGANIZATION, PROJECT, ARCHIVE -> KEYWORD_PROCESS
-                DETAILS -> if (isNumber) KEYWORD_PROCESS_ONLY_LAST_SEGMENT else DETAILS
+                PROJECT_OR_ORGANIZATION, ARCHIVE -> KEYWORD_PROCESS
+                DETAILS -> if (isNumber) setProcessLastSegments(1) else DETAILS
                 else -> exception
             }
 
@@ -183,11 +178,18 @@ class TopBarUrl(href: String) {
              * @param size
              */
             fun isCreateButton(exception: ExceptionUrlClassification, index: Int, size: Int) = when (exception) {
-                KEYWORD_PROCESS_ONLY_LAST_SEGMENT -> index == size - 2
+                KEYWORD_PROCESS_LAST_SEGMENTS -> index == size - 1 - processLastSegments
                 KEYWORD_NOT_PROCESS -> false
                 else -> true
             }
             private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
+
+            private fun setProcessLastSegments(number: Int): ExceptionUrlClassification {
+                processLastSegments = number
+                return KEYWORD_PROCESS_LAST_SEGMENTS
+            }
+
+            private var processLastSegments = 0
         }
     }
 }
@@ -257,7 +259,7 @@ fun topBar() = FC<TopBarProps> { props ->
                     .apply {
                         val url = TopBarUrl(location.pathname.substringBeforeLast("?"))
                         forEachIndexed { index: Int, pathPart: String ->
-                            url.changeUrlBefore(pathPart)
+                            url.changeUrlBeforeButton(pathPart)
                             if (url.isCreateButton(index)) {
                                 li {
                                     className = ClassName("breadcrumb-item")
@@ -276,7 +278,7 @@ fun topBar() = FC<TopBarProps> { props ->
                                     }
                                 }
                             }
-                            url.changeUrlAfter(pathPart)
+                            url.changeUrlAfterButton(pathPart)
                         }
                     }
             }
