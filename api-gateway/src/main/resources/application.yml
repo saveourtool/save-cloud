@@ -50,14 +50,6 @@ spring:
           uri: ${gateway.grafana.url}
           predicates:
             - Path=/grafana/**
-  security:
-    oauth2:
-      client:
-        provider:
-          github:
-            # value that will work with GitHub API, where GitHub provides username as "login" in the response
-            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
-            user-name-attribute: login
 
 ---
 spring:
@@ -67,3 +59,16 @@ spring:
 gateway:
   grafana:
     url: http://save-cloud-grafana:9100
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login

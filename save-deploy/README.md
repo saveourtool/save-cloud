@@ -73,6 +73,7 @@ Usually not the whole stack is required for development. Application logic is pe
 * Run `./gradlew deployLocal -Psave.profile=dev` to start the database and run three microservices (backend, preprocessor and orchestrator) with Docker Compose.
   Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be
   proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js).
+* `api-gateway` can be run locally together with [dex]() OAuth2 server. TODO: rest of instruction
 
 ## Local debugging
 You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
@@ -118,9 +119,7 @@ Do not forget to use `mac` profile.
 * PostProcessor is reading secrets for database connection from the docker secrets and fills the spring datasource. (DockerSecretsDatabaseProcessor class)
 * api-gateway is a single external-facing component, hence its security is stricter. Actuator endpoints are protected with
 basic HTTP security. Access can be further restricted by specifying `gateway.knownActuatorConsumers` in `application.properties`
-(if this options is not specified, no check will be performed). To access this data from prometheus it should have access
-to these credentials from docker secrets. Configuration file [prometheus.yml](./prometheus.yml) is configured to use username
-`prometheus` and password from standard path for docker swarm secrets.
+(if this options is not specified, no check will be performed).
 
 # Server configuration
 ## Nginx
