@@ -48,22 +48,6 @@ interface Storage<K> {
     fun download(key: K): Flux<ByteBuffer>
 
     /**
-     * @param source a key of source
-     * @param target a key of target
-     * @return count of copied bytes
-     */
-    fun copy(source: K, target: K): Mono<Long> =
-            upload(target, download(source))
-
-    /**
-     * @param source a key of source
-     * @param target a key of target
-     * @return true if the [source] deleted, otherwise false
-     */
-    fun move(source: K, target: K): Mono<Boolean> =
-            copy(source, target).then(delete(source))
-
-    /**
      * Extensions which expects [ProjectCoordinates] as part of key
      *
      * @param K type of inner key (without [ProjectCoordinates])
