@@ -23,6 +23,11 @@ on:
         default: true
         description: Build new image of save-backend
         required: false
+      frontend:
+        type: boolean
+        default: true
+        description: Build new image of save-frontend
+        required: false
       orchestrator:
         type: boolean
         default: true
@@ -52,16 +57,17 @@ jobs:
         name: Prepare to build
         working-directory: save-cloud
         run: |
-          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-orchestrator:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
+          echo GRADLE_TASKS=:api-gateway:bootBuildImage :save-backend:bootBuildImage :save-frontend:buildImage :save-orchestrator:bootBuildImage :save-preprocessor:bootBuildImage >> $GITHUB_ENV
       - if: github.event_name == 'workflow_dispatch'
         name: Prepare to build from branch
         working-directory: save-cloud
         run: |
           git checkout origin/${{ inputs.branch }}
-          echo ADDITIONAL_GRADLE_OPTS=-PdockerTag=${{ inputs.branch }} >> $GITHUB_ENV
+          echo ADDITIONAL_GRADLE_OPTS=-Pbuild.dockerTag=${{ inputs.branch }} >> $GITHUB_ENV
           GRADLE_TASKS=""
           if ${{ inputs.gateway }} == 'true'; then GRADLE_TASKS+=":api-gateway:bootBuildImage "; fi
           if ${{ inputs.backend }} == 'true'; then GRADLE_TASKS+=":save-backend:bootBuildImage "; fi
+          if ${{ inputs.frontend }} == 'true'; then GRADLE_TASKS+=":save-frontend:buildImage "; fi
           if ${{ inputs.orchestrator }} == 'true'; then GRADLE_TASKS+=":save-orchestrator:bootBuildImage "; fi
           if ${{ inputs.preprocessor }} == 'true'; then GRADLE_TASKS+=":save-preprocessor:bootBuildImage "; fi
           echo GRADLE_TASKS=$GRADLE_TASKS >> $GITHUB_ENV
