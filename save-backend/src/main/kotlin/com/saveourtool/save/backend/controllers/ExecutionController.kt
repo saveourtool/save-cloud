@@ -137,7 +137,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * Delete all executions by project name and organization
+     * Delete all, except participating in contests, executions, by project name and organization
      *
      * @param name name of project
      * @param organizationName organization of project
@@ -145,7 +145,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping(path = ["/api/$v1/execution/deleteAll"])
+    @PostMapping(path = ["/api/$v1/execution/deleteAllExceptContest"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -165,7 +165,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 testExecutionService.deleteTestExecutionWithProjectId(id)
                 agentStatusService.deleteAgentStatusWithProjectId(id)
                 agentService.deleteAgentWithProjectId(id)
-                executionService.deleteExecutionByProjectNameAndProjectOrganization(name, organization)
+                executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
                 ResponseEntity.ok().build<String>()
             }
     }

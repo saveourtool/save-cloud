@@ -108,16 +108,19 @@ class ExecutionService(
             executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
 
     /**
-     * Delete all executions by project name and organization
+     * Delete executions, except participating in contests, by project name and organization
      *
      * @param name name of project
      * @param organization organization of project
      * @return Unit
      */
-    fun deleteExecutionByProjectNameAndProjectOrganization(name: String, organization: Organization) =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).forEach {
-                executionRepository.delete(it)
-            }
+    fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
+        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
+            lnkContestExecutionService.findContestByExecution(it) == null
+        }.forEach {
+            executionRepository.delete(it)
+        }
+    }
 
     /**
      * Delete all executions by project name and organization

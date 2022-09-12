@@ -203,6 +203,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                             type = ButtonType.button
                             className = ClassName("btn btn-small")
                             fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                            disabled = if (true) {
+                                false
+                            } else {
+                                false
+                            }
                             onClick = {
                                 deleteExecution(cellProps.value.id)
                             }
@@ -314,7 +319,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}",
+                        "$apiUrl/execution/deleteAllExceptContest?name=${props.name}&organizationName=${props.organizationName}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler,
