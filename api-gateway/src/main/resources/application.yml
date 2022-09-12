@@ -35,6 +35,10 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
+        - id: error_route
+          uri: ${gateway.backend.url}/error
+          predicates:
+            - Path=/error
         - id: resource_route
           uri: ${gateway.frontend.url}
           predicates:
