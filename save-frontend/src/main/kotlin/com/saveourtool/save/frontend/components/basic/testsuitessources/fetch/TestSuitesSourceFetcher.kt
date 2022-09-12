@@ -17,7 +17,6 @@ import csstype.ClassName
 import react.*
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
@@ -196,7 +195,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                     dataToString = { it }
                     notFoundErrorMessage = "There are no tags in ${props.testSuitesSource.gitDto.url}"
                     this.selectedValue = selectedValue ?: ""
-                    disabled = false
                     onChangeFun = { tag ->
                         setSelectedValue(tag)
                     }
@@ -223,7 +221,6 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
                     dataToString = { it }
                     notFoundErrorMessage = "There are no branches in ${props.testSuitesSource.gitDto.url}"
                     this.selectedValue = selectedValue ?: ""
-                    disabled = false
                     onChangeFun = { tag ->
                         setSelectedValue(tag)
                     }

@@ -52,7 +52,7 @@ private fun userBoard() = FC<UserBoardProps> { props ->
                         img {
                             className = ClassName("img-fluid px-sm-3")
                             style = jso {
-                                borderRadius = "50%".unsafeCast<BorderRadius>()
+                                borderRadius = "50%;".unsafeCast<BorderRadius>()
                             }
                             src = user.avatar?.let { path ->
                                 "/api/$v1/avatar$path"

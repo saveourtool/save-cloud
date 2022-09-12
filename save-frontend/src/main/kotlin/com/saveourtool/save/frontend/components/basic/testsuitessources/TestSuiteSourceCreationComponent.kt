@@ -48,11 +48,6 @@ external interface TestSuiteSourceCreationProps : Props {
     var organizationName: String
 
     /**
-     * ID of existed [com.saveourtool.save.entities.TestSuitesSource] to update
-     */
-    var testSuitesSourceId: Long
-
-    /**
      * Callback invoked on successful save
      */
     var onSuccess: (TestSuitesSourceDto) -> Unit
@@ -114,7 +109,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    val requestToCreateEntity = useDeferredRequest {
+    val onSubmitButtonPressed = useDeferredRequest {
         testSuiteSource.let {
             val response = post(
                 url = "/api/$v1/test-suites-sources/create",
@@ -130,22 +125,6 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             }
         }
     }
-    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    val requestToUpdateEntity = useDeferredRequest {
-        val response = post(
-            url = "/api/$v1/test-suites-sources/update?id=${props.testSuitesSourceId}",
-            headers = jsonHeaders,
-            body = Json.encodeToString(testSuiteSource),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::responseHandlerWithValidation,
-        )
-        if (response.ok) {
-            props.onSuccess(testSuiteSource)
-        } else if (response.isConflict()) {
-            setSaveStatus(response.decodeFromJsonString<SourceSaveStatus>())
-        }
-    }
-    val onSubmitButtonPressed = requestToCreateEntity
 
     div {
         inputTextFormRequired {
@@ -199,7 +178,6 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
             dataToString = { it.url }
             notFoundErrorMessage = "You have no avaliable git credentials in organization ${props.organizationName}"
             selectedValue = testSuiteSource.gitDto.url
-            disabled = false
             onChangeFun = { git ->
                 git?.let {
                     setTestSuiteSource(testSuiteSource.copy(gitDto = it))

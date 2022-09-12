@@ -66,19 +66,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
-    val triggerFetchTestSuiteSource = useDeferredRequest {
-        testSuiteSourceToFetch?.let { testSuiteSource ->
-            post(
-                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                body = undefined
-            )
-        }
-    }
     val testSuitesSourceFetcherWindowOpenness = useWindowOpenness()
-    @Suppress("DEBUG_PRINT")
-    console.log("create testSuitesSourceFetcher")
     div {
         testSuitesSourceFetcher(
             testSuitesSourceFetcherWindowOpenness,
@@ -131,12 +119,8 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
-        // triggerFetchTestSuiteSource()
     }
-    val editHandler: (TestSuitesSourceDto) -> Unit = {
-        // do nothing for now
-    }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
@@ -147,10 +131,8 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     showTestSuiteSourceCreationModal(
         testSuitesSourceCreationWindowOpenness.isOpen(),
         props.organizationName,
-        { source ->
+        {
             testSuitesSourceCreationWindowOpenness.closeWindow()
-            setTestSuiteSourceToFetch(source)
-            triggerFetchTestSuiteSource()
             setIsSourceCreated { !it }
         },
     ) {
@@ -204,12 +186,10 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
     "LongMethod",
-    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDto) -> Unit,
 ): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
     columns = columns {
         column(id = "organizationName", header = "Organization", { this }) { cellProps ->
@@ -264,23 +244,8 @@ private fun prepareTestSuitesSourcesTable(
                         className = ClassName("btn btn-sm btn-primary")
                         onClick = {
                             fetchHandler(cellProps.value)
-                            // testSuitesSourceFetcherWindowOpenness.openWindow()
                         }
                         +"fetch"
-                    }
-                }
-            }
-        }
-        column(id = "edit", header = "Edit", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
-                        onClick = {
-                            editHandler(cellProps.value)
-                        }
-                        +"edit"
                     }
                 }
             }
