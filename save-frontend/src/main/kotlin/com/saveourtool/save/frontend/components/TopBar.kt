@@ -63,11 +63,9 @@ class TopBarUrl(href: String) {
      */
     var currentPath = "#"
     private var circumstance: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
-    private val sizeUrlSegments: Int
 
     init {
         circumstance = ExceptionUrlClassification.findException(href)
-        sizeUrlSegments = href.split("/").size
     }
 
     /**
@@ -94,7 +92,7 @@ class TopBarUrl(href: String) {
      *
      * @param index is index of this segment in url address
      */
-    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index, sizeUrlSegments)
+    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index)
 
     private enum class ExceptionUrlClassification {
         ARCHIVE,  // exception with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
@@ -180,10 +178,9 @@ class TopBarUrl(href: String) {
              *
              * @param exception
              * @param index
-             * @param size
              */
-            fun isCreateButton(exception: ExceptionUrlClassification, index: Int, size: Int) = when (exception) {
-                KEYWORD_PROCESS_LAST_SEGMENTS -> index > size - 1 - processLastSegments
+            fun isCreateButton(exception: ExceptionUrlClassification, index: Int) = when (exception) {
+                KEYWORD_PROCESS_LAST_SEGMENTS -> index > sizeUrlSegments - 1 - processLastSegments
                 KEYWORD_NOT_PROCESS -> false
                 else -> true
             }
