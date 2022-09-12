@@ -96,33 +96,40 @@ class TopBarUrl(href: String) {
      */
     fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index, sizeUrlSegments)
 
-    private enum class ExceptionUrlClassification {
-        ARCHIVE, //
-        DETAILS,
-        EXECUTION,
-        PROJECT_OR_ORGANIZATION,
-
-        KEYWORD_NOT_PROCESS,
-        KEYWORD_PROCESS,
-        KEYWORD_PROCESS_LAST_SEGMENTS,
+    private enum class ExceptionUrlClassification() {
+        ARCHIVE,  // exception with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
+        DETAILS, // exception with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
+        EXECUTION, // exception with the processing of the "execution" in the url address - need for redirect to the page with the executions history
+        KEYWORD_NOT_PROCESS, // the button with this url segment is not created
+        KEYWORD_PROCESS, // the button with this url segment is created without changes
+        KEYWORD_PROCESS_LAST_SEGMENTS, // a button is created if this segment is one of the last
+        PROJECT_OR_ORGANIZATION, // exception with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
         ;
 
+
         companion object {
+            private var processLastSegments = 0
+            private var sizeUrlSegments: Int = 0
+
+
             /**
              * @param href
              */
-            fun findException(href: String) =
-                    if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
-                        PROJECT_OR_ORGANIZATION
-                    } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
-                        ARCHIVE
-                    } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
-                        DETAILS
-                    } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
-                        EXECUTION
-                    } else {
-                        KEYWORD_PROCESS
-                    }
+            fun findException(href: String): ExceptionUrlClassification {
+                sizeUrlSegments = href.split("/").size
+                return if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
+                    PROJECT_OR_ORGANIZATION
+                } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+                    ARCHIVE
+                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
+                    DETAILS
+                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
+                    EXECUTION
+                } else {
+                    KEYWORD_PROCESS
+                }
+            }
+
 
             /** Function check exception and generate currentPath before the buttons creating
              *
@@ -178,18 +185,15 @@ class TopBarUrl(href: String) {
              * @param size
              */
             fun isCreateButton(exception: ExceptionUrlClassification, index: Int, size: Int) = when (exception) {
-                KEYWORD_PROCESS_LAST_SEGMENTS -> index == size - 1 - processLastSegments
+                KEYWORD_PROCESS_LAST_SEGMENTS -> index > size - 1 - processLastSegments
                 KEYWORD_NOT_PROCESS -> false
                 else -> true
             }
             private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
-
             private fun setProcessLastSegments(number: Int): ExceptionUrlClassification {
                 processLastSegments = number
                 return KEYWORD_PROCESS_LAST_SEGMENTS
             }
-
-            private var processLastSegments = 0
         }
     }
 }
