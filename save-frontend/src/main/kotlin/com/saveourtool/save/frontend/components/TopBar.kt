@@ -96,24 +96,23 @@ class TopBarUrl(href: String) {
      */
     fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index, sizeUrlSegments)
 
-    private enum class ExceptionUrlClassification() {
+    private enum class ExceptionUrlClassification {
         ARCHIVE,  // exception with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
-        DETAILS, // exception with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
-        EXECUTION, // exception with the processing of the "execution" in the url address - need for redirect to the page with the executions history
-        KEYWORD_NOT_PROCESS, // the button with this url segment is not created
-        KEYWORD_PROCESS, // the button with this url segment is created without changes
-        KEYWORD_PROCESS_LAST_SEGMENTS, // a button is created if this segment is one of the last
-        PROJECT_OR_ORGANIZATION, // exception with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
+        DETAILS,  // exception with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
+        EXECUTION,  // exception with the processing of the "execution" in the url address - need for redirect to the page with the executions history
+        KEYWORD_NOT_PROCESS,  // the button with this url segment is not created
+        KEYWORD_PROCESS,  // the button with this url segment is created without changes
+        KEYWORD_PROCESS_LAST_SEGMENTS,  // a button is created if this segment is one of the last
+        PROJECT_OR_ORGANIZATION,  // exception with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
         ;
-
 
         companion object {
             private var processLastSegments = 0
             private var sizeUrlSegments: Int = 0
 
-
             /**
              * @param href
+             * @return [ExceptionUrlClassification] enum element
              */
             fun findException(href: String): ExceptionUrlClassification {
                 sizeUrlSegments = href.split("/").size
@@ -129,7 +128,6 @@ class TopBarUrl(href: String) {
                     KEYWORD_PROCESS
                 }
             }
-
 
             /** Function check exception and generate currentPath before the buttons creating
              *
