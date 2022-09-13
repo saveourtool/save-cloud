@@ -128,8 +128,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
         }
     }
 
-    val gitWindowState = useState(false)
-    val gitWindowOpenness = WindowOpenness(gitWindowState)
+    val gitWindowOpenness = useWindowOpenness()
     val gitCredentialToUpsertState = useState(GitDto.empty)
     gitWindow {
         windowOpenness = gitWindowOpenness
@@ -186,7 +185,7 @@ private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps
                         it.decodeFromJsonString()
                     }
             }
-            getDataRequestDependencies = arrayOf(gitWindowState.component1())
+            getDataRequestDependencies = arrayOf(gitWindowOpenness.isOpen())
             dataToString = { it.url }
             notFoundErrorMessage = "You have no avaliable git credentials in organization ${props.organizationName}."
             addNewItemChildrenBuilder = { childrenBuilder ->
