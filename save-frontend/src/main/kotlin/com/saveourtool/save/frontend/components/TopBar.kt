@@ -62,10 +62,10 @@ class TopBarUrl(href: String) {
      * currentPath is the link that we put in buttons
      */
     var currentPath = "#"
-    private var circumstance: ExceptionUrlClassification = ExceptionUrlClassification.KEYWORD_PROCESS
+    private var circumstance: SituationUrlClassification = SituationUrlClassification.KEYWORD_PROCESS
 
     init {
-        circumstance = ExceptionUrlClassification.findException(href)
+        circumstance = SituationUrlClassification.findException(href)
     }
 
     /**
@@ -74,7 +74,7 @@ class TopBarUrl(href: String) {
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
     fun changeUrlBeforeButton(pathPart: String) {
-        currentPath = ExceptionUrlClassification.fixCurrentPathBefore(circumstance, pathPart, currentPath)
+        currentPath = SituationUrlClassification.fixCurrentPathBefore(circumstance, pathPart, currentPath)
     }
 
     /**
@@ -83,8 +83,8 @@ class TopBarUrl(href: String) {
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
     fun changeUrlAfterButton(pathPart: String) {
-        currentPath = ExceptionUrlClassification.fixCurrentPathAfter(circumstance, pathPart, currentPath)
-        circumstance = ExceptionUrlClassification.fixExceptionAfter(circumstance, "\\d+".toRegex().matches(pathPart))
+        currentPath = SituationUrlClassification.fixCurrentPathAfter(circumstance, pathPart, currentPath)
+        circumstance = SituationUrlClassification.fixExceptionAfter(circumstance, "\\d+".toRegex().matches(pathPart))
     }
 
     /**
@@ -92,16 +92,16 @@ class TopBarUrl(href: String) {
      *
      * @param index is index of this segment in url address
      */
-    fun isCreateButton(index: Int) = ExceptionUrlClassification.isCreateButton(circumstance, index)
+    fun isCreateButton(index: Int) = SituationUrlClassification.isCreateButton(circumstance, index)
 
-    private enum class ExceptionUrlClassification {
-        ARCHIVE,  // exception with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
-        DETAILS,  // exception with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
-        EXECUTION,  // exception with the processing of the "execution" in the url address - need for redirect to the page with the executions history
+    private enum class SituationUrlClassification {
+        ARCHIVE,  // situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
+        DETAILS,  // situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
+        EXECUTION,  // situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
         KEYWORD_NOT_PROCESS,  // the button with this url segment is not created
         KEYWORD_PROCESS,  // the button with this url segment is created without changes
         KEYWORD_PROCESS_LAST_SEGMENTS,  // a button is created if this segment is one of the last
-        PROJECT_OR_ORGANIZATION,  // exception with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
+        PROJECT_OR_ORGANIZATION,  // situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
         ;
 
         companion object {
@@ -110,9 +110,9 @@ class TopBarUrl(href: String) {
 
             /**
              * @param href
-             * @return [ExceptionUrlClassification] enum element
+             * @return [SituationUrlClassification] enum element
              */
-            fun findException(href: String): ExceptionUrlClassification {
+            fun findException(href: String): SituationUrlClassification {
                 sizeUrlSegments = href.split("/").size
                 return if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
                     PROJECT_OR_ORGANIZATION
@@ -134,7 +134,7 @@ class TopBarUrl(href: String) {
              * @param allPath
              */
             fun fixCurrentPathBefore(
-                exception: ExceptionUrlClassification,
+                exception: SituationUrlClassification,
                 pathPart: String,
                 allPath: String,
             ) = when (exception) {
@@ -151,7 +151,7 @@ class TopBarUrl(href: String) {
              * @param allPath
              */
             fun fixCurrentPathAfter(
-                exception: ExceptionUrlClassification,
+                exception: SituationUrlClassification,
                 pathPart: String,
                 allPath: String
             ) = when (exception) {
@@ -166,7 +166,7 @@ class TopBarUrl(href: String) {
              * @param isNumber
              */
             fun fixExceptionAfter(
-                exception: ExceptionUrlClassification,
+                exception: SituationUrlClassification,
                 isNumber: Boolean
             ) = when (exception) {
                 PROJECT_OR_ORGANIZATION, ARCHIVE -> KEYWORD_PROCESS
@@ -179,13 +179,13 @@ class TopBarUrl(href: String) {
              * @param exception
              * @param index
              */
-            fun isCreateButton(exception: ExceptionUrlClassification, index: Int) = when (exception) {
+            fun isCreateButton(exception: SituationUrlClassification, index: Int) = when (exception) {
                 KEYWORD_PROCESS_LAST_SEGMENTS -> index > sizeUrlSegments - 1 - processLastSegments
                 KEYWORD_NOT_PROCESS -> false
                 else -> true
             }
             private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
-            private fun setProcessLastSegments(number: Int): ExceptionUrlClassification {
+            private fun setProcessLastSegments(number: Int): SituationUrlClassification {
                 processLastSegments = number
                 return KEYWORD_PROCESS_LAST_SEGMENTS
             }
