@@ -7,6 +7,7 @@ plugins {
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
     `maven-publish`
+    id("com.saveourtool.save.buildutils.detekt-common")
 }
 kotlin {
     allOpen {

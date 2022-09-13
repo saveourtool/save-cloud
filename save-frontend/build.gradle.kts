@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 
 plugins {
     kotlin("js")
+    id("com.saveourtool.save.buildutils.detekt-common")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {

@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
     `maven-publish`
+    id("com.saveourtool.save.buildutils.detekt-common")
 }
 
 tasks.withType<KotlinCompile> {

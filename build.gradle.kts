@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
     java
+    id("com.saveourtool.save.buildutils.detekt-common")
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
@@ -53,7 +54,6 @@ talaiot {
 }
 
 allprojects {
-    configureDetekt()
     configurations.all {
         // if SNAPSHOT dependencies are used, refresh them periodically
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
@@ -68,6 +68,5 @@ configureSpotless()
 createStackDeployTask(profile)
 configureVersioning()
 configurePublishing()
-createDetektTask()
 installGitHooks()
 registerSaveCliVersionCheckTask()
