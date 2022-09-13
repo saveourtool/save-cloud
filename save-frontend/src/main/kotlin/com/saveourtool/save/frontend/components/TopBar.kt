@@ -173,9 +173,6 @@ private enum class SituationUrlClassification {
     KEYWORD_PROCESS_LAST_SEGMENTS,
     PROJECT_OR_ORGANIZATION,
     ;
-
-    companion object {
-    }
 }
 
 private fun ChildrenBuilder.dropdownEntry(
