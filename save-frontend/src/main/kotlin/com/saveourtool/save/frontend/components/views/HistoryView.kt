@@ -156,6 +156,16 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     }
                 }
             }
+            column("contestName", "Participating in contest", { contestName ?: "N/A" }) { cellProps ->
+                Fragment.create {
+                    td {
+                        a {
+                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                            +cellProps.value
+                        }
+                    }
+                }
+            }
             column("running", "Running", { runningTests }) { cellProps ->
                 Fragment.create {
                     td {
