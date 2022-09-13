@@ -517,27 +517,6 @@
             }
           },
           {
-            "name": "mode",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "BY_BRANCH",
-                "BY_COMMIT",
-                "BY_TAG"
-              ]
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Authorization-Source",
             "in": "header",
             "required": true,
