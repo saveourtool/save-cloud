@@ -38,7 +38,7 @@ val organizationContestsMenu = organizationContestsMenu()
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tableComponent(
-    columns = {props ->
+    columns = { props ->
         columns {
             column(id = "name", header = "Contest Name", { name }) { cellProps ->
                 Fragment.create {
