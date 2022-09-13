@@ -89,13 +89,21 @@ class ExecutionService(
         executionRepository.save(updatedExecution)
     }
 
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
+     * @return list of execution
+     */
+    fun getExecutionByNameAndOrganization(name: String, organization: Organization) =
+        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
+
     /**
      * @param name name of project
      * @param organization organization of project
      * @return list of execution dtos
      */
-    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).map { it.toDto() }
+    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
 
     /**
      * Get latest (by start time an) execution by project name and organization

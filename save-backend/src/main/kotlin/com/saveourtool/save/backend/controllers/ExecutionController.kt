@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -47,6 +48,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
+                          private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -112,7 +114,9 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .flatMap { organization ->
             projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+                executionService.getExecutionByNameAndOrganization(name, organization).map {
+                    it.toDto().copy(contestName = lnkContestExecutionService.findContestByExecution(it)?.name)
+                }.reversed()
             }
         }
 

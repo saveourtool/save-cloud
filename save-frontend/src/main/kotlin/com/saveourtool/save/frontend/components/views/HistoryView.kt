@@ -203,11 +203,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                             type = ButtonType.button
                             className = ClassName("btn btn-small")
                             fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                            disabled = if (true) {
-                                false
-                            } else {
-                                false
-                            }
+                            disabled = cellProps.value.contestName != null
                             onClick = {
                                 deleteExecution(cellProps.value.id)
                             }
