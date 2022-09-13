@@ -440,6 +440,12 @@ class TestSuitesSourceController(
         summary = "Post fetching of new tests from test suites source.",
         description = "Post fetching of new tests from test suites source.",
     )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "mode", `in` = ParameterIn.QUERY, description = "fetch mode", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to be fetched: tag, branch or commit id", required = true),
+    )
     @ApiResponse(responseCode = "202", description = "Successfully trigger fetching new tests from requested test suites source.")
     fun triggerFetch(
         @PathVariable organizationName: String,

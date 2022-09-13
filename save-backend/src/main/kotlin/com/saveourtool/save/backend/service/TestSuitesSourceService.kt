@@ -90,8 +90,10 @@ class TestSuitesSourceService(
     @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
     fun update(entity: TestSuitesSource): Boolean {
-        requireNotNull(entity.id) {
-            "Cannot update entity as it is not saved yet: $entity"
+        with(entity) {
+            requireNotNull(id) {
+                "Cannot update entity ($name in ${organization.name}) as it is not saved yet"
+            }
         }
         return save(entity)
     }

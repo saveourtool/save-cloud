@@ -59,7 +59,6 @@ class TestSuitesPreprocessorController(
      * @param tagName tag which needs to be loaded, will be used as version
      * @return empty response
      */
-    @PostMapping("/fetch-from-tag")
     private fun fetchFromTag(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam tagName: String,
@@ -90,7 +89,6 @@ class TestSuitesPreprocessorController(
      * @param branchName branch from which the latest commit needs to be loaded, will be used as version
      * @return empty response
      */
-    @PostMapping("/fetch-from-branch")
     private fun fetchFromBranch(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam branchName: String,
@@ -122,7 +120,6 @@ class TestSuitesPreprocessorController(
      * @param commitId commit which needs to be loaded, will be used as version
      * @return empty response
      */
-    @PostMapping("/fetch-from-commit")
     private fun fetchFromCommit(
         @RequestBody testSuitesSourceDto: TestSuitesSourceDto,
         @RequestParam commitId: String,

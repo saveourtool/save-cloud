@@ -11,17 +11,16 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
+import com.saveourtool.save.frontend.components.modal.modalBuilder
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import csstype.ClassName
 import react.*
-import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h5
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val innerTestSuitesSourceFetcher = innerTestSuitesSourceFetcher()
@@ -69,7 +68,7 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
 ) {
     val selectedFetchModeState = useState(TestSuitesSourceFetchMode.BY_TAG)
     val (selectedFetchMode, _) = selectedFetchModeState
-    val selectedValueState: StateInstance<String?> = useState<String>()
+    val selectedValueState: StateInstance<String?> = useState()
     val (selectedValue, _) = selectedValueState
     val triggerFetchTestSuiteSource = useDeferredRequest {
         post(
@@ -85,59 +84,37 @@ fun ChildrenBuilder.testSuitesSourceFetcher(
     modal { modalProps ->
         modalProps.isOpen = windowOpenness.isOpen()
         modalProps.style = largeTransparentModalStyle
-        div {
-            className = ClassName("modal-dialog modal-lg modal-dialog-scrollable")
+        modalBuilder(
+            title = "Test suites source fetcher",
+            onCloseButtonPressed = windowOpenness.closeWindowAction(),
+            bodyBuilder = {
+                innerTestSuitesSourceFetcher {
+                    this.windowOpenness = windowOpenness
+                    this.testSuitesSource = testSuitesSource
+                    this.selectedFetchModeState = selectedFetchModeState
+                    this.selectedValueState = selectedValueState
+                }
+            },
+        ) {
             div {
-                className = ClassName("modal-content")
-                div {
-                    className = ClassName("modal-header")
-                    h5 {
-                        className = ClassName("modal-title mb-0")
-                        +"Test suites source fetcher"
-                    }
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("close")
-                        asDynamic()["data-dismiss"] = "modal"
-                        ariaLabel = "Close"
-                        fontAwesomeIcon(icon = faTimesCircle)
-                        onClick = windowOpenness.closeWindowAction().withUnusedArg()
+                className = ClassName("d-flex justify-content-center")
+                button {
+                    type = ButtonType.button
+                    className = ClassName("btn btn-primary mt-4")
+                    +"Fetch"
+                    onClick = {
+                        triggerFetchTestSuiteSource()
+                        windowOpenness.closeWindow()
                     }
                 }
-
-                div {
-                    className = ClassName("modal-body")
-                    innerTestSuitesSourceFetcher {
-                        this.windowOpenness = windowOpenness
-                        this.testSuitesSource = testSuitesSource
-                        this.selectedFetchModeState = selectedFetchModeState
-                        this.selectedValueState = selectedValueState
-                    }
-                }
-
-                div {
-                    className = ClassName("modal-footer")
-                    div {
-                        className = ClassName("d-flex justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-primary mt-4")
-                            +"Fetch"
-                            onClick = {
-                                triggerFetchTestSuiteSource()
-                                windowOpenness.closeWindow()
-                            }
-                        }
-                    }
-                    div {
-                        className = ClassName("d-flex justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-secondary mt-4")
-                            +"Cancel"
-                            onClick = windowOpenness.closeWindowAction().withUnusedArg()
-                        }
-                    }
+            }
+            div {
+                className = ClassName("d-flex justify-content-center")
+                button {
+                    type = ButtonType.button
+                    className = ClassName("btn btn-secondary mt-4")
+                    +"Cancel"
+                    onClick = windowOpenness.closeWindowAction().withUnusedArg()
                 }
             }
         }
@@ -188,7 +165,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
         TestSuitesSourceFetchMode.BY_TAG -> div {
             tagSelector {
                 formType = InputTypes.SOURCE_TAG
-                validInput = true
+                validInput = selectedValue != null
                 classes = "mb-2"
                 formName = "Source tag:"
                 getData = {
@@ -212,7 +189,7 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
         TestSuitesSourceFetchMode.BY_BRANCH -> div {
             branchSelector {
                 formType = InputTypes.SOURCE_BRANCH
-                validInput = true
+                validInput = selectedValue != null
                 classes = "mb-2"
                 formName = "Source branch:"
                 getData = {
@@ -236,8 +213,8 @@ private fun innerTestSuitesSourceFetcher() = FC<TestSuitesSourceFetcherProps> { 
         TestSuitesSourceFetchMode.BY_COMMIT -> div {
             inputTextFormRequired {
                 form = InputTypes.SOURCE_COMMIT
-                textValue = null
-                validInput = true
+                textValue = selectedValue
+                validInput = selectedValue != null
                 classes = "mb-2"
                 name = "Commit (sha-1):"
                 conflictMessage = null
