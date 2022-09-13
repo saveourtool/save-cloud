@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
@@ -89,42 +90,45 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
 class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(false) {
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
+        "TYPE_ALIAS",
     )
-    private val tableWithOrganizationRating = tableComponent(
-        columns = columns<OrganizationDto> {
-            column(id = "index", header = "Position") {
-                Fragment.create {
-                    td {
-                        val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +"$index"
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            img {
-                                className =
-                                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                src = cellProps.row.original.avatar?.let {
-                                    "/api/$v1/avatar$it"
-                                } ?: "img/company.svg"
-                                style = jso {
-                                    height = 2.rem
-                                    width = 2.rem
-                                }
-                            }
-                            href = "#/${cellProps.value}"
-                            +" ${cellProps.value}"
+    private val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "index", header = "Position") {
+                    Fragment.create {
+                        td {
+                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            +"$index"
                         }
                     }
                 }
-            }
-            column(id = "rating", header = "Rating") { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${cellProps.value.globalRating?.toFixed(2)}"
+                column(id = "name", header = "Name", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                img {
+                                    className =
+                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = cellProps.row.original.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    style = jso {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                }
+                                href = "#/${cellProps.value}"
+                                +" ${cellProps.value}"
+                            }
+                        }
+                    }
+                }
+                column(id = "rating", header = "Rating") { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${cellProps.value.globalRating?.toFixed(2)}"
+                        }
                     }
                 }
             }
@@ -165,30 +169,32 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
     )
-    private val renderingProjectChampionsTable = tableComponent(
-        columns = columns<Project> {
-            column(id = "index", header = "Position") {
-                Fragment.create {
-                    td {
-                        val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +"$index"
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +" ${cellProps.value}"
+    private val renderingProjectChampionsTable: FC<TableProps<Project>> = tableComponent(
+        columns = {
+            columns<Project> {
+                column(id = "index", header = "Position") {
+                    Fragment.create {
+                        td {
+                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            +"$index"
                         }
                     }
                 }
-            }
-            column(id = "rating", header = "Rating") { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${cellProps.value.contestRating.toFixed(2)}"
+                column(id = "name", header = "Name", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                +" ${cellProps.value}"
+                            }
+                        }
+                    }
+                }
+                column(id = "rating", header = "Rating") { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${cellProps.value.contestRating.toFixed(2)}"
+                        }
                     }
                 }
             }
