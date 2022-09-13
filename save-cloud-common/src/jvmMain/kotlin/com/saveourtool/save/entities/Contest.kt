@@ -38,6 +38,7 @@ class Contest(
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ContestDto(
         name,
+        status,
         startTime!!,
         endTime!!,
         description,
@@ -94,13 +95,11 @@ class Contest(
          * Create [Contest] from [ContestDto]
          *
          * @param organization that created contest
-         * @param status [ContestStatus]
          * @param creationTime specified time when contest was created
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
-            status: ContestStatus = ContestStatus.CREATED,
             creationTime: LocalDateTime? = null,
         ) = Contest(
             name,

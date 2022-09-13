@@ -4,14 +4,15 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.privacySpan
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 
@@ -38,40 +39,42 @@ external interface CreationViewProps : Props {
 @OptIn(ExperimentalJsExport::class)
 class CollectionView : AbstractView<CreationViewProps, State>() {
     @Suppress("MAGIC_NUMBER")
-    private val projectsTable = tableComponent(
-        columns = columns<Project> {
-            column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}"
-                            +cellProps.value
+    private val projectsTable: FC<TableProps<Project>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "organization", header = "Organization", { organization.name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}"
+                                +cellProps.value
+                            }
                         }
                     }
                 }
-            }
-            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +cellProps.value
+                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                +cellProps.value
+                            }
+                            privacySpan(cellProps.row.original)
                         }
-                        privacySpan(cellProps.row.original)
                     }
                 }
-            }
-            column(id = "passed", header = "Description") {
-                Fragment.create {
-                    td {
-                        +(it.value.description ?: "Description not provided")
+                column(id = "passed", header = "Description") {
+                    Fragment.create {
+                        td {
+                            +(it.value.description ?: "Description not provided")
+                        }
                     }
                 }
-            }
-            column(id = "rating", header = "Contest Rating") {
-                Fragment.create {
-                    td {
-                        +"0"
+                column(id = "rating", header = "Contest Rating") {
+                    Fragment.create {
+                        td {
+                            +"0"
+                        }
                     }
                 }
             }

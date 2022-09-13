@@ -92,9 +92,10 @@ external interface TableProps<D : Any> : Props {
     "LongParameterList",
     "TooGenericExceptionCaught",
     "MAGIC_NUMBER",
+    "LAMBDA_IS_NOT_LAST_PARAMETER"
 )
 fun <D : Any, P : TableProps<D>> tableComponent(
-    columns: Array<out Column<D, *>>,
+    columns: (P) -> Array<out Column<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
     usePageSelection: Boolean = false,
@@ -117,7 +118,7 @@ fun <D : Any, P : TableProps<D>> tableComponent(
     val scope = CoroutineScope(Dispatchers.Default)
 
     val tableInstance: TableInstance<D> = useTable(options = jso {
-        this.columns = useMemo { columns }
+        this.columns = useMemo { columns(props) }
         this.data = data
         this.manualPagination = useServerPaging
         if (useServerPaging) {

@@ -6,12 +6,15 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
+import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.useState
 
@@ -68,6 +71,15 @@ external interface SelectFormRequiredProps<D : Any> : Props {
      * Flag that disables the form
      */
     var disabled: Boolean?
+    
+     * Add custom elements under the form label in order to create new item.
+     */
+    var addNewItemChildrenBuilder: ((ChildrenBuilder) -> Unit)?
+
+    /**
+     * Array of dependencies of [getData] [useRequest]
+     */
+    var getDataRequestDependencies: Array<dynamic>
 
     /**
      * Callback invoked when form is changed
@@ -89,29 +101,37 @@ external interface SelectFormRequiredProps<D : Any> : Props {
 fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
 
-    useRequest {
+    useRequest(props.getDataRequestDependencies) {
         setElements((props.getData)())
     }
 
     div {
         className = ClassName("${props.classes} mt-1")
         props.formName?.let { formName ->
-            label {
-                className = ClassName("form-label")
-                props.formType.let {
-                    htmlFor = it.name
-                }
-                +formName
-                span {
-                    className = ClassName("text-danger")
-                    id = "${props.formType.name}Span"
-                    +"*"
+            div {
+                className = ClassName("d-flex justify-content-between")
+                label {
+                    className = ClassName("form-label")
+                    props.formType.let {
+                        htmlFor = it.name
+                    }
+                    +formName
+                    span {
+                        className = ClassName("text-danger")
+                        id = "${props.formType.name}Span"
+                        +"*"
+                    }
+            }
+            props.addNewItemChildrenBuilder?.let { addNewItemBuilder ->
+                small {
+                    className = ClassName("text-right")
+                    addNewItemBuilder(this)
                 }
             }
         }
 
-        div {
-            className = ClassName("input-group has-validation")
+        form {
+            className = ClassName("input-group needs-validation")
             select {
                 className = ClassName("form-control")
                 id = props.formType.name
@@ -144,8 +164,11 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
             }
 
             if (elements.isEmpty()) {
-                props.notFoundErrorMessage?.let {
-                    +it
+                props.notFoundErrorMessage?.let { notFoundErrorMessage ->
+                    div {
+                        className = ClassName("invalid-feedback d-block")
+                        +notFoundErrorMessage
+                    }
                 }
             } else if (props.validInput == false) {
                 div {

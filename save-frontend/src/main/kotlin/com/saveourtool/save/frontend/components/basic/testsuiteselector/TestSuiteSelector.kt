@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.modal.*
 import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.buttonWithIcon
 import com.saveourtool.save.frontend.utils.useTooltip
 
 import csstype.ClassName
@@ -248,30 +249,6 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
     }
 }
 
-private fun ChildrenBuilder.buildButton(
-    icon: FontAwesomeIconModule,
-    isActive: Boolean,
-    tooltipText: String,
-    onClickFun: () -> Unit
-) {
-    button {
-        type = ButtonType.button
-        title = tooltipText
-        val active = if (isActive) {
-            "active"
-        } else {
-            ""
-        }
-        className = ClassName("btn btn-outline-secondary $active")
-        fontAwesomeIcon(icon = icon)
-        onClick = {
-            onClickFun()
-        }
-        asDynamic()["data-toggle"] = "tooltip"
-        asDynamic()["data-placement"] = "bottom"
-    }
-}
-
 private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
     val (currentMode, setCurrentMode) = useState(if (props.preselectedTestSuiteIds.isEmpty()) {
         TestSuiteSelectorMode.BROWSER
@@ -280,9 +257,9 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
     })
     div {
         className = ClassName("d-flex align-self-center justify-content-around mb-2")
-        buildButton(faAlignJustify, currentMode == TestSuiteSelectorMode.MANAGER, "Manage linked test suites") { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
-        buildButton(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
-        buildButton(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
+        buttonWithIcon(faAlignJustify, currentMode == TestSuiteSelectorMode.MANAGER, "Manage linked test suites") { setCurrentMode(TestSuiteSelectorMode.MANAGER) }
+        buttonWithIcon(faPlus, currentMode == TestSuiteSelectorMode.BROWSER, "Browse public test suites") { setCurrentMode(TestSuiteSelectorMode.BROWSER) }
+        buttonWithIcon(faSearch, currentMode == TestSuiteSelectorMode.SEARCH, "Search by name or tag") { setCurrentMode(TestSuiteSelectorMode.SEARCH) }
     }
 
     useTooltip()

@@ -5,6 +5,8 @@ package com.saveourtool.save.frontend.components.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
+import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
@@ -42,6 +44,39 @@ fun ChildrenBuilder.displayModal(
 }
 
 /**
+ * Universal function to create modals ащк confirmation.
+ *
+ * @param windowOpenness
+ * @param title title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param successAction lambda for success action
+ */
+fun ChildrenBuilder.displayConfirmationModal(
+    windowOpenness: WindowOpenness,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    successAction: () -> Unit,
+) {
+    displayModal(
+        isOpen = windowOpenness.isOpen(),
+        title = title,
+        message = message,
+        modalStyle = modalStyle,
+        onCloseButtonPressed = windowOpenness.closeWindowAction()
+    ) {
+        buttonBuilder("Ok") {
+            successAction()
+            windowOpenness.closeWindow()
+        }
+        buttonBuilder("Cancel", "secondary") {
+            windowOpenness.closeWindow()
+        }
+    }
+}
+
+/**
  * Universal function to create modals with bootstrap styles.
  *
  * @param title title of the modal that will be shown in top-left corner
@@ -53,6 +88,33 @@ fun ChildrenBuilder.modalBuilder(
     title: String,
     message: String,
     onCloseButtonPressed: (() -> Unit)?,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modalBuilder(
+        title = title,
+        onCloseButtonPressed = onCloseButtonPressed,
+        bodyBuilder = {
+            h2 {
+                className = ClassName("h6 text-gray-800 mb-2")
+                +message
+            }
+        },
+        buttonBuilder = buttonBuilder,
+    )
+}
+
+/**
+ * Universal function to create modals with bootstrap styles.
+ *
+ * @param title title of the modal that will be shown in top-left corner
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param bodyBuilder lambda that generates body of modal
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ */
+fun ChildrenBuilder.modalBuilder(
+    title: String,
+    onCloseButtonPressed: (() -> Unit)?,
+    bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     div {
@@ -80,10 +142,7 @@ fun ChildrenBuilder.modalBuilder(
             }
             div {
                 className = ClassName("modal-body")
-                h2 {
-                    className = ClassName("h6 text-gray-800 mb-2")
-                    +message
-                }
+                bodyBuilder()
             }
             div {
                 className = ClassName("modal-footer")

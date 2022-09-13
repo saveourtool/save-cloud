@@ -8,10 +8,13 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 
 import csstype.ClassName
+import org.w3c.dom.HTMLInputElement
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
 import react.ChildrenBuilder
+import react.StateSetter
+import react.dom.events.ChangeEvent
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
@@ -64,6 +67,18 @@ fun String.toRole() = Role.values().find {
  * @return lambda which does the same as receiver but takes unused arg
  */
 fun <T> (() -> Unit).withUnusedArg(): (T) -> Unit = { this() }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+        { event -> this(event.target.value) }
+
+/**
+ * @return lambda which does the same but take value from [HTMLInputElement]
+ */
+fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
+        { event -> this(event.target.value) }
 
 /**
  * Adds this text to ChildrenBuilder line by line, separating with `<br>`
