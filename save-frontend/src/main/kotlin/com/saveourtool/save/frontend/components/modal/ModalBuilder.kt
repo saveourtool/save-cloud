@@ -5,6 +5,8 @@ package com.saveourtool.save.frontend.components.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
+import com.saveourtool.save.frontend.utils.WindowOpenness
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
@@ -38,6 +40,39 @@ fun ChildrenBuilder.displayModal(
         props.isOpen = isOpen
         props.style = modalStyle
         modalBuilder(title, message, onCloseButtonPressed, buttonBuilder)
+    }
+}
+
+/**
+ * Universal function to create modals ащк confirmation.
+ *
+ * @param windowOpenness
+ * @param title title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param successAction lambda for success action
+ */
+fun ChildrenBuilder.displayConfirmationModal(
+    windowOpenness: WindowOpenness,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    successAction: () -> Unit,
+) {
+    displayModal(
+        isOpen = windowOpenness.isOpen(),
+        title = title,
+        message = message,
+        modalStyle = modalStyle,
+        onCloseButtonPressed = windowOpenness.closeWindowAction()
+    ) {
+        buttonBuilder("Ok") {
+            successAction()
+            windowOpenness.closeWindow()
+        }
+        buttonBuilder("Cancel", "secondary") {
+            windowOpenness.closeWindow()
+        }
     }
 }
 
