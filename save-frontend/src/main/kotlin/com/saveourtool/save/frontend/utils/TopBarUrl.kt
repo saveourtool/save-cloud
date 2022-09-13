@@ -5,18 +5,18 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 /**
  * The class for analyzing url address and creating links in topBar
+ * @property href
  */
-class TopBarUrl(href: String) {
+class TopBarUrl(val href: String) {
     /**
      * CurrentPath is the link that we put in buttons
      */
     var currentPath = "#"
     private var circumstance: SituationUrlClassification = SituationUrlClassification.KEYWORD_PROCESS
     private var processLastSegments = 0
-    private val sizeUrlSegments: Int
+    private val sizeUrlSegments: Int = href.split("/").size
 
     init {
-        sizeUrlSegments = href.split("/").size
         findExclude(href)
     }
 
@@ -27,7 +27,7 @@ class TopBarUrl(href: String) {
      */
     fun changeUrlBeforeButton(pathPart: String) {
         currentPath = when (circumstance) {
-            SituationUrlClassification.PROJECT_OR_ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
             SituationUrlClassification.ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
             SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") currentPath else mergeUrls(pathPart)
             else -> mergeUrls(pathPart)
@@ -61,13 +61,15 @@ class TopBarUrl(href: String) {
      * @param href
      */
     private fun findExclude(href: String) {
-        circumstance = if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
-            SituationUrlClassification.PROJECT_OR_ORGANIZATION
-        } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+        circumstance = if (href.contains(SituationUrlClassification.ORGANIZATION.regex)) {
+            SituationUrlClassification.ORGANIZATION
+        } else if (href.contains(SituationUrlClassification.PROJECT.regex)) {
+            SituationUrlClassification.PROJECT
+        } else if (href.contains(SituationUrlClassification.ARCHIVE.regex)) {
             SituationUrlClassification.ARCHIVE
-        } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
+        } else if (href.contains(SituationUrlClassification.DETAILS.regex)) {
             SituationUrlClassification.DETAILS
-        } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
+        } else if (href.contains(SituationUrlClassification.EXECUTION.regex)) {
             SituationUrlClassification.EXECUTION
         } else {
             SituationUrlClassification.KEYWORD_PROCESS
@@ -81,7 +83,7 @@ class TopBarUrl(href: String) {
      */
     private fun fixCurrentPathAfter(pathPart: String) {
         currentPath = when (circumstance) {
-            SituationUrlClassification.PROJECT_OR_ORGANIZATION, SituationUrlClassification.ARCHIVE -> "#"
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION, SituationUrlClassification.ARCHIVE -> "#"
             SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") mergeUrls(pathPart) else currentPath
             else -> currentPath
         }
@@ -94,7 +96,7 @@ class TopBarUrl(href: String) {
      */
     private fun fixExcludeAfter(isNumber: Boolean) {
         circumstance = when (circumstance) {
-            SituationUrlClassification.PROJECT_OR_ORGANIZATION, SituationUrlClassification.ARCHIVE -> SituationUrlClassification.KEYWORD_PROCESS
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION, SituationUrlClassification.ARCHIVE -> SituationUrlClassification.KEYWORD_PROCESS
             SituationUrlClassification.DETAILS -> if (isNumber) setProcessLastSegments(1) else SituationUrlClassification.DETAILS
             else -> circumstance
         }
@@ -109,22 +111,23 @@ class TopBarUrl(href: String) {
 
     /**
      * This Enum class classifies work with the url address segment
+     * @property regex
      */
-    enum class SituationUrlClassification {
+    enum class SituationUrlClassification(val regex: Regex = Regex("")) {
         /**
          * Situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
          */
-        ARCHIVE,
+        ARCHIVE(BenchmarkCategoryEnum.regexForUrlClassification),
 
         /**
          * Situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
          */
-        DETAILS,
+        DETAILS(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details")),
 
         /**
          * Situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
          */
-        EXECUTION,
+        EXECUTION(Regex("/[^/]+/[^/]+/history/execution")),
 
         /**
          * The button with this url segment is not created
@@ -142,9 +145,14 @@ class TopBarUrl(href: String) {
         KEYWORD_PROCESS_LAST_SEGMENTS,
 
         /**
-         * Situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView
+         * Situation with the processing of the "organization" in the url address - need for tabs in OrganizationView
          */
-        PROJECT_OR_ORGANIZATION,
+        ORGANIZATION(OrganizationMenuBar.regexForUrlClassification),
+
+        /**
+         * Situation with the processing of the "project" in the url address - need for tabs in ProjectView
+         */
+        PROJECT(ProjectMenuBar.regexForUrlClassification),
         ;
     }
 }
