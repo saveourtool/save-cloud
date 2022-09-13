@@ -65,6 +65,7 @@ kotlin {
             compileOnly(devNpm("autoprefixer", ">9"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
+            // compileOnly(devNpm("group-css-media-queries-loader", "^4.3.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
@@ -90,6 +91,7 @@ kotlin {
             implementation(npm("lodash.debounce", "^4.0.8"))
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
+            implementation(npm("react-ace", "^10.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))

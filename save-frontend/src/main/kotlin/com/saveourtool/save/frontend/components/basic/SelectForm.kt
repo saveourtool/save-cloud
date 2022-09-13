@@ -37,7 +37,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * select name
      */
-    var formName: String
+    var formName: String?
 
     /**
      * lambda invoked once to fetch data for selection
@@ -65,6 +65,11 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     var notFoundErrorMessage: String?
 
     /**
+     * Flag that disables the form
+     */
+    var disabled: Boolean?
+
+    /**
      * Callback invoked when form is changed
      */
     @Suppress("TYPE_ALIAS")
@@ -90,16 +95,18 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
 
     div {
         className = ClassName("${props.classes} mt-1")
-        label {
-            className = ClassName("form-label")
-            props.formType.let {
-                htmlFor = it.name
-            }
-            +props.formName
-            span {
-                className = ClassName("text-danger")
-                id = "${props.formType.name}Span"
-                +"*"
+        props.formName?.let { formName ->
+            label {
+                className = ClassName("form-label")
+                props.formType.let {
+                    htmlFor = it.name
+                }
+                +formName
+                span {
+                    className = ClassName("text-danger")
+                    id = "${props.formType.name}Span"
+                    +"*"
+                }
             }
         }
 
@@ -109,6 +116,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                 className = ClassName("form-control")
                 id = props.formType.name
                 required = true
+                disabled = props.disabled
                 // TODO: why we need an extra option
                 option {
                     disabled = true

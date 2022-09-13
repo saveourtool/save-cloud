@@ -112,6 +112,10 @@ enum class InputTypes(
 
     // ==== execution run
     TEST_SUITE_IDS("test suite ids", placeholder = "click to open selector"),
+
+    // ==== ace editor
+    ACE_THEME_SELECTOR("theme"),
+    ACE_MODE_SELECTOR("mode"),
     ;
 }
 

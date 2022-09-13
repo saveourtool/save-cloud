@@ -25,8 +25,18 @@ config.module.rules.push(
         use: {
             loader: 'file-loader',
         }
+    },
+    {
+        test :/\.css$/,
+        use: [
+            'style-loader',
+            'css-loader',
+            'group-css-media-queries-loader',
+        ]
     }
 );
+
+
 
 config.plugins.push(
     new MiniCssExtractPlugin()
