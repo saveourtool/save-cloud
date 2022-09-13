@@ -73,7 +73,10 @@ Usually not the whole stack is required for development. Application logic is pe
 * Run `./gradlew deployLocal -Psave.profile=dev` to start the database and run three microservices (backend, preprocessor and orchestrator) with Docker Compose.
   Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be
   proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js).
-* `api-gateway` can be run locally together with [dex]() OAuth2 server. TODO: rest of instruction
+* For developing most part of platform's logic, the above will be enough. If local testing of authentication flow is required, however,
+  `api-gateway` can be run locally together with [dex](https://github.com/dexidp/dex) OAuth2 server. In order to do so, run 
+  `docker compose up -d dex` and then start `api-gateway` with `dev` profile enabled. Using [`application-dev.yaml`](../api-gateway/src/main/resources/application-dev.yml)
+  one can connect gateway with dev build of frontend running with webpack by changing `gateway.frontend.url`.
 
 ## Local debugging
 You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
