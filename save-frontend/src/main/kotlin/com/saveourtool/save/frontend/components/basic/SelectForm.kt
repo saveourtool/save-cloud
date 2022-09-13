@@ -71,7 +71,8 @@ external interface SelectFormRequiredProps<D : Any> : Props {
      * Flag that disables the form
      */
     var disabled: Boolean?
-    
+
+    /**
      * Add custom elements under the form label in order to create new item.
      */
     var addNewItemChildrenBuilder: ((ChildrenBuilder) -> Unit)?
@@ -121,6 +122,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                         id = "${props.formType.name}Span"
                         +"*"
                     }
+                }
             }
             props.addNewItemChildrenBuilder?.let { addNewItemBuilder ->
                 small {
