@@ -77,6 +77,7 @@ class LnkContestProjectServiceTest {
     private fun givenOldBestExecution(oldBestExecution: Execution?) {
         given(lnkContestExecutionService.findContestByExecution(any()))
             .willReturn(Contest.stub(99))
+        @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
         given(lnkContestProjectRepository.findByContestAndProject(any(), any()))
             .willAnswer {
                 LnkContestProject(it.arguments[1] as Project, it.arguments[0] as Contest, oldBestExecution, oldBestExecution?.score)
