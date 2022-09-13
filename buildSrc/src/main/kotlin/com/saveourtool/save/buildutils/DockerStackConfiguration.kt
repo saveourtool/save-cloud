@@ -76,7 +76,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
                            |  
-                           |${declareDexService().indent(2)}
+                           |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
@@ -253,7 +253,7 @@ fun Project.createStackDeployTask(profile: String) {
 }
 
 private fun Project.declareDexService() =
-    """|
+    """
         |dex:
         |  image: ghcr.io/dexidp/dex:latest-distroless
         |  ports:
