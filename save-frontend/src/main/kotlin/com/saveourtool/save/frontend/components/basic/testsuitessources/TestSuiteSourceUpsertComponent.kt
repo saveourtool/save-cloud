@@ -128,7 +128,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
         props.onSuccess(testSuiteSource)
     }
     val requestToUpdateEntity = prepareRequestToUpdate(
-        testSuiteSourceWithId = DtoWithId(-1L, testSuiteSource),
+        testSuiteSourceWithId = props.testSuitesSourceWithId,
         entitySaveStatusState = saveStatusState,
     ) {
         props.onSuccess(testSuiteSource)
@@ -265,12 +265,12 @@ private fun prepareRequestToCreate(
 )
 
 private fun prepareRequestToUpdate(
-    testSuiteSourceWithId: DtoWithId<TestSuitesSourceDto>,
+    testSuiteSourceWithId: DtoWithId<TestSuitesSourceDto>?,
     entitySaveStatusState: StateInstance<EntitySaveStatus?>,
     onSuccess: () -> Unit,
 ) = prepareRequest(
-    id = testSuiteSourceWithId.id,
-    testSuiteSource = testSuiteSourceWithId.content,
+    id = testSuiteSourceWithId?.id ?: -1L,
+    testSuiteSource = testSuiteSourceWithId?.content ?: TestSuitesSourceDto.empty,
     entitySaveStatusState = entitySaveStatusState,
     onSuccess = onSuccess
 )
