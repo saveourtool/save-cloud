@@ -155,21 +155,42 @@ class TopBarUrl(href: String) {
     }
 
     /**
-     * ARCHIVE - situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
-     * DETAILS - situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
-     * EXECUTION - situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
-     * KEYWORD_NOT_PROCESS - the button with this url segment is not created
-     * KEYWORD_PROCESS - the button with this url segment is created without changes
-     * KEYWORD_PROCESS_LAST_SEGMENTS - a button is created if this segment is one of the last
-     * PROJECT_OR_ORGANIZATION - situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
+     * This Enum class classifies work with the url address segment
      */
     enum class SituationUrlClassification {
+        /**
+         * ARCHIVE - situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
+         */
         ARCHIVE,
+
+        /**
+         * DETAILS - situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
+         */
         DETAILS,
+
+        /**
+         * EXECUTION - situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
+         */
         EXECUTION,
+
+        /**
+         * KEYWORD_NOT_PROCESS - the button with this url segment is not created
+         */
         KEYWORD_NOT_PROCESS,
+
+        /**
+         * KEYWORD_PROCESS - the button with this url segment is created without changes
+         */
         KEYWORD_PROCESS,
+
+        /**
+         * KEYWORD_PROCESS_LAST_SEGMENTS - a button is created if this segment is one of the last
+         */
         KEYWORD_PROCESS_LAST_SEGMENTS,
+
+        /**
+         * PROJECT_OR_ORGANIZATION - situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView
+         */
         PROJECT_OR_ORGANIZATION,
         ;
     }
