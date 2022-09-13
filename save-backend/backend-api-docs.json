@@ -478,6 +478,7 @@
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -486,6 +487,7 @@
           {
             "name": "sourceName",
             "in": "path",
+            "description": "name of test suites source",
             "required": true,
             "schema": {
               "type": "string"
@@ -494,6 +496,7 @@
           {
             "name": "mode",
             "in": "query",
+            "description": "fetch mode",
             "required": true,
             "schema": {
               "type": "string",
@@ -507,6 +510,7 @@
           {
             "name": "version",
             "in": "query",
+            "description": "version to be fetched: tag, branch or commit id",
             "required": true,
             "schema": {
               "type": "string"
