@@ -79,6 +79,32 @@ class TestSuitesSourceController(
                 .map { it.toDto() }
         }
 
+
+    @GetMapping(
+        path = [
+            "/api/$v1/test-suites-sources/{organizationName}/list-with-ids",
+        ],
+    )
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "List test suites source with id by organization name.",
+        description = "List test suites source with id by organization name.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true)
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of test suites sources with ids by organization name.")
+    @ApiResponse(responseCode = "404", description = "Organization was not found by provided name.")
+    fun listWithIds(
+        @PathVariable organizationName: String,
+    ): Mono<TestSuitesSourceDtoWithIdList> = getOrganization(organizationName)
+        .map { organization ->
+            testSuitesSourceService.getAllByOrganization(organization)
+                .map { it.toDtoWithId() }
+        }
+
     @GetMapping(
         path = [
             "/api/$v1/test-suites-sources/public-list",

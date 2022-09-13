@@ -8,18 +8,19 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
+import kotlinx.coroutines.await
+import kotlinx.serialization.json.*
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -50,19 +51,19 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
-    val testSuitesSourceCreationWindowOpenness = useWindowOpenness()
+    val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
+    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
+            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
         } else {
-            setTestSuitesSources(emptyList())
+            setTestSuitesSourcesWithId(emptyList())
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
@@ -118,8 +119,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
-    val editHandler: (TestSuitesSourceDto) -> Unit = {
-        // do nothing for now
+    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
+    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        setTestSuiteSourceWithIdToUpsert(it)
+        testSuitesSourceUpsertWindowOpenness.openWindow()
     }
     val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
@@ -130,8 +133,8 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
     showTestSuiteSourceUpsertModal(
-        windowOpenness = testSuitesSourceCreationWindowOpenness,
-        testSuitesSourceWithId = null,
+        windowOpenness = testSuitesSourceUpsertWindowOpenness,
+        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
         organizationName = props.organizationName,
     ) {
         setIsSourceCreated { !it }
@@ -142,7 +145,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             type = ButtonType.button
             className = ClassName("btn btn-sm btn-primary")
             disabled = !props.selfRole.hasWritePermission()
-            onClick = testSuitesSourceCreationWindowOpenness.openWindowAction().withUnusedArg()
+            onClick = {
+                setTestSuiteSourceWithIdToUpsert(null)
+                testSuitesSourceUpsertWindowOpenness.openWindow()
+            }
             +"+ Create test suites source"
         }
     }
@@ -150,9 +156,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         className = ClassName("mb-2")
         testSuitesSourcesTable {
             getData = { _, _ ->
-                testSuitesSources.toTypedArray()
+                testSuitesSourcesWithId.toTypedArray()
             }
-            content = testSuitesSources
+            content = testSuitesSourcesWithId
         }
     }
 
@@ -189,11 +195,11 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-    editHandler: (TestSuitesSourceDto) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
+    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+): FC<TablePropsWithContent<TestSuitesSourceDtoWithId>> = tableComponent(
     columns = {
         columns {
-            column(id = "organizationName", header = "Organization", { this }) { cellProps ->
+            column(id = "organizationName", header = "Organization", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -203,7 +209,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "name", header = "Name", { this }) { cellProps ->
+            column(id = "name", header = "Name", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -213,7 +219,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "description", header = "Description", { this }) { cellProps ->
+            column(id = "description", header = "Description", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -223,7 +229,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "git-url", header = "Git location", { this }) { cellProps ->
+            column(id = "git-url", header = "Git location", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -237,7 +243,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+            column(id = "fetch", header = "Fetch new version", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         button {
@@ -245,7 +251,6 @@ private fun prepareTestSuitesSourcesTable(
                             className = ClassName("btn btn-sm btn-primary")
                             onClick = {
                                 fetchHandler(cellProps.value)
-                                // testSuitesSourceFetcherWindowOpenness.openWindow()
                             }
                             +"fetch"
                         }
@@ -319,3 +324,13 @@ private fun prepareTestSuitesSourceSnapshotKeysTable(
         arrayOf(it.content)
     },
 )
+
+// https://github.com/Kotlin/kotlinx.serialization/issues/1448: workaround till migrated to JS Frontend IR
+private suspend inline fun <reified E> Response.decodeListDtoWithIdFromJsonString(): List<DtoWithId<E>> {
+    return Json.parseToJsonElement(this.text().await()).jsonArray.map { it.jsonObject }
+        .map { jsonObject ->
+            val id = requireNotNull(jsonObject["id"]?.jsonPrimitive?.longOrNull)
+            val content = Json.decodeFromJsonElement<E>(requireNotNull(jsonObject["content"]))
+            DtoWithId(id, content)
+        }
+}
