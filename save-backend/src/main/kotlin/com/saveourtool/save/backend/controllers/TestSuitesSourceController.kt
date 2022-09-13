@@ -34,6 +34,7 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 typealias SourceSaveStatusResponse = ResponseEntity<SourceSaveStatus>
+typealias StringListResponse = ResponseEntity<List<String>>
 
 /**
  * Controller for [TestSuitesSource]
@@ -439,22 +440,70 @@ class TestSuitesSourceController(
         summary = "Post fetching of new tests from test suites source.",
         description = "Post fetching of new tests from test suites source.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully trigger fetching new tests from requested test suites source.")
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of organization", required = true),
+        Parameter(name = "sourceName", `in` = ParameterIn.PATH, description = "name of test suites source", required = true),
+        Parameter(name = "mode", `in` = ParameterIn.QUERY, description = "fetch mode", required = true),
+        Parameter(name = "version", `in` = ParameterIn.QUERY, description = "version to be fetched: tag, branch or commit id", required = true),
+    )
+    @ApiResponse(responseCode = "202", description = "Successfully trigger fetching new tests from requested test suites source.")
     fun triggerFetch(
         @PathVariable organizationName: String,
         @PathVariable sourceName: String,
+        @RequestParam mode: TestSuitesSourceFetchMode,
+        @RequestParam version: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
         .flatMap { testSuitesSource ->
             Mono.just(
-                ResponseEntity.ok()
+                ResponseEntity.accepted()
                     .body("Trigger fetching new tests from $sourceName in $organizationName")
             ).doOnSuccess {
-                testSuitesSourceService.fetch(testSuitesSource.toDto())
+                testSuitesSourceService.fetch(testSuitesSource.toDto(), mode, version)
                     .subscribeOn(Schedulers.boundedElastic())
                     .subscribe()
             }
         }
+
+    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/tag-list-to-fetch")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get list of tags which can be fetched from test suites source.",
+        description = "Get list of tags which can be fetched from test suites source.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully listed tags which can be fetched from requested test suites source.")
+    fun tagListToFetch(
+        @PathVariable organizationName: String,
+        @PathVariable sourceName: String,
+        authentication: Authentication,
+    ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
+        .flatMap { testSuitesSourceService.tagList(it.toDto()) }
+        .zipWith(testSuitesSourceSnapshotStorage.list(organizationName, sourceName)
+            .map { it.version }
+            .collectList())
+        .map { (tags, versions) ->
+            ResponseEntity.ok()
+                .body(tags.filterNot { it in versions })
+        }
+
+    @GetMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/branch-list-to-fetch")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get list of branches which can be fetched from test suites source.",
+        description = "Get list of branches which can be fetched from test suites source.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully listed branches which can be fetched from requested test suites source.")
+    fun branchListToFetch(
+        @PathVariable organizationName: String,
+        @PathVariable sourceName: String,
+        authentication: Authentication,
+    ): Mono<StringListResponse> = blockingToMono { testSuitesSourceService.findByName(organizationName, sourceName) }
+        .flatMap { testSuitesSourceService.branchList(it.toDto()) }
+        .map { ResponseEntity.ok().body(it) }
 
     @GetMapping("/api/$v1/test-suites-sources/avaliable")
     @RequiresAuthorizationSourceHeader

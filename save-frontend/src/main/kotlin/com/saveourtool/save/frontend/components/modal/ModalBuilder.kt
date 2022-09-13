@@ -55,6 +55,33 @@ fun ChildrenBuilder.modalBuilder(
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
+    modalBuilder(
+        title = title,
+        onCloseButtonPressed = onCloseButtonPressed,
+        bodyBuilder = {
+            h2 {
+                className = ClassName("h6 text-gray-800 mb-2")
+                +message
+            }
+        },
+        buttonBuilder = buttonBuilder,
+    )
+}
+
+/**
+ * Universal function to create modals with bootstrap styles.
+ *
+ * @param title title of the modal that will be shown in top-left corner
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param bodyBuilder lambda that generates body of modal
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ */
+fun ChildrenBuilder.modalBuilder(
+    title: String,
+    onCloseButtonPressed: (() -> Unit)?,
+    bodyBuilder: ChildrenBuilder.() -> Unit,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
     div {
         className = ClassName("modal-dialog")
         div {
@@ -80,10 +107,7 @@ fun ChildrenBuilder.modalBuilder(
             }
             div {
                 className = ClassName("modal-body")
-                h2 {
-                    className = ClassName("h6 text-gray-800 mb-2")
-                    +message
-                }
+                bodyBuilder()
             }
             div {
                 className = ClassName("modal-footer")
