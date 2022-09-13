@@ -89,7 +89,7 @@ fun GitDto.detectBranchList(): Collection<String> = Git.lsRemoteRepository()
     .gitCallWithRethrow { it.callAsMap() }
     .let { map ->
         val defaultBranch =
-            map.findDefaultBranchName() ?: throw IllegalStateException("Couldn't detect default branch name for $url")
+                map.findDefaultBranchName() ?: throw IllegalStateException("Couldn't detect default branch name for $url")
         val branches = map
             .keys
             .filter { it.startsWith(Constants.R_HEADS) }

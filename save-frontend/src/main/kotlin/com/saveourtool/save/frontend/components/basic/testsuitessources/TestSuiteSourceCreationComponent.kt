@@ -112,7 +112,11 @@ fun ChildrenBuilder.showTestSuiteSourceCreationModal(
     }
 }
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+    "ComplexMethod",
+)
 private fun testSuiteSourceCreationComponent() = FC<TestSuiteSourceCreationProps> { props ->
     val (testSuiteSource, setTestSuiteSource) = useState(TestSuitesSourceDto.empty.copy(organizationName = props.organizationName))
     val (saveStatus, setSaveStatus) = useState<SourceSaveStatus?>(null)
