@@ -18,8 +18,16 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
-import io.ktor.client.*
-import io.ktor.http.*
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
+import arrow.core.rightIfNotNull
+import io.ktor.client.HttpClient
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.Accepted
+import io.ktor.http.HttpStatusCode.Companion.OK
 import okio.Path.Companion.toPath
 import org.slf4j.LoggerFactory
 
@@ -44,17 +52,18 @@ class SaveCloudClient(
     /**
      * Submit execution with provided mode and configuration and receive results
      *
+     * @return either the execution result, or an error message.
      * @throws IllegalArgumentException
      */
     @Suppress("UnsafeCallOnNullableType")
-    suspend fun start() {
+    suspend fun start(): Either<String, ExecutionDto> {
         // Calculate FileInfo of additional files, if they are provided
         val additionalFileInfoList = evaluatedToolProperties.additionalFiles?.let {
             processAdditionalFiles(it)
         }
 
         if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
-            return
+            return "Unable to parse `additionalFiles`: \"${evaluatedToolProperties.additionalFiles}\"".left()
         }
 
         val msg = additionalFileInfoList?.let {
@@ -64,29 +73,37 @@ class SaveCloudClient(
         }
         log.info("Starting submit execution $msg, type: $testingType")
 
-        val executionRequest = submitExecution(additionalFileInfoList, contestName) ?: return
+        val executionRequest = submitExecution(additionalFileInfoList, contestName).getOrHandle { httpStatus ->
+            return "Failed to submit execution: HTTP $httpStatus".left()
+        }
 
         // Sending requests, which checks current state, until results will be received
         // TODO: in which form do we actually need results?
         val resultExecutionDto = getExecutionResults(executionRequest)
+        val errorMessage = "Some errors occurred during execution"
         val resultMsg = resultExecutionDto?.let {
             "Execution with id=${resultExecutionDto.id} is finished with status: ${resultExecutionDto.status}. " +
                     "Passed tests: ${resultExecutionDto.passedTests}, failed tests: ${resultExecutionDto.failedTests}, skipped: ${resultExecutionDto.skippedTests}"
-        } ?: "Some errors occurred during execution"
+        } ?: errorMessage
 
         log.info(resultMsg)
+
+        return resultExecutionDto.rightIfNotNull {
+            errorMessage
+        }
     }
 
     /**
      * Submit execution
      *
      * @param additionalFiles
-     * @return pair of organization and submitted execution request
+     * @return the pair of organization and submitted execution request upon
+     *   successful completion, or the HTTP status code if failed.
      */
     private suspend fun submitExecution(
         additionalFiles: List<ShortFileInfo>?,
         contestName: String?,
-    ): RunExecutionRequest? {
+    ): Either<HttpStatusCode, RunExecutionRequest> {
         val runExecutionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = evaluatedToolProperties.organizationName,
@@ -103,11 +120,16 @@ class SaveCloudClient(
             contestName = contestName,
         )
         val response = httpClient.submitExecution(runExecutionRequest)
-        if (response.status != HttpStatusCode.OK && response.status != HttpStatusCode.Accepted) {
-            log.error("Can't submit execution=$runExecutionRequest! Response status: ${response.status}")
-            return null
+        val httpStatus = response.status
+        if (httpStatus !in arrayOf(OK, Accepted)) {
+            log.error("Received HTTP $httpStatus while submitting execution: $runExecutionRequest")
+            val responseBody = response.bodyAsText()
+            if (responseBody.isNotBlank()) {
+                log.error("HTTP response body: $responseBody")
+            }
+            return httpStatus.left()
         }
-        return runExecutionRequest
+        return runExecutionRequest.right()
     }
 
     /**
@@ -131,13 +153,13 @@ class SaveCloudClient(
 
         while (executionDto.status == ExecutionStatus.PENDING || executionDto.status == ExecutionStatus.RUNNING) {
             val currTime = LocalDateTime.now()
-            if (currTime.minusMinutes(TIMEOUT_FOR_EXECUTION_RESULTS) >= initialTime) {
-                log.error("Couldn't get execution result, timeout ${TIMEOUT_FOR_EXECUTION_RESULTS}min is reached!")
+            if (currTime.minusMinutes(TIMEOUT_MINUTES_FOR_EXECUTION_RESULTS) >= initialTime) {
+                log.error("Couldn't get execution result, timeout ${TIMEOUT_MINUTES_FOR_EXECUTION_RESULTS}min is reached!")
                 return null
             }
             log.info("Waiting for results of execution with id=$executionId, current state: ${executionDto.status}")
             executionDto = httpClient.getExecutionById(executionId)
-            delay(SLEEP_INTERVAL_FOR_EXECUTION_RESULTS)
+            delay(SLEEP_INTERVAL_MILLIS_FOR_EXECUTION_RESULTS)
         }
         return executionDto
     }
@@ -179,7 +201,7 @@ class SaveCloudClient(
     }
 
     companion object {
-        const val SLEEP_INTERVAL_FOR_EXECUTION_RESULTS = 10_000L
-        const val TIMEOUT_FOR_EXECUTION_RESULTS = 5L
+        const val SLEEP_INTERVAL_MILLIS_FOR_EXECUTION_RESULTS = 10_000L
+        const val TIMEOUT_MINUTES_FOR_EXECUTION_RESULTS = 5L
     }
 }
