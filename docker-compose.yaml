@@ -131,17 +131,6 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
-  dex:
-    profiles:
-      - dev
-    image: ghcr.io/dexidp/dex:latest-distroless
-    ports:
-      - "5556:5556"
-#    environment:
-#      DEX_TELEMETRY_HTTP: 'false'
-#      DEX_CONNECTORS_ENABLE_MOCK: 'true'
-    volumes:
-      - ./save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
 
 volumes:
   save:
