@@ -175,7 +175,6 @@ class TopBarUrl(href: String) {
     }
 }
 
-
 private fun ChildrenBuilder.dropdownEntry(
     faIcon: dynamic,
     text: String,
