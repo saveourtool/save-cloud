@@ -10,8 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -139,10 +138,7 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
 private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
     val (isToUpdateTable, setIsToUpdateTable) = useState(false)
     val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
-    val (isDeleteContestModalOpen, setDeleteContestModalOpen) = useState(false)
     val (deletingContest, setDeletingContest) = useState(ContestDto.empty)
-    val (confirmLabel, setConfirmLabel) = useState("")
-    val (confirmMessage, setConfirmMessage) = useState("")
     val (contests, setContests) = useState<Set<ContestDto>>(setOf())
     val refreshTable = { setIsToUpdateTable { !it } }
     val deleteContestFun = useDeferredRequest {
@@ -158,6 +154,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             refreshTable()
         }
     }
+    val windowOpenness = useWindowOpenness()
 
     useRequest {
         val response = get(
@@ -177,20 +174,12 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
         refreshTable()
     }
 
-    displayModal(
-        isDeleteContestModalOpen,
-        confirmLabel,
-        confirmMessage,
-        mediumTransparentModalStyle,
-        { setDeleteContestModalOpen(false) }
+    displayConfirmationModal(
+        windowOpenness,
+        "",
+        "Are you sure you want to delete this contest?",
     ) {
-        buttonBuilder("Ok") {
-            deleteContestFun()
-            setDeleteContestModalOpen(false)
-        }
-        buttonBuilder("Cancel", "secondary") {
-            setDeleteContestModalOpen(false)
-        }
+        deleteContestFun()
     }
 
     showContestCreationModal(
@@ -229,9 +218,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             isContestCreated = isToUpdateTable
             deleteContest = { contest ->
                 setDeletingContest(contest)
-                setConfirmLabel("")
-                setConfirmMessage("Are you sure you want to delete this contest?")
-                setDeleteContestModalOpen(true)
+                windowOpenness.openWindow()
             }
         }
     }
