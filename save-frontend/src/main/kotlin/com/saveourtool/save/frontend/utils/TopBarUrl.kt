@@ -61,19 +61,10 @@ class TopBarUrl(val href: String) {
      * @param href
      */
     private fun findExclude(href: String) {
-        circumstance = if (href.contains(SituationUrlClassification.ORGANIZATION.regex)) {
-            SituationUrlClassification.ORGANIZATION
-        } else if (href.contains(SituationUrlClassification.PROJECT.regex)) {
-            SituationUrlClassification.PROJECT
-        } else if (href.contains(SituationUrlClassification.ARCHIVE.regex)) {
-            SituationUrlClassification.ARCHIVE
-        } else if (href.contains(SituationUrlClassification.DETAILS.regex)) {
-            SituationUrlClassification.DETAILS
-        } else if (href.contains(SituationUrlClassification.EXECUTION.regex)) {
-            SituationUrlClassification.EXECUTION
-        } else {
-            SituationUrlClassification.KEYWORD_PROCESS
-        }
+        circumstance = SituationUrlClassification.values()
+            .filter { it.regex != null }
+            .firstOrNull { href.contains(it.regex ?: Regex("")) }
+            ?: SituationUrlClassification.KEYWORD_PROCESS
     }
 
     /**
@@ -113,7 +104,7 @@ class TopBarUrl(val href: String) {
      * This Enum class classifies work with the url address segment
      * @property regex
      */
-    enum class SituationUrlClassification(val regex: Regex = Regex("")) {
+    enum class SituationUrlClassification(val regex: Regex? = null) {
         /**
          * Situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
          */
@@ -122,7 +113,7 @@ class TopBarUrl(val href: String) {
         /**
          * Situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
          */
-        DETAILS(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details")),
+        DETAILS(Regex("/[^/]+/[^/]+/history/execution/\\d+/details")),
 
         /**
          * Situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
