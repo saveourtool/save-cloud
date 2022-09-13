@@ -98,6 +98,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     "LongParameterList",
     "TYPE_ALIAS",
     "LongMethod",
+    "ComplexMethod"
 )
 fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
