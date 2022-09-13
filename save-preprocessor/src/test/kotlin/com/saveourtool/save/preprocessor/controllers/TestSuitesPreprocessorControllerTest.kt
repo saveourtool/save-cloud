@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.preprocessor.service.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
@@ -69,7 +70,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchFromTagSuccessful() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(tag)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, tag)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
             .block()
 
         verify(gitPreprocessorService).cloneTagAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(tag), any())
@@ -80,7 +81,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchFromTagAlreadyContains() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(tag)))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetchFromTag(testSuitesSourceDto, tag)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_TAG, tag)
             .block()
 
         verifyNotSuccessful(tag)
@@ -90,7 +91,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchFromBranchSuccessful() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(branch)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetchFromBranch(testSuitesSourceDto, branch)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_BRANCH, branch)
             .block()
 
         verify(gitPreprocessorService).cloneBranchAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(branch), any())
@@ -101,7 +102,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchCommitSuccessful() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(commit)))
             .thenReturn(Mono.just(false))
-        testSuitesPreprocessorController.fetchFromCommit(testSuitesSourceDto, commit)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
             .block()
 
         verify(gitPreprocessorService).cloneCommitAndProcessDirectory<TestSuiteList>(eq(gitDto), eq(commit), any())
@@ -112,7 +113,7 @@ internal class TestSuitesPreprocessorControllerTest {
     fun fetchCommitAlreadyContains() {
         whenever(testsPreprocessorToBackendBridge.doesTestSuitesSourceContainVersion(eq(testSuitesSourceDto), eq(commit)))
             .thenReturn(Mono.just(true))
-        testSuitesPreprocessorController.fetchFromCommit(testSuitesSourceDto, commit)
+        testSuitesPreprocessorController.fetch(testSuitesSourceDto, TestSuitesSourceFetchMode.BY_COMMIT, commit)
             .block()
 
         verifyNotSuccessful(commit)
