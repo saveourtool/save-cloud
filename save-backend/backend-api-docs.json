@@ -7472,12 +7472,20 @@
         "required": [
           "name",
           "organizationName",
+          "status",
           "testSuiteIds"
         ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
           },
           "startTime": {
             "type": "string",
