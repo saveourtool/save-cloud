@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.privacySpan
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -13,6 +12,7 @@ import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.frontend.utils.decodeFromJsonString
 import com.saveourtool.save.frontend.utils.post
+import com.saveourtool.save.frontend.utils.privacySpan
 import com.saveourtool.save.frontend.utils.unsafeMap
 import com.saveourtool.save.info.UserInfo
 

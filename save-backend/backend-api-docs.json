@@ -478,6 +478,7 @@
           {
             "name": "organizationName",
             "in": "path",
+            "description": "name of organization",
             "required": true,
             "schema": {
               "type": "string"
@@ -486,6 +487,30 @@
           {
             "name": "sourceName",
             "in": "path",
+            "description": "name of test suites source",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "fetch mode",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BY_BRANCH",
+                "BY_COMMIT",
+                "BY_TAG"
+              ]
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "version to be fetched: tag, branch or commit id",
             "required": true,
             "schema": {
               "type": "string"
@@ -499,7 +524,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "202": {
             "description": "Successfully trigger fetching new tests from requested test suites source.",
             "content": {
               "*/*": {
@@ -1938,36 +1963,6 @@
             "basic": []
           }
         ]
-      }
-    },
-    "/api/v1/git/default-branch-name": {
-      "post": {
-        "tags": [
-          "git-controller"
-        ],
-        "operationId": "defaultBranchName",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GitDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v1/files/{organizationName}/{projectName}/upload": {
@@ -3475,6 +3470,73 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/tag-list-to-fetch": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get list of tags which can be fetched from test suites source.",
+        "description": "Get list of tags which can be fetched from test suites source.",
+        "operationId": "tagListToFetch",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully listed tags which can be fetched from requested test suites source.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/get-test-suites": {
       "get": {
         "tags": [
@@ -3552,6 +3614,73 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites-sources/{organizationName}/{sourceName}/branch-list-to-fetch": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "Get list of branches which can be fetched from test suites source.",
+        "description": "Get list of branches which can be fetched from test suites source.",
+        "operationId": "branchListToFetch",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully listed branches which can be fetched from requested test suites source.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   }
                 }
               }
