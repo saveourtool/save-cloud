@@ -8,11 +8,9 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.OrganizationMenuBar
-import com.saveourtool.save.frontend.utils.ProjectMenuBar
+import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -117,50 +115,28 @@ fun topBar() = FC<TopBarProps> { props ->
                     .split(URL_PATH_DELIMITER)
                     .filterNot { it.isBlank() }
                     .apply {
-                        val insideTab = location.pathname.substringBeforeLast("?").let {
-                            if (it.contains(OrganizationMenuBar.regexForUrlClassification)) {
-                                "organization"
-                            } else if (it.contains(ProjectMenuBar.regexForUrlClassification)) {
-                                "project"
-                            } else if (it.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
-                                "archive"
-                            } else {
-                                null
-                            }
-                        }
-                        var currentPath = "#"
+                        val url = TopBarUrl(location.pathname.substringBeforeLast("?"))
                         forEachIndexed { index: Int, pathPart: String ->
-                            currentPath = if (insideTab != null && index == 0) {
-                                when (insideTab) {
-                                    "organization" -> "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}"
-                                    "project" -> "#/${FrontendRoutes.PROJECTS.path}"
-                                    "archive" -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                                    else -> ""
-                                }
-                            } else {
-                                "$currentPath/$pathPart"
-                            }
-                            li {
-                                className = ClassName("breadcrumb-item")
-                                ariaCurrent = "page".unsafeCast<AriaCurrent>()
-                                if (index == size - 1) {
-                                    a {
-                                        className = ClassName("text-warning")
-                                        +pathPart
-                                    }
-                                } else {
-                                    // small hack to redirect from history/execution to history
-                                    val resultingLink = currentPath.removeSuffix("/execution")
-                                    a {
-                                        href = resultingLink
-                                        className = ClassName("text-light")
-                                        +pathPart
+                            url.changeUrlBeforeButton(pathPart)
+                            if (url.isCreateButton(index)) {
+                                li {
+                                    className = ClassName("breadcrumb-item")
+                                    ariaCurrent = "page".unsafeCast<AriaCurrent>()
+                                    if (index == size - 1) {
+                                        a {
+                                            className = ClassName("text-warning")
+                                            +pathPart
+                                        }
+                                    } else {
+                                        a {
+                                            href = url.currentPath
+                                            className = ClassName("text-light")
+                                            +pathPart
+                                        }
                                     }
                                 }
                             }
-                            if (insideTab != null && index == 0) {
-                                currentPath = "#"
-                            }
+                            url.changeUrlAfterButton(pathPart)
                         }
                     }
             }
