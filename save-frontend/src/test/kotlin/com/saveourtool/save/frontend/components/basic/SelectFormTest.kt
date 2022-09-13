@@ -88,7 +88,6 @@ class SelectFormTest {
                             )
                                 .decodeFromJsonString()
                         }
-
                         dataToString = { it.name }
                         disabled = false
                         formType = InputTypes.ORGANIZATION_NAME

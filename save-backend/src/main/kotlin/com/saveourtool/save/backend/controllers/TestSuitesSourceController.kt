@@ -6,7 +6,8 @@ import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.domain.SourceSaveStatus
+import com.saveourtool.save.backend.utils.toResponseEntity
+import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
 import com.saveourtool.save.testsuite.*
@@ -33,7 +34,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-typealias SourceSaveStatusResponse = ResponseEntity<SourceSaveStatus>
+typealias EntitySaveStatusResponse = ResponseEntity<EntitySaveStatus>
 typealias StringListResponse = ResponseEntity<List<String>>
 
 /**
@@ -301,16 +302,14 @@ class TestSuitesSourceController(
     @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
     fun createTestSuitesSource(
         @RequestBody testSuiteRequest: TestSuitesSourceDto,
-    ): Mono<SourceSaveStatusResponse> = getOrganization(testSuiteRequest.organizationName)
+    ): Mono<EntitySaveStatusResponse> = getOrganization(testSuiteRequest.organizationName)
         .zipWhen { getGit(it, testSuiteRequest.gitDto.url) }
         .map { (organization, git) ->
             testSuiteRequest.toTestSuiteSource(organization, git)
         }
         .flatMap { testSuitesSource ->
-            when (testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
-                SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
-                SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
-                SourceSaveStatus.NEW -> Mono.just(ResponseEntity.ok(SourceSaveStatus.NEW))
+            when (val saveStatus = testSuitesSourceService.createSourceIfNotPresent(testSuitesSource)) {
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT, EntitySaveStatus.NEW -> Mono.just(saveStatus.toResponseEntity())
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
@@ -329,7 +328,7 @@ class TestSuitesSourceController(
     fun update(
         @RequestParam("id") id: Long,
         @RequestBody dtoToUpdate: TestSuitesSourceDto
-    ): Mono<SourceSaveStatusResponse> = getTestSuitesSource(id)
+    ): Mono<EntitySaveStatusResponse> = getTestSuitesSource(id)
         .switchIfToResponseException({ organization.name != dtoToUpdate.organizationName }, HttpStatus.CONFLICT) {
             "Organization cannot be changed in TestSuitesSource"
         }
@@ -345,15 +344,14 @@ class TestSuitesSourceController(
             }
         }
         .flatMap { (originalName, updatedEntity) ->
-            when (testSuitesSourceService.update(updatedEntity)) {
-                SourceSaveStatus.EXIST -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.EXIST))
-                SourceSaveStatus.CONFLICT -> Mono.just(ResponseEntity.status(HttpStatus.CONFLICT).body(SourceSaveStatus.CONFLICT))
-                SourceSaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
+            when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
+                EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
+                EntitySaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
                     .map { it.copy(testSuitesSourceName = originalName) to it }
                     .flatMap { (sourceKey, targeKey) ->
                         testSuitesSourceSnapshotStorage.move(sourceKey, targeKey)
                     }
-                    .then(Mono.just(ResponseEntity.ok(SourceSaveStatus.UPDATED)))
+                    .then(Mono.just(saveStatus.toResponseEntity()))
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }

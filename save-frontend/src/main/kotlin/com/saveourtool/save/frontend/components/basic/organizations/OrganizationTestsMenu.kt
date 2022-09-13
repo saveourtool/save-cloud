@@ -9,7 +9,7 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
-import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceCreationModal
+import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
@@ -129,15 +129,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
-    showTestSuiteSourceCreationModal(
-        testSuitesSourceCreationWindowOpenness.isOpen(),
-        props.organizationName,
-        {
-            testSuitesSourceCreationWindowOpenness.closeWindow()
-            setIsSourceCreated { !it }
-        },
+    showTestSuiteSourceUpsertModal(
+        windowOpenness = testSuitesSourceCreationWindowOpenness,
+        testSuitesSourceWithId = null,
+        organizationName = props.organizationName,
     ) {
-        testSuitesSourceCreationWindowOpenness.closeWindow()
+        setIsSourceCreated { !it }
     }
     div {
         className = ClassName("d-flex justify-content-center mb-3")

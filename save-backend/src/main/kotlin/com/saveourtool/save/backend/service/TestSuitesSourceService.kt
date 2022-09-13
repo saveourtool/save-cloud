@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.EmptyResponse
 import com.saveourtool.save.backend.StringList
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.domain.SourceSaveStatus
+import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
@@ -95,7 +95,7 @@ class TestSuitesSourceService(
      * @return status of updating [TestSuitesSource]
      */
     @Transactional
-    fun update(entity: TestSuitesSource): SourceSaveStatus {
+    fun update(entity: TestSuitesSource): EntitySaveStatus {
         with(entity) {
             requireNotNull(id) {
                 "Cannot update entity ($name in ${organization.name}) as it is not saved yet"
@@ -111,29 +111,29 @@ class TestSuitesSourceService(
     @Transactional
     fun createSourceIfNotPresent(
         entity: TestSuitesSource,
-    ): SourceSaveStatus {
+    ): EntitySaveStatus {
         require(entity.id == null) {
             "Cannot create a new entity as it is saved already: $entity"
         }
         return save(entity)
     }
 
-    private fun save(entity: TestSuitesSource): SourceSaveStatus {
+    private fun save(entity: TestSuitesSource): EntitySaveStatus {
         findByName(entity.organization, entity.name)?.run {
             if (entity.id != id) {
-                return SourceSaveStatus.EXIST
+                return EntitySaveStatus.EXIST
             }
         }
         return try {
             val isUpdate = entity.id != null
             testSuitesSourceRepository.save(entity)
             if (isUpdate) {
-                SourceSaveStatus.UPDATED
+                EntitySaveStatus.UPDATED
             } else {
-                SourceSaveStatus.NEW
+                EntitySaveStatus.NEW
             }
         } catch (e: DataIntegrityViolationException) {
-            SourceSaveStatus.CONFLICT
+            EntitySaveStatus.CONFLICT
         }
     }
 

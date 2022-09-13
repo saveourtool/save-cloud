@@ -48,7 +48,7 @@ val largeTransparentModalStyle = Styles(
         "right" to "5%",
         "bottom" to "auto",
         "overflow" to "hide",
-        "background-color" to "transparent",
+        "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CssProperties>()
 )

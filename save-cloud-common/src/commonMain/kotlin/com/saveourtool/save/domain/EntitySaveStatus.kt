@@ -1,9 +1,12 @@
 package com.saveourtool.save.domain
 
+import kotlinx.serialization.Serializable
+
 /**
  * A common enum of statuses for saving entity
  */
-enum class SaveEntityStatus {
+@Serializable
+enum class EntitySaveStatus {
     /**
      * Conflict while saving entity
      */
@@ -18,5 +21,10 @@ enum class SaveEntityStatus {
      * New entity saved successfully
      */
     NEW,
+
+    /**
+     * Updated entity
+     */
+    UPDATED,
     ;
 }
