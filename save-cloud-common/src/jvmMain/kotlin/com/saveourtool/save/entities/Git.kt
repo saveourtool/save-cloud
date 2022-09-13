@@ -30,7 +30,13 @@ class Git(
         username = username,
         password = password,
     )
+
     companion object {
-        val empty = Git("", null, null, Organization.stub(-1))
+        val empty = Git(
+            url = "",
+            username = null,
+            password = null,
+            organization = Organization.stub(-1)
+        )
     }
 }

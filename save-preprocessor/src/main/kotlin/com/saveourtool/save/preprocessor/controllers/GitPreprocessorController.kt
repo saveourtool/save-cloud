@@ -1,6 +1,7 @@
 package com.saveourtool.save.preprocessor.controllers
 
 import com.saveourtool.save.entities.GitDto
+import com.saveourtool.save.preprocessor.utils.detectBranchList
 import com.saveourtool.save.preprocessor.utils.detectDefaultBranchName
 import com.saveourtool.save.preprocessor.utils.detectTagList
 import com.saveourtool.save.utils.blockingToMono
@@ -64,6 +65,20 @@ class GitPreprocessorController {
     ): Mono<StringCollection> = blockingToMono {
         log.info { "Received a request to detect a list of tags in ${gitDto.url}" }
         gitDto.detectTagList()
+    }
+
+    /**
+     * Detect a list of branches for a specific git coordinate
+     *
+     * @param gitDto git coordinate which is selected for test suites source
+     * @return detected list of branches
+     */
+    @PostMapping("/branch-list")
+    fun branchList(
+        @RequestBody gitDto: GitDto,
+    ): Mono<StringCollection> = blockingToMono {
+        log.info { "Received a request to detect a list of branches in ${gitDto.url}" }
+        gitDto.detectBranchList()
     }
 
     companion object {
