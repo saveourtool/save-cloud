@@ -297,15 +297,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                     } ?: fallbackNode
                                 }
 
-
                                 state.userInfo?.name.let {
                                     Route {
                                         path = "/$it"
                                         element =
-                                            Navigate.create { to = "/$it/${FrontendRoutes.SETTINGS_PROFILE.path}" }
+                                                Navigate.create { to = "/$it/${FrontendRoutes.SETTINGS_PROFILE.path}" }
                                     }
                                 }
-
 
                                 Route {
                                     path = "/${FrontendRoutes.CREATE_PROJECT.path}"
