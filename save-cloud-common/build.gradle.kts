@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.jpa)
     `maven-publish`
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 kotlin {
     allOpen {

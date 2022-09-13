@@ -8,6 +8,7 @@ plugins {
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
     id("org.gradle.test-retry") version "1.4.1"
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 configureJacoco()

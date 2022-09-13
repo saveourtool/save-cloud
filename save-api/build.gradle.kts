@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.serialization)
     `maven-publish`
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 tasks.withType<KotlinCompile> {

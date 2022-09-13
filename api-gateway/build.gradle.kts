@@ -7,6 +7,7 @@ plugins {
     kotlin("jvm")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 tasks.withType<KotlinCompile> {

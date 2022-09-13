@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 plugins {
     kotlin("js")
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {

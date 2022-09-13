@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 application {

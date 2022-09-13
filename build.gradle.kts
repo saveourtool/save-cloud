@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.liquibase.gradle)
     java
     id("com.saveourtool.save.buildutils.detekt-common")
+    id("com.saveourtool.save.buildutils.diktat-common")
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
@@ -59,9 +60,6 @@ allprojects {
         resolutionStrategy.cacheDynamicVersionsFor(10, TimeUnit.MINUTES)
         resolutionStrategy.cacheChangingModulesFor(10, TimeUnit.MINUTES)
     }
-}
-allprojects {
-    configureDiktat()
 }
 configureSpotless()
 
