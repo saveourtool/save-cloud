@@ -93,7 +93,7 @@ private fun ChildrenBuilder.displayStatus(status: ExecutionStatus, hasFailedTest
 private fun ChildrenBuilder.displayScore(status: ExecutionStatus, score: Double?) {
     if (status == ExecutionStatus.FINISHED) {
         span {
-            +"${score?.let { ("$it/100") }}"
+            +"${score?.let { ("${it.toFixed(2)}/100") }}"
         }
     }
 }
