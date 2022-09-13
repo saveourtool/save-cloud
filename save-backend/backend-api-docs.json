@@ -3806,6 +3806,79 @@
         ]
       }
     },
+    "/api/v1/test-suites-sources/{organizationName}/list-with-ids": {
+      "get": {
+        "tags": [
+          "test-suites-source"
+        ],
+        "summary": "List test suites source with id by organization name.",
+        "description": "List test suites source with id by organization name.",
+        "operationId": "listWithIds",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Organization was not found by provided name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched list of test suites sources with ids by organization name.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-suites-sources/public-list": {
       "get": {
         "tags": [
@@ -7854,6 +7927,22 @@
               "RUNNING",
               "TEST_ERROR"
             ]
+          }
+        }
+      },
+      "DtoWithIdTestSuitesSourceDto": {
+        "required": [
+          "content",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content": {
+            "$ref": "#/components/schemas/TestSuitesSourceDto"
           }
         }
       },
