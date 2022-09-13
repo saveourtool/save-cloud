@@ -300,8 +300,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 state.userInfo?.name.run {
                                     Route {
                                         path = "/$this"
-                                        element =
-                                                Navigate.create { to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}" }
+                                        element = Navigate.create { to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}" }
                                     }
                                 }
 
