@@ -65,7 +65,7 @@ class TopBarUrl(href: String) {
     private var circumstance: SituationUrlClassification = SituationUrlClassification.KEYWORD_PROCESS
 
     init {
-        circumstance = SituationUrlClassification.findException(href)
+        circumstance = SituationUrlClassification.findExclude(href)
     }
 
     /**
@@ -84,7 +84,7 @@ class TopBarUrl(href: String) {
      */
     fun changeUrlAfterButton(pathPart: String) {
         currentPath = SituationUrlClassification.fixCurrentPathAfter(circumstance, pathPart, currentPath)
-        circumstance = SituationUrlClassification.fixExceptionAfter(circumstance, "\\d+".toRegex().matches(pathPart))
+        circumstance = SituationUrlClassification.fixExcludeAfter(circumstance, "\\d+".toRegex().matches(pathPart))
     }
 
     /**
@@ -112,7 +112,7 @@ class TopBarUrl(href: String) {
              * @param href
              * @return [SituationUrlClassification] enum element
              */
-            fun findException(href: String): SituationUrlClassification {
+            fun findExclude(href: String): SituationUrlClassification {
                 sizeUrlSegments = href.split("/").size
                 return if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
                     PROJECT_OR_ORGANIZATION
@@ -127,59 +127,59 @@ class TopBarUrl(href: String) {
                 }
             }
 
-            /** Function check exception and generate currentPath before the buttons creating
+            /** Function check exclude and generate currentPath before the buttons creating
              *
-             * @param exception
+             * @param exclude
              * @param pathPart
              * @param allPath
              */
             fun fixCurrentPathBefore(
-                exception: SituationUrlClassification,
+                exclude: SituationUrlClassification,
                 pathPart: String,
                 allPath: String,
-            ) = when (exception) {
+            ) = when (exclude) {
                 PROJECT_OR_ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
                 ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                 DETAILS, EXECUTION -> if (pathPart == "execution") allPath else mergeUrls(allPath, pathPart)
                 else -> mergeUrls(allPath, pathPart)
             }
 
-            /** Function check exception and generate currentPath after the buttons creating
+            /** Function check exclude and generate currentPath after the buttons creating
              *
-             * @param exception
+             * @param exclude
              * @param pathPart
              * @param allPath
              */
             fun fixCurrentPathAfter(
-                exception: SituationUrlClassification,
+                exclude: SituationUrlClassification,
                 pathPart: String,
                 allPath: String
-            ) = when (exception) {
+            ) = when (exclude) {
                 PROJECT_OR_ORGANIZATION, ARCHIVE -> "#"
                 DETAILS, EXECUTION -> if (pathPart == "execution") mergeUrls(allPath, pathPart) else allPath
                 else -> allPath
             }
 
-            /** The function changes the exception after the button is created
+            /** The function changes the exclude after the button is created
              *
-             * @param exception
+             * @param exclude
              * @param isNumber
              */
-            fun fixExceptionAfter(
-                exception: SituationUrlClassification,
+            fun fixExcludeAfter(
+                exclude: SituationUrlClassification,
                 isNumber: Boolean
-            ) = when (exception) {
+            ) = when (exclude) {
                 PROJECT_OR_ORGANIZATION, ARCHIVE -> KEYWORD_PROCESS
                 DETAILS -> if (isNumber) setProcessLastSegments(1) else DETAILS
-                else -> exception
+                else -> exclude
             }
 
             /** The function returns a flag whether to create this button or not
              *
-             * @param exception
+             * @param exclude
              * @param index
              */
-            fun isCreateButton(exception: SituationUrlClassification, index: Int) = when (exception) {
+            fun isCreateButton(exclude: SituationUrlClassification, index: Int) = when (exclude) {
                 KEYWORD_PROCESS_LAST_SEGMENTS -> index > sizeUrlSegments - 1 - processLastSegments
                 KEYWORD_NOT_PROCESS -> false
                 else -> true
