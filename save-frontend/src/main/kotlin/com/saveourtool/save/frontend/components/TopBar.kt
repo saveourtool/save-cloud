@@ -63,9 +63,12 @@ class TopBarUrl(href: String) {
      */
     var currentPath = "#"
     private var circumstance: SituationUrlClassification = SituationUrlClassification.KEYWORD_PROCESS
+    private var processLastSegments = 0
+    private val sizeUrlSegments: Int
 
     init {
-        circumstance = SituationUrlClassification.findExclude(href)
+        sizeUrlSegments = href.split("/").size
+        findExclude(href)
     }
 
     /**
@@ -74,7 +77,12 @@ class TopBarUrl(href: String) {
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
     fun changeUrlBeforeButton(pathPart: String) {
-        currentPath = SituationUrlClassification.fixCurrentPathBefore(circumstance, pathPart, currentPath)
+        currentPath = when (circumstance) {
+            SituationUrlClassification.PROJECT_OR_ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
+            SituationUrlClassification.ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+            SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") currentPath else mergeUrls(pathPart)
+            else -> mergeUrls(pathPart)
+        }
     }
 
     /**
@@ -83,122 +91,90 @@ class TopBarUrl(href: String) {
      * @param pathPart is an appended suffix to an already existing [currentPath]
      */
     fun changeUrlAfterButton(pathPart: String) {
-        currentPath = SituationUrlClassification.fixCurrentPathAfter(circumstance, pathPart, currentPath)
-        circumstance = SituationUrlClassification.fixExcludeAfter(circumstance, "\\d+".toRegex().matches(pathPart))
+        fixCurrentPathAfter(pathPart)
+        fixExcludeAfter("\\d+".toRegex().matches(pathPart))
     }
 
-    /**
-     * The function returns a flag whether to create this button or not
+    /** The function set a flag whether to create this button or not
      *
-     * @param index is index of this segment in url address
+     * @param index
      */
-    fun isCreateButton(index: Int) = SituationUrlClassification.isCreateButton(circumstance, index)
+    fun isCreateButton(index: Int) = when (circumstance) {
+        SituationUrlClassification.KEYWORD_PROCESS_LAST_SEGMENTS -> index >= sizeUrlSegments - 1 - processLastSegments
+        SituationUrlClassification.KEYWORD_NOT_PROCESS -> false
+        else -> true
+    }
 
-    /**
-     * ARCHIVE - situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
-     * DETAILS - situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
-     * EXECUTION - situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
-     * KEYWORD_NOT_PROCESS - the button with this url segment is not created
-     * KEYWORD_PROCESS - the button with this url segment is created without changes
-     * KEYWORD_PROCESS_LAST_SEGMENTS - a button is created if this segment is one of the last
-     * PROJECT_OR_ORGANIZATION - situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
+    /** The function
+     *
+     * @param href
      */
-    private enum class SituationUrlClassification {
-        ARCHIVE,
-        DETAILS,
-        EXECUTION,
-        KEYWORD_NOT_PROCESS,
-        KEYWORD_PROCESS,
-        KEYWORD_PROCESS_LAST_SEGMENTS,
-        PROJECT_OR_ORGANIZATION,
-        ;
-
-        companion object {
-            private var processLastSegments = 0
-            private var sizeUrlSegments: Int = 0
-
-            /**
-             * @param href
-             * @return [SituationUrlClassification] enum element
-             */
-            fun findExclude(href: String): SituationUrlClassification {
-                sizeUrlSegments = href.split("/").size
-                return if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
-                    PROJECT_OR_ORGANIZATION
-                } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
-                    ARCHIVE
-                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
-                    DETAILS
-                } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
-                    EXECUTION
-                } else {
-                    KEYWORD_PROCESS
-                }
-            }
-
-            /** Function check exclude and generate currentPath before the buttons creating
-             *
-             * @param exclude
-             * @param pathPart
-             * @param allPath
-             */
-            fun fixCurrentPathBefore(
-                exclude: SituationUrlClassification,
-                pathPart: String,
-                allPath: String,
-            ) = when (exclude) {
-                PROJECT_OR_ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
-                ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
-                DETAILS, EXECUTION -> if (pathPart == "execution") allPath else mergeUrls(allPath, pathPart)
-                else -> mergeUrls(allPath, pathPart)
-            }
-
-            /** Function check exclude and generate currentPath after the buttons creating
-             *
-             * @param exclude
-             * @param pathPart
-             * @param allPath
-             */
-            fun fixCurrentPathAfter(
-                exclude: SituationUrlClassification,
-                pathPart: String,
-                allPath: String
-            ) = when (exclude) {
-                PROJECT_OR_ORGANIZATION, ARCHIVE -> "#"
-                DETAILS, EXECUTION -> if (pathPart == "execution") mergeUrls(allPath, pathPart) else allPath
-                else -> allPath
-            }
-
-            /** The function changes the exclude after the button is created
-             *
-             * @param exclude
-             * @param isNumber
-             */
-            fun fixExcludeAfter(
-                exclude: SituationUrlClassification,
-                isNumber: Boolean
-            ) = when (exclude) {
-                PROJECT_OR_ORGANIZATION, ARCHIVE -> KEYWORD_PROCESS
-                DETAILS -> if (isNumber) setProcessLastSegments(1) else DETAILS
-                else -> exclude
-            }
-
-            /** The function returns a flag whether to create this button or not
-             *
-             * @param exclude
-             * @param index
-             */
-            fun isCreateButton(exclude: SituationUrlClassification, index: Int) = when (exclude) {
-                KEYWORD_PROCESS_LAST_SEGMENTS -> index > sizeUrlSegments - 1 - processLastSegments
-                KEYWORD_NOT_PROCESS -> false
-                else -> true
-            }
-            private fun mergeUrls(firstPath: String, secondPath: String) = "$firstPath/$secondPath"
-            private fun setProcessLastSegments(number: Int): SituationUrlClassification {
-                processLastSegments = number
-                return KEYWORD_PROCESS_LAST_SEGMENTS
-            }
+    private fun findExclude(href: String) {
+        circumstance = if (href.contains(OrganizationMenuBar.regexForUrlClassification) || href.contains(ProjectMenuBar.regexForUrlClassification)) {
+            SituationUrlClassification.PROJECT_OR_ORGANIZATION
+        } else if (href.contains(BenchmarkCategoryEnum.regexForUrlClassification)) {
+            SituationUrlClassification.ARCHIVE
+        } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution/[1234567890]+/details"))) {
+            SituationUrlClassification.DETAILS
+        } else if (href.contains(Regex("/[^/]+/[^/]+/history/execution"))) {
+            SituationUrlClassification.EXECUTION
+        } else {
+            SituationUrlClassification.KEYWORD_PROCESS
         }
+    }
+
+    /** Function check exclude and generate currentPath after the buttons creating
+     *
+     * @param pathPart
+     */
+    private fun fixCurrentPathAfter(pathPart: String) {
+        currentPath = when (circumstance) {
+            SituationUrlClassification.PROJECT_OR_ORGANIZATION, SituationUrlClassification.ARCHIVE -> "#"
+            SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") mergeUrls(pathPart) else currentPath
+            else -> currentPath
+        }
+    }
+
+    /** The function changes the exclude after the button is created
+     *
+     * @param isNumber
+     */
+    private fun fixExcludeAfter(isNumber: Boolean) {
+        circumstance = when (circumstance) {
+            SituationUrlClassification.PROJECT_OR_ORGANIZATION, SituationUrlClassification.ARCHIVE -> SituationUrlClassification.KEYWORD_PROCESS
+            SituationUrlClassification.DETAILS -> if (isNumber) setProcessLastSegments(1) else SituationUrlClassification.DETAILS
+            else -> circumstance
+        }
+    }
+
+    private fun mergeUrls(secondPath: String) = "$currentPath/$secondPath"
+
+    private fun setProcessLastSegments(number: Int): SituationUrlClassification {
+        processLastSegments = number
+        return SituationUrlClassification.KEYWORD_PROCESS_LAST_SEGMENTS
+    }
+}
+
+/**
+ * ARCHIVE - situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
+ * DETAILS - situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
+ * EXECUTION - situation with the processing of the "execution" in the url address - need for redirect to the page with the executions history
+ * KEYWORD_NOT_PROCESS - the button with this url segment is not created
+ * KEYWORD_PROCESS - the button with this url segment is created without changes
+ * KEYWORD_PROCESS_LAST_SEGMENTS - a button is created if this segment is one of the last
+ * PROJECT_OR_ORGANIZATION - situation with the processing of the "archive" in the url address - need for tabs in OrganizationView and ProjectView,
+ */
+private enum class SituationUrlClassification {
+    ARCHIVE,
+    DETAILS,
+    EXECUTION,
+    KEYWORD_NOT_PROCESS,
+    KEYWORD_PROCESS,
+    KEYWORD_PROCESS_LAST_SEGMENTS,
+    PROJECT_OR_ORGANIZATION,
+    ;
+
+    companion object {
     }
 }
 
