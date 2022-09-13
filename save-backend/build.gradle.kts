@@ -5,6 +5,9 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+import java.nio.file.Files.isDirectory
+import java.nio.file.Paths
+
 plugins {
     kotlin("jvm")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
@@ -49,16 +52,34 @@ tasks.register<Exec>("cleanupDbAndStorage") {
     dependsOn(":liquibaseDropAll")
     val profile = properties["save.profile"] as String?
 
-    val storagePath = when (profile) {
-        "win" -> "${System.getProperty("user.home")}/.save-cloud/cnb/files"
-        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
-        else -> "/home/cnb/files"
-    }
+    val userHome = System.getProperty("user.home")
+    val isWindows = DefaultNativePlatform.getCurrentOperatingSystem().isWindows
 
-    val args = if (profile != "win") {
+    val storagePath = when (profile) {
+        "win" -> "$userHome/.save-cloud/cnb/files"
+        "mac" -> "/Users/Shared/.save-cloud/cnb/files"
+        else -> when {
+            isWindows -> "$userHome/.save-cloud/cnb/files"
+            else -> "/home/cnb/files"
+        }
+    }.let(Paths::get)
+
+    /*
+     * No idea why we should rely on running external commands in order to
+     * delete a directory, since this can be done in a platform-independent way.
+     */
+    val args = if (profile != "win" && !isWindows) {
         arrayOf("rm", "-rf")
+    } else if (isDirectory(storagePath)) {
+        /*
+         * cmd.exe will set a non-zero exit status if the directory doesn't exist.
+         */
+        arrayOf("cmd", "/c", "rmdir", "/s", "/q")
     } else {
-        arrayOf("rmdir", "/s", "/q")
+        /*
+         * Run a dummy command.
+         */
+        arrayOf("cmd", "/c", "echo")
     }
     commandLine(*args, storagePath)
 }
