@@ -1,3 +1,28 @@
 gateway:
   backend:
     url: http://localhost:5800
+  frontend:
+    url: http://localhost:5810
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          # example: https://github.com/wearearima/spring-boot-dex/blob/master/src/main/resources/application.properties
+          dex:
+            authorization-uri: http://localhost:5556/dex/auth
+            token-uri: http://localhost:5556/dex/token
+            jwk-set-uri: http://localhost:5556/dex/keys
+        registration:
+          dex:
+            client-id: save-gateway-dev
+            client-secret: 123test123
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/{action}/oauth2/code/{registrationId}'
+            scope:
+              - openid
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.nimbusds: TRACE
