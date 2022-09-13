@@ -41,7 +41,7 @@ internal fun ChildrenBuilder.inputDateFormRequired(
         }
     }
     div {
-        className = ClassName("input-group has-validation")
+        className = ClassName("input-group needs-validation")
         input {
             type = InputType.date
             onChange = onChangeFun
