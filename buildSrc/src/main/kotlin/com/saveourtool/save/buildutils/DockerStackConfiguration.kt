@@ -253,11 +253,11 @@ fun Project.createStackDeployTask(profile: String) {
 }
 
 private fun Project.declareDexService() =
-    """
-        |dex:
-        |  image: ghcr.io/dexidp/dex:latest-distroless
-        |  ports:
-        |    - "5556:5556"
-        |  volumes:
-        |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
-    """.trimMargin()
+        """
+            |dex:
+            |  image: ghcr.io/dexidp/dex:latest-distroless
+            |  ports:
+            |    - "5556:5556"
+            |  volumes:
+            |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
+        """.trimMargin()
