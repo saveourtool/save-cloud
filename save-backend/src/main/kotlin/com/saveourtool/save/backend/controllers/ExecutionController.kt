@@ -166,9 +166,12 @@ class ExecutionController(private val executionService: ExecutionService,
         )
             .mapNotNull { it.id!! }
             .map { id ->
-                testExecutionService.deleteTestExecutionWithProjectId(id)
-                agentStatusService.deleteAgentStatusWithProjectId(id)
-                agentService.deleteAgentWithProjectId(id)
+                val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
+                    it.id!!
+                }
+                testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
+                agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
+                agentService.deleteAgentByExecutionIds(executionsNotInContests)
                 executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
                 ResponseEntity.ok().build<String>()
             }

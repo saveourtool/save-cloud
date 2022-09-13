@@ -105,6 +105,17 @@ class ExecutionService(
      */
     fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
 
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
+     * @return list of execution
+     */
+    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization) =
+        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
+            lnkContestExecutionService.findContestByExecution(it) == null
+        }
+
     /**
      * Get latest (by start time an) execution by project name and organization
      *
@@ -123,9 +134,7 @@ class ExecutionService(
      * @return Unit
      */
     fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
-        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
-            lnkContestExecutionService.findContestByExecution(it) == null
-        }.forEach {
+        getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
             executionRepository.delete(it)
         }
     }
