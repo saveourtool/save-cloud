@@ -110,6 +110,11 @@ enum class InputTypes(
         )
     ),
 
+    // ==== test suites source fetcher
+    SOURCE_TAG("source_tag", placeholder = "select a tag"),
+    SOURCE_BRANCH("source_branch", placeholder = "select a branch"),
+    SOURCE_COMMIT("source_commit", placeholder = "select a commit"),
+
     // ==== execution run
     TEST_SUITE_IDS("test suite ids", placeholder = "click to open selector"),
     ;

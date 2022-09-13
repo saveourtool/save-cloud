@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.PolymorphicSerializer
 
+@Suppress("WRONG_ORDER_IN_CLASS_LIKE_STRUCTURES")
 class SaveAgentTest {
     init {
         setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)

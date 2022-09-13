@@ -16,7 +16,7 @@ import reactor.kotlin.core.publisher.toMono
 /**
  * @param status
  * @param messageCreator
- * @return original [Mono] or [Mono.error] with 404 status otherwise
+ * @return original [Mono] or [Mono.error] with [status] otherwise
  */
 fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCreator: (() -> String?) = { null }) = switchIfEmpty {
     Mono.error(ResponseStatusException(status, messageCreator()))

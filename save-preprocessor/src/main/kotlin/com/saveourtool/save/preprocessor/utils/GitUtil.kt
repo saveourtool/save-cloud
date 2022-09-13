@@ -9,6 +9,7 @@ import com.saveourtool.save.utils.debug
 import org.eclipse.jgit.api.*
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.transport.CredentialsProvider
 import org.eclipse.jgit.transport.TagOpt
@@ -27,15 +28,12 @@ fun GitDto.detectDefaultBranchName() = Git.lsRemoteRepository()
     .setCredentialsProvider(credentialsProvider())
     .setRemote(url)
     .gitCallWithRethrow {
-        it.callAsMap()[Constants.HEAD]
+        it.callAsMap()
     }
-    ?.takeIf { it.isSymbolic }
-    ?.target
-    ?.name
+    ?.findDefaultBranchName()
     ?.also { defaultBranch ->
         log.debug { "Getting default branch name $defaultBranch for httpUrl $url" }
     }
-    ?.replace(Constants.R_HEADS, "")
     ?: throw IllegalStateException("Couldn't detect default branch name for $url")
 
 /**
@@ -74,13 +72,38 @@ fun GitDto.detectTagList(): Collection<String> = Git.lsRemoteRepository()
     .setHeads(false)
     .setTags(true)
     .gitCallWithRethrow { it.callAsMap() }
-    .filterKeys { it.startsWith(Constants.R_TAGS) }
-    .mapKeys { (key, _) -> key.removePrefix(Constants.R_TAGS) }
-    .mapValues { (_, value) -> value.objectId.name }
-    .toSortedMap()
-    .entries
-    .map { it.toPair() }
-    .map { it.first }
+    .keys
+    .filter { it.startsWith(Constants.R_TAGS) }
+    .map { it.removePrefix(Constants.R_TAGS) }
+    .toSortedSet()
+
+/**
+ * Sorted set of branches for [GitDto], where default branch comes at first position
+ *
+ * @return list of branches
+ * @throws IllegalStateException
+ */
+fun GitDto.detectBranchList(): Collection<String> = Git.lsRemoteRepository()
+    .setCredentialsProvider(credentialsProvider())
+    .setRemote(url)
+    .gitCallWithRethrow { it.callAsMap() }
+    .let { map ->
+        val defaultBranch =
+                map.findDefaultBranchName() ?: throw IllegalStateException("Couldn't detect default branch name for $url")
+        val branches = map
+            .keys
+            .filter { it.startsWith(Constants.R_HEADS) }
+            .map { it.removePrefix(Constants.R_HEADS) }
+            .filterNot { it == defaultBranch }
+            .toSortedSet()
+        sortedSetOf(defaultBranch) + branches
+    }
+
+private fun Map<String, Ref>.findDefaultBranchName(): String? = this[Constants.HEAD]
+    ?.takeIf { it.isSymbolic }
+    ?.target
+    ?.name
+    ?.replace(Constants.R_HEADS, "")
 
 private fun GitDto.doCloneToDirectory(
     pathToDirectory: Path,

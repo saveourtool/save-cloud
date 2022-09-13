@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.scheduling
 
 import com.saveourtool.save.backend.service.TestSuitesSourceService
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.quartz.JobKey
@@ -20,7 +21,7 @@ class UpdateJob(
         testSuitesSourceService.getStandardTestSuitesSources()
             .toFlux()
             .flatMap { testSuitesSource ->
-                testSuitesSourceService.fetch(testSuitesSource.toDto())
+                testSuitesSourceService.fetch(testSuitesSource.toDto(), TestSuitesSourceFetchMode.BY_BRANCH, "main")
             }
             .collectList()
             .block(Duration.ofSeconds(10))
