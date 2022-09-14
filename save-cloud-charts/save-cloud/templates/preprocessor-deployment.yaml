@@ -19,7 +19,7 @@ spec:
       {{- if .Values.preprocessor.nodeName }}
       nodeName: {{ .Values.preprocessor.nodeName }}
       {{- end }}
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: preprocessor
           {{- include "spring-boot.common" (merge (dict "service" .Values.preprocessor) .) | nindent 10 }}

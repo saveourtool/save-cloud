@@ -71,6 +71,12 @@ Usually not the whole stack is required for development. Application logic is pe
     port enabled. Then, `docker-tcp` profile should be enabled for orchestrator.
 * To make things easier, add line `save.profile=dev` to `gradle.properties`. This will make project version `SNAPSHOT` instead of timestamp-based suffix and allow caching of gradle tasks.
 * Run `./gradlew deployLocal -Psave.profile=dev` to start the database and run three microservices (backend, preprocessor and orchestrator) with Docker Compose.
+  Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be
+  proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js).
+* For developing most part of platform's logic, the above will be enough. If local testing of authentication flow is required, however,
+  `api-gateway` can be run locally together with [dex](https://github.com/dexidp/dex) OAuth2 server. In order to do so, run 
+  `docker compose up -d dex` and then start `api-gateway` with `dev` profile enabled. Using [`application-dev.yaml`](../api-gateway/src/main/resources/application-dev.yml)
+  one can connect gateway with dev build of frontend running with webpack by changing `gateway.frontend.url`.
 
 ## Local debugging
 You can run backend, orchestrator, preprocessor and frontend locally in IDE in debug mode.<br/>
@@ -99,25 +105,24 @@ Do not forget to use `mac` profile.
 * If version of save-core is set without '-SNAPSHOT' suffix, then it is considered as release version and downloaded from github.
 
 ## Ports allocation
-| port | description                                |
-|------|--------------------------------------------|
-| 3306 | database (locally)                         |                     |
-| 5800 | save-backend                               |
-| 5100 | save-orchestrator                          |
-| 5200 | save-test-preprocessor                     |
-| 5300 | api-gateway                                |
-| 9090 | prometheus                                 |
-| 9091 | node_exporter                              |
-| 9100 | grafana                                    |
+| port | description            |
+|------|------------------------|
+| 3306 | database (locally)     |
+| 5800 | save-backend           |
+| 5810 | save-frontend          |
+| 5100 | save-orchestrator      |
+| 5200 | save-test-preprocessor |
+| 5300 | api-gateway            |
+| 9090 | prometheus             |
+| 9091 | node_exporter          |
+| 9100 | grafana                |
 
 ## Secrets
 * Liquibase is reading secrets from the secrets file located on the server in the `home` directory.
 * PostProcessor is reading secrets for database connection from the docker secrets and fills the spring datasource. (DockerSecretsDatabaseProcessor class)
 * api-gateway is a single external-facing component, hence its security is stricter. Actuator endpoints are protected with
 basic HTTP security. Access can be further restricted by specifying `gateway.knownActuatorConsumers` in `application.properties`
-(if this options is not specified, no check will be performed). To access this data from prometheus it should have access
-to these credentials from docker secrets. Configuration file [prometheus.yml](./prometheus.yml) is configured to use username
-`prometheus` and password from standard path for docker swarm secrets.
+(if this options is not specified, no check will be performed).
 
 # Server configuration
 ## Nginx

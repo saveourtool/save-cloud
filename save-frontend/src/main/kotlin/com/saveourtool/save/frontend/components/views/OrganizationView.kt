@@ -6,9 +6,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -17,6 +15,7 @@ import com.saveourtool.save.frontend.components.basic.organizations.organization
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
@@ -158,30 +157,32 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects = tableComponent(
-        columns = columns<Project> {
-            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +cellProps.value
+    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+        columns = {
+            columns<Project> {
+                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                +cellProps.value
+                            }
+                            privacySpan(cellProps.row.original)
                         }
-                        privacySpan(cellProps.row.original)
                     }
                 }
-            }
-            column(id = "description", header = "Description") {
-                Fragment.create {
-                    td {
-                        +(it.value.description ?: "Description not provided")
+                column(id = "description", header = "Description") {
+                    Fragment.create {
+                        td {
+                            +(it.value.description ?: "Description not provided")
+                        }
                     }
                 }
-            }
-            column(id = "rating", header = "Contest Rating") {
-                Fragment.create {
-                    td {
-                        +"0"
+                column(id = "rating", header = "Contest Rating") {
+                    Fragment.create {
+                        td {
+                            +"0"
+                        }
                     }
                 }
             }
@@ -508,11 +509,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     deleteOrganization()
                 }
             }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
                     isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                 }
             }
             updateNotificationMessage = ::showNotification

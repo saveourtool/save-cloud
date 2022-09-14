@@ -50,7 +50,8 @@ external interface ManageGitCredentialsCardProps : Props {
     /**
      * Lambda to show error after fail response
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Lambda to show warning if current user is super admin
@@ -209,9 +210,11 @@ private fun prepareFetchGitCredentials(organizationName: String): RequestWithDep
     return Triple(gitCredentials, setGitCredentials, fetchGitCredentialsRequest)
 }
 
+@Suppress("TYPE_ALIAS")
 private fun prepareDeleteGitCredential(
     organizationName: String,
-    updateErrorMessage: (Response) -> Unit,
+    @Suppress("TYPE_ALIAS")
+    updateErrorMessage: (Response, String) -> Unit,
     fetchGitCredentialsRequest: () -> Unit
 ): RequestWithDependency<GitDto> {
     val (gitCredentialToDelete, setGitCredentialToDelete) = useState(GitDto("N/A"))
@@ -223,7 +226,7 @@ private fun prepareDeleteGitCredential(
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
-            updateErrorMessage(response)
+            updateErrorMessage(response, response.unpackMessage())
         } else {
             fetchGitCredentialsRequest()
         }

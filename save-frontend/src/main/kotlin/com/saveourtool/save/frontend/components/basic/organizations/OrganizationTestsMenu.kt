@@ -8,15 +8,13 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.components.basic.showTestSuiteSourceCreationModal
+import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
+import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
 import react.*
@@ -27,11 +25,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
-import kotlinx.coroutines.await
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
-typealias TestSuitesSourceWithBranch = Pair<TestSuitesSourceDto, String>
+import kotlinx.serialization.json.*
 
 /**
  * TESTS tab in OrganizationView
@@ -55,48 +49,27 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
-    val testSuitesSourceCreationWindowOpenness = useWindowOpenness()
+    val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceWithBranch>())
+    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
+            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-        if (!response.ok) {
-            setTestSuitesSources(emptyList())
-            return@useRequest
+        if (response.ok) {
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
+        } else {
+            setTestSuitesSourcesWithId(emptyList())
         }
-        response.decodeFromJsonString<TestSuitesSourceDtoList>()
-            .map { testSuitesSource ->
-                val defaultBranchResponse = post(
-                    url = "$apiUrl/git/default-branch-name",
-                    headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
-                    body = Json.encodeToString(testSuitesSource.gitDto)
-                )
-                if (!defaultBranchResponse.ok) {
-                    setTestSuitesSources(emptyList())
-                    return@useRequest
-                }
-                testSuitesSource to defaultBranchResponse.text().await()
-            }
-            .let {
-                setTestSuitesSources(it)
-            }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
-    val triggerFetchTestSuiteSource = useDeferredRequest {
-        testSuiteSourceToFetch?.let { testSuiteSource ->
-            post(
-                url = "$apiUrl/test-suites-sources/${testSuiteSource.organizationName}/${encodeURIComponent(testSuiteSource.name)}/fetch",
-                headers = jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                body = undefined
-            )
-        }
-    }
+    val testSuitesSourceFetcherWindowOpenness = useWindowOpenness()
+    testSuitesSourceFetcher(
+        testSuitesSourceFetcherWindowOpenness,
+        testSuiteSourceToFetch ?: TestSuitesSourceDto.empty
+    )
 
     val (selectedTestSuitesSource, setSelectedTestSuitesSource) = useState<TestSuitesSourceDto>()
     val (testSuitesSourceSnapshotKeys, setTestSuitesSourceSnapshotKeys) = useState(emptyList<TestSuitesSourceSnapshotKey>())
@@ -142,27 +115,27 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     val fetchHandler: (TestSuitesSourceDto) -> Unit = {
         setTestSuiteSourceToFetch(it)
-        triggerFetchTestSuiteSource()
+        testSuitesSourceFetcherWindowOpenness.openWindow()
     }
+    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
+    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        setTestSuiteSourceWithIdToUpsert(it)
+        testSuitesSourceUpsertWindowOpenness.openWindow()
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
-    showTestSuiteSourceCreationModal(
-        testSuitesSourceCreationWindowOpenness.isOpen(),
-        props.organizationName,
-        { source ->
-            testSuitesSourceCreationWindowOpenness.closeWindow()
-            setTestSuiteSourceToFetch(source)
-            triggerFetchTestSuiteSource()
-            setIsSourceCreated { !it }
-        },
+    showTestSuiteSourceUpsertModal(
+        windowOpenness = testSuitesSourceUpsertWindowOpenness,
+        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        organizationName = props.organizationName,
     ) {
-        testSuitesSourceCreationWindowOpenness.closeWindow()
+        setIsSourceCreated { !it }
     }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
@@ -170,7 +143,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             type = ButtonType.button
             className = ClassName("btn btn-sm btn-primary")
             disabled = !props.selfRole.hasWritePermission()
-            onClick = testSuitesSourceCreationWindowOpenness.openWindowAction().withUnusedArg()
+            onClick = {
+                setTestSuiteSourceWithIdToUpsert(null)
+                testSuitesSourceUpsertWindowOpenness.openWindow()
+            }
             +"+ Create test suites source"
         }
     }
@@ -178,9 +154,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         className = ClassName("mb-2")
         testSuitesSourcesTable {
             getData = { _, _ ->
-                testSuitesSources.toTypedArray()
+                testSuitesSourcesWithId.toTypedArray()
             }
-            content = testSuitesSources
+            content = testSuitesSourcesWithId
         }
     }
 
@@ -212,66 +188,84 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
     "LongMethod",
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceWithBranch>> = tableComponent(
-    columns = columns {
-        column(id = "organizationName", header = "Organization", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.organizationName
-                }
-            }
-        }
-        column(id = "name", header = "Name", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +cellProps.value.name
-                }
-            }
-        }
-        column(id = "description", header = "Description", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value)
-                    }
-                    +(cellProps.value.description ?: "Description is not provided")
-                }
-            }
-        }
-        column(id = "location", header = "Git location", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    onClick = {
-                        selectHandler(cellProps.value.first)
-                    }
-                    a {
-                        // TODO: need to detect a default branch here
-                        href = "${cellProps.value.first.gitDto.url}/tree/${cellProps.value.second}/${cellProps.value.first.testRootPath}"
-                        +"source"
-                    }
-                }
-            }
-        }
-        column(id = "fetch", header = "Fetch new version", { this.first }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
+    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+): FC<TablePropsWithContent<TestSuitesSourceDtoWithId>> = tableComponent(
+    columns = {
+        columns {
+            column(id = "organizationName", header = "Organization", { this.content }) { cellProps ->
+                Fragment.create {
+                    td {
                         onClick = {
-                            fetchHandler(cellProps.value)
+                            selectHandler(cellProps.value)
                         }
-                        +"fetch"
+                        +cellProps.value.organizationName
+                    }
+                }
+            }
+            column(id = "name", header = "Name", { this.content }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value)
+                        }
+                        +cellProps.value.name
+                    }
+                }
+            }
+            column(id = "description", header = "Description", { this.content }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value)
+                        }
+                        +(cellProps.value.description ?: "Description is not provided")
+                    }
+                }
+            }
+            column(id = "git-url", header = "Git location", { this.content }) { cellProps ->
+                Fragment.create {
+                    td {
+                        onClick = {
+                            selectHandler(cellProps.value)
+                        }
+                        a {
+                            // a little hack -- GitHub redirect from master to main if it's required
+                            href = "${cellProps.value.gitDto.url}/tree/master/${cellProps.value.testRootPath}"
+                            +"source"
+                        }
+                    }
+                }
+            }
+            column(id = "fetch", header = "Fetch new version", { this.content }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                fetchHandler(cellProps.value)
+                            }
+                            +"fetch"
+                        }
+                    }
+                }
+            }
+            column(id = "edit", header = "Edit", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                editHandler(cellProps.value)
+                            }
+                            +"edit"
+                        }
                     }
                 }
             }
@@ -289,31 +283,33 @@ private fun prepareTestSuitesSourcesTable(
 private fun prepareTestSuitesSourceSnapshotKeysTable(
     deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit
 ): FC<TablePropsWithContent<TestSuitesSourceSnapshotKey>> = tableComponent(
-    columns = columns {
-        column(id = "version", header = "Version", { version }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value
+    columns = {
+        columns {
+            column(id = "version", header = "Version", { version }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value
+                    }
                 }
             }
-        }
-        column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
-            Fragment.create {
-                td {
-                    +cellProps.value.toString()
+            column(id = "creationTime", header = "Creation Time", { convertAndGetCreationTime() }) { cellProps ->
+                Fragment.create {
+                    td {
+                        +cellProps.value.toString()
+                    }
                 }
             }
-        }
-        column(id = "delete", header = "Delete version", { this }) { cellProps ->
-            Fragment.create {
-                td {
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
-                        onClick = {
-                            deleteHandler(cellProps.value)
+            column(id = "delete", header = "Delete version", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                deleteHandler(cellProps.value)
+                            }
+                            +"delete"
                         }
-                        +"delete"
                     }
                 }
             }

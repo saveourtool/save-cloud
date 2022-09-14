@@ -36,6 +36,7 @@ springdoc = "1.6.11"
 kotlinx-cli = "0.3.5"
 spotless = "6.10.0"
 fabric8 = "6.1.1"
+arrow-kt = "1.0.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -158,3 +159,5 @@ gradle-plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradl
 
 fabric8-kubernetes-client = { module = "io.fabric8:kubernetes-client", version.ref = "fabric8" }
 fabric8-kubernetes-server-mock = { module = "io.fabric8:kubernetes-server-mock", version.ref = "fabric8" }
+
+arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}

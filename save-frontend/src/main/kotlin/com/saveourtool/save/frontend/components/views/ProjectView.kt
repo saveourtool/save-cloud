@@ -335,7 +335,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
-    private fun submitExecutionRequest() {
+    private fun NavigateFunctionContext.submitExecutionRequest() {
         when (state.testingType) {
             TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
             TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
@@ -344,7 +344,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
+    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
@@ -362,7 +362,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
-    private fun submitRequest(url: String, headers: Headers, body: dynamic) {
+    private fun NavigateFunctionContext.submitRequest(url: String, headers: Headers, body: dynamic) {
         scope.launch {
             val response = post(
                 apiUrl + url,
@@ -371,7 +371,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 loadingHandler = ::classLoadingHandler,
             )
             if (response.ok) {
-                window.location.href = "${window.location}/history"
+                navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
             }
         }
     }
@@ -587,11 +587,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-primary")
-                        onClick = { submitWithValidation() }
-                        +"Test the tool now"
+                    withNavigate { navigateContext ->
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-primary")
+                            onClick = { navigateContext.submitWithValidation() }
+                            +"Test the tool now"
+                        }
                     }
                 }
             }
@@ -675,10 +677,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                 }
             }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
-                    errorLabel = "Failed to save project info"
-                    errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                     isErrorOpen = true
                 }
             }
@@ -780,7 +782,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
      * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
      * he understand what he is doing.
      */
-    private fun submitWithValidation() {
+    private fun NavigateFunctionContext.submitWithValidation() {
         setState {
             isSubmitButtonPressed = true
         }
@@ -810,7 +812,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    @Suppress("COMMENTED_OUT_CODE")
     private suspend fun updateProject(draftProject: Project): Response {
         val headers = Headers().also {
             it.set("Accept", "application/json")

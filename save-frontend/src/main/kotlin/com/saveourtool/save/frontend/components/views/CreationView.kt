@@ -29,6 +29,7 @@ import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ButtonType
 import react.dom.html.InputType
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -38,7 +39,6 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
-import react.router.dom.Link
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -180,27 +180,6 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                     className = ClassName("h4 text-gray-900 mb-4")
                                     +"Create new test project"
                                 }
-                                div {
-                                    button {
-                                        @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
-                                        val buttonText = "Add new organization"
-                                        val buttonEnabled = props.organizationName.isNullOrEmpty()
-
-                                        type = ButtonType.button
-                                        className = ClassName("btn btn-primary mb-2")
-                                        disabled = !buttonEnabled
-
-                                        when {
-                                            buttonEnabled -> Link {
-                                                className = ClassName("text-light")
-                                                to = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
-                                                +buttonText
-                                            }
-
-                                            else -> +buttonText
-                                        }
-                                    }
-                                }
                                 form {
                                     className = ClassName("needs-validation")
                                     div {
@@ -225,6 +204,15 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                             }
                                             dataToString = { it }
                                             selectedValue = state.projectCreationRequest.organizationName
+                                            addNewItemChildrenBuilder = { childrenBuilder ->
+                                                with(childrenBuilder) {
+                                                    a {
+                                                        href = "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}"
+                                                        +"Add new organization"
+                                                    }
+                                                }
+                                            }
+                                            disabled = false
                                             onChangeFun = { value ->
                                                 setState {
                                                     projectCreationRequest = projectCreationRequest.copy(organizationName = value ?: "")
@@ -236,7 +224,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                             textValue = state.projectCreationRequest.name
                                             validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
                                                     state.conflictErrorMessage == null
-                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Tested tool name"
                                             conflictMessage = state.conflictErrorMessage
                                             onChangeFun = {
@@ -251,7 +239,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                         inputTextFormOptional {
                                             form = InputTypes.PROJECT_EMAIL
                                             textValue = state.projectCreationRequest.email
-                                            classes = "col-md-12 pl-2 pr-2 mt-3"
+                                            classes = "col-md-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Contact e-mail"
                                             validInput =
                                                     state.projectCreationRequest.email.isEmpty() || state.projectCreationRequest.validateEmail()
@@ -264,14 +252,14 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(tr
                                         }
 
                                         div {
-                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2")
+                                            className = ClassName("col-md-12 mt-3 mb-3 pl-2 pr-2 text-left")
                                             label {
                                                 className = ClassName("form-label")
                                                 asDynamic()["for"] = InputTypes.DESCRIPTION.name
                                                 +"Description"
                                             }
                                             div {
-                                                className = ClassName("input-group has-validation")
+                                                className = ClassName("input-group needs-validation")
                                                 textarea {
                                                     className = ClassName("form-control")
                                                     onChange = {

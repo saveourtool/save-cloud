@@ -75,6 +75,8 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                           |  
+                           |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
@@ -100,6 +102,7 @@ fun Project.createStackDeployTask(profile: String) {
             file(envFile).writeText(
                 """
                     BACKEND_TAG=${defaultVersionOrProperty("backend.dockerTag")}
+                    FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
@@ -223,6 +226,7 @@ fun Project.createStackDeployTask(profile: String) {
             "-d",
             "orchestrator",
             "backend",
+            "frontend",
             "preprocessor"
         )
     }
@@ -239,7 +243,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }
@@ -247,3 +251,13 @@ fun Project.createStackDeployTask(profile: String) {
         }
     }
 }
+
+private fun Project.declareDexService() =
+        """
+            |dex:
+            |  image: ghcr.io/dexidp/dex:latest-distroless
+            |  ports:
+            |    - "5556:5556"
+            |  volumes:
+            |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
+        """.trimMargin()

@@ -5,6 +5,8 @@ server:
 gateway:
   backend:
     url: http://backend:5800
+  frontend:
+    url: http://frontend:5810
   grafana:
     url: http://grafana:9100
 management:
@@ -27,7 +29,7 @@ spring:
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
         - id: index_route
-          uri: ${gateway.backend.url}/index.html
+          uri: ${gateway.frontend.url}/index.html
           predicates:
             - Path=/
           filters:
@@ -38,7 +40,7 @@ spring:
           predicates:
             - Path=/error
         - id: resource_route
-          uri: ${gateway.backend.url}
+          uri: ${gateway.frontend.url}
           predicates:
             - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
           filters:
@@ -48,14 +50,6 @@ spring:
           uri: ${gateway.grafana.url}
           predicates:
             - Path=/grafana/**
-  security:
-    oauth2:
-      client:
-        provider:
-          github:
-            # value that will work with GitHub API, where GitHub provides username as "login" in the response
-            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
-            user-name-attribute: login
 
 ---
 spring:
@@ -65,3 +59,16 @@ spring:
 gateway:
   grafana:
     url: http://save-cloud-grafana:9100
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login

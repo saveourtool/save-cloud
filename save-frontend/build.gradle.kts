@@ -1,4 +1,5 @@
 import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
@@ -61,7 +62,8 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
+            // See https://stackoverflow.com/a/72828500; newer versions are supported only for Bootstrap 5.2+
+            compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
@@ -219,12 +221,39 @@ val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
     dependsOn(":save-frontend:browserDistribution")
     archiveClassifier.set("distribution")
-    from("$buildDir/distributions")
-    into("static")
-    exclude("scss")
+    from("$buildDir/distributions") {
+        into("static")
+        exclude("scss")
+    }
+    from("$projectDir/nginx.conf") {
+        into("")
+    }
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
+}
+
+tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
+    inputs.property("project version", version.toString())
+    inputs.file("$projectDir/nginx.conf")
+
+    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
+    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
+    buildpacks = listOf("paketo-buildpacks/nginx")
+    environment = mapOf(
+        "BP_WEB_SERVER_ROOT" to "static",
+    )
+    isVerboseLogging = true
+    System.getenv("GHCR_PWD")?.let { registryPassword ->
+        isPublish = true
+        docker {
+            publishRegistry {
+                username = "saveourtool"
+                password = registryPassword
+                url = "https://ghcr.io"
+            }
+        }
+    }
 }
 
 detekt {

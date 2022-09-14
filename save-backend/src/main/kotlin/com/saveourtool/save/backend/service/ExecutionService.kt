@@ -132,6 +132,7 @@ class ExecutionService(
      * @param organization organization of project
      * @return Unit
      */
+    @Suppress("IDENTIFIER_LENGTH")
     fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
         getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
             executionRepository.delete(it)

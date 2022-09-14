@@ -32,6 +32,8 @@ import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+val manageUserRoleCardComponent = manageUserRoleCardComponent()
+
 /**
  * [Props] for card component
  */
@@ -58,8 +60,10 @@ external interface ManageUserRoleCardProps : Props {
 
     /**
      * Lambda to show error after fail response
+     * todo: remove [updateErrorMessage] and use response handlers
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Lambda to get users from project/organization
@@ -84,7 +88,7 @@ external interface ManageUserRoleCardProps : Props {
     "MAGIC_NUMBER",
     "ComplexMethod",
 )
-fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
+private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
     val getUsersFromGroup = useDeferredRequest {
         val usersFromDb = get(
@@ -107,7 +111,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             loadingHandler = ::noopLoadingHandler,
         )
         if (!response.ok) {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         } else {
             getUsersFromGroup()
         }
@@ -121,6 +125,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                 url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
                 headers = jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
                 .unsafeMap {
                     it.decodeFromJsonString<List<UserInfo>>()
@@ -135,13 +140,14 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             headers = jsonHeaders,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
             getUsersFromGroup()
             setUsersNotFromGroup(emptyList())
         } else {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         }
     }
 
@@ -154,7 +160,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         } else {
             getUsersFromGroup()
             setUsersNotFromGroup(emptyList())
@@ -185,7 +191,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
         div {
-            className = ClassName("row mt-0 ml-0 mr-0")
+            className = ClassName("row mt-0 ml-0 mr-0 shadow-sm rounded")
             div {
                 className = ClassName("input-group")
                 input {
@@ -220,6 +226,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                         onClick = {
                             addUserToGroup()
                         }
+                        disabled = userToAdd.name.isBlank()
                         +"Add user"
                     }
                 }

@@ -1,12 +1,10 @@
 package com.saveourtool.save.preprocessor.utils
 
 import com.saveourtool.save.entities.GitDto
-import org.eclipse.jgit.util.FileUtils
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.util.FileSystemUtils
 import kotlin.io.path.createTempDirectory
-import kotlin.io.path.deleteExisting
 
 internal class GitUtilKtTest {
     @Test

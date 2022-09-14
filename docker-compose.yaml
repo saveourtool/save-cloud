@@ -53,6 +53,12 @@ services:
       labels:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
+  frontend:
+    image: ghcr.io/saveourtool/save-frontend:${FRONTEND_TAG}
+    environment:
+      - "PORT=5810"
+    ports:
+      - "5810:5810"
   preprocessor:
     image: ghcr.io/saveourtool/save-preprocessor:${PREPROCESSOR_TAG}
     environment:
@@ -101,7 +107,7 @@ services:
         constraints:
           - "node.role==manager"
   grafana:
-    image: grafana/grafana:9.1.2
+    image: grafana/grafana:9.1.4
     ports:
       - "9100:3000"
     volumes:

@@ -362,7 +362,7 @@ internal class ContestController(
         }
         .map { (organization, contest) ->
             contestService.updateContest(
-                contestRequest.toContest(organization, contest.status).apply { id = contest.id }
+                contestRequest.toContest(organization).apply { id = contest.id }
             )
             ResponseEntity.ok("Contest successfully updated")
         }
