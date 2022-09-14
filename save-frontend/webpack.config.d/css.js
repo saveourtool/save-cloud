@@ -25,8 +25,10 @@ config.module.rules.push(
         use: {
             loader: 'file-loader',
         }
-    }
+    },
 );
+
+
 
 config.plugins.push(
     new MiniCssExtractPlugin()
