@@ -53,6 +53,11 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     var selectedValue: String
 
     /**
+     * disabled select component
+     */
+    var disabled: Boolean
+
+    /**
      * Method to get string that should be shown
      */
     var dataToString: (D) -> String
@@ -132,6 +137,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                 className = ClassName("form-control")
                 id = props.formType.name
                 required = true
+                disabled = props.disabled
                 // TODO: why we need an extra option
                 option {
                     disabled = true

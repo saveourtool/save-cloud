@@ -9,15 +9,12 @@ package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
-import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceCreationModal
+import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.loadingHandler
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDtoList
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKey
-import com.saveourtool.save.testsuite.TestSuitesSourceSnapshotKeyList
+import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
 import react.*
@@ -27,6 +24,8 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.serialization.json.*
 
 /**
  * TESTS tab in OrganizationView
@@ -50,19 +49,19 @@ external interface OrganizationTestsMenuProps : Props {
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
-    val testSuitesSourceCreationWindowOpenness = useWindowOpenness()
+    val testSuitesSourceUpsertWindowOpenness = useWindowOpenness()
     val (isSourceCreated, setIsSourceCreated) = useState(false)
-    val (testSuitesSources, setTestSuitesSources) = useState(emptyList<TestSuitesSourceDto>())
+    val (testSuitesSourcesWithId, setTestSuitesSourcesWithId) = useState(emptyList<TestSuitesSourceDtoWithId>())
     useRequest(dependencies = arrayOf(props.organizationName, isSourceCreated)) {
         val response = get(
-            url = "$apiUrl/test-suites-sources/${props.organizationName}/list",
+            url = "$apiUrl/test-suites-sources/${props.organizationName}/list-with-ids",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            setTestSuitesSources(response.decodeFromJsonString<TestSuitesSourceDtoList>())
+            setTestSuitesSourcesWithId(response.decodeListDtoWithIdFromJsonString())
         } else {
-            setTestSuitesSources(emptyList())
+            setTestSuitesSourcesWithId(emptyList())
         }
     }
     val (testSuiteSourceToFetch, setTestSuiteSourceToFetch) = useState<TestSuitesSourceDto>()
@@ -118,23 +117,25 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuiteSourceToFetch(it)
         testSuitesSourceFetcherWindowOpenness.openWindow()
     }
+    val (testSuiteSourceWithIdToUpsert, setTestSuiteSourceWithIdToUpsert) = useState<TestSuitesSourceDtoWithId>()
+    val editHandler: (TestSuitesSourceDtoWithId) -> Unit = {
+        setTestSuiteSourceWithIdToUpsert(it)
+        testSuitesSourceUpsertWindowOpenness.openWindow()
+    }
+    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler, editHandler)
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
         setTestSuitesSourceSnapshotKeyToDelete(it)
         deleteTestSuitesSourcesSnapshotKey()
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
-    val testSuitesSourcesTable = prepareTestSuitesSourcesTable(selectHandler, fetchHandler)
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
 
-    showTestSuiteSourceCreationModal(
-        testSuitesSourceCreationWindowOpenness.isOpen(),
-        props.organizationName,
-        {
-            testSuitesSourceCreationWindowOpenness.closeWindow()
-            setIsSourceCreated { !it }
-        },
+    showTestSuiteSourceUpsertModal(
+        windowOpenness = testSuitesSourceUpsertWindowOpenness,
+        testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
+        organizationName = props.organizationName,
     ) {
-        testSuitesSourceCreationWindowOpenness.closeWindow()
+        setIsSourceCreated { !it }
     }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
@@ -142,7 +143,10 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             type = ButtonType.button
             className = ClassName("btn btn-sm btn-primary")
             disabled = !props.selfRole.hasWritePermission()
-            onClick = testSuitesSourceCreationWindowOpenness.openWindowAction().withUnusedArg()
+            onClick = {
+                setTestSuiteSourceWithIdToUpsert(null)
+                testSuitesSourceUpsertWindowOpenness.openWindow()
+            }
             +"+ Create test suites source"
         }
     }
@@ -150,9 +154,9 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         className = ClassName("mb-2")
         testSuitesSourcesTable {
             getData = { _, _ ->
-                testSuitesSources.toTypedArray()
+                testSuitesSourcesWithId.toTypedArray()
             }
-            content = testSuitesSources
+            content = testSuitesSourcesWithId
         }
     }
 
@@ -184,14 +188,16 @@ external interface TablePropsWithContent<D : Any> : TableProps<D> {
     "TYPE_ALIAS",
     "TOO_LONG_FUNCTION",
     "LongMethod",
+    "LAMBDA_IS_NOT_LAST_PARAMETER",
 )
 private fun prepareTestSuitesSourcesTable(
     selectHandler: (TestSuitesSourceDto) -> Unit,
     fetchHandler: (TestSuitesSourceDto) -> Unit,
-): FC<TablePropsWithContent<TestSuitesSourceDto>> = tableComponent(
+    editHandler: (TestSuitesSourceDtoWithId) -> Unit,
+): FC<TablePropsWithContent<TestSuitesSourceDtoWithId>> = tableComponent(
     columns = {
         columns {
-            column(id = "organizationName", header = "Organization", { this }) { cellProps ->
+            column(id = "organizationName", header = "Organization", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -201,7 +207,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "name", header = "Name", { this }) { cellProps ->
+            column(id = "name", header = "Name", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -211,7 +217,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "description", header = "Description", { this }) { cellProps ->
+            column(id = "description", header = "Description", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -221,7 +227,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "git-url", header = "Git location", { this }) { cellProps ->
+            column(id = "git-url", header = "Git location", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         onClick = {
@@ -235,7 +241,7 @@ private fun prepareTestSuitesSourcesTable(
                     }
                 }
             }
-            column(id = "fetch", header = "Fetch new version", { this }) { cellProps ->
+            column(id = "fetch", header = "Fetch new version", { this.content }) { cellProps ->
                 Fragment.create {
                     td {
                         button {
@@ -245,6 +251,20 @@ private fun prepareTestSuitesSourcesTable(
                                 fetchHandler(cellProps.value)
                             }
                             +"fetch"
+                        }
+                    }
+                }
+            }
+            column(id = "edit", header = "Edit", { this }) { cellProps ->
+                Fragment.create {
+                    td {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-primary")
+                            onClick = {
+                                editHandler(cellProps.value)
+                            }
+                            +"edit"
                         }
                     }
                 }

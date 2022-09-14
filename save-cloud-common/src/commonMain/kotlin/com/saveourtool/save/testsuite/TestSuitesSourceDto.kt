@@ -1,12 +1,15 @@
 package com.saveourtool.save.testsuite
 
+import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 import com.saveourtool.save.validation.isValidPath
 import kotlinx.serialization.Serializable
 
+typealias TestSuitesSourceDtoWithId = DtoWithId<TestSuitesSourceDto>
 typealias TestSuitesSourceDtoList = List<TestSuitesSourceDto>
+typealias TestSuitesSourceDtoWithIdList = List<TestSuitesSourceDtoWithId>
 
 /**
  * @property organizationName
