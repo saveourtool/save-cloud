@@ -2,7 +2,6 @@
 io.kompose.service: {{ .service.name }}
 version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
-prometheus-job: {{ .service.imageName }}
 {{- end }}
 
 {{- define "pod.common.labels" }}
@@ -11,6 +10,7 @@ version: {{ or .service.dockerTag .Values.dockerTag }}
 {{- end }}
 
 {{- define "pod.common.annotations" }}
+prometheus.io/scrape: 'true'
 prometheus.io/path: /actuator/prometheus
 {{- if (hasKey .service "managementPort") }}
 prometheus.io/port: {{ .service.managementPort | quote }}
