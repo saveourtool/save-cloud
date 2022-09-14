@@ -134,7 +134,7 @@ class TestSuitesControllerTest {
         }
     }
 
-    private fun saveTestSuites(testSuite: TestSuiteDto, spec: WebTestClient.ResponseSpec.() -> Unit) {
+    private fun saveTestSuite(testSuite: TestSuiteDto, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
             .uri("/internal/test-suites/save")
             .contentType(MediaType.APPLICATION_JSON)
