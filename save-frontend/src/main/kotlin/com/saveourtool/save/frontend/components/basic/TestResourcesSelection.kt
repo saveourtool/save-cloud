@@ -231,7 +231,7 @@ private fun ChildrenBuilder.renderForContestMode(
     "LongMethod",
     "TOO_LONG_FUNCTION",
 )
-fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
+private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     // states for private mode
     val testSuiteSelectorWindowOpennessPrivateMode = useWindowOpenness()
     val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<Long>())
@@ -243,8 +243,12 @@ fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
 
     if (props.testingType == TestingType.CONTEST_MODE) {
         label {
-            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-4 pl-0")
+            className = ClassName("control-label col-auto justify-content-between justify-content-center font-weight-bold text-gray-800 mb-0 pl-0")
             +"3. Enroll for a contest"
+        }
+        label {
+            className = ClassName("col-auto justify-content-between justify-content-center mb-4 pl-0")
+            +"Note: if you've already enrolled into the desired contest, you should skip this step. Only new contests will be displayed here."
         }
     } else {
         label {
