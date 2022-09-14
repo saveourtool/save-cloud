@@ -97,7 +97,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
         } else if (props.currentContestName != prevProps.currentContestName) {
-            getContest()
+            fetchContest()
         }
     }
 
@@ -105,10 +105,10 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         super.componentDidMount()
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
-        getContest()
+        fetchContest()
     }
 
-    private fun getContest() {
+    private fun fetchContest() {
         scope.launch {
             val name = props.currentContestName
             name?.let {
