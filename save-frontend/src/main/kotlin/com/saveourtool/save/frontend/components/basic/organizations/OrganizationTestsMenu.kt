@@ -8,7 +8,6 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -18,9 +17,6 @@ import com.saveourtool.save.frontend.utils.loadingHandler
 import com.saveourtool.save.testsuite.*
 
 import csstype.ClassName
-import kotlinx.coroutines.await
-import kotlinx.serialization.json.*
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
@@ -28,6 +24,8 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
+
+import kotlinx.serialization.json.*
 
 /**
  * TESTS tab in OrganizationView
@@ -324,13 +322,3 @@ private fun prepareTestSuitesSourceSnapshotKeysTable(
         arrayOf(it.content)
     },
 )
-
-// https://github.com/Kotlin/kotlinx.serialization/issues/1448: workaround till migrated to JS Frontend IR
-private suspend inline fun <reified E> Response.decodeListDtoWithIdFromJsonString(): List<DtoWithId<E>> {
-    return Json.parseToJsonElement(this.text().await()).jsonArray.map { it.jsonObject }
-        .map { jsonObject ->
-            val id = requireNotNull(jsonObject["id"]?.jsonPrimitive?.longOrNull)
-            val content = Json.decodeFromJsonElement<E>(requireNotNull(jsonObject["content"]))
-            DtoWithId(id, content)
-        }
-}

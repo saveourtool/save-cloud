@@ -21,6 +21,7 @@ import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.v1
 
 import csstype.ClassName
+import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
@@ -30,7 +31,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 
 import kotlin.js.json
-import react.*
 
 val testSuiteSourceCreationComponent = testSuiteSourceUpsertComponent()
 
@@ -110,6 +110,14 @@ fun ChildrenBuilder.showTestSuiteSourceUpsertModal(
     }
 }
 
+private fun EntitySaveStatus.message() = when (this) {
+    EntitySaveStatus.CONFLICT -> "Test suite source with such test root path and git id is already present"
+    EntitySaveStatus.EXIST -> "Test suite source already exists"
+    EntitySaveStatus.NEW -> "Test suite source saved successfully"
+    EntitySaveStatus.UPDATED -> "Test suite source updated successfully"
+    else -> throw NotImplementedError("Not supported save status $this")
+}
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
@@ -121,23 +129,12 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
     )
     val saveStatusState: StateInstance<EntitySaveStatus?> = useState()
     val (saveStatus, setSaveStatus) = saveStatusState
-    val requestToCreateEntity = prepareRequestToCreate(
+    val requestToUpsertEntity = prepareRequest(
+        id = props.testSuitesSourceWithId?.id,
         testSuiteSource = testSuiteSource,
         entitySaveStatusState = saveStatusState,
     ) {
         props.onSuccess(testSuiteSource)
-    }
-    val requestToUpdateEntity = prepareRequestToUpdate(
-        testSuiteSourceWithId = props.testSuitesSourceWithId,
-        entitySaveStatusState = saveStatusState,
-    ) {
-        props.onSuccess(testSuiteSource)
-    }
-    val isUpdate = props.testSuitesSourceWithId != null
-    val onSubmitButtonPressed = if (isUpdate) {
-        requestToUpdateEntity
-    } else {
-        requestToCreateEntity
     }
 
     val gitWindowOpenness = useWindowOpenness()
@@ -213,7 +210,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
                 }
             }
             selectedValue = testSuiteSource.gitDto.url
-            disabled = isUpdate
+            disabled = props.testSuitesSourceWithId != null
             onChangeFun = { git ->
                 git?.let {
                     setTestSuiteSource(testSuiteSource.copy(gitDto = it))
@@ -238,9 +235,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             button {
                 className = ClassName("btn btn-primary mt-2 mb-2")
                 disabled = !testSuiteSource.validate() || saveStatus != null
-                onClick = {
-                    onSubmitButtonPressed()
-                }
+                onClick = requestToUpsertEntity.withUnusedArg()
                 +"Submit"
             }
         }
@@ -252,28 +247,6 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
         }
     }
 }
-
-private fun prepareRequestToCreate(
-    testSuiteSource: TestSuitesSourceDto,
-    entitySaveStatusState: StateInstance<EntitySaveStatus?>,
-    onSuccess: () -> Unit,
-) = prepareRequest(
-    id = null,
-    testSuiteSource = testSuiteSource,
-    entitySaveStatusState = entitySaveStatusState,
-    onSuccess = onSuccess
-)
-
-private fun prepareRequestToUpdate(
-    testSuiteSourceWithId: DtoWithId<TestSuitesSourceDto>?,
-    entitySaveStatusState: StateInstance<EntitySaveStatus?>,
-    onSuccess: () -> Unit,
-) = prepareRequest(
-    id = testSuiteSourceWithId?.id ?: -1L,
-    testSuiteSource = testSuiteSourceWithId?.content ?: TestSuitesSourceDto.empty,
-    entitySaveStatusState = entitySaveStatusState,
-    onSuccess = onSuccess
-)
 
 private fun prepareRequest(
     id: Long?,
@@ -294,12 +267,4 @@ private fun prepareRequest(
     } else if (response.isConflict()) {
         setEntitySaveStatus(response.decodeFromJsonString<EntitySaveStatus>())
     }
-}
-
-private fun EntitySaveStatus.message() = when (this) {
-    EntitySaveStatus.CONFLICT -> "Test suite source with such test root path and git id is already present"
-    EntitySaveStatus.EXIST -> "Test suite source already exists"
-    EntitySaveStatus.NEW -> "Test suite source saved successfully"
-    EntitySaveStatus.UPDATED -> "Test suite source updated successfully"
-    else -> throw NotImplementedError("Not supported save status $this")
 }

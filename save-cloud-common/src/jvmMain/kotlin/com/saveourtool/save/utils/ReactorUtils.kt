@@ -43,7 +43,7 @@ fun <T> Flux<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
  * @return original [Mono] or [Mono.error] with [status] if [predicate] is true for value in [Mono]
  */
 @Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
-fun <T> Mono<T>.switchIfToResponseException(
+fun <T> Mono<T>.requireOrSwitchToResponseException(
     predicate: T.() -> Boolean,
     status: HttpStatus,
     messageCreator: (() -> String?) = { null }

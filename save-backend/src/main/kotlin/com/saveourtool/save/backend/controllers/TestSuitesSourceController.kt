@@ -79,7 +79,6 @@ class TestSuitesSourceController(
                 .map { it.toDto() }
         }
 
-
     @GetMapping(
         path = [
             "/api/$v1/test-suites-sources/{organizationName}/list-with-ids",
@@ -355,10 +354,10 @@ class TestSuitesSourceController(
         @RequestParam("id") id: Long,
         @RequestBody dtoToUpdate: TestSuitesSourceDto
     ): Mono<EntitySaveStatusResponse> = getTestSuitesSource(id)
-        .switchIfToResponseException({ organization.name != dtoToUpdate.organizationName }, HttpStatus.CONFLICT) {
+        .requireOrSwitchToResponseException({ organization.name == dtoToUpdate.organizationName }, HttpStatus.BAD_REQUEST) {
             "Organization cannot be changed in TestSuitesSource"
         }
-        .switchIfToResponseException({ git.url == dtoToUpdate.gitDto.url }, HttpStatus.CONFLICT) {
+        .requireOrSwitchToResponseException({ git.url == dtoToUpdate.gitDto.url }, HttpStatus.BAD_REQUEST) {
             "Git cannot be changed in TestSuitesSource"
         }
         .map { originalEntity ->
