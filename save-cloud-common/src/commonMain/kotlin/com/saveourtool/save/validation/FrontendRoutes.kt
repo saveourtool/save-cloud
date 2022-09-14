@@ -19,6 +19,7 @@ enum class FrontendRoutes(val path: String) {
     NOT_FOUND("not-found"),
     PROJECTS("projects"),
     REGISTRATION("registration"),
+    SANDBOX("sandbox"),
     SETTINGS_EMAIL("settings/email"),
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),

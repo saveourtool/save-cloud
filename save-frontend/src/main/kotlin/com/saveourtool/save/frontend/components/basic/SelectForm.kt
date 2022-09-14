@@ -40,7 +40,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * select name
      */
-    var formName: String
+    var formName: String?
 
     /**
      * lambda invoked once to fetch data for selection
@@ -51,11 +51,6 @@ external interface SelectFormRequiredProps<D : Any> : Props {
      * Currently chosen field
      */
     var selectedValue: String
-
-    /**
-     * disabled select component
-     */
-    var disabled: Boolean
 
     /**
      * Method to get string that should be shown
@@ -73,6 +68,11 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     var notFoundErrorMessage: String?
 
     /**
+     * Flag that disables the form
+     */
+    var disabled: Boolean?
+
+    /**
      * Add custom elements under the form label in order to create new item.
      */
     var addNewItemChildrenBuilder: ((ChildrenBuilder) -> Unit)?
@@ -81,6 +81,11 @@ external interface SelectFormRequiredProps<D : Any> : Props {
      * Array of dependencies of [getData] [useRequest]
      */
     var getDataRequestDependencies: Array<dynamic>
+
+    /**
+     * Extra classes that should be under [select] tag
+     */
+    var selectClasses: String
 
     /**
      * Callback invoked when form is changed
@@ -98,6 +103,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     "LongParameterList",
     "TYPE_ALIAS",
     "LongMethod",
+    "ComplexMethod"
 )
 fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
@@ -108,21 +114,20 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
 
     div {
         className = ClassName("${props.classes} mt-1")
-        div {
-            className = ClassName("d-flex justify-content-between")
-            label {
-                className = ClassName("form-label")
-                props.formType.let {
-                    htmlFor = it.name
-                }
-                +props.formName
-                span {
-                    className = ClassName("text-danger")
-                    id = "${props.formType.name}Span"
-                    +"*"
+        props.formName?.let { formName ->
+            div {
+                className = ClassName("d-flex justify-content-between")
+                label {
+                    className = ClassName("form-label")
+                    htmlFor = props.formType.name
+                    +formName
+                    span {
+                        className = ClassName("text-danger")
+                        id = "${props.formType.name}Span"
+                        +"*"
+                    }
                 }
             }
-
             props.addNewItemChildrenBuilder?.let { addNewItemBuilder ->
                 small {
                     className = ClassName("text-right")
@@ -134,14 +139,17 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
         form {
             className = ClassName("input-group needs-validation")
             select {
-                className = ClassName("form-control")
                 id = props.formType.name
                 required = true
                 disabled = props.disabled
                 // TODO: why we need an extra option
-                option {
-                    disabled = true
-                    +""
+                elements.find {
+                    props.dataToString(it) == props.selectedValue
+                } ?: run {
+                    option {
+                        disabled = true
+                        +""
+                    }
                 }
                 value = props.selectedValue
                 elements.forEach { element ->
@@ -150,10 +158,10 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                     }
                 }
                 className = when {
-                    value == "" || value == null -> ClassName("form-control")
-                    props.validInput == true -> ClassName("form-control is-valid")
-                    props.validInput == false -> ClassName("form-control is-invalid")
-                    else -> ClassName("form-control")
+                    value == "" || value == null -> ClassName("${props.selectClasses} form-control")
+                    props.validInput == true -> ClassName(" ${props.selectClasses} form-control is-valid")
+                    props.validInput == false -> ClassName(" ${props.selectClasses} form-control is-invalid")
+                    else -> ClassName(" ${props.selectClasses} form-control")
                 }
                 onChange = { event ->
                     elements.find {
