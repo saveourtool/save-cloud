@@ -347,8 +347,12 @@ class TestSuitesSourceController(
         summary = "Get or create a new test suite source by provided values.",
         description = "Get or create a new test suite source by provided values.",
     )
+    @Parameters(
+        Parameter(name = "id", `in` = ParameterIn.QUERY, description = "ID of test suites source", required = true),
+    )
     @ApiResponse(responseCode = "200", description = "Successfully get or create test suites source with requested values.")
-    @ApiResponse(responseCode = "404", description = "Either git credentials were not found by provided url or organization was not found by provided name.")
+    @ApiResponse(responseCode = "400", description = "Try to change organization or git by this request.")
+    @ApiResponse(responseCode = "404", description = "Test suites source was not found by provided ID.")
     @ApiResponse(responseCode = "409", description = "Test suite name is already taken.")
     fun update(
         @RequestParam("id") id: Long,
@@ -503,6 +507,9 @@ class TestSuitesSourceController(
             blockingToMono {
                 testSuitesSourceService.findById(id)
             }
+                .switchIfEmptyToNotFound {
+                    "TestSuiteSource not found by ID $id"
+                }
 
     @PostMapping("/api/$v1/test-suites-sources/{organizationName}/{sourceName}/fetch")
     @RequiresAuthorizationSourceHeader
