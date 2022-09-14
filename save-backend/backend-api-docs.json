@@ -564,6 +564,7 @@
           {
             "name": "id",
             "in": "query",
+            "description": "ID of test suites source",
             "required": true,
             "schema": {
               "type": "integer",
@@ -604,8 +605,8 @@
               }
             }
           },
-          "404": {
-            "description": "Either git credentials were not found by provided url or organization was not found by provided name.",
+          "409": {
+            "description": "Test suite name is already taken.",
             "content": {
               "*/*": {
                 "schema": {
@@ -620,8 +621,24 @@
               }
             }
           },
-          "409": {
-            "description": "Test suite name is already taken.",
+          "404": {
+            "description": "Test suites source was not found by provided ID.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "CONFLICT",
+                    "EXIST",
+                    "NEW",
+                    "UPDATED"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Try to change organization or git by this request.",
             "content": {
               "*/*": {
                 "schema": {
