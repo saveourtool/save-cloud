@@ -511,7 +511,7 @@ internal class OrganizationController(
             "Not enough permission to manage git in $organizationName."
         }
         .zipWith(validateGitCredential(gitDto))
-        .filter { (_, isValid) -> true }
+        .filter { (_, isValid) -> isValid }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "Invalid git credential for url [${gitDto.url}]"
         }
