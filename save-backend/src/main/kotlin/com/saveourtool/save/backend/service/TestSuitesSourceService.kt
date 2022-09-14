@@ -138,34 +138,6 @@ class TestSuitesSourceService(
     }
 
     /**
-     * @return list of [TestSuitesSource] for STANDARD tests or empty
-     */
-    @Transactional
-    fun getStandardTestSuitesSources(): List<TestSuitesSource> {
-        // FIXME: a hardcoded values for standard test suites
-        // Will be removed in phase 3
-        val organizationName = "CQFN.org"
-        val gitUrl = "https://github.com/saveourtool/save-cli"
-        val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
-        val organization = organizationService.getByName(organizationName)
-        val git = gitService.getByOrganizationAndUrl(organization, gitUrl)
-        return testRootPaths.map { testRootPath ->
-            testSuitesSourceRepository.findByOrganizationAndGitAndTestRootPath(
-                organization,
-                git,
-                testRootPath
-            ) ?: testSuitesSourceRepository.save(TestSuitesSource(
-                organization = organization,
-                name = "Standard-${testRootPath.removePrefix("examples/")}",
-                description = "Standard test suites from $organizationName: $testRootPath",
-                git = git,
-                testRootPath = testRootPath,
-                latestFetchedVersion = null,
-            ))
-        }
-    }
-
-    /**
      * @return list of organizations that have open public test suite sources
      */
     fun getAvailableTestSuiteSources(): List<TestSuitesSource> = testSuitesSourceRepository.findAll()

@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.scheduling.JobsConfiguration
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.entities.TestSuite
@@ -11,7 +10,6 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
-import com.saveourtool.save.v1
 
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
@@ -19,7 +17,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.*
 import org.quartz.Scheduler
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
@@ -29,15 +26,11 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
-
-import java.time.Instant
-import java.util.*
 
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
@@ -45,7 +38,7 @@ import java.util.*
 @MockBeans(
     MockBean(ProjectController::class),
 )
-@Import(QuartzAutoConfiguration::class, JobsConfiguration::class)
+@Import(QuartzAutoConfiguration::class)
 class TestSuitesControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
@@ -150,22 +143,7 @@ class TestSuitesControllerTest {
             .spec()
     }
 
-    @Test
-    @WithMockUser(roles = ["SUPER_ADMIN"])
-    fun testUpdateStandardTestSuites() {
-        whenever(scheduler.scheduleJob(any())).thenReturn(Date.from(Instant.now()))
-
-        webClient.post()
-            .uri("/api/$v1/updateStandardTestSuites")
-            .exchange()
-            .expectStatus()
-            .isOk
-
-        verify(scheduler, times(1)).triggerJob(any())
-    }
-
     companion object {
-        private const val STANDARD_TEST_SUITES_SOURCE_ID = 2L
         @JvmStatic lateinit var mockServerPreprocessor: MockWebServer
 
         @AfterEach
