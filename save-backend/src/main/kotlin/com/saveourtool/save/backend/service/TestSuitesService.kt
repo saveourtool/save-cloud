@@ -9,7 +9,6 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -20,8 +19,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
-import reactor.kotlin.extra.math.max
 
 import java.time.LocalDateTime
 
