@@ -45,5 +45,5 @@ enum class AceModes(val modeName: String) {
     /**
      * Method that includes required highlight mode
      */
-    fun require() = kotlinext.js.require("ace-builds/src-noconflict/mode-$modeName")
+    fun require() = kotlinext.js.require("ace-builds/src-min-noconflict/mode-$modeName")
 }

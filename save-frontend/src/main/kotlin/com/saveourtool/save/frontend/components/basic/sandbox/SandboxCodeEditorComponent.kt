@@ -58,6 +58,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                     AceModes.values().toList()
                 }
                 classes = "col-6"
+                selectClasses = "custom-select custom-select-sm"
                 selectedValue = selectedMode.modeName
                 dataToString = { it.modeName }
                 errorMessage = null

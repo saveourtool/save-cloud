@@ -62,6 +62,7 @@ private fun sandboxConfigEditorComponent() = FC<SandboxConfigEditorComponentProp
                     listOf(selectedMode)
                 }
                 classes = "col-6"
+                selectClasses = "custom-select custom-select-sm"
                 disabled = true
                 selectedValue = selectedMode.modeName
                 dataToString = { it.modeName }

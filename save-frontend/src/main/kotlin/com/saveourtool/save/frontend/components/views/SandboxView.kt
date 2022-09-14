@@ -167,6 +167,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 formType = InputTypes.ACE_THEME_SELECTOR
                 validInput = null
                 classes = "col-2"
+                selectClasses = "custom-select custom-select-sm"
                 getData = {
                     AceThemes.values().toList()
                 }
