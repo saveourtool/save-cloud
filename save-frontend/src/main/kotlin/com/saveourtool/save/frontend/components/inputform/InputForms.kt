@@ -14,8 +14,8 @@ import com.saveourtool.save.validation.URL_ERROR_MESSAGE
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
 
-private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, hyphens and underscores." +
-        "No hyphen at the beginning and at the end of the line."
+private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+        "No dot, hyphen or underscore at the beginning and at the end of the line."
 
 /**
  * @property str
