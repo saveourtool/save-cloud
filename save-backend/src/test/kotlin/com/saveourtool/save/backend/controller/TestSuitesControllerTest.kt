@@ -65,7 +65,7 @@ class TestSuitesControllerTest {
             "1",
         )
 
-        saveTestSuites(testSuite) {
+        saveTestSuite(testSuite) {
             expectBody<TestSuite>()
                 .consumeWith {
                     val body = it.responseBody!!
@@ -89,7 +89,7 @@ class TestSuitesControllerTest {
             "1"
         )
 
-        saveTestSuites(testSuite) {
+        saveTestSuite(testSuite) {
             expectBody<TestSuite>()
         }
 
@@ -107,7 +107,7 @@ class TestSuitesControllerTest {
             "1",
         )
         var testSuiteId: Long? = null
-        saveTestSuites(testSuite) {
+        saveTestSuite(testSuite) {
             expectBody<TestSuite>().consumeWith {
                 assertNotNull(it.responseBody)
                 testSuiteId = it.responseBody?.requiredId()
@@ -120,13 +120,13 @@ class TestSuitesControllerTest {
             testSuitesSource.toDto(),
             "1",
         )
-        saveTestSuites(testSuite2) {
+        saveTestSuite(testSuite2) {
             expectBody<TestSuite>().consumeWith {
                 assertNotNull(it.responseBody)
                 assertTrue(it.responseBody?.requiredId() != testSuiteId)
             }
         }
-        saveTestSuites(testSuite) {
+        saveTestSuite(testSuite) {
             expectBody<TestSuite>().consumeWith {
                 assertNotNull(it.responseBody)
                 assertEquals(testSuiteId, it.responseBody?.requiredId())
