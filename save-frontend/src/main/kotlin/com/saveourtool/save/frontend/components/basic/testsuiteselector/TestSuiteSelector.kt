@@ -93,7 +93,7 @@ fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
 }
 
 /**
- * Browse all the avaliable test suites.
+ * Browse all the available test suites.
  *
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window

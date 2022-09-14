@@ -16,8 +16,7 @@ import com.saveourtool.save.v1
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.*
@@ -73,17 +72,16 @@ class TestSuitesControllerTest {
             "1",
         )
 
-        saveTestSuites(listOf(testSuite)) {
-            expectBody<List<TestSuite>>()
+        saveTestSuites(testSuite) {
+            expectBody<TestSuite>()
                 .consumeWith {
                     val body = it.responseBody!!
-                    assertEquals(listOf(testSuite).size, body.size)
-                    assertEquals(testSuite.name, body[0].name)
-                    assertEquals(testSuite.source.name, body[0].source.name)
-                    assertEquals(testSuite.source.organizationName, body[0].source.organization.name)
-                    assertTrue(testSuite.source.latestFetchedVersion != body[0].source.latestFetchedVersion)
-                    assertEquals(testSuite.version, body[0].source.latestFetchedVersion)
-                    assertEquals(testSuite.version, body[0].version)
+                    assertEquals(testSuite.name, body.name)
+                    assertEquals(testSuite.source.name, body.source.name)
+                    assertEquals(testSuite.source.organizationName, body.source.organization.name)
+                    assertTrue(testSuite.source.latestFetchedVersion != body.source.latestFetchedVersion)
+                    assertEquals(testSuite.version, body.source.latestFetchedVersion)
+                    assertEquals(testSuite.version, body.version)
                 }
         }
     }
@@ -98,8 +96,8 @@ class TestSuitesControllerTest {
             "1"
         )
 
-        saveTestSuites(listOf(testSuite)) {
-            expectBody<List<TestSuite>>()
+        saveTestSuites(testSuite) {
+            expectBody<TestSuite>()
         }
 
         val databaseData = testSuiteRepository.findAll()
@@ -115,9 +113,11 @@ class TestSuitesControllerTest {
             testSuitesSource.toDto(),
             "1",
         )
-        saveTestSuites(listOf(testSuite)) {
-            expectBody<List<TestSuite>>().consumeWith {
-                assertEquals(1, it.responseBody!!.size)
+        var testSuiteId: Long? = null
+        saveTestSuites(testSuite) {
+            expectBody<TestSuite>().consumeWith {
+                assertNotNull(it.responseBody)
+                testSuiteId = it.responseBody?.requiredId()
             }
         }
 
@@ -127,18 +127,25 @@ class TestSuitesControllerTest {
             testSuitesSource.toDto(),
             "1",
         )
-        saveTestSuites(listOf(testSuite, testSuite2)) {
-            expectBody<List<TestSuite>>().consumeWith {
-                assertEquals(2, it.responseBody!!.size)
+        saveTestSuites(testSuite2) {
+            expectBody<TestSuite>().consumeWith {
+                assertNotNull(it.responseBody)
+                assertTrue(it.responseBody?.requiredId() != testSuiteId)
+            }
+        }
+        saveTestSuites(testSuite) {
+            expectBody<TestSuite>().consumeWith {
+                assertNotNull(it.responseBody)
+                assertEquals(testSuiteId, it.responseBody?.requiredId())
             }
         }
     }
 
-    private fun saveTestSuites(testSuites: List<TestSuiteDto>, spec: WebTestClient.ResponseSpec.() -> Unit) {
+    private fun saveTestSuites(testSuite: TestSuiteDto, spec: WebTestClient.ResponseSpec.() -> Unit) {
         webClient.post()
-            .uri("/internal/saveTestSuites")
+            .uri("/internal/test-suites/save")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(testSuites))
+            .body(BodyInserters.fromValue(testSuite))
             .exchange()
             .spec()
     }
