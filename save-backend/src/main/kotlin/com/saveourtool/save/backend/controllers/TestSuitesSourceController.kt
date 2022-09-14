@@ -359,12 +359,20 @@ class TestSuitesSourceController(
         .flatMap { (originalName, updatedEntity) ->
             when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
                 EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
-                EntitySaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
-                    .map { it.copy(testSuitesSourceName = originalName) to it }
-                    .flatMap { (sourceKey, targeKey) ->
-                        testSuitesSourceSnapshotStorage.move(sourceKey, targeKey)
+                EntitySaveStatus.UPDATED -> {
+                    val newName = updatedEntity.name
+                    val movingSnapshots = if (originalName != newName) {
+                        testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
+                            .map { it to it.copy(testSuitesSourceName = newName) }
+                            .flatMap { (sourceKey, targetKey) ->
+                                testSuitesSourceSnapshotStorage.move(sourceKey, targetKey)
+                            }
+                            .then()
+                    } else {
+                        Mono.just(Unit)
                     }
-                    .then(Mono.just(saveStatus.toResponseEntity()))
+                    movingSnapshots.then(Mono.just(saveStatus.toResponseEntity()))
+                }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }
