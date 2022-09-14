@@ -71,7 +71,7 @@ enum class TestSuiteSelectorPurpose {
 }
 
 /**
- * Browse standard test suites.
+ * Browse all the available test suites.
  *
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window

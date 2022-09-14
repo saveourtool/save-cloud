@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.testsuite.TestSuiteDto
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -40,20 +41,19 @@ class TestSuitesController(
     private val quartzScheduler: Scheduler,
     private val testSuitePermissionEvaluator: TestSuitePermissionEvaluator,
 ) {
-    @PostMapping("/internal/saveTestSuites")
+    @PostMapping("/internal/test-suites/save")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
-        summary = "Save test suites.",
-        description = "Save new test suites into DB.",
+        summary = "Save new test suite into DB.",
+        description = "Save new test suite into DB.",
     )
     @Tag(name = "internal")
     @ApiResponse(responseCode = "200", description = "Successfully saved test suites.")
-    fun saveTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> =
-            Mono.just(testSuiteDtos)
-                .filter { it.isNotEmpty() }
-                .map { testSuitesService.saveTestSuite(it) }
-                .defaultIfEmpty(emptyList())
+    fun saveTestSuite(@RequestBody testSuiteDto: TestSuiteDto): Mono<TestSuite> =
+            blockingToMono {
+                testSuitesService.saveTestSuite(testSuiteDto)
+            }
 
     @PostMapping("/api/$v1/test-suites/get-by-ids")
     @PreAuthorize("permitAll()")
