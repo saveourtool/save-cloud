@@ -89,14 +89,13 @@ class ExecutionService(
         executionRepository.save(updatedExecution)
     }
 
-
     /**
      * @param name name of project
      * @param organization organization of project
      * @return list of execution
      */
     fun getExecutionByNameAndOrganization(name: String, organization: Organization) =
-        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
 
     /**
      * @param name name of project
@@ -105,16 +104,16 @@ class ExecutionService(
      */
     fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
 
-
     /**
      * @param name name of project
      * @param organization organization of project
      * @return list of execution
      */
+    @Suppress("IDENTIFIER_LENGTH")
     fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization) =
-        executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
-            lnkContestExecutionService.findContestByExecution(it) == null
-        }
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
+                lnkContestExecutionService.findContestByExecution(it) == null
+            }
 
     /**
      * Get latest (by start time an) execution by project name and organization

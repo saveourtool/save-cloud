@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
  * @property testSuiteSourceName
  * @property score see [Execution.score]
  * @property testSuiteSourceName
+ * @property contestName
  */
 @Serializable
 @Suppress("LongParameterList")
