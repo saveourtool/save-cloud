@@ -587,7 +587,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center")
-                    withNavigate<Props> { navigateContext ->
+                    withNavigate { navigateContext ->
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-primary")
@@ -812,7 +812,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    @Suppress("COMMENTED_OUT_CODE")
     private suspend fun updateProject(draftProject: Project): Response {
         val headers = Headers().also {
             it.set("Accept", "application/json")

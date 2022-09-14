@@ -24,8 +24,8 @@ interface NavigateFunctionContext {
 /**
  * @param handler DOM builder that can consume [NavigateFunctionContext]
  */
-fun <T : Props> ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionContext) -> Unit) {
-    val wrapper: FC<T> = FC {
+fun ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionContext) -> Unit) {
+    val wrapper: VFC = VFC {
         val navigate = useNavigate()
         val ctx = object : NavigateFunctionContext {
             override val navigate: NavigateFunction = navigate
