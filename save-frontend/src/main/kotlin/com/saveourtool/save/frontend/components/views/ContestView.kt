@@ -73,7 +73,7 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     var isFeatured: Boolean
 
     /**
-     * Contest
+     * Contest. This field is acts as a marker of contest existence
      */
     var contest: ContestDto
 }
