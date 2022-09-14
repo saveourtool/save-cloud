@@ -3,12 +3,14 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.http.getContest
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
@@ -69,6 +71,11 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Flag that shows if current contest is featured or not
      */
     var isFeatured: Boolean
+
+    /**
+     * Contest. This field is acts as a marker of contest existence
+     */
+    var contest: ContestDto
 }
 
 /**
@@ -80,6 +87,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
         state.selectedMenu = ContestMenuBar.defaultTab
         state.isFeatured = false
+        state.contest = ContestDto.empty
     }
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
@@ -88,6 +96,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                 "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
         } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
+        } else if (props.currentContestName != prevProps.currentContestName) {
+            fetchContest()
         }
     }
 
@@ -95,13 +105,26 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         super.componentDidMount()
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
+        fetchContest()
+    }
+
+    private fun fetchContest() {
+        scope.launch {
+            val name = props.currentContestName
+            name?.let {
+                val contest = getContest(name)
+                setState {
+                    this.contest = contest
+                }
+            }
+        }
     }
 
     override fun ChildrenBuilder.render() {
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {
-                +"${props.currentContestName}"
+                +state.contest.name
             }
         }
         renderFeaturedCheckbox()
