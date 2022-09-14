@@ -53,6 +53,11 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     var selectedValue: String
 
     /**
+     * disabled select component
+     */
+    var disabled: Boolean
+
+    /**
      * Method to get string that should be shown
      */
     var dataToString: (D) -> String

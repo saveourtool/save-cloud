@@ -62,7 +62,8 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
+            // See https://stackoverflow.com/a/72828500; newer versions are supported only for Bootstrap 5.2+
+            compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
