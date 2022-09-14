@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.scheduling.UpdateJob
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
-import com.saveourtool.save.backend.service.TestSuiteDtoList
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.TestSuite
@@ -96,31 +94,6 @@ class TestSuitesController(
         .toFlux()
         .mapToDtoFiltered(authentication, isContest)
 
-    @GetMapping("/api/$v1/test-suites/get-standard")
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "Get standard test suites.",
-        description = "Get list of standard test suites.",
-    )
-    @Parameters(
-        Parameter(name = "isContest", `in` = ParameterIn.QUERY, description = "is given request sent for browsing test suites for contest, default is false", required = false),
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched standard test suites.")
-    fun getStandardTestSuites(
-        @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
-        authentication: Authentication,
-    ): Mono<TestSuiteDtoList> = testSuitesService.getStandardTestSuites()
-        .map { testSuites ->
-            testSuites.filter {
-                if (isContest) {
-                    it.plugins.isAllowedForContests()
-                } else {
-                    it.plugins.isNotEmpty()
-                }
-            }
-        }
-
     @GetMapping("/api/$v1/test-suites/available")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -192,25 +165,6 @@ class TestSuitesController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched filtered test suites.")
     fun getTestSuiteById(@PathVariable id: Long): ResponseEntity<TestSuite?> =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
-
-    @PostMapping(path = ["/api/$v1/updateStandardTestSuites", "/internal/updateStandardTestSuites"])
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
-    @Tags(
-        Tag(name = "superadmins"),
-        Tag(name = "internal"),
-    )
-    @Operation(
-        method = "POST",
-        summary = "Update standard test suites.",
-        description = "Trigger update of standard test suites. Can be called only by super admins externally.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully updated standard test suites.")
-    fun updateStandardTestSuites(): Mono<Unit> = Mono.just(quartzScheduler)
-        .map {
-            it.triggerJob(
-                UpdateJob.jobKey
-            )
-        }
 
     @PostMapping("/internal/deleteTestSuite")
     @Transactional

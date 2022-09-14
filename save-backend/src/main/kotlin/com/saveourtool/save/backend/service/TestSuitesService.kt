@@ -9,7 +9,6 @@ import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.orNotFound
 
@@ -20,8 +19,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
-import reactor.kotlin.extra.math.max
 
 import java.time.LocalDateTime
 
@@ -112,21 +109,6 @@ class TestSuitesService(
         testSuitesSourceService.update(testSuiteSource)
         return testSuites
     }
-
-    /**
-     * @return all standard test suites
-     */
-    fun getStandardTestSuites(): Mono<TestSuiteDtoList> = blockingToFlux { testSuitesSourceService.getStandardTestSuitesSources() }
-        .flatMap { testSuitesSource ->
-            testSuitesSourceSnapshotStorage.list(testSuitesSource.organization.name, testSuitesSource.name)
-                .max { max, next -> max.creationTimeInMills.compareTo(next.creationTimeInMills) }
-                .map { testSuitesSource to it.version }
-        }
-        .flatMap { (testSuitesSource, version) ->
-            blockingToFlux { testSuiteRepository.findAllBySourceAndVersion(testSuitesSource, version) }
-        }
-        .map { it.toDto() }
-        .collectList()
 
     /**
      * @param id
