@@ -1,22 +1,14 @@
 import com.saveourtool.save.buildutils.configurePublishing
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
     `maven-publish`
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
 }
 

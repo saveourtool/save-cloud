@@ -22,7 +22,7 @@ kotlin {
         }
     }
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
     js(BOTH).browser()
 

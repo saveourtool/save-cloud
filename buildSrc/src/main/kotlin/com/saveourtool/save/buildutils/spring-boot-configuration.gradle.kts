@@ -33,14 +33,14 @@ dependencies {
     add("implementation", libs.jackson.module.kotlin)
     add("implementation", libs.slf4j.api)
     add("implementation", libs.logback.core)
-    add("implementation", "io.projectreactor.kotlin:reactor-kotlin-extensions")
+    add("implementation", libs.reactor.kotlin.extensions)
 
     add("implementation", libs.springdoc.openapi.ui)
     add("runtimeOnly", libs.springdoc.openapi.webflux.ui)
     add("runtimeOnly", libs.springdoc.openapi.security)
     add("runtimeOnly", libs.springdoc.openapi.kotlin)
     add("implementation", libs.swagger.annotations)
-    add("kapt", "org.springframework.boot:spring-boot-configuration-processor:${libs.versions.spring.boot.get()}")
+    add("kapt", libs.spring.boot.configuration.processor)
 
     add("testImplementation", libs.spring.boot.starter.test)
     add("testImplementation", libs.mockito.kotlin)

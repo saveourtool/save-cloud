@@ -3,13 +3,12 @@ import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.nio.file.Files.isDirectory
 import java.nio.file.Paths
 
 plugins {
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     // this plugin will generate generateOpenApiDocs task
@@ -28,13 +27,6 @@ openApi {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
 tasks.named("processTestResources") {
     dependsOn("copyLiquibase")
 }
@@ -42,10 +34,6 @@ tasks.named("processTestResources") {
 tasks.register<Copy>("copyLiquibase") {
     from("$rootDir/db")
     into("$buildDir/resources/test/db")
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 tasks.register<Exec>("cleanupDbAndStorage") {
@@ -130,7 +118,7 @@ dependencies {
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
-    implementation("io.projectreactor.addons:reactor-extra")
+    implementation(libs.reactor.extra)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }
