@@ -1,8 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     application
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
 }
 
@@ -10,16 +8,9 @@ application {
     mainClass.set("com.saveourtool.save.apicli.MainKt")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
 }
 
