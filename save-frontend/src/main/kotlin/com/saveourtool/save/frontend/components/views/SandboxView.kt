@@ -271,7 +271,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             |}
         """.trimMargin()
         private val setupShExample = """
-            |sudo rm -rf /
+            |python3.10 -m pip install pylint
         """.trimMargin()
         init {
             ContestView.contextType = requestStatusContext
