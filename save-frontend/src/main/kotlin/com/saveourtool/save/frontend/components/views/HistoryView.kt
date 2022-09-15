@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
+import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -170,8 +171,12 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     Fragment.create {
                         td {
                             a {
-                                href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                val newLocation = cellProps.row.original.contestName?.let {
+                                    "${window.location.origin}/#/contests/$it"
+                                } ?: "${window.location}"
+                                href = newLocation
                                 +cellProps.value
+                                fontAwesomeIcon(icon = faExternalLinkAlt, classes = "fa-xs")
                             }
                         }
                     }
@@ -352,7 +357,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/deleteAllExceptContest?name=${props.name}&organizationName=${props.organizationName}",
+                        "$apiUrl/execution/delete-all-except-contest?name=${props.name}&organizationName=${props.organizationName}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler,

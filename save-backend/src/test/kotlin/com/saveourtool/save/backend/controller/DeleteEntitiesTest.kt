@@ -142,7 +142,7 @@ class DeleteEntitiesTest {
 
     private fun deleteAllExecutionsAndAssert(name: String, organizationName: String, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/$v1/execution/deleteAllExceptContest?name=$name&organizationName=$organizationName",
+            uri = "/api/$v1/execution/delete-all-except-contest?name=$name&organizationName=$organizationName",
             assert = assert
         )
     }

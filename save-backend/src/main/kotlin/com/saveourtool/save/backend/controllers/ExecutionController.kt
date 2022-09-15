@@ -15,6 +15,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -115,7 +116,11 @@ class ExecutionController(private val executionService: ExecutionService,
         .flatMap { organization ->
             projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
                 executionService.getExecutionByNameAndOrganization(name, organization).map {
-                    it.toDto().copy(contestName = lnkContestExecutionService.findContestByExecution(it)?.name)
+                    if (it.type == TestingType.CONTEST_MODE) {
+                        it.toDto().copy(contestName = lnkContestExecutionService.findContestByExecution(it)?.name)
+                    } else {
+                        it.toDto()
+                    }
                 }.reversed()
             }
         }
@@ -149,7 +154,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping(path = ["/api/$v1/execution/deleteAllExceptContest"])
+    @PostMapping(path = ["/api/$v1/execution/delete-all-except-contest"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -167,7 +172,7 @@ class ExecutionController(private val executionService: ExecutionService,
             .mapNotNull { it.id!! }
             .map { id ->
                 val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
-                    it.id!!
+                    it.requiredId()
                 }
                 testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
                 agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
