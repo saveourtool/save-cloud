@@ -4,14 +4,11 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.sandbox.sandboxCodeEditorComponent
-import com.saveourtool.save.frontend.components.basic.sandbox.sandboxConfigEditorComponent
-import com.saveourtool.save.frontend.components.basic.selectFormRequired
-import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
+import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faUpload
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
@@ -57,9 +54,9 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     var configText: String
 
     /**
-     * Currently selected theme
+     * setup.sh from text editor
      */
-    var selectedTheme: AceThemes
+    var setupShText: String
 
     /**
      * Selected files
@@ -85,6 +82,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Result of save-cli execution
      */
     var debugInfo: String?
+
+    /**
+     * Currently selected FileType - config, test or setup.sh
+     */
+    var selectedFile: FileType?
 }
 
 /**
@@ -93,17 +95,16 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
-    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-    private val themeSelector = selectFormRequired<AceThemes>()
     init {
         state.codeText = codeExample
         state.configText = configExample
+        state.setupShText = setupShExample
         state.debugInfo = null
-        state.selectedTheme = AceThemes.preferredTheme
         state.files = mutableListOf()
         state.suiteByteSize = 0
         state.isUploading = false
         state.bytesReceived = 0
+        state.selectedFile = null
     }
 
     override fun ChildrenBuilder.render() {
@@ -111,80 +112,67 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             className = ClassName("text-center")
             +"Sandbox"
         }
+        renderCodeEditor()
+
         renderDebugInfo()
 
-        renderThemeSelector()
-
-        div {
-            className = ClassName("d-flex justify-content-around")
-            div {
-                className = ClassName("column")
-                renderCodeEditor()
-            }
-            div {
-                className = ClassName("column")
-                renderConfigEditor()
-            }
-        }
         renderToolUpload()
     }
 
-    private fun ChildrenBuilder.renderInstallShEditor() {
-        div {
-            className = ClassName("text-center")
-            +"InstallShEditor"
-        }
-    }
-
     private fun ChildrenBuilder.renderCodeEditor() {
-        sandboxCodeEditorComponent {
-            codeText = state.codeText
-            selectedTheme = state.selectedTheme
-            onCodeTextUpdate = {
-                setState {
-                    codeText = it
-                }
-            }
-        }
-    }
-
-    private fun ChildrenBuilder.renderConfigEditor() {
-        sandboxConfigEditorComponent {
-            configText = state.configText
-            selectedTheme = state.selectedTheme
-            onConfigTextUpdate = {
-                setState {
-                    configText = it
-                }
-            }
-        }
-    }
-
-    private fun ChildrenBuilder.renderThemeSelector() {
         div {
-            className = ClassName("d-flex justify-content-center")
-            themeSelector {
-                formType = InputTypes.ACE_THEME_SELECTOR
-                validInput = null
-                classes = "col-2"
-                selectClasses = "custom-select custom-select-sm"
-                getData = {
-                    AceThemes.values().toList()
+            className = ClassName("")
+            codeEditorComponent {
+                editorTitle = "Code editor"
+                selectedFile = state.selectedFile
+                onSelectedFileUpdate = {
+                    setState { selectedFile = it }
                 }
-                selectedValue = state.selectedTheme.themeName
-                dataToString = { it.themeName }
-                errorMessage = null
-                notFoundErrorMessage = null
-                onChangeFun = { theme ->
-                    theme?.let {
-                        setState {
-                            selectedTheme = theme
+                editorText = when (state.selectedFile) {
+                    FileType.CODE -> state.codeText
+                    FileType.SAVE_TOML -> state.configText
+                    FileType.SETUP_SH -> state.setupShText
+                    else -> "Press on any of the buttons above to start editing"
+                }
+                onEditorTextUpdate = {
+                    setState {
+                        when (state.selectedFile) {
+                            FileType.CODE -> codeText = it
+                            FileType.SAVE_TOML -> configText = it
+                            FileType.SETUP_SH -> setupShText = it
+                            else -> { }
                         }
                     }
                 }
             }
         }
     }
+
+    // private fun ChildrenBuilder.renderFileSelector() {
+    // div {
+    // className = ClassName("d-flex justify-content-end")
+    // button {
+    // className = ClassName("btn btn-info-outline")
+    // asDynamic()["data-toggle"] = "collapse"
+    // asDynamic()["data-target"] = "#codeEditorFileSelector"
+    // asDynamic()["data-controls"] = "codeEditorFileSelector"
+    // ariaExpanded = false
+    // onClick = {
+    // setState {
+    // isFileSelectorCollapsed = !isFileSelectorCollapsed
+    // }
+    // }
+    // +">>>"
+    // }
+    // displayCodeEditorFileSelector(
+    // state.selectedFileType,
+    // ) {
+    // setState {
+    // selectedFileType = it
+    // }
+    // }
+    // }
+    // }
 
     private fun ChildrenBuilder.renderDebugInfo() {
         state.debugInfo?.let { debugInfo ->
@@ -281,6 +269,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             |    val bestLanguage = BestLanguage()
             |    println("saveourtool loves ${ '$' }{bestLanguage.name}")
             |}
+        """.trimMargin()
+        private val setupShExample = """
+            |sudo rm -rf /
         """.trimMargin()
         init {
             ContestView.contextType = requestStatusContext
