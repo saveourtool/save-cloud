@@ -18,38 +18,11 @@ data class FileInfo(
     val isExecutable: Boolean = false,
 ) {
     /**
-     * @return ShortFileInfo
-     */
-    fun toShortFileInfo() = ShortFileInfo(
-        this.name,
-        this.uploadedMillis,
-        this.isExecutable,
-    )
-
-    /**
+     * @param projectCoordinates
      * @return [FileKey]
      */
-    fun toStorageKey() = FileKey(
-        this.name,
-        this.uploadedMillis,
-    )
-}
-
-/**
- * @property name name of a file
- * @property uploadedMillis timestamp of file uploading
- * @property isExecutable whether the file is executable
- */
-@Serializable
-data class ShortFileInfo(
-    val name: String,
-    val uploadedMillis: Long,
-    val isExecutable: Boolean = false,
-) {
-    /**
-     * @return [FileKey]
-     */
-    fun toStorageKey() = FileKey(
+    fun toStorageKey(projectCoordinates: ProjectCoordinates) = FileKey(
+        projectCoordinates,
         this.name,
         this.uploadedMillis,
     )

@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toFileKeyList
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
@@ -141,11 +142,11 @@ class Execution(
     }
 
     /**
-     * Parse and get additionalFiles as List<String>
+     * Parse and get additionalFiles as [List] of [FileKey]
      *
      * @return list of keys [FileKey] of additional files
      */
-    fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
+    fun getFileKeys(): List<FileKey> = additionalFiles.toFileKeyList(project.toProjectCoordinates())
 
     companion object {
         /**

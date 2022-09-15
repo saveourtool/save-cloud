@@ -6,13 +6,13 @@ import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.countPartsTill
+import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.file.Path
 import kotlin.io.path.div
-import kotlin.io.path.name
 
 /**
  * Storage for evaluated tools are loaded by users
@@ -20,28 +20,13 @@ import kotlin.io.path.name
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage.WithProjectCoordinates<FileKey>(Path.of(configProperties.fileStorage.location) / "storage") {
+) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage") {
     /**
-     * @param pathToContent
-     * @return [Pair] of key and path to project path
+     * @param projectCoordinates
+     * @return list of keys in storage by [projectCoordinates]
      */
-    override fun buildInnerKeyAndReturnProjectPath(pathToContent: Path): Pair<FileKey, Path> = Pair(
-        FileKey(
-            pathToContent.name,
-            // assuming here, that we always store files in timestamp-based directories
-            pathToContent.parent.name.toLong(),
-        ),
-        pathToContent.parent.parent
-    )
-
-    /**
-     * @param projectPath
-     * @param innerKey
-     * @return path to content
-     */
-    override fun buildPathToContentFromProjectPath(projectPath: Path, innerKey: FileKey): Path =
-            projectPath.resolve(innerKey.uploadedMillis.toString())
-                .resolve(innerKey.name)
+    fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
+        .filter { it.projectCoordinates == projectCoordinates }
 
     /**
      * @param rootDir
@@ -50,16 +35,26 @@ class FileStorage(
      */
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
-    /**
-     * @param projectCoordinates
-     * @param name name of evaluated tool
-     * @return [FileKey] with highest [FileKey.uploadedMillis]
-     */
-    fun findLatestKeyByName(projectCoordinates: ProjectCoordinates, name: String): Mono<FileKey> = list(projectCoordinates)
-        .filter { it.name == name }
-        .reduce { key1, key2 ->
-            if (key1.uploadedMillis > key2.uploadedMillis) key1 else key2
-        }
+    override fun buildKey(rootDir: Path, pathToContent: Path): FileKey {
+        val pathNames = pathToContent.pathNamesTill(rootDir)
+
+        val (name, uploadedMillis, projectName, organizationName) = pathNames
+        return FileKey(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = organizationName,
+                projectName = projectName,
+            ),
+            name = name,
+            // assuming here, that we always store files in timestamp-based directories
+            uploadedMillis = uploadedMillis.toLong(),
+        )
+    }
+
+    override fun buildPathToContent(rootDir: Path, key: FileKey): Path = rootDir
+        .resolve(key.projectCoordinates.organizationName)
+        .resolve(key.projectCoordinates.projectName)
+        .resolve(key.uploadedMillis.toString())
+        .resolve(key.name)
 
     /**
      * @param projectCoordinates
@@ -69,7 +64,7 @@ class FileStorage(
         projectCoordinates: ProjectCoordinates,
     ): Flux<FileInfo> = list(projectCoordinates)
         .flatMap { fileKey ->
-            contentSize(projectCoordinates, fileKey).map {
+            contentSize(fileKey).map {
                 FileInfo(
                     fileKey.name,
                     fileKey.uploadedMillis,
@@ -89,7 +84,7 @@ class FileStorage(
         uploadedMillis: Long,
     ): Mono<Boolean> = list(projectCoordinates)
         .filter { fileKey -> fileKey.uploadedMillis == uploadedMillis }
-        .flatMap { delete(projectCoordinates, it) }
+        .flatMap { delete(it) }
         .reduce(Boolean::and)
         .switchIfEmpty(Mono.just(false))
 
@@ -105,10 +100,11 @@ class FileStorage(
     ): Mono<FileInfo> = partMono.flatMap { part ->
         val uploadedMillis = System.currentTimeMillis()
         val fileKey = FileKey(
+            projectCoordinates,
             part.filename(),
             uploadedMillis
         )
-        upload(projectCoordinates, fileKey, part.content().map { it.asByteBuffer() })
+        upload(fileKey, part.content().map { it.asByteBuffer() })
             .map {
                 FileInfo(
                     fileKey.name,

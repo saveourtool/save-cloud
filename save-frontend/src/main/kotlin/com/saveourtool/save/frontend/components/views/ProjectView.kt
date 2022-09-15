@@ -345,14 +345,15 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     }
 
     private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
+        val projectCoordinates = ProjectCoordinates(
+            organizationName = state.project.organization.name,
+            projectName = state.project.name
+        )
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = state.project.organization.name,
-                projectName = state.project.name
-            ),
+            projectCoordinates = projectCoordinates,
             testSuiteIds = selectedTestSuiteIds,
-            files = state.files.map { it.toStorageKey() },
+            files = state.files.map { it.toStorageKey(projectCoordinates) },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
@@ -728,7 +729,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
+                        "$apiUrl/files/${props.owner}/${props.name}/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)

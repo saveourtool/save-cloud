@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -12,13 +11,10 @@ import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -56,7 +52,6 @@ class DownloadFilesController(
     private val debugInfoStorage: DebugInfoStorage,
     private val executionInfoStorage: ExecutionInfoStorage,
     private val agentRepository: AgentRepository,
-    private val executionService: ExecutionService,
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
@@ -121,44 +116,18 @@ class DownloadFilesController(
         @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(), organizationName, projectName)
-
-    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    @Operation(
-        method = "POST",
-        summary = "Download a file by execution ID and FileKey.",
-        description = "Download a file by execution ID and FileKey.",
-    )
-    @Parameters(
-        Parameter(name = "executionId", `in` = ParameterIn.QUERY, description = "ID of an execution", required = true)
-    )
-    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
-    @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
-    fun downloadByExecutionId(
-        @RequestBody fileKey: FileKey,
-        @RequestParam executionId: Long,
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        executionService.findExecution(executionId)
-    }
-        .switchIfEmptyToNotFound()
-        .flatMap { execution ->
-            downloadByFileKey(fileKey, execution.project.organization.name, execution.project.name)
-        }
+    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(ProjectCoordinates(organizationName, projectName)))
 
     /**
      * @param fileKey a key [FileKey] of requested file
-     * @param organizationName
-     * @param projectName
      * @return [Mono] with file contents
      */
-    @PostMapping(path = ["/internal/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadByFileKey(
         @RequestBody fileKey: FileKey,
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
     ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileKey.name} to a client")
-        val content = fileStorage.download(ProjectCoordinates(organizationName, projectName), fileKey)
+        val content = fileStorage.download(fileKey)
         ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(content)
@@ -211,7 +180,6 @@ class DownloadFilesController(
 
     /**
      * @param file a file to be uploaded
-     * @param returnShortFileInfo whether return FileInfo or ShortFileInfo
      * @param organizationName
      * @param projectName
      * @param authentication
@@ -223,7 +191,6 @@ class DownloadFilesController(
         @RequestPart("file") file: Mono<FilePart>,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @RequestParam(required = false, defaultValue = "true") returnShortFileInfo: Boolean,
         authentication: Authentication,
     ) = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.WRITE
@@ -235,13 +202,7 @@ class DownloadFilesController(
             ResponseEntity.status(
                 if (fileInfo.sizeBytes > 0) HttpStatus.OK else HttpStatus.INTERNAL_SERVER_ERROR
             )
-                .body(
-                    if (returnShortFileInfo) {
-                        fileInfo.toShortFileInfo()
-                    } else {
-                        fileInfo
-                    }
-                )
+                .body(fileInfo)
         }
         .onErrorReturn(
             FileAlreadyExistsException::class.java,
@@ -362,7 +323,10 @@ class DownloadFilesController(
     fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
                         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> {
-        val executionId = agentRepository.findByContainerId(agentContainerId)!!.execution.id!!
+        val executionId = agentRepository.findByContainerId(agentContainerId)
+            .orNotFound()
+            .execution
+            .requiredId()
         return debugInfoStorage.save(executionId, testResultDebugInfo)
     }
 }

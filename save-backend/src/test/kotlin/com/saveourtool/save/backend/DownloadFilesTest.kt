@@ -139,9 +139,10 @@ class DownloadFilesTest {
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
+        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
         val sampleFileInfo = tmpFile.toFileInfo()
-        val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "TheProject"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        val fileKey = sampleFileInfo.toStorageKey(projectCoordinates)
+        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
@@ -203,6 +204,7 @@ class DownloadFilesTest {
         }
             .build()
 
+        val projectCoordinates = ProjectCoordinates("Huawei", "huaweiName")
         webTestClient.post()
             .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -210,12 +212,12 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ShortFileInfo>()
+            .expectBody<FileInfo>()
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.toStorageKey() }
-                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
+                        .map { it.toStorageKey(projectCoordinates) }
+                        .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
                         .toFuture()

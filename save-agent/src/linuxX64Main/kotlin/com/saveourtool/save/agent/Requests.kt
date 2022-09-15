@@ -54,20 +54,18 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
  * @param config
  * @param targetDirectory
  * @param additionalFiles
- * @param executionId
  * @return result
  */
 internal suspend fun SaveAgent.downloadAdditionalResources(
     config: BackendConfig,
     targetDirectory: Path,
     additionalFiles: List<FileKey>,
-    executionId: String,
 ) = runCatching {
     additionalFiles
         .map { fileKey ->
             val result = processRequestToBackendWrapped {
                 httpClient.download(
-                    url = "${config.url}${config.fileEndpoint}?executionId=$executionId",
+                    url = "${config.url}${config.fileEndpoint}",
                     body = fileKey,
                 )
             }

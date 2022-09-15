@@ -66,12 +66,9 @@ class RunExecutionControllerTest(
         val project = projectRepository.findById(PROJECT_ID).get()
         val testSuiteIds = listOf(2L, 3L)
         val request = RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = project.organization.name,
-                projectName = project.name
-            ),
+            projectCoordinates = project.toProjectCoordinates(),
             testSuiteIds = testSuiteIds,
-            files = listOf(FileKey("test1", 123L)),
+            files = listOf(FileKey(project.toProjectCoordinates(), "test1", 123L)),
             sdk = Jdk("8"),
             execCmd = "execCmd",
             batchSizeForAnalyzer = "batchSizeForAnalyzer",

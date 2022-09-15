@@ -17,6 +17,7 @@ import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.toFileKeyList
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.toTestResultDebugInfo
@@ -105,8 +106,8 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
 
             logDebugCustom("Will now download additional resources")
-            val additionalFiles = FileKey.parseList(requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST))
-            downloadAdditionalResources(config.backend, targetDirectory, additionalFiles, executionId).runIf(failureResultPredicate) {
+            val additionalFiles = requiredEnv(AgentEnvName.FILE_KEYS_LIST).toFileKeyList()
+            downloadAdditionalResources(config.backend, targetDirectory, additionalFiles).runIf(failureResultPredicate) {
                 logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFiles]: ${exceptionOrNull()?.describe()}")
                 state.value = AgentState.CRASHED
                 return@launch

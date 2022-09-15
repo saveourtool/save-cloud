@@ -59,17 +59,15 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
     .toFlux()
 
 /**
- * @param objectMapper
- * @return convert [Flux] of [ByteBuffer] to object of [T] from Json string using [ObjectMapper]
+ * @return convert [Flux] of [ByteBuffer] to a single [InputStream]
  */
-inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): Mono<T> = this
+fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
     // take simple implementation from Jackson library
     .map { ByteBufferBackedInputStream(it) }
     .cast(InputStream::class.java)
     .reduce { in1, in2 ->
         SequenceInputStream(in1, in2)
     }
-    .map { objectMapper.readValue(it, T::class.java) }
 
 /**
  * @return [Mono] with original value or with [ResponseEntity] with [HttpStatus.FORBIDDEN]

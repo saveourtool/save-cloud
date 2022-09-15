@@ -89,18 +89,18 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
  * @param saveCliExtraArgs
  * @param executionId
- * @param additionalFilesString
+ * @param fileKeysString
  * @return map of env variables with their values
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
     saveCliExtraArgs: DockerService.SaveCliExtraArgs,
     executionId: Long,
-    additionalFilesString: String,
+    fileKeysString: String,
 ): Map<AgentEnvName, String> = buildMap {
     put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
     put(AgentEnvName.EXECUTION_ID, executionId.toString())
-    put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
+    put(AgentEnvName.FILE_KEYS_LIST, fileKeysString)
 
     with(agentSettings) {
         backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }

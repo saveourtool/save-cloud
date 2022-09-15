@@ -10,8 +10,8 @@ import com.saveourtool.save.api.utils.getLatestExecution
 import com.saveourtool.save.api.utils.initializeHttpClient
 import com.saveourtool.save.api.utils.submitExecution
 import com.saveourtool.save.api.utils.uploadAdditionalFile
+import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -101,18 +101,19 @@ class SaveCloudClient(
      *   successful completion, or the HTTP status code if failed.
      */
     private suspend fun submitExecution(
-        additionalFiles: List<ShortFileInfo>?,
+        additionalFiles: List<FileInfo>?,
         contestName: String?,
     ): Either<HttpStatusCode, RunExecutionRequest> {
+        val projectCoordinates = ProjectCoordinates(
+            organizationName = evaluatedToolProperties.organizationName,
+            projectName = evaluatedToolProperties.projectName,
+        )
         val runExecutionRequest = RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = evaluatedToolProperties.organizationName,
-                projectName = evaluatedToolProperties.projectName,
-            ),
+            projectCoordinates = projectCoordinates,
             testSuiteIds = evaluatedToolProperties.testSuites
                 .split(DATABASE_DELIMITER)
                 .map { it.toLong() },
-            files = additionalFiles?.map { it.toStorageKey() }.orEmpty(),
+            files = additionalFiles?.map { it.toStorageKey(projectCoordinates) }.orEmpty(),
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
@@ -172,7 +173,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<ShortFileInfo>? {
+    ): List<FileInfo>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -183,17 +184,17 @@ class SaveCloudClient(
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
 
-        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<FileInfo> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage.copy(isExecutable = true))
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: FileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
                 resultFileInfoList.add(uploadedFile)
             }
         }
