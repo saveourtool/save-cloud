@@ -2091,8 +2091,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  },
-                  "returnShortFileInfo": {}
+                  }
                 }
               }
             }
@@ -2104,7 +2103,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/FileInfo"
                 }
               }
             }
@@ -7192,10 +7191,14 @@
       "FileKey": {
         "required": [
           "name",
+          "projectCoordinates",
           "uploadedMillis"
         ],
         "type": "object",
         "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
           "name": {
             "type": "string"
           },
@@ -7602,6 +7605,7 @@
           "allTests",
           "expectedChecks",
           "failedTests",
+          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -7716,6 +7720,12 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "fileKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileKey"
+            }
           }
         }
       },
