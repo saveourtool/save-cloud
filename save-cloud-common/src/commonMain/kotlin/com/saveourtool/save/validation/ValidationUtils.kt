@@ -8,7 +8,7 @@ package com.saveourtool.save.validation
  * Default amount of characters allowed for names
  */
 const val NAMING_ALLOWED_LENGTH = 64
-private val NAMING_ALLOWED_SPECIAL_SYMBOLS = setOf('-', '_', '.')
+private val namingAllowedSpecialSymbols = setOf('-', '_', '.')
 
 /**
  * Check if name is valid.
@@ -17,7 +17,8 @@ private val NAMING_ALLOWED_SPECIAL_SYMBOLS = setOf('-', '_', '.')
  * @return true if name is valid, false otherwise
  */
 fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
-    isNotBlank() && setOf(first(), last()).none { it in NAMING_ALLOWED_SPECIAL_SYMBOLS } && hasOnlyAlphaNumOrAllowedSpecialSymbols() && !containsForbiddenWords() && isLengthOk(allowedLength)
+    isNotBlank() && setOf(first(), last()).none { it in namingAllowedSpecialSymbols } &&
+            hasOnlyAlphaNumOrAllowedSpecialSymbols() && !containsForbiddenWords() && isLengthOk(allowedLength)
 }
 
 /**
@@ -48,7 +49,7 @@ fun String.isValidUrl() = ValidationRegularExpressions.URL_VALIDATOR.value.match
  */
 fun String.isValidEmail() = ValidationRegularExpressions.EMAIL_VALIDATOR.value.matches(this)
 
-private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || NAMING_ALLOWED_SPECIAL_SYMBOLS.contains(it) }
+private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 
 private fun String.containsForbiddenWords() = FrontendRoutes.getForbiddenWords().any { this == it }
 
