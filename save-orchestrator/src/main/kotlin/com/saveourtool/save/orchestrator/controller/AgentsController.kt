@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.controller
 
+import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -40,6 +41,7 @@ import java.io.FileOutputStream
 class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
+    private val dockerClient: DockerClient,
     private val configProperties: ConfigProperties,
     @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
@@ -84,7 +86,8 @@ class AgentsController(
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
-                            Agent(id, execution)
+                            val containerName = dockerClient.inspectContainerCmd(id).exec().name
+                            Agent(id, containerName, execution)
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
