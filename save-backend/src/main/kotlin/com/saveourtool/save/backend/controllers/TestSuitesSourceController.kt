@@ -106,22 +106,6 @@ class TestSuitesSourceController(
 
     @GetMapping(
         path = [
-            "/api/$v1/test-suites-sources/public-list",
-        ],
-    )
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
-    @Operation(
-        method = "GET",
-        summary = "List of public test suites sources.",
-        description = "List of public test suites sources.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of public test suites sources.")
-    fun publicList(): Mono<TestSuitesSourceDtoList> = blockingToMono { testSuitesSourceService.getStandardTestSuitesSources() }
-        .map { testSuitesSources -> testSuitesSources.map { it.toDto() } }
-
-    @GetMapping(
-        path = [
             "/internal/test-suites-sources/{organizationName}/{sourceName}",
             "/api/$v1/test-suites-sources/{organizationName}/{sourceName}",
         ],
@@ -375,12 +359,20 @@ class TestSuitesSourceController(
         .flatMap { (originalName, updatedEntity) ->
             when (val saveStatus = testSuitesSourceService.update(updatedEntity)) {
                 EntitySaveStatus.EXIST, EntitySaveStatus.CONFLICT -> Mono.just(saveStatus.toResponseEntity())
-                EntitySaveStatus.UPDATED -> testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
-                    .map { it.copy(testSuitesSourceName = originalName) to it }
-                    .flatMap { (sourceKey, targeKey) ->
-                        testSuitesSourceSnapshotStorage.move(sourceKey, targeKey)
+                EntitySaveStatus.UPDATED -> {
+                    val newName = updatedEntity.name
+                    val movingSnapshots = if (originalName != newName) {
+                        testSuitesSourceSnapshotStorage.list(updatedEntity.organization.name, originalName)
+                            .map { it to it.copy(testSuitesSourceName = newName) }
+                            .flatMap { (sourceKey, targetKey) ->
+                                testSuitesSourceSnapshotStorage.move(sourceKey, targetKey)
+                            }
+                            .then()
+                    } else {
+                        Mono.just(Unit)
                     }
-                    .then(Mono.just(saveStatus.toResponseEntity()))
+                    movingSnapshots.then(Mono.just(saveStatus.toResponseEntity()))
+                }
                 else -> Mono.error(IllegalStateException("Not expected status for creating a new entity"))
             }
         }

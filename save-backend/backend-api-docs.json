@@ -11,45 +11,6 @@
     }
   ],
   "paths": {
-    "/api/v1/updateStandardTestSuites": {
-      "post": {
-        "tags": [
-          "internal",
-          "superadmins",
-          "test-suites"
-        ],
-        "summary": "Update standard test suites.",
-        "description": "Trigger update of standard test suites. Can be called only by super admins externally.",
-        "operationId": "updateStandardTestSuites",
-        "responses": {
-          "200": {
-            "description": "Successfully updated standard test suites.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
     "/api/v1/test-suites-sources/{organizationName}/{sourceName}/upload-snapshot": {
       "post": {
         "tags": [
@@ -2415,7 +2376,7 @@
         }
       }
     },
-    "/api/v1/execution/deleteAll": {
+    "/api/v1/execution/delete-all-except-contest": {
       "post": {
         "tags": [
           "execution-controller"
@@ -3340,61 +3301,6 @@
         ]
       }
     },
-    "/api/v1/test-suites/get-standard": {
-      "get": {
-        "tags": [
-          "test-suites"
-        ],
-        "summary": "Get standard test suites.",
-        "description": "Get list of standard test suites.",
-        "operationId": "getStandardTestSuites",
-        "parameters": [
-          {
-            "name": "isContest",
-            "in": "query",
-            "description": "is given request sent for browsing test suites for contest, default is false",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully fetched standard test suites.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
     "/api/v1/test-suites/get-by-organization": {
       "get": {
         "tags": [
@@ -3883,57 +3789,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/DtoWithIdTestSuitesSourceDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/test-suites-sources/public-list": {
-      "get": {
-        "tags": [
-          "test-suites-source"
-        ],
-        "summary": "List of public test suites sources.",
-        "description": "List of public test suites sources.",
-        "operationId": "publicList",
-        "parameters": [
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully fetched list of public test suites sources.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuitesSourceDto"
                   }
                 }
               }
@@ -8056,6 +7911,9 @@
           "score": {
             "type": "number",
             "format": "double"
+          },
+          "contestName": {
+            "type": "string"
           }
         }
       },

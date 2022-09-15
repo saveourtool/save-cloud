@@ -166,7 +166,6 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         val url = when (props.selectorPurpose) {
             TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/available"
             TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/get-by-organization?organizationName=${props.specificOrganizationName}"
-            TestSuiteSelectorPurpose.STANDARD -> "$apiUrl/test-suites/get-standard"
             TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/available?isContest=true"
         }
         val response = get(

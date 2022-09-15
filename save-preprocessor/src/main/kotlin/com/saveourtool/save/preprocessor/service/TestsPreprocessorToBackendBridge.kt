@@ -65,12 +65,12 @@ class TestsPreprocessorToBackendBridge(
                 .bodyToMono()
 
     /**
-     * @param testSuiteDtos
-     * @return list of saved [TestSuite]
+     * @param testSuiteDto
+     * @return saved [TestSuite]
      */
-    fun saveTestSuites(testSuiteDtos: List<TestSuiteDto>): Mono<List<TestSuite>> = webClientBackend.post()
-        .uri("/saveTestSuites")
-        .bodyValue(testSuiteDtos)
+    fun saveTestSuite(testSuiteDto: TestSuiteDto): Mono<TestSuite> = webClientBackend.post()
+        .uri("/test-suites/save")
+        .bodyValue(testSuiteDto)
         .retrieve()
         .bodyToMono()
 
