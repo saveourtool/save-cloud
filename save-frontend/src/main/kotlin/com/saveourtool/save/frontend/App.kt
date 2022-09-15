@@ -222,6 +222,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.SANDBOX.path}"
+                                    element = SandboxView::class.react.create {
+                                        currentUserInfo = state.userInfo
+                                    }
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     element = awesomeBenchmarksView.create()
                                 }

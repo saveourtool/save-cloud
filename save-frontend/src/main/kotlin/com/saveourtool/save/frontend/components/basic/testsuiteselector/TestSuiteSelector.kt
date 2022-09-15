@@ -67,16 +67,11 @@ enum class TestSuiteSelectorPurpose {
     CONTEST,
     PRIVATE,
     PUBLIC,
-
-    /**
-     * Will later be merged with PUBLIC
-     */
-    STANDARD,
     ;
 }
 
 /**
- * Browse standard test suites.
+ * Browse all the available test suites.
  *
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
@@ -84,23 +79,6 @@ enum class TestSuiteSelectorPurpose {
  * @param setSelectedTestSuiteIds consumer for result
  */
 fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
-    initTestSuiteIds: List<Long>,
-    windowOpenness: WindowOpenness,
-    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
-) {
-    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.STANDARD, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
-}
-
-/**
- * Browse all the avaliable test suites.
- *
- * @param initTestSuiteIds initial value
- * @param windowOpenness state to control openness of window
- * @param testSuiteIdsInSelectorState state for intermediate result in selector
- * @param setSelectedTestSuiteIds consumer for result
- */
-fun ChildrenBuilder.showGeneralTestSuitesSelectorModal(
     initTestSuiteIds: List<Long>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<Long>>,
