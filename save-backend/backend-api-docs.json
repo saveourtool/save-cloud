@@ -2376,7 +2376,7 @@
         }
       }
     },
-    "/api/v1/execution/deleteAllExceptContest": {
+    "/api/v1/execution/delete-all-except-contest": {
       "post": {
         "tags": [
           "execution-controller"
