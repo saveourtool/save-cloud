@@ -35,6 +35,9 @@ class FileStorage(
      */
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
+    @Suppress(
+        "DestructuringDeclarationWithTooManyEntries"
+    )
     override fun buildKey(rootDir: Path, pathToContent: Path): FileKey {
         val pathNames = pathToContent.pathNamesTill(rootDir)
 

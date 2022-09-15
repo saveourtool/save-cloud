@@ -46,7 +46,10 @@ fun List<FileKey>.formatForExecution(): String {
 /**
  * @return list of [FileKey]s parsed from provided string
  */
-@Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
+@Suppress(
+    "WRONG_OVERLOADING_FUNCTION_ARGUMENTS",
+    "DestructuringDeclarationWithTooManyEntries"
+)
 fun String.toFileKeyList(): List<FileKey> = if (isEmpty()) {
     emptyList()
 } else {
@@ -65,6 +68,9 @@ fun String.toFileKeyList(): List<FileKey> = if (isEmpty()) {
  * @param projectCoordinates
  * @return list of [FileKey]s parsed from provided string using provided [ProjectCoordinates]
  */
+@Suppress(
+    "DestructuringDeclarationWithTooManyEntries"
+)
 fun String.toFileKeyList(projectCoordinates: ProjectCoordinates): List<FileKey> = if (isEmpty()) {
     emptyList()
 } else {
