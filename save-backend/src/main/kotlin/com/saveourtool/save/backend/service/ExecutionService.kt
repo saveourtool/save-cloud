@@ -92,10 +92,28 @@ class ExecutionService(
     /**
      * @param name name of project
      * @param organization organization of project
+     * @return list of execution
+     */
+    fun getExecutionByNameAndOrganization(name: String, organization: Organization) =
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization)
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
      * @return list of execution dtos
      */
-    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).map { it.toDto() }
+    fun getExecutionDtoByNameAndOrganization(name: String, organization: Organization) = getExecutionByNameAndOrganization(name, organization).map { it.toDto() }
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
+     * @return list of execution
+     */
+    @Suppress("IDENTIFIER_LENGTH")
+    fun getExecutionNotParticipatingInContestByNameAndOrganization(name: String, organization: Organization) =
+            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).filter {
+                lnkContestExecutionService.findContestByExecution(it) == null
+            }
 
     /**
      * Get latest (by start time an) execution by project name and organization
@@ -108,16 +126,18 @@ class ExecutionService(
             executionRepository.findTopByProjectNameAndProjectOrganizationNameOrderByStartTimeDesc(name, organizationName)
 
     /**
-     * Delete all executions by project name and organization
+     * Delete executions, except participating in contests, by project name and organization
      *
      * @param name name of project
      * @param organization organization of project
      * @return Unit
      */
-    fun deleteExecutionByProjectNameAndProjectOrganization(name: String, organization: Organization) =
-            executionRepository.getAllByProjectNameAndProjectOrganization(name, organization).forEach {
-                executionRepository.delete(it)
-            }
+    @Suppress("IDENTIFIER_LENGTH")
+    fun deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name: String, organization: Organization) {
+        getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).forEach {
+            executionRepository.delete(it)
+        }
+    }
 
     /**
      * Delete all executions by project name and organization
