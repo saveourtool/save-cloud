@@ -334,6 +334,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
+
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun NavigateFunctionContext.submitExecutionRequest() {
         when (state.testingType) {
@@ -587,13 +588,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center")
-                    withNavigate { navigateContext ->
+                        withNavigate { navigateContext ->
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-primary")
                             onClick = { navigateContext.submitWithValidation() }
                             +"Test the tool now"
-                        }
+                       }
                     }
                 }
             }
@@ -622,24 +623,34 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div {
                         className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
                         fontAwesomeIcon(icon = faHistory)
-
-                        button {
-                            className = ClassName("btn btn-link text-left")
-                            +"Latest Execution"
-                            disabled = state.latestExecutionId == null
-
-                            onClick = {
-                                window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                        withNavigate { navigateContext ->
+                            button {
+                                className = ClassName("btn btn-link text-left")
+                                +"Latest Execution"
+                                disabled = state.latestExecutionId == null
+                                onClick = {
+                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>("/${props.owner}/${props.name}","history/execution/${state.latestExecutionId}")
+                                }
                             }
                         }
                     }
                     div {
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
-                        a {
-                            href = "#/${state.project.organization.name}/${state.project.name}/history"
-                            className = ClassName("btn btn-link text-left")
-                            +"Execution History"
+                        withNavigate { navigateContext->
+                            button {
+                                className = ClassName("btn btn-link text-left")
+                                +"Execution History"
+                                onClick = {
+                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>("/${props.owner}/${props.name}", "history")
+                                }
+                            }
+//                            a {
+//                                navigateContext.generateLinksWithSuffix<ProjectMenuBar>("#/${props.owner}/${props.name}", "history")
+//                                 //href = "#/${state.project.organization.name}/${state.project.name}/history"
+//                                className = ClassName("btn btn-link text-left")
+//                                +"Execution History"
+//                            }
                         }
                     }
                 }

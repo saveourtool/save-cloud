@@ -268,17 +268,18 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
         }
-
-        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
-            buttonBuilder("Ok") {
-                when (state.confirmationType) {
-                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                    else -> throw IllegalStateException("Not implemented yet")
+        withNavigate {navigateContext->
+            displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
+                buttonBuilder("Ok") {
+                    when (state.confirmationType) {
+                        ConfirmationType.DELETE_CONFIRM -> navigateContext.deleteOrganizationBuilder()
+                        else -> throw IllegalStateException("Not implemented yet")
+                    }
+                    setState { isConfirmWindowOpen = false }
                 }
-                setState { isConfirmWindowOpen = false }
-            }
-            buttonBuilder("Close", "secondary") {
-                setState { isConfirmWindowOpen = false }
+                buttonBuilder("Close", "secondary") {
+                    setState { isConfirmWindowOpen = false }
+                }
             }
         }
 
@@ -717,7 +718,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun deleteOrganizationBuilder() {
+    private fun NavigateFunctionContext.deleteOrganizationBuilder() {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
@@ -732,7 +733,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     )
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
-                window.location.href = "${window.location.origin}/"
+                generateLinksWithSuffix<OrganizationMenuBar>(window.location.origin, "")
+                // window.location.href = "${window.location.origin}/"
             }
         }
     }

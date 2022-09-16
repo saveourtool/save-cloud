@@ -66,3 +66,7 @@ fun <T : Enum<T>> changeUrl(
         "$extendedViewPath/${selectedMenu.toString().lowercase()}"
     }
 }
+
+fun <T : Enum<T>>NavigateFunctionContext.generateLinksWithSuffix(pathDefaultTab: String, suffix: String) {
+    navigate( to = "$pathDefaultTab/$suffix")
+}
