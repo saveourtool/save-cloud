@@ -1,53 +1,24 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentState.*
-import com.saveourtool.save.agent.HeartbeatResponse
-import com.saveourtool.save.agent.NewJobResponse
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.WaitResponse
-import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.agent.*
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.*
-import org.slf4j.LoggerFactory
-
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientException
+import com.saveourtool.save.orchestrator.ExecutionIdToAgentIds
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.publisher.onErrorResume
-import java.time.Duration
-
-import java.time.LocalDateTime
+import reactor.core.scheduler.Scheduler
 
 /**
  * Service for work with agents and backend
  */
-@Service
-class AgentService(
-    @Qualifier("webClientBackend") private val webClientBackend: WebClient,
-    private val configProperties: ConfigProperties,
-    private val agentRunner: AgentRunner,
-) {
+interface AgentService {
     /**
      * A scheduler that executes long-running background tasks
      */
-    internal val scheduler = Schedulers.boundedElastic().also { it.start() }
+    val scheduler: Scheduler
 
     /**
      * Sets new tests ids
@@ -55,13 +26,7 @@ class AgentService(
      * @param agentId
      * @return Mono<NewJobResponse>
      */
-    internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
-            webClientBackend
-                .get()
-                .uri("/getTestBatches?agentId=$agentId")
-                .retrieve()
-                .bodyToMono<TestBatch>()
-                .flatMap { it.toHeartbeatResponse(agentId) }
+    fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse>
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -70,44 +35,19 @@ class AgentService(
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void> = webClientBackend
-        .post()
-        .uri("/addAgents")
-        .body(BodyInserters.fromValue(agents))
-        .retrieve()
-        .bodyToMono<List<Long>>()
-        .flatMap { agentIds ->
-            updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
-                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), STARTING, agent.also { it.id = id })
-            })
-        }
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Void>
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
      * @return Mono with response body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Void> = webClientBackend
-        .post()
-        .uri("/updateAgentStatuses")
-        .body(BodyInserters.fromValue(agentStates))
-        .retrieve()
-        .bodyToMono()
+    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Void>
 
     /**
      * @param agentState [AgentStatus] to update in the DB
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
-            webClientBackend
-                .post()
-                .uri("/updateAgentStatusWithDto")
-                .body(BodyInserters.fromValue(agentState))
-                .retrieve()
-                .toBodilessEntity()
-                .onErrorResume(WebClientException::class) {
-                    log.warn("Couldn't update agent statuses because of backend failure", it)
-                    Mono.empty()
-                }
+    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity>
 
     /**
      * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
@@ -115,54 +55,14 @@ class AgentService(
      * @param agentId agent for which data is checked
      * @return true if all executions have status other than `READY_FOR_TESTING`
      */
-    fun checkSavedData(agentId: String): Mono<Boolean> = webClientBackend.get()
-        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
-        .retrieve()
-        .bodyToMono<List<TestExecutionDto>>()
-        .map { it.isEmpty() }
-
-    /**
-     * If an error occurs, should try to resend tests
-     */
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")  // Fixme
-    fun resendTestsOnError() {
-        TODO()
-    }
+    fun checkSavedData(agentId: String): Mono<Boolean>
 
     /**
      * This method should be called when all agents are done and execution status can be updated and cleanup can be performed
      *
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
-    @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    internal fun finalizeExecution(agentId: String) {
-        // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
-        // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
-        getFinishedOrStoppedAgentsForSameExecution(agentId)
-            .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
-            .flatMap { (_, _) ->
-                // need to retry after some time, because for other agents BUSY state might have not been written completely
-                log.debug("Waiting for ${configProperties.shutdown.checksIntervalMillis} ms to repeat `getAgentsAwaitingStop` call for agentId=$agentId")
-                Mono.delay(Duration.ofMillis(configProperties.shutdown.checksIntervalMillis)).then(
-                    getFinishedOrStoppedAgentsForSameExecution(agentId)
-                )
-            }
-            .filter { (_, finishedAgentIds) -> finishedAgentIds.isNotEmpty() }
-            .flatMap { (executionId, finishedAgentIds) ->
-                log.info { "For execution id=$executionId all agents have completed their lifecycle" }
-                markExecutionBasedOnAgentStates(executionId, finishedAgentIds)
-                    .thenReturn(
-                        agentRunner.cleanup(executionId)
-                    )
-            }
-            .doOnSuccess {
-                if (it == null) {
-                    log.debug("Agents other than $agentId are still running, so won't try to stop them")
-                }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
+    fun finalizeExecution(agentId: String)
 
     /**
      * Updates status of execution [executionId] based on statues of agents [agentIds]
@@ -174,31 +74,7 @@ class AgentService(
     fun markExecutionBasedOnAgentStates(
         executionId: Long,
         agentIds: List<String>,
-    ): Mono<*> {
-        // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
-        // all { CRASHED } -> ERROR; set all test executions to CRASHED
-        return webClientBackend
-            .get()
-            .uri("/agents/statuses?ids=${agentIds.joinToString(separator = DATABASE_DELIMITER)}")
-            .retrieve()
-            .bodyToMono<List<AgentStatusDto>>()
-            .flatMap { agentStatuses ->
-                // todo: take test execution statuses into account too
-                if (agentStatuses.map { it.state }.all {
-                    it == STOPPED_BY_ORCH || it == TERMINATED
-                }) {
-                    updateExecution(executionId, ExecutionStatus.FINISHED)
-                } else if (agentStatuses.map { it.state }.all {
-                    it == CRASHED
-                }) {
-                    updateExecution(executionId, ExecutionStatus.ERROR,
-                        "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
-                } else {
-                    Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
-                }
-            }
-    }
+    ): Mono<BodilessResponseEntity>
 
     /**
      * Marks the execution to specified state
@@ -208,69 +84,28 @@ class AgentService(
      * @param failReason to show to user in case of error status
      * @return a bodiless response entity
      */
-    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
-            webClientBackend.post()
-                .uri("/updateExecutionByDto")
-                .bodyValue(ExecutionUpdateDto(executionId, executionStatus, failReason))
-                .retrieve()
-                .toBodilessEntity()
-
-    /**
-     * Returns agent for execution with id [executionId]
-     *
-     * @param executionId id of execution
-     * @return agent
-     */
-    @Suppress("TYPE_ALIAS")
-    fun getAgentIdsForExecution(executionId: Long): Mono<List<String>> = webClientBackend
-        .get()
-        .uri("/getAgentsIdsForExecution?executionId=$executionId")
-        .retrieve()
-        .bodyToMono()
+    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity>
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
      * If we call this method, then there are no unfinished TestExecutions. So we check other agents' status.
      *
-     * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
+     * We assume, that all agents will eventually have one of statuses are finished.
      * Situations when agent gets stuck with a different status and for whatever reason is unable to update
      * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
      *
      * @param agentId containerId of an agent
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
-    @Suppress("TYPE_ALIAS")
-    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = webClientBackend
-        .get()
-        .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
-        .retrieve()
-        .bodyToMono<AgentStatusesForExecution>()
-        .map { (executionId, agentStatuses) ->
-            log.debug("For executionId=$executionId agent statuses are $agentStatuses")
-            // with new logic, should we check only for CRASHED, STOPPED, TERMINATED?
-            executionId to if (agentStatuses.areFinishedOrStopped()) {
-                log.debug("For execution id=$executionId there are finished or stopped agents")
-                agentStatuses.map { it.containerId }
-            } else {
-                emptyList()
-            }
-        }
+    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<ExecutionIdToAgentIds>
 
     /**
      * Checks whether all agent under one execution have completed their jobs.
      *
      * @param agentId containerId of an agent
-     * @return true if all agents match [areIdleOrFinished]
+     * @return true if all agents match finished status
      */
-    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = webClientBackend
-        .get()
-        .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
-        .retrieve()
-        .bodyToMono<AgentStatusesForExecution>()
-        .map { (executionId, agentStatuses) ->
-            log.debug("For executionId=$executionId agent statuses are $agentStatuses")
-            agentStatuses.areIdleOrFinished()
-        }
+    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean>
 
     /**
      * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
@@ -279,27 +114,7 @@ class AgentService(
      * @param agentContainerId id of an agent that receives tests
      * @param newJobResponse a heartbeat response with tests
      */
-    internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        updateTestExecutionsWithAgent(agentContainerId, newJobResponse.tests).zipWith(
-            updateAgentStatusesWithDto(
-                AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
-            )
-        )
-            .doOnSuccess {
-                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
-
-    private fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
-        log.trace("Attempt to update test executions for tests=$testDtos for agent $agentId")
-        return webClientBackend.post()
-            .uri("/testExecution/assignAgent?agentContainerId=$agentId")
-            .bodyValue(testDtos)
-            .retrieve()
-            .toBodilessEntity()
-    }
+    fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse)
 
     /**
      * Mark agent's test executions as failed
@@ -308,47 +123,5 @@ class AgentService(
      * @param status
      * @return a bodiless response entity
      */
-    fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
-        return webClientBackend.post()
-            .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
-            .bodyValue(agentsList)
-            .retrieve()
-            .toBodilessEntity()
-    }
-
-    private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =
-            if (isNotEmpty()) {
-                // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
-            } else {
-                log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
-                Mono.just(WaitResponse)
-            }
-
-    private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }
-        .also {
-            log.debug("Constructed cli args for SAVE-cli: $it")
-        }
-
-    private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
-        it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
-    }
-
-    private fun Collection<AgentStatusDto>.areFinishedOrStopped() = all {
-        it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
-    }
-
-    /**
-     * @param agentId ID of an agent
-     * @return Mono containing ID of execution during which the agent has been created
-     */
-    fun getExecutionIdByAgentId(agentId: String) = webClientBackend.get()
-        .uri("/agents/$agentId/execution/id")
-        .retrieve()
-        .bodyToMono<Long>()
-
-    companion object {
-        private val log = LoggerFactory.getLogger(AgentService::class.java)
-    }
+    fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity>
 }

@@ -144,17 +144,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         .map(Agent::containerId)
 
     /**
-     * Return ID of execution for which agent [agentId] has been created
-     *
-     * @param agentId id of an agent to look for
-     * @return id of an execution
-     */
-    @GetMapping("/agents/{agentId}/execution/id")
-    fun findExecutionIdByAgentId(@PathVariable agentId: String) = agentRepository.findByContainerId(agentId)
-        .toMono()
-        .mapNotNull { it.execution.id }
-
-    /**
      * Get agent by containerId.
      *
      * @param containerId containerId of an agent.

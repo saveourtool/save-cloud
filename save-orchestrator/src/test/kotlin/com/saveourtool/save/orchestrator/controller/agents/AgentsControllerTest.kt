@@ -9,7 +9,7 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.AgentServiceToBackend
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -52,7 +52,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [AgentsController::class])
-@Import(AgentService::class, Beans::class)
+@Import(AgentServiceToBackend::class, Beans::class)
 @MockBeans(MockBean(AgentRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
@@ -199,13 +199,6 @@ class AgentsControllerTest {
 
     @Test
     fun `should cleanup execution artifacts`() {
-        mockServer.enqueue(
-            "/getAgentsIdsForExecution.*",
-            MockResponse().setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(Json.encodeToString(listOf("container-1", "container-2", "container-3")))
-        )
-
         webClient.post()
             .uri("/cleanup?executionId=42")
             .exchange()

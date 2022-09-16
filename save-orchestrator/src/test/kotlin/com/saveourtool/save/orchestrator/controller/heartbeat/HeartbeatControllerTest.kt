@@ -7,7 +7,7 @@ import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.AgentServiceToBackend
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
@@ -59,7 +59,7 @@ import kotlinx.serialization.json.Json
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
     Beans::class,
-    AgentService::class,
+    AgentServiceToBackend::class,
     HeartBeatInspector::class,
     LocalDateTimeConfig::class
 )
@@ -69,7 +69,7 @@ import kotlinx.serialization.json.Json
 @EnableScheduling
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
-    @Autowired private lateinit var agentService: AgentService
+    @Autowired private lateinit var agentService: AgentServiceToBackend
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector
@@ -423,13 +423,6 @@ class HeartbeatControllerTest {
                     .addHeader("Content-Type", "application/json")
             )
         }
-
-        /* mockServer.enqueue(
-            "/agents/[^/]+/execution/id",
-            MockResponse().setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(99))
-        )*/
 
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution

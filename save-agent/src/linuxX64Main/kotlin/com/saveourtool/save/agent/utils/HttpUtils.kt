@@ -16,23 +16,15 @@ import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 
 /**
- * @param result
- * @return true if [this] agent's state has been updated to reflect problems with [result]
+ * Attempt to send execution data to backend.
+ *
+ * @param requestToBackend
+ * @return a [Result] wrapping response
  */
-@Suppress("FUNCTION_BOOLEAN_PREFIX")
-internal fun SaveAgent.updateStateBasedOnBackendResponse(
-    result: Result<HttpResponse>
-): Boolean = if (result.notOk()) {
-    state.value = AgentState.BACKEND_FAILURE
-    true
-} else if (result.isFailure) {
-    if (result.exceptionOrNull() is CancellationException) {
-        logWarn("Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state")
-    }
-    state.value = AgentState.BACKEND_UNREACHABLE
-    true
-} else {
-    false
+internal suspend fun SaveAgent.processRequestToBackend(
+    requestToBackend: suspend () -> HttpResponse
+): Result<HttpResponse> = processRequestToBackendWrapped {
+    runCatching { requestToBackend() }
 }
 
 /**
@@ -41,17 +33,21 @@ internal fun SaveAgent.updateStateBasedOnBackendResponse(
  * @param requestToBackend
  * @return a [Result] wrapping response
  */
-internal suspend fun SaveAgent.sendDataToBackend(
-    requestToBackend: suspend () -> HttpResponse
-): Result<HttpResponse> = runCatching { requestToBackend() }.runIf({ failureOrNotOk() }) {
+internal suspend fun SaveAgent.processRequestToBackendWrapped(
+    requestToBackend: suspend () -> Result<HttpResponse>
+): Result<HttpResponse> = requestToBackend().runIf({ failureOrNotOk() }) {
     val reason = if (notOk()) {
         state.value = AgentState.BACKEND_FAILURE
         "Backend returned status ${getOrNull()?.status}"
     } else {
         state.value = AgentState.BACKEND_UNREACHABLE
-        "Backend is unreachable, ${exceptionOrNull()?.message}"
+        if (exceptionOrNull() is CancellationException) {
+            "Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state"
+        } else {
+            "Backend is unreachable, ${exceptionOrNull()?.message}"
+        }
     }
-    logErrorCustom("Cannot send data to backed: $reason")
+    logErrorCustom("Cannot process request to backed: $reason")
     this
 }
 
@@ -72,6 +68,9 @@ internal suspend fun HttpClient.download(url: String, body: Any?): Result<HttpRe
     }
 }
 
-private fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
+/**
+ * @return state of [Result]
+ */
+internal fun Result<HttpResponse>.failureOrNotOk() = isFailure || notOk()
 
 private fun Result<HttpResponse>.notOk() = isSuccess && !getOrThrow().status.isSuccess()

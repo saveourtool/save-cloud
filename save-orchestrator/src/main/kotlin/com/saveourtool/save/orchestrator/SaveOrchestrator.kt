@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
-internal typealias TextResponse = ResponseEntity<String>
+internal typealias ExecutionIdToAgentIds = Pair<Long, List<String>>
 
 /**
  * An entrypoint for spring boot for save-orchestrator

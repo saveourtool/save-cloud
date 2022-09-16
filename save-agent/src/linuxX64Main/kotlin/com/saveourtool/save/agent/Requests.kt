@@ -30,8 +30,10 @@ import okio.Path.Companion.toPath
  * @return result
  */
 internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
-    val result = httpClient.downloadTestResources(config, executionId)
-    if (updateStateBasedOnBackendResponse(result)) {
+    val result = processRequestToBackendWrapped {
+        httpClient.downloadTestResources(config, executionId)
+    }
+    if (result.failureOrNotOk()) {
         throw IllegalStateException("Couldn't download test resources")
     }
 
@@ -65,11 +67,13 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
 ) = runCatching {
     additionalFiles
         .map { fileKey ->
-            val result = httpClient.downloadFile(
-                "$baseUrl/internal/files/download?executionId=$executionId",
-                fileKey
-            )
-            if (updateStateBasedOnBackendResponse(result)) {
+            val result = processRequestToBackendWrapped {
+                httpClient.downloadFile(
+                    "$baseUrl/internal/files/download?executionId=$executionId",
+                    fileKey
+                )
+            }
+            if (result.failureOrNotOk()) {
                 throw IllegalStateException("Couldn't download file $fileKey")
             }
 
@@ -103,11 +107,13 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
  * @throws IllegalStateException
  */
 internal suspend fun SaveAgent.downloadSaveCli(url: String) {
-    val result = httpClient.download(
-        url = url,
-        body = null,
-    )
-    if (updateStateBasedOnBackendResponse(result)) {
+    val result = processRequestToBackendWrapped {
+        httpClient.download(
+            url = url,
+            body = null,
+        )
+    }
+    if (result.failureOrNotOk()) {
         throw IllegalStateException("Couldn't download save-cli")
     }
 

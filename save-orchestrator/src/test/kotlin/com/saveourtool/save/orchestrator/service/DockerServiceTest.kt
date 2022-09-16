@@ -37,8 +37,6 @@ import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import kotlin.io.path.*
-
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
@@ -48,7 +46,7 @@ import kotlin.io.path.*
     DockerAgentRunner::class,
     TestConfiguration::class,
     DockerService::class,
-    AgentService::class,
+    AgentServiceToBackend::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient

@@ -5,7 +5,7 @@ package com.saveourtool.save.agent
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.readFile
 import com.saveourtool.save.agent.utils.requiredEnv
-import com.saveourtool.save.agent.utils.sendDataToBackend
+import com.saveourtool.save.agent.utils.processRequestToBackend
 import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
 import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
@@ -86,7 +86,7 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
             state.value = AgentState.BUSY
-            sendDataToBackend { saveAdditionalData() }
+            processRequestToBackend { saveAdditionalData() }
 
             logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
             downloadSaveCli(
@@ -373,12 +373,12 @@ class SaveAgent(private val config: AgentConfiguration,
                 )
             } else {
                 val (debugInfos, testExecutionDtos) = result.getOrThrow()
-                sendDataToBackend {
+                processRequestToBackend {
                     postExecutionData(testExecutionDtos)
                 }
                 debugInfos.forEach { debugInfo ->
                     logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
-                    sendDataToBackend {
+                    processRequestToBackend {
                         sendReport(debugInfo)
                     }
                 }
@@ -391,7 +391,7 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
             httpClient.post {
-                url("${config.orchestratorUrl}/executionLogs")
+                url("${config.orchestrator.url}${config.orchestrator.executionLogsEndpoint}")
                 setBody(MultiPartFormDataContent(formData {
                     append(
                         "executionLogs",
@@ -405,7 +405,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}/${config.backend.filesEndpoint}/debug-info?agentId=${config.id}")
+        url("${config.backend.url}${config.backend.debugInfoEndpoint}?agentId=${config.id}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }
@@ -415,10 +415,10 @@ class SaveAgent(private val config: AgentConfiguration,
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
-        logDebugCustom("Sending heartbeat to ${config.orchestratorUrl}")
+        logDebugCustom("Sending heartbeat to ${config.orchestrator.url}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post {
-            url("${config.orchestratorUrl}/heartbeat")
+            url("${config.orchestrator.url}${config.orchestrator.heartbeatEndpoint}")
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
@@ -428,14 +428,14 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
         logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
-        url("${config.backend.url}/${config.backend.executionDataEndpoint}")
+        url("${config.backend.url}${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
         setBody(testExecutionDtos)
     }
 
     private suspend fun saveAdditionalData() = httpClient.post {
         logInfoCustom("Posting additional data to backend")
-        url("${config.backend.url}/${config.backend.additionalDataEndpoint}")
+        url("${config.backend.url}${config.backend.additionalDataEndpoint}")
         contentType(ContentType.Application.Json)
         setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
