@@ -644,12 +644,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div {
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
-                        withNavigate { navigateContext ->
-                            a {
-                                navigateContext.generateLinksWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history")
-                                className = ClassName("btn btn-link text-left")
-                                +"Execution History"
-                            }
+                        a {
+                            href = "#${state.paths.pathDefaultTab}/history"
+                            className = ClassName("btn btn-link text-left")
+                            +"Execution History"
                         }
                     }
                 }
