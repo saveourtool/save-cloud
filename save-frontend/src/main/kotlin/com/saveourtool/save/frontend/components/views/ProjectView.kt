@@ -42,6 +42,7 @@ import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -206,6 +207,11 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -286,7 +292,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
         }
@@ -303,7 +309,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             } else {
                 result.getOrThrow()
             }
-            setState { this.project = project }
+            setState {
+                this.project = project
+                paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            }
 
             val currentUserRole: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
@@ -627,7 +636,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 +"Latest Execution"
                                 disabled = state.latestExecutionId == null
                                 onClick = {
-                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>("/${props.owner}/${props.name}", "history/execution/${state.latestExecutionId}")
+                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
                                 }
                             }
                         }
@@ -636,12 +645,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
                         withNavigate { navigateContext ->
-                            button {
+                            a {
+                                navigateContext.generateLinksWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history")
                                 className = ClassName("btn btn-link text-left")
                                 +"Execution History"
-                                onClick = {
-                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>("/${props.owner}/${props.name}", "history")
-                                }
                             }
                         }
                     }

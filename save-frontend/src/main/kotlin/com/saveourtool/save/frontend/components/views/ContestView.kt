@@ -76,6 +76,11 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Contest. This field is acts as a marker of contest existence
      */
     var contest: ContestDto
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -92,8 +97,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
-                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+            changeUrl(state.selectedMenu, ContestMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
         } else if (props.currentContestName != prevProps.currentContestName) {
@@ -103,6 +107,9 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidMount() {
         super.componentDidMount()
+        scope.launch {
+            setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
+        }
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
         fetchContest()

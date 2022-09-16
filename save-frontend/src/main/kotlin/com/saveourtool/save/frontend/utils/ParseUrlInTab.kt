@@ -1,4 +1,4 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.frontend.utils
 
@@ -20,6 +20,16 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
      */
     var selectedMenu: T
 }
+
+/**
+ * The class is needed to store the paths of different tabs in different Views
+ * @property pathDefaultTab (must not contain a "#" for the correct execution of [navigate] in the [generateLinksWithSuffix] function)
+ * @property extendedViewPath
+ */
+data class PathsForTabs(
+    val pathDefaultTab: String,
+    val extendedViewPath: String
+)
 
 /**
  * The function of analyzing the URL of a tabbed page goes to the tab that was entered in the url, according to the role
@@ -59,18 +69,16 @@ fun <T : Enum<T>>NavigateFunctionContext.generateLinksWithSuffix(pathDefaultTab:
  *
  * @param selectedMenu
  * @param menuBar
- * @param pathDefaultTab
- * @param extendedViewPath
+ * @param paths
  */
 fun <T : Enum<T>> changeUrl(
     selectedMenu: T,
     menuBar: TabMenuBar<T>,
-    pathDefaultTab: String,
-    extendedViewPath: String
+    paths: PathsForTabs
 ) {
     window.location.href = if (selectedMenu == menuBar.defaultTab) {
-        pathDefaultTab
+        "#${paths.pathDefaultTab}"
     } else {
-        "$extendedViewPath/${selectedMenu.toString().lowercase()}"
+        "${paths.extendedViewPath}/${selectedMenu.toString().lowercase()}"
     }
 }

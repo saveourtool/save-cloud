@@ -151,6 +151,11 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Current state of description input form
      */
     var draftOrganizationDescription: String
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -229,7 +234,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
+            changeUrl(state.selectedMenu, OrganizationMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
         }
@@ -245,6 +250,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
+                paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
@@ -734,7 +740,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 generateLinksWithSuffix<OrganizationMenuBar>(window.location.origin, "")
-                // window.location.href = "${window.location.origin}/"
             }
         }
     }
