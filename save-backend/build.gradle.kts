@@ -117,8 +117,9 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
     implementation(libs.reactor.extra)
+    implementation(libs.commons.io)
     testImplementation(libs.spring.security.test)
     testImplementation(projects.testUtils)
 }
