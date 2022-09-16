@@ -13,6 +13,7 @@ spring-cloud = "3.1.4"
 spring-cloud-kubernetes = "2.1.4"
 kafka-client = "3.3.1"
 junit = "5.9.1"
+assertj = "3.23.1"
 diktat = "1.2.3"
 detekt = "1.21.0"
 liquibase-core = "4.16.1"
@@ -146,6 +147,8 @@ log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", versi
 logback-core = { module = "ch.qos.logback:logback-core" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.ref = "docker-java" }
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
