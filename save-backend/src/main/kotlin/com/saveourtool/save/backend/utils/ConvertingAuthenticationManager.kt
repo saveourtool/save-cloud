@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.utils
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Primary
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -17,6 +18,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * where user identity is already guaranteed.
  */
 @Component
+@Primary
 class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     @Autowired
     private lateinit var userDetailsService: UserDetailsService

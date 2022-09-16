@@ -18,6 +18,7 @@ spec:
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
+      serviceAccountName: microservice-sa
       restartPolicy: Always
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
@@ -35,6 +36,8 @@ spec:
               mountPath: /home/cnb/files
             - name: database-secret
               mountPath: {{ .Values.backend.dbPasswordFile }}
+            - name: service-account-projected-token
+              mountPath: /var/run/secrets/tokens
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -109,3 +112,9 @@ spec:
             secretName: db-secrets
         - name: migrations-data
           emptyDir: {}
+        - name: service-account-projected-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: sa-token
+                  expirationSeconds: 7200
