@@ -739,7 +739,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     )
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
-                generateLinksWithSuffix<OrganizationMenuBar>(window.location.origin, "")
+                window.location.href = "${window.location.origin}/"
             }
         }
     }
