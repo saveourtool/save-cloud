@@ -47,6 +47,14 @@ fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: T
 }
 
 /**
+ * @param pathDefaultTab
+ * @param suffix
+ */
+fun <T : Enum<T>>NavigateFunctionContext.generateLinksWithSuffix(pathDefaultTab: String, suffix: String) {
+    navigate(to = "$pathDefaultTab/$suffix")
+}
+
+/**
  * Creates unique url address for page tabs
  *
  * @param selectedMenu
@@ -65,8 +73,4 @@ fun <T : Enum<T>> changeUrl(
     } else {
         "$extendedViewPath/${selectedMenu.toString().lowercase()}"
     }
-}
-
-fun <T : Enum<T>>NavigateFunctionContext.generateLinksWithSuffix(pathDefaultTab: String, suffix: String) {
-    navigate( to = "$pathDefaultTab/$suffix")
 }

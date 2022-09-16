@@ -268,7 +268,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
         }
-        withNavigate {navigateContext->
+        withNavigate {navigateContext ->
             displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
                 buttonBuilder("Ok") {
                     when (state.confirmationType) {
