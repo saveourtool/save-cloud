@@ -645,7 +645,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
                         a {
-                            href = "#${state.paths.pathDefaultTab}/history"
+                            href = "#/${state.paths.pathDefaultTab}/history"
                             className = ClassName("btn btn-link text-left")
                             +"Execution History"
                         }

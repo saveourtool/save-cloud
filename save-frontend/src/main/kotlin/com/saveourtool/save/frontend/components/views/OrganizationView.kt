@@ -274,18 +274,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
         }
-        withNavigate {navigateContext ->
-            displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
-                buttonBuilder("Ok") {
-                    when (state.confirmationType) {
-                        ConfirmationType.DELETE_CONFIRM -> navigateContext.deleteOrganizationBuilder()
-                        else -> throw IllegalStateException("Not implemented yet")
-                    }
-                    setState { isConfirmWindowOpen = false }
+        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
+            buttonBuilder("Ok") {
+                when (state.confirmationType) {
+                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
+                    else -> TODO("Not implemented yet")
                 }
-                buttonBuilder("Close", "secondary") {
-                    setState { isConfirmWindowOpen = false }
-                }
+                setState { isConfirmWindowOpen = false }
+            }
+            buttonBuilder("Close", "secondary") {
+                setState { isConfirmWindowOpen = false }
             }
         }
 
@@ -724,7 +722,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun NavigateFunctionContext.deleteOrganizationBuilder() {
+    private fun deleteOrganizationBuilder() {
         val headers = Headers().also {
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
