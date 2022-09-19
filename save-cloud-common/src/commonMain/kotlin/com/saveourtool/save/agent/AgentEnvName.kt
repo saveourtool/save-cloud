@@ -6,6 +6,7 @@ package com.saveourtool.save.agent
 enum class AgentEnvName {
     ADDITIONAL_FILES_LIST,
     AGENT_ID,
+    AGENT_NAME,
     BACKEND_URL,
     BATCH_SEPARATOR,
     BATCH_SIZE,

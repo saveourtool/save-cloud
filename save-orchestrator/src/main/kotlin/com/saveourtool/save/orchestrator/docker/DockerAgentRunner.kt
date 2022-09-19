@@ -214,6 +214,7 @@ class DockerAgentRunner(
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
+                ${AgentEnvName.AGENT_NAME.name}=$containerName
                 """.trimIndent()
             )
         }

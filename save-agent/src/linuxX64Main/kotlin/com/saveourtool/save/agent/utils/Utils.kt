@@ -19,6 +19,7 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
         id = optionalEnv(AgentEnvName.AGENT_ID) ?: id,
+        name = optionalEnv(AgentEnvName.AGENT_NAME) ?: name,
         cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
         debug = optionalEnv(AgentEnvName.DEBUG)?.toBoolean() ?: debug,
         backend = backend.copy(

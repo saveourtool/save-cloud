@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
  * Configuration for save agent.
  *
  * @property id agent id
+ * @property name agent name
  * @property backend configuration for connection to backend
  * @property orchestratorUrl URL of SAVE orchestrator
  * @property heartbeat configuration of heartbeats
@@ -31,6 +32,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AgentConfiguration(
     val id: String,
+    val name: String,
     val backend: BackendConfig,
     val orchestratorUrl: String,
     val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
@@ -48,6 +50,7 @@ data class AgentConfiguration(
          */
         internal fun initializeFromEnv() = AgentConfiguration(
             id = requiredEnv(AgentEnvName.AGENT_ID),
+            name = requiredEnv(AgentEnvName.AGENT_NAME),
             backend = BackendConfig(
                 url = requiredEnv(AgentEnvName.BACKEND_URL),
             ),
