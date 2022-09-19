@@ -26,8 +26,8 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
  * @property pathDefaultTab is url path for the default tab (must not start with a "#" for the correct execution of [navigate] in the [navigateToLinkWithSuffix] function)
  * @property extendedViewPath is is the prefix of the path for the rest of the tabs
  */
-class PathsForTabs(pathDefaultTab: String, extendedViewPath: String)
-{
+@Suppress("KDOC_NO_CLASS_BODY_PROPERTIES_IN_HEADER")
+class PathsForTabs(pathDefaultTab: String, extendedViewPath: String) {
     val pathDefaultTab: String
     val extendedViewPath: String
     init {
@@ -35,7 +35,6 @@ class PathsForTabs(pathDefaultTab: String, extendedViewPath: String)
         this.extendedViewPath = extendedViewPath
     }
 }
-
 
 /**
  * The function of analyzing the URL of a tabbed page goes to the tab that was entered in the url, according to the role
