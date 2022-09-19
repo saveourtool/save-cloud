@@ -74,6 +74,8 @@ class KubernetesManager(
                         }
                         // If agent fails, we should handle it manually (update statuses, attempt restart etc.)
                         restartPolicy = "Never"
+                        // save-agent pods shouldn't have access to valid cluster tokens
+                        automountServiceAccountToken = false
                         containers = listOf(
                             agentContainerSpec(baseImageTag, agentRunCmd, workingDir, configuration.env)
                         )

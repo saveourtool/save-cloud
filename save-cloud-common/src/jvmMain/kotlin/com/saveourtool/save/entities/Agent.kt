@@ -8,7 +8,8 @@ import javax.persistence.ManyToOne
 /**
  * @property containerId id of the container, inside which the agent is running
  * @property execution id of the execution, which the agent is serving
- * @property version
+ * @property version version of the agent binary
+ * @property isAuthenticated whether this agent has already received a token from orchestrator
  */
 @Entity
 class Agent(
@@ -19,4 +20,6 @@ class Agent(
     var execution: Execution,
 
     var version: String? = null,
+
+    var isAuthenticated: Boolean,
 ) : BaseEntity()
