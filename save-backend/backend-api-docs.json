@@ -2138,18 +2138,25 @@
             "schema": {
               "type": "string"
             }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FileInfo"
-              }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           },
-          "required": true
-        },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "401": {
             "description": "Unauthorized",
@@ -6825,7 +6832,7 @@
         ]
       }
     },
-    "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
+    "/api/v1/files/{organizationName}/{projectName}/delete": {
       "delete": {
         "tags": [
           "files"
@@ -6849,11 +6856,20 @@
             }
           },
           {
-            "name": "creationTimestamp",
-            "in": "path",
+            "name": "name",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
@@ -7506,18 +7522,13 @@
       "FileInfo": {
         "required": [
           "isExecutable",
-          "name",
-          "sizeBytes",
-          "uploadedMillis"
+          "key",
+          "sizeBytes"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
+          "key": {
+            "$ref": "#/components/schemas/FileKey"
           },
           "sizeBytes": {
             "type": "integer",
