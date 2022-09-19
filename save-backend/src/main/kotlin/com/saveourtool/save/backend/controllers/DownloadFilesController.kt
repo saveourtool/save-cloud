@@ -5,12 +5,10 @@ import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.repository.AgentRepository
-import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.*
-import com.saveourtool.save.backend.utils.mapToInputStream
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
@@ -22,7 +20,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.apache.commons.io.IOUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
@@ -32,7 +29,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
-import org.springframework.util.FileSystemUtils
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -41,9 +37,6 @@ import reactor.kotlin.core.publisher.toFlux
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.div
-import kotlin.io.path.outputStream
 
 /**
  * A Spring controller for file downloading
@@ -63,7 +56,6 @@ class DownloadFilesController(
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val projectService: ProjectService,
-    private val executionService: ExecutionService,
 ) {
     private val logger = LoggerFactory.getLogger(DownloadFilesController::class.java)
 
@@ -154,49 +146,6 @@ class DownloadFilesController(
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .build()
         )
-
-    /**
-     * @param executionId
-     * @return a zip with all files are selected for current execution id
-     */
-    @GetMapping(path = ["/internal/files/download-by-execution-id"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadAllByExecutionId(
-        @RequestParam executionId: Long,
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        executionService.findExecution(executionId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found execution by id $executionId"
-        }
-        .map { it.getFileKeys() }
-        .flatMap { fileKeys ->
-            val tempDir = createTempDir().toPath()
-            val tempFile = createTempFile().toPath()
-
-            fileKeys.toFlux()
-                .flatMap { fileKey ->
-                    fileStorage.download(fileKey)
-                        .mapToInputStream()
-                        .map { inputStream ->
-                            (tempDir / fileKey.name).outputStream().use {
-                                IOUtils.copy(inputStream, it)
-                            }
-                        }
-                }
-                .then()
-                .map {
-                    tempDir.compressAsZipTo(tempFile)
-                    FileSystemUtils.deleteRecursively(tempDir)
-                }
-                .map {
-                    ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(tempFile.toByteBufferFlux())
-                }
-                .doAfterTerminate {
-                    tempFile.deleteExisting()
-                }
-        }
 
     @Operation(
         method = "POST",

@@ -692,7 +692,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                with(file.key){
+                with(file.key) {
                     "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
                 },
                 jsonHeaders,

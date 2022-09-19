@@ -163,6 +163,9 @@ external interface FileIconProps : Props {
     var onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
 }
 
+private fun FileKey.getHref() =
+        "/api/$v1/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/download?name=$name&uploadedMillis=$uploadedMillis"
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
@@ -278,6 +281,3 @@ private fun fileUploader() = FC<UploaderProps> { props ->
 
     useTooltip()
 }
-
-private fun FileKey.getHref() =
-        "/api/$v1/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/download?name=$name&uploadedMillis=$uploadedMillis"
