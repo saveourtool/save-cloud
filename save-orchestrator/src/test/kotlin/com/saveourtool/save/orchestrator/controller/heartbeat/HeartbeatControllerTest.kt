@@ -15,6 +15,7 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.orchestrator.service.BackendAgentRepository
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -58,8 +59,8 @@ import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
-    Beans::class,
     AgentService::class,
+    BackendAgentRepository::class,
     HeartBeatInspector::class,
     LocalDateTimeConfig::class
 )
@@ -424,13 +425,6 @@ class HeartbeatControllerTest {
                     .addHeader("Content-Type", "application/json")
             )
         }
-
-        /* mockServer.enqueue(
-            "/agents/[^/]+/execution/id",
-            MockResponse().setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(99))
-        )*/
 
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution

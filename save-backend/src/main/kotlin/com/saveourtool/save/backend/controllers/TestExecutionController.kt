@@ -229,7 +229,7 @@ class TestExecutionController(
      * @return response
      */
     @PostMapping(value = ["/internal/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
+    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>): ResponseEntity<String> = try {
         if (testExecutionsDto.isEmpty()) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
         } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {

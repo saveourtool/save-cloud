@@ -25,7 +25,9 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
         backend = backend.copy(
             url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
         ),
-        orchestratorUrl = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestratorUrl,
+        orchestrator = orchestrator.copy(
+            url = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestrator.url,
+        ),
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
         save = save.copy(
             batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
