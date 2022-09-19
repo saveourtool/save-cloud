@@ -47,6 +47,7 @@ import java.nio.file.Paths
     TestConfiguration::class,
     DockerService::class,
     AgentService::class,
+    BackendAgentRepository::class,
 )
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
