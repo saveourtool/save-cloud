@@ -13,7 +13,6 @@ import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -38,7 +37,7 @@ class AgentService(
     /**
      * A scheduler that executes long-running background tasks
      */
-    val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
+    internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
      * Sets new tests ids
@@ -129,7 +128,7 @@ class AgentService(
      * @param agentIds ids of agents
      * @return Mono with response from backend
      */
-    fun markExecutionBasedOnAgentStates(
+    private fun markExecutionBasedOnAgentStates(
         executionId: Long,
         agentIds: List<String>,
     ): Mono<BodilessResponseEntity> {
@@ -178,7 +177,7 @@ class AgentService(
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = bridgeService
+    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = bridgeService
         .getAgentsStatusesForSameExecution(agentId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
@@ -212,21 +211,17 @@ class AgentService(
      * @param newJobResponse a heartbeat response with tests
      */
     fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        bridgeService.assignAgent(agentContainerId, newJobResponse.tests).zipWith(
-            updateAgentStatusesWithDto(
-                AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
+        bridgeService.assignAgent(agentContainerId, newJobResponse.tests)
+            .zipWith(
+                updateAgentStatusesWithDto(
+                    AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
+                )
             )
-        )
             .doOnSuccess {
                 log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
             }
             .subscribeOn(scheduler)
             .subscribe()
-    }
-
-    private fun updateTestExecutionsWithAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> {
-        log.trace("Attempt to update test executions for tests=$testDtos for agent $agentId")
-        return bridgeService.assignAgent(agentId, testDtos)
     }
 
     /**

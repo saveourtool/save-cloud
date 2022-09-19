@@ -7,7 +7,7 @@ import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.service.AgentServiceToBackend
+import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
@@ -59,7 +59,7 @@ import kotlinx.serialization.json.Json
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
     Beans::class,
-    AgentServiceToBackend::class,
+    AgentService::class,
     HeartBeatInspector::class,
     LocalDateTimeConfig::class
 )
@@ -69,7 +69,7 @@ import kotlinx.serialization.json.Json
 @EnableScheduling
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
-    @Autowired private lateinit var agentService: AgentServiceToBackend
+    @Autowired private lateinit var agentService: AgentService
     @MockBean private lateinit var dockerService: DockerService
     @Autowired private lateinit var objectMapper: ObjectMapper
     @Autowired private lateinit var heartBeatInspector: HeartBeatInspector

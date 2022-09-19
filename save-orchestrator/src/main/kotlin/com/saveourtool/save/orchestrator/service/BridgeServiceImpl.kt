@@ -87,7 +87,7 @@ class BridgeServiceImpl(
      * @param agentId agent for which data is checked
      * @return list of saved [TestExecutionDto]
      */
-    override fun getReadyForTestingTestExecutions(agentId: String): Mono<List<TestExecutionDto>> = webClientBackend.get()
+    override fun getReadyForTestingTestExecutions(agentId: String): Mono<TestExecutionList> = webClientBackend.get()
         .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
         .retrieve()
         .bodyToMono()
@@ -158,9 +158,9 @@ class BridgeServiceImpl(
      * @return a bodiless response entity
      */
     override fun setStatusByAgentIds(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
-        webClientBackend.post()
-            .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
-            .bodyValue(agentsList)
-            .retrieve()
-            .toBodilessEntity()
+            webClientBackend.post()
+                .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
+                .bodyValue(agentsList)
+                .retrieve()
+                .toBodilessEntity()
 }

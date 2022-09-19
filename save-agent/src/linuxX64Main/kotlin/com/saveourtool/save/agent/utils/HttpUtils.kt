@@ -6,7 +6,6 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
-import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
 import io.ktor.client.*
 import io.ktor.client.request.*

@@ -18,6 +18,10 @@ typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 @RestController
 @RequestMapping("/sandbox")
 class SandboxController {
+    /**
+     * @param agentVersion
+     * @return
+     */
     @PostMapping("/internal/saveAgentVersion")
     fun additionalData(
         @RequestBody agentVersion: AgentVersion
@@ -26,6 +30,10 @@ class SandboxController {
         return Mono.empty()
     }
 
+    /**
+     * @param testExecutionsDto
+     * @return
+     */
     @PostMapping("/internal/saveTestResult")
     fun executionData(
         @RequestBody testExecutionsDto: List<TestExecutionDto>
@@ -34,6 +42,10 @@ class SandboxController {
         return Mono.empty()
     }
 
+    /**
+     * @param executionId
+     * @return
+     */
     @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun testSourceSnapshot(
         @RequestParam executionId: Long
@@ -42,6 +54,10 @@ class SandboxController {
         return Mono.empty()
     }
 
+    /**
+     * @param version
+     * @return
+     */
     @PostMapping("/internal/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun saveCliDownload(
         @RequestParam version: String,
@@ -50,6 +66,11 @@ class SandboxController {
         return Mono.empty()
     }
 
+    /**
+     * @param agentId
+     * @param testResultDebugInfo
+     * @return
+     */
     @PostMapping("/internal/files/debug-info")
     fun debugInfo(@RequestParam agentId: String,
                   @RequestBody testResultDebugInfo: TestResultDebugInfo,

@@ -3,24 +3,17 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 typealias IdList = List<Long>
@@ -107,6 +100,11 @@ interface BridgeService {
      */
     fun getAgentsStatusesForSameExecution(agentId: String): Mono<AgentStatusesForExecution>
 
+    /**
+     * @param agentId
+     * @param testDtos
+     * @return a bodiless response entity
+     */
     fun assignAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity>
 
     /**
