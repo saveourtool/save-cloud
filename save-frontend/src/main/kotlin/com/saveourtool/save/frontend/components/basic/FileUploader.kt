@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.toPrettyString
@@ -198,8 +199,8 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                                 className = ClassName("btn")
                                 fontAwesomeIcon(icon = faDownload)
                             }
-                            download = fileInfo.name
-                            href = getHref(fileInfo, props.projectCoordinates)
+                            download = fileInfo.key.name
+                            href = fileInfo.key.getHref()
                         }
                         button {
                             className = ClassName("btn")
@@ -225,10 +226,10 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                             disabled = true
                             +"Select a file from existing"
                         }
-                        props.availableFiles.sortedByDescending { it.uploadedMillis }.map {
+                        props.availableFiles.sortedByDescending { it.key.uploadedMillis }.map {
                             option {
                                 className = ClassName("list-group-item")
-                                value = it.name
+                                value = it.key.name
                                 +it.toPrettyString()
                             }
                         }
@@ -278,8 +279,5 @@ private fun fileUploader() = FC<UploaderProps> { props ->
     useTooltip()
 }
 
-private fun getHref(
-    fileInfo: FileInfo,
-    projectCoordinates: ProjectCoordinates?
-) =
-        "/api/$v1/resource/${projectCoordinates?.organizationName}/${projectCoordinates?.projectName}/${fileInfo.uploadedMillis}/${fileInfo.name}"
+private fun FileKey.getHref() =
+        "/api/$v1/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/download?name=$name&uploadedMillis=$uploadedMillis"

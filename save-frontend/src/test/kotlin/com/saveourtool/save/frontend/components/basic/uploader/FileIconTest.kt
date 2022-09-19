@@ -1,6 +1,8 @@
 package com.saveourtool.save.frontend.components.basic.uploader
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.FileKey
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.components.basic.fileIconWithMode
 import com.saveourtool.save.frontend.externals.*
 
@@ -19,8 +21,14 @@ import kotlinx.datetime.toInstant
 
 class FileIconTest {
     private val fileInfoForTest = FileInfo(
-        name = "Test file",
-        uploadedMillis = LocalDateTime(2022, 7, 14, 12, 28).toInstant(TimeZone.UTC).toEpochMilliseconds(),
+        key = FileKey(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = "OrganizationName",
+                projectName = "ProjectName",
+            ),
+            name = "Test file",
+            uploadedMillis = LocalDateTime(2022, 7, 14, 12, 28).toInstant(TimeZone.UTC).toEpochMilliseconds(),
+        ),
         sizeBytes = 42000,
         isExecutable = false,
     )

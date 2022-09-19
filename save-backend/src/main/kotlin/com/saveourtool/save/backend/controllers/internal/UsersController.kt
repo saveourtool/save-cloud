@@ -8,6 +8,7 @@ import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.backend.StringResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.jackson2.CoreJackson2Module
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-
-typealias StringResponse = ResponseEntity<String>
 
 /**
  * Controller that handles operation with users

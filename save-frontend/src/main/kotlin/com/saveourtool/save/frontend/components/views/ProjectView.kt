@@ -353,7 +353,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         val executionRequest = RunExecutionRequest(
             projectCoordinates = projectCoordinates,
             testSuiteIds = selectedTestSuiteIds,
-            files = state.files.map { it.toStorageKey(projectCoordinates) },
+            files = state.files.map { it.key },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
@@ -499,7 +499,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     projectCoordinates = ProjectCoordinates(props.owner, props.name)
                     onFileSelect = { element ->
                         setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
+                            val availableFile = availableFiles.first { it.key.name == element.value }
                             files.add(availableFile)
                             bytesReceived += availableFile.sizeBytes
                             suiteByteSize += availableFile.sizeBytes
@@ -692,7 +692,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                with(file.key){
+                    "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
+                },
                 jsonHeaders,
                 Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,
@@ -710,7 +712,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun postFileDelete(fileForDelete: FileInfo) {
         val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.name} file?"
+            "Are you sure you want to delete ${fileForDelete.key.name} file?"
         )
 
         if (confirm) {

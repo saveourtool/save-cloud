@@ -140,17 +140,17 @@ class DownloadFilesTest {
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
         val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
-        val sampleFileInfo = tmpFile.toFileInfo()
-        val fileKey = sampleFileInfo.toStorageKey(projectCoordinates)
+        val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
+        val fileKey = sampleFileInfo.key
         fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
 
         webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download")
+            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
+                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
@@ -169,7 +169,7 @@ class DownloadFilesTest {
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().name
+                    tmpFile.name, it.responseBody!!.first().key.name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
@@ -216,7 +216,7 @@ class DownloadFilesTest {
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.toStorageKey(projectCoordinates) }
+                        .map { it.key }
                         .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())

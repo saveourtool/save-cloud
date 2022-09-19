@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.service.ExecutionService
@@ -37,7 +38,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -90,42 +90,46 @@ class DownloadFilesController(
     /**
      * @param organizationName
      * @param projectName
-     * @param creationTimestamp
+     * @param name
+     * @param uploadedMillis
      * @param authentication
      * @return [Mono] with response
      */
-    @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/{creationTimestamp}"])
+    @DeleteMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/delete"])
     @Suppress("UnsafeCallOnNullableType")
     fun delete(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        @PathVariable creationTimestamp: String,
+        @RequestParam name: String,
+        @RequestParam uploadedMillis: Long,
         authentication: Authentication,
-    ) = projectService.findWithPermissionByNameAndOrganization(
+    ): Mono<StringResponse> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.DELETE
     ).flatMap {
-        fileStorage.deleteByUploadedMillis(ProjectCoordinates(organizationName, projectName), creationTimestamp.toLong())
+        fileStorage.delete(FileKey(ProjectCoordinates(organizationName, projectName), name, uploadedMillis))
     }.map { deleted ->
         if (deleted) {
             ResponseEntity.ok("File deleted successfully")
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("File not found by creationTimestamp $creationTimestamp in $organizationName/$projectName")
+                .body("File not found by uploadedMillis $uploadedMillis in $organizationName/$projectName")
         }
     }
 
     /**
-     * @param fileInfo a FileInfo based on which a file should be located
      * @param organizationName
      * @param projectName
+     * @param name
+     * @param uploadedMillis
      * @return [Mono] with file contents
      */
     @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
-        @RequestBody fileInfo: FileInfo,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(fileInfo.toStorageKey(ProjectCoordinates(organizationName, projectName)))
+        @RequestParam name: String,
+        @RequestParam uploadedMillis: Long,
+    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(FileKey(ProjectCoordinates(organizationName, projectName), name, uploadedMillis))
 
     /**
      * @param fileKey a key [FileKey] of requested file
@@ -152,6 +156,10 @@ class DownloadFilesController(
                 .build()
         )
 
+    /**
+     * @param executionId
+     * @return a zip with all files are selected for current execution id
+     */
     @GetMapping(path = ["/internal/files/download-by-execution-id"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadAllByExecutionId(
         @RequestParam executionId: Long,
