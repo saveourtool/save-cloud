@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+<!--    <changeSet id="agent-addContainerName" author="kgevorkyan" context="dev or prod">-->
+<!--        <addColumn tableName="agent">-->
+<!--            <column name="container_name" type="varchar(64)" defaultValue="true">-->
+<!--                <constraints nullable="false"/>-->
+<!--            </column>-->
+<!--        </addColumn>-->
+<!--    </changeSet>-->
+
+    <changeSet id="add-addContainerName" author="kgevorkyan" context="dev or prod">
+        <sql>
+            ALTER TABLE agent ADD COLUMN container_name text;
+            UPDATE agent SET container_name = 'unknown' WHERE container_name IS NULL;
+            ALTER TABLE agent MODIFY container_name text NOT NULL;
+        </sql>
+    </changeSet>
+
+
+</databaseChangeLog>
