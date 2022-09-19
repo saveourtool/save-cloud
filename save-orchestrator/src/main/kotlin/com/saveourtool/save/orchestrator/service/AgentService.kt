@@ -45,7 +45,7 @@ class AgentService(
      * @param agentId
      * @return Mono<NewJobResponse>
      */
-    fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
+    internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
             bridgeService.getNextTestBatch(agentId)
                 .flatMap { it.toHeartbeatResponse(agentId) }
 
@@ -92,7 +92,7 @@ class AgentService(
      * @param agentId an ID of the agent from the execution, that will be checked.
      */
     @Suppress("TOO_LONG_FUNCTION", "AVOID_NULL_CHECKS")
-    fun finalizeExecution(agentId: String) {
+    internal fun finalizeExecution(agentId: String) {
         // Get a list of agents for this execution, if their statuses indicate that the execution can be terminated.
         // I.e., all agents must be stopped by this point in order to move further in shutdown logic.
         getFinishedOrStoppedAgentsForSameExecution(agentId)
@@ -141,11 +141,11 @@ class AgentService(
                 if (agentStatuses.map { it.state }.all {
                     it == STOPPED_BY_ORCH || it == TERMINATED
                 }) {
-                    bridgeService.updateExecutionByDto(executionId, ExecutionStatus.FINISHED)
+                    updateExecution(executionId, ExecutionStatus.FINISHED)
                 } else if (agentStatuses.map { it.state }.all {
                     it == CRASHED
                 }) {
-                    bridgeService.updateExecutionByDto(executionId, ExecutionStatus.ERROR,
+                    updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
                     ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
                 } else {
@@ -162,7 +162,7 @@ class AgentService(
      * @param failReason to show to user in case of error status
      * @return a bodiless response entity
      */
-    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String?): Mono<BodilessResponseEntity> =
+    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
             bridgeService.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
@@ -210,7 +210,7 @@ class AgentService(
      * @param agentContainerId id of an agent that receives tests
      * @param newJobResponse a heartbeat response with tests
      */
-    fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
+    internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
         bridgeService.assignAgent(agentContainerId, newJobResponse.tests)
             .zipWith(
                 updateAgentStatusesWithDto(

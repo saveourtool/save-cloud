@@ -84,7 +84,7 @@ interface BridgeService {
     fun updateExecutionByDto(
         executionId: Long,
         executionStatus: ExecutionStatus,
-        failReason: String? = null
+        failReason: String?,
     ): Mono<BodilessResponseEntity>
 
     /**
