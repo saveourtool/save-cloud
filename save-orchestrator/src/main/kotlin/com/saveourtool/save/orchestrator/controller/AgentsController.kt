@@ -1,6 +1,5 @@
 package com.saveourtool.save.orchestrator.controller
 
-import com.github.dockerjava.api.DockerClient
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -11,6 +10,7 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.utils.info
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
