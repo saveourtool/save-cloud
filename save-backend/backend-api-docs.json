@@ -7109,6 +7109,9 @@
           "agentContainerId": {
             "type": "string"
           },
+          "agentContainerName": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
