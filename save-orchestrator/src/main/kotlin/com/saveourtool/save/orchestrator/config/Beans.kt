@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Profile
  */
 @Configuration
 @Suppress("KDOC_WITHOUT_PARAM_TAG")
-class Beans(private val configProperties: ConfigProperties) {
+class Beans {
     /**
      * @param configProperties orchestrator configuration
      * @return instance of [DockerClient]

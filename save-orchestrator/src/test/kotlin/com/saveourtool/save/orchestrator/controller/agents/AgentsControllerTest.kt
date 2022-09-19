@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.BackendAgentRepository
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -52,7 +53,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [AgentsController::class])
-@Import(AgentService::class, Beans::class)
+@Import(AgentService::class, BackendAgentRepository::class)
 @MockBeans(MockBean(AgentRunner::class))
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AgentsControllerTest {
