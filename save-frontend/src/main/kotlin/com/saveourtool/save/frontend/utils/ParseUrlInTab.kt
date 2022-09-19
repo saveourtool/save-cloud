@@ -23,7 +23,7 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
 
 /**
  * The class is needed to store the paths of different tabs in different Views
- * @property pathDefaultTab (must not contain a "#" for the correct execution of [navigate] in the [generateLinksWithSuffix] function)
+ * @property pathDefaultTab (must not start with a "#" for the correct execution of [navigate] in the [navigateToLinkWithSuffix] function)
  * @property extendedViewPath
  */
 data class PathsForTabs(
@@ -60,7 +60,7 @@ fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: T
  * @param pathDefaultTab
  * @param suffix
  */
-fun <T : Enum<T>>NavigateFunctionContext.generateLinksWithSuffix(pathDefaultTab: String, suffix: String) {
+fun <T : Enum<T>>NavigateFunctionContext.navigateToLinkWithSuffix(pathDefaultTab: String, suffix: String) {
     navigate(to = "$pathDefaultTab/$suffix")
 }
 

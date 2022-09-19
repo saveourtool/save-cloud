@@ -636,7 +636,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 +"Latest Execution"
                                 disabled = state.latestExecutionId == null
                                 onClick = {
-                                    navigateContext.generateLinksWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
+                                    navigateContext.navigateToLinkWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
                                 }
                             }
                         }
