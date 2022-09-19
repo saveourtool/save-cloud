@@ -31,10 +31,7 @@ class SandboxController {
     @PostMapping("/internal/saveAgentVersion")
     fun saveAdditionalData(
         @RequestBody agentVersion: AgentVersion
-    ): Mono<Unit> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<Unit> = Mono.empty()
 
     /**
      * @param testExecutionsDto
@@ -43,10 +40,7 @@ class SandboxController {
     @PostMapping("/internal/saveTestResult")
     fun saveExecutionData(
         @RequestBody testExecutionsDto: List<TestExecutionDto>
-    ): Mono<StringResponse> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<StringResponse> = Mono.empty()
 
     /**
      * @param executionId
@@ -55,10 +49,7 @@ class SandboxController {
     @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadTestSourceSnapshot(
         @RequestParam executionId: Long
-    ): Mono<ByteBufferFluxResponse> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<ByteBufferFluxResponse> = Mono.empty()
 
     /**
      * @param executionId
@@ -69,10 +60,7 @@ class SandboxController {
     fun downloadFile(
         @RequestParam executionId: Long,
         @RequestBody fileKey: FileKey,
-    ): Mono<ByteBufferFluxResponse> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<ByteBufferFluxResponse> = Mono.empty()
 
     /**
      * @param version
@@ -81,10 +69,7 @@ class SandboxController {
     @PostMapping("/internal/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
-    ): Mono<out Resource> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<out Resource> = Mono.empty()
 
     /**
      * @param agentId
@@ -95,8 +80,5 @@ class SandboxController {
     fun saveDebugInfo(
         @RequestParam agentId: String,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> {
-        // do nothing for now
-        return Mono.empty()
-    }
+    ): Mono<Long> = Mono.empty()
 }
