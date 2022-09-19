@@ -22,13 +22,13 @@ typealias StringResponse = ResponseEntity<String>
  */
 @Profile(SANDBOX_PROFILE)
 @RestController
-@RequestMapping("/sandbox")
-class SandboxController {
+@RequestMapping("/sandbox/internal")
+class SandboxInternalController {
     /**
      * @param agentVersion
      * @return Mono with empty body
      */
-    @PostMapping("/internal/saveAgentVersion")
+    @PostMapping("/saveAgentVersion")
     fun saveAdditionalData(
         @RequestBody agentVersion: AgentVersion
     ): Mono<Unit> = Mono.empty()
@@ -37,7 +37,7 @@ class SandboxController {
      * @param testExecutionsDto
      * @return response with text value
      */
-    @PostMapping("/internal/saveTestResult")
+    @PostMapping("/saveTestResult")
     fun saveExecutionData(
         @RequestBody testExecutionsDto: List<TestExecutionDto>
     ): Mono<StringResponse> = Mono.empty()
@@ -46,7 +46,7 @@ class SandboxController {
      * @param executionId
      * @return content of requested snapshot
      */
-    @PostMapping("/internal/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadTestSourceSnapshot(
         @RequestParam executionId: Long
     ): Mono<ByteBufferFluxResponse> = Mono.empty()
@@ -56,7 +56,7 @@ class SandboxController {
      * @param fileKey
      * @return content of requested file
      */
-    @PostMapping("/internal/files/download", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/files/download", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
         @RequestParam executionId: Long,
         @RequestBody fileKey: FileKey,
@@ -66,7 +66,7 @@ class SandboxController {
      * @param version
      * @return content of requested save-cli
      */
-    @PostMapping("/internal/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<out Resource> = Mono.empty()
@@ -76,7 +76,7 @@ class SandboxController {
      * @param testResultDebugInfo
      * @return [Mono] with count of uploaded bytes
      */
-    @PostMapping("/internal/files/debug-info")
+    @PostMapping("/files/debug-info")
     fun saveDebugInfo(
         @RequestParam agentId: String,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
