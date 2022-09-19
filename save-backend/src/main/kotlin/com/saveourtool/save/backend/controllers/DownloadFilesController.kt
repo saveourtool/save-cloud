@@ -82,8 +82,7 @@ class DownloadFilesController(
     ): Flux<FileInfo> = projectService.findWithPermissionByNameAndOrganization(
         authentication, projectName, organizationName, Permission.READ
     )
-        .toFlux()
-        .flatMap {
+        .flatMapMany {
             fileStorage.getFileInfoList(ProjectCoordinates(organizationName, projectName))
         }
 

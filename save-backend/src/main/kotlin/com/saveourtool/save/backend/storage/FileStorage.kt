@@ -69,27 +69,11 @@ class FileStorage(
         .flatMap { fileKey ->
             contentSize(fileKey).map {
                 FileInfo(
-                    fileKey.name,
-                    fileKey.uploadedMillis,
+                    fileKey,
                     it,
                 )
             }
         }
-
-    /**
-     * @param projectCoordinates
-     * @param uploadedMillis
-     * @return true if object removed, otherwise - false
-     */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
-    fun deleteByUploadedMillis(
-        projectCoordinates: ProjectCoordinates,
-        uploadedMillis: Long,
-    ): Mono<Boolean> = list(projectCoordinates)
-        .filter { fileKey -> fileKey.uploadedMillis == uploadedMillis }
-        .flatMap { delete(it) }
-        .reduce(Boolean::and)
-        .switchIfEmpty(Mono.just(false))
 
     /**
      * @param partMono file part
@@ -110,8 +94,7 @@ class FileStorage(
         upload(fileKey, part.content().map { it.asByteBuffer() })
             .map {
                 FileInfo(
-                    fileKey.name,
-                    fileKey.uploadedMillis,
+                    fileKey,
                     it
                 )
             }
