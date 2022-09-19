@@ -14,7 +14,6 @@ import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
@@ -41,7 +39,6 @@ class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
     private val configProperties: ConfigProperties,
-    @Qualifier("webClientBackend") private val webClientBackend: WebClient,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
