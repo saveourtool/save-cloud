@@ -23,13 +23,19 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
 
 /**
  * The class is needed to store the paths of different tabs in different Views
- * @property pathDefaultTab (must not start with a "#" for the correct execution of [navigate] in the [navigateToLinkWithSuffix] function)
- * @property extendedViewPath
+ * @property pathDefaultTab is url path for the default tab (must not start with a "#" for the correct execution of [navigate] in the [navigateToLinkWithSuffix] function)
+ * @property extendedViewPath is is the prefix of the path for the rest of the tabs
  */
-data class PathsForTabs(
-    val pathDefaultTab: String,
+class PathsForTabs(pathDefaultTab: String, extendedViewPath: String)
+{
+    val pathDefaultTab: String
     val extendedViewPath: String
-)
+    init {
+        this.pathDefaultTab = if (pathDefaultTab.startsWith("#/")) pathDefaultTab.removePrefix("#") else pathDefaultTab
+        this.extendedViewPath = extendedViewPath
+    }
+}
+
 
 /**
  * The function of analyzing the URL of a tabbed page goes to the tab that was entered in the url, according to the role
@@ -60,7 +66,7 @@ fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: T
  * @param pathDefaultTab
  * @param suffix
  */
-fun <T : Enum<T>>NavigateFunctionContext.navigateToLinkWithSuffix(pathDefaultTab: String, suffix: String) {
+fun NavigateFunctionContext.navigateToLinkWithSuffix(pathDefaultTab: String, suffix: String) {
     navigate(to = "$pathDefaultTab/$suffix")
 }
 

@@ -636,7 +636,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                                 +"Latest Execution"
                                 disabled = state.latestExecutionId == null
                                 onClick = {
-                                    navigateContext.navigateToLinkWithSuffix<ProjectMenuBar>(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
+                                    navigateContext.navigateToLinkWithSuffix(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
                                 }
                             }
                         }
@@ -645,7 +645,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
                         a {
-                            href = "#/${state.paths.pathDefaultTab}/history"
+                            href = "#${state.paths.pathDefaultTab}/history"
                             className = ClassName("btn btn-link text-left")
                             +"Execution History"
                         }
