@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
@@ -11,7 +10,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.*
 
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
@@ -21,11 +19,11 @@ typealias AgentStatusList = List<AgentStatusDto>
 typealias TestExecutionList = List<TestExecutionDto>
 
 /**
- * Service for work with agents and backend
+ * Repository to work with agents
  */
-interface BridgeService {
+interface AgentRepository {
     /**
-     * Sets new tests ids
+     * Gets new tests ids
      *
      * @param agentId
      * @return Mono<NewJobResponse>
@@ -43,18 +41,18 @@ interface BridgeService {
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
-     * @return empty result
+     * @return a Mono without body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Unit>
+    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<BodilessResponseEntity>
 
     /**
      * @param agentState [AgentStatus] to update in the DB
-     * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
+     * @return a Mono without body
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity>
 
     /**
-     * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
+     * Get List of [TestExecutionDto] for agent [agentId] have status READY_FOR_TESTING
      *
      * @param agentId agent for which data is checked
      * @return list of saved [TestExecutionDto]
@@ -62,9 +60,9 @@ interface BridgeService {
     fun getReadyForTestingTestExecutions(agentId: String): Mono<TestExecutionList>
 
     /**
-     * Updates status of execution [executionId] based on statues of agents [agentIds]
+     * Get list of [AgentStatus] for provided values
      *
-     * @param executionId id of an [Execution]
+     * @param executionId id of an [com.saveourtool.save.entities.Execution]
      * @param agentIds ids of agents
      * @return Mono with response from backend
      */
@@ -79,7 +77,7 @@ interface BridgeService {
      * @param executionId execution that should be updated
      * @param executionStatus new status for execution
      * @param failReason to show to user in case of error status
-     * @return a bodiless response entity
+     * @return a Mono without body
      */
     fun updateExecutionByDto(
         executionId: Long,
@@ -88,31 +86,24 @@ interface BridgeService {
     ): Mono<BodilessResponseEntity>
 
     /**
-     * Get list of agent ids (containerIds) for agents that have completed their jobs.
-     * If we call this method, then there are no unfinished TestExecutions. So we check other agents' status.
-     *
-     * We assume, that all agents will eventually have one of statuses [areFinishedOrStopped].
-     * Situations when agent gets stuck with a different status and for whatever reason is unable to update
-     * it, are not handled. Anyway, such agents should be eventually stopped by [HeartBeatInspector].
-     *
      * @param agentId containerId of an agent
-     * @return Mono with [AgentStatusesForExecution]
+     * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
      */
     fun getAgentsStatusesForSameExecution(agentId: String): Mono<AgentStatusesForExecution>
 
     /**
      * @param agentId
      * @param testDtos
-     * @return a bodiless response entity
+     * @return a Mono without body
      */
     fun assignAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity>
 
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
+     * @param agentIds the list of agent IDs, for which, according the [status] corresponding test executions should be marked as failed
      * @param status
-     * @return a bodiless response entity
+     * @return a Mono without body
      */
-    fun setStatusByAgentIds(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity>
+    fun setStatusByAgentIds(agentIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity>
 }

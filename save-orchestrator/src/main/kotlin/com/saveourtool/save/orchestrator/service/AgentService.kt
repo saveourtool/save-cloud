@@ -32,7 +32,7 @@ import java.time.LocalDateTime
 class AgentService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
-    private val bridgeService: BridgeService,
+    private val agentRepository: AgentRepository,
 ) {
     /**
      * A scheduler that executes long-running background tasks
@@ -46,7 +46,7 @@ class AgentService(
      * @return Mono<NewJobResponse>
      */
     internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
-            bridgeService.getNextTestBatch(agentId)
+            agentRepository.getNextTestBatch(agentId)
                 .flatMap { it.toHeartbeatResponse(agentId) }
 
     /**
@@ -56,10 +56,10 @@ class AgentService(
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<Unit> = bridgeService
+    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<BodilessResponseEntity> = agentRepository
         .addAgents(agents)
         .flatMap { agentIds ->
-            bridgeService.updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
+            agentRepository.updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
                 AgentStatus(LocalDateTime.now(), LocalDateTime.now(), STARTING, agent.also { it.id = id })
             })
         }
@@ -69,7 +69,7 @@ class AgentService(
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
-            bridgeService
+            agentRepository
                 .updateAgentStatusesWithDto(agentState)
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
@@ -82,7 +82,7 @@ class AgentService(
      * @param agentId agent for which data is checked
      * @return true if all executions have status other than `READY_FOR_TESTING`
      */
-    fun checkSavedData(agentId: String): Mono<Boolean> = bridgeService
+    fun checkSavedData(agentId: String): Mono<Boolean> = agentRepository
         .getReadyForTestingTestExecutions(agentId)
         .map { it.isEmpty() }
 
@@ -134,7 +134,7 @@ class AgentService(
     ): Mono<BodilessResponseEntity> {
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
-        return bridgeService
+        return agentRepository
             .getAgentsStatuses(executionId, agentIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
@@ -163,7 +163,7 @@ class AgentService(
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
-            bridgeService.updateExecutionByDto(executionId, executionStatus, failReason)
+            agentRepository.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
@@ -177,7 +177,7 @@ class AgentService(
      * @return Mono with list of agent ids for agents that can be shut down for an executionId
      */
     @Suppress("TYPE_ALIAS")
-    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = bridgeService
+    private fun getFinishedOrStoppedAgentsForSameExecution(agentId: String): Mono<Pair<Long, List<String>>> = agentRepository
         .getAgentsStatusesForSameExecution(agentId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
@@ -196,7 +196,7 @@ class AgentService(
      * @param agentId containerId of an agent
      * @return true if all agents match [areIdleOrFinished]
      */
-    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = bridgeService
+    fun areAllAgentsIdleOrFinished(agentId: String): Mono<Boolean> = agentRepository
         .getAgentsStatusesForSameExecution(agentId)
         .map { (executionId, agentStatuses) ->
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
@@ -211,7 +211,7 @@ class AgentService(
      * @param newJobResponse a heartbeat response with tests
      */
     internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        bridgeService.assignAgent(agentContainerId, newJobResponse.tests)
+        agentRepository.assignAgent(agentContainerId, newJobResponse.tests)
             .zipWith(
                 updateAgentStatusesWithDto(
                     AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
@@ -233,7 +233,7 @@ class AgentService(
      */
     fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
         log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
-        return bridgeService.setStatusByAgentIds(agentsList, status)
+        return agentRepository.setStatusByAgentIds(agentsList, status)
     }
 
     private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =

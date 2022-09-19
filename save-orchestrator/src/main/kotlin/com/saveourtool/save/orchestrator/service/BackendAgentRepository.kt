@@ -11,10 +11,12 @@ import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
+import com.saveourtool.save.orchestrator.SANDBOX_PROFILE
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
+import org.springframework.context.annotation.Profile
 
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
@@ -26,10 +28,11 @@ import reactor.core.publisher.Mono
 /**
  * Service for work with agents and backend
  */
+@Profile("!$SANDBOX_PROFILE")
 @Component
-class BridgeServiceImpl(
+class BackendAgentRepository(
     configProperties: ConfigProperties,
-) : BridgeService {
+) : AgentRepository {
     private val webClientBackend = WebClient.create(configProperties.backendUrl)
 
     /**
@@ -62,12 +65,12 @@ class BridgeServiceImpl(
      * @param agentStates list of [AgentStatus]es to update in the DB
      * @return empty result
      */
-    override fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<Unit> = webClientBackend
+    override fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<BodilessResponseEntity> = webClientBackend
         .post()
         .uri("/updateAgentStatuses")
         .body(BodyInserters.fromValue(agentStates))
         .retrieve()
-        .bodyToMono()
+        .toBodilessEntity()
 
     /**
      * @param agentState [AgentStatus] to update in the DB
@@ -153,14 +156,14 @@ class BridgeServiceImpl(
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
+     * @param agentsIds the list of agents, for which, according the [status] corresponding test executions should be marked as failed
      * @param status
      * @return a bodiless response entity
      */
-    override fun setStatusByAgentIds(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
+    override fun setStatusByAgentIds(agentsIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
             webClientBackend.post()
                 .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
-                .bodyValue(agentsList)
+                .bodyValue(agentsIds)
                 .retrieve()
                 .toBodilessEntity()
 }
