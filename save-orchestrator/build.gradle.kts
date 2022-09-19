@@ -12,6 +12,12 @@ plugins {
 configureJacoco()
 configureSpotless()
 
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+    }
+}
+
 tasks.withType<Test> {
     retry {
         // There once were flaky tests in orchestrator, but it seems like they became stable.
