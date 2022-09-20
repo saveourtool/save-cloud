@@ -36,7 +36,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         val (isDeleteOrganization, setFlagDeleteOrganization) = useState(false)
         displayModal(
             isDeleteOrganization,
-            "Deletion of git credential",
+            "Deletion Organization",
             "Please confirm deletion of ${deleteOrganization.name}. " +
                     "Note! This action deletes all the projects of this organization and the organization itself!",
             mediumTransparentModalStyle,
