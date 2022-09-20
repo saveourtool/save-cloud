@@ -45,17 +45,6 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param agentVersion
-     * @return Mono with empty body
-     */
-    @PostMapping("/saveAgentVersion")
-    fun saveAdditionalData(
-        @RequestBody agentVersion: AgentVersion
-    ): Mono<Unit> = {
-        // do nothing for now
-    }.toMono()
-
-    /**
      * @param testExecutionsDto
      * @return response with text value
      */

@@ -74,7 +74,6 @@ class SandboxController(
      * @return [Mono] with content of DebugInfo
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
-    @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
     @PostMapping(path = ["/get-debug-info"])
     fun getDebugInfo(
         @RequestParam userName: String,
