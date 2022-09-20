@@ -13,7 +13,7 @@ import react.*
 external val reactAce: FC<AceEditorProps>
 
 /**
- * Options for [reactAce]
+ * [Props] for [reactAce]
  */
 @Suppress("COMMENTED_OUT_CODE")
 @JsName("IAceEditorProps")
@@ -44,6 +44,7 @@ external interface AceEditorProps : Props {
     var placeholder: String?
     var defaultValue: String
     var enableSnippets: Boolean
+    var setOptions: dynamic
 
     @Suppress("TYPE_ALIAS")
     var onChange: (value: String, event: dynamic) -> Unit
@@ -60,7 +61,6 @@ external interface AceEditorProps : Props {
     // onBlur?: (event: any, editor?: Ace.Editor) => void;
     // onScroll?: (editor: IEditorProps) => void;
     // editorProps?: IEditorProps;
-    // setOptions?: IAceOptions;
     // keyboardHandler?: string;
     // commands?: ICommand[];
     // annotations?: Ace.Annotation[];

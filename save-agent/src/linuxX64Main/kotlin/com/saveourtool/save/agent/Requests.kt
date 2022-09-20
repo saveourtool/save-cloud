@@ -15,9 +15,7 @@ import com.saveourtool.save.domain.FileKey
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.request.*
 import io.ktor.client.statement.*
-import io.ktor.http.*
 import okio.Path
 import okio.Path.Companion.toPath
 
@@ -30,8 +28,10 @@ import okio.Path.Companion.toPath
  * @return result
  */
 internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
-    val result = httpClient.downloadTestResources(config, executionId)
-    if (updateStateBasedOnBackendResponse(result)) {
+    val result = processRequestToBackendWrapped {
+        httpClient.downloadTestResources(config, executionId)
+    }
+    if (result.failureOrNotOk()) {
         throw IllegalStateException("Couldn't download test resources")
     }
 
@@ -51,25 +51,27 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
 /**
  * Download additional resources from [additionalFiles] into [targetDirectory]
  *
- * @param baseUrl
+ * @param config
  * @param targetDirectory
  * @param additionalFiles
  * @param executionId
  * @return result
  */
 internal suspend fun SaveAgent.downloadAdditionalResources(
-    baseUrl: String,
+    config: BackendConfig,
     targetDirectory: Path,
     additionalFiles: List<FileKey>,
     executionId: String,
 ) = runCatching {
     additionalFiles
         .map { fileKey ->
-            val result = httpClient.downloadFile(
-                "$baseUrl/internal/files/download?executionId=$executionId",
-                fileKey
-            )
-            if (updateStateBasedOnBackendResponse(result)) {
+            val result = processRequestToBackendWrapped {
+                httpClient.download(
+                    url = "${config.url}${config.fileEndpoint}?executionId=$executionId",
+                    body = fileKey,
+                )
+            }
+            if (result.failureOrNotOk()) {
                 throw IllegalStateException("Couldn't download file $fileKey")
             }
 
@@ -103,11 +105,13 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
  * @throws IllegalStateException
  */
 internal suspend fun SaveAgent.downloadSaveCli(url: String) {
-    val result = httpClient.download(
-        url = url,
-        body = null,
-    )
-    if (updateStateBasedOnBackendResponse(result)) {
+    val result = processRequestToBackendWrapped {
+        httpClient.download(
+            url = url,
+            body = null,
+        )
+    }
+    if (result.failureOrNotOk()) {
         throw IllegalStateException("Couldn't download save-cli")
     }
 
@@ -121,11 +125,6 @@ internal suspend fun SaveAgent.downloadSaveCli(url: String) {
 private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = download(
     url = "${config.url}${config.testSourceSnapshotEndpoint}?executionId=$executionId",
     body = null,
-)
-
-private suspend fun HttpClient.downloadFile(url: String, fileKey: FileKey): Result<HttpResponse> = download(
-    url = url,
-    body = fileKey,
 )
 
 private suspend fun HttpResponse.readByteArrayOrThrowIfEmpty(exceptionSupplier: ByteArray.() -> Nothing) =

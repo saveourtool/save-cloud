@@ -121,6 +121,7 @@ class Execution(
         unexpectedChecks = unexpectedChecks,
         testSuiteSourceName = testSuiteSourceName,
         score = score,
+        contestName = null,
     )
 
     /**
