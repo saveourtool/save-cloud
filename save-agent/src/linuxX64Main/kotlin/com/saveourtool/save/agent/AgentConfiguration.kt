@@ -99,7 +99,7 @@ data class BackendConfig(
     val fileEndpoint: String = "/internal/files/download",
     val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
     val saveCliDownloadEndpoint: String = "/internal/files/download-save-cli",
-    val debugInfoEndpoint: String = "/internal/files/debug-info",
+    val debugInfoEndpoint: String = "/files/debug-info",
 )
 
 /**

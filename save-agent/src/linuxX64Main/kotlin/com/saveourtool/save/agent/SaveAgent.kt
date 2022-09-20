@@ -405,7 +405,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}${config.backend.debugInfoEndpoint}?agentId=${config.id}")
+        url("${config.backend.url}${config.backend.debugInfoEndpoint}?executionId=${requiredEnv(AgentEnvName.EXECUTION_ID).toLong()}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }

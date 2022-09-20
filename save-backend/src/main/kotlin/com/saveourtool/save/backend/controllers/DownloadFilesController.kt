@@ -353,16 +353,13 @@ class DownloadFilesController(
     }
 
     /**
-     * @param agentContainerId agent that has executed the test
+     * @param executionId ID of execution that was executed for the test
      * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with count of uploaded bytes
      */
     @PostMapping(value = ["/internal/files/debug-info"])
-    @Suppress("UnsafeCallOnNullableType")
-    fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
-                        @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> {
-        val executionId = agentRepository.findByContainerId(agentContainerId)!!.execution.id!!
-        return debugInfoStorage.save(executionId, testResultDebugInfo)
-    }
+    fun uploadDebugInfo(
+        @RequestParam executionId: Long,
+        @RequestBody testResultDebugInfo: TestResultDebugInfo,
+    ): Mono<Long> = debugInfoStorage.save(executionId, testResultDebugInfo)
 }

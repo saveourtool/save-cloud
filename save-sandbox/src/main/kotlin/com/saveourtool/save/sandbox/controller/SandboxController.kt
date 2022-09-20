@@ -1,7 +1,6 @@
 package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.sandbox.controller.SandboxInternalController.Companion.DEBUG_INFO_FILE_NAME
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
@@ -75,11 +74,6 @@ class SandboxController(
     fun getDebugInfo(
         @RequestParam userName: String,
     ): Flux<ByteBuffer> {
-        val storageKey = SandboxStorageKey(
-            userName,
-            SandboxStorageKeyType.DEBUG_INFO,
-            DEBUG_INFO_FILE_NAME,
-        )
-        return storage.download(storageKey)
+        return storage.download(SandboxStorageKey.debugInfoKey(userName))
     }
 }

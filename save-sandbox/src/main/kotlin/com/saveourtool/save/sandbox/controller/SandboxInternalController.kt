@@ -160,33 +160,22 @@ class SandboxInternalController(
 
 
     /**
-     * @param agentId
+     * @param executionId
      * @param testResultDebugInfo
      * @return [Mono] with count of uploaded bytes
      */
     @PostMapping("/files/debug-info")
     fun saveDebugInfo(
-        @RequestParam agentId: String,
+        @RequestParam executionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = blockingToMono {
-        agentRepository.getUserNameByAgentId(agentId)
+        agentRepository.getUserNameByExecutionId(executionId)
     }
-        .map { userName ->
-            SandboxStorageKey(
-                userName = userName,
-                type = SandboxStorageKeyType.DEBUG_INFO,
-                fileName = DEBUG_INFO_FILE_NAME
-            )
-        }
+        .map { userName -> SandboxStorageKey.debugInfoKey(userName) }
         .flatMap { storageKey ->
             storage.overwrite(
                 key = storageKey,
                 content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
             )
         }
-
-    companion object {
-        const val SAVE_CLI_VERSION = "0.3.4"
-        const val DEBUG_INFO_FILE_NAME = "file_name.txt"
-    }
 }
