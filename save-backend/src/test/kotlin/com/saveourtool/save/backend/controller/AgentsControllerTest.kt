@@ -151,21 +151,6 @@ class AgentsControllerTest {
             }
     }
 
-    @Test
-    fun `check save agent version`() {
-        val agentVersion = AgentVersion("container-1", "0.0.1")
-        webTestClient
-            .method(HttpMethod.POST)
-            .uri("/internal/saveAgentVersion")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(agentVersion))
-            .exchange()
-            .expectStatus()
-            .isOk
-        Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
-    }
-
     private fun updateAgentStatuses(body: AgentStatusDto) {
         webTestClient
             .method(HttpMethod.POST)

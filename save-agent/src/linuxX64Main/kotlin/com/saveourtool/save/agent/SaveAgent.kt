@@ -86,7 +86,6 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Starting agent")
         coroutineScope.launch(backgroundContext) {
             state.value = AgentState.BUSY
-            processRequestToBackend { saveAdditionalData() }
 
             logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
             downloadSaveCli(
@@ -431,13 +430,6 @@ class SaveAgent(private val config: AgentConfiguration,
         url("${config.backend.url}${config.backend.executionDataEndpoint}")
         contentType(ContentType.Application.Json)
         setBody(testExecutionDtos)
-    }
-
-    private suspend fun saveAdditionalData() = httpClient.post {
-        logInfoCustom("Posting additional data to backend")
-        url("${config.backend.url}${config.backend.additionalDataEndpoint}")
-        contentType(ContentType.Application.Json)
-        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
     }
 
     companion object {

@@ -16,6 +16,7 @@ import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
+import generated.SAVE_CLOUD_VERSION
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -37,6 +38,9 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -182,10 +186,29 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(): Mono<out Resource> =
-            Mono.just(ClassPathResource("save-agent.kexe"))
+    fun downloadSaveAgent(
+        @RequestParam agentId: String,
+    ): Mono<out Resource> {
+        return blockingToMono {
+            agentRepository.findByContainerId(agentId)
+        }
+            .switchIfEmptyToNotFound {
+                "There is no agent with id $agentId"
+            }
+            .zipWith(
+                ClassPathResource("save-agent.kexe")
+                .toMono()
                 .filter { it.exists() }
-                .switchIfEmptyToNotFound()
+                .switchIfEmptyToNotFound {
+                    "There is no save-agent on backend"
+                }
+            )
+            .map { (agent, resource) ->
+                agent.version = SAVE_CLOUD_VERSION
+                agentRepository.save(agent)
+                resource
+            }
+    }
 
     @Operation(
         method = "POST",
