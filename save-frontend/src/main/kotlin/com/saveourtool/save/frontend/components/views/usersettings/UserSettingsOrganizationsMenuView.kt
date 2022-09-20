@@ -3,6 +3,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
@@ -12,7 +13,6 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.FC
 import react.dom.html.ReactHTML.a
@@ -24,7 +24,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.useState
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
@@ -32,23 +31,16 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { _ ->
-        val (deleteOrganization, setDeleteOrganization) = useState(OrganizationDto("alex"))
-        val (isDeleteOrganization, setFlagDeleteOrganization) = useState(false)
-        displayModal(
-            isDeleteOrganization,
+        val (deleteOrganization, setDeleteOrganization) = useState(OrganizationDto.empty)
+        val windowOpenness = useWindowOpenness()
+        displayConfirmationModal(
+            windowOpenness,
             "Deletion Organization",
             "Please confirm deletion of ${deleteOrganization.name}. " +
                     "Note! This action deletes all the projects of this organization and the organization itself!",
-            mediumTransparentModalStyle,
-            { setFlagDeleteOrganization(false) },
+            mediumTransparentModalStyle
         ) {
-            buttonBuilder("Ok") {
-                deleteOrganization(deleteOrganization)
-                setFlagDeleteOrganization(false)
-            }
-            buttonBuilder("Close", "secondary") {
-                setFlagDeleteOrganization(false)
-            }
+            deleteOrganization(deleteOrganization)
         }
         organizationListCard {
             div {
@@ -88,7 +80,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 div {
                                     className = ClassName("mr-3")
-                                    role
                                     +role.formattedName
                                 }
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
@@ -99,7 +90,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             id = "remove-organization-${organizationDto.name}"
                                             onClick = {
                                                 setDeleteOrganization(organizationDto)
-                                                setFlagDeleteOrganization(true)
+                                                windowOpenness.openWindow()
                                             }
                                         }
                                     }
@@ -112,10 +103,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
     private fun deleteOrganization(organizationDto: OrganizationDto) {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
+        val headers = jsonHeaders
         lateinit var responseFromDeleteOrganization: Response
         scope.launch {
             responseFromDeleteOrganization =
@@ -127,7 +115,9 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     )
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
-                window.location.reload()
+                setState {
+                    state.selfOrganizationDtos.toMutableList().remove(organizationDto)
+                }
             }
         }
     }

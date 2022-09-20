@@ -723,10 +723,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun deleteOrganizationBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
+        val headers = jsonHeaders
         scope.launch {
             responseFromDeleteOrganization =
                     delete(
