@@ -1,9 +1,9 @@
-package com.saveourtool.save.orchestrator.service
+package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.sandbox.config.ConfigProperties
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
@@ -22,7 +22,7 @@ typealias AgentStateWithTimeStamp = Pair<String, Instant>
 
 /**
  * Background inspector, which detect crashed agents
- * TODO: can be used to store data about existing agents on orchestrator startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))
+ * TODO: can be used to store data about existing agents on sandbox startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))
  */
 @Component
 @PropertySource("classpath:application.properties")
@@ -124,7 +124,7 @@ class HeartBeatInspector(
         }
     }
 
-    @Scheduled(cron = "*/\${orchestrator.heart-beat-inspector-interval} * * * * ?")
+    @Scheduled(cron = "*/\${sandbox.heart-beat-inspector-interval} * * * * ?")
     private fun run() {
         determineCrashedAgents()
         processCrashedAgents()

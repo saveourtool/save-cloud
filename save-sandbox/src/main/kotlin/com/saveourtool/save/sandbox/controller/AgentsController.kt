@@ -1,13 +1,13 @@
-package com.saveourtool.save.orchestrator.controller
+package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
+import com.saveourtool.save.sandbox.BodilessResponseEntity
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.service.AgentService
+import com.saveourtool.save.sandbox.service.DockerService
+import com.saveourtool.save.sandbox.utils.LoggingContextImpl
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException

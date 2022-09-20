@@ -1,11 +1,11 @@
-package com.saveourtool.save.orchestrator.service
+package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.testutils.TestConfiguration
+import com.saveourtool.save.sandbox.config.Beans
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.docker.DockerAgentRunner
+import com.saveourtool.save.sandbox.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -14,6 +14,8 @@ import com.saveourtool.save.testutils.enqueue
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
+import com.saveourtool.save.sandbox.service.AgentService
+import com.saveourtool.save.sandbox.service.DockerService
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -147,10 +149,10 @@ class DockerServiceTest {
                 InetSocketAddress(0).address,
                 0
             )
-            registry.add("orchestrator.backendUrl") {
+            registry.add("sandbox.backendUrl") {
                 "http://localhost:${mockServer.port}"
             }
-            registry.add("orchestrator.agentSettings.backendUrl") {
+            registry.add("sandbox.agentSettings.backendUrl") {
                 "http://host.docker.internal:${mockServer.port}"
             }
         }

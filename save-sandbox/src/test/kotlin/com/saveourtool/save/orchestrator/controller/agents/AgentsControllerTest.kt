@@ -1,16 +1,16 @@
-package com.saveourtool.save.orchestrator.controller.agents
+package com.saveourtool.save.sandbox.controller.agents
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.controller.AgentsController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.sandbox.config.Beans
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.controller.AgentsController
+import com.saveourtool.save.sandbox.runner.AgentRunner
+import com.saveourtool.save.sandbox.runner.EXECUTION_DIR
+import com.saveourtool.save.sandbox.service.AgentService
+import com.saveourtool.save.sandbox.service.DockerService
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -271,8 +271,8 @@ class AgentsControllerTest {
             // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
             mockServer = createMockWebServer()
             mockServer.start()
-            registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
-            registry.add("orchestrator.executionLogs") { volume }
+            registry.add("sandbox.backendUrl") { "http://localhost:${mockServer.port}" }
+            registry.add("sandbox.executionLogs") { volume }
         }
     }
 }

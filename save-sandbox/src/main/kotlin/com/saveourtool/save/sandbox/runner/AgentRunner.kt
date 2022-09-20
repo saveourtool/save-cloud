@@ -1,6 +1,6 @@
-package com.saveourtool.save.orchestrator.runner
+package com.saveourtool.save.sandbox.runner
 
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.sandbox.service.DockerService
 
 internal const val SAVE_AGENT_USER_HOME = "/home/save-agent"
 internal const val EXECUTION_DIR = "$SAVE_AGENT_USER_HOME/save-execution"

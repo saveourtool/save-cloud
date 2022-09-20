@@ -1,15 +1,15 @@
-package com.saveourtool.save.orchestrator.controller.heartbeat
+package com.saveourtool.save.sandbox.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
-import com.saveourtool.save.orchestrator.controller.HeartbeatController
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.sandbox.config.Beans
+import com.saveourtool.save.sandbox.config.LocalDateTimeConfig
+import com.saveourtool.save.sandbox.controller.HeartbeatController
+import com.saveourtool.save.sandbox.runner.AgentRunner
+import com.saveourtool.save.sandbox.service.AgentService
+import com.saveourtool.save.sandbox.service.DockerService
+import com.saveourtool.save.sandbox.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testutils.*
@@ -180,7 +180,7 @@ class HeartbeatControllerTest {
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
             verify(
                 dockerService,
-                times(0).description("Orchestrator shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
+                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
             ).stopAgents(anyCollection())
         }
     }
@@ -320,7 +320,7 @@ class HeartbeatControllerTest {
             heartbeatResponses.shouldHaveSingleElement { it is TerminateResponse }
             verify(
                 dockerService,
-                times(0).description("Orchestrator shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
+                times(0).description("sandbox shouldn't stop agents if they stop heartbeating after TerminateResponse has been sent")
             ).stopAgents(anyCollection())
         }
     }
@@ -393,7 +393,7 @@ class HeartbeatControllerTest {
      * Test logic triggered by a heartbeat.
      *
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
-     * @param heartbeats a [Heartbeat] that is received by orchestrator
+     * @param heartbeats a [Heartbeat] that is received by sandbox
      * @param testBatch a batch of tests returned from backend (mocked response)
      * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param additionalSetup is executed before the request is performed
@@ -513,7 +513,7 @@ class HeartbeatControllerTest {
             mockServer.setDefaultResponseForPath("/testExecution/.*", MockResponse().setResponseCode(200))
             mockServer.setDefaultResponseForPath("/updateAgentStatusWithDto", MockResponse().setResponseCode(200))
             mockServer.start()
-            registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
+            registry.add("sandbox.backendUrl") { "http://localhost:${mockServer.port}" }
         }
     }
 }

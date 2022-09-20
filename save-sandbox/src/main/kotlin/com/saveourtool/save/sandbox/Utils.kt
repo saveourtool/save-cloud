@@ -1,12 +1,12 @@
 /**
- * Utilities for orchestrator
+ * Utilities for sandbox
  */
 
-package com.saveourtool.save.orchestrator
+package com.saveourtool.save.sandbox
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.sandbox.config.ConfigProperties.AgentSettings
+import com.saveourtool.save.sandbox.service.DockerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.util.function.Supplier
 import java.util.zip.GZIPOutputStream
 
-internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
+internal const val DOCKER_METRIC_PREFIX = "save.sandbox.docker"
 
 /**
  * Execute this async docker command while recording its execution duration.
@@ -86,7 +86,7 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
 /**
  * Build map of env variables that can be read by save-agent to override settings from properties file
  *
- * @param agentSettings configuration of save-agent loaded from save-orchestrator
+ * @param agentSettings configuration of save-agent loaded from save-sandbox
  * @param saveCliExtraArgs
  * @param executionId
  * @param additionalFilesString
@@ -104,7 +104,7 @@ internal fun fillAgentPropertiesFromConfiguration(
 
     with(agentSettings) {
         backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        sandboxUrl?.let { put(AgentEnvName.SANDBOX_URL, it) }
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 

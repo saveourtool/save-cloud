@@ -1,6 +1,6 @@
-package com.saveourtool.save.orchestrator.config
+package com.saveourtool.save.sandbox.config
 
-import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
+import com.saveourtool.save.sandbox.kubernetes.KubernetesManager
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -30,7 +30,7 @@ class Beans(private val configProperties: ConfigProperties) {
     fun webClientBackend() = WebClient.create(configProperties.backendUrl)
 
     /**
-     * @param configProperties orchestrator configuration
+     * @param configProperties sandbox configuration
      * @return instance of [DockerClient]
      */
     @Bean
@@ -60,7 +60,7 @@ class Beans(private val configProperties: ConfigProperties) {
     @Profile("kubernetes")
     fun kubernetesClient(configProperties: ConfigProperties): KubernetesClient {
         val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-            "Class [${KubernetesManager::class.simpleName}] requires `orchestrator.kubernetes.*` properties to be set"
+            "Class [${KubernetesManager::class.simpleName}] requires `sandbox.kubernetes.*` properties to be set"
         }
 
         return DefaultKubernetesClient().inNamespace(kubernetesSettings.namespace)

@@ -1,16 +1,17 @@
-package com.saveourtool.save.orchestrator.docker
+package com.saveourtool.save.sandbox.docker
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.orchestrator.*
-import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
-import com.saveourtool.save.orchestrator.createTgzStream
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
-import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.sandbox.DOCKER_METRIC_PREFIX
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.config.ConfigProperties.DockerSettings
+import com.saveourtool.save.sandbox.createTgzStream
+import com.saveourtool.save.sandbox.execTimed
+import com.saveourtool.save.sandbox.getHostIp
+import com.saveourtool.save.sandbox.runner.AgentRunner
+import com.saveourtool.save.sandbox.runner.AgentRunnerException
+import com.saveourtool.save.sandbox.runner.EXECUTION_DIR
+import com.saveourtool.save.sandbox.runner.SAVE_AGENT_USER_HOME
+import com.saveourtool.save.sandbox.service.DockerService
 import com.saveourtool.save.utils.debug
 
 import com.github.dockerjava.api.DockerClient
@@ -75,9 +76,9 @@ class DockerAgentRunner(
 
     override fun start(executionId: Long) {
         val agentIds = agentIdsByExecution.computeIfAbsent(executionId) {
-            // For executions started by the running instance of orchestrator, this key should be already present in the map.
+            // For executions started by the running instance of sandbox, this key should be already present in the map.
             // Otherwise, it will be added by `DockerAgentRunner#discover`, which is not yet implemented.
-            TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of orchestrator")
+            TODO("${DockerAgentRunner::class.simpleName} should be able to load data about agents started by other instances of sandbox")
         }
         agentIds.forEach { agentId ->
             logger.info("Starting container id=$agentId")
@@ -212,7 +213,7 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
+        val envFile = createTempDirectory("sandbox").resolve(".env").apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
                 """.trimIndent()

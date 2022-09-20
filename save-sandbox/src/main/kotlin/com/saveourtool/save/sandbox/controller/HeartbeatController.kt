@@ -2,15 +2,15 @@
  * Heartbeat controller and corresponding logic which accepts heartbeat and depending on the state it returns the needed response
  */
 
-package com.saveourtool.save.orchestrator.controller
+package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.service.AgentService
-import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.service.AgentService
+import com.saveourtool.save.sandbox.service.DockerService
+import com.saveourtool.save.sandbox.service.HeartBeatInspector
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.warn
 
@@ -47,10 +47,10 @@ class HeartbeatController(private val agentService: AgentService,
     /**
      * This controller accepts heartbeat and depending on the state it returns the needed response
      *
-     * 1. Response has IDLE state. Then orchestrator should send new jobs.
-     * 2. Response has FINISHED state. Then orchestrator should send new jobs and validate that data has actually been saved successfully.
-     * 3. Response has BUSY state. Then orchestrator sends an Empty response.
-     * 4. Response has ERROR state. Then orchestrator sends Terminating response.
+     * 1. Response has IDLE state. Then sandbox should send new jobs.
+     * 2. Response has FINISHED state. Then sandbox should send new jobs and validate that data has actually been saved successfully.
+     * 3. Response has BUSY state. Then sandbox sends an Empty response.
+     * 4. Response has ERROR state. Then sandbox sends Terminating response.
      *
      * @param heartbeat
      * @return Answer for agent
@@ -108,7 +108,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
-                    // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
+                    // fixme: if sandbox can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
                     if (it is WaitResponse && !isStarting) {
                         agentService.areAllAgentsIdleOrFinished(agentId)

@@ -1,4 +1,4 @@
-package com.saveourtool.save.orchestrator.service
+package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
@@ -7,11 +7,11 @@ import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.fillAgentPropertiesFromConfiguration
+import com.saveourtool.save.sandbox.runner.AgentRunner
+import com.saveourtool.save.sandbox.runner.AgentRunnerException
+import com.saveourtool.save.sandbox.runner.EXECUTION_DIR
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

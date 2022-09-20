@@ -1,10 +1,10 @@
-package com.saveourtool.save.orchestrator.kubernetes
+package com.saveourtool.save.sandbox.kubernetes
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.orchestrator.config.ConfigProperties
-import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.orchestrator.runner.AgentRunnerException
-import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.sandbox.runner.AgentRunner
+import com.saveourtool.save.sandbox.runner.AgentRunnerException
+import com.saveourtool.save.sandbox.service.DockerService
 import com.saveourtool.save.utils.debug
 
 import io.fabric8.kubernetes.api.model.*
@@ -25,7 +25,7 @@ class KubernetesManager(
     configProperties: ConfigProperties,
 ) : AgentRunner {
     private val kubernetesSettings = requireNotNull(configProperties.kubernetes) {
-        "orchestrator.kubernetes.* properties are required in this profile"
+        "sandbox.kubernetes.* properties are required in this profile"
     }
 
     @Suppress(

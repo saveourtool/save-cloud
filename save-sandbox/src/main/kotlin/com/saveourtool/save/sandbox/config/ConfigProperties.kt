@@ -1,8 +1,8 @@
 /**
- * Classes for configuration properties of orchestrator
+ * Classes for configuration properties of sandbox
  */
 
-package com.saveourtool.save.orchestrator.config
+package com.saveourtool.save.sandbox.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -47,9 +47,9 @@ data class ConfigProperties(
 ) {
     /**
      * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
-     * Because a new volume can't be mounted to the running container (in this case, save-orchestrator), and to be able to fill
+     * Because a new volume can't be mounted to the running container (in this case, save-sandbox), and to be able to fill
      * the created volume with resources, we need to use an intermediate container, which will start with that new volume mounted.
-     * To be able to access resources, orchestrator and this intermediate container should have a shared mount, and [tmpPath] serves
+     * To be able to access resources, sandbox and this intermediate container should have a shared mount, and [tmpPath] serves
      * as a host location for this shared mount.
      */
     data class TestResources(
@@ -77,7 +77,7 @@ data class ConfigProperties(
     /**
      * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
      * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
-     * to authenticate orchestrator to the API server
+     * to authenticate sandbox to the API server
      * @property namespace Kubernetes namespace, into which agents will be deployed.
      * @property useGvisor if true, will try to use gVisor's runsc runtime for starting agents
      * @property agentCpuRequests configures `resources.requests.cpu` for agent pods
@@ -98,12 +98,12 @@ data class ConfigProperties(
 
     /**
      * @property backendUrl url of save-backend that will be used by save-agent
-     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+     * @property sandboxUrl url of save-sandbox that will be used by save-agent
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
         val backendUrl: String? = null,
-        val orchestratorUrl: String? = null,
+        val sandboxUrl: String? = null,
         val debug: Boolean? = null,
     )
 
