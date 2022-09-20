@@ -188,27 +188,25 @@ class DownloadFilesController(
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(
         @RequestParam agentId: String,
-    ): Mono<out Resource> {
-        return blockingToMono {
-            agentRepository.findByContainerId(agentId)
+    ): Mono<out Resource> = blockingToMono {
+        agentRepository.findByContainerId(agentId)
+    }
+        .switchIfEmptyToNotFound {
+            "There is no agent with id $agentId"
         }
-            .switchIfEmptyToNotFound {
-                "There is no agent with id $agentId"
-            }
-            .zipWith(
-                ClassPathResource("save-agent.kexe")
+        .zipWith(
+            ClassPathResource("save-agent.kexe")
                 .toMono()
                 .filter { it.exists() }
                 .switchIfEmptyToNotFound {
                     "There is no save-agent on backend"
                 }
-            )
-            .map { (agent, resource) ->
-                agent.version = SAVE_CLOUD_VERSION
-                agentRepository.save(agent)
-                resource
-            }
-    }
+        )
+        .map { (agent, resource) ->
+            agent.version = SAVE_CLOUD_VERSION
+            agentRepository.save(agent)
+            resource
+        }
 
     @Operation(
         method = "POST",

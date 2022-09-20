@@ -1,8 +1,10 @@
 package com.saveourtool.save.sandbox.storage
 
+import com.saveourtool.save.orchestrator.SANDBOX_PROFILE
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.storage.AbstractFileBasedStorage
 import com.saveourtool.save.utils.pathNamesTill
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.nio.file.Path
 import kotlin.io.path.div
@@ -10,6 +12,7 @@ import kotlin.io.path.div
 /**
  * Storage implementation for sandbox
  */
+@Profile(SANDBOX_PROFILE)
 @Component
 class SandboxStorage(
     configProperties: ConfigProperties

@@ -22,7 +22,6 @@ import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
-import generated.SAVE_CLOUD_VERSION
 import generated.SAVE_CORE_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body

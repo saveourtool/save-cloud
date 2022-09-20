@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 
+const val SANDBOX_PROFILE = "sandbox"
+
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 /**
