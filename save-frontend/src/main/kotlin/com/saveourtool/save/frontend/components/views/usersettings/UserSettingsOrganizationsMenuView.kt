@@ -10,15 +10,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
+
 import csstype.ClassName
-import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
-
 import react.FC
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
@@ -26,6 +24,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.useState
 
+import kotlinx.browser.window
+import kotlinx.coroutines.launch
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -50,8 +50,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                 setFlagDeleteOrganization(false)
             }
         }
-
-
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
@@ -121,12 +119,12 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         lateinit var responseFromDeleteOrganization: Response
         scope.launch {
             responseFromDeleteOrganization =
-                delete(
-                    "$apiUrl/organizations/${organizationDto.name}/delete",
-                    headers,
-                    body = undefined,
-                    loadingHandler = ::noopLoadingHandler,
-                )
+                    delete(
+                        "$apiUrl/organizations/${organizationDto.name}/delete",
+                        headers,
+                        body = undefined,
+                        loadingHandler = ::noopLoadingHandler,
+                    )
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 window.location.reload()
