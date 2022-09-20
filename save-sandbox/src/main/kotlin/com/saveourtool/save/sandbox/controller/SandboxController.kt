@@ -13,6 +13,10 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 
+/**
+ * @property configProperties
+ * @property storage
+ */
 @RestController
 @RequestMapping("/sandbox/api")
 class SandboxController(
@@ -73,7 +77,5 @@ class SandboxController(
     @PostMapping(path = ["/get-debug-info"])
     fun getDebugInfo(
         @RequestParam userName: String,
-    ): Flux<ByteBuffer> {
-        return storage.download(SandboxStorageKey.debugInfoKey(userName))
-    }
+    ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userName))
 }

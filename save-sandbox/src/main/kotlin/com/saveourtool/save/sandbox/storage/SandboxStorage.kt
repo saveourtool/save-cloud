@@ -27,5 +27,5 @@ class SandboxStorage(
     }
 
     override fun buildPathToContent(rootDir: Path, key: SandboxStorageKey): Path =
-        rootDir / key.userName / key.type.name / key.fileName
+            rootDir / key.userName / key.type.name / key.fileName
 }

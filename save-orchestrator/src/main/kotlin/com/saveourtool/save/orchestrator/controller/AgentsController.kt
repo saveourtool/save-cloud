@@ -81,7 +81,10 @@ class AgentsController(
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
-                            Agent(id, execution)
+                            Agent(
+                                containerId = id,
+                                execution = execution,
+                            )
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->

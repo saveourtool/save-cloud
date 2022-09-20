@@ -51,10 +51,4 @@ class SandboxAgentRepository : AgentRepository {
      * @return userName for provided [executionId]
      */
     fun getUserNameByExecutionId(executionId: Long): String = TODO("Need to add database for mapping")
-
-    /**
-     * @param agentId
-     * @return userName for provided [agentId]
-     */
-    fun getUserNameByAgentId(agentId: String): String = TODO("Need to add database for mapping")
 }

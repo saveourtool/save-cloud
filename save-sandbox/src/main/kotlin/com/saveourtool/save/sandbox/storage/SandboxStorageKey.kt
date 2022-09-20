@@ -15,6 +15,9 @@ data class SandboxStorageKey(
 
         /**
          * create key for DebugInfoKey
+         *
+         * @param userName
+         * @return [SandboxStorageKey] with type [SandboxStorageKeyType.DEBUG_INFO]
          */
         fun debugInfoKey(
             userName: String

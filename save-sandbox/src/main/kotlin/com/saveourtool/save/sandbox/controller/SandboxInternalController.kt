@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.FileKey
@@ -11,6 +10,8 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.*
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.ClassPathResource
@@ -22,8 +23,10 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+
 import java.net.URI
 import java.nio.ByteBuffer
+
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.outputStream
@@ -143,21 +146,20 @@ class SandboxInternalController(
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<BodilessResponseEntity> =
-        ResponseEntity
-            .status(HttpStatus.FOUND)
-            .location(URI.create("https://github.com/saveourtool/save-cli/releases/download/v$version/save-$version-linuxX64.kexe"))
-            .build<Void>()
-            .toMono()
+            ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create("https://github.com/saveourtool/save-cli/releases/download/v$version/save-$version-linuxX64.kexe"))
+                .build<Void>()
+                .toMono()
 
     /**
      * @return content of save-agent
      */
     @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
-        Mono.just(ClassPathResource("save-agent.kexe"))
-            .filter { it.exists() }
-            .switchIfEmptyToNotFound()
-
+            Mono.just(ClassPathResource("save-agent.kexe"))
+                .filter { it.exists() }
+                .switchIfEmptyToNotFound()
 
     /**
      * @param executionId

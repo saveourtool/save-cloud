@@ -86,21 +86,6 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
 }
 
 /**
- * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
- *
- * @param supplier blocking operation like JDBC
- * @return [Mono] from result of blocking operation [T]
- */
-fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
-    .subscribeOn(Schedulers.boundedElastic())
-
-/**
- * @param supplier blocking operation like JDBC
- * @return [Flux] from result of blocking operation [List] of [T]
- */
-fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
-
-/**
  * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
  */
 fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
@@ -118,3 +103,18 @@ fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
 fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
     .map { ByteBuffer.wrap(it) }
     .toFlux()
+
+/**
+ * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
+ *
+ * @param supplier blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [T]
+ */
+fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
+    .subscribeOn(Schedulers.boundedElastic())
+
+/**
+ * @param supplier blocking operation like JDBC
+ * @return [Flux] from result of blocking operation [List] of [T]
+ */
+fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
