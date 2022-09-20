@@ -113,6 +113,7 @@ Do not forget to use `mac` profile.
 | 5100 | save-orchestrator      |
 | 5200 | save-test-preprocessor |
 | 5300 | api-gateway            |
+ | 5400 | save-sandbox          |
 | 9090 | prometheus             |
 | 9091 | node_exporter          |
 | 9100 | grafana                |
