@@ -27,7 +27,7 @@ import react.useState
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 
-@Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION")
+@Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
