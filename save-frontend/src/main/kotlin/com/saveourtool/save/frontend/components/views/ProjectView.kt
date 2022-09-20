@@ -82,6 +82,11 @@ external interface ContestRunState : State {
      * All available contest
      */
     var availableContests: List<ContestDto>
+
+    /**
+     * All available contest
+     */
+    var selectedContestTestSuites: List<TestSuiteDto>
 }
 
 /**
@@ -159,14 +164,14 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var confirmationType: ConfirmationType
 
     /**
-     * List of IDs of private [TestSuiteDto] for execution run
+     * List of Test Suites of private [TestSuiteDto] for execution run
      */
-    var selectedPrivateTestSuiteIds: List<Long>
+    var selectedPrivateTestSuites: List<TestSuiteDto>
 
     /**
-     * List of IDs of public [TestSuiteDto] for execution run
+     * List of Test Suites of public [TestSuiteDto] for execution run
      */
-    var selectedPublicTestSuiteIds: List<Long>
+    var selectedPublicTestSuites: List<TestSuiteDto>
 
     /**
      * Execution command for standard mode
@@ -256,8 +261,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
-        state.selectedPrivateTestSuiteIds = emptyList()
-        state.selectedPublicTestSuiteIds = emptyList()
+        state.selectedPrivateTestSuites = emptyList()
+        state.selectedPublicTestSuites = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
@@ -279,6 +284,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
+        state.selectedContestTestSuites = emptyList()
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -295,6 +301,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        }
+        if (prevState.selectedContestTestSuites != state.selectedContestTestSuites) {
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
@@ -314,11 +323,20 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
             }
 
-            val currentUserRole: Role = get(
+            val currentUserRoleInProject: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
                 jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+
+            val currentUserRoleInOrganization: Role = get(
+                url = "$apiUrl/organizations/${project.organization.name}/users/roles",
+                headers = jsonHeaders,
+                loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
+
+            val currentUserRole = getHighestRole(currentUserRoleInProject, currentUserRoleInOrganization)
+
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
@@ -339,27 +357,28 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             fetchLatestExecutionId()
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun NavigateFunctionContext.submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuites, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuites, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContestTestSuites, state.testingType)
             else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
+    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
                 projectName = state.project.name
             ),
-            testSuiteIds = selectedTestSuiteIds,
+            testSuiteIds = selectedTestSuites.map { it.requiredId() },
             files = state.files.map { it.toStorageKey() },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
@@ -380,6 +399,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             )
             if (response.ok) {
                 navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
+            }
+        }
+    }
+
+    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
+    private fun fetchTestSuiteDtos(ids: List<Long>) {
+        scope.launch {
+            val testSuitesFromBackend: List<TestSuiteDto> = post(
+                url = "$apiUrl/test-suites/get-by-ids",
+                headers = jsonHeaders,
+                body = Json.encodeToString(ids),
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString()
+            setState {
+                selectedContestTestSuites = testSuitesFromBackend
             }
         }
     }
@@ -565,17 +601,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     availableContests = state.availableContests
                     // properties for PRIVATE_TESTS mode
-                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuiteIds
+                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuites
                     setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
                         setState {
-                            this.selectedPrivateTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPrivateTestSuites = selectedTestSuiteIds
                         }
                     }
                     // properties for PUBLIC_TESTS mode
-                    selectedPublicTestSuiteIds = state.selectedPublicTestSuiteIds
+                    selectedPublicTestSuiteIds = state.selectedPublicTestSuites
                     setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
                         setState {
-                            this.selectedPublicTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPublicTestSuites = selectedTestSuiteIds
                         }
                     }
                     // properties for PRIVATE_TESTS and PUBLIC_TESTS modes

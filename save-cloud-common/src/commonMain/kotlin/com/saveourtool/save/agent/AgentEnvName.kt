@@ -16,6 +16,7 @@ enum class AgentEnvName {
     ORCHESTRATOR_URL,
     OVERRIDE_EXEC_CMD,
     OVERRIDE_EXEC_FLAGS,
+    SANDBOX_URL,
     TEST_SUITES_DIR,
     ;
 }

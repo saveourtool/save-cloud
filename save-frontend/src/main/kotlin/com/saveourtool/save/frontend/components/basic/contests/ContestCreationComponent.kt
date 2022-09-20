@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
@@ -149,16 +150,31 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         }
     }
 
+    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
+    val (testSuites, setTestSuites) = useState(emptyList<TestSuiteDto>())
+    useRequest {
+        val testSuitesFromBackend: List<TestSuiteDto> = post(
+            url = "$apiUrl/test-suites/get-by-ids",
+            headers = jsonHeaders,
+            body = Json.encodeToString(contestDto.testSuiteIds),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+            .decodeFromJsonString()
+
+        setTestSuites(testSuitesFromBackend)
+    }
+
     val testSuitesSelectorWindowOpenness = useWindowOpenness()
     div {
         className = ClassName("card")
         contestCreationCard {
             showContestTestSuitesSelectorModal(
-                contestDto.testSuiteIds,
+                testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
-            ) {
-                setContestDto(contestDto.copy(testSuiteIds = it))
+            ) { testSuiteDtos ->
+                setContestDto(contestDto.copy(testSuiteIds = testSuiteDtos.map { it.requiredId() }))
             }
             div {
                 className = ClassName("")

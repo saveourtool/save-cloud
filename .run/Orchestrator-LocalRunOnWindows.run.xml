@@ -5,7 +5,7 @@
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev,win,docker-tcp" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.orchestrator.SaveOrchestratorKt" />
+    <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.orchestrator.SaveSandboxKt" />
     <module name="save-cloud.save-orchestrator.main" />
     <shortenClasspath name="NONE" />
     <method v="2">
