@@ -1,20 +1,21 @@
-package com.saveourtool.save.sandbox.controller.heartbeat
+package com.saveourtool.save.orchestrator.controller.heartbeat
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.sandbox.config.Beans
-import com.saveourtool.save.sandbox.config.LocalDateTimeConfig
-import com.saveourtool.save.sandbox.controller.HeartbeatController
-import com.saveourtool.save.sandbox.runner.AgentRunner
-import com.saveourtool.save.sandbox.service.AgentService
-import com.saveourtool.save.sandbox.service.DockerService
-import com.saveourtool.save.sandbox.service.HeartBeatInspector
+import com.saveourtool.save.orchestrator.config.Beans
+import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
+import com.saveourtool.save.orchestrator.controller.HeartbeatController
+import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.service.AgentService
+import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.service.HeartBeatInspector
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testutils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import io.kotest.matchers.collections.exist
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -58,8 +59,8 @@ import kotlinx.serialization.json.Json
 
 @WebFluxTest(controllers = [HeartbeatController::class])
 @Import(
-    Beans::class,
     AgentService::class,
+    SandboxAgentRepository::class,
     HeartBeatInspector::class,
     LocalDateTimeConfig::class
 )
@@ -67,6 +68,7 @@ import kotlinx.serialization.json.Json
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @EnableScheduling
+@Disabled("Not supported yet")
 class HeartbeatControllerTest {
     @Autowired lateinit var webClient: WebTestClient
     @Autowired private lateinit var agentService: AgentService
@@ -423,13 +425,6 @@ class HeartbeatControllerTest {
                     .addHeader("Content-Type", "application/json")
             )
         }
-
-        /* mockServer.enqueue(
-            "/agents/[^/]+/execution/id",
-            MockResponse().setResponseCode(200)
-                .setHeader("Content-Type", "application/json")
-                .setBody(objectMapper.writeValueAsString(99))
-        )*/
 
         if (mockAgentStatuses) {
             // /getAgentsStatusesForSameExecution

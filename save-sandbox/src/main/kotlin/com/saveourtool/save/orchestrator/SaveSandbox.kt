@@ -1,6 +1,6 @@
-package com.saveourtool.save.sandbox
+package com.saveourtool.save.orchestrator
 
-import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
-internal typealias TextResponse = ResponseEntity<String>
 
 /**
  * An entrypoint for spring boot for save-sandbox

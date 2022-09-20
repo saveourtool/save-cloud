@@ -2,7 +2,7 @@
  * Classes for configuration properties of sandbox
  */
 
-package com.saveourtool.save.sandbox.config
+package com.saveourtool.save.orchestrator.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -98,12 +98,12 @@ data class ConfigProperties(
 
     /**
      * @property backendUrl url of save-backend that will be used by save-agent
-     * @property sandboxUrl url of save-sandbox that will be used by save-agent
+     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
         val backendUrl: String? = null,
-        val sandboxUrl: String? = null,
+        val orchestratorUrl: String? = null,
         val debug: Boolean? = null,
     )
 

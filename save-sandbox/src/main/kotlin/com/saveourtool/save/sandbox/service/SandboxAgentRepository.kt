@@ -1,4 +1,4 @@
-package com.saveourtool.save.orchestrator.sandbox
+package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.entities.Agent
@@ -7,7 +7,6 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
-import com.saveourtool.save.orchestrator.SANDBOX_PROFILE
 import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
@@ -15,14 +14,12 @@ import com.saveourtool.save.orchestrator.service.TestExecutionList
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 /**
  * Sandbox implementation for agent service
  */
-@Profile(SANDBOX_PROFILE)
 @Component
 class SandboxAgentRepository : AgentRepository {
     override fun getNextTestBatch(agentId: String): Mono<TestBatch> = Mono.empty()

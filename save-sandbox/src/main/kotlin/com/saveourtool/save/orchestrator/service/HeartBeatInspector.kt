@@ -1,9 +1,9 @@
-package com.saveourtool.save.sandbox.service
+package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.sandbox.config.ConfigProperties
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.PropertySource
