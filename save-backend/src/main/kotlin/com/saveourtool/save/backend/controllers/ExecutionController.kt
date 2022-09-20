@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.AgentService
 import com.saveourtool.save.backend.service.AgentStatusService
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -14,6 +15,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -47,6 +49,7 @@ class ExecutionController(private val executionService: ExecutionService,
                           private val agentStatusService: AgentStatusService,
                           private val organizationService: OrganizationService,
                           private val executionInfoStorage: ExecutionInfoStorage,
+                          private val lnkContestExecutionService: LnkContestExecutionService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionController::class.java)
 
@@ -112,7 +115,13 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .flatMap { organization ->
             projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-                executionService.getExecutionDtoByNameAndOrganization(name, organization).reversed()
+                executionService.getExecutionByNameAndOrganization(name, organization).map {
+                    if (it.type == TestingType.CONTEST_MODE) {
+                        it.toDto().copy(contestName = lnkContestExecutionService.findContestByExecution(it)?.name)
+                    } else {
+                        it.toDto()
+                    }
+                }.reversed()
             }
         }
 
@@ -137,7 +146,7 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * Delete all executions by project name and organization
+     * Delete all, except participating in contests, executions, by project name and organization
      *
      * @param name name of project
      * @param organizationName organization of project
@@ -145,7 +154,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return ResponseEntity
      * @throws NoSuchElementException
      */
-    @PostMapping(path = ["/api/$v1/execution/deleteAll"])
+    @PostMapping(path = ["/api/$v1/execution/delete-all-except-contest"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -162,10 +171,13 @@ class ExecutionController(private val executionService: ExecutionService,
         )
             .mapNotNull { it.id!! }
             .map { id ->
-                testExecutionService.deleteTestExecutionWithProjectId(id)
-                agentStatusService.deleteAgentStatusWithProjectId(id)
-                agentService.deleteAgentWithProjectId(id)
-                executionService.deleteExecutionByProjectNameAndProjectOrganization(name, organization)
+                val executionsNotInContests = executionService.getExecutionNotParticipatingInContestByNameAndOrganization(name, organization).map {
+                    it.requiredId()
+                }
+                testExecutionService.deleteTestExecutionByExecutionIds(executionsNotInContests)
+                agentStatusService.deleteAgentStatusWithExecutionIds(executionsNotInContests)
+                agentService.deleteAgentByExecutionIds(executionsNotInContests)
+                executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(name, organization)
                 ResponseEntity.ok().build<String>()
             }
     }

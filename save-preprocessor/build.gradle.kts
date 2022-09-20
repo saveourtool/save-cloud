@@ -2,7 +2,7 @@ import com.saveourtool.save.buildutils.configureJacoco
 import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
     id("com.saveourtool.save.buildutils.spring-boot-configuration")
 }
@@ -21,17 +21,6 @@ dependencies {
     implementation(libs.ktoml.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.commons.compress)
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 configureJacoco()

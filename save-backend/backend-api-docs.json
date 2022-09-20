@@ -2376,7 +2376,7 @@
         }
       }
     },
-    "/api/v1/execution/deleteAll": {
+    "/api/v1/execution/delete-all-except-contest": {
       "post": {
         "tags": [
           "execution-controller"
@@ -7911,6 +7911,9 @@
           "score": {
             "type": "number",
             "format": "double"
+          },
+          "contestName": {
+            "type": "string"
           }
         }
       },
