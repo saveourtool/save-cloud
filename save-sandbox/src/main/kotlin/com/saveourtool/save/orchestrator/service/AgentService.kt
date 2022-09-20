@@ -46,8 +46,8 @@ class AgentService(
      * @return Mono<NewJobResponse>
      */
     internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
-        agentRepository.getNextTestBatch(agentId)
-            .flatMap { it.toHeartbeatResponse(agentId) }
+            agentRepository.getNextTestBatch(agentId)
+                .flatMap { it.toHeartbeatResponse(agentId) }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -69,12 +69,12 @@ class AgentService(
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
-        agentRepository
-            .updateAgentStatusesWithDto(agentState)
-            .onErrorResume(WebClientException::class) {
-                log.warn("Couldn't update agent statuses because of backend failure", it)
-                Mono.empty()
-            }
+            agentRepository
+                .updateAgentStatusesWithDto(agentState)
+                .onErrorResume(WebClientException::class) {
+                    log.warn("Couldn't update agent statuses because of backend failure", it)
+                    Mono.empty()
+                }
 
     /**
      * Check that no TestExecution for agent [agentId] have status READY_FOR_TESTING
@@ -139,12 +139,12 @@ class AgentService(
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
-                        it == STOPPED_BY_ORCH || it == TERMINATED
-                    }) {
+                    it == STOPPED_BY_ORCH || it == TERMINATED
+                }) {
                     updateExecution(executionId, ExecutionStatus.FINISHED)
                 } else if (agentStatuses.map { it.state }.all {
-                        it == CRASHED
-                    }) {
+                    it == CRASHED
+                }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
                     ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
@@ -163,7 +163,7 @@ class AgentService(
      * @return a bodiless response entity
      */
     fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
-        agentRepository.updateExecutionByDto(executionId, executionStatus, failReason)
+            agentRepository.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
      * Get list of agent ids (containerIds) for agents that have completed their jobs.
@@ -237,13 +237,13 @@ class AgentService(
     }
 
     private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =
-        if (isNotEmpty()) {
-            // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-            Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
-        } else {
-            log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
-            Mono.just(WaitResponse)
-        }
+            if (isNotEmpty()) {
+                // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
+                Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
+            } else {
+                log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
+                Mono.just(WaitResponse)
+            }
 
     private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }
         .also {
