@@ -80,6 +80,11 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
      * All filters for organization
      */
     var organizationFilters: OrganizationFilters
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -274,8 +279,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
-                "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
+            changeUrl(state.selectedMenu, UserRatingTab, state.paths)
             val href = window.location.href.substringBeforeLast("?")
             window.location.href = when (state.selectedMenu) {
                 UserRatingTab.ORGS -> state.organizationFilters.name?.let { "$href?projectName=$it" } ?: href
@@ -291,6 +295,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         val projectFilters = ProjectFilters(props.projectName)
         val organizationFilters = OrganizationFilters(props.organizationName)
         setState {
+            paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
             this.projectFilters = projectFilters
             this.organizationFilters = organizationFilters
         }
