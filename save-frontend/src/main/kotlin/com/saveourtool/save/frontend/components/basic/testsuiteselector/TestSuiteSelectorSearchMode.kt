@@ -34,14 +34,14 @@ val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
  */
 external interface TestSuiteSelectorSearchModeProps : Props {
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteDto>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
@@ -94,7 +94,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         val testSuitesFromBackend: List<TestSuiteDto> = post(
             url = "$apiUrl/test-suites/get-by-ids$contestFlag",
             headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuiteIds),
+            body = Json.encodeToString(props.preselectedTestSuites),
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -181,7 +181,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
                 }
                 .toList()
                 .also { listOfTestSuiteDtos ->
-                    props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                    props.onTestSuitesUpdate(listOfTestSuiteDtos)
                 }
         }
     }
