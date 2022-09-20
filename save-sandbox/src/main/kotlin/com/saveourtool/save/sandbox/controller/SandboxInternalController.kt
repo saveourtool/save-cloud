@@ -1,16 +1,32 @@
 package com.saveourtool.save.sandbox.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.orchestrator.BodilessResponseEntity
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
+import com.saveourtool.save.sandbox.storage.SandboxStorageKey
+import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.storage.Storage
+import com.saveourtool.save.utils.*
+import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import java.net.URI
 import java.nio.ByteBuffer
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.outputStream
 
 typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 typealias StringResponse = ResponseEntity<String>
@@ -20,7 +36,11 @@ typealias StringResponse = ResponseEntity<String>
  */
 @RestController
 @RequestMapping("/sandbox/internal")
-class SandboxInternalController {
+class SandboxInternalController(
+    private val storage: Storage<SandboxStorageKey>,
+    private val agentRepository: SandboxAgentRepository,
+    private val objectMapper: ObjectMapper,
+) {
     /**
      * @param agentVersion
      * @return Mono with empty body
@@ -28,7 +48,9 @@ class SandboxInternalController {
     @PostMapping("/saveAgentVersion")
     fun saveAdditionalData(
         @RequestBody agentVersion: AgentVersion
-    ): Mono<Unit> = Mono.empty()
+    ): Mono<Unit> = {
+        // do nothing for now
+    }.toMono()
 
     /**
      * @param testExecutionsDto
@@ -37,16 +59,59 @@ class SandboxInternalController {
     @PostMapping("/saveTestResult")
     fun saveExecutionData(
         @RequestBody testExecutionsDto: List<TestExecutionDto>
-    ): Mono<StringResponse> = Mono.empty()
+    ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
+        .toMono()
 
     /**
      * @param executionId
      * @return content of requested snapshot
      */
-    @PostMapping("/test-suites-sources/download-snapshot-by-execution-id", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping(
+        "/test-suites-sources/download-snapshot-by-execution-id",
+        produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
+    )
     fun downloadTestSourceSnapshot(
         @RequestParam executionId: Long
-    ): Mono<ByteBufferFluxResponse> = Mono.empty()
+    ): Mono<ByteBufferFluxResponse> {
+        val userName = agentRepository.getUserNameByExecutionId(executionId)
+        val archiveFile = kotlin.io.path.createTempFile(
+            prefix = "tests-",
+            suffix = ARCHIVE_EXTENSION
+        )
+        return { createTempDirectory(prefix = "tests-directory-") }
+            .toMono()
+            .flatMap { directory ->
+                storage.list()
+                    .filter {
+                        it.userName == userName && it.type == SandboxStorageKeyType.TEST
+                    }
+                    .flatMap { key ->
+                        storage.download(key)
+                            .mapToInputStream()
+                            .map { inputStream ->
+                                directory.resolve(key.fileName)
+                                    .outputStream()
+                                    .use {
+                                        IOUtils.copy(inputStream, it)
+                                    }
+                            }
+                    }
+                    .collectList()
+                    .map {
+                        directory.compressAsZipTo(archiveFile)
+                        FileUtils.deleteDirectory(directory.toFile())
+                    }
+            }
+            .map {
+                archiveFile.toByteBufferFlux()
+            }
+            .map {
+                ResponseEntity.ok(it)
+            }
+            .doFinally {
+                archiveFile.deleteExisting()
+            }
+    }
 
     /**
      * @param executionId
@@ -57,7 +122,18 @@ class SandboxInternalController {
     fun downloadFile(
         @RequestParam executionId: Long,
         @RequestBody fileKey: FileKey,
-    ): Mono<ByteBufferFluxResponse> = Mono.empty()
+    ): Mono<ByteBufferFluxResponse> {
+        val userName = agentRepository.getUserNameByExecutionId(executionId)
+        return storage.list()
+            .filter { it.type == SandboxStorageKeyType.FILE && it.userName == userName && it.fileName == fileKey.name }
+            .singleOrEmpty()
+            .switchIfEmptyToNotFound {
+                "No single file for $fileKey"
+            }
+            .map { key ->
+                ResponseEntity.ok(storage.download(key))
+            }
+    }
 
     /**
      * @param version
@@ -66,7 +142,22 @@ class SandboxInternalController {
     @PostMapping("/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
-    ): Mono<out Resource> = Mono.empty()
+    ): Mono<BodilessResponseEntity> =
+        ResponseEntity
+            .status(HttpStatus.FOUND)
+            .location(URI.create("https://github.com/saveourtool/save-cli/releases/download/v$version/save-$version-linuxX64.kexe"))
+            .build<Void>()
+            .toMono()
+
+    /**
+     * @return content of save-agent
+     */
+    @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadSaveAgent(): Mono<out Resource> =
+        Mono.just(ClassPathResource("save-agent.kexe"))
+            .filter { it.exists() }
+            .switchIfEmptyToNotFound()
+
 
     /**
      * @param agentId
@@ -77,5 +168,25 @@ class SandboxInternalController {
     fun saveDebugInfo(
         @RequestParam agentId: String,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = Mono.empty()
+    ): Mono<Long> = blockingToMono {
+        agentRepository.getUserNameByAgentId(agentId)
+    }
+        .map { userName ->
+            SandboxStorageKey(
+                userName = userName,
+                type = SandboxStorageKeyType.DEBUG_INFO,
+                fileName = DEBUG_INFO_FILE_NAME
+            )
+        }
+        .flatMap { storageKey ->
+            storage.overwrite(
+                key = storageKey,
+                content = testResultDebugInfo.toFluxByteBufferAsJson(objectMapper)
+            )
+        }
+
+    companion object {
+        const val SAVE_CLI_VERSION = "0.3.4"
+        const val DEBUG_INFO_FILE_NAME = "file_name.txt"
+    }
 }
