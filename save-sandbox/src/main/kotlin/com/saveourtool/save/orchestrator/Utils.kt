@@ -125,24 +125,14 @@ internal fun fillAgentPropertiesFromConfiguration(
  * @param files files to be added to archive
  * @return resulting [ByteArrayOutputStream]
  */
-@Suppress(
-    "MAGIC_NUMBER", "MagicNumber",
-    "NestedBlockDepth"
-)
 internal fun createTgzStream(vararg files: File): ByteArrayOutputStream {
     val out = ByteArrayOutputStream()
     BufferedOutputStream(out).use { buffOut ->
         GZIPOutputStream(buffOut).use { gzOut ->
             TarArchiveOutputStream(gzOut).use { tgzOut ->
-                files.forEach { file ->
-                    val archiveEntry = TarArchiveEntry(file, file.name)
-                        .apply {
-                            // FIXME: need to remove after https://github.com/saveourtool/save-cloud/issues/1245
-                            // mark entry as executable
-                            mode = 33279
-                        }
-                    tgzOut.putArchiveEntry(archiveEntry)
-                    Files.copy(file.toPath(), tgzOut)
+                files.forEach {
+                    tgzOut.putArchiveEntry(TarArchiveEntry(it, it.name))
+                    Files.copy(it.toPath(), tgzOut)
                     tgzOut.closeArchiveEntry()
                 }
                 tgzOut.finish()

@@ -1,5 +1,6 @@
 package com.saveourtool.save.sandbox.controller
 
+import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -43,6 +44,17 @@ class SandboxInternalController(
     private val agentRepository: SandboxAgentRepository,
     private val objectMapper: ObjectMapper,
 ) {
+    /**
+     * @param agentVersion
+     * @return Mono with empty body
+     */
+    @PostMapping("/saveAgentVersion")
+    fun saveAdditionalData(
+        @RequestBody agentVersion: AgentVersion
+    ): Mono<Unit> = {
+        // Do nothing for now
+    }.toMono()
+
     /**
      * @param testExecutionsDto
      * @return response with text value
@@ -141,13 +153,10 @@ class SandboxInternalController(
                 .toMono()
 
     /**
-     * @param agentId
      * @return content of save-agent
      */
     @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(
-        @RequestParam agentId: String,
-    ): Mono<out Resource> =
+    fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
                 .filter { it.exists() }
                 .switchIfEmptyToNotFound()

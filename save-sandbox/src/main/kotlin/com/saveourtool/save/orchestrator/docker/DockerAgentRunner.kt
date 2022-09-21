@@ -167,7 +167,7 @@ class DockerAgentRunner(
     ): String {
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
-        val runFileTargetPath = "$SAVE_AGENT_USER_HOME/.run-command"
+        val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)
@@ -175,7 +175,7 @@ class DockerAgentRunner(
             // Rely on `runCmd` format: last argument is parameter of the subshell.
             .withCmd(
                 // this part is like `sh -c` with probably some other flags
-                runCmd.dropLast(1) + runFileTargetPath
+                runCmd.dropLast(1) + envFileTargetPath
             )
             .withName(containerName)
             .withUser("save-agent")
@@ -207,18 +207,16 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val runFile = createTempDirectory("sandbox").resolve(runFileTargetPath.substringAfterLast("/")).apply {
+        val envFile = createTempDirectory("sandbox").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
-                // last element is an actual command that will be executed in a new shell
-                ${runCmd.last()}
                 """.trimIndent()
             )
         }
         copyResourcesIntoContainer(
             containerId,
-            runFileTargetPath.substringBeforeLast("/"),
-            listOf(runFile.toFile())
+            envFileTargetPath.substringBeforeLast("/"),
+            listOf(envFile.toFile())
         )
 
         return containerId

@@ -186,27 +186,9 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadSaveAgent(
-        @RequestParam agentId: String,
-    ): Mono<out Resource> = blockingToMono {
-        agentRepository.findByContainerId(agentId)
-    }
-        .switchIfEmptyToNotFound {
-            "There is no agent with id $agentId"
-        }
-        .zipWith(
-            ClassPathResource("save-agent.kexe")
-                .toMono()
-                .filter { it.exists() }
-                .switchIfEmptyToNotFound {
-                    "There is no save-agent on backend"
-                }
-        )
-        .map { (agent, resource) ->
-            agent.version = SAVE_CLOUD_VERSION
-            agentRepository.save(agent)
-            resource
-        }
+    // FIXME: backend should set version of save-agent here for agent
+    fun downloadSaveAgent(): Mono<out Resource> =
+            Mono.just(ClassPathResource("save-agent.kexe"))
 
     @Operation(
         method = "POST",

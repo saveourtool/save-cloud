@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -148,6 +149,21 @@ class AgentsControllerTest {
                 Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
                 Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
             }
+    }
+
+    @Test
+    fun `check save agent version`() {
+        val agentVersion = AgentVersion("container-1", "0.0.1")
+        webTestClient
+            .method(HttpMethod.POST)
+            .uri("/internal/saveAgentVersion")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(agentVersion))
+            .exchange()
+            .expectStatus()
+            .isOk
+        Assertions.assertEquals(agentRepository.findByContainerId(agentVersion.containerId)?.version, agentVersion.version)
     }
 
     private fun updateAgentStatuses(body: AgentStatusDto) {
