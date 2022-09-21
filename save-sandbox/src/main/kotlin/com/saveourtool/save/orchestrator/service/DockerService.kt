@@ -170,7 +170,7 @@ class DockerService(
             runCmd = listOf(
                 "sh", "-c",
                 "set -o xtrace" +
-                        " && curl -vvv -X POST \$${AgentEnvName.GET_AGENT_LINK.name} --output $SAVE_AGENT_EXECUTABLE_NAME" +
+                        " && curl -vvv -X POST \$${AgentEnvName.GET_AGENT_LINK.name}?agentId=\$${AgentEnvName.AGENT_ID.name} --output $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && chmod +x $SAVE_AGENT_EXECUTABLE_NAME" +
                         " && ./$SAVE_AGENT_EXECUTABLE_NAME"
             ),
