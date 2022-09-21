@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
 
 import csstype.ClassName
+import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.FC
 import react.dom.html.ReactHTML.a
@@ -101,6 +102,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
             }
         }
     }
+
     private fun deleteOrganization(organizationDto: OrganizationDto) {
         val headers = jsonHeaders
         lateinit var responseFromDeleteOrganization: Response
@@ -115,7 +117,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 setState {
-                    state.selfOrganizationDtos.toMutableList().remove(organizationDto)
+                    window.location.reload()
                 }
             }
         }
