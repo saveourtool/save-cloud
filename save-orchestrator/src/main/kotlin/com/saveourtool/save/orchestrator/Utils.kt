@@ -131,7 +131,11 @@ internal fun createTgzStream(vararg files: File): ByteArrayOutputStream {
         GZIPOutputStream(buffOut).use { gzOut ->
             TarArchiveOutputStream(gzOut).use { tgzOut ->
                 files.forEach {
-                    tgzOut.putArchiveEntry(TarArchiveEntry(it, it.name))
+                    val archiveEntry = TarArchiveEntry(it, it.name)
+                    // FIXME: need to remove after https://github.com/saveourtool/save-cloud/issues/1245
+                    // mark entry as executable
+                    archiveEntry.mode = 0x100777
+                    tgzOut.putArchiveEntry(archiveEntry)
                     Files.copy(it.toPath(), tgzOut)
                     tgzOut.closeArchiveEntry()
                 }
