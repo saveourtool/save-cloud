@@ -6,11 +6,11 @@ import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.TestExecutionList
-import com.saveourtool.save.sandbox.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 
