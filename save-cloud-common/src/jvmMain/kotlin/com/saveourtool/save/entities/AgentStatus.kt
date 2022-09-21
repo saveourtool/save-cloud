@@ -38,6 +38,13 @@ class AgentStatus(
 }
 
 /**
+ * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
+ * @return [AgentStatus] built from [AgentStatusDto]
+ */
+fun AgentStatusDto.toEntity(agentResolver: (String) -> Agent): AgentStatus =
+        AgentStatus(time, time, state, agentResolver(containerId))
+
+/**
  * @property state current state of the agent
  * @property containerId id of the agent's container
  * @property time

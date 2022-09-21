@@ -130,19 +130,22 @@ class DownloadFilesController(
         description = "Download a file by execution ID and FileKey.",
     )
     @Parameters(
+        Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of additional file key", required = true),
+        Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of additional file key", required = true),
         Parameter(name = "executionId", `in` = ParameterIn.QUERY, description = "ID of an execution", required = true)
     )
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
     fun downloadByExecutionId(
-        @RequestBody fileKey: FileKey,
+        @RequestParam name: String,
+        @RequestParam uploadedMillis: Long,
         @RequestParam executionId: Long,
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         executionService.findExecution(executionId)
     }
         .switchIfEmptyToNotFound()
         .flatMap { execution ->
-            downloadByFileKey(fileKey, execution.project.organization.name, execution.project.name)
+            downloadByFileKey(FileKey(name, uploadedMillis), execution.project.organization.name, execution.project.name)
         }
 
     /**

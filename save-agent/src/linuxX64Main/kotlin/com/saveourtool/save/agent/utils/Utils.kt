@@ -6,6 +6,7 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentConfiguration
 import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.save.agent.SaveCliOverrides
 import com.saveourtool.save.core.logging.logTrace
 import generated.SAVE_CORE_VERSION
 
@@ -28,7 +29,7 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
             url = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestrator.url,
         ),
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
-        save = save.copy(
+        saveCliOverrides = SaveCliOverrides(
             batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
             batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
             overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),

@@ -12,6 +12,7 @@ import com.saveourtool.save.agent.utils.writeToFile
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.FileKey
+import generated.SAVE_CORE_VERSION
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -20,24 +21,26 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 /**
- * Download test source snapshots for execution [executionId] into [target]
+ * Download test source snapshots from [url] into [target]
  *
- * @param config
+ * @param url
  * @param target
- * @param executionId
  * @return result
  */
-internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, target: Path, executionId: String): Result<Unit> = runCatching {
+internal suspend fun SaveAgent.downloadTestResources(url: String, target: Path): Result<Unit> = runCatching {
     val result = processRequestToBackendWrapped {
-        httpClient.downloadTestResources(config, executionId)
+        httpClient.download(
+            url = url,
+            body = null
+        )
     }
     if (result.failureOrNotOk()) {
-        throw IllegalStateException("Couldn't download test resources")
+        error("Couldn't download test resources from $url")
     }
 
     val bytes = result.getOrThrow()
         .readByteArrayOrThrowIfEmpty {
-            error("Not found any tests for execution $executionId")
+            error("Not found any tests: empty response from $url")
         }
     val pathToArchive = "archive.zip".toPath()
     logDebugCustom("Writing downloaded archive of size ${bytes.size} into $pathToArchive")
@@ -46,54 +49,46 @@ internal suspend fun SaveAgent.downloadTestResources(config: BackendConfig, targ
     pathToArchive.extractZipTo(target)
     fs.delete(pathToArchive, mustExist = true)
     logDebugCustom("Extracted archive into $target and deleted $pathToArchive")
+    logInfoCustom("Downloaded all tests from $url to $target")
 }
 
 /**
- * Download additional resources from [additionalFiles] into [targetDirectory]
+ * Download additional resources from urls in values of [additionalFileToUrl] into [targetDirectory]
  *
- * @param config
  * @param targetDirectory
- * @param additionalFiles
- * @param executionId
+ * @param additionalFileToUrl
  * @return result
  */
 internal suspend fun SaveAgent.downloadAdditionalResources(
-    config: BackendConfig,
     targetDirectory: Path,
-    additionalFiles: List<FileKey>,
-    executionId: String,
+    additionalFileToUrl: Map<String, String>,
 ) = runCatching {
-    additionalFiles
-        .map { fileKey ->
+    additionalFileToUrl
+        .map { (fileName, url) ->
             val result = processRequestToBackendWrapped {
                 httpClient.download(
-                    url = "${config.url}${config.fileEndpoint}?executionId=$executionId",
-                    body = fileKey,
+                    url = url,
+                    body = null,
                 )
             }
             if (result.failureOrNotOk()) {
-                throw IllegalStateException("Couldn't download file $fileKey")
+                error("Couldn't download file $fileName from $url")
             }
 
             val fileContentBytes = result.getOrThrow()
                 .readByteArrayOrThrowIfEmpty {
-                    error("Couldn't download file $fileKey: content is empty")
+                    error("Couldn't download file $fileName from $url: content is empty")
                 }
-            val targetFile = targetDirectory / fileKey.name
+            val targetFile = targetDirectory / fileName
             fileContentBytes.writeToFile(targetFile)
-            fileKey to targetFile
-        }
-        .onEach { (fileKey, pathToFile) ->
-            pathToFile.markAsExecutable()
             logDebugCustom(
-                "Downloaded $fileKey into ${fs.canonicalize(pathToFile)}"
+                "Downloaded $fileName from $url into ${fs.canonicalize(targetFile)}"
             )
-        }
-        .map { (_, pathToFile) ->
-            unzipIfRequired(pathToFile)
+            targetFile.markAsExecutable()
+            unzipIfRequired(targetFile)
         }
         .ifEmpty {
-            logWarn("Not found any additional files for execution \$id")
+            logWarn("Not found any additional files")
             emptyList()
         }
 }
@@ -105,6 +100,7 @@ internal suspend fun SaveAgent.downloadAdditionalResources(
  * @throws IllegalStateException
  */
 internal suspend fun SaveAgent.downloadSaveCli(url: String) {
+    logDebugCustom("Wil now download save-cli from $url")
     val result = processRequestToBackendWrapped {
         httpClient.download(
             url = url,
@@ -120,6 +116,7 @@ internal suspend fun SaveAgent.downloadSaveCli(url: String) {
             error("Downloaded file is empty")
         }
     bytes.writeToFile(SAVE_CLI_EXECUTABLE_NAME.toPath())
+    SAVE_CLI_EXECUTABLE_NAME.toPath().markAsExecutable()
 }
 
 private suspend fun HttpClient.downloadTestResources(config: BackendConfig, executionId: String) = download(

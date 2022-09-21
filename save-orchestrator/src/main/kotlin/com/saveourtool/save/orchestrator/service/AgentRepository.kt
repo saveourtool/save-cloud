@@ -1,5 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.Agent
@@ -23,10 +24,18 @@ typealias TestExecutionList = List<TestExecutionDto>
  */
 interface AgentRepository {
     /**
+     * Gets config to init agent
+     *
+     * @param agentId
+     * @return [Mono] of [AgentInitConfig]
+     */
+    fun getInitConfig(agentId: String): Mono<AgentInitConfig>
+
+    /**
      * Gets new tests ids
      *
      * @param agentId
-     * @return Mono<NewJobResponse>
+     * @return [Mono] of [TestBatch]
      */
     fun getNextTestBatch(agentId: String): Mono<TestBatch>
 
@@ -40,16 +49,10 @@ interface AgentRepository {
     fun addAgents(agents: List<Agent>): Mono<IdList>
 
     /**
-     * @param agentStates list of [AgentStatus]es to update in the DB
+     * @param agentStates list of [AgentStatusDto] to update/insert in the DB
      * @return a Mono without body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<BodilessResponseEntity>
-
-    /**
-     * @param agentState [AgentStatus] to update in the DB
-     * @return a Mono without body
-     */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity>
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity>
 
     /**
      * Get List of [TestExecutionDto] for agent [agentId] have status READY_FOR_TESTING

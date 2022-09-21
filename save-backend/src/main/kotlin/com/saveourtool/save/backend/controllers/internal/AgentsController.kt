@@ -4,10 +4,7 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -47,6 +44,17 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     }
 
     /**
+     * @param agentStates list of [AgentStatus]es to update in the DB
+     */
+    @PostMapping("/updateAgentStatusesWithDto")
+    @Transactional
+    fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
+        agentStates.forEach {
+            updateAgentStatusWithDto(it)
+        }
+    }
+
+    /**
      * @param agentVersion [AgentVersion] to update agent version
      */
     @PostMapping("/saveAgentVersion")
@@ -63,20 +71,21 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
      */
     @PostMapping("/updateAgentStatusWithDto")
     @Transactional
-    @Suppress("AVOID_NULL_CHECKS")
-    fun updateAgentStatusesWithDto(@RequestBody agentState: AgentStatusDto) {
+    fun updateAgentStatusWithDto(@RequestBody agentState: AgentStatusDto) {
         val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
-        val latestState = agentStatus?.state
-        if (latestState == AgentState.STOPPED_BY_ORCH || latestState == AgentState.TERMINATED) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
-        } else if (latestState == agentState.state) {
-            // updating time
-            agentStatus.endTime = agentState.time
-            agentStatusRepository.save(agentStatus)
-        } else {
-            // insert new agent status
-            val agent = getAgentByContainerId(agentState.containerId)
-            agentStatusRepository.save(AgentStatus(agentState.time, agentState.time, agentState.state, agent))
+        when (val latestState = agentStatus?.state) {
+            AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED -> {
+                throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
+            }
+            agentState.state -> {
+                // updating time
+                agentStatus.endTime = agentState.time
+                agentStatusRepository.save(agentStatus)
+            }
+            else -> {
+                // insert new agent status
+                agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
+            }
         }
     }
 

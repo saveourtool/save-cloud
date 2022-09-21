@@ -84,53 +84,7 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     fun start(): Job {
         logInfoCustom("Starting agent")
-        coroutineScope.launch(backgroundContext) {
-            state.value = AgentState.BUSY
-            processRequestToBackend { saveAdditionalData() }
-
-            logDebugCustom("Wil now download save-cli with version $SAVE_CORE_VERSION")
-            downloadSaveCli(
-                "${config.backend.url}${config.backend.saveCliDownloadEndpoint}?version=${SAVE_CORE_VERSION.encodeURLParameter()}"
-            )
-            SAVE_CLI_EXECUTABLE_NAME.toPath().markAsExecutable()
-
-            logDebugCustom("Will now download tests")
-            val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
-            val targetDirectory = config.testSuitesDir.toPath()
-            downloadTestResources(config.backend, targetDirectory, executionId).runIf(failureResultPredicate) {
-                logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
-                state.value = AgentState.CRASHED
-                return@launch
-            }
-            logInfoCustom("Downloaded all tests for execution $executionId to $targetDirectory")
-
-            logDebugCustom("Will now download additional resources")
-            val additionalFiles = FileKey.parseList(requiredEnv(AgentEnvName.ADDITIONAL_FILES_LIST))
-            downloadAdditionalResources(config.backend, targetDirectory, additionalFiles, executionId).runIf(failureResultPredicate) {
-                logErrorCustom("Unable to download resources for execution $executionId based on list [$additionalFiles]: ${exceptionOrNull()?.describe()}")
-                state.value = AgentState.CRASHED
-                return@launch
-            }
-            logInfoCustom("Downloaded all additional resources for execution $executionId to $targetDirectory")
-
-            // a temporary workaround for python integration
-            logDebugCustom("Will execute additionally setup of evaluated tool for execution $executionId if it's required")
-            executeAdditionallySetup(targetDirectory, additionalFiles).runIf(failureResultPredicate) {
-                logErrorCustom("Unable to execute additionally setup for $executionId: ${exceptionOrNull()?.describe()}")
-                state.value = AgentState.CRASHED
-                return@launch
-            }
-            logInfoCustom("Additionally setup has completed for execution $executionId")
-
-            logDebugCustom("Will create `save-overrides.toml` for execution $executionId if it's required")
-            prepareSaveOverridesToml(targetDirectory).runIf(failureResultPredicate) {
-                logErrorCustom("Unable to prepare `save-overrides.toml` for $executionId: ${exceptionOrNull()?.describe()}")
-                state.value = AgentState.CRASHED
-                return@launch
-            }
-            logInfoCustom("Created `save-overrides.toml` for execution $executionId based on configuration provided by orchestrator")
-            state.value = AgentState.STARTING
-        }
+        state.value = AgentState.STARTING
         return coroutineScope.launch { startHeartbeats(this) }
     }
 
@@ -144,11 +98,11 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     // a temporary workaround for python integration
-    private fun executeAdditionallySetup(targetDirectory: Path, additionalFiles: List<FileKey>) = runCatching {
-        additionalFiles
-            .singleOrNull { it.name == "setup.sh" }
-            ?.let { fileKey ->
-                val targetFile = targetDirectory / fileKey.name
+    private fun executeAdditionallySetup(targetDirectory: Path, additionalFileNames: Collection<String>) = runCatching {
+        additionalFileNames
+            .singleOrNull { it == "setup.sh" }
+            ?.let { fileName ->
+                val targetFile = targetDirectory / fileName
                 logDebugCustom("Additionally setup of evaluated tool by $targetFile")
                 val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
                     .exec(
@@ -158,15 +112,15 @@ class SaveAgent(private val config: AgentConfiguration,
                         SETUP_SH_TIMEOUT
                     )
                 if (setupResult.code != 0) {
-                    throw IllegalStateException("${fileKey.name} is failed with error: ${setupResult.stderr}")
+                    throw IllegalStateException("$fileName} is failed with error: ${setupResult.stderr}")
                 }
-                logTrace("$fileKey is executed successfully. Output: ${setupResult.stdout}")
+                logTrace("$fileName is executed successfully. Output: ${setupResult.stdout}")
             }
     }
 
     // prepare save-overrides.toml based on config.save.*
-    private fun prepareSaveOverridesToml(targetDirectory: Path) = runCatching {
-        with(config.save) {
+    private fun prepareSaveOverridesToml(saveCliOverrides: SaveCliOverrides, targetDirectory: Path) = runCatching {
+        with(saveCliOverrides) {
             val generalConfig = buildMap {
                 overrideExecCmd?.let { put("execCmd", it) }
                 batchSize?.let { put("batchSize", it) }
@@ -213,6 +167,9 @@ class SaveAgent(private val config: AgentConfiguration,
                 when (val heartbeatResponse = response.getOrThrow().also {
                     logDebugCustom("Got heartbeat response $it")
                 }) {
+                    is InitResponse -> coroutineScope.launch(backgroundContext) {
+                        initAgent(heartbeatResponse.config)
+                    }
                     is NewJobResponse -> coroutineScope.launch {
                         maybeStartSaveProcess(heartbeatResponse.cliArgs)
                     }
@@ -228,6 +185,48 @@ class SaveAgent(private val config: AgentConfiguration,
             logInfoCustom("Waiting for ${config.heartbeat.intervalMillis} ms")
             delay(config.heartbeat.intervalMillis)
         }
+    }
+
+    private suspend fun CoroutineScope.initAgent(agentInitConfig: AgentInitConfig) {
+        state.value = AgentState.BUSY
+        processRequestToBackend { saveAdditionalData() }
+
+        downloadSaveCli(agentInitConfig.saveCliUrl)
+
+        logDebugCustom("Will now download tests")
+        val executionId = requiredEnv(AgentEnvName.EXECUTION_ID)
+        val targetDirectory = config.testSuitesDir.toPath()
+        downloadTestResources(agentInitConfig.testSuitesSourceSnapshotUrl, targetDirectory).runIf(failureResultPredicate) {
+            logErrorCustom("Unable to download tests for execution $executionId: ${exceptionOrNull()?.describe()}")
+            state.value = AgentState.CRASHED
+            return@initAgent
+        }
+
+        logDebugCustom("Will now download additional resources")
+        downloadAdditionalResources(targetDirectory, agentInitConfig.additionalFileNameToUrl).runIf(failureResultPredicate) {
+            logErrorCustom("Unable to download resources for execution $executionId based on map [$additionalFilesString]: ${exceptionOrNull()?.describe()}")
+            state.value = AgentState.CRASHED
+            return@initAgent
+        }
+        logInfoCustom("Downloaded all additional resources for execution $executionId to $targetDirectory")
+
+        // a temporary workaround for python integration
+        logDebugCustom("Will execute additionally setup of evaluated tool for execution $executionId if it's required")
+        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys).runIf(failureResultPredicate) {
+            logErrorCustom("Unable to execute additionally setup for $executionId: ${exceptionOrNull()?.describe()}")
+            state.value = AgentState.CRASHED
+            return@initAgent
+        }
+        logInfoCustom("Additionally setup has completed for execution $executionId")
+
+        logDebugCustom("Will create `save-overrides.toml` for execution $executionId if it's required")
+        prepareSaveOverridesToml(config.saveCliOverrides, targetDirectory).runIf(failureResultPredicate) {
+            logErrorCustom("Unable to prepare `save-overrides.toml` for $executionId: ${exceptionOrNull()?.describe()}")
+            state.value = AgentState.CRASHED
+            return@initAgent
+        }
+        logInfoCustom("Created `save-overrides.toml` for execution $executionId based on configuration provided by orchestrator")
+        state.value = AgentState.IDLE
     }
 
     private fun CoroutineScope.maybeStartSaveProcess(cliArgs: String) {
