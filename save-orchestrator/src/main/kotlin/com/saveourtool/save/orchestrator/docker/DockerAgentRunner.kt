@@ -178,7 +178,7 @@ class DockerAgentRunner(
                 runCmd.dropLast(1) + (
                         // last element is an actual command that will be executed in a new shell
                         "env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
-                        )
+                )
             )
             .withName(containerName)
             .withUser("save-agent")
