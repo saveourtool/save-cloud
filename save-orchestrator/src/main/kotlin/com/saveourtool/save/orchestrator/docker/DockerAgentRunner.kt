@@ -167,6 +167,13 @@ class DockerAgentRunner(
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
+        val envVariables = configuration.env.map { (key, value) ->
+            "$key=$value"
+        }.toMutableList()
+
+        envVariables.add(
+            "${AgentEnvName.AGENT_NAME.name}=$containerName"
+        )
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)
@@ -182,9 +189,7 @@ class DockerAgentRunner(
             .withName(containerName)
             .withUser("save-agent")
             .withEnv(
-                configuration.env.map { (key, value) ->
-                    "$key=$value"
-                }
+                envVariables
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
@@ -212,7 +217,6 @@ class DockerAgentRunner(
         val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
-                ${AgentEnvName.AGENT_NAME.name}=$containerName
                 """.trimIndent()
             )
         }
