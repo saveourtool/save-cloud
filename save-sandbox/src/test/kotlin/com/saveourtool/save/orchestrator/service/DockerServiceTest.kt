@@ -89,7 +89,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
         )
         mockServer.enqueue(
-            "/internal/files/download-save-agent",
+            "/internal/files/download-save-agent?agentId=${testContainerId}",
             MockResponse()
                 .setHeader("Content-Type", "application/octet-stream")
                 .setResponseCode(200)
