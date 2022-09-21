@@ -167,7 +167,7 @@ class DockerAgentRunner(
     ): String {
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
-        val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
+        val runFileTargetPath = "$SAVE_AGENT_USER_HOME/.run-command"
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)
@@ -175,10 +175,7 @@ class DockerAgentRunner(
             // Rely on `runCmd` format: last argument is parameter of the subshell.
             .withCmd(
                 // this part is like `sh -c` with probably some other flags
-                runCmd.dropLast(1) + (
-                        // last element is an actual command that will be executed in a new shell
-                        "env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
-                )
+                runCmd.dropLast(1) + runFileTargetPath
             )
             .withName(containerName)
             .withUser("save-agent")
@@ -210,16 +207,18 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val envFile = createTempDirectory("sandbox").resolve(".env").apply {
+        val runFile = createTempDirectory("sandbox").resolve(runFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
+                // last element is an actual command that will be executed in a new shell
+                ${runCmd.last()}
                 """.trimIndent()
             )
         }
         copyResourcesIntoContainer(
             containerId,
-            envFileTargetPath.substringBeforeLast("/"),
-            listOf(envFile.toFile())
+            runFileTargetPath.substringBeforeLast("/"),
+            listOf(runFile.toFile())
         )
 
         return containerId
