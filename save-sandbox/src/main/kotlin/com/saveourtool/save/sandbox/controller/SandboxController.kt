@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.saveourtool.save.orchestrator.SANDBOX_PROFILE
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
