@@ -6,11 +6,9 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="add-addContainerName" author="kgevorkyan" context="dev or prod">
-        <sql>
-            ALTER TABLE agent ADD COLUMN container_name text;
-            UPDATE agent SET container_name = 'unknown' WHERE container_name IS NULL;
-            ALTER TABLE agent MODIFY container_name text NOT NULL;
-        </sql>
+        <addColumn tableName="agent">
+            <column name="container_name" type="text" defaultValue=""/>
+        </addColumn>
     </changeSet>
 
 
