@@ -1,4 +1,4 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS", "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.frontend.utils
 
@@ -19,6 +19,21 @@ external interface HasSelectedMenu<T : Enum<T>> : State {
      * selected value in T Enum
      */
     var selectedMenu: T
+}
+
+/**
+ * The class is needed to store the paths of different tabs in different Views
+ * @property pathDefaultTab is url path for the default tab (must not start with a "#" for the correct execution of [navigate] in the [navigateToLinkWithSuffix] function)
+ * @property extendedViewPath is is the prefix of the path for the rest of the tabs
+ */
+@Suppress("KDOC_NO_CLASS_BODY_PROPERTIES_IN_HEADER")
+class PathsForTabs(pathDefaultTab: String, extendedViewPath: String) {
+    val pathDefaultTab: String
+    val extendedViewPath: String
+    init {
+        this.pathDefaultTab = if (pathDefaultTab.startsWith("#/")) pathDefaultTab.removePrefix("#") else pathDefaultTab
+        this.extendedViewPath = extendedViewPath
+    }
 }
 
 /**
@@ -47,22 +62,28 @@ fun <T : Enum<T>, S : HasSelectedMenu<T>> AbstractView<*, S>.urlAnalysis(menu: T
 }
 
 /**
+ * @param pathDefaultTab
+ * @param suffix
+ */
+fun NavigateFunctionContext.navigateToLinkWithSuffix(pathDefaultTab: String, suffix: String) {
+    navigate(to = "$pathDefaultTab/$suffix")
+}
+
+/**
  * Creates unique url address for page tabs
  *
  * @param selectedMenu
  * @param menuBar
- * @param pathDefaultTab
- * @param extendedViewPath
+ * @param paths
  */
 fun <T : Enum<T>> changeUrl(
     selectedMenu: T,
     menuBar: TabMenuBar<T>,
-    pathDefaultTab: String,
-    extendedViewPath: String
+    paths: PathsForTabs
 ) {
     window.location.href = if (selectedMenu == menuBar.defaultTab) {
-        pathDefaultTab
+        "#${paths.pathDefaultTab}"
     } else {
-        "$extendedViewPath/${selectedMenu.toString().lowercase()}"
+        "${paths.extendedViewPath}/${selectedMenu.toString().lowercase()}"
     }
 }

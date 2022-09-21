@@ -27,14 +27,14 @@ val testSuiteSelectorManagerMode = testSuiteSelectorManagerMode()
  */
 external interface TestSuiteSelectorManagerModeProps : Props {
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteDto>
 
     /**
      * Callback invoked when test suite is being removed
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
 
     /**
      * Mode that defines what kind of test suites will be shown
@@ -50,7 +50,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
         val testSuitesFromBackend: List<TestSuiteDto> = post(
             url = "$apiUrl/test-suites/get-by-ids",
             headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuiteIds),
+            body = Json.encodeToString(props.preselectedTestSuites),
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -81,7 +81,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
                     }
                     .toList()
                     .also { listOfTestSuiteDtos ->
-                        props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                        props.onTestSuitesUpdate(listOfTestSuiteDtos)
                     }
             }
         }

@@ -1,11 +1,9 @@
-package com.saveourtool.save.orchestrator.sandbox
+package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.orchestrator.SANDBOX_PROFILE
-import org.springframework.context.annotation.Profile
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -20,7 +18,6 @@ typealias StringResponse = ResponseEntity<String>
 /**
  * Sandbox implementation of endpoints which are required for save-agent
  */
-@Profile(SANDBOX_PROFILE)
 @RestController
 @RequestMapping("/sandbox/internal")
 class SandboxInternalController {

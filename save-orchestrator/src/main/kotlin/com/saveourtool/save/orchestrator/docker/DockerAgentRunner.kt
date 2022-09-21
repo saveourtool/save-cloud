@@ -1,11 +1,12 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
+import com.saveourtool.save.orchestrator.execTimed
+import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -154,10 +155,7 @@ class DockerAgentRunner(
     /**
      * Creates a docker container
      *
-     * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
-     * @param baseImageTag tag of the base docker image for this container
-     * @param workingDir working directory for [runCmd]
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred

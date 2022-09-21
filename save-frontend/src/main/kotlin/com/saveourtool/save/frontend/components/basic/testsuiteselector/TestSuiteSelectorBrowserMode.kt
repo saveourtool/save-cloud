@@ -34,12 +34,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     /**
      * Lambda invoked when test suites were successfully set
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
 
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteDto>
 
     /**
      * Specific organization name which reduces list of test suites source.
@@ -275,7 +275,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                                     .distinctBy { it.id }
                             }
                                 .also { testSuites ->
-                                    props.onTestSuiteIdsUpdate(testSuites.map { it.requiredId() })
+                                    props.onTestSuitesUpdate(testSuites)
                                 }
                         }
                     }
@@ -321,7 +321,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                             }
                             .toList()
                             .also { listOfTestSuiteDtos ->
-                                props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                                props.onTestSuitesUpdate(listOfTestSuiteDtos)
                             }
                     }
                 }
