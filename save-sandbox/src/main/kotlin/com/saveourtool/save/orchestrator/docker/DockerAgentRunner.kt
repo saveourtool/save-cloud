@@ -175,7 +175,10 @@ class DockerAgentRunner(
             // Rely on `runCmd` format: last argument is parameter of the subshell.
             .withCmd(
                 // this part is like `sh -c` with probably some other flags
-                runCmd.dropLast(1) + envFileTargetPath
+                runCmd.dropLast(1) + (
+                        // last element is an actual command that will be executed in a new shell
+                        "env $(cat $envFileTargetPath | xargs) sh -c \"${runCmd.last()}\""
+                )
             )
             .withName(containerName)
             .withUser("save-agent")

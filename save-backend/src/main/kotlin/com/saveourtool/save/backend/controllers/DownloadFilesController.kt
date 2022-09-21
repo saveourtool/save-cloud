@@ -185,6 +185,8 @@ class DownloadFilesController(
     // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
+                .filter { it.exists() }
+                .switchIfEmptyToNotFound()
 
     @Operation(
         method = "POST",
