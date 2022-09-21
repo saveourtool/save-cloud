@@ -84,7 +84,6 @@ data class OrchestratorConfig(
  * Configuration for connection to backend service
  *
  * @property url URL of backend
- * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
  * @property debugInfoEndpoint endpoint to post debug info to
  * @property fileEndpoint endpoint to download files from
@@ -94,7 +93,6 @@ data class OrchestratorConfig(
 @Serializable
 data class BackendConfig(
     val url: String,
-    val additionalDataEndpoint: String = "/internal/saveAgentVersion",
     val executionDataEndpoint: String = "/internal/saveTestResult",
     val fileEndpoint: String = "/internal/files/download",
     val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",

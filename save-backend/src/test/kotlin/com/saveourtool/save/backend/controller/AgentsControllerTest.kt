@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository

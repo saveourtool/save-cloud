@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.entities.Agent
@@ -44,17 +43,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @PostMapping("/updateAgentStatuses")
     fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
         agentStatusRepository.saveAll(agentStates)
-    }
-
-    /**
-     * @param agentVersion [AgentVersion] to update agent version
-     */
-    @PostMapping("/saveAgentVersion")
-    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
-        agentRepository.findByContainerId(agentVersion.containerId)?.let {
-            it.version = agentVersion.version
-            agentRepository.save(it)
-        }
     }
 
     /**
