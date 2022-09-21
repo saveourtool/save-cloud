@@ -1,4 +1,4 @@
-package com.saveourtool.save.sandbox.service
+package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
@@ -6,19 +6,14 @@ import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.sandbox.fillAgentPropertiesFromConfiguration
-import com.saveourtool.save.sandbox.runner.AgentRunner
-import com.saveourtool.save.sandbox.runner.AgentRunnerException
-import com.saveourtool.save.sandbox.runner.EXECUTION_DIR
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
+import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.runner.AgentRunnerException
+import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 
 import java.util.concurrent.ConcurrentHashMap
@@ -27,7 +22,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 import kotlin.io.path.*
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.toJavaDuration
 import kotlinx.datetime.Clock
@@ -36,17 +30,12 @@ import kotlinx.datetime.Clock
  * A service that builds and starts containers for test execution.
  */
 @Service
-@OptIn(ExperimentalPathApi::class)
 class DockerService(
     private val configProperties: ConfigProperties,
     private val agentRunner: AgentRunner,
     private val agentService: AgentService,
 ) {
     private val areAgentsHaveStarted: ConcurrentMap<Long, AtomicBoolean> = ConcurrentHashMap()
-
-    @Autowired
-    @Qualifier("webClientBackend")
-    private lateinit var webClientBackend: WebClient
 
     /**
      * Function that builds a base image with test resources
@@ -88,12 +77,8 @@ class DockerService(
     fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
         val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
         log.info("Sending request to make execution.id=$executionId RUNNING")
-        return webClientBackend
-            .post()
-            .uri("/updateExecutionByDto")
-            .body(BodyInserters.fromValue(ExecutionUpdateDto(executionId, ExecutionStatus.RUNNING)))
-            .retrieve()
-            .toBodilessEntity()
+        return agentService
+            .updateExecution(executionId, ExecutionStatus.RUNNING)
             .map {
                 agentRunner.start(execution.id!!)
                 log.info("Made request to start containers for execution.id=$executionId")

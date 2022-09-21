@@ -1,14 +1,13 @@
-package com.saveourtool.save.sandbox.docker
+package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.sandbox.config.Beans
-import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.sandbox.service.DockerService
-import com.saveourtool.save.sandbox.testutils.TestConfiguration
+import com.saveourtool.save.orchestrator.config.Beans
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.service.DockerService
+import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
-import com.saveourtool.save.sandbox.docker.DockerAgentRunner
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

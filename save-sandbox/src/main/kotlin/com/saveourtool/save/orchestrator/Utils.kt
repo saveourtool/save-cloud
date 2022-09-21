@@ -2,11 +2,11 @@
  * Utilities for sandbox
  */
 
-package com.saveourtool.save.sandbox
+package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.sandbox.config.ConfigProperties.AgentSettings
-import com.saveourtool.save.sandbox.service.DockerService
+import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
+import com.saveourtool.save.orchestrator.service.DockerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -86,7 +86,7 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
 /**
  * Build map of env variables that can be read by save-agent to override settings from properties file
  *
- * @param agentSettings configuration of save-agent loaded from save-sandbox
+ * @param agentSettings configuration of save-agent loaded from save-orchestrator
  * @param saveCliExtraArgs
  * @param executionId
  * @param additionalFilesString
@@ -104,7 +104,7 @@ internal fun fillAgentPropertiesFromConfiguration(
 
     with(agentSettings) {
         backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-        sandboxUrl?.let { put(AgentEnvName.SANDBOX_URL, it) }
+        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 

@@ -4,7 +4,7 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package com.saveourtool.save.sandbox.config
+package com.saveourtool.save.orchestrator.config
 
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 

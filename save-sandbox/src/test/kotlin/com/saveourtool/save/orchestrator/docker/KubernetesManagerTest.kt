@@ -1,7 +1,7 @@
-package com.saveourtool.save.sandbox.docker
+package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.sandbox.kubernetes.KubernetesManager
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 

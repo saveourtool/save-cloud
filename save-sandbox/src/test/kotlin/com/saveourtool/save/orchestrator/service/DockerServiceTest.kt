@@ -1,11 +1,11 @@
-package com.saveourtool.save.sandbox.service
+package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.sandbox.config.Beans
-import com.saveourtool.save.sandbox.config.ConfigProperties
-import com.saveourtool.save.sandbox.docker.DockerAgentRunner
-import com.saveourtool.save.sandbox.testutils.TestConfiguration
+import com.saveourtool.save.orchestrator.config.Beans
+import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
+import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -14,13 +14,13 @@ import com.saveourtool.save.testutils.enqueue
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
-import com.saveourtool.save.sandbox.service.AgentService
-import com.saveourtool.save.sandbox.service.DockerService
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
@@ -39,8 +39,6 @@ import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import kotlin.io.path.*
-
 @ExtendWith(SpringExtension::class)
 @EnableConfigurationProperties(ConfigProperties::class)
 @TestPropertySource("classpath:application.properties")
@@ -51,7 +49,9 @@ import kotlin.io.path.*
     TestConfiguration::class,
     DockerService::class,
     AgentService::class,
+    SandboxAgentRepository::class,
 )
+@Disabled("Not supported yet")
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
