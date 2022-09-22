@@ -28,9 +28,9 @@ class BackendAgentRepository(
     configProperties: ConfigProperties,
 ) : AgentRepository {
     private val webClientBackend = WebClient.create(configProperties.backendUrl)
-    override fun getInitConfig(agentId: String): Mono<AgentInitConfig> = webClientBackend
+    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
-        .uri("/agents/get-init-config?agentId=$agentId")
+        .uri("/agents/get-init-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 

@@ -1,10 +1,14 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.AgentVersion
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -15,15 +19,39 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Mono
 
 /**
  * Controller to manipulate with Agent related data
  */
 @RestController
 @RequestMapping("/internal")
-class AgentsController(private val agentStatusRepository: AgentStatusRepository,
-                       private val agentRepository: AgentRepository,
+class AgentsController(
+    private val agentStatusRepository: AgentStatusRepository,
+    private val agentRepository: AgentRepository,
+    private val configProperties: ConfigProperties,
 ) {
+    /**
+     * @param containerId [Agent.containerId]
+     */
+    @GetMapping("/agents/get-init-config")
+    fun getInitConfig(
+        @RequestParam containerId: String,
+    ): Mono<AgentInitConfig>  = blockingToMono {
+        agentRepository.findByContainerId(containerId)
+    }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
+        .map {
+            it.execution
+        }
+        .map {
+            AgentInitConfig(
+                "${configProperties.url}/internal/files/download-save-cli?version=${SAVE_CLOUD_VERSION}"
+            )
+        }
+
     /**
      * @param agents list of [Agent]s to save into the DB
      * @return a list of IDs, assigned to the agents

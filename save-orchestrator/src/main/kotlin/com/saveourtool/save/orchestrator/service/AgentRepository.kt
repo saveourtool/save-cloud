@@ -26,10 +26,10 @@ interface AgentRepository {
     /**
      * Gets config to init agent
      *
-     * @param agentId
+     * @param containerId
      * @return [Mono] of [AgentInitConfig]
      */
-    fun getInitConfig(agentId: String): Mono<AgentInitConfig>
+    fun getInitConfig(containerId: String): Mono<AgentInitConfig>
 
     /**
      * Gets new tests ids

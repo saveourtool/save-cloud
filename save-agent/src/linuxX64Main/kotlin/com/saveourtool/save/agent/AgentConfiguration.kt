@@ -89,18 +89,12 @@ data class OrchestratorConfig(
  * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
  * @property debugInfoEndpoint endpoint to post debug info to
- * @property fileEndpoint endpoint to download files from
- * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
- * @property saveCliDownloadEndpoint endpoint to download save-cli binary from
  */
 @Serializable
 data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "/internal/saveAgentVersion",
     val executionDataEndpoint: String = "/internal/saveTestResult",
-    val fileEndpoint: String = "/internal/files/download",
-    val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
-    val saveCliDownloadEndpoint: String = "/internal/files/download-save-cli",
     val debugInfoEndpoint: String = "/internal/files/debug-info",
 )
 
