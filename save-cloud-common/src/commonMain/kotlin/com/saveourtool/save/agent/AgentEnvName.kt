@@ -8,7 +8,6 @@ enum class AgentEnvName {
     BACKEND_URL,
     CLI_COMMAND,
     DEBUG,
-    EXECUTION_ID,
     GET_AGENT_LINK,
     ORCHESTRATOR_URL,
     TEST_SUITES_DIR,
