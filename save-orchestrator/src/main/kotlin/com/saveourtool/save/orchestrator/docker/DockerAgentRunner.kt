@@ -169,11 +169,8 @@ class DockerAgentRunner(
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         val envVariables = configuration.env.map { (key, value) ->
             "$key=$value"
-        }.toMutableList()
+        } + "${AgentEnvName.AGENT_NAME.name}=$containerName"
 
-        envVariables.add(
-            "${AgentEnvName.AGENT_NAME.name}=$containerName"
-        )
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)

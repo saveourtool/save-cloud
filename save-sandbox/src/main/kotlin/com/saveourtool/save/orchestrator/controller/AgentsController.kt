@@ -10,6 +10,7 @@ import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.utils.info
 
+import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -38,6 +39,7 @@ import java.io.FileOutputStream
 class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
+    private val dockerClient: DockerClient,
     private val configProperties: ConfigProperties,
 ) {
     /**
@@ -81,7 +83,8 @@ class AgentsController(
                 .flatMap { agentIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         agentIds.map { id ->
-                            Agent(id, execution)
+                            val containerName = dockerClient.inspectContainerCmd(id).exec().name
+                            Agent(id, containerName, execution)
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
