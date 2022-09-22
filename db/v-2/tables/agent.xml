@@ -7,7 +7,7 @@
 
     <changeSet id="add-addContainerName" author="kgevorkyan" context="dev or prod">
         <addColumn tableName="agent">
-            <column name="container_name" type="text" defaultValue=""/>
+            <column name="container_name" type="text" defaultValue="null"/>
         </addColumn>
     </changeSet>
 
