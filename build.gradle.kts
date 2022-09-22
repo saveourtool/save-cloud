@@ -25,7 +25,24 @@ liquibase {
                     "prod" -> "prod"
                     "dev" -> "dev"
                     else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
-                }
+                },
+                "liquibaseSchemaName" to "save_cloud"
+            )
+        }
+        register("second") {
+            arguments = mapOf(
+                "changeLogFile" to "db/sandbox/db.changelog-sandbox.xml",
+                "url" to databaseCredentials.databaseUrl,
+                "username" to databaseCredentials.username,
+                "password" to databaseCredentials.password,
+                "logLevel" to "info",
+                "contexts" to when (profile) {
+                    "prod" -> "prod"
+                    "dev" -> "dev"
+                    else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+                },
+                "liquibaseSchemaName" to "save_sandbox",
+                "defaultSchemaName" to "save_sandbox",
             )
         }
     }
