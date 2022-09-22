@@ -228,11 +228,10 @@ class DownloadFilesTest {
     fun `should save test data`() {
         val execution: Execution = mock()
         whenever(execution.id).thenReturn(1)
-        whenever(agentRepository.findByContainerId("container-1"))
-            .thenReturn(Agent("container-1", "save-container-1", execution, "0.0.1"))
+
 
         webTestClient.post()
-            .uri("/internal/files/debug-info?agentId=container-1")
+            .uri("/internal/files/debug-info?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(
