@@ -210,7 +210,7 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val envFile = createTempDirectory("sandbox").resolve(".env").apply {
+        val envFile = createTempDirectory("sandbox").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
                 """.trimIndent()
