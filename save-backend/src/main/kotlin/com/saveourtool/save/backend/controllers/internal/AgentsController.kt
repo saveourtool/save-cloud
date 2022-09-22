@@ -10,7 +10,7 @@ import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import generated.SAVE_CLOUD_VERSION
+import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -35,11 +35,12 @@ class AgentsController(
 ) {
     /**
      * @param containerId [Agent.containerId]
+     * @return [Mono] with [AgentInitConfig]
      */
     @GetMapping("/agents/get-init-config")
     fun getInitConfig(
         @RequestParam containerId: String,
-    ): Mono<AgentInitConfig>  = blockingToMono {
+    ): Mono<AgentInitConfig> = blockingToMono {
         agentRepository.findByContainerId(containerId)
     }
         .switchIfEmptyToNotFound {
@@ -51,7 +52,7 @@ class AgentsController(
         .map { execution ->
             AgentInitConfig(
                 executionId = execution.requiredId(),
-                saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=${SAVE_CLOUD_VERSION}",
+                saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
                 additionalFileNameToUrl = execution.parseAndGetAdditionalFiles()
                     .associate {
@@ -116,9 +117,8 @@ class AgentsController(
     fun updateAgentStatusWithDto(@RequestBody agentState: AgentStatusDto) {
         val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
         when (val latestState = agentStatus?.state) {
-            AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED -> {
+            AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED ->
                 throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
-            }
             agentState.state -> {
                 // updating time
                 agentStatus.endTime = agentState.time

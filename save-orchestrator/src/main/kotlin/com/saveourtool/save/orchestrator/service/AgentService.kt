@@ -36,7 +36,6 @@ class AgentService(
      */
     internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
 
-
     /**
      * Gets configuration to init agent
      *

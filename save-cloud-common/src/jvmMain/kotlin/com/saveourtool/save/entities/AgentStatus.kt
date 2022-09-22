@@ -38,13 +38,6 @@ class AgentStatus(
 }
 
 /**
- * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
- * @return [AgentStatus] built from [AgentStatusDto]
- */
-fun AgentStatusDto.toEntity(agentResolver: (String) -> Agent): AgentStatus =
-        AgentStatus(time, time, state, agentResolver(containerId))
-
-/**
  * @property state current state of the agent
  * @property containerId id of the agent's container
  * @property time
@@ -53,7 +46,18 @@ data class AgentStatusDto(
     val time: LocalDateTime,
     val state: AgentState,
     val containerId: String,
-)
+) {
+    /**
+     * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
+     * @return [AgentStatus] built from [AgentStatusDto]
+     */
+    fun toEntity(agentResolver: (String) -> Agent) = AgentStatus(
+        startTime = time,
+        endTime = time,
+        state = state,
+        agent = agentResolver(containerId)
+    )
+}
 
 /**
  * Statuses of a group of agents for a single Execution

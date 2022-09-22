@@ -96,7 +96,7 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    private fun handleNewAgent(agentId: String) : Mono<HeartbeatResponse> =
+    private fun handleNewAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getInitConfig(agentId)
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
