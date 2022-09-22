@@ -23,6 +23,7 @@ data class TestSuiteDto(
     val tags: List<String>? = null,
     val id: Long? = null,
     val plugins: List<PluginType> = emptyList(),
+    val isPublic: Boolean = true,
 ) {
     /**
      * @return non-nullable [id]

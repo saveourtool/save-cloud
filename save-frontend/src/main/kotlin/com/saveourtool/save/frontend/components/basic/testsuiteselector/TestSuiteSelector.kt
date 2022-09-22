@@ -49,6 +49,11 @@ external interface TestSuiteSelectorProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    /**
+     * Name of organization that is used to manipulate with test suites
+     */
+    var currentOrganizationName: String
 }
 
 /**
@@ -84,9 +89,10 @@ fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
+    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
 }
 
 /**
@@ -104,9 +110,10 @@ fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
+    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(organizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(organizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
 }
 
 /**
@@ -122,9 +129,10 @@ fun ChildrenBuilder.showContestTestSuitesSelectorModal(
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
+    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
 }
 
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TYPE_ALIAS")
@@ -134,6 +142,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
+    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
     var currentlySelectedTestSuiteIds by testSuiteIdsInSelectorState
@@ -148,7 +157,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
         currentlySelectedTestSuiteIds = initTestSuiteIds
         windowOpenness.closeWindow()
     }
-    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, selectorPurpose, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, selectorPurpose, initTestSuiteIds, currentOrganizationName, onSubmit, onTestSuiteIdUpdate, onCancel)
 }
 
 @Suppress(
@@ -162,6 +171,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
     specificOrganizationName: String?,
     selectorPurpose: TestSuiteSelectorPurpose,
     preselectedTestSuiteIds: List<TestSuiteDto>,
+    currentOrganizationName: String,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<TestSuiteDto>) -> Unit,
     onCancel: () -> Unit,
@@ -198,6 +208,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                         this.preselectedTestSuites = preselectedTestSuiteIds
                         this.specificOrganizationName = specificOrganizationName
                         this.selectorPurpose = selectorPurpose
+                        this.currentOrganizationName = currentOrganizationName
                     }
                 }
 

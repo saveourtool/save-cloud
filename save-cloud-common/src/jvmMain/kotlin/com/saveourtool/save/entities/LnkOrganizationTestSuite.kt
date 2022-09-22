@@ -1,0 +1,29 @@
+package com.saveourtool.save.entities
+
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.permission.Rights
+import javax.persistence.*
+import javax.persistence.Entity
+import javax.persistence.Enumerated
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
+
+/**
+ * @property organization organization that is connected to [testSuite]
+ * @property testSuite manageable test suite
+ * @property permission [Permission] that [organization] has over [testSuite]
+ */
+@Entity
+class LnkOrganizationTestSuite(
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
+    var organization: Organization,
+
+    @ManyToOne
+    @JoinColumn(name = "test_suite_id")
+    var testSuite: TestSuite,
+
+    @Enumerated(EnumType.STRING)
+    var rights: Rights,
+) : BaseEntity()

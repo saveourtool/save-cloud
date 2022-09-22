@@ -7,7 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.filters.TestSuiteFilters
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
@@ -47,6 +47,8 @@ external interface TestSuiteSelectorSearchModeProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    var currentOrganizationName: String
 }
 
 private fun ChildrenBuilder.buildInput(
@@ -73,7 +75,7 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
         !isOnlyLatestVersion || it.version == it.source.latestFetchedVersion
     }
 
-    showAvaliableTestSuites(
+    showAvailableTestSuites(
         testSuitesToBeShown,
         selectedTestSuites,
         TestSuiteSelectorMode.SEARCH,
@@ -92,7 +94,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
             ""
         }
         val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids$contestFlag",
+            url = "$apiUrl/test-suites/get-by-ids/${props.currentOrganizationName}$contestFlag",
             headers = jsonHeaders,
             body = Json.encodeToString(props.preselectedTestSuites),
             loadingHandler = ::loadingHandler,
@@ -107,7 +109,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         useDeferredRequest {
             if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
-                    url = "$apiUrl/test-suites/filtered${
+                    url = "$apiUrl/test-suites/filtered/${props.currentOrganizationName}${
                         filters.copy(language = encodeURIComponent(filters.language))
                         .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
                     }",

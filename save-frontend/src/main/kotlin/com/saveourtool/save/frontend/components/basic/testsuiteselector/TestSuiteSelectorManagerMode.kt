@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
@@ -40,6 +40,8 @@ external interface TestSuiteSelectorManagerModeProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    var currentOrganizationName: String
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
@@ -48,7 +50,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
     val (preselectedTestSuites, setPreselectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest {
         val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids",
+            url = "$apiUrl/test-suites/get-by-ids/${props.currentOrganizationName}",
             headers = jsonHeaders,
             body = Json.encodeToString(props.preselectedTestSuites),
             loadingHandler = ::noopLoadingHandler,
@@ -65,7 +67,7 @@ private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProp
             +"No test suites are selected yet."
         }
     } else {
-        showAvaliableTestSuites(
+        showAvailableTestSuites(
             preselectedTestSuites,
             selectedTestSuites,
             TestSuiteSelectorMode.MANAGER,

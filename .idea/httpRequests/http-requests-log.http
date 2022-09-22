@@ -1,0 +1,452 @@
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: application/json
+
+{
+    "organizationName": "Huawei",
+    "rights": "MAINTAIN"
+}
+
+<> 2022-09-22T190218.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: application/json
+
+{
+    "organizationName": "Huawei",
+    "rights": "NONE"
+}
+
+<> 2022-09-22T190211.500.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: application/json
+
+{
+    "organizationName": "Huawei",
+    "rights": "USE"
+}
+
+<> 2022-09-22T190205.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: application/json
+
+{
+    "organizationName": "Huawei",
+    "rights": "MAINTAIN"
+}
+
+<> 2022-09-22T190156.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: application/json
+
+{
+    "organizationName": "Huawei",
+    "rights": "MAINTAIN"
+}
+
+<> 2022-09-22T185137.403.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/Huawei/2/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+{
+    "organizationName": "Huawei,
+    "rights": "MAINTAIN"
+}
+
+<> 2022-09-22T185118.415.json
+
+###
+
+DELETE http://localhost:5800/api/v1/test-suites/Huawei/2/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T185006.200.txt
+
+###
+
+DELETE http://localhost:5800/api/v1/test-suites/Huawei/2
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T184948.405.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/Huawei/2
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T184939.200.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/filtered/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T184902.400.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites//filtered/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T184826.400.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/get-by-ids/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+{
+"testSuiteIds": [2,3,4]
+}
+
+<> 2022-09-22T184122.415.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/get-by-ids/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+[2,3,4]
+
+<> 2022-09-22T184011.415.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/get-by-ids/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+[
+2,
+3,
+4
+]
+
+<> 2022-09-22T183911.415.json
+
+###
+
+POST http://localhost:5800/api/v1/test-suites/get-by-ids/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+Content-Type: multipart/form-data
+
+[
+2,
+3,
+4
+]
+
+<> 2022-09-22T183748.415.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/public
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T183631.200.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/available/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T183550.200.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/available/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T183245.500.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/available/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T183047.200.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/available/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T183005.200.json
+
+###
+
+GET http://localhost:5800/api/v1/test-suites/available/Huawei
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-22T182754.200.json
+
+###
+
+DELETE http://localhost:5800/api/v1/organizations/Huawei/users/roles/%20
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-12T125950.404.json
+
+###
+
+DELETE http://localhost:5800/api/v1/organizations/Huawei/users/roles/
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-12T125936.405.json
+
+###
+
+DELETE http://localhost:5800/api/v1/organizations/Huawei/users/roles/admin
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-09-12T125928.200.txt
+
+###
+
+GET http://localhost:5800/api/v1/contests/featured/list
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T190603.200.json
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest2
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T190552.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T190532.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T190521.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T190319.500.json
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T185904.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T185853.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T185217.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T185112.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184949.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184946.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184943.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184553.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184535.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184530.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T184522.200.txt
+
+###
+
+POST http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T180540.500.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T180526.405.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/featured/add-or-delete?contestName=ActiveContest1
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T180344.404.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T180230.200.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T180200.200.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T174525.200.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T174310.200.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T174146.200.json
+
+###
+
+GET http://localhost:5800/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+<> 2022-08-29T173906.400.json
+
+###
+
+GET http://localhost:8080/api/v1/contests/newest
+Authorization: Basic YWRtaW46
+X-Authorization-Source: basic
+
+###
+

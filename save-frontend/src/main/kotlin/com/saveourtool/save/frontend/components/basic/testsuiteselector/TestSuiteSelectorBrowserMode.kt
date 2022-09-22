@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.externals.fontawesome.faCheckDouble
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -51,6 +51,8 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    var currentOrganizationName: String
 }
 
 @Suppress(
@@ -131,7 +133,7 @@ private fun ChildrenBuilder.showBreadcrumb(
     }
 }
 
-private fun ChildrenBuilder.showAvaliableOptions(
+private fun ChildrenBuilder.showAvailableOptions(
     options: List<String>,
     onOptionClick: (String) -> Unit,
 ) {
@@ -164,9 +166,9 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest {
         val url = when (props.selectorPurpose) {
-            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/available"
-            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/get-by-organization?organizationName=${props.specificOrganizationName}"
-            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/available?isContest=true"
+            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/public"
+            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/${props.currentOrganizationName}/available"
+            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/${props.currentOrganizationName}/available?isContest=true"
         }
         val response = get(
             url = url,
@@ -287,25 +289,25 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         div {
             className = ClassName("")
             when {
-                selectedOrganization == null -> showAvaliableOptions(
+                selectedOrganization == null -> showAvailableOptions(
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                     setNamePrefix("")
                 }
-                selectedTestSuiteSource == null -> showAvaliableOptions(
+                selectedTestSuiteSource == null -> showAvailableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                     setNamePrefix("")
                 }
-                selectedTestSuiteVersion == null -> showAvaliableOptions(
+                selectedTestSuiteVersion == null -> showAvailableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                     setNamePrefix("")
                 }
-                else -> showAvaliableTestSuites(
+                else -> showAvailableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
                     TestSuiteSelectorMode.BROWSER,

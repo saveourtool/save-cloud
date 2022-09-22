@@ -37,5 +37,5 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
 ```
 In order to run `save-orchestrator` on Mac with M1 in order to make it run executions, in addition to `save-deploy/README.md` you need to 
 1. manually put all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main` as well as `save-*-linuxX64.kexe` (temporary workaround) 
-2. run `docker-mac-settings.sh` script (from `save-deploy` folder) in order to let docker be avaliable via TCP 
+2. run `docker-mac-settings.sh` script (from `save-deploy` folder) in order to let docker be available via TCP 
 Also check `save-deploy/README.md` for extra information

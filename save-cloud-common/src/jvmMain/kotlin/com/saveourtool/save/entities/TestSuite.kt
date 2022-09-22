@@ -20,6 +20,7 @@ import javax.persistence.ManyToOne
  * @property language
  * @property tags
  * @property plugins
+ * @property isPublic
  */
 @Suppress("LongParameterList")
 @Entity
@@ -40,7 +41,9 @@ class TestSuite(
 
     var tags: String? = null,
 
-    var plugins: String = ""
+    var plugins: String = "",
+
+    var isPublic: Boolean = true,
 ) : BaseEntity() {
     /**
      * @return [plugins] as a list of string
@@ -70,6 +73,7 @@ class TestSuite(
                 this.tagsAsList(),
                 id,
                 this.pluginsAsListOfPluginType(),
+                this.isPublic
             )
 
     companion object {

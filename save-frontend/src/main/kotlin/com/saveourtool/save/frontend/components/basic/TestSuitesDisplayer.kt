@@ -25,7 +25,7 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
-fun ChildrenBuilder.showAvaliableTestSuites(
+fun ChildrenBuilder.showAvailableTestSuites(
     testSuites: List<TestSuiteDto>,
     selectedTestSuites: List<TestSuiteDto>,
     displayMode: TestSuiteSelectorMode?,
