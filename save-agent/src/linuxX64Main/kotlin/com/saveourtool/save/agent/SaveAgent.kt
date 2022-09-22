@@ -60,6 +60,11 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     val state = AtomicReference(AgentState.BUSY)
 
+    /**
+     * The current ID of [com.saveourtool.save.entities.Execution] of current processing
+     */
+    val executionId = AtomicLong(-1L)
+
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
@@ -161,9 +166,8 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("Scheduling heartbeats")
         while (true) {
             val response = runCatching {
-                val executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong()
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(executionId = executionId, percentCompletion = 0))
+                sendHeartbeat(ExecutionProgress(executionId = executionId.value, percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -191,6 +195,8 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun initAgent(agentInitConfig: AgentInitConfig) {
         state.value = AgentState.BUSY
+        executionId.value = agentInitConfig.executionId
+
         processRequestToBackend { saveAdditionalData() }
 
         downloadSaveCli(agentInitConfig.saveCliUrl)
@@ -225,7 +231,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 return@initAgent
             }
 
-        prepareSaveOverridesToml(config.saveCliOverrides, targetDirectory)
+        prepareSaveOverridesToml(agentInitConfig.saveCliOverrides, targetDirectory)
             .runIf(failureResultPredicate) {
                 logErrorAndSetCrashed {
                     "Unable to prepare `save-overrides.toml`"
@@ -410,7 +416,7 @@ class SaveAgent(private val config: AgentConfiguration,
             }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}${config.backend.debugInfoEndpoint}?executionId=${requiredEnv(AgentEnvName.EXECUTION_ID).toLong()}")
+        url("${config.backend.url}${config.backend.debugInfoEndpoint}?executionId=${executionId.value}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }

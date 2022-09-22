@@ -27,7 +27,6 @@ import kotlinx.serialization.Serializable
  * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
  * @property save additional configuration for save-cli
- * @property saveCliOverrides overrides configuration for save-cli (related to running evaluated tool)
  */
 @Serializable
 data class AgentConfiguration(
@@ -42,7 +41,6 @@ data class AgentConfiguration(
     val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
     val save: SaveCliConfig = SaveCliConfig(),
-    val saveCliOverrides: SaveCliOverrides = SaveCliOverrides(),
 ) {
     companion object {
         /**

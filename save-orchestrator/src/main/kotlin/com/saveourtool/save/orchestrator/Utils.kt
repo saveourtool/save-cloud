@@ -6,7 +6,6 @@ package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.config.ConfigProperties.AgentSettings
-import com.saveourtool.save.orchestrator.service.DockerService
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
@@ -90,32 +89,17 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
  * Build map of env variables that can be read by save-agent to override settings from properties file
  *
  * @param agentSettings configuration of save-agent loaded from save-orchestrator
- * @param saveCliExtraArgs
- * @param executionId
- * @param additionalFilesString
  * @return map of env variables with their values
  */
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
-    saveCliExtraArgs: DockerService.SaveCliExtraArgs,
-    executionId: Long,
-    additionalFilesString: String,
 ): Map<AgentEnvName, String> = buildMap {
     put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
-    put(AgentEnvName.EXECUTION_ID, executionId.toString())
-    put(AgentEnvName.ADDITIONAL_FILES_LIST, additionalFilesString)
 
     with(agentSettings) {
         backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
         orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
-    }
-
-    with(saveCliExtraArgs) {
-        overrideExecCmd?.let { put(AgentEnvName.OVERRIDE_EXEC_CMD, it) }
-        overrideExecFlags?.let { put(AgentEnvName.OVERRIDE_EXEC_FLAGS, it) }
-        batchSize?.let { put(AgentEnvName.BATCH_SIZE, it.toString()) }
-        batchSeparator?.let { put(AgentEnvName.BATCH_SEPARATOR, it) }
     }
 }
 

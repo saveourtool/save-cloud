@@ -150,17 +150,8 @@ class DockerService(
     }
 
     private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
-        val saveCliExtraArgs = SaveCliExtraArgs(
-            overrideExecCmd = execution.execCmd,
-            overrideExecFlags = null,
-            batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
-            batchSeparator = null,
-        )
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            saveCliExtraArgs,
-            executionId = execution.requiredId(),
-            additionalFilesString = execution.additionalFiles,
         )
 
         val sdk = execution.sdk.toSdk()
@@ -192,19 +183,6 @@ class DockerService(
         val runCmd: List<String>,
         val workingDir: String = EXECUTION_DIR,
         val env: Map<AgentEnvName, String>,
-    )
-
-    /**
-     * @property overrideExecCmd
-     * @property overrideExecFlags
-     * @property batchSize
-     * @property batchSeparator
-     */
-    internal data class SaveCliExtraArgs(
-        val overrideExecCmd: String?,
-        val overrideExecFlags: String?,
-        val batchSize: Int?,
-        val batchSeparator: String?,
     )
 
     companion object {
