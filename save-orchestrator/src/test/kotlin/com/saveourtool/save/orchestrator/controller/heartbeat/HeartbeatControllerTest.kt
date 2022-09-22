@@ -226,42 +226,6 @@ class HeartbeatControllerTest {
             ),
             heartbeats = listOf(
                 Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
-                Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime.plus(1.seconds)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime.plus(2.seconds)),
-                Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), currTime.plus(3.seconds)),
-                // 3 absent heartbeats from test-2
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime.plus(4.seconds)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime.plus(5.seconds)),
-                Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime.plus(10.seconds)),
-            ),
-            heartBeatInterval = 1_000,
-            initConfigs = listOf(initConfig),
-            testBatch = listOf(
-                TestDto("/path/to/test-1", "WarnPlugin", 1, "hash1", listOf("tag")),
-                TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
-                TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
-            ),
-            mockAgentStatuses = false,
-        ) { heartbeatResponses ->
-            heartbeatResponses.shouldHaveSingleElement { it is InitResponse }
-            heartBeatInspector.crashedAgents.shouldContainExactly(
-                setOf("test-2")
-            )
-        }
-    }
-    @Test
-    @Suppress("TOO_LONG_FUNCTION")
-    fun `should shutdown agent, which doesn't shutdown gracefully for some time, despite sending heartbeats`() {
-        whenever(dockerService.stopAgents(listOf(eq("test-1")))).thenReturn(true)
-        whenever(dockerService.stopAgents(listOf(eq("test-2")))).thenReturn(false)
-        val currTime = Clock.System.now()
-        testHeartbeat(
-            agentStatusDtos = listOf(
-                AgentStatusDto(LocalDateTime.now(), AgentState.STARTING, "test-1"),
-                AgentStatusDto(LocalDateTime.now(), AgentState.BUSY, "test-2"),
-            ),
-            heartbeats = listOf(
-                Heartbeat("test-1", AgentState.STARTING, ExecutionProgress(0, -1L), currTime),
                 Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(0, -1L), currTime + 1.seconds),
                 Heartbeat("test-1", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 2.seconds),
                 Heartbeat("test-2", AgentState.BUSY, ExecutionProgress(0, -1L), currTime + 3.seconds),
