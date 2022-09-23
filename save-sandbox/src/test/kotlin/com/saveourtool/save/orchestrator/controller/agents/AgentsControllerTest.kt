@@ -39,7 +39,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import kotlin.io.path.*
-import org.junit.jupiter.api.Disabled
 import org.springframework.http.ResponseEntity
 import reactor.kotlin.core.publisher.toMono
 
