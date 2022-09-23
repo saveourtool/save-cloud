@@ -1,10 +1,13 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -146,6 +149,15 @@ class Execution(
      * @return list of keys [FileKey] of additional files
      */
     fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
+
+    /**
+     * @return [RunExecutionRequest] created from current entity
+     */
+    fun toRunRequest(): RunExecutionRequest = RunExecutionRequest(
+        projectCoordinates = ProjectCoordinates(project.organization.name, project.name),
+        executionId = requiredId(),
+        sdk = sdk.toSdk()
+    )
 
     companion object {
         /**

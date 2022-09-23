@@ -21,6 +21,8 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.domain.toSdk
+import com.saveourtool.save.request.RunExecutionRequest
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -128,32 +130,32 @@ class RunExecutionController(
         authentication: Authentication,
         projectCoordinatesGetter: (T) -> ProjectCoordinates,
     ): Mono<T> =
-            flatMap { value ->
-                val projectCoordinates = projectCoordinatesGetter(value)
-                with(projectCoordinates) {
-                    projectService.findWithPermissionByNameAndOrganization(
-                        authentication,
-                        projectName,
-                        organizationName,
-                        Permission.WRITE
-                    )
-                }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-                    "User ${authentication.username()} doesn't have access to $projectCoordinates"
-                }.map { value }
-            }
+        flatMap { value ->
+            val projectCoordinates = projectCoordinatesGetter(value)
+            with(projectCoordinates) {
+                projectService.findWithPermissionByNameAndOrganization(
+                    authentication,
+                    projectName,
+                    organizationName,
+                    Permission.WRITE
+                )
+            }.switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+                "User ${authentication.username()} doesn't have access to $projectCoordinates"
+            }.map { value }
+        }
 
     @Suppress("UnsafeCallOnNullableType")
     private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: CreateExecutionRequest) =
-            filter { projectCoordinates ->
-                if (request.testingType == TestingType.CONTEST_MODE) {
-                    lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
-                } else {
-                    true
-                }
+        filter { projectCoordinates ->
+            if (request.testingType == TestingType.CONTEST_MODE) {
+                lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)
+            } else {
+                true
             }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
-                }
+        }
+            .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                "Project ${request.projectCoordinates} isn't enrolled into contest ${request.contestName}"
+            }
 
     @Suppress("TOO_LONG_FUNCTION")
     private fun asyncTrigger(execution: Execution) {
@@ -201,12 +203,12 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution)
+        .bodyValue(execution.toRunRequest())
         .retrieve()
         .toBodilessEntity()
 
     private fun Execution.toAcceptedResponse(): StringResponse =
-            ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
+        ResponseEntity.accepted().body("$RESPONSE_BODY_PREFIX${requiredId()}")
 
     companion object {
         private val log: Logger = getLogger<RunExecutionController>()

@@ -90,7 +90,7 @@ class AgentsControllerTest {
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(
-            "/addAgents.*",
+            "/agents/insert.*",
             MockResponse()
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json")
@@ -102,7 +102,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .isAccepted
@@ -120,7 +120,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .is4xxClientError

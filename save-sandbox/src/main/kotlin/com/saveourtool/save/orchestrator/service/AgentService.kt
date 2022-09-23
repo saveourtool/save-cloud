@@ -2,7 +2,7 @@ package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
-import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -59,11 +59,11 @@ class AgentService(
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
-     * @param agents list of [Agent]s to save in the DB
+     * @param agents list of [AgentDto]s to save in the DB
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<BodilessResponseEntity> = agentRepository
+    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<BodilessResponseEntity> = agentRepository
         .addAgents(agents)
         .flatMap {
             agentRepository.updateAgentStatusesWithDto(agents.map { agent ->

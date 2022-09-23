@@ -92,7 +92,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .isAccepted
@@ -110,7 +110,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .is4xxClientError
