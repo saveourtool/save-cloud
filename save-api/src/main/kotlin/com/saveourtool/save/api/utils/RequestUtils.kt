@@ -7,7 +7,6 @@ package com.saveourtool.save.api.utils
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ShortFileInfo
 import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.utils.LocalDateTimeSerializer
@@ -69,7 +68,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): ShortFileInfo = this.post {
+): FileInfo = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
