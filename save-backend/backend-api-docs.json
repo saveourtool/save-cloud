@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunExecutionRequest"
+                "$ref": "#/components/schemas/CreateExecutionRequest"
               }
             }
           },
@@ -7189,38 +7189,7 @@
           }
         }
       },
-      "FileKey": {
-        "required": [
-          "name",
-          "uploadedMillis"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ProjectCoordinates": {
-        "required": [
-          "organizationName",
-          "projectName"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          }
-        }
-      },
-      "RunExecutionRequest": {
+      "CreateExecutionRequest": {
         "required": [
           "files",
           "projectCoordinates",
@@ -7264,6 +7233,37 @@
             ]
           },
           "contestName": {
+            "type": "string"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProjectCoordinates": {
+        "required": [
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
             "type": "string"
           }
         }
