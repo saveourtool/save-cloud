@@ -3,6 +3,7 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.format
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -152,7 +153,7 @@ class DockerService(
     private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            request.executionId,
+            execution.requiredId(),
         )
 
         val sdk = execution.sdk.toSdk()
