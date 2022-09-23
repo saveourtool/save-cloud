@@ -116,8 +116,8 @@ class HeartbeatControllerTest {
             heartbeats = listOf(Heartbeat("test-1", AgentState.IDLE, ExecutionProgress(100, -1L), Clock.System.now() + 30.seconds)),
             initConfigs = emptyList(),
             testBatch = emptyList(),
+            mockUpdateAgentStatusesCount = 1,
             mockAgentStatusesForSameExecution = true,
-            mockAgentStatuses = true,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(any())
             heartbeatResponses shouldNot exist { it is TerminateResponse }
@@ -357,7 +357,6 @@ class HeartbeatControllerTest {
         mockAssignAgentCount: Int = 0,
         mockUpdateAgentStatusesCount: Int = 0,
         mockAgentStatusesForSameExecution: Boolean = false,
-        mockAgentStatuses: Boolean = false,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
     ) {
         initConfigs.forEach {
@@ -380,10 +379,6 @@ class HeartbeatControllerTest {
         if (mockAgentStatusesForSameExecution) {
             whenever(agentRepository.getAgentsStatusesForSameExecution(any()))
                 .thenReturn(Mono.just(AgentStatusesForExecution(0, agentStatusDtos)))
-        }
-        if (mockAgentStatuses) {
-            whenever(agentRepository.getAgentsStatuses(any(), any()))
-                .thenReturn(Mono.just(agentStatusDtos))
         }
 
         val heartbeatResponses: MutableList<HeartbeatResponse?> = mutableListOf()
@@ -420,9 +415,6 @@ class HeartbeatControllerTest {
         verify(agentRepository, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
         if (mockAgentStatusesForSameExecution) {
             verify(agentRepository).getAgentsStatusesForSameExecution(any())
-        }
-        if (mockAgentStatuses) {
-            verify(agentRepository).getAgentsStatuses(any(), any())
         }
         verification.invoke(heartbeatResponses)
     }

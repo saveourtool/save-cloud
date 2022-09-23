@@ -25,15 +25,21 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
+import org.springframework.http.ResponseEntity
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.util.FileSystemUtils
+import reactor.kotlin.core.publisher.toMono
 
 import java.net.InetSocketAddress
 import java.nio.file.Files
@@ -49,20 +55,21 @@ import java.nio.file.Paths
     TestConfiguration::class,
     DockerService::class,
     AgentService::class,
-    SandboxAgentRepository::class,
 )
-@Disabled("Not supported yet")
 class DockerServiceTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerService: DockerService
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var testContainerId: String
+    @MockBean private lateinit var agentRepository: AgentRepository
 
     @BeforeEach
     fun setUp() {
         Files.createDirectories(
             Paths.get(configProperties.testResources.tmpPath)
         )
+        whenever(agentRepository.updateExecutionByDto(any(), any(), anyOrNull()))
+            .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }
 
     @Test
