@@ -80,7 +80,7 @@ class DockerServiceTest {
             testSuiteIds = "1,2,3"
             sdk = "Java:11"
         }
-        val configuration = dockerService.prepareConfiguration(testExecution)
+        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest())
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -100,7 +100,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
+        dockerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
             .subscribe()
 
         // assertions
