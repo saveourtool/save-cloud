@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.format
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus

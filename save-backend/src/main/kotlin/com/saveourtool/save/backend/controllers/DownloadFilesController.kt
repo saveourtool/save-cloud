@@ -35,7 +35,6 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.core.publisher.toMono
 
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
@@ -180,7 +179,6 @@ class DownloadFilesController(
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .build()
         )
-    }
 
     @Operation(
         method = "POST",

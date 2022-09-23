@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import generated.SAVE_CORE_VERSION
-import org.hibernate.Hibernate
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -54,9 +53,21 @@ class AgentsController(
             AgentInitConfig(
                 saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
-                additionalFileNameToUrl = execution.parseAndGetAdditionalFiles()
-                    .associate {
-                        it.name to "${configProperties.url}/internal/files/download?name=${it.name}&uploadedMillis=${it.uploadedMillis}&executionId=${execution.requiredId()}"
+                additionalFileNameToUrl = execution.getFileKeys()
+                    .associate { fileKey ->
+                        fileKey.name to buildString {
+                            append(configProperties.url)
+                            append("/internal/files/download?")
+                            mapOf(
+                                "organizationName" to fileKey.projectCoordinates.organizationName,
+                                "projectName" to fileKey.projectCoordinates.projectName,
+                                "name" to fileKey.name,
+                                "uploadedMillis" to fileKey.uploadedMillis,
+                            )
+                                .map { (key, value) -> "$key=$value" }
+                                .joinToString("&")
+                                .let { append(it) }
+                        }
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
