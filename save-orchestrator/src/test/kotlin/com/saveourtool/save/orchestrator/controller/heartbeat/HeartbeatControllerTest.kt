@@ -485,7 +485,6 @@ class HeartbeatControllerTest {
 
     companion object {
         private val initConfig: AgentInitConfig = AgentInitConfig(
-            executionId = 1L,
             saveCliUrl = "stub",
             testSuitesSourceSnapshotUrl = "stub",
             additionalFileNameToUrl = mapOf("file" to "stub"),

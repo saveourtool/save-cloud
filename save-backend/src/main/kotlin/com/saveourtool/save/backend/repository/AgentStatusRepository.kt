@@ -6,6 +6,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.entities.Execution
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import javax.transaction.Transactional

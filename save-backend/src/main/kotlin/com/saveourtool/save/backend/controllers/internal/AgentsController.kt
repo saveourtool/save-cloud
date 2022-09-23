@@ -11,6 +11,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import generated.SAVE_CORE_VERSION
+import org.hibernate.Hibernate
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
@@ -51,7 +52,6 @@ class AgentsController(
         }
         .map { execution ->
             AgentInitConfig(
-                executionId = execution.requiredId(),
                 saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
                 testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
                 additionalFileNameToUrl = execution.parseAndGetAdditionalFiles()

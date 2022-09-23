@@ -152,6 +152,7 @@ class DockerService(
     private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
+            request.executionId,
         )
 
         val sdk = execution.sdk.toSdk()

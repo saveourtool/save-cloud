@@ -62,7 +62,7 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * The current ID of [com.saveourtool.save.entities.Execution] of current processing
      */
-    val executionId = AtomicLong(-1L)
+    private val executionId = AtomicLong(requiredEnv(AgentEnvName.EXECUTION_ID).toLong())
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
@@ -194,7 +194,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun initAgent(agentInitConfig: AgentInitConfig) {
         state.value = AgentState.BUSY
-        executionId.value = agentInitConfig.executionId
 
         processRequestToBackend { saveAdditionalData() }
 
