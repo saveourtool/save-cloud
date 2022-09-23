@@ -28,7 +28,25 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
+
+        val commonMain by getting
+        val commonTest by getting
+
+        val jvmMain by creating
+//        val jvmTest by creating {
+//            dependencies {
+//                implementation(kotlin("test-junit5"))
+//                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+//            }
+//        }
+        val nativeMain by creating
+        val nativeTest by creating
+        getByName("linuxX64Main").dependsOn(nativeMain)
+        getByName("linuxX64Test").dependsOn(nativeTest)
+
+
         val linuxX64Main by getting {
+            dependsOn(nativeMain)
             dependencies {
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
@@ -46,6 +64,7 @@ kotlin {
             }
         }
         val linuxX64Test by getting {
+            dependsOn(nativeTest)
             dependencies {
                 implementation(libs.ktor.client.mock)
             }
