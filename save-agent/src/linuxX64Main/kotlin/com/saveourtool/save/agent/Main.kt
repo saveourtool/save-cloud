@@ -37,6 +37,7 @@ internal val json = Json {
     serializersModule = SerializersModule {
         contextual(HeartbeatResponse::class, PolymorphicSerializer(HeartbeatResponse::class))
         polymorphic(HeartbeatResponse::class) {
+            subclass(InitResponse::class)
             subclass(NewJobResponse::class)
             subclass(ContinueResponse::class)
             subclass(WaitResponse::class)

@@ -38,7 +38,6 @@ class AgentsController(
      * @return [Mono] with [AgentInitConfig]
      */
     @GetMapping("/agents/get-init-config")
-    @Transactional(readOnly = true)
     fun getInitConfig(
         @RequestParam containerId: String,
     ): Mono<AgentInitConfig> = blockingToMono {
