@@ -38,6 +38,7 @@ class AgentsController(
      * @return [Mono] with [AgentInitConfig]
      */
     @GetMapping("/agents/get-init-config")
+    @Transactional(readOnly = true)
     fun getInitConfig(
         @RequestParam containerId: String,
     ): Mono<AgentInitConfig> = blockingToMono {
@@ -91,20 +92,26 @@ class AgentsController(
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
-     */
-    @PostMapping("/updateAgentStatuses")
-    fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
-        agentStatusRepository.saveAll(agentStates)
-    }
-
-    /**
-     * @param agentStates list of [AgentStatus]es to update in the DB
+     * @throws ResponseStatusException code 409 if agent has already its final state that shouldn't be updated
      */
     @PostMapping("/updateAgentStatusesWithDto")
     @Transactional
     fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
-        agentStates.forEach {
-            updateAgentStatusWithDto(it)
+        agentStates.forEach { agentState ->
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
+            when (val latestState = agentStatus?.state) {
+                AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED ->
+                    throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
+                agentState.state -> {
+                    // updating time
+                    agentStatus.endTime = agentState.time
+                    agentStatusRepository.save(agentStatus)
+                }
+                else -> {
+                    // insert new agent status
+                    agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
+                }
+            }
         }
     }
 
@@ -116,29 +123,6 @@ class AgentsController(
         agentRepository.findByContainerId(agentVersion.containerId)?.let {
             it.version = agentVersion.version
             agentRepository.save(it)
-        }
-    }
-
-    /**
-     * @param agentState an [AgentStatus] to update in the DB
-     * @throws ResponseStatusException code 409 if agent has already its final state that shouldn't be updated
-     */
-    @PostMapping("/updateAgentStatusWithDto")
-    @Transactional
-    fun updateAgentStatusWithDto(@RequestBody agentState: AgentStatusDto) {
-        val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
-        when (val latestState = agentStatus?.state) {
-            AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED ->
-                throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
-            agentState.state -> {
-                // updating time
-                agentStatus.endTime = agentState.time
-                agentStatusRepository.save(agentStatus)
-            }
-            else -> {
-                // insert new agent status
-                agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
-            }
         }
     }
 
