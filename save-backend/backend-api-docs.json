@@ -2121,11 +2121,14 @@
         "tags": [
           "files"
         ],
+        "summary": "Download a file by execution ID and FileKey.",
+        "description": "Download a file by execution ID and FileKey.",
         "operationId": "download",
         "parameters": [
           {
             "name": "organizationName",
-            "in": "path",
+            "in": "query",
+            "description": "organization name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
@@ -2133,7 +2136,8 @@
           },
           {
             "name": "projectName",
-            "in": "path",
+            "in": "query",
+            "description": "project name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
@@ -2142,6 +2146,7 @@
           {
             "name": "name",
             "in": "query",
+            "description": "name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
@@ -2150,6 +2155,7 @@
           {
             "name": "uploadedMillis",
             "in": "query",
+            "description": "uploaded mills of additional file key",
             "required": true,
             "schema": {
               "type": "integer",
@@ -2158,6 +2164,94 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "Execution with provided ID is not found.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Returns content of the file.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
