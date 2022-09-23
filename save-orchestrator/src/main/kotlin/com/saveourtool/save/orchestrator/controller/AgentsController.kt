@@ -50,18 +50,11 @@ class AgentsController(
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
     fun initialize(@RequestBody request: RunExecutionRequest): Mono<BodilessResponseEntity> {
-        if (request.status != ExecutionStatus.PENDING) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Execution status must be PENDING"
-            )
-        }
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
             log.info {
-                "Starting preparations for launching execution [project=${request.projectCoordinates}, id=${request.executionId}, " +
-                        "status=${request.status}]"
+                "Starting preparations for launching execution [project=${request.projectCoordinates}, id=${request.executionId}]"
             }
             Mono.fromCallable {
                 // todo: pass SDK via request body

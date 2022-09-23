@@ -153,11 +153,16 @@ class Execution(
     /**
      * @return [RunExecutionRequest] created from current entity
      */
-    fun toRunRequest(): RunExecutionRequest = RunExecutionRequest(
-        projectCoordinates = ProjectCoordinates(project.organization.name, project.name),
-        executionId = requiredId(),
-        sdk = sdk.toSdk()
-    )
+    fun toRunRequest(): RunExecutionRequest {
+        require(status == ExecutionStatus.PENDING) {
+            "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
+        }
+        return RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(project.organization.name, project.name),
+            executionId = requiredId(),
+            sdk = sdk.toSdk()
+        )
+    }
 
     companion object {
         /**
