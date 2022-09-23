@@ -155,6 +155,7 @@ class DownloadFilesController(
     @ApiResponse(responseCode = "200", description = "Returns content of the file.")
     @ApiResponse(responseCode = "404", description = "File is not found.")
     @PostMapping(path = ["/internal/files/download-save-agent"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    // FIXME: backend should set version of save-agent here for agent
     fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
                 .filter { it.exists() }
@@ -318,19 +319,13 @@ class DownloadFilesController(
     }
 
     /**
-     * @param agentContainerId agent that has executed the test
+     * @param executionId ID of execution that was executed for the test
      * @param testResultDebugInfo additional info that should be stored
      * @return [Mono] with count of uploaded bytes
      */
     @PostMapping(value = ["/internal/files/debug-info"])
-    @Suppress("UnsafeCallOnNullableType")
-    fun uploadDebugInfo(@RequestParam("agentId") agentContainerId: String,
-                        @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> {
-        val executionId = agentRepository.findByContainerId(agentContainerId)
-            .orNotFound()
-            .execution
-            .requiredId()
-        return debugInfoStorage.save(executionId, testResultDebugInfo)
-    }
+    fun uploadDebugInfo(
+        @RequestParam executionId: Long,
+        @RequestBody testResultDebugInfo: TestResultDebugInfo,
+    ): Mono<Long> = debugInfoStorage.save(executionId, testResultDebugInfo)
 }
