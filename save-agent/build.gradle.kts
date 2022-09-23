@@ -32,8 +32,11 @@ kotlin {
         val commonMain by getting
         val commonTest by getting
 
-        val jvmMain by creating
-//        val jvmTest by creating {
+        val jvmMain by getting {
+            dependsOn(commonMain)
+        }
+//        val jvmTest by getting {
+//            dependsOn(commonTest)
 //            dependencies {
 //                implementation(kotlin("test-junit5"))
 //                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
@@ -41,9 +44,6 @@ kotlin {
 //        }
         val nativeMain by creating
         val nativeTest by creating
-        getByName("linuxX64Main").dependsOn(nativeMain)
-        getByName("linuxX64Test").dependsOn(nativeTest)
-
 
         val linuxX64Main by getting {
             dependsOn(nativeMain)
@@ -73,6 +73,7 @@ kotlin {
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
+
     val copyAgentDistribution by tasks.registering(Jar::class) {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
