@@ -57,7 +57,8 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
     .toFlux()
 
 /**
- * @return convert [Flux] of [ByteBuffer] to a single [InputStream]
+ * @param objectMapper
+ * @return convert [Flux] of [ByteBuffer] to object of [T] from Json string using [ObjectMapper]
  */
 inline fun <reified T> Flux<ByteBuffer>.readAsJson(objectMapper: ObjectMapper): Mono<T> = this
     .mapToInputStream()
