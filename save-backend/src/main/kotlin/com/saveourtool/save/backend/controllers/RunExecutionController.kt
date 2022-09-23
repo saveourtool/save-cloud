@@ -8,11 +8,11 @@ import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.username
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -69,7 +69,7 @@ class RunExecutionController(
      */
     @PostMapping("/trigger")
     fun trigger(
-        @RequestBody request: RunExecutionRequest,
+        @RequestBody request: CreateExecutionRequest,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(request.projectCoordinates)
         .validateAccess(authentication) { it }
@@ -143,7 +143,7 @@ class RunExecutionController(
             }
 
     @Suppress("UnsafeCallOnNullableType")
-    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: RunExecutionRequest) =
+    private fun Mono<ProjectCoordinates>.validateContestEnrollment(request: CreateExecutionRequest) =
             filter { projectCoordinates ->
                 if (request.testingType == TestingType.CONTEST_MODE) {
                     lnkContestProjectService.isEnrolled(projectCoordinates, request.contestName!!)

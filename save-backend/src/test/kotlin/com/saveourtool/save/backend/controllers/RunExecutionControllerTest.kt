@@ -12,7 +12,7 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.entities.RunExecutionRequest
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
@@ -65,7 +65,7 @@ class RunExecutionControllerTest(
         }
         val project = projectRepository.findById(PROJECT_ID).get()
         val testSuiteIds = listOf(2L, 3L)
-        val request = RunExecutionRequest(
+        val request = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = project.organization.name,
                 projectName = project.name
