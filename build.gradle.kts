@@ -29,9 +29,9 @@ liquibase {
                 "liquibaseSchemaName" to "save_cloud"
             )
         }
-        register("second") {
+        register("sandbox") {
             arguments = mapOf(
-                "changeLogFile" to "db/sandbox/db.changelog-sandbox.xml",
+                "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
                 "url" to databaseCredentials.databaseUrl,
                 "username" to databaseCredentials.username,
                 "password" to databaseCredentials.password,
