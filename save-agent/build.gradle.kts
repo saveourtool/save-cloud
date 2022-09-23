@@ -3,6 +3,7 @@ import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
@@ -11,7 +12,13 @@ plugins {
 }
 
 kotlin {
-    // Create a target for the host platform.
+//    val os = getCurrentOperatingSystem()
+//    // Create a target for the host platform.
+//    val hostTarget2 = when {
+//        os.isLinux -> linuxX64("agent")
+//        else -> jvm("agent")
+//    }
+
     val hostTarget = linuxX64 {
         binaries.executable {
             entryPoint = "com.saveourtool.save.agent.main"
@@ -32,9 +39,9 @@ kotlin {
         val commonMain by getting
         val commonTest by getting
 
-        val jvmMain by getting {
-            dependsOn(commonMain)
-        }
+//        val jvmMain by getting {
+//            dependsOn(commonMain)
+//        }
 //        val jvmTest by getting {
 //            dependsOn(commonTest)
 //            dependencies {
@@ -42,8 +49,13 @@ kotlin {
 //                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 //            }
 //        }
-        val nativeMain by creating
-        val nativeTest by creating
+
+        val nativeMain by creating {
+            dependsOn(commonMain)
+        }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
 
         val linuxX64Main by getting {
             dependsOn(nativeMain)
