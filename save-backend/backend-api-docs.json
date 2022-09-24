@@ -7349,10 +7349,14 @@
       "FileKey": {
         "required": [
           "name",
+          "projectCoordinates",
           "uploadedMillis"
         ],
         "type": "object",
         "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
           "name": {
             "type": "string"
           },
