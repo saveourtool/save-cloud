@@ -2127,7 +2127,7 @@
         "parameters": [
           {
             "name": "organizationName",
-            "in": "query",
+            "in": "path",
             "description": "organization name of additional file key",
             "required": true,
             "schema": {
@@ -2136,7 +2136,7 @@
           },
           {
             "name": "projectName",
-            "in": "query",
+            "in": "path",
             "description": "project name of additional file key",
             "required": true,
             "schema": {
