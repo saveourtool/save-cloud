@@ -2,7 +2,7 @@ package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -26,7 +26,7 @@ class SandboxAgentRepository : AgentRepository {
 
     override fun getNextTestBatch(agentId: String): Mono<TestBatch> = Mono.empty()
 
-    override fun addAgents(agents: List<Agent>): Mono<IdList> = Mono.empty()
+    override fun addAgents(agents: List<AgentDto>): Mono<IdList> = Mono.empty()
 
     override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> = Mono.empty()
 

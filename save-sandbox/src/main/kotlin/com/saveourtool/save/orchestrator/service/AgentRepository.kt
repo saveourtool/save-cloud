@@ -3,10 +3,7 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
@@ -42,11 +39,11 @@ interface AgentRepository {
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
-     * @param agents list of [Agent]s to save in the DB
+     * @param agents list of [AgentDto]s to save in the DB
      * @return Mono with IDs of saved [Agent]s
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun addAgents(agents: List<Agent>): Mono<IdList>
+    fun addAgents(agents: List<AgentDto>): Mono<IdList>
 
     /**
      * @param agentStates list of [AgentStatusDto] to update/insert in the DB

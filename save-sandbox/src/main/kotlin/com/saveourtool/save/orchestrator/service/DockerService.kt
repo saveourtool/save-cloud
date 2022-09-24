@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -11,6 +10,7 @@ import com.saveourtool.save.orchestrator.fillAgentPropertiesFromConfiguration
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
+import com.saveourtool.save.request.RunExecutionRequest
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -40,14 +40,14 @@ class DockerService(
     /**
      * Function that builds a base image with test resources
      *
-     * @param execution [Execution] from which this workflow is started
+     * @param request [RunExecutionRequest] with info about [Execution] from which this workflow is started
      * @return image ID and execution command for the agent
      * @throws DockerException if interaction with docker daemon is not successful
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun prepareConfiguration(execution: Execution): RunConfiguration {
-        val buildResult = prepareConfigurationForExecution(execution)
-        log.info("For execution.id=${execution.id} using base image [${buildResult.imageTag}]")
+    fun prepareConfiguration(request: RunExecutionRequest): RunConfiguration {
+        val buildResult = prepareConfigurationForExecution(request)
+        log.info("For execution.id=${request.executionId} using base image [${buildResult.imageTag}]")
         return buildResult
     }
 
@@ -68,19 +68,18 @@ class DockerService(
     )
 
     /**
-     * @param execution an [Execution] for which containers are being started
+     * @param executionId ID of [Execution] for which containers are being started
      * @param agentIds list of IDs of agents (==containers) for this execution
      * @return Flux of ticks which correspond to attempts to check agents start, completes when agents are either
      * started or timeout is reached.
      */
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
-    fun startContainersAndUpdateExecution(execution: Execution, agentIds: List<String>): Flux<Long> {
-        val executionId = requireNotNull(execution.id) { "For project=${execution.project} method has been called with execution with id=null" }
+    fun startContainersAndUpdateExecution(executionId: Long, agentIds: List<String>): Flux<Long> {
         log.info("Sending request to make execution.id=$executionId RUNNING")
         return agentService
             .updateExecution(executionId, ExecutionStatus.RUNNING)
             .map {
-                agentRunner.start(execution.id!!)
+                agentRunner.start(executionId)
                 log.info("Made request to start containers for execution.id=$executionId")
             }
             .flatMapMany {
@@ -149,14 +148,13 @@ class DockerService(
         agentRunner.cleanup(executionId)
     }
 
-    private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
+    private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            execution.requiredId(),
+            request.executionId,
         )
 
-        val sdk = execution.sdk.toSdk()
-        val baseImage = baseImageName(sdk)
+        val baseImage = baseImageName(request.sdk)
         return RunConfiguration(
             imageTag = baseImage,
             runCmd = listOf(

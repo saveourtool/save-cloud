@@ -114,8 +114,8 @@ class DownloadFilesController(
         description = "Download a file by execution ID and FileKey.",
     )
     @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.QUERY, description = "organization name of additional file key", required = true),
-        Parameter(name = "projectName", `in` = ParameterIn.QUERY, description = "project name of additional file key", required = true),
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "organization name of additional file key", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "project name of additional file key", required = true),
         Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of additional file key", required = true),
         Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of additional file key", required = true),
     )

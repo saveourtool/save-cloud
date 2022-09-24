@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunExecutionRequest"
+                "$ref": "#/components/schemas/CreateExecutionRequest"
               }
             }
           },
@@ -2127,7 +2127,7 @@
         "parameters": [
           {
             "name": "organizationName",
-            "in": "query",
+            "in": "path",
             "description": "organization name of additional file key",
             "required": true,
             "schema": {
@@ -2136,7 +2136,7 @@
           },
           {
             "name": "projectName",
-            "in": "query",
+            "in": "path",
             "description": "project name of additional file key",
             "required": true,
             "schema": {
@@ -7298,42 +7298,7 @@
           }
         }
       },
-      "FileKey": {
-        "required": [
-          "name",
-          "projectCoordinates",
-          "uploadedMillis"
-        ],
-        "type": "object",
-        "properties": {
-          "projectCoordinates": {
-            "$ref": "#/components/schemas/ProjectCoordinates"
-          },
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ProjectCoordinates": {
-        "required": [
-          "organizationName",
-          "projectName"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          }
-        }
-      },
-      "RunExecutionRequest": {
+      "CreateExecutionRequest": {
         "required": [
           "files",
           "projectCoordinates",
@@ -7377,6 +7342,41 @@
             ]
           },
           "contestName": {
+            "type": "string"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "projectCoordinates",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProjectCoordinates": {
+        "required": [
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
             "type": "string"
           }
         }

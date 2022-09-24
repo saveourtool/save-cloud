@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -15,7 +15,6 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
@@ -40,10 +39,10 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun addAgents(agents: List<Agent>): Mono<IdList> = webClientBackend
+    override fun addAgents(agents: List<AgentDto>): Mono<IdList> = webClientBackend
         .post()
-        .uri("/addAgents")
-        .body(BodyInserters.fromValue(agents))
+        .uri("/agents/insert")
+        .bodyValue(agents)
         .retrieve()
         .bodyToMono()
 

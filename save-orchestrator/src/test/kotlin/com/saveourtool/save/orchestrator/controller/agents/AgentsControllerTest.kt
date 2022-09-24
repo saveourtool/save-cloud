@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
@@ -90,7 +91,7 @@ class AgentsControllerTest {
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(
-            "/addAgents.*",
+            "/agents/insert.*",
             MockResponse()
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json")
@@ -102,7 +103,7 @@ class AgentsControllerTest {
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .isAccepted
@@ -117,13 +118,9 @@ class AgentsControllerTest {
         val project = Project.stub(null)
         val execution = Execution.stub(project)
 
-        webClient
-            .post()
-            .uri("/initializeAgents")
-            .bodyValue(execution)
-            .exchange()
-            .expectStatus()
-            .is4xxClientError
+        assertThrows<IllegalArgumentException> {
+            execution.toRunRequest()
+        }
     }
 
     @Test
