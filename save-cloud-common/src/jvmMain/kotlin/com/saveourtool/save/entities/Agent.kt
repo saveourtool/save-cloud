@@ -14,7 +14,7 @@ import javax.persistence.ManyToOne
 class Agent(
     var containerId: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "execution_id")
     var execution: Execution,
 

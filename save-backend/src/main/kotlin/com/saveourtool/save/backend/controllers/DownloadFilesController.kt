@@ -16,6 +16,7 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -107,6 +108,36 @@ class DownloadFilesController(
         }
     }
 
+    @Operation(
+        method = "POST",
+        summary = "Download a file by execution ID and FileKey.",
+        description = "Download a file by execution ID and FileKey.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.QUERY, description = "organization name of additional file key", required = true),
+        Parameter(name = "projectName", `in` = ParameterIn.QUERY, description = "project name of additional file key", required = true),
+        Parameter(name = "name", `in` = ParameterIn.QUERY, description = "name of additional file key", required = true),
+        Parameter(name = "uploadedMillis", `in` = ParameterIn.QUERY, description = "uploaded mills of additional file key", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Returns content of the file.")
+    @ApiResponse(responseCode = "404", description = "Execution with provided ID is not found.")
+    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun download(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        @RequestParam name: String,
+        @RequestParam uploadedMillis: Long,
+    ): Mono<ByteBufferFluxResponse> = doDownload(
+        FileKey(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = organizationName,
+                projectName = projectName,
+            ),
+            name = name,
+            uploadedMillis = uploadedMillis,
+        )
+    )
+
     /**
      * @param organizationName
      * @param projectName
@@ -114,22 +145,24 @@ class DownloadFilesController(
      * @param uploadedMillis
      * @return [Mono] with file contents
      */
-    @PostMapping(path = ["/api/$v1/files/{organizationName}/{projectName}/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun download(
-        @PathVariable organizationName: String,
-        @PathVariable projectName: String,
+    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun internalDownload(
+        @RequestParam organizationName: String,
+        @RequestParam projectName: String,
         @RequestParam name: String,
         @RequestParam uploadedMillis: Long,
-    ): Mono<ByteBufferFluxResponse> = downloadByFileKey(FileKey(ProjectCoordinates(organizationName, projectName), name, uploadedMillis))
+    ): Mono<ByteBufferFluxResponse> = doDownload(
+        FileKey(
+            projectCoordinates = ProjectCoordinates(
+                organizationName = organizationName,
+                projectName = projectName,
+            ),
+            name = name,
+            uploadedMillis = uploadedMillis,
+        )
+    )
 
-    /**
-     * @param fileKey a key [FileKey] of requested file
-     * @return [Mono] with file contents
-     */
-    @PostMapping(path = ["/internal/files/download"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
-    fun downloadByFileKey(
-        @RequestBody fileKey: FileKey,
-    ): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
+    private fun doDownload(fileKey: FileKey): Mono<ByteBufferFluxResponse> = Mono.fromCallable {
         logger.info("Sending file ${fileKey.name} to a client")
         val content = fileStorage.download(fileKey)
         ResponseEntity.ok()

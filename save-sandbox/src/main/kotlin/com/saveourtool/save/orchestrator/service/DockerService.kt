@@ -3,7 +3,6 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.format
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -151,17 +150,9 @@ class DockerService(
     }
 
     private fun prepareConfigurationForExecution(execution: Execution): RunConfiguration {
-        val saveCliExtraArgs = SaveCliExtraArgs(
-            overrideExecCmd = execution.execCmd,
-            overrideExecFlags = null,
-            batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
-            batchSeparator = null,
-        )
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
-            saveCliExtraArgs,
-            executionId = execution.requiredId(),
-            fileKeysString = execution.getFileKeys().format(),
+            execution.requiredId(),
         )
 
         val sdk = execution.sdk.toSdk()
@@ -193,19 +184,6 @@ class DockerService(
         val runCmd: List<String>,
         val workingDir: String = EXECUTION_DIR,
         val env: Map<AgentEnvName, String>,
-    )
-
-    /**
-     * @property overrideExecCmd
-     * @property overrideExecFlags
-     * @property batchSize
-     * @property batchSeparator
-     */
-    internal data class SaveCliExtraArgs(
-        val overrideExecCmd: String?,
-        val overrideExecFlags: String?,
-        val batchSize: Int?,
-        val batchSeparator: String?,
     )
 
     companion object {
