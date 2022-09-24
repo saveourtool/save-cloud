@@ -194,7 +194,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun initAgent(agentInitConfig: AgentInitConfig) {
         state.value = AgentState.BUSY
-        executionId.value = agentInitConfig.executionId
 
         processRequestToBackend { saveAdditionalData() }
 

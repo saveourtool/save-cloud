@@ -7,11 +7,12 @@ import com.saveourtool.save.agent.SaveCliOverrides
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+
 import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -71,40 +72,6 @@ class AgentsController(
                                 .joinToString("&")
                                 .let { append(it) }
                         }
-                    },
-                saveCliOverrides = SaveCliOverrides(
-                    overrideExecCmd = execution.execCmd,
-                    overrideExecFlags = null,
-                    batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
-                    batchSeparator = null,
-                ),
-            )
-        }
-
-    /**
-     * @param containerId [Agent.containerId]
-     * @return [Mono] with [AgentInitConfig]
-     */
-    @GetMapping("/agents/get-init-config")
-    fun getInitConfig(
-        @RequestParam containerId: String,
-    ): Mono<AgentInitConfig> = blockingToMono {
-        agentRepository.findByContainerId(containerId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found agent with container id $containerId"
-        }
-        .map {
-            it.execution
-        }
-        .map { execution ->
-            AgentInitConfig(
-                executionId = execution.requiredId(),
-                saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
-                testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
-                additionalFileNameToUrl = execution.parseAndGetAdditionalFiles()
-                    .associate {
-                        it.name to "${configProperties.url}/internal/files/download?name=${it.name}&uploadedMillis=${it.uploadedMillis}&executionId=${execution.requiredId()}"
                     },
                 saveCliOverrides = SaveCliOverrides(
                     overrideExecCmd = execution.execCmd,
