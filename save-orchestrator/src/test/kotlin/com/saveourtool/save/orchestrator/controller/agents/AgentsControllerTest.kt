@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -20,7 +19,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
@@ -33,8 +31,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -42,11 +38,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-
-import kotlin.io.path.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -58,15 +49,7 @@ class AgentsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
-
-    @AfterEach
-    fun tearDown() {
-        val pathToLogs = configProperties.executionLogs
-        File(pathToLogs).deleteRecursively()
-    }
 
     @Test
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
@@ -148,10 +131,6 @@ class AgentsControllerTest {
     }
 
     companion object {
-        private val volume: String by lazy {
-            createTempDirectory("executionLogs").toAbsolutePath().toString()
-        }
-
         @JvmStatic
         private lateinit var mockServer: MockWebServer
 
@@ -173,7 +152,6 @@ class AgentsControllerTest {
             mockServer = createMockWebServer()
             mockServer.start()
             registry.add("orchestrator.backendUrl") { "http://localhost:${mockServer.port}" }
-            registry.add("orchestrator.executionLogs") { volume }
         }
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property kubernetes configuration for setup in Kubernetes
  * @property dockerResourcesLifetime time, after which resources (images, containers, etc) should be released
  * @property agentsCount a number of agents to start for every [Execution]
- * @property executionLogs path to folder to store cli logs
+ * @property fileStorageLocation location of file storage
  * @property shutdown configuration related to process of shutting down groups of agents for executions
  * @property aptExtraFlags additional flags that will be passed to `apt-get` when building image for tests
  * @property adjustResourceOwner whether Linux user that will be set as owner of resources copied into docker build directory
@@ -35,7 +35,7 @@ data class ConfigProperties(
     val kubernetes: KubernetesSettings?,
     val dockerResourcesLifetime: String = "720h",
     val agentsCount: Int,
-    val executionLogs: String,
+    val fileStorageLocation: String,
     val shutdown: ShutdownSettings,
     val aptExtraFlags: String = "",
     val adjustResourceOwner: Boolean = true,
