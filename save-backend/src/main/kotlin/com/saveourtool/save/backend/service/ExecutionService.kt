@@ -195,7 +195,7 @@ class ExecutionService(
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
                 .toLong(),
-            additionalFiles = files.format(),
+            additionalFiles = files.formatForExecution(),
             username = username,
             sdk = sdk.toString(),
             execCmd = execCmd,

@@ -28,11 +28,5 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
             url = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestrator.url,
         ),
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
-        save = save.copy(
-            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
-            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
-            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
-            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
-        )
     )
 }

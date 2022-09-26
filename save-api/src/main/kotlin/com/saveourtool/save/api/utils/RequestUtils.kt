@@ -7,9 +7,8 @@ package com.saveourtool.save.api.utils
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.v1
@@ -69,7 +68,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): ShortFileInfo = this.post {
+): FileInfo = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -86,15 +85,15 @@ suspend fun HttpClient.uploadAdditionalFile(
 /**
  * Submit execution
  *
- * @param runExecutionRequest execution request
+ * @param createExecutionRequest execution request
  * @return HttpResponse
  */
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
+suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
     url("${Backend.url}/api/$v1/run/trigger")
     header("X-Authorization-Source", UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
-    setBody(runExecutionRequest)
+    setBody(createExecutionRequest)
 }
 
 /**

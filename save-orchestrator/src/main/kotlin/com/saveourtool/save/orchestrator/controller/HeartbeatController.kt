@@ -73,9 +73,9 @@ class HeartbeatController(private val agentService: AgentService,
             .flatMap {
                 when (heartbeat.state) {
                     // if agent sends the first heartbeat, we try to assign work for it
-                    STARTING -> handleVacantAgent(heartbeat.agentId, isStarting = true)
+                    STARTING -> handleNewAgent(heartbeat.agentId)
                     // if agent idles, we try to assign work, but also check if it should be terminated
-                    IDLE -> handleVacantAgent(heartbeat.agentId, isStarting = false)
+                    IDLE -> handleVacantAgent(heartbeat.agentId)
                     // if agent has finished its tasks, we check if all data has been saved and either assign new tasks or mark the previous batch as failed
                     FINISHED -> agentService.checkSavedData(heartbeat.agentId).flatMap { isSavingSuccessful ->
                         handleFinishedAgent(heartbeat.agentId, isSavingSuccessful)
@@ -96,10 +96,10 @@ class HeartbeatController(private val agentService: AgentService,
             }
     }
 
-    /**
-     * @param isStarting whether this is the very first heartbeat - if true, then we don't need to check if this agent needs to be shut down
-     */
-    private fun handleVacantAgent(agentId: String, isStarting: Boolean = false): Mono<HeartbeatResponse> =
+    private fun handleNewAgent(agentId: String): Mono<HeartbeatResponse> =
+            agentService.getInitConfig(agentId)
+
+    private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
                 .doOnSuccess {
                     if (it is NewJobResponse) {
@@ -110,7 +110,7 @@ class HeartbeatController(private val agentService: AgentService,
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
                     // but maybe we'll want to keep running agents in case we need to re-run some tests on other agents e.g. in case of a crash.
-                    if (it is WaitResponse && !isStarting) {
+                    if (it is WaitResponse) {
                         agentService.areAllAgentsIdleOrFinished(agentId)
                     } else {
                         Mono.just(false)
@@ -131,7 +131,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
 
     private fun handleFinishedAgent(agentId: String, isSavingSuccessful: Boolean): Mono<HeartbeatResponse> = if (isSavingSuccessful) {
-        handleVacantAgent(agentId, isStarting = false)
+        handleVacantAgent(agentId)
     } else {
         // Agent finished its work, however only part of results were received, other should be marked as failed
         agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
