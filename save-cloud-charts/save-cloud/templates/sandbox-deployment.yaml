@@ -96,17 +96,17 @@ spec:
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
-                  name: db-secrets
+                  name: sandbox-db-secrets
                   key: spring.datasource.url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: db-secrets
+                  name: sandbox-db-secrets
                   key: spring.datasource.username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: db-secrets
+                  name: sandbox-db-secrets
                   key: spring.datasource.password
           volumeMounts:
             - mountPath: /liquibase/changelog
@@ -120,6 +120,6 @@ spec:
             claimName: save-fs-storage
         - name: database-secret
           secret:
-            secretName: db-secrets
+            secretName: sandbox-db-secrets
         - name: migrations-data
           emptyDir: { }

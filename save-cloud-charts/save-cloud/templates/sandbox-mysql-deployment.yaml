@@ -8,7 +8,7 @@ metadata:
 stringData:
   spring.datasource.url: 'jdbc:mysql://mysql-service:3306/{{ .Values.sandbox_mysql.schema }}'
   spring.datasource.username: root
-  spring.datasource.password: '123'
+  spring.datasource.password: {{ .Values.sandbox_mysql.root_password }}
 
 ---
   {{ end }}
@@ -36,7 +36,7 @@ spec:
               name: mysql
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: '123'
+              value: {{ .Values.sandbox_mysql.root_password }}
             - name: MYSQL_DATABASE
               value: {{ .Values.sandbox_mysql.schema }}
           volumeMounts:

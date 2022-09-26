@@ -39,16 +39,14 @@ fun Project.getDatabaseCredentials(profile: String): DatabaseCredentials {
         }
     }
 
-    val databaseUrl: String
+    val databaseUrl: String = props.getProperty("spring.datasource.url")
     val username: String
     val password: String
 
     if (profile == "prod") {
-        databaseUrl = props.getProperty("spring.datasource.url")
         username = props.getProperty("username")
         password = props.getProperty("password")
     } else {
-        databaseUrl = props.getProperty("datasource.dev.url")
         username = props.getProperty("spring.datasource.username")
         password = props.getProperty("spring.datasource.password")
     }
