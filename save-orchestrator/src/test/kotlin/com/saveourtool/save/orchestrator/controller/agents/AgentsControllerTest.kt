@@ -136,47 +136,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    fun `should save logs`() {
-        val logs = """
-            first line
-            second line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(logs)
-            .expectStatus()
-            .isOk
-        val logFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(logFile.exists())
-        Assertions.assertEquals(logFile.readLines(), logs)
-    }
-
-    @Test
-    fun `check save log if already exist`() {
-        val firstLogs = """
-            first line
-            second line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(firstLogs)
-            .expectStatus()
-            .isOk
-        val firstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(firstLogFile.exists())
-        Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
-
-        val secondLogs = """
-            second line
-            first line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(secondLogs)
-            .expectStatus()
-            .isOk
-            .expectStatus()
-            .isOk
-        val newFirstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(newFirstLogFile.exists())
-        Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
-    }
-
-    @Test
     fun `should cleanup execution artifacts`() {
         webClient.post()
             .uri("/cleanup?executionId=42")
@@ -186,36 +145,6 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(dockerService, times(1)).cleanup(anyLong())
-    }
-
-    private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
-        val fileName = "agent.log"
-        val filePath = configProperties.executionLogs + File.separator + fileName
-        val file = File(filePath)
-        if (!file.exists()) {
-            Files.createDirectories(Paths.get(configProperties.executionLogs))
-            file.createNewFile()
-        }
-
-        text.forEach {
-            file.appendText(it + "\n")
-        }
-
-        val body = MultipartBodyBuilder().apply {
-            part(
-                "executionLogs",
-                file.readBytes()
-            )
-                .header("Content-Disposition", "form-data; name=executionLogs; filename=$fileName")
-        }
-            .build()
-
-        return webClient
-            .post()
-            .uri("/executionLogs")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(body))
-            .exchange()
     }
 
     companion object {

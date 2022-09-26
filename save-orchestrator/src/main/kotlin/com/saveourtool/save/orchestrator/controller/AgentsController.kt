@@ -109,38 +109,6 @@ class AgentsController(
     }
 
     /**
-     * @param executionLogs ExecutionLogs
-     */
-    @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
-        // File name is equals to agent id
-        val agentId = executionLogs.filename()
-        val logDir = File(configProperties.executionLogs)
-        if (!logDir.exists()) {
-            log.info("Folder to store logs from agents was created: ${logDir.name}")
-            logDir.mkdirs()
-        }
-        val logFile = File(logDir.path + File.separator + "$agentId.log")
-        if (!logFile.exists()) {
-            logFile.createNewFile()
-            log.info("Log file for $agentId agent was created")
-        }
-        executionLogs.content()
-            .map { dtBuffer ->
-                FileOutputStream(logFile, true).use { os ->
-                    dtBuffer.asInputStream().use {
-                        it.copyTo(os)
-                    }
-                }
-            }
-            .collectList()
-            .doOnSuccess {
-                log.info("Logs of agent with id = $agentId were written")
-            }
-            .subscribe()
-    }
-
-    /**
      * Delete containers and images associated with execution [executionId]
      *
      * @param executionId id of execution
