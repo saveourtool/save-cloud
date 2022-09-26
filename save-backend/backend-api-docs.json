@@ -880,7 +880,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunExecutionRequest"
+                "$ref": "#/components/schemas/CreateExecutionRequest"
               }
             }
           },
@@ -2091,8 +2091,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  },
-                  "returnShortFileInfo": {}
+                  }
                 }
               }
             }
@@ -2104,7 +2103,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/FileInfo"
                 }
               }
             }
@@ -2122,11 +2121,14 @@
         "tags": [
           "files"
         ],
+        "summary": "Download a file by execution ID and FileKey.",
+        "description": "Download a file by execution ID and FileKey.",
         "operationId": "download",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "organization name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
@@ -2135,23 +2137,121 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "project name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "name of additional file key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "description": "uploaded mills of additional file key",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FileInfo"
+        "responses": {
+          "404": {
+            "description": "Execution with provided ID is not found.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
               }
             }
           },
-          "required": true
-        },
-        "responses": {
+          "200": {
+            "description": "Returns content of the file.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -6826,7 +6926,7 @@
         ]
       }
     },
-    "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
+    "/api/v1/files/{organizationName}/{projectName}/delete": {
       "delete": {
         "tags": [
           "files"
@@ -6850,11 +6950,20 @@
             }
           },
           {
-            "name": "creationTimestamp",
-            "in": "path",
+            "name": "name",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
@@ -7192,38 +7301,7 @@
           }
         }
       },
-      "FileKey": {
-        "required": [
-          "name",
-          "uploadedMillis"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ProjectCoordinates": {
-        "required": [
-          "organizationName",
-          "projectName"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          }
-        }
-      },
-      "RunExecutionRequest": {
+      "CreateExecutionRequest": {
         "required": [
           "files",
           "projectCoordinates",
@@ -7267,6 +7345,41 @@
             ]
           },
           "contestName": {
+            "type": "string"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "projectCoordinates",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProjectCoordinates": {
+        "required": [
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
             "type": "string"
           }
         }
@@ -7506,18 +7619,13 @@
       "FileInfo": {
         "required": [
           "isExecutable",
-          "name",
-          "sizeBytes",
-          "uploadedMillis"
+          "key",
+          "sizeBytes"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
+          "key": {
+            "$ref": "#/components/schemas/FileKey"
           },
           "sizeBytes": {
             "type": "integer",
@@ -7605,6 +7713,7 @@
           "allTests",
           "expectedChecks",
           "failedTests",
+          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -7719,6 +7828,12 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "fileKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileKey"
+            }
           }
         }
       },

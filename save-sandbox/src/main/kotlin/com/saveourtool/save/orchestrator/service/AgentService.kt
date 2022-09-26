@@ -1,11 +1,8 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.agent.*
 import com.saveourtool.save.agent.AgentState.*
-import com.saveourtool.save.agent.HeartbeatResponse
-import com.saveourtool.save.agent.NewJobResponse
-import com.saveourtool.save.agent.WaitResponse
-import com.saveourtool.save.entities.Agent
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
@@ -40,6 +37,16 @@ class AgentService(
     internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
+     * Gets configuration to init agent
+     *
+     * @param agentId
+     * @return [Mono] of [InitResponse]
+     */
+    internal fun getInitConfig(agentId: String): Mono<HeartbeatResponse> =
+            agentRepository.getInitConfig(agentId)
+                .map { InitResponse(it) }
+
+    /**
      * Sets new tests ids
      *
      * @param agentId
@@ -47,20 +54,20 @@ class AgentService(
      */
     internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
             agentRepository.getNextTestBatch(agentId)
-                .flatMap { it.toHeartbeatResponse(agentId) }
+                .map { it.toHeartbeatResponse(agentId) }
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
-     * @param agents list of [Agent]s to save in the DB
+     * @param agents list of [AgentDto]s to save in the DB
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<Agent>): Mono<BodilessResponseEntity> = agentRepository
+    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<BodilessResponseEntity> = agentRepository
         .addAgents(agents)
-        .flatMap { agentIds ->
-            agentRepository.updateAgentStatuses(agents.zip(agentIds).map { (agent, id) ->
-                AgentStatus(LocalDateTime.now(), LocalDateTime.now(), STARTING, agent.also { it.id = id })
+        .flatMap {
+            agentRepository.updateAgentStatusesWithDto(agents.map { agent ->
+                AgentStatusDto(LocalDateTime.now(), STARTING, agent.containerId)
             })
         }
 
@@ -70,7 +77,7 @@ class AgentService(
      */
     fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
             agentRepository
-                .updateAgentStatusesWithDto(agentState)
+                .updateAgentStatusesWithDto(listOf(agentState))
                 .onErrorResume(WebClientException::class) {
                     log.warn("Couldn't update agent statuses because of backend failure", it)
                     Mono.empty()
@@ -236,13 +243,13 @@ class AgentService(
         return agentRepository.setStatusByAgentIds(agentsList, status)
     }
 
-    private fun TestBatch.toHeartbeatResponse(agentId: String): Mono<HeartbeatResponse> =
+    private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
             if (isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                Mono.fromCallable { NewJobResponse(this, constructCliCommand()) }
+                NewJobResponse(this, constructCliCommand())
             } else {
                 log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
-                Mono.just(WaitResponse)
+                WaitResponse
             }
 
     private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }

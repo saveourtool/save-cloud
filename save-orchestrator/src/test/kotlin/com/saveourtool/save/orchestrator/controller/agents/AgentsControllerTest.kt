@@ -18,15 +18,14 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
-import com.saveourtool.save.utils.compressAsZipTo
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import okio.Buffer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
 import org.mockito.kotlin.any
 import org.mockito.kotlin.times
@@ -84,18 +83,6 @@ class AgentsControllerTest {
             testSuiteIds = "1"
             id = 42L
         }
-        val tmpDir = createTempDirectory()
-        val tmpFile = createTempFile(tmpDir)
-        tmpFile.writeText("test")
-        val tmpArchive = createTempFile()
-        tmpDir.compressAsZipTo(tmpArchive)
-        mockServer.enqueue(
-            ".*/test-suites-sources/download-snapshot-by-execution-id.*",
-            MockResponse()
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/octet-stream")
-                .setBody(Buffer().readFrom(tmpArchive.inputStream()))
-        )
         whenever(dockerService.prepareConfiguration(any())).thenReturn(
             DockerService.RunConfiguration(
                 imageTag = "test-image-id",
@@ -124,30 +111,26 @@ class AgentsControllerTest {
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(
-            "/addAgents.*",
+            "/agents/insert.*",
             MockResponse()
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json")
                 .setBody(Json.encodeToString(listOf<Long>(1, 2)))
         )
-        mockServer.enqueue("/updateAgentStatuses", MockResponse().setResponseCode(200))
+        mockServer.enqueue("/updateAgentStatusesWithDto", MockResponse().setResponseCode(200))
         // /updateExecutionByDto is not mocked, because it's performed by DockerService, and it's mocked in these tests
 
         webClient
             .post()
             .uri("/initializeAgents")
-            .bodyValue(execution)
+            .bodyValue(execution.toRunRequest())
             .exchange()
             .expectStatus()
             .isAccepted
         Thread.sleep(2_500)  // wait for background task to complete on mocks
-        verify(dockerService).prepareConfiguration(any<Execution>())
+        verify(dockerService).prepareConfiguration(any())
         verify(dockerService).createContainers(any(), any())
         verify(dockerService).startContainersAndUpdateExecution(any(), anyList())
-
-        tmpFile.deleteExisting()
-        tmpDir.deleteExisting()
-        tmpArchive.deleteExisting()
     }
 
     @Test
@@ -155,13 +138,9 @@ class AgentsControllerTest {
         val project = Project.stub(null)
         val execution = Execution.stub(project)
 
-        webClient
-            .post()
-            .uri("/initializeAgents")
-            .bodyValue(execution)
-            .exchange()
-            .expectStatus()
-            .is4xxClientError
+        assertThrows<IllegalArgumentException> {
+            execution.toRunRequest()
+        }
     }
 
     @Test

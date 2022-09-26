@@ -29,6 +29,7 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
@@ -373,13 +374,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = RunExecutionRequest(
+        val executionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
                 projectName = state.project.name
             ),
             testSuiteIds = selectedTestSuites.map { it.requiredId() },
-            files = state.files.map { it.toStorageKey() },
+            files = state.files.map { it.key },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
@@ -542,7 +543,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     projectCoordinates = ProjectCoordinates(props.owner, props.name)
                     onFileSelect = { element ->
                         setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
+                            val availableFile = availableFiles.first { it.key.name == element.value }
                             files.add(availableFile)
                             bytesReceived += availableFile.sizeBytes
                             suiteByteSize += availableFile.sizeBytes
@@ -735,7 +736,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                with(file.key) {
+                    "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
+                },
                 jsonHeaders,
                 Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,
@@ -753,7 +756,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun postFileDelete(fileForDelete: FileInfo) {
         val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.name} file?"
+            "Are you sure you want to delete ${fileForDelete.key.name} file?"
         )
 
         if (confirm) {
@@ -772,7 +775,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
+                        "$apiUrl/files/${props.owner}/${props.name}/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)

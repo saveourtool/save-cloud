@@ -3,51 +3,84 @@ package com.saveourtool.save.domain
 import kotlinx.serialization.Serializable
 
 /**
+ * @property projectCoordinates file belongs to the project with such coordinates
  * @property name name of file
  * @property uploadedMillis version of file
  */
 @Serializable
 data class FileKey(
+    val projectCoordinates: ProjectCoordinates,
     val name: String,
     val uploadedMillis: Long,
 ) {
-    /**
-     * @param fileInfo
-     */
-    constructor(fileInfo: FileInfo) : this(fileInfo.name, fileInfo.uploadedMillis)
-
-    /**
-     * @return formatted string
-     */
-    fun format(): String = "$name$FIELD_DELIMITER$uploadedMillis"
-
     companion object {
         const val FIELD_DELIMITER = ":"
         const val OBJECT_DELIMITER = ";"
-
-        /**
-         * @param str
-         * @return list of [FileKey]s parsed from provided string
-         */
-        fun parseList(str: String): List<FileKey> = if (str.isEmpty()) emptyList() else str.split(OBJECT_DELIMITER).map { parse(it) }
-
-        /**
-         * @param str
-         * @return [FileKey] parsed from provided string
-         */
-        private fun parse(str: String): FileKey {
-            val (name, uploadedMillis) = str.split(FIELD_DELIMITER)
-            return FileKey(name, uploadedMillis.toLong())
-        }
     }
 }
 
 /**
  * @return formatted string
  */
-fun List<FileKey>.format(): String = this.joinToString(FileKey.OBJECT_DELIMITER) { it.format() }
+fun List<FileKey>.format(): String = joinToString(FileKey.OBJECT_DELIMITER) {
+    listOf(it.projectCoordinates.organizationName, it.projectCoordinates.projectName, it.name, it.uploadedMillis)
+        .joinToString(FileKey.FIELD_DELIMITER)
+}
 
 /**
- * @return formatted string
+ * @return formatted string for storing on Execution
  */
-fun FileInfo.format(): String = "$name${FileKey.FIELD_DELIMITER}$uploadedMillis"
+fun List<FileKey>.formatForExecution(): String {
+    if (isEmpty()) {
+        return ""
+    }
+    require(this.map { it.projectCoordinates }.distinct().count() == 1) {
+        "All FileKey on a single execution should have same ProjectCoordinates"
+    }
+    return this.joinToString(FileKey.OBJECT_DELIMITER) {
+        listOf(it.name, it.uploadedMillis)
+            .joinToString(FileKey.FIELD_DELIMITER)
+    }
+}
+
+/**
+ * @return list of [FileKey]s parsed from provided string
+ */
+@Suppress(
+    "WRONG_OVERLOADING_FUNCTION_ARGUMENTS",
+    "DestructuringDeclarationWithTooManyEntries"
+)
+fun String.toFileKeyList(): List<FileKey> = if (isEmpty()) {
+    emptyList()
+} else {
+    split(FileKey.OBJECT_DELIMITER)
+        .map { elementStr ->
+            val (organizationName, projectName, name, uploadedMillis) = elementStr.split(FileKey.FIELD_DELIMITER)
+            FileKey(
+                projectCoordinates = ProjectCoordinates(organizationName, projectName),
+                name = name,
+                uploadedMillis = uploadedMillis.toLong()
+            )
+        }
+}
+
+/**
+ * @param projectCoordinates
+ * @return list of [FileKey]s parsed from provided string using provided [ProjectCoordinates]
+ */
+@Suppress(
+    "DestructuringDeclarationWithTooManyEntries"
+)
+fun String.toFileKeyList(projectCoordinates: ProjectCoordinates): List<FileKey> = if (isEmpty()) {
+    emptyList()
+} else {
+    split(FileKey.OBJECT_DELIMITER)
+        .map { elementStr ->
+            val (name, uploadedMillis) = elementStr.split(FileKey.FIELD_DELIMITER)
+            FileKey(
+                projectCoordinates = projectCoordinates,
+                name = name,
+                uploadedMillis = uploadedMillis.toLong()
+            )
+        }
+}

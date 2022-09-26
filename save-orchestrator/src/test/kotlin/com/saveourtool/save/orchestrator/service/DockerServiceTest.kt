@@ -14,6 +14,7 @@ import com.saveourtool.save.testutils.enqueue
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
+import com.saveourtool.save.execution.ExecutionStatus
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -71,8 +72,9 @@ class DockerServiceTest {
             id = 42L
             testSuiteIds = "1,2,3"
             sdk = "Java:11"
+            status = ExecutionStatus.PENDING
         }
-        val configuration = dockerService.prepareConfiguration(testExecution)
+        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest())
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -92,7 +94,7 @@ class DockerServiceTest {
                 .setResponseCode(200)
                 .setBody("sleep 200")
         )
-        dockerService.startContainersAndUpdateExecution(testExecution, listOf(testContainerId))
+        dockerService.startContainersAndUpdateExecution(testExecution.requiredId(), listOf(testContainerId))
             .subscribe()
 
         // assertions
