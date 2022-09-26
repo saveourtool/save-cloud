@@ -38,12 +38,18 @@ services:
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "MYSQL_USER=/run/secrets/db_username"
+      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
+    secrets:
+      - db_username
+      - db_password
+      - db_url
     ports:
       - "5400:5400"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - /home/saveu/executionLogs:/home/cnb/executionLogs/
       - /home/saveu/configs/sandbox:/home/cnb/config
+      - save-fs-storage:/home/cnb/files
       - save-tmp-resources:/tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
