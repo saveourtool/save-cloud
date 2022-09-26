@@ -37,13 +37,12 @@ services:
     image: ghcr.io/saveourtool/save-sandbox:${SANDBOX_TAG}
     user: root  # to access host's docker socket
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE}"
-      - "MYSQL_USER=/run/secrets/db_username"
-      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
+      - "SECRETS_PREFIX=sandbox_"
     secrets:
-      - db_username
-      - db_password
-      - db_url
+      - sandbox_db_username
+      - sandbox_db_password
+      - sandbox_db_url
     ports:
       - "5400:5400"
     volumes:
@@ -61,8 +60,7 @@ services:
     image: ghcr.io/saveourtool/save-backend:${BACKEND_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
-      - "MYSQL_USER=/run/secrets/db_username"
-      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
+      - "SECRETS_PREFIX="
     secrets:
       - db_username
       - db_password

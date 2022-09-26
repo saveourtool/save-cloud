@@ -25,11 +25,12 @@ class DockerSecretsDatabaseProcessor(
             log.debug("Skipping activation of ${this::class.simpleName} because of active profiles")
             return
         }
-        val secretsBasePath = System.getenv("DB_PASSWORD_FILE") ?: "/run/secrets"
+        val secretsPrefix = System.getenv("SECRETS_PREFIX") ?: ""
+        val secretsBasePath = System.getenv("SECRETS_PATH") ?: "/run/secrets"
         log.debug("Started DockerSecretsDatabaseProcessor [EnvironmentPostProcessor] configured to look up secrets in $secretsBasePath")
-        val passwordResource = FileSystemResource("$secretsBasePath/db_password")
-        val usernameResource = FileSystemResource("$secretsBasePath/db_username")
-        val jdbcUrlResource = FileSystemResource("$secretsBasePath/db_url")
+        val passwordResource = FileSystemResource("$secretsBasePath/${secretsPrefix}db_password")
+        val usernameResource = FileSystemResource("$secretsBasePath/${secretsPrefix}db_username")
+        val jdbcUrlResource = FileSystemResource("$secretsBasePath/${secretsPrefix}db_url")
 
         if (passwordResource.exists()) {
             log.debug("Acquired password. Beginning to setting properties")
