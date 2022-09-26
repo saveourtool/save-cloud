@@ -3,7 +3,6 @@ import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
@@ -19,14 +18,25 @@ kotlin {
 //        else -> jvm("agent")
 //    }
 
-    val hostTarget = linuxX64 {
+    val additionalCompilerArgs = "-Xruntime-logs=gc=info"
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "17"
+                freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
+            }
+        }
+    }
+
+    val linuxTarget = linuxX64 {
         binaries.executable {
             entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
         }
         binaries.all {
             binaryOptions["memoryModel"] = "experimental"
-            freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
+            freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
         }
     }
 
@@ -39,16 +49,16 @@ kotlin {
         val commonMain by getting
         val commonTest by getting
 
-//        val jvmMain by getting {
-//            dependsOn(commonMain)
-//        }
-//        val jvmTest by getting {
-//            dependsOn(commonTest)
-//            dependencies {
-//                implementation(kotlin("test-junit5"))
-//                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-//            }
-//        }
+        val jvmMain by getting {
+            dependsOn(commonMain)
+        }
+        val jvmTest by getting {
+            dependsOn(commonTest)
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+            }
+        }
 
         val nativeMain by creating {
             dependsOn(commonMain)
@@ -101,15 +111,15 @@ kotlin {
     // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
     if (false) {
         // this doesn't work for 1.4.31, maybe will be fixed later
-        hostTarget.binaries.getTest("DEBUG").apply {
-            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
+        linuxTarget.binaries.getTest("DEBUG").apply {
+            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${linuxTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
         val createCoverageReportTask by tasks.creating {
-            dependsOn("${hostTarget.name}Test")
+            dependsOn("${linuxTarget.name}Test")
             description = "Create coverage report"
 
             doLast {
-                val testDebugBinary = hostTarget.binaries.getTest("DEBUG").outputFile
+                val testDebugBinary = linuxTarget.binaries.getTest("DEBUG").outputFile
                 val llvmPath = "${System.getenv()["HOME"]}/.konan/dependencies/clang-llvm-8.0.0-linux-x86-64/bin"
                 exec {
                     commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
@@ -119,7 +129,7 @@ kotlin {
                 }
             }
         }
-        tasks.named("${hostTarget.name}Test") {
+        tasks.named("${linuxTarget.name}Test") {
             finalizedBy(createCoverageReportTask)
         }
     }
