@@ -14,9 +14,28 @@ import javax.persistence.ManyToOne
 class Agent(
     var containerId: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "execution_id")
     var execution: Execution,
 
     var version: String? = null,
-) : BaseEntity()
+) : BaseEntity() {
+    /**
+     * @return [AgentDto] from [Agent]
+     */
+    fun toDto(): AgentDto = AgentDto(
+        containerId = containerId,
+        executionId = execution.requiredId(),
+        version = version,
+    )
+}
+
+/**
+ * @param executionResolver resolves [Execution] by [AgentDto.executionId]
+ * @return [Agent] from [AgentDto]
+ */
+fun AgentDto.toEntity(executionResolver: (Long) -> Execution) = Agent(
+    containerId = containerId,
+    execution = executionResolver(executionId),
+    version = version
+)

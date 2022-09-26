@@ -1,11 +1,9 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
@@ -23,33 +21,35 @@ typealias TestExecutionList = List<TestExecutionDto>
  */
 interface AgentRepository {
     /**
+     * Gets config to init agent
+     *
+     * @param containerId
+     * @return [Mono] of [AgentInitConfig]
+     */
+    fun getInitConfig(containerId: String): Mono<AgentInitConfig>
+
+    /**
      * Gets new tests ids
      *
      * @param agentId
-     * @return Mono<NewJobResponse>
+     * @return [Mono] of [TestBatch]
      */
     fun getNextTestBatch(agentId: String): Mono<TestBatch>
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
      *
-     * @param agents list of [Agent]s to save in the DB
+     * @param agents list of [AgentDto]s to save in the DB
      * @return Mono with IDs of saved [Agent]s
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun addAgents(agents: List<Agent>): Mono<IdList>
+    fun addAgents(agents: List<AgentDto>): Mono<IdList>
 
     /**
-     * @param agentStates list of [AgentStatus]es to update in the DB
+     * @param agentStates list of [AgentStatusDto] to update/insert in the DB
      * @return a Mono without body
      */
-    fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<BodilessResponseEntity>
-
-    /**
-     * @param agentState [AgentStatus] to update in the DB
-     * @return a Mono without body
-     */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity>
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity>
 
     /**
      * Get List of [TestExecutionDto] for agent [agentId] have status READY_FOR_TESTING

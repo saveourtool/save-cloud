@@ -13,11 +13,11 @@ import kotlin.test.assertNull
 
 internal class ExecutionTest {
     private val project = Project(
-        name = "stub",
+        name = "projectName",
         url = null,
         description = null,
         status = ProjectStatus.CREATED,
-        organization = Organization.stub(null),
+        organization = Organization.stub(null).apply { name = "organizationName" },
     )
     private val execution = Execution.stub(project)
 
@@ -62,18 +62,26 @@ internal class ExecutionTest {
     @Test
     fun parseAndGetAdditionalFiles() {
         execution.additionalFiles = ""
-        assertEquals(emptyList(), execution.parseAndGetAdditionalFiles())
+        assertEquals(emptyList(), execution.getFileKeys())
 
         execution.additionalFiles = "file1:1;file2:2;file3:3"
         assertEquals(
-            listOf(FileKey("file1", 1), FileKey("file2", 2), FileKey("file3", 3)),
-            execution.parseAndGetAdditionalFiles()
+            listOf(
+                FileKey(execution.project.toProjectCoordinates(), "file1", 1),
+                FileKey(execution.project.toProjectCoordinates(), "file2", 2),
+                FileKey(execution.project.toProjectCoordinates(), "file3", 3)
+            ),
+            execution.getFileKeys()
         )
 
         execution.additionalFiles = "file3:3;file2:2;file1:1"
         assertEquals(
-            listOf(FileKey("file3", 3), FileKey("file2", 2), FileKey("file1", 1)),
-            execution.parseAndGetAdditionalFiles()
+            listOf(
+                FileKey(execution.project.toProjectCoordinates(), "file3", 3),
+                FileKey(execution.project.toProjectCoordinates(), "file2", 2),
+                FileKey(execution.project.toProjectCoordinates(), "file1", 1)
+            ),
+            execution.getFileKeys()
         )
     }
 }
