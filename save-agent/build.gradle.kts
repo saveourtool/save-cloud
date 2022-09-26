@@ -21,14 +21,14 @@ kotlin {
 
     val additionalCompilerArgs = "-Xruntime-logs=gc=info"
 
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-                freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
-            }
-        }
-    }
+//    jvm {
+//        compilations.all {
+//            kotlinOptions {
+//                jvmTarget = "17"
+//                freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
+//            }
+//        }
+//    }
 
     val linuxTarget = linuxX64 {
         binaries.executable {
@@ -47,22 +47,22 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        val commonMain by getting
-        val commonTest by getting
-
-        val jvmMain by getting {
-            dependsOn(commonMain)
-        }
-        val jvmTest by getting {
-            dependsOn(commonTest)
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-            }
-        }
+//        val commonMain by getting
+//        val commonTest by getting
+//
+//        val jvmMain by getting {
+//            dependsOn(commonMain)
+//        }
+//        val jvmTest by getting {
+//            dependsOn(commonTest)
+//            dependencies {
+//                implementation(kotlin("test-junit5"))
+//                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+//            }
+//        }
 
         val linuxX64Main by getting {
-            dependsOn(commonMain)
+            //dependsOn(commonMain)
             dependencies {
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
@@ -80,7 +80,7 @@ kotlin {
             }
         }
         val linuxX64Test by getting {
-            dependsOn(commonTest)
+            //dependsOn(commonTest)
             dependencies {
                 implementation(libs.ktor.client.mock)
             }
@@ -160,7 +160,8 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-listOf("linuxX64Main", "jvmMain").forEach { targetName ->
+//listOf("linuxX64Main", "jvmMain").forEach { targetName ->
+listOf("linuxX64Main").forEach { targetName ->
     kotlin.sourceSets.getByName(targetName).dependsOn(generatedKotlinSrc)
 }
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
