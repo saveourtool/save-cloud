@@ -14,7 +14,7 @@ import kotlin.io.path.div
 class SandboxStorage(
     configProperties: ConfigProperties
 ) : AbstractFileBasedStorage<SandboxStorageKey>(
-    Path.of(configProperties.fileStorageLocation)
+    Path.of(configProperties.fileStorageLocation) / "sandbox"
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): SandboxStorageKey {
