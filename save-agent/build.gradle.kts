@@ -166,7 +166,9 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
+listOf("linuxX64Main", "jvmMain").forEach { targetName ->
+    kotlin.sourceSets.getByName(targetName).dependsOn(generatedKotlinSrc)
+}
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
     dependsOn(generateVersionFileTaskProvider)
 }
