@@ -3,6 +3,7 @@ import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+//import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
@@ -60,15 +61,8 @@ kotlin {
             }
         }
 
-        val nativeMain by creating {
-            dependsOn(commonMain)
-        }
-        val nativeTest by creating {
-            dependsOn(commonTest)
-        }
-
         val linuxX64Main by getting {
-            dependsOn(nativeMain)
+            dependsOn(commonMain)
             dependencies {
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
@@ -86,7 +80,7 @@ kotlin {
             }
         }
         val linuxX64Test by getting {
-            dependsOn(nativeTest)
+            dependsOn(commonTest)
             dependencies {
                 implementation(libs.ktor.client.mock)
             }
