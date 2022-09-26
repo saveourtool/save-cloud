@@ -105,6 +105,7 @@ fun Project.createStackDeployTask(profile: String) {
                     FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()

@@ -25,6 +25,14 @@ orchestrator:
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
+sandbox:
+  name: sandbox
+  imageName: save-sandbox
+  containerPort: 5400
+  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
+  clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
+  dbPasswordFile: /home/cnb/secrets/db_secrets
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
