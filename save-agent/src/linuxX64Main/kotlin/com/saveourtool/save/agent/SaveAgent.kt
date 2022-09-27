@@ -24,8 +24,6 @@ import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import okio.FileSystem
@@ -269,11 +267,11 @@ class SaveAgent(private val config: AgentConfiguration,
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
 
         val saveCliLogFilePath = config.logFilePath
-        val byteArray = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
+        val saveCliLogData = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
             .buffer()
             .readByteArray()
-        val saveCliLogData = String(byteArray).split("\n")
-        launchLogSendingJob(byteArray)
+            .let { String(it) }
+            .split("\n")
         logDebugCustom("SAVE has completed execution, execution logs:")
         saveCliLogData.forEach {
             logDebugCustom("[SAVE] $it")
@@ -359,16 +357,6 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.launchLogSendingJob(byteArray: ByteArray): Job = launch {
-        runCatching {
-            sendLogs(byteArray)
-        }
-            .exceptionOrNull()
-            ?.let {
-                logErrorCustom("Couldn't send logs, reason: ${it.message}")
-            }
-    }
-
     private fun CoroutineScope.handleSuccessfulExit(): Job {
         val jsonReport = "${config.save.reportDir}/save.out.json"
         val result = runCatching {
@@ -395,24 +383,6 @@ class SaveAgent(private val config: AgentConfiguration,
             }
         }
     }
-
-    /**
-     * @param byteArray byte array with logs of CLI execution progress that will be sent in a message
-     */
-    private suspend fun sendLogs(byteArray: ByteArray): HttpResponse =
-            httpClient.post {
-                url("${config.orchestrator.url}${config.orchestrator.executionLogsEndpoint}")
-                setBody(MultiPartFormDataContent(formData {
-                    append(
-                        "executionLogs",
-                        byteArray,
-                        Headers.build {
-                            append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-                            append(HttpHeaders.ContentDisposition, "filename=${config.id}")
-                        }
-                    )
-                }))
-            }
 
     private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
         url("${config.backend.url}${config.backend.debugInfoEndpoint}?executionId=${executionId.value}")

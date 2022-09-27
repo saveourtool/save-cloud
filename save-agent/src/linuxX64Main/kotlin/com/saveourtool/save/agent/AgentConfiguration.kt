@@ -74,13 +74,11 @@ data class HeartbeatConfig(
  *
  * @property url URL of orchestrator
  * @property heartbeatEndpoint endpoint to post heartbeats to
- * @property executionLogsEndpoint endpoint to post executionLogs to
  */
 @Serializable
 data class OrchestratorConfig(
     val url: String,
     val heartbeatEndpoint: String = "/heartbeat",
-    val executionLogsEndpoint: String = "/executionLogs",
 )
 
 /**
