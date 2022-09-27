@@ -4,13 +4,13 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
 import com.saveourtool.save.utils.info
 
-import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -39,7 +39,7 @@ import java.io.FileOutputStream
 class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
-    private val dockerClient: DockerClient,
+    private val agentRunner: AgentRunner,
     private val configProperties: ConfigProperties,
 ) {
     /**
@@ -76,7 +76,7 @@ class AgentsController(
                 .flatMap { containerIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         containerIds.map { containerId ->
-                            val containerName = dockerClient.inspectContainerCmd(containerId).exec().name
+                            val containerName = agentRunner.getContainerIdentifier(containerId)
                             AgentDto(containerId, containerName, request.executionId)
                         }
                     )

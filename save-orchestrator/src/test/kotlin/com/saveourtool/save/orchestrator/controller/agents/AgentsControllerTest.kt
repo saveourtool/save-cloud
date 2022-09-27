@@ -65,7 +65,7 @@ class AgentsControllerTest {
     @Autowired
     private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
-    @MockBean private lateinit var dockerClient: DockerClient
+    @MockBean private lateinit var agentRunner: AgentRunner
 
     @AfterEach
     fun tearDown() {
@@ -94,19 +94,8 @@ class AgentsControllerTest {
         whenever(dockerService.createContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
-        val mockInspectContainerCmd = mock<InspectContainerCmd>()
-
-        whenever(dockerClient.inspectContainerCmd(any())).thenReturn(mockInspectContainerCmd)
-
-        val mockInspectContainerResponse = mock<InspectContainerResponse>()
-
-        whenever(mockInspectContainerCmd.exec()).thenReturn(mockInspectContainerResponse)
-
-        whenever(mockInspectContainerResponse.name)
-            .thenReturn("save-test-agent-id-1")
-
-        whenever(mockInspectContainerResponse.name)
-            .thenReturn("save-test-agent-id-2")
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-2")
 
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))

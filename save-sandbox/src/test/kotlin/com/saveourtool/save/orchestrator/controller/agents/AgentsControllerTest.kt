@@ -55,6 +55,7 @@ class AgentsControllerTest {
     private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
     @MockBean private lateinit var agentRepository: AgentRepository
+    @MockBean private lateinit var agentRunner: AgentRunner
 
     @AfterEach
     fun tearDown() {
@@ -82,6 +83,10 @@ class AgentsControllerTest {
         )
         whenever(dockerService.createContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-2")
+
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         whenever(agentRepository.addAgents(anyList()))

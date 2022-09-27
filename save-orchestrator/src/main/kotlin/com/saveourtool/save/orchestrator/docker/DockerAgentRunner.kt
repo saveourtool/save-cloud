@@ -152,6 +152,8 @@ class DockerAgentRunner(
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
+    override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
+
     /**
      * Creates a docker container
      *

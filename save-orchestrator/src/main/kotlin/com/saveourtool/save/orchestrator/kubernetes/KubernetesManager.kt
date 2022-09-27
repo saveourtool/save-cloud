@@ -159,6 +159,8 @@ class KubernetesManager(
         }
     }
 
+    override fun getContainerIdentifier(containerId: String): String = containerId
+
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
 
     @Suppress("TOO_LONG_FUNCTION")
