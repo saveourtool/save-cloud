@@ -78,7 +78,6 @@ class AgentsControllerTest {
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
 
         whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
-        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-2")
 
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
