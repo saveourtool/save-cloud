@@ -36,37 +36,9 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+//    implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.spring.kafka)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
-}
-
-// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
-val generateVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateVersionFile") {
-    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
-
-    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
-    inputs.file(pathToSaveCliVersion)
-    outputs.file(versionsFile)
-
-    doFirst {
-        val saveCliVersion = readSaveCliVersion()
-        versionsFile.parentFile.mkdirs()
-        versionsFile.writeText(
-            """
-            package generated
-
-            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
-
-            """.trimIndent()
-        )
-    }
-}
-kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir("$buildDir/generated/src")
-}
-tasks.withType<KotlinCompile>().forEach {
-    it.dependsOn(generateVersionFileTaskProvider)
 }

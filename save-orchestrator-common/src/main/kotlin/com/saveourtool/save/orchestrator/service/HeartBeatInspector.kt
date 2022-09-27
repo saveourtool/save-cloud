@@ -25,7 +25,7 @@ typealias AgentStateWithTimeStamp = Pair<String, Instant>
  * TODO: can be used to store data about existing agents on orchestrator startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))
  */
 @Component
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:META-INF/save-orchestrator-common/application.properties")
 class HeartBeatInspector(
     private val configProperties: ConfigProperties,
     private val dockerService: DockerService,

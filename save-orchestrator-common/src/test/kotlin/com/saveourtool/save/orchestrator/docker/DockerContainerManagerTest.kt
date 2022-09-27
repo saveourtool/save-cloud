@@ -8,6 +8,7 @@ import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.model.Image
+import com.saveourtool.save.orchestrator.service.AgentRepository
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -16,24 +17,32 @@ import org.junit.jupiter.api.condition.DisabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 import kotlin.io.path.createTempFile
 
-@ExtendWith(SpringExtension::class)
-@EnableConfigurationProperties(ConfigProperties::class)
-@TestPropertySource("classpath:application.properties")
-@Import(Beans::class, DockerAgentRunner::class, TestConfiguration::class)
-@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
+//@ExtendWith(SpringExtension::class)
+@SpringBootTest
+@EnableAutoConfiguration
+//@EnableConfigurationProperties(ConfigProperties::class)
+//@TestPropertySource("classpath:application.properties")
+@Import(Beans::class, DockerAgentRunner::class)
+//@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
+//@ActiveProfiles()
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
     private lateinit var baseImage: Image
     private lateinit var testContainerId: String
     private lateinit var testImageId: String
+    @MockBean private lateinit var agentRepository: AgentRepository
 
     @BeforeEach
     fun setUp() {
