@@ -483,6 +483,12 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -3580,8 +3586,8 @@
                   "type": "string",
                   "enum": [
                     "MAINTAIN",
-                    "USE",
-                    "NONE"
+                    "NONE",
+                    "USE"
                   ]
                 }
               }
@@ -3595,8 +3601,8 @@
                   "type": "string",
                   "enum": [
                     "MAINTAIN",
-                    "USE",
-                    "NONE"
+                    "NONE",
+                    "USE"
                   ]
                 }
               }
@@ -3610,8 +3616,8 @@
                   "type": "string",
                   "enum": [
                     "MAINTAIN",
-                    "USE",
-                    "NONE"
+                    "NONE",
+                    "USE"
                   ]
                 }
               }
@@ -3625,8 +3631,8 @@
                   "type": "string",
                   "enum": [
                     "MAINTAIN",
-                    "USE",
-                    "NONE"
+                    "NONE",
+                    "USE"
                   ]
                 }
               }
@@ -3666,12 +3672,6 @@
             "in": "path",
             "description": "name of an organization",
             "required": true
-          },
-          {
-            "name": "X-Authorization-Source",
-            "in": "header",
-            "required": true,
-            "example": "basic"
           }
         ],
         "responses": {
@@ -3828,6 +3828,15 @@
             "name": "isContest",
             "in": "query",
             "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "onlyPrivate",
+            "in": "query",
             "required": false,
             "schema": {
               "type": "boolean",
@@ -7489,8 +7498,8 @@
             "type": "string",
             "enum": [
               "MAINTAIN",
-              "USE",
-              "NONE"
+              "NONE",
+              "USE"
             ]
           }
         }
