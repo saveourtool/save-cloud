@@ -1,9 +1,9 @@
 package com.saveourtool.save.orchestrator.service
 
+import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -15,7 +15,6 @@ import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
@@ -28,6 +27,11 @@ class BackendAgentRepository(
     configProperties: ConfigProperties,
 ) : AgentRepository {
     private val webClientBackend = WebClient.create(configProperties.backendUrl)
+    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
+        .get()
+        .uri("/agents/get-init-config?containerId=$containerId")
+        .retrieve()
+        .bodyToMono()
 
     override fun getNextTestBatch(agentId: String): Mono<TestBatch> = webClientBackend
         .get()
@@ -35,25 +39,18 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun addAgents(agents: List<Agent>): Mono<IdList> = webClientBackend
+    override fun addAgents(agents: List<AgentDto>): Mono<IdList> = webClientBackend
         .post()
-        .uri("/addAgents")
-        .body(BodyInserters.fromValue(agents))
+        .uri("/agents/insert")
+        .bodyValue(agents)
         .retrieve()
         .bodyToMono()
 
-    override fun updateAgentStatuses(agentStates: List<AgentStatus>): Mono<BodilessResponseEntity> = webClientBackend
-        .post()
-        .uri("/updateAgentStatuses")
-        .body(BodyInserters.fromValue(agentStates))
-        .retrieve()
-        .toBodilessEntity()
-
-    override fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
             webClientBackend
                 .post()
-                .uri("/updateAgentStatusWithDto")
-                .body(BodyInserters.fromValue(agentState))
+                .uri("/updateAgentStatusesWithDto")
+                .bodyValue(agentStates)
                 .retrieve()
                 .toBodilessEntity()
 

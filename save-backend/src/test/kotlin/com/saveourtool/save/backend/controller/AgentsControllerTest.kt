@@ -65,12 +65,14 @@ class AgentsControllerTest {
     fun `should save agent statuses`() {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(
-                AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
-            ))
+            .bodyValue(
+                listOf(
+                    AgentStatusDto(LocalDateTime.now(), AgentState.IDLE, "container-1")
+                )
+            )
             .exchange()
             .expectStatus()
             .isOk
@@ -87,11 +89,13 @@ class AgentsControllerTest {
 
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+                listOf(
+                    AgentStatusDto(LocalDateTime.of(2020, Month.MAY, 10, 16, 30, 20), AgentState.IDLE, "container-2")
+                )
             )
             .exchange()
             .expectStatus()
@@ -169,10 +173,10 @@ class AgentsControllerTest {
     private fun updateAgentStatuses(body: AgentStatusDto) {
         webTestClient
             .method(HttpMethod.POST)
-            .uri("/internal/updateAgentStatusWithDto")
+            .uri("/internal/updateAgentStatusesWithDto")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
+            .bodyValue(listOf(body))
             .exchange()
             .expectStatus()
             .isOk

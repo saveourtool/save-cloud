@@ -28,6 +28,7 @@ class SaveAgentTest {
         setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
         setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
+        setenv(AgentEnvName.EXECUTION_ID.name, "1", 1)
     }
 
     private val configuration: AgentConfiguration = AgentConfiguration.initializeFromEnv().let {
@@ -45,8 +46,6 @@ class SaveAgentTest {
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
-                    "/executionData" -> respond("", status = HttpStatusCode.OK)
-                    "/executionLogs" -> respond("", status = HttpStatusCode.OK)
                     else -> error("Unhandled ${request.url}")
                 }
             }
