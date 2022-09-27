@@ -45,7 +45,6 @@ class Beans {
     }
 
     /**
-     * @param configProperties orchestrator configuration
      * @return a Kubernetes client that uses properties from [configProperties] for connection
      */
     @Bean(destroyMethod = "close")
