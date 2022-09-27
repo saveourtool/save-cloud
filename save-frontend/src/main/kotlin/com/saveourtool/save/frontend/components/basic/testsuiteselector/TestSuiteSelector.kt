@@ -51,7 +51,7 @@ external interface TestSuiteSelectorProps : Props {
     var selectorPurpose: TestSuiteSelectorPurpose
 
     /**
-     * Name of organization that is used to manipulate with test suites
+     * Name of a current organization (by which test suite selection is happening)
      */
     var currentOrganizationName: String
 }
@@ -79,6 +79,7 @@ enum class TestSuiteSelectorPurpose {
 /**
  * Browse all the available test suites.
  *
+ * @param currentOrganizationName
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
@@ -86,19 +87,19 @@ enum class TestSuiteSelectorPurpose {
  */
 @Suppress("TYPE_ALIAS")
 fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
+    currentOrganizationName: String,
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
-    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(currentOrganizationName, TestSuiteSelectorPurpose.PUBLIC, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
  * Browse test suites of a given organization.
  *
- * @param organizationName
+ * @param currentOrganizationName
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
@@ -106,19 +107,19 @@ fun ChildrenBuilder.showPublicTestSuitesSelectorModal(
  */
 @Suppress("TYPE_ALIAS")
 fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
-    organizationName: String,
+    currentOrganizationName: String,
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
-    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(organizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(currentOrganizationName, TestSuiteSelectorPurpose.PRIVATE, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 /**
  * Browse test suites for a contest.
  *
+ * @param currentOrganizationName
  * @param initTestSuiteIds initial value
  * @param windowOpenness state to control openness of window
  * @param testSuiteIdsInSelectorState state for intermediate result in selector
@@ -126,23 +127,22 @@ fun ChildrenBuilder.showPrivateTestSuitesSelectorModal(
  */
 @Suppress("TYPE_ALIAS")
 fun ChildrenBuilder.showContestTestSuitesSelectorModal(
+    currentOrganizationName: String,
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
-    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
-    showTestSuitesSelectorModal(null, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, currentOrganizationName, setSelectedTestSuiteIds)
+    showTestSuitesSelectorModal(currentOrganizationName, TestSuiteSelectorPurpose.CONTEST, initTestSuiteIds, windowOpenness, testSuiteIdsInSelectorState, setSelectedTestSuiteIds)
 }
 
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TYPE_ALIAS")
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
-    specificOrganizationName: String?,
+    currentOrganizationName: String,
     selectorPurpose: TestSuiteSelectorPurpose,
     initTestSuiteIds: List<TestSuiteDto>,
     windowOpenness: WindowOpenness,
     testSuiteIdsInSelectorState: StateInstance<List<TestSuiteDto>>,
-    currentOrganizationName: String,
     setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
     var currentlySelectedTestSuiteIds by testSuiteIdsInSelectorState
@@ -157,7 +157,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
         currentlySelectedTestSuiteIds = initTestSuiteIds
         windowOpenness.closeWindow()
     }
-    showTestSuitesSelectorModal(windowOpenness.isOpen(), specificOrganizationName, selectorPurpose, initTestSuiteIds, currentOrganizationName, onSubmit, onTestSuiteIdUpdate, onCancel)
+    showTestSuitesSelectorModal(windowOpenness.isOpen(), currentOrganizationName, selectorPurpose, initTestSuiteIds, onSubmit, onTestSuiteIdUpdate, onCancel)
 }
 
 @Suppress(
@@ -168,10 +168,9 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
 )
 private fun ChildrenBuilder.showTestSuitesSelectorModal(
     isOpen: Boolean,
-    specificOrganizationName: String?,
+    currentOrganizationName: String,
     selectorPurpose: TestSuiteSelectorPurpose,
     preselectedTestSuiteIds: List<TestSuiteDto>,
-    currentOrganizationName: String,
     onSubmit: () -> Unit,
     onTestSuiteIdUpdate: (List<TestSuiteDto>) -> Unit,
     onCancel: () -> Unit,
@@ -206,7 +205,6 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                     testSuiteSelector {
                         this.onTestSuiteUpdate = onTestSuiteIdUpdate
                         this.preselectedTestSuites = preselectedTestSuiteIds
-                        this.specificOrganizationName = specificOrganizationName
                         this.selectorPurpose = selectorPurpose
                         this.currentOrganizationName = currentOrganizationName
                     }
@@ -262,17 +260,20 @@ private fun testSuiteSelector() = FC<TestSuiteSelectorProps> { props ->
             this.onTestSuitesUpdate = props.onTestSuiteUpdate
             this.preselectedTestSuites = props.preselectedTestSuites
             this.selectorPurpose = props.selectorPurpose
+            this.currentOrganizationName = props.currentOrganizationName
         }
         TestSuiteSelectorMode.BROWSER -> testSuiteSelectorBrowserMode {
             this.onTestSuitesUpdate = props.onTestSuiteUpdate
             this.preselectedTestSuites = props.preselectedTestSuites
             this.specificOrganizationName = props.specificOrganizationName
             this.selectorPurpose = props.selectorPurpose
+            this.currentOrganizationName = props.currentOrganizationName
         }
         TestSuiteSelectorMode.SEARCH -> testSuiteSelectorSearchMode {
             this.onTestSuitesUpdate = props.onTestSuiteUpdate
             this.preselectedTestSuites = props.preselectedTestSuites
             this.selectorPurpose = props.selectorPurpose
+            this.currentOrganizationName = props.currentOrganizationName
         }
     }
 }

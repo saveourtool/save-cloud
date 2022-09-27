@@ -6,9 +6,8 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
@@ -16,9 +15,6 @@ import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h6
 import react.useState
-
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val testSuiteSelectorManagerMode = testSuiteSelectorManagerMode()
 
@@ -41,34 +37,24 @@ external interface TestSuiteSelectorManagerModeProps : Props {
      */
     var selectorPurpose: TestSuiteSelectorPurpose
 
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
     var currentOrganizationName: String
 }
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorManagerMode() = FC<TestSuiteSelectorManagerModeProps> { props ->
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    val (preselectedTestSuites, setPreselectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest {
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids/${props.currentOrganizationName}",
-            headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuites),
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setPreselectedTestSuites(testSuitesFromBackend)
-        setSelectedTestSuites(testSuitesFromBackend)
-    }
+    val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     useTooltip()
-    if (preselectedTestSuites.isEmpty()) {
+    if (props.preselectedTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No test suites are selected yet."
         }
     } else {
-        showAvailableTestSuites(
-            preselectedTestSuites,
+        showAvaliableTestSuites(
+            props.preselectedTestSuites,
             selectedTestSuites,
             TestSuiteSelectorMode.MANAGER,
         ) { testSuite ->

@@ -25,7 +25,8 @@ import react.dom.html.ReactHTML.small
  * @param displayMode if used not inside TestSuiteSelector, should be null, otherwise should be mode of TestSuiteSelector
  * @param onTestSuiteClick
  */
-fun ChildrenBuilder.showAvailableTestSuites(
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+fun ChildrenBuilder.showAvaliableTestSuites(
     testSuites: List<TestSuiteDto>,
     selectedTestSuites: List<TestSuiteDto>,
     displayMode: TestSuiteSelectorMode?,
@@ -54,28 +55,38 @@ fun ChildrenBuilder.showAvailableTestSuites(
                         +(testSuite.language ?: "")
                     }
                 }
-                p {
-                    +(testSuite.description ?: "")
+                div {
+                    className = ClassName("clearfix mb-1")
+                    div {
+                        className = ClassName("float-left")
+                        p {
+                            +(testSuite.description ?: "")
+                        }
+                    }
+                    div {
+                        className = ClassName("float-right")
+                        if (displayMode.shouldDisplayVersion()) {
+                            small {
+                                asDynamic()["data-toggle"] = "tooltip"
+                                asDynamic()["data-placement"] = "bottom"
+                                title = "Hash of commit with current test suite"
+                                +testSuite.version.take(GIT_HASH_PREFIX_LENGTH)
+                            }
+                        }
+                    }
                 }
                 div {
-                    className = ClassName("d-flex justify-content-between")
+                    className = ClassName("clearfix")
                     small {
+                        className = ClassName("float-left")
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Test suite tags"
                         +(testSuite.tags?.joinToString(", ") ?: "")
                     }
 
-                    if (displayMode.shouldDisplayVersion()) {
-                        small {
-                            asDynamic()["data-toggle"] = "tooltip"
-                            asDynamic()["data-placement"] = "bottom"
-                            title = "Hash of commit with current test suite"
-                            +testSuite.version.take(GIT_HASH_PREFIX_LENGTH)
-                        }
-                    }
-
                     small {
+                        className = ClassName("float-right")
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "bottom"
                         title = "Plugin type"

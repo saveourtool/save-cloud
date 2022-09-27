@@ -15,19 +15,12 @@ import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.isAllowedForContests
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.filters.TestSuiteFilters
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
-import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -89,6 +82,7 @@ class LnkOrganizationTestSuiteController(
     fun getAvailableTestSuitesByOrganization(
         @PathVariable organizationName: String,
         @RequestParam(defaultValue = "false") isContest: Boolean,
+        @RequestParam(defaultValue = "false") onlyPrivate: Boolean,
         authentication: Authentication,
     ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
         .map { organization ->
@@ -97,13 +91,21 @@ class LnkOrganizationTestSuiteController(
         }
         .map { (organization, testSuites) ->
             testSuites.filter { testSuite ->
-                testSuitePermissionEvaluator.hasPermission(organization, testSuite, Permission.READ, authentication)
+                testSuitePermissionEvaluator.hasPermission(
+                    organization,
+                    testSuite,
+                    if (onlyPrivate) {
+                        Permission.WRITE
+                    } else {
+                        Permission.READ
+                    },
+                    authentication,
+                )
             }
         }
         .mapToDtos(isContest)
 
     @GetMapping("/public")
-    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -121,6 +123,7 @@ class LnkOrganizationTestSuiteController(
         .mapToDtos(isContest)
 
     @PostMapping("/get-by-ids/{organizationName}")
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -138,7 +141,7 @@ class LnkOrganizationTestSuiteController(
         @PathVariable organizationName: String,
         @RequestBody testSuiteIds: List<Long>,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
         .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
         .map { (organization, testSuites) ->
@@ -162,6 +165,7 @@ class LnkOrganizationTestSuiteController(
         Parameter(name = "isContest", `in` = ParameterIn.QUERY, description = "is given request sent for browsing test suites for contest, default is false", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched filtered test suites.")
+    @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
     fun getFilteredTestSuites(
         @PathVariable organizationName: String,
         @RequestParam(required = false, defaultValue = "") tags: String,
@@ -177,7 +181,6 @@ class LnkOrganizationTestSuiteController(
             }
         }
         .mapToDtos(isContest)
-
 
     @GetMapping("/{organizationName}/{testSuiteId}")
     @RequiresAuthorizationSourceHeader
@@ -205,10 +208,9 @@ class LnkOrganizationTestSuiteController(
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Permissions for test suite access were not gained (id = $testSuiteId)."
         }
-        .map {  (organization, testSuite) ->
+        .map { (organization, testSuite) ->
             lnkOrganizationTestSuiteService.getRights(organization, testSuite)
         }
-
 
     @PostMapping("/{ownerOrganizationName}/{testSuiteId}")
     @RequiresAuthorizationSourceHeader
@@ -235,7 +237,7 @@ class LnkOrganizationTestSuiteController(
             testSuitePermissionEvaluator.hasPermission(organizationMaintainer, testSuite, Permission.WRITE, authentication)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Permissions for test suite management were not gained (testSuiteId = ${testSuiteId})."
+            "Permissions for test suite management were not gained (testSuiteId = $testSuiteId)."
         }
         .flatMap { (_, testSuite) ->
             Mono.zip(
@@ -279,7 +281,7 @@ class LnkOrganizationTestSuiteController(
             testSuitePermissionEvaluator.hasPermission(maintainerOrganization, testSuite, Permission.DELETE, authentication)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Permissions for test suite management were not gained (testSuiteId = ${testSuiteId})."
+            "Permissions for test suite management were not gained (testSuiteId = $testSuiteId)."
         }
         .flatMap { (_, testSuite) ->
             Mono.zip(

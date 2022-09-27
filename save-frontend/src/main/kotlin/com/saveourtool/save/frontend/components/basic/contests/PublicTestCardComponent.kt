@@ -58,7 +58,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
 private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
     val (selectedTestSuite, setSelectedTestSuite) = useState<TestSuiteDto?>(null)
 
-    val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (avaliableTestSuites, setAvaliableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (publicTest, setPublicTest) = useState<TestFilesContent?>(null)
     useRequest {
         val response = get(
@@ -69,7 +69,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
         )
         if (response.ok) {
             val testSuites: List<TestSuiteDto> = response.decodeFromJsonString()
-            setAvailableTestSuites(testSuites)
+            setAvaliableTestSuites(testSuites)
         } else {
             setPublicTest(null)
             setSelectedTestSuite(null)
@@ -93,7 +93,7 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
         }
     }
 
-    if (availableTestSuites.isEmpty()) {
+    if (avaliableTestSuites.isEmpty()) {
         h6 {
             className = ClassName("text-center")
             +"No public tests are provided yet."
@@ -104,8 +104,8 @@ private fun publicTestComponent() = FC<PublicTestComponentProps> { props ->
             // ========== Test Suite Selector ==========
             div {
                 className = ClassName("col-6")
-                showAvailableTestSuites(
-                    availableTestSuites,
+                showAvaliableTestSuites(
+                    avaliableTestSuites,
                     selectedTestSuite?.let { listOf(it) } ?: emptyList(),
                     null,
                 ) { testSuite ->

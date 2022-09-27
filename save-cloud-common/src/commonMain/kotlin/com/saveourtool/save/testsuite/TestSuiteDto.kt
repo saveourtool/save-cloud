@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
  * @property id
  * @property plugins
+ * @property isPublic
  */
 @Serializable
 data class TestSuiteDto(

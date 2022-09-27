@@ -1,7 +1,5 @@
 package com.saveourtool.save.permission
 
-import com.saveourtool.save.domain.Role
-
 import kotlinx.serialization.Serializable
 
 /**

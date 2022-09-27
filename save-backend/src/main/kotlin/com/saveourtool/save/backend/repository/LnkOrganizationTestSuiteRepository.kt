@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

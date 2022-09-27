@@ -1,7 +1,5 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import javax.persistence.*
 import javax.persistence.Entity
@@ -12,7 +10,7 @@ import javax.persistence.ManyToOne
 /**
  * @property organization organization that is connected to [testSuite]
  * @property testSuite manageable test suite
- * @property permission [Permission] that [organization] has over [testSuite]
+ * @property rights [Rights] that [organization] has over [testSuite]
  */
 @Entity
 class LnkOrganizationTestSuite(

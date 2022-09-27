@@ -1,16 +1,11 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkOrganizationTestSuiteRepository
-import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
-import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Rights
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.getHighestRole
-import org.springframework.data.domain.PageRequest
-import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import kotlin.NoSuchElementException
 
@@ -26,10 +21,10 @@ class LnkOrganizationTestSuiteService(
      * @return all [TestSuite]s with rights for [organization]
      */
     fun getAllTestSuitesByOrganization(organization: Organization) =
-        lnkOrganizationTestSuiteRepository.findByOrganization(organization)
-            .map {
-                it.testSuite
-            }
+            lnkOrganizationTestSuiteRepository.findByOrganization(organization)
+                .map {
+                    it.testSuite
+                }
 
     /**
      * @param organization
@@ -37,7 +32,7 @@ class LnkOrganizationTestSuiteService(
      * @return [LnkOrganizationTestSuite] by [organization] and [testSuite]
      */
     fun findByOrganizationAndTestSuite(organization: Organization, testSuite: TestSuite) =
-        lnkOrganizationTestSuiteRepository.findByOrganizationAndTestSuite(organization, testSuite)
+            lnkOrganizationTestSuiteRepository.findByOrganizationAndTestSuite(organization, testSuite)
 
     /**
      * Set [rights] of [organization] over [testSuite].
@@ -77,7 +72,7 @@ class LnkOrganizationTestSuiteService(
      * @return [Rights] of [organization] over [testSuite]
      */
     fun getRights(organization: Organization, testSuite: TestSuite) =
-        findByOrganizationAndTestSuite(organization, testSuite)?.rights ?: Rights.NONE
+            findByOrganizationAndTestSuite(organization, testSuite)?.rights ?: Rights.NONE
 
     /**
      * Removes rights of [organization] over [testSuite].

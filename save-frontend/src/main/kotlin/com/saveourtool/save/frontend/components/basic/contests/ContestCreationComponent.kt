@@ -154,7 +154,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
     val (testSuites, setTestSuites) = useState(emptyList<TestSuiteDto>())
     useRequest {
         val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids",
+            url = "$apiUrl/test-suites/get-by-ids/${props.organizationName}",
             headers = jsonHeaders,
             body = Json.encodeToString(contestDto.testSuiteIds),
             loadingHandler = ::loadingHandler,
@@ -170,11 +170,13 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         className = ClassName("card")
         contestCreationCard {
             showContestTestSuitesSelectorModal(
+                props.organizationName,
                 testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),
             ) { testSuiteDtos ->
                 setContestDto(contestDto.copy(testSuiteIds = testSuiteDtos.map { it.requiredId() }))
+                setTestSuites(testSuiteDtos)
             }
             div {
                 className = ClassName("")
@@ -232,7 +234,8 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_TEST_SUITE_IDS
                             conflictMessage = null
-                            textValue = contestDto.testSuiteIds.sorted().joinToString(", ")
+                            // textValue = contestDto.testSuiteIds.sorted().joinToString(", ") {  }
+                            textValue = testSuites.map { it.name }.sorted().joinToString(", ")
                             validInput = true
                             classes = "col-12 pl-2 pr-2 text-center"
                             name = "Test Suites:"

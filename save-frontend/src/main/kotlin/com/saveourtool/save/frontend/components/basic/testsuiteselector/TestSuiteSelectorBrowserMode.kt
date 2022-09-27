@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
-import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.externals.fontawesome.faCheckDouble
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -52,6 +52,9 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      */
     var selectorPurpose: TestSuiteSelectorPurpose
 
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
     var currentOrganizationName: String
 }
 
@@ -133,7 +136,7 @@ private fun ChildrenBuilder.showBreadcrumb(
     }
 }
 
-private fun ChildrenBuilder.showAvailableOptions(
+private fun ChildrenBuilder.showAvaliableOptions(
     options: List<String>,
     onOptionClick: (String) -> Unit,
 ) {
@@ -165,13 +168,13 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest {
-        val url = when (props.selectorPurpose) {
-            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/public"
-            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/${props.currentOrganizationName}/available"
-            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/${props.currentOrganizationName}/available?isContest=true"
+        val options = when (props.selectorPurpose) {
+            TestSuiteSelectorPurpose.PUBLIC -> ""
+            TestSuiteSelectorPurpose.PRIVATE -> "?onlyPrivate=true"
+            TestSuiteSelectorPurpose.CONTEST -> "?isContest=true"
         }
         val response = get(
-            url = url,
+            url = "$apiUrl/test-suites/available/${props.currentOrganizationName}$options",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -289,25 +292,25 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
         div {
             className = ClassName("")
             when {
-                selectedOrganization == null -> showAvailableOptions(
+                selectedOrganization == null -> showAvaliableOptions(
                     availableOrganizations.filter { it.contains(namePrefix, true) }
                 ) { organization ->
                     setSelectedOrganization(organization)
                     setNamePrefix("")
                 }
-                selectedTestSuiteSource == null -> showAvailableOptions(
+                selectedTestSuiteSource == null -> showAvaliableOptions(
                     availableTestSuiteSources.filter { it.contains(namePrefix, true) }
                 ) { testSuiteSource ->
                     setSelectedTestSuiteSource(testSuiteSource)
                     setNamePrefix("")
                 }
-                selectedTestSuiteVersion == null -> showAvailableOptions(
+                selectedTestSuiteVersion == null -> showAvaliableOptions(
                     availableTestSuitesVersions.filter { it.contains(namePrefix, true) }
                 ) { testSuiteVersion ->
                     setSelectedTestSuiteVersion(testSuiteVersion)
                     setNamePrefix("")
                 }
-                else -> showAvailableTestSuites(
+                else -> showAvaliableTestSuites(
                     availableTestSuites.filter { it.name.contains(namePrefix, true) },
                     selectedTestSuites,
                     TestSuiteSelectorMode.BROWSER,

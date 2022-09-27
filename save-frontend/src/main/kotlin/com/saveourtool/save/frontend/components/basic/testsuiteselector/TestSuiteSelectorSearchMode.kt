@@ -7,7 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.testsuiteselector
 
 import com.saveourtool.save.filters.TestSuiteFilters
-import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
+import com.saveourtool.save.frontend.components.basic.showAvaliableTestSuites
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
@@ -23,9 +23,6 @@ import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 val testSuiteSelectorSearchMode = testSuiteSelectorSearchMode()
 
@@ -48,6 +45,9 @@ external interface TestSuiteSelectorSearchModeProps : Props {
      */
     var selectorPurpose: TestSuiteSelectorPurpose
 
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
     var currentOrganizationName: String
 }
 
@@ -75,7 +75,7 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
         !isOnlyLatestVersion || it.version == it.source.latestFetchedVersion
     }
 
-    showAvailableTestSuites(
+    showAvaliableTestSuites(
         testSuitesToBeShown,
         selectedTestSuites,
         TestSuiteSelectorMode.SEARCH,
@@ -85,25 +85,8 @@ private fun ChildrenBuilder.showAvailableTestSuitesForSearchMode(
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps> { props ->
-    val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
+    val (selectedTestSuites, setSelectedTestSuites) = useState(props.preselectedTestSuites)
     val (filteredTestSuites, setFilteredTestSuites) = useState<List<TestSuiteDto>>(emptyList())
-    useRequest {
-        val contestFlag = if (props.selectorPurpose == CONTEST) {
-            "?isContest=true"
-        } else {
-            ""
-        }
-        val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/get-by-ids/${props.currentOrganizationName}$contestFlag",
-            headers = jsonHeaders,
-            body = Json.encodeToString(props.preselectedTestSuites),
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-            .decodeFromJsonString()
-        setSelectedTestSuites(testSuitesFromBackend)
-    }
-
     val (filters, setFilters) = useState(TestSuiteFilters.empty)
     val getFilteredTestSuites = debounce(
         useDeferredRequest {

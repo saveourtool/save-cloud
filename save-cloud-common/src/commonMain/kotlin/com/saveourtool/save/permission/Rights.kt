@@ -5,7 +5,7 @@ package com.saveourtool.save.permission
  */
 enum class Rights {
     MAINTAIN,
-    USE,
     NONE,
+    USE,
     ;
 }
