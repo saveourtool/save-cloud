@@ -12,12 +12,6 @@ plugins {
 }
 
 kotlin {
-//    val os = getCurrentOperatingSystem()
-//    // Create a target for the host platform.
-//    val hostTarget2 = when {
-//        os.isLinux -> linuxX64("agent")
-//        else -> jvm("agent")
-//    }
 
     val additionalCompilerArgs = "-Xruntime-logs=gc=info"
 
@@ -48,7 +42,23 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.save.common)
+                implementation(projects.saveCloudCommon)
+                implementation(libs.save.core)
+                implementation(libs.save.plugins.fix)
+                implementation(libs.save.reporters)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.kotlinx.serialization.properties)
+                implementation(libs.okio)
+                implementation(libs.kotlinx.datetime)
+            }
+        }
         val commonTest by getting
 
         val jvmMain by getting {
