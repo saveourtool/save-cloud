@@ -70,7 +70,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                                 asDynamic()["data-toggle"] = "tooltip"
                                 asDynamic()["data-placement"] = "bottom"
                                 title = "Hash of commit with current test suite"
-                                +testSuite.version.take(GIT_HASH_PREFIX_LENGTH)
+                                +testSuite.version
                             }
                         }
                     }
