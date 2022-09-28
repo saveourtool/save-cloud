@@ -194,6 +194,13 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                         }
                     }
                 }
+                column(id = "agentName", header = "Agent Name") {
+                    Fragment.create {
+                        td {
+                            +"${it.value.agentContainerName}"
+                        }
+                    }
+                }
                 column(id = "agentId", header = "Agent ID") {
                     Fragment.create {
                         td {
