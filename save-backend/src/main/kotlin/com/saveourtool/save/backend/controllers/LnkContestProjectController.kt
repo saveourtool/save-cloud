@@ -137,7 +137,7 @@ class LnkContestProjectController(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of a project", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched contests avaliable for project.")
+    @ApiResponse(responseCode = "200", description = "Successfully fetched contests available for project.")
     fun getAvailableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
