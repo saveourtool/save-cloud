@@ -10,12 +10,12 @@ import com.saveourtool.save.api.utils.getLatestExecution
 import com.saveourtool.save.api.utils.initializeHttpClient
 import com.saveourtool.save.api.utils.submitExecution
 import com.saveourtool.save.api.utils.uploadAdditionalFile
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import arrow.core.Either
@@ -101,10 +101,10 @@ class SaveCloudClient(
      *   successful completion, or the HTTP status code if failed.
      */
     private suspend fun submitExecution(
-        additionalFiles: List<ShortFileInfo>?,
+        additionalFiles: List<FileKey>?,
         contestName: String?,
-    ): Either<HttpStatusCode, RunExecutionRequest> {
-        val runExecutionRequest = RunExecutionRequest(
+    ): Either<HttpStatusCode, CreateExecutionRequest> {
+        val createExecutionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = evaluatedToolProperties.organizationName,
                 projectName = evaluatedToolProperties.projectName,
@@ -112,41 +112,41 @@ class SaveCloudClient(
             testSuiteIds = evaluatedToolProperties.testSuites
                 .split(DATABASE_DELIMITER)
                 .map { it.toLong() },
-            files = additionalFiles?.map { it.toStorageKey() }.orEmpty(),
+            files = additionalFiles.orEmpty(),
             sdk = evaluatedToolProperties.sdk.toSdk(),
             execCmd = evaluatedToolProperties.execCmd,
             batchSizeForAnalyzer = evaluatedToolProperties.batchSize,
             testingType = testingType,
             contestName = contestName,
         )
-        val response = httpClient.submitExecution(runExecutionRequest)
+        val response = httpClient.submitExecution(createExecutionRequest)
         val httpStatus = response.status
         if (httpStatus !in arrayOf(OK, Accepted)) {
-            log.error("Received HTTP $httpStatus while submitting execution: $runExecutionRequest")
+            log.error("Received HTTP $httpStatus while submitting execution: $createExecutionRequest")
             val responseBody = response.bodyAsText()
             if (responseBody.isNotBlank()) {
                 log.error("HTTP response body: $responseBody")
             }
             return httpStatus.left()
         }
-        return runExecutionRequest.right()
+        return createExecutionRequest.right()
     }
 
     /**
-     * Get results for current [runExecutionRequest]:
+     * Get results for current [createExecutionRequest]:
      * sending requests, which checks current state of execution, until it will be finished, or timeout will be reached
      *
-     * @param runExecutionRequest
+     * @param createExecutionRequest
      */
     @Suppress("MagicNumber")
     private suspend fun getExecutionResults(
-        runExecutionRequest: RunExecutionRequest,
+        createExecutionRequest: CreateExecutionRequest,
     ): ExecutionDto? {
         // Execution should be processed in db after submission, so wait little time
         delay(1_000)
 
         // We suppose, that in this short time (after submission), there weren't any new executions, so we can take the latest one
-        val executionId = httpClient.getLatestExecution(runExecutionRequest.projectCoordinates.projectName, runExecutionRequest.projectCoordinates.organizationName).id
+        val executionId = httpClient.getLatestExecution(createExecutionRequest.projectCoordinates.projectName, createExecutionRequest.projectCoordinates.organizationName).id
 
         var executionDto = httpClient.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()
@@ -172,7 +172,7 @@ class SaveCloudClient(
      */
     private suspend fun processAdditionalFiles(
         files: String
-    ): List<ShortFileInfo>? {
+    ): List<FileKey>? {
         val userProvidedAdditionalFiles = files.split(";")
         userProvidedAdditionalFiles.forEach {
             if (!File(it).exists()) {
@@ -182,18 +182,19 @@ class SaveCloudClient(
         }
 
         val availableFilesInCloudStorage = httpClient.getAvailableFilesList()
+            .map { it.key }
 
-        val resultFileInfoList: MutableList<ShortFileInfo> = mutableListOf()
+        val resultFileInfoList: MutableList<FileKey> = mutableListOf()
 
         // Try to take files from storage, or upload them if they are absent
         userProvidedAdditionalFiles.forEach { file ->
             val fileFromStorage = availableFilesInCloudStorage.firstOrNull { it.name == file.toPath().name }
             fileFromStorage?.let {
                 log.debug("Take existing file ${file.toPath().name} from storage")
-                resultFileInfoList.add(fileFromStorage.toShortFileInfo().copy(isExecutable = true))
+                resultFileInfoList.add(fileFromStorage)
             } ?: run {
                 log.debug("Upload file $file to storage")
-                val uploadedFile: ShortFileInfo = httpClient.uploadAdditionalFile(file).copy(isExecutable = true)
+                val uploadedFile: FileKey = httpClient.uploadAdditionalFile(file).key
                 resultFileInfoList.add(uploadedFile)
             }
         }

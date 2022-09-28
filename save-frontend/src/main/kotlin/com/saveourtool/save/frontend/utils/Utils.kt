@@ -33,8 +33,8 @@ import kotlinx.serialization.json.Json
  * @return a nicely formatted string representation of [FileInfo]
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
-fun FileInfo.toPrettyString() = "$name (uploaded at ${
-    Instant.fromEpochMilliseconds(uploadedMillis).toLocalDateTime(
+fun FileInfo.toPrettyString() = "${key.name} (uploaded at ${
+    Instant.fromEpochMilliseconds(key.uploadedMillis).toLocalDateTime(
         TimeZone.UTC
     )
 }, size ${sizeBytes / 1024} KiB)"

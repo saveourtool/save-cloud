@@ -1,4 +1,4 @@
-package com.saveourtool.save.sandbox
+package com.saveourtool.save.orchestrator
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.SpringApplication
@@ -9,7 +9,12 @@ import org.springframework.scheduling.annotation.EnableScheduling
 /**
  * An entrypoint for spring boot for save-sandbox
  */
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = [
+        "com.saveourtool.save.sandbox",
+        "com.saveourtool.save.orchestrator"
+    ]
+)
 @EnableConfigurationProperties(ConfigProperties::class)
 @EnableScheduling
 open class SaveSandbox

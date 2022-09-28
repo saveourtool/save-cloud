@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities
+package com.saveourtool.save.request
 
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
@@ -17,7 +17,7 @@ import kotlinx.serialization.Serializable
  * @property contestName if [testingType] is [TestingType.CONTEST_MODE], then this property contains name of the associated contest
  */
 @Serializable
-data class RunExecutionRequest(
+data class CreateExecutionRequest(
     val projectCoordinates: ProjectCoordinates,
 
     val testSuiteIds: List<Long>,
