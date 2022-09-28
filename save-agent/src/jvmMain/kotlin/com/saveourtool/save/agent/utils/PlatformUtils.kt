@@ -10,3 +10,9 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
         holder.set(newValue)
     }
 }
+
+internal actual fun getenv(envName: String): String? = System.getenv(envName)
+
+internal actual fun catchSigterm() {
+
+}

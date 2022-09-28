@@ -1,4 +1,11 @@
 package com.saveourtool.save.agent.utils
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+import platform.posix.SIGTERM
+import platform.posix.__sighandler_t
+import platform.posix.exit
+import platform.posix.getenv
+import platform.posix.signal
 
 /**
  * Atomic values
@@ -32,4 +39,13 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     actual fun set(newValue: T) {
         holder.value = newValue
     }
+}
+
+internal actual fun getenv(envName: String): String? = getenv(envName)?.toKString()
+
+internal actual fun catchSigterm() {
+    signal(SIGTERM, staticCFunction<Int, Unit> {
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
+        exit(1)
+    })
 }

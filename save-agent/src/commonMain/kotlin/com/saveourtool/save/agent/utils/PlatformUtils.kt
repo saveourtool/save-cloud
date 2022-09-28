@@ -1,14 +1,48 @@
-/**
- * Utilities to work with Linux-specific calls
- */
-
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.core.logging.logDebug
-import platform.posix.getenv
 
-import kotlinx.cinterop.toKString
+/**
+ * Atomic values
+ */
+expect class AtomicLong(value: Long) {
+    /**
+     * @return value
+     */
+    fun get(): Long
+
+    /**
+     *
+     */
+    fun set(newValue: Long)
+
+    /**
+     * @param delta increments the value_ by delta
+     * @return the new value
+     */
+    fun addAndGet(delta: Long): Long
+}
+
+/**
+ *  Class that holds value and shares atomic reference to the value
+ *
+ *  @param valueToStore value to store
+ */
+@Suppress("USE_DATA_CLASS")
+expect class GenericAtomicReference<T>(valueToStore: T) {
+    /**
+     * @return stored value
+     */
+    fun get(): T
+
+    /**
+     * @param newValue new value to store
+     */
+    fun set(newValue: T)
+}
+
+internal expect fun getenv(envName: String): String?
 
 /**
  * Get value of environment variable [envName] or throw if it is not set.
@@ -18,7 +52,7 @@ import kotlinx.cinterop.toKString
  */
 internal fun requiredEnv(envName: AgentEnvName): String = requireNotNull(getenv(envName.name)) {
     "Environment variable $envName is not set but is required"
-}.toKString()
+}.toString()
 
 /**
  * Get value of environment variable [envName] or null.
@@ -30,4 +64,7 @@ internal fun optionalEnv(envName: AgentEnvName): String? = getenv(envName.name)
     .also {
         it ?: logDebug("Optional environment variable $envName is not provided")
     }
-    ?.toKString()
+    ?.toString()
+
+
+internal expect fun catchSigterm()
