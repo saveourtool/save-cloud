@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.postprocessor
+package com.saveourtool.save.spring.postprocessor
 
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.env.EnvironmentPostProcessor
@@ -25,21 +25,18 @@ class DockerSecretsDatabaseProcessor(
             log.debug("Skipping activation of ${this::class.simpleName} because of active profiles")
             return
         }
-        val secretsBasePath = System.getenv("DB_PASSWORD_FILE") ?: "/run/secrets"
+        val secretsBasePath = System.getenv("SECRETS_PATH") ?: "/run/secrets"
         log.debug("Started DockerSecretsDatabaseProcessor [EnvironmentPostProcessor] configured to look up secrets in $secretsBasePath")
         val passwordResource = FileSystemResource("$secretsBasePath/db_password")
         val usernameResource = FileSystemResource("$secretsBasePath/db_username")
-        val jdbcUrlResource = FileSystemResource("$secretsBasePath/db_url")
 
         if (passwordResource.exists()) {
             log.debug("Acquired password. Beginning to setting properties")
             val dbPassword = passwordResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
             val dbUsername = usernameResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
-            val dbUrl = jdbcUrlResource.inputStream.use { StreamUtils.copyToString(it, Charset.defaultCharset()) }
             val props = Properties()
             props["spring.datasource.password"] = dbPassword
             props["spring.datasource.username"] = dbUsername
-            props["spring.datasource.url"] = dbUrl
             environment.propertySources.addLast(PropertiesPropertySource("dbProps", props))
             log.debug("Properties have been set")
         }

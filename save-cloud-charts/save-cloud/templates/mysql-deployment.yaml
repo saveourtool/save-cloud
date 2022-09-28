@@ -6,9 +6,10 @@ kind: Secret
 metadata:
   name: db-secrets
 stringData:
-  spring.datasource.url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.schema }}'
+  spring.datasource.backend-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.backend_schema }}'
+  spring.datasource.sandbox-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.sandbox_schema }}'
   spring.datasource.username: root
-  spring.datasource.password: '123'
+  spring.datasource.password: {{ .Values.mysql.root_password }}
 
 ---
   {{ end }}
@@ -36,9 +37,7 @@ spec:
               name: mysql
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: '123'
-            - name: MYSQL_DATABASE
-              value: save_cloud
+              value: {{ .Values.mysql.root_password }}
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
