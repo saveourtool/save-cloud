@@ -15,7 +15,6 @@ import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("kapt")
-    id("org.springframework.boot")
     kotlin("plugin.spring")
 }
 
