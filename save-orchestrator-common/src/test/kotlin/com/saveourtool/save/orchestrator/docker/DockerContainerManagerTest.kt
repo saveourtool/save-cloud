@@ -1,9 +1,7 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.Beans
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.DockerService
-import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.PullImageResultCallback
@@ -14,28 +12,19 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
-import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.SpringExtension
 
 import kotlin.io.path.createTempFile
 
-//@ExtendWith(SpringExtension::class)
 @SpringBootTest
-@EnableAutoConfiguration
-//@EnableConfigurationProperties(ConfigProperties::class)
-//@TestPropertySource("classpath:application.properties")
 @Import(Beans::class, DockerAgentRunner::class)
-//@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and corresponding .properties file and with TCP port enabled on Docker Daemon")
-//@ActiveProfiles()
+@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerContainerManagerTestOnWindows")
 class DockerContainerManagerTest {
     @Autowired private lateinit var dockerClient: DockerClient
     @Autowired private lateinit var dockerAgentRunner: DockerAgentRunner
@@ -99,5 +88,13 @@ class DockerContainerManagerTest {
             dockerClient.removeImageCmd(testImageId).exec()
         }
         dockerClient.removeVolumeCmd("test-volume").exec()
+    }
+}
+
+@EnabledOnOs(OS.WINDOWS)
+@TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
+class DockerContainerManagerTestOnWindows : DockerContainerManagerTest() {
+    init {
+        System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
     }
 }

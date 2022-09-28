@@ -2,6 +2,7 @@ package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.kubernetes.KubernetesManager
+import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
@@ -16,21 +17,22 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 
 import java.net.HttpURLConnection
 
-@ExtendWith(SpringExtension::class, KubernetesMockServerExtension::class)
-@EnableConfigurationProperties(ConfigProperties::class)
+@SpringBootTest
+@ExtendWith(KubernetesMockServerExtension::class)
 @EnableKubernetesMockClient
-@TestPropertySource("classpath:application.properties", "classpath:application-kubernetes.properties")
+@TestPropertySource("classpath:application-kubernetes.properties")
 class KubernetesManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager
+    @MockBean private lateinit var agentRepository: AgentRepository
 
     @BeforeEach
     fun setUp() {

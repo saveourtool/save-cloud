@@ -13,10 +13,9 @@ import java.nio.file.StandardCopyOption
  * @return IP address of the docker host or `host-gateway` as a fallback
  */
 fun getHostIp(): String {
-    System.getenv("HOST_IP")?.let {
-        return it
-    }
-    return resolve("host.docker.internal")
+    return System.getProperty("OVERRIDE_HOST_IP")
+        ?: System.getenv("HOST_IP")
+        ?: resolve("host.docker.internal")
         ?: "host-gateway"
 }
 

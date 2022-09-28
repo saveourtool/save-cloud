@@ -5,7 +5,6 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.orchestrator.config.Beans
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.docker.DockerAgentRunner
-import com.saveourtool.save.orchestrator.testutils.TestConfiguration
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -22,21 +21,18 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.whenever
+import org.mockito.kotlin.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.util.FileSystemUtils
 import reactor.kotlin.core.publisher.toMono
 
@@ -44,14 +40,11 @@ import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.nio.file.Paths
 
-@ExtendWith(SpringExtension::class)
-@EnableConfigurationProperties(ConfigProperties::class)
-@TestPropertySource("classpath:application.properties")
-@DisabledOnOs(OS.WINDOWS, disabledReason = "If required, can be run with `docker-tcp` profile and with TCP port enabled on Docker Daemon")
+@SpringBootTest
+@DisabledOnOs(OS.WINDOWS, disabledReason = "Please run DockerServiceTestOnWindows")
 @Import(
     Beans::class,
     DockerAgentRunner::class,
-    TestConfiguration::class,
     DockerService::class,
     AgentService::class,
 )
@@ -91,11 +84,6 @@ class DockerServiceTest {
 
         // start container and query backend
         mockServer.enqueue(
-            "/updateExecutionByDto",
-            MockResponse()
-                .setResponseCode(200)
-        )
-        mockServer.enqueue(
             "/internal/files/download-save-agent",
             MockResponse()
                 .setHeader("Content-Type", "application/octet-stream")
@@ -123,6 +111,8 @@ class DockerServiceTest {
 
         // tear down
         dockerService.stopAgents(listOf(testContainerId))
+        verify(agentRepository).updateExecutionByDto(any(), any(), anyOrNull())
+        verifyNoMoreInteractions(agentRepository)
     }
 
     @AfterEach
@@ -156,12 +146,17 @@ class DockerServiceTest {
                 InetSocketAddress(0).address,
                 0
             )
-            registry.add("orchestrator.backendUrl") {
-                "http://localhost:${mockServer.port}"
-            }
             registry.add("orchestrator.agentSettings.backendUrl") {
                 "http://host.docker.internal:${mockServer.port}"
             }
         }
+    }
+}
+
+@EnabledOnOs(OS.WINDOWS)
+@TestPropertySource("classpath:META-INF/save-orchestrator-common/application-docker-tcp.properties")
+class DockerServiceTestOnWindows : DockerServiceTest() {
+    init {
+        System.setProperty("OVERRIDE_HOST_IP", "host-gateway")
     }
 }
