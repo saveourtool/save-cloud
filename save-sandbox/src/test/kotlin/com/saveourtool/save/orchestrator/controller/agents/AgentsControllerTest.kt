@@ -4,7 +4,6 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -12,8 +11,6 @@ import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.ArgumentMatchers.*
@@ -26,20 +23,11 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
-import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.BodyInserters
 import reactor.core.publisher.Flux
 
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
-
-import kotlin.io.path.*
 import org.springframework.http.ResponseEntity
 import reactor.kotlin.core.publisher.toMono
 
@@ -51,16 +39,9 @@ class AgentsControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
-    @Autowired
-    private lateinit var configProperties: ConfigProperties
     @MockBean private lateinit var dockerService: DockerService
     @MockBean private lateinit var agentRepository: AgentRepository
-
-    @AfterEach
-    fun tearDown() {
-        val pathToLogs = configProperties.executionLogs
-        File(pathToLogs).deleteRecursively()
-    }
+    @MockBean private lateinit var agentRunner: AgentRunner
 
     @Test
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
@@ -82,6 +63,9 @@ class AgentsControllerTest {
         )
         whenever(dockerService.createContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         whenever(agentRepository.addAgents(anyList()))
@@ -126,47 +110,6 @@ class AgentsControllerTest {
     }
 
     @Test
-    fun `should save logs`() {
-        val logs = """
-            first line
-            second line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(logs)
-            .expectStatus()
-            .isOk
-        val logFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(logFile.exists())
-        Assertions.assertEquals(logFile.readLines(), logs)
-    }
-
-    @Test
-    fun `check save log if already exist`() {
-        val firstLogs = """
-            first line
-            second line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(firstLogs)
-            .expectStatus()
-            .isOk
-        val firstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(firstLogFile.exists())
-        Assertions.assertEquals(firstLogFile.readLines(), firstLogs)
-
-        val secondLogs = """
-            second line
-            first line
-        """.trimIndent().lines()
-        makeRequestToSaveLog(secondLogs)
-            .expectStatus()
-            .isOk
-            .expectStatus()
-            .isOk
-        val newFirstLogFile = File(configProperties.executionLogs + File.separator + "agent.log")
-        Assertions.assertTrue(newFirstLogFile.exists())
-        Assertions.assertEquals(newFirstLogFile.readLines(), firstLogs + secondLogs)
-    }
-
-    @Test
     fun `should cleanup execution artifacts`() {
         webClient.post()
             .uri("/cleanup?executionId=42")
@@ -176,48 +119,5 @@ class AgentsControllerTest {
 
         Thread.sleep(2_500)
         verify(dockerService, times(1)).cleanup(anyLong())
-    }
-
-    private fun makeRequestToSaveLog(text: List<String>): WebTestClient.ResponseSpec {
-        val fileName = "agent.log"
-        val filePath = configProperties.executionLogs + File.separator + fileName
-        val file = File(filePath)
-        if (!file.exists()) {
-            Files.createDirectories(Paths.get(configProperties.executionLogs))
-            file.createNewFile()
-        }
-
-        text.forEach {
-            file.appendText(it + "\n")
-        }
-
-        val body = MultipartBodyBuilder().apply {
-            part(
-                "executionLogs",
-                file.readBytes()
-            )
-                .header("Content-Disposition", "form-data; name=executionLogs; filename=$fileName")
-        }
-            .build()
-
-        return webClient
-            .post()
-            .uri("/executionLogs")
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(body))
-            .exchange()
-    }
-
-    companion object {
-        private val volume: String by lazy {
-            createTempDirectory("executionLogs").toAbsolutePath().toString()
-        }
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun properties(registry: DynamicPropertyRegistry) {
-            // todo: should be initialized in @BeforeAll, but it gets called after @DynamicPropertySource
-            registry.add("orchestrator.executionLogs") { volume }
-        }
     }
 }

@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
@@ -15,21 +16,15 @@ import com.github.dockerjava.api.exception.DockerException
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
-
-import java.io.File
-import java.io.FileOutputStream
 
 /**
  * Controller used to start agents with needed information
@@ -38,6 +33,7 @@ import java.io.FileOutputStream
 class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
+    private val agentRunner: AgentRunner,
     private val configProperties: ConfigProperties,
 ) {
     /**
@@ -74,7 +70,8 @@ class AgentsController(
                 .flatMap { containerIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         containerIds.map { containerId ->
-                            AgentDto(containerId, request.executionId)
+                            val containerName = agentRunner.getContainerIdentifier(containerId)
+                            AgentDto(containerId, containerName, request.executionId)
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
@@ -106,38 +103,6 @@ class AgentsController(
     @PostMapping("/stopAgents")
     fun stopAgents(@RequestBody agentIds: List<String>) {
         dockerService.stopAgents(agentIds)
-    }
-
-    /**
-     * @param executionLogs ExecutionLogs
-     */
-    @PostMapping("/executionLogs", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun saveAgentsLog(@RequestPart(required = true) executionLogs: FilePart) {
-        // File name is equals to agent id
-        val agentId = executionLogs.filename()
-        val logDir = File(configProperties.executionLogs)
-        if (!logDir.exists()) {
-            log.info("Folder to store logs from agents was created: ${logDir.name}")
-            logDir.mkdirs()
-        }
-        val logFile = File(logDir.path + File.separator + "$agentId.log")
-        if (!logFile.exists()) {
-            logFile.createNewFile()
-            log.info("Log file for $agentId agent was created")
-        }
-        executionLogs.content()
-            .map { dtBuffer ->
-                FileOutputStream(logFile, true).use { os ->
-                    dtBuffer.asInputStream().use {
-                        it.copyTo(os)
-                    }
-                }
-            }
-            .collectList()
-            .doOnSuccess {
-                log.info("Logs of agent with id = $agentId were written")
-            }
-            .subscribe()
     }
 
     /**

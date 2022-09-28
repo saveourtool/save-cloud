@@ -71,4 +71,12 @@ interface AgentRunner {
      * @return true if agent is not running
      */
     fun isAgentStopped(agentId: String): Boolean
+
+    /**
+     * Get container identifier: container name for docker agent runner and container id for kubernetes
+     *
+     * @param containerId
+     * @return container identifier
+     */
+    fun getContainerIdentifier(containerId: String): String
 }
