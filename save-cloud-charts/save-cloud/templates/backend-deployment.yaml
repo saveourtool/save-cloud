@@ -26,7 +26,7 @@ spec:
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
-              value: {{ .Values.backend.dbPasswordFile }}
+              value: {{ .Values.mysql.dbPasswordFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
@@ -34,7 +34,7 @@ spec:
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
-              mountPath: {{ .Values.backend.dbPasswordFile }}
+              mountPath: {{ .Values.mysql.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -96,7 +96,7 @@ spec:
           volumeMounts:
             - mountPath: /liquibase/changelog
               name: migrations-data
-            - mountPath: {{ .Values.backend.dbPasswordFile }}
+            - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
       {{ end }}
       volumes:

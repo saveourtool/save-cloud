@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.sandbox.name }}-config
 data:
   application.properties: |
-    sandbox.backendUrl=http://backend/internal
+    sandbox.backendUrl=N/A
 
     sandbox.kubernetes.apiServerUrl=http://kubernetes.default.svc
     sandbox.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}

@@ -50,7 +50,7 @@ spec:
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
-              mountPath: {{ .Values.sandbox.dbPasswordFile }}
+              mountPath: {{ .Values.mysql.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.sandbox | nindent 10 }}
           resources:
             limits:
@@ -111,7 +111,7 @@ spec:
           volumeMounts:
             - mountPath: /liquibase/changelog
               name: migrations-data
-            - mountPath: {{ .Values.sandbox.dbPasswordFile }}
+            - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}

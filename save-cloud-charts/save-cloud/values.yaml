@@ -13,7 +13,6 @@ backend:
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
-  dbPasswordFile: /home/cnb/secrets/db_secrets
 frontend:
   name: frontend
   imageName: save-frontend
@@ -32,7 +31,6 @@ sandbox:
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
-  dbPasswordFile: /home/cnb/secrets/db_secrets
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
@@ -70,6 +68,7 @@ mysql:
   migrations:
     # Whether database migrations should be executed while deploying the application
     enabled: false
+  dbPasswordFile: /home/cnb/secrets/db_secrets
 sandbox_mysql:
   # If true, a Service will be created to enable communication with an external DB by its IP.
   # If false, a Deployment will be created for a MySQL pod.
