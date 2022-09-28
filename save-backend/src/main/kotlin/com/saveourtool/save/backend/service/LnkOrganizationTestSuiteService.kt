@@ -6,8 +6,8 @@ import com.saveourtool.save.backend.repository.LnkOrganizationTestSuiteRepositor
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Rights
+import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
-import kotlin.NoSuchElementException
 
 /**
  * Service of [LnkOrganizationTestSuite]
@@ -51,22 +51,6 @@ class LnkOrganizationTestSuiteService(
     }
 
     /**
-     * Set [rights] of organization with [organizationId] over test suite with [testSuiteId].
-     *
-     * @throws IllegalStateException if [rights] is [Role.NONE]
-     */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
-    fun setRightsByIds(testSuiteId: Long, organizationId: Long, rights: Rights) {
-        if (rights == Rights.NONE) {
-            throw IllegalStateException("NONE rights should not be present in database!")
-        }
-        lnkOrganizationTestSuiteRepository.findByOrganizationIdAndTestSuiteId(organizationId, testSuiteId)
-            ?.apply { this.rights = rights }
-            ?.let { lnkOrganizationTestSuiteRepository.save(it) }
-            ?: lnkOrganizationTestSuiteRepository.save(organizationId, testSuiteId, rights.toString())
-    }
-
-    /**
      * @param organization
      * @param testSuite
      * @return [Rights] of [organization] over [testSuite]
@@ -85,7 +69,7 @@ class LnkOrganizationTestSuiteService(
     fun removeRights(organization: Organization, testSuite: TestSuite) = findByOrganizationAndTestSuite(organization, testSuite)
         ?.requiredId()
         ?.let { lnkOrganizationTestSuiteRepository.deleteById(it) }
-        ?: throw NoSuchElementException(
+        .orNotFound {
             "Cannot unlink organization with name ${organization.name} from test suite with name ${testSuite.name} because no link was found."
-        )
+        }
 }

@@ -92,7 +92,7 @@ private fun testSuiteSelectorSearchMode() = FC<TestSuiteSelectorSearchModeProps>
         useDeferredRequest {
             if (filters.isNotEmpty()) {
                 val testSuitesFromBackend: List<TestSuiteDto> = get(
-                    url = "$apiUrl/test-suites/filtered/${props.currentOrganizationName}${
+                    url = "$apiUrl/test-suites/${props.currentOrganizationName}/filtered${
                         filters.copy(language = encodeURIComponent(filters.language))
                         .toQueryParams("isContest" to "${props.selectorPurpose == CONTEST}")
                     }",

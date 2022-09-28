@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
@@ -14,10 +13,9 @@ import org.springframework.stereotype.Component
  * Class that is capable of assessing organization's permissions regarding test suites.
  */
 @Component
-class TestSuitePermissionEvaluator {
-    @Autowired
-    private lateinit var lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService
-
+class TestSuitePermissionEvaluator(
+    private var lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService
+) {
     /**
      * @param organization
      * @param testSuite

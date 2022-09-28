@@ -175,7 +175,7 @@ class TestSuitesService(
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
-    fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
+    fun deleteTestSuitesDto(testSuiteDtos: List<TestSuiteDto>) {
         doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
     }
 

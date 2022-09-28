@@ -60,7 +60,7 @@ class TestSuitesController(
     fun getTestSuiteById(@PathVariable id: Long): ResponseEntity<TestSuite?> =
             ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     @Transactional
     @Operation(
         method = "POST",
@@ -68,6 +68,6 @@ class TestSuitesController(
         description = "Delete test suites.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully deleted test suites.")
-    fun deleteTestSuite(@RequestBody testSuiteDtos: List<TestSuiteDto>): ResponseEntity<Unit> =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuiteDto(testSuiteDtos))
+    fun deleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>): ResponseEntity<Unit> =
+            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuitesDto(testSuiteDtos))
 }

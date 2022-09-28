@@ -174,7 +174,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
             TestSuiteSelectorPurpose.CONTEST -> "?isContest=true"
         }
         val response = get(
-            url = "$apiUrl/test-suites/available/${props.currentOrganizationName}$options",
+            url = "$apiUrl/test-suites/${props.currentOrganizationName}/available$options",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,

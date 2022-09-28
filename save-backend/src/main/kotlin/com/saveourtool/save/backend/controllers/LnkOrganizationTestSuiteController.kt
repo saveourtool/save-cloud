@@ -64,7 +64,7 @@ class LnkOrganizationTestSuiteController(
     private val testSuitesService: TestSuitesService,
     private val testSuitePermissionEvaluator: TestSuitePermissionEvaluator,
 ) {
-    @GetMapping("/available/{organizationName}")
+    @GetMapping("/{organizationName}/available")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -122,7 +122,7 @@ class LnkOrganizationTestSuiteController(
     ): Flux<TestSuiteDto> = testSuitesService.getPublicTestSuites().toMono()
         .mapToDtos(isContest)
 
-    @PostMapping("/get-by-ids/{organizationName}")
+    @PostMapping("/{organizationName}/get-by-ids")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -141,7 +141,7 @@ class LnkOrganizationTestSuiteController(
         @PathVariable organizationName: String,
         @RequestBody testSuiteIds: List<Long>,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
-        authentication: Authentication?,
+        authentication: Authentication,
     ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
         .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
         .map { (organization, testSuites) ->
@@ -151,7 +151,7 @@ class LnkOrganizationTestSuiteController(
         }
         .mapToDtos(isContest)
 
-    @GetMapping("/filtered/{organizationName}")
+    @GetMapping("/{organizationName}/filtered")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
