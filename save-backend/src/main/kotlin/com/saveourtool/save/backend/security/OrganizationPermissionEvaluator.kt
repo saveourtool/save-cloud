@@ -19,6 +19,21 @@ class OrganizationPermissionEvaluator {
     private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
 
     /**
+     * @param authentication
+     * @param organization
+     * @param role required role
+     * @return true if user with [authentication] has [role] in [organization].
+     */
+    fun hasOrganizationRole(authentication: Authentication?, organization: Organization, role: Role): Boolean {
+        authentication ?: return false
+        val userId = (authentication.details as AuthenticationDetails).id
+        if (authentication.hasRole(Role.SUPER_ADMIN)) {
+            return true
+        }
+        return lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization).isHigherOrEqualThan(role)
+    }
+
+    /**
      * @param authentication [Authentication] describing an authenticated request
      * @param organization
      * @param permission

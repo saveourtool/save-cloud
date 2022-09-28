@@ -15,6 +15,7 @@ import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
 import com.saveourtool.save.entities.TestSuite
@@ -84,7 +85,7 @@ class LnkOrganizationTestSuiteController(
         @RequestParam(defaultValue = "false") isContest: Boolean,
         @RequestParam(defaultValue = "false") onlyPrivate: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
+    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
         .map { organization ->
             organization to (lnkOrganizationTestSuiteService.getAllTestSuitesByOrganization(organization) + testSuitesService.getPublicTestSuites())
                 .distinctBy { it.requiredId() }
@@ -142,7 +143,7 @@ class LnkOrganizationTestSuiteController(
         @RequestBody testSuiteIds: List<Long>,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
+    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
         .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
         .map { (organization, testSuites) ->
             testSuites.filter {
@@ -173,7 +174,7 @@ class LnkOrganizationTestSuiteController(
         @RequestParam(required = false, defaultValue = "") language: String,
         @RequestParam(required = false, defaultValue = "false") isContest: Boolean,
         authentication: Authentication,
-    ): Flux<TestSuiteDto> = getOrganizationWithPermissions(organizationName, Permission.WRITE, authentication)
+    ): Flux<TestSuiteDto> = getOrganizationIfParticipant(organizationName, authentication)
         .zipWith(TestSuiteFilters(name, language, tags).toMono())
         .map { (organization, testSuiteFilters) ->
             testSuitesService.findTestSuitesMatchingFilters(testSuiteFilters).filter {
@@ -297,6 +298,21 @@ class LnkOrganizationTestSuiteController(
             ResponseEntity.ok(
                 "Successfully deleted rights of organization ${requestedOrganization.name} over test suite ${testSuite.name}."
             )
+        }
+
+    private fun getOrganizationIfParticipant(
+        organizationName: String,
+        authentication: Authentication?,
+    ) = organizationService.findByName(organizationName)
+        .toMono()
+        .switchIfEmptyToNotFound {
+            "Organization with name $organizationName was not found"
+        }
+        .filter {
+            organizationPermissionEvaluator.hasOrganizationRole(authentication, it, Role.VIEWER)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "You must be a participant of $organizationName."
         }
 
     private fun getOrganizationWithPermissions(
