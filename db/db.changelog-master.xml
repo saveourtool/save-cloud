@@ -23,6 +23,6 @@
     <include file="v-2/tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
     <include file="test-data/db.changelog-insert.xml" relativeToChangelogFile="true" context="dev"/>
     <include file="after-all-migrations/db.changelog-after-all.xml" relativeToChangelogFile="true" context="dev or prod or test"/>
-    <include file="create-sandbox-schema.xml" relativeToChangelogFile="true" />
+    <include file="create-sandbox-schema.xml" relativeToChangelogFile="true" context="prod"/>
 
 </databaseChangeLog>

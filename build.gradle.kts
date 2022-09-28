@@ -17,7 +17,7 @@ liquibase {
         register("main") {
             arguments = mapOf(
                 "changeLogFile" to "db/db.changelog-master.xml",
-                "url" to databaseCredentials.databaseUrl,
+                "url" to "${ databaseCredentials.databaseUrl}?createDatabaseIfNotExist=true",
                 "username" to databaseCredentials.username,
                 "password" to databaseCredentials.password,
                 "logLevel" to "info",
@@ -32,7 +32,7 @@ liquibase {
         register("sandbox") {
             arguments = mapOf(
                 "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
-                "url" to databaseCredentials.databaseUrl,
+                "url" to "${ databaseCredentials.databaseUrl}?createDatabaseIfNotExist=true",
                 "username" to databaseCredentials.username,
                 "password" to databaseCredentials.password,
                 "logLevel" to "info",
