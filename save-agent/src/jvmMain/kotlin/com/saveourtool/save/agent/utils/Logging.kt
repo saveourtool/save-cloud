@@ -1,3 +1,5 @@
+@file:JvmName("LoggingJVM")
+
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.core.logging.logDebug

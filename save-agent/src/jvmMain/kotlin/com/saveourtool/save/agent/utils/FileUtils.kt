@@ -1,3 +1,4 @@
+@file:JvmName("FileUtilsJVM")
 /**
  * Utility methods to work with files using Okio
  */

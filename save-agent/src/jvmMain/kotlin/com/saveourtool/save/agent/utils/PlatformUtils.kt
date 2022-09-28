@@ -1,3 +1,5 @@
+@file:JvmName("PlatformUtilsJVM")
+
 package com.saveourtool.save.agent.utils
 
 actual typealias AtomicLong = java.util.concurrent.atomic.AtomicLong
@@ -14,5 +16,5 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
 internal actual fun getenv(envName: String): String? = System.getenv(envName)
 
 internal actual fun catchSigterm() {
-
+    TODO("Not yet implemented")
 }
