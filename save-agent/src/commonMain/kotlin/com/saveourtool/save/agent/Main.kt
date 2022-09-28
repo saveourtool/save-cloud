@@ -46,8 +46,6 @@ internal val json = Json {
     }
 }
 
-internal val fs = FileSystem.SYSTEM
-
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val propertiesFile = "agent.properties".toPath()

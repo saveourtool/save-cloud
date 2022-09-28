@@ -62,6 +62,11 @@ kotlin {
         val commonTest by getting
 
         val jvmMain by getting {
+            dependencies {
+                //implementation(libs.okio)
+                implementation(libs.ktor.client.curl)
+                implementation(libs.commons.compress)
+            }
             dependsOn(commonMain)
         }
 
@@ -86,7 +91,7 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.kotlinx.serialization.properties)
-                implementation(libs.okio)
+                //implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }

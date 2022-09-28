@@ -4,28 +4,18 @@
 
 package com.saveourtool.save.agent.utils
 
-import com.saveourtool.save.agent.fs
 import com.saveourtool.save.core.files.findAllFilesMatching
-import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
-import platform.posix.S_IRGRP
-import platform.posix.S_IROTH
-import platform.posix.S_IRUSR
-import platform.posix.S_IWUSR
-import platform.posix.S_IXUSR
+
+internal expect val fs: FileSystem
 
 /**
  * Extract path as ZIP archive to provided directory
  *
  * @param targetPath
  */
-internal fun Path.extractZipTo(targetPath: Path) {
-    require(fs.metadata(targetPath).isDirectory)
-    logDebugCustom("Unzip ${fs.canonicalize(this)} into ${fs.canonicalize(targetPath)}")
-    platform.posix.system("unzip $this -d $targetPath")
-}
+internal expect fun Path.extractZipTo(targetPath: Path)
 
 /**
  * Write content of [this] into a file [file]
@@ -34,24 +24,12 @@ internal fun Path.extractZipTo(targetPath: Path) {
  * @param file target [Path]
  * @param mustCreate will be passed to Okio's [FileSystem.write]
  */
-internal fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true) {
-    fs.write(
-        file = file,
-        mustCreate = mustCreate,
-    ) {
-        write(this@writeToFile).flush()
-    }
-}
+internal expect fun ByteArray.writeToFile(file: Path, mustCreate: Boolean = true)
 
 /**
  * Mark [this] file as executable. Sets permissions to rwxr--r--
  */
-internal fun Path.markAsExecutable() {
-    platform.posix.chmod(
-        this.toString(),
-        (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
-    )
-}
+internal expect fun Path.markAsExecutable()
 
 /**
  * Read file as a list of strings
@@ -59,15 +37,7 @@ internal fun Path.markAsExecutable() {
  * @param filePath a file to read
  * @return list of string from file
  */
-internal fun readFile(filePath: String): List<String> = try {
-    val path = filePath.toPath()
-    FileSystem.SYSTEM.read(path) {
-        generateSequence { readUtf8Line() }.toList()
-    }
-} catch (e: FileNotFoundException) {
-    logErrorCustom("Not able to find file in the following path: $filePath")
-    emptyList()
-}
+internal expect fun readFile(filePath: String): List<String>
 
 /**
  * Read properties file as a map
