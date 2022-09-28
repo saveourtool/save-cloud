@@ -10,7 +10,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.pluginName
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
 import com.saveourtool.save.testsuite.TestSuiteDto
-import com.saveourtool.save.utils.GIT_HASH_PREFIX_LENGTH
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a

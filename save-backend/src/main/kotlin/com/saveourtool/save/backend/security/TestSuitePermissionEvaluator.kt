@@ -28,7 +28,7 @@ class TestSuitePermissionEvaluator(
         testSuite: TestSuite,
         permission: Permission,
         authentication: Authentication?,
-    ): Boolean = lnkOrganizationTestSuiteService.getRights(organization, testSuite).let { currentRights ->
+    ): Boolean = lnkOrganizationTestSuiteService.getDto(organization, testSuite).rights.let { currentRights ->
         authentication?.hasRole(Role.SUPER_ADMIN) == true || when (permission) {
             Permission.READ -> testSuite.isPublic || canAccessTestSuite(currentRights)
             Permission.WRITE, Permission.DELETE -> canMaintainTestSuite(currentRights)

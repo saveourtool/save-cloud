@@ -16,10 +16,10 @@ import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.domain.isAllowedForContests
+import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -201,7 +201,7 @@ class LnkOrganizationTestSuiteController(
         @PathVariable organizationName: String,
         @PathVariable testSuiteId: Long,
         authentication: Authentication,
-    ): Mono<Rights> = getTestSuiteAndOrganizationWithPermissions(testSuiteId, organizationName, Permission.WRITE, authentication)
+    ): Mono<LnkOrganizationTestSuiteDto> = getTestSuiteAndOrganizationWithPermissions(testSuiteId, organizationName, Permission.WRITE, authentication)
         .filter { (organization, testSuite) ->
             testSuitePermissionEvaluator.hasPermission(organization, testSuite, Permission.READ, authentication)
         }
@@ -209,7 +209,7 @@ class LnkOrganizationTestSuiteController(
             "Permissions for test suite access were not gained (id = $testSuiteId)."
         }
         .map { (organization, testSuite) ->
-            lnkOrganizationTestSuiteService.getRights(organization, testSuite)
+            lnkOrganizationTestSuiteService.getDto(organization, testSuite)
         }
 
     @PostMapping("/{ownerOrganizationName}/{testSuiteId}")

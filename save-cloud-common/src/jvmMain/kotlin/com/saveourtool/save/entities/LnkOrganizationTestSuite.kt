@@ -24,4 +24,10 @@ class LnkOrganizationTestSuite(
 
     @Enumerated(EnumType.STRING)
     var rights: Rights,
-) : BaseEntity()
+) : BaseEntityWithDto<LnkOrganizationTestSuiteDto>() {
+    override fun toDto() = LnkOrganizationTestSuiteDto(
+        organization.toDto(),
+        testSuite.toDto(),
+        rights
+    )
+}

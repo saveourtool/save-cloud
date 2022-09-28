@@ -53,10 +53,14 @@ class LnkOrganizationTestSuiteService(
     /**
      * @param organization
      * @param testSuite
-     * @return [Rights] of [organization] over [testSuite]
+     * @return [LnkOrganizationTestSuiteDto] of [organization] over [testSuite]
      */
-    fun getRights(organization: Organization, testSuite: TestSuite) =
-            findByOrganizationAndTestSuite(organization, testSuite)?.rights ?: Rights.NONE
+    fun getDto(organization: Organization, testSuite: TestSuite) =
+            findByOrganizationAndTestSuite(organization, testSuite)?.toDto() ?: LnkOrganizationTestSuiteDto(
+                organization.toDto(),
+                testSuite.toDto(),
+                Rights.NONE
+            )
 
     /**
      * Removes rights of [organization] over [testSuite].
