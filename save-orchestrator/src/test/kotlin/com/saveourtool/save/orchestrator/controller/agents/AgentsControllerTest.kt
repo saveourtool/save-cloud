@@ -1,5 +1,8 @@
 package com.saveourtool.save.orchestrator.controller.agents
 
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.InspectContainerCmd
+import com.github.dockerjava.api.command.InspectContainerResponse
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionStatus
@@ -40,6 +43,7 @@ import reactor.core.publisher.Flux
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.mockito.kotlin.mock
 
 @WebFluxTest(controllers = [AgentsController::class])
 @Import(AgentService::class, BackendAgentRepository::class)
@@ -50,6 +54,7 @@ class AgentsControllerTest {
     lateinit var webClient: WebTestClient
 
     @MockBean private lateinit var dockerService: DockerService
+    @MockBean private lateinit var agentRunner: AgentRunner
 
     @Test
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
@@ -71,6 +76,9 @@ class AgentsControllerTest {
         )
         whenever(dockerService.createContainers(any(), any()))
             .thenReturn(listOf("test-agent-id-1", "test-agent-id-2"))
+
+        whenever(agentRunner.getContainerIdentifier(any())).thenReturn("save-test-agent-id-1")
+
         whenever(dockerService.startContainersAndUpdateExecution(any(), anyList()))
             .thenReturn(Flux.just(1L, 2L, 3L))
         mockServer.enqueue(

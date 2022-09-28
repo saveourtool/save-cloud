@@ -64,6 +64,7 @@ class TestExecution(
         test.filePath,
         test.pluginName,
         agent?.containerId,
+        agent?.containerName,
         status,
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),
