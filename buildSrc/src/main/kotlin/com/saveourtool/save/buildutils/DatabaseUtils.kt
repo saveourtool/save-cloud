@@ -40,7 +40,7 @@ fun Project.getSandboxDatabaseCredentials(profile: String): DatabaseCredentials 
 private fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
     val props = java.util.Properties()
     // Branch for other environments, e.g. local deployment or server deployment
-    file("${projectName}/src/main/resources/application-$profile.properties").inputStream().use(props::load)
+    file("$projectName/src/main/resources/application-$profile.properties").inputStream().use(props::load)
     if (File("${System.getenv("HOME")}/secrets").exists()) {
         file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
     }
