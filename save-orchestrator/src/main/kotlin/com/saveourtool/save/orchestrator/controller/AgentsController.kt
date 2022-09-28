@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
@@ -32,6 +33,7 @@ import reactor.kotlin.core.publisher.doOnError
 class AgentsController(
     private val agentService: AgentService,
     private val dockerService: DockerService,
+    private val agentRunner: AgentRunner,
     private val configProperties: ConfigProperties,
 ) {
     /**
@@ -68,7 +70,8 @@ class AgentsController(
                 .flatMap { containerIds ->
                     agentService.saveAgentsWithInitialStatuses(
                         containerIds.map { containerId ->
-                            AgentDto(containerId, request.executionId)
+                            val containerName = agentRunner.getContainerIdentifier(containerId)
+                            AgentDto(containerId, containerName, request.executionId)
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->
