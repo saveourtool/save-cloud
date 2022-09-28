@@ -159,6 +159,8 @@ class KubernetesManager(
         }
     }
 
+    override fun getContainerIdentifier(containerId: String): String = containerId
+
     private fun jobNameForExecution(executionId: Long) = "save-execution-$executionId"
 
     @Suppress("TOO_LONG_FUNCTION")
@@ -208,13 +210,17 @@ class KubernetesManager(
 
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
-        private val agentIdEnv = EnvVar().apply {
-            name = AgentEnvName.AGENT_ID.name
-            valueFrom = EnvVarSource().apply {
-                fieldRef = ObjectFieldSelector().apply {
-                    fieldPath = "metadata.name"
+        private val agentIdEnv = setOf(AgentEnvName.AGENT_ID, AgentEnvName.AGENT_NAME)
+            .map { it.name }
+            .map { envName ->
+                EnvVar().apply {
+                    name = envName
+                    valueFrom = EnvVarSource().apply {
+                        fieldRef = ObjectFieldSelector().apply {
+                            fieldPath = "metadata.name"
+                        }
+                    }
                 }
             }
-        }
     }
 }

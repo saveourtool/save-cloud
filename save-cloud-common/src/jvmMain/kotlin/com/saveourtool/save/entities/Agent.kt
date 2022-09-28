@@ -7,12 +7,14 @@ import javax.persistence.ManyToOne
 
 /**
  * @property containerId id of the container, inside which the agent is running
+ * @property containerName name of the container, inside which the agent is running
  * @property execution id of the execution, which the agent is serving
  * @property version
  */
 @Entity
 class Agent(
     var containerId: String,
+    var containerName: String,
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "execution_id")
@@ -25,6 +27,7 @@ class Agent(
      */
     fun toDto(): AgentDto = AgentDto(
         containerId = containerId,
+        containerName = containerName,
         executionId = execution.requiredId(),
         version = version,
     )
@@ -36,6 +39,7 @@ class Agent(
  */
 fun AgentDto.toEntity(executionResolver: (Long) -> Execution) = Agent(
     containerId = containerId,
+    containerName = containerName,
     execution = executionResolver(executionId),
     version = version
 )
