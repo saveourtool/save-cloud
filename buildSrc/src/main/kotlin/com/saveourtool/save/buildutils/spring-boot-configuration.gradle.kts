@@ -7,11 +7,7 @@ package com.saveourtool.save.buildutils
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.springframework.boot.gradle.dsl.SpringBootExtension
-import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
-import org.springframework.boot.gradle.tasks.run.BootRun
 
 plugins {
     kotlin("kapt")
