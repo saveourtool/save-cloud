@@ -58,7 +58,7 @@ class TestSuitesController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched filtered test suites.")
     fun getTestSuiteById(@PathVariable id: Long): ResponseEntity<TestSuite?> =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.findTestSuiteById(id))
+            ResponseEntity.ok(testSuitesService.findTestSuiteById(id))
 
     @DeleteMapping("/delete")
     @Transactional
