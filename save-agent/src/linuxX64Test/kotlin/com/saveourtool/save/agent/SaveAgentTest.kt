@@ -56,16 +56,16 @@ class SaveAgentTest {
     @BeforeTest
     fun setUp() {
         if (Platform.osFamily != OsFamily.WINDOWS) {
-            platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.kexe")
-            platform.posix.system("chmod +x save-$SAVE_CORE_VERSION-linuxX64.kexe")
+            platform.posix.system("echo echo 0 > save-linuxX64.kexe")
+            platform.posix.system("chmod +x save-linuxX64.kexe")
         } else {
-            platform.posix.system("echo echo 0 > save-$SAVE_CORE_VERSION-linuxX64.bat")
+            platform.posix.system("echo echo 0 > save-linuxX64.bat")
         }
     }
 
     @AfterTest
     fun tearDown() {
-        platform.posix.system("rm -rf save-$SAVE_CORE_VERSION-linuxX64.kexe")
+        platform.posix.system("rm -rf save-linuxX64.kexe")
     }
 
     @Test

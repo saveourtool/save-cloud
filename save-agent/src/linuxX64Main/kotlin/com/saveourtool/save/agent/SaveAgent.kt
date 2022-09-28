@@ -20,7 +20,6 @@ import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.toTestResultDebugInfo
 import com.saveourtool.save.utils.toTestResultStatus
 
-import generated.SAVE_CLOUD_VERSION
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.request.*
@@ -174,7 +173,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         initAgent(heartbeatResponse.config)
                     }
                     is NewJobResponse -> coroutineScope.launch {
-                        maybeStartSaveProcess(heartbeatResponse.cliArgs)
+                        maybeStartSaveProcess(heartbeatResponse.config)
                     }
                     is WaitResponse -> state.value = AgentState.IDLE
                     is ContinueResponse -> Unit  // do nothing
@@ -192,8 +191,6 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private suspend fun initAgent(agentInitConfig: AgentInitConfig) {
         state.value = AgentState.BUSY
-
-        processRequestToBackend { saveAdditionalData() }
 
         downloadSaveCli(agentInitConfig.saveCliUrl)
 
@@ -237,14 +234,14 @@ class SaveAgent(private val config: AgentConfiguration,
         state.value = AgentState.IDLE
     }
 
-    private fun CoroutineScope.maybeStartSaveProcess(cliArgs: String) {
+    private fun CoroutineScope.maybeStartSaveProcess(config: AgentRunConfig) {
         if (saveProcessJob.value?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
             saveProcessJob.value = launch(saveProcessContext) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
-                    startSaveProcess(cliArgs)
+                    startSaveProcess(config)
                 }
                     .exceptionOrNull()
                     ?.let {
@@ -256,14 +253,14 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     /**
-     * @param cliArgs arguments for SAVE process
+     * @param runConfig configuration to run SAVE process
      */
-    internal fun CoroutineScope.startSaveProcess(cliArgs: String) {
+    internal fun CoroutineScope.startSaveProcess(runConfig: AgentRunConfig) {
         // blocking execution of OS process
         state.value = AgentState.BUSY
         executionStartSeconds.value = Clock.System.now().epochSeconds
-        logInfoCustom("Starting SAVE in ${getWorkingDirectory()} with provided args $cliArgs")
-        val executionResult = runSave(cliArgs)
+        logInfoCustom("Starting SAVE in ${getWorkingDirectory()} with provided args ${runConfig.cliArgs}")
+        val executionResult = runSave(runConfig.cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
 
         val saveCliLogFilePath = config.logFilePath
@@ -281,7 +278,7 @@ class SaveAgent(private val config: AgentConfiguration,
             0 -> if (saveCliLogData.isEmpty()) {
                 state.value = AgentState.CLI_FAILED
             } else {
-                handleSuccessfulExit().invokeOnCompletion { cause ->
+                handleSuccessfulExit(runConfig).invokeOnCompletion { cause ->
                     state.value = if (cause == null) AgentState.FINISHED else AgentState.CRASHED
                 }
             }
@@ -357,7 +354,7 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private fun CoroutineScope.handleSuccessfulExit(): Job {
+    private fun CoroutineScope.handleSuccessfulExit(runConfig: AgentRunConfig): Job {
         val jsonReport = "${config.save.reportDir}/save.out.json"
         val result = runCatching {
             readExecutionResults(jsonReport)
@@ -372,20 +369,20 @@ class SaveAgent(private val config: AgentConfiguration,
             } else {
                 val (debugInfos, testExecutionDtos) = result.getOrThrow()
                 processRequestToBackend {
-                    postExecutionData(testExecutionDtos)
+                    postExecutionData(runConfig.executionDataUploadUrl, testExecutionDtos)
                 }
                 debugInfos.forEach { debugInfo ->
                     logDebugCustom("Posting debug info for test ${debugInfo.testResultLocation}")
                     processRequestToBackend {
-                        sendReport(debugInfo)
+                        sendReport(runConfig.debugInfoUploadUrl, debugInfo)
                     }
                 }
             }
         }
     }
 
-    private suspend fun sendReport(testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("${config.backend.url}${config.backend.debugInfoEndpoint}?executionId=${executionId.value}")
+    private suspend fun sendReport(debugInfoUploadUrl: String, testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
+        url("$debugInfoUploadUrl?executionId=${executionId.value}")
         contentType(ContentType.Application.Json)
         setBody(testResultDebugInfo)
     }
@@ -406,20 +403,12 @@ class SaveAgent(private val config: AgentConfiguration,
             .body()
     }
 
-    private suspend fun postExecutionData(testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
+    private suspend fun postExecutionData(executionDataUploadUrl: String, testExecutionDtos: List<TestExecutionDto>) = httpClient.post {
         logInfoCustom("Posting execution data to backend, ${testExecutionDtos.size} test executions")
-        url("${config.backend.url}${config.backend.executionDataEndpoint}")
+        url(executionDataUploadUrl)
         contentType(ContentType.Application.Json)
         setBody(testExecutionDtos)
     }
-
-    private suspend fun saveAdditionalData() = httpClient.post {
-        logInfoCustom("Posting additional data to backend")
-        url("${config.backend.url}${config.backend.additionalDataEndpoint}")
-        contentType(ContentType.Application.Json)
-        setBody(AgentVersion(config.id, SAVE_CLOUD_VERSION))
-    }
-
     private fun Result<*>.logErrorAndSetCrashed(errorMessage: () -> String) {
         logErrorCustom("${errorMessage()}: ${exceptionOrNull()?.describe()}")
         state.value = AgentState.CRASHED

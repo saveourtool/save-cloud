@@ -218,14 +218,14 @@ class AgentService(
      * @param newJobResponse a heartbeat response with tests
      */
     internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        agentRepository.assignAgent(agentContainerId, newJobResponse.tests)
+        agentRepository.assignAgent(agentContainerId, newJobResponse.config.tests)
             .zipWith(
                 updateAgentStatusesWithDto(
                     AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
                 )
             )
             .doOnSuccess {
-                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
+                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.config.tests} and its status has been set to BUSY" }
             }
             .subscribeOn(scheduler)
             .subscribe()
@@ -246,7 +246,14 @@ class AgentService(
     private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
             if (isNotEmpty()) {
                 // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                NewJobResponse(this, constructCliCommand())
+                NewJobResponse(
+                    AgentRunConfig(
+                        tests = this,
+                        cliArgs = constructCliCommand(),
+                        executionDataUploadUrl = "${configProperties.agentSettings.backendUrl}/internal/saveTestResult",
+                        debugInfoUploadUrl = "${configProperties.agentSettings.backendUrl}/internal/files/debug-info"
+                    )
+                )
             } else {
                 log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
                 WaitResponse
