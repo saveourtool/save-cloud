@@ -50,7 +50,6 @@ kotlin {
                 implementation(libs.save.plugins.fix)
                 implementation(libs.save.reporters)
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
@@ -63,8 +62,7 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                //implementation(libs.okio)
-                implementation(libs.ktor.client.curl)
+                implementation(libs.ktor.client.apache)
                 implementation(libs.commons.compress)
             }
             dependsOn(commonMain)
@@ -81,18 +79,7 @@ kotlin {
         val linuxX64Main by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation(projects.saveCloudCommon)
-                implementation(libs.save.core)
-                implementation(libs.save.plugins.fix)
-                implementation(libs.save.reporters)
-                implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.curl)
-                implementation(libs.ktor.client.content.negotiation)
-                implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktor.client.logging)
-                implementation(libs.kotlinx.serialization.properties)
-                //implementation(libs.okio)
-                implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
