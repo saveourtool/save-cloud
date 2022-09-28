@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
     id("org.gradle.test-retry") version "1.4.1"
 }
