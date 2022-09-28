@@ -5,12 +5,13 @@ import com.saveourtool.save.domain.TestResultStatus
 import kotlinx.serialization.Serializable
 
 /**
+ * @property filePath
+ * @property pluginName name of a plugin which will execute test at [filePath]
  * @property agentContainerId
+ * @property agentContainerName
  * @property status
  * @property startTimeSeconds
  * @property endTimeSeconds
- * @property filePath
- * @property pluginName name of a plugin which will execute test at [filePath]
  * @property testSuiteName a name of test suite, a test from which has been executed
  * @property tags list of tags of current test
  * @property unmatched number of unmatched checks/validations in test (false negative results)
@@ -25,6 +26,7 @@ data class TestExecutionDto(
     val filePath: String,
     val pluginName: String,
     val agentContainerId: String?,
+    val agentContainerName: String?,
     val status: TestResultStatus,
     val startTimeSeconds: Long?,
     val endTimeSeconds: Long?,

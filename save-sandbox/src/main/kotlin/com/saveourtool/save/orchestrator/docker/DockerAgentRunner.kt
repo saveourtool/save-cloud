@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
-import kotlin.math.abs
 import kotlin.random.Random
 
 /**
@@ -153,6 +152,8 @@ class DockerAgentRunner(
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
+    override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
+
     /**
      * Creates a docker container
      *
@@ -168,6 +169,10 @@ class DockerAgentRunner(
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
+        val envVariables = configuration.env.map { (key, value) ->
+            "$key=$value"
+        } + "${AgentEnvName.AGENT_NAME.name}=$containerName"
+
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)
@@ -183,9 +188,7 @@ class DockerAgentRunner(
             .withName(containerName)
             .withUser("save-agent")
             .withEnv(
-                configuration.env.map { (key, value) ->
-                    "$key=$value"
-                }
+                envVariables
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
@@ -210,7 +213,7 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val envFile = createTempDirectory("sandbox").resolve(envFileTargetPath.substringAfterLast("/")).apply {
+        val envFile = createTempDirectory("orchestrator").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
                 """.trimIndent()
@@ -252,4 +255,4 @@ class DockerAgentRunner(
  * @param id
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
-private fun containerName(id: String) = "save-execution-$id-${abs(Random.nextInt(100, 999))}"
+private fun containerName(id: String) = "save-execution-$id-${Random.nextInt(100, 999)}"
