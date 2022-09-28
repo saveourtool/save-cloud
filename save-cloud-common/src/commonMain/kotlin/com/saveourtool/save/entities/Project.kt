@@ -110,10 +110,9 @@ data class Project(
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", OrganizationStatus.CREATED, null, null, null),
+            organization = organization,
         ).apply {
             this.id = id
-            this.organization = organization
         }
     }
 }

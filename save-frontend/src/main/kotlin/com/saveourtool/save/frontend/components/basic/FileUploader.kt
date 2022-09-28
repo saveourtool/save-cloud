@@ -96,11 +96,6 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Submit button was pressed
-     */
-    var isSubmitButtonPressed: Boolean?
-
-    /**
      * General size of test suite in bytes
      */
     var suiteByteSize: Long

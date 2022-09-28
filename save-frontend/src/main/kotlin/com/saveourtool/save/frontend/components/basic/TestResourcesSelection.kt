@@ -33,7 +33,6 @@ val testResourcesSelection = prepareTestResourcesSelection()
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
-    var isSubmitButtonPressed: Boolean?
 
     // properties for CONTEST_MODE
     var projectName: String

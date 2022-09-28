@@ -60,7 +60,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * `Props` retrieved from router
+ * [Props] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface ProjectExecutionRouteProps : PropsWithChildren {
@@ -125,21 +125,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var errorLabel: String
 
     /**
-     * Message of warning
-     */
-    var confirmMessage: String
-
-    /**
-     * Flag to handle confirm Window
-     */
-    var isConfirmWindowOpen: Boolean?
-
-    /**
-     * Label of confirm Window
-     */
-    var confirmLabel: String
-
-    /**
      * Selected sdk
      */
     var selectedSdk: String
@@ -153,16 +138,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Flag to handle upload type project
      */
     var testingType: TestingType
-
-    /**
-     * Submit button was pressed
-     */
-    var isSubmitButtonPressed: Boolean?
-
-    /**
-     * State for the creation of unified confirmation logic
-     */
-    var confirmationType: ConfirmationType
 
     /**
      * List of Test Suites of private [TestSuiteDto] for execution run
@@ -200,11 +175,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var isUploading: Boolean?
 
     /**
-     * Whether editing of project info is disabled
-     */
-    var isEditDisabled: Boolean?
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -228,50 +198,26 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
 class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-    private val projectInfo = projectInfo(
-        turnEditMode = ::turnEditMode,
-        onProjectSave = { draftProject, setDraftProject ->
-            if (draftProject != state.project) {
-                scope.launch {
-                    val response = updateProject(draftProject!!)
-                    if (response.ok) {
-                        setState {
-                            project = draftProject
-                        }
-                    } else {
-                        // rollback form content
-                        setDraftProject(state.project)
-                    }
-                }
-            }
-        },
-    )
+    private fun onProjectUpdate(updatedProject: Project) {
+        setState{
+            project = updatedProject
+        }
+    }
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
-    private lateinit var responseFromDeleteProject: Response
 
     init {
-        state.project = Project(
-            "N/A",
-            "N/A",
-            "N/A",
-            ProjectStatus.CREATED,
-            userId = -1,
-            organization = Organization("stub", OrganizationStatus.CREATED, null, date)
-        )
+        state.project = Project.stub(null, Organization.stub(null))
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
         state.selectedPrivateTestSuites = emptyList()
         state.selectedPublicTestSuites = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
-        state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.PRIVATE_TESTS
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
         state.isErrorOpen = false
-        state.isSubmitButtonPressed = false
         state.errorMessage = ""
         state.errorLabel = ""
         state.files = mutableListOf()
@@ -281,7 +227,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.isUploading = false
-        state.isEditDisabled = true
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -323,7 +268,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 this.project = project
                 paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
             }
-
             val currentUserRoleInProject: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
                 jsonHeaders,
@@ -440,7 +384,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 modalCloseCallback()
             }
         }
-
         // Page Heading
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -534,7 +477,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 // ======== file selector =========
                 fileUploader {
-                    isSubmitButtonPressed = state.isSubmitButtonPressed
                     files = state.files
                     availableFiles = state.availableFiles
                     suiteByteSize = state.suiteByteSize
@@ -583,7 +525,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 // ======== test resources selection =========
                 testResourcesSelection {
                     testingType = state.testingType
-                    isSubmitButtonPressed = state.isSubmitButtonPressed
                     // properties for CONTEST_TESTS mode
                     projectName = props.name
                     organizationName = props.owner
@@ -635,8 +576,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     withNavigate { navigateContext ->
                         button {
                             type = ButtonType.button
+                            disabled = state.files.isEmpty()
                             className = ClassName("btn btn-primary")
-                            onClick = { navigateContext.submitWithValidation() }
+                            onClick = { navigateContext.submitExecutionRequest() }
                             +"Test the tool now"
                         }
                     }
@@ -648,20 +590,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 div {
                     className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Information"
-                    button {
-                        className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
-                        +"Edit  "
-                        fontAwesomeIcon(icon = faEdit)
-                        onClick = {
-                            turnEditMode(isOff = false)
-                        }
-                    }
                 }
 
                 projectInfoCard {
                     projectInfo {
                         project = state.project
-                        isEditDisabled = state.isEditDisabled
+                        onProjectUpdate = ::onProjectUpdate
                     }
 
                     div {
@@ -711,17 +645,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             project = state.project
             currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             selfRole = state.selfRole
-            deleteProjectCallback = ::deleteProject
-            updateProjectSettings = { project ->
-                scope.launch {
-                    val response = updateProject(project)
-                    if (response.ok) {
-                        setState {
-                            this.project = project
-                        }
-                    }
-                }
-            }
             updateErrorMessage = { response, message ->
                 setState {
                     errorLabel = response.statusText
@@ -795,14 +718,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
             }
 
-    private fun turnEditMode(isOff: Boolean) {
-        setState {
-            isEditDisabled = isOff
-        }
-        (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
-        (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
-    }
-
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
             className = ClassName(divClass)
@@ -824,79 +739,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    /**
-     * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
-     * he understand what he is doing.
-     */
-    private fun NavigateFunctionContext.submitWithValidation() {
-        setState {
-            isSubmitButtonPressed = true
-        }
-        when {
-            // no binaries were provided
-            state.files.isEmpty() -> setState {
-                confirmationType = ConfirmationType.NO_BINARY_CONFIRM
-                isConfirmWindowOpen = true
-                confirmLabel = "Single binary confirmation"
-                confirmMessage = "You have not provided any files related to your tested tool." +
-                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files using 'Upload files' button."
-            }
-            // everything is in place, can proceed
-            else -> submitExecutionRequest()
-        }
-    }
-
-    private fun deleteProject() {
-        val newProject = state.project.copy(status = ProjectStatus.DELETED)
-
-        setState {
-            project = newProject
-            confirmationType = ConfirmationType.DELETE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this project?"
-        }
-    }
-
-    private suspend fun updateProject(draftProject: Project): Response {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        return post(
-            "$apiUrl/projects/update",
-            headers,
-            Json.encodeToString(draftProject.toDto()),
-            loadingHandler = ::noopLoadingHandler,
-        )
-    }
-
-    private fun deleteProjectBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            responseFromDeleteProject =
-                    delete(
-                        "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteProject.ok) {
-                window.location.href = "${window.location.origin}/"
-            }
-        }
-    }
-
     private suspend fun fetchLatestExecutionId() {
-        val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
-            headers,
+            jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -926,7 +772,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         projectName: String,
     ) = get(
         "$apiUrl/files/$organizationName/$projectName/list",
-        Headers(),
+        jsonHeaders,
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
@@ -935,7 +781,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private suspend fun getContests() = get(
         "$apiUrl/contests/active",
-        Headers(),
+        jsonHeaders,
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
