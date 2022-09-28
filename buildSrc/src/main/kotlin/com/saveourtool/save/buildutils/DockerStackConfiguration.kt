@@ -53,7 +53,6 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
-                           |      - "MYSQL_DATABASE=save_cloud"
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:

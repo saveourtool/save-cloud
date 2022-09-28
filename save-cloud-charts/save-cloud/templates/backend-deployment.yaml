@@ -62,7 +62,7 @@ spec:
             runAsUser: 1001
             runAsGroup: 1001
           args:
-            - --url=$(DB_URL)
+            - --url=$(DB_URL)?createDatabaseIfNotExist=true
             - --changeLogFile=db/db.changelog-master.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
@@ -82,7 +82,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: spring.datasource.url
+                  key: spring.datasource.backend-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:

@@ -14,29 +14,42 @@ data class DatabaseCredentials(
     val databaseUrl: String,
     val username: String,
     val password: String
-)
+) {
+    /**
+     * @return arguments for liquibase task
+     */
+    fun toLiquibaseArguments(): Map<String, String> = mapOf(
+        "url" to "$databaseUrl?createDatabaseIfNotExist=true",
+        "username" to username,
+        "password" to password,
+    )
+}
 
 /**
  * @param profile a profile to get credentials for
- * @return an instance of [DatabaseCredentials] for [profile]
+ * @return an instance of [DatabaseCredentials] for [profile] in backend
  */
-@Suppress("AVOID_NULL_CHECKS")
-fun Project.getDatabaseCredentials(profile: String): DatabaseCredentials {
-    val props = java.util.Properties()
+fun Project.getBackendDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-backend", profile)
 
-    val secretsPath = System.getenv("DB_SECRETS_PATH")
-    if (secretsPath != null) {
+/**
+ * @param profile a profile to get credentials for
+ * @return an instance of [DatabaseCredentials] for [profile] in sandbox
+ */
+fun Project.getSandboxDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-sandbox", profile)
+
+private fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
+    System.getenv("DB_SECRETS_PATH")?.let { secretsPath ->
         // Branch for environment with explicit file with database credentials, e.g. Kubernetes Secrets
         val url = file("$secretsPath/spring.datasource.url").readText()
         val username = file("$secretsPath/spring.datasource.username").readText()
         val password = file("$secretsPath/spring.datasource.password").readText()
         return DatabaseCredentials(url, username, password)
-    } else {
-        // Branch for other environments, e.g. local deployment or server deployment
-        file("save-backend/src/main/resources/application-$profile.properties").inputStream().use(props::load)
-        if (File("${System.getenv("HOME")}/secrets").exists()) {
-            file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
-        }
+    }
+    val props = java.util.Properties()
+    // Branch for other environments, e.g. local deployment or server deployment
+    file("${projectName}/src/main/resources/application-$profile.properties").inputStream().use(props::load)
+    if (File("${System.getenv("HOME")}/secrets").exists()) {
+        file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
     }
 
     val databaseUrl: String = props.getProperty("spring.datasource.url")

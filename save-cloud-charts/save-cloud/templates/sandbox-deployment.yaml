@@ -77,8 +77,8 @@ spec:
             runAsUser: 1001
             runAsGroup: 1001
           args:
-            - --url=$(DB_URL)
-            - --changeLogFile=save-sandbox/db/db.changelog-master.xml
+            - --url=$(DB_URL)?createDatabaseIfNotExist=true
+            - --changeLogFile=save-sandbox/db/db.changelog-sandbox.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
             - --log-level=info
@@ -96,17 +96,17 @@ spec:
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
-                  name: sandbox-db-secrets
-                  key: spring.datasource.url
+                  name: db-secrets
+                  key: spring.datasource.sandbox-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: sandbox-db-secrets
+                  name: db-secrets
                   key: spring.datasource.username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: sandbox-db-secrets
+                  name: db-secrets
                   key: spring.datasource.password
           volumeMounts:
             - mountPath: /liquibase/changelog
@@ -120,6 +120,6 @@ spec:
             claimName: save-fs-storage
         - name: database-secret
           secret:
-            secretName: sandbox-db-secrets
+            secretName: db-secrets
         - name: migrations-data
           emptyDir: { }
