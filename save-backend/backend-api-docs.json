@@ -454,7 +454,7 @@
         ]
       }
     },
-    "/api/v1/test-suites/get-by-ids/{organizationName}": {
+    "/api/v1/test-suites/{organizationName}/get-by-ids": {
       "post": {
         "tags": [
           "rights",
@@ -3583,12 +3583,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string",
-                  "enum": [
-                    "MAINTAIN",
-                    "NONE",
-                    "USE"
-                  ]
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3598,12 +3593,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string",
-                  "enum": [
-                    "MAINTAIN",
-                    "NONE",
-                    "USE"
-                  ]
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3613,12 +3603,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string",
-                  "enum": [
-                    "MAINTAIN",
-                    "NONE",
-                    "USE"
-                  ]
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3628,12 +3613,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string",
-                  "enum": [
-                    "MAINTAIN",
-                    "NONE",
-                    "USE"
-                  ]
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3646,70 +3626,7 @@
         ]
       }
     },
-    "/api/v1/test-suites/public": {
-      "get": {
-        "tags": [
-          "rights",
-          "organizations",
-          "test-suites"
-        ],
-        "summary": "Get list of public test suites.",
-        "description": "Get list of public test suites.",
-        "operationId": "getPublicTestSuites",
-        "parameters": [
-          {
-            "name": "isContest",
-            "in": "query",
-            "description": "is given request sent for browsing test suites for contest, default is false",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          },
-          {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of an organization",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully fetched public test suites.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ]
-      }
-    },
-    "/api/v1/test-suites/filtered/{organizationName}": {
+    "/api/v1/test-suites/{organizationName}/filtered": {
       "get": {
         "tags": [
           "rights",
@@ -3804,7 +3721,7 @@
         ]
       }
     },
-    "/api/v1/test-suites/available/{organizationName}": {
+    "/api/v1/test-suites/{organizationName}/available": {
       "get": {
         "tags": [
           "rights",
@@ -3879,6 +3796,69 @@
           },
           "403": {
             "description": "Current user doesn\u0027t have enough permissions to access test suites from current organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/public": {
+      "get": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Get list of public test suites.",
+        "description": "Get list of public test suites.",
+        "operationId": "getPublicTestSuites",
+        "parameters": [
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched public test suites.",
             "content": {
               "*/*": {
                 "schema": {
@@ -7643,6 +7623,9 @@
           "agentContainerId": {
             "type": "string"
           },
+          "agentContainerName": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -8338,6 +8321,30 @@
               "READY_FOR_TESTING",
               "RUNNING",
               "TEST_ERROR"
+            ]
+          }
+        }
+      },
+      "LnkOrganizationTestSuiteDto": {
+        "required": [
+          "organization",
+          "rights",
+          "testSuite"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "testSuite": {
+            "$ref": "#/components/schemas/TestSuiteDto"
+          },
+          "rights": {
+            "type": "string",
+            "enum": [
+              "MAINTAIN",
+              "NONE",
+              "USE"
             ]
           }
         }
