@@ -60,10 +60,9 @@ class TestSuite(
     fun tagsAsList() = tags?.split(DATABASE_DELIMITER)?.filter { it.isNotBlank() }.orEmpty()
 
     /**
-     * @param id
      * @return Dto of testSuite
      */
-    fun toDto(id: Long? = null) =
+    fun toDto() =
             TestSuiteDto(
                 this.name,
                 this.description,
@@ -71,7 +70,7 @@ class TestSuite(
                 this.version,
                 this.language,
                 this.tagsAsList(),
-                id,
+                this.id,
                 this.pluginsAsListOfPluginType(),
                 this.isPublic
             )

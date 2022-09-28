@@ -353,6 +353,6 @@ class LnkOrganizationTestSuiteController(
             }
         }
         .map {
-            it.toDto(it.requiredId())
+            it.toDto()
         }
 }

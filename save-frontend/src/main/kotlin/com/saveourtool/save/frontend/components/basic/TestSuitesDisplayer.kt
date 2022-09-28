@@ -68,7 +68,7 @@ fun ChildrenBuilder.showAvaliableTestSuites(
                             small {
                                 asDynamic()["data-toggle"] = "tooltip"
                                 asDynamic()["data-placement"] = "bottom"
-                                title = "Hash of commit with current test suite"
+                                title = "Hash of commit/branch name/tag name"
                                 +testSuite.version
                             }
                         }

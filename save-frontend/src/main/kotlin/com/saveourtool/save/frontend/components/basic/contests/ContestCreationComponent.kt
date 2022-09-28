@@ -154,7 +154,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
     val (testSuites, setTestSuites) = useState(emptyList<TestSuiteDto>())
     useRequest {
         val testSuitesFromBackend: List<TestSuiteDto> = post(
-            url = "$apiUrl/test-suites/${props.organizationName}/get-by-ids",
+            url = "$apiUrl/test-suites/${contestDto.organizationName}/get-by-ids",
             headers = jsonHeaders,
             body = Json.encodeToString(contestDto.testSuiteIds),
             loadingHandler = ::loadingHandler,
@@ -170,7 +170,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
         className = ClassName("card")
         contestCreationCard {
             showContestTestSuitesSelectorModal(
-                props.organizationName,
+                contestDto.organizationName,
                 testSuites,
                 testSuitesSelectorWindowOpenness,
                 useState(emptyList()),

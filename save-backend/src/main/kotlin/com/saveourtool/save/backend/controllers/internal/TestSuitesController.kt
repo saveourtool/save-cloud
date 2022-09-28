@@ -13,12 +13,12 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller for test suites
@@ -57,17 +57,19 @@ class TestSuitesController(
         Parameter(name = "id", `in` = ParameterIn.PATH, description = "id of test suite", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched filtered test suites.")
-    fun getTestSuiteById(@PathVariable id: Long): ResponseEntity<TestSuite?> =
-            ResponseEntity.ok(testSuitesService.findTestSuiteById(id))
+    @Suppress("TYPE_ALIAS")
+    fun getTestSuiteById(@PathVariable id: Long): Mono<ResponseEntity<TestSuite?>> =
+            ResponseEntity.ok(testSuitesService.findTestSuiteById(id)).toMono()
 
     @DeleteMapping("/delete")
     @Transactional
     @Operation(
-        method = "POST",
+        method = "DELETE",
         summary = "Delete test suites.",
         description = "Delete test suites.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully deleted test suites.")
-    fun deleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>): ResponseEntity<Unit> =
-            ResponseEntity.status(HttpStatus.OK).body(testSuitesService.deleteTestSuitesDto(testSuiteDtos))
+    @Suppress("TYPE_ALIAS")
+    fun deleteTestSuites(@RequestBody testSuiteDtos: List<TestSuiteDto>): Mono<ResponseEntity<Unit>> =
+            ResponseEntity.ok(testSuitesService.deleteTestSuitesDto(testSuiteDtos)).toMono()
 }

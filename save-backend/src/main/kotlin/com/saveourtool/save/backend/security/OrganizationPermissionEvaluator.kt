@@ -2,11 +2,11 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
@@ -14,10 +14,9 @@ import org.springframework.stereotype.Component
  * Class that is capable of assessing user's permissions regarding organizations.
  */
 @Component
-class OrganizationPermissionEvaluator {
-    @Autowired
-    private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
-
+class OrganizationPermissionEvaluator(
+    private var lnkUserOrganizationService: LnkUserOrganizationService
+) {
     /**
      * @param authentication
      * @param organization
@@ -62,8 +61,6 @@ class OrganizationPermissionEvaluator {
      */
     fun hasGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String, requiredRole: Role): Boolean =
             lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organizationName).priority >= requiredRole.priority
-
-    private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
     @Suppress("FunctionOnlyReturningConstant", "UNUSED_PARAMETER")
     private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = true

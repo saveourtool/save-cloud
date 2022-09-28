@@ -437,7 +437,7 @@ class TestSuitesSourceController(
                 testSuitesSource,
                 version
             ).map {
-                it.toDto(it.requiredId())
+                it.toDto()
             }
         }
 

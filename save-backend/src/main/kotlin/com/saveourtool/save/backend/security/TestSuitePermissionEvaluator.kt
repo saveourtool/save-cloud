@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuite
@@ -36,7 +37,6 @@ class TestSuitePermissionEvaluator(
     }
 
     private fun canMaintainTestSuite(rights: Rights) = rights == Rights.MAINTAIN
-    private fun canAccessTestSuite(rights: Rights) = canMaintainTestSuite(rights) || rights == Rights.USE
 
-    private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
+    private fun canAccessTestSuite(rights: Rights) = canMaintainTestSuite(rights) || rights == Rights.USE
 }

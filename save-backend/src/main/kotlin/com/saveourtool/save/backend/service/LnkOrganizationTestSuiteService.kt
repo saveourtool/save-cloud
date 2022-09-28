@@ -1,5 +1,3 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
-
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.LnkOrganizationTestSuiteRepository
@@ -39,7 +37,7 @@ class LnkOrganizationTestSuiteService(
      *
      * @throws IllegalStateException if [rights] is [Role.NONE]
      */
-    @Suppress("KDOC_WITHOUT_PARAM_TAG", "UnsafeCallOnNullableType")
+    @Suppress("KDOC_WITHOUT_PARAM_TAG")
     fun setRights(organization: Organization, testSuite: TestSuite, rights: Rights) {
         if (rights == Rights.NONE) {
             throw IllegalStateException("NONE rights should not be present in database!")
@@ -69,7 +67,6 @@ class LnkOrganizationTestSuiteService(
      * @param testSuite
      * @return Unit
      */
-    @Suppress("UnsafeCallOnNullableType")
     fun removeRights(organization: Organization, testSuite: TestSuite) = findByOrganizationAndTestSuite(organization, testSuite)
         ?.requiredId()
         ?.let { lnkOrganizationTestSuiteRepository.deleteById(it) }
