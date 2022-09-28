@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
     id("org.gradle.test-retry") version "1.4.1"
 }
@@ -36,7 +35,6 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
-//    implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.spring.kafka)
     testImplementation(projects.testUtils)
