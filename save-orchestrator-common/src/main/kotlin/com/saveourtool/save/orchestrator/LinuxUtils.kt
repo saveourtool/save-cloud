@@ -12,12 +12,10 @@ import java.nio.file.StandardCopyOption
 /**
  * @return IP address of the docker host or `host-gateway` as a fallback
  */
-fun getHostIp(): String {
-    return System.getProperty("OVERRIDE_HOST_IP")
-        ?: System.getenv("HOST_IP")
-        ?: resolve("host.docker.internal")
-        ?: "host-gateway"
-}
+fun getHostIp(): String = System.getProperty("OVERRIDE_HOST_IP")
+    ?: System.getenv("HOST_IP")
+    ?: resolve("host.docker.internal")
+    ?: "host-gateway"
 
 /**
  * Copy [sourceDir] into [targetDir] recursively, while also copying original file attributes
