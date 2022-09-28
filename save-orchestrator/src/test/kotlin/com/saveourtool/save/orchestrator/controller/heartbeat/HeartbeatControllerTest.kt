@@ -320,6 +320,7 @@ class HeartbeatControllerTest {
                 "testPath63",
                 "WarnPlugin",
                 "test",
+                "test",
                 TestResultStatus.READY_FOR_TESTING,
                 0,
                 0,

@@ -1,7 +1,7 @@
 dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
-  version: 6.38.6
+  version: 6.39.0
 - name: prometheus
   repository: https://prometheus-community.github.io/helm-charts
   version: 15.13.0
@@ -11,5 +11,5 @@ dependencies:
 - name: loki
   repository: https://grafana.github.io/helm-charts
   version: 2.16.0
-digest: sha256:70edb29c8cb9d5dffc46e0dfa53149a3cc5233cab4a738a0cf6449cd9ec77adf
-generated: "2022-09-21T10:25:38.927663819Z"
+digest: sha256:50910460dbb1f5c4e0fa48c419f474cfe1708b55b609d36dcef6fa9975655087
+generated: "2022-09-27T01:49:49.055994423Z"
