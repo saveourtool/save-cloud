@@ -38,21 +38,21 @@ fun Project.getBackendDatabaseCredentials(profile: String): DatabaseCredentials 
 fun Project.getSandboxDatabaseCredentials(profile: String): DatabaseCredentials = getDatabaseCredentials("save-sandbox", profile)
 
 private fun Project.getDatabaseCredentials(projectName: String, profile: String): DatabaseCredentials {
-    System.getenv("DB_SECRETS_PATH")?.let { secretsPath ->
-        // Branch for environment with explicit file with database credentials, e.g. Kubernetes Secrets
-        val url = file("$secretsPath/spring.datasource.url").readText()
-        val username = file("$secretsPath/spring.datasource.username").readText()
-        val password = file("$secretsPath/spring.datasource.password").readText()
-        return DatabaseCredentials(url, username, password)
-    }
     val props = java.util.Properties()
     // Branch for other environments, e.g. local deployment or server deployment
     file("${projectName}/src/main/resources/application-$profile.properties").inputStream().use(props::load)
     if (File("${System.getenv("HOME")}/secrets").exists()) {
         file("${System.getenv("HOME")}/secrets").inputStream().use(props::load)
     }
-
     val databaseUrl: String = props.getProperty("spring.datasource.url")
+
+    System.getenv("DATABASE_SECRETS_PATH")?.let { secretsPath ->
+        // Branch for environment with explicit file with database credentials, e.g. Kubernetes Secrets
+        val username = file("$secretsPath/spring.datasource.username").readText()
+        val password = file("$secretsPath/spring.datasource.password").readText()
+        return DatabaseCredentials(databaseUrl, username, password)
+    }
+
     val username: String
     val password: String
 
