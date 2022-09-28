@@ -56,11 +56,6 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     val state = AtomicReference(AgentState.BUSY)
 
-    /**
-     * The current ID of [com.saveourtool.save.entities.Execution] of current processing
-     */
-    private val executionId = AtomicLong(requiredEnv(AgentEnvName.EXECUTION_ID).toLong())
-
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
     private val executionStartSeconds = AtomicLong()
@@ -163,7 +158,7 @@ class SaveAgent(private val config: AgentConfiguration,
         while (true) {
             val response = runCatching {
                 // TODO: get execution progress here. However, with current implementation JSON report won't be valid until all tests are finished.
-                sendHeartbeat(ExecutionProgress(executionId = executionId.value, percentCompletion = 0))
+                sendHeartbeat(ExecutionProgress(executionId = requiredEnv(AgentEnvName.EXECUTION_ID).toLong(), percentCompletion = 0))
             }
             if (response.isSuccess) {
                 when (val heartbeatResponse = response.getOrThrow().also {
@@ -381,21 +376,15 @@ class SaveAgent(private val config: AgentConfiguration,
         }
     }
 
-    private suspend fun sendReport(debugInfoUploadUrl: String, testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
-        url("$debugInfoUploadUrl?executionId=${executionId.value}")
-        contentType(ContentType.Application.Json)
-        setBody(testResultDebugInfo)
-    }
-
     /**
      * @param executionProgress execution progress that will be sent in a heartbeat message
      * @return a [HeartbeatResponse] from Orchestrator
      */
     internal suspend fun sendHeartbeat(executionProgress: ExecutionProgress): HeartbeatResponse {
-        logDebugCustom("Sending heartbeat to ${config.orchestrator.url}")
+        logDebugCustom("Sending heartbeat to ${config.heartbeat.url}")
         // if current state is IDLE or FINISHED, should accept new jobs as a response
         return httpClient.post {
-            url("${config.orchestrator.url}${config.orchestrator.heartbeatEndpoint}")
+            url(config.heartbeat.url)
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
             setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
@@ -409,6 +398,13 @@ class SaveAgent(private val config: AgentConfiguration,
         contentType(ContentType.Application.Json)
         setBody(testExecutionDtos)
     }
+
+    private suspend fun sendReport(debugInfoUploadUrl: String, testResultDebugInfo: TestResultDebugInfo) = httpClient.post {
+        url(debugInfoUploadUrl)
+        contentType(ContentType.Application.Json)
+        setBody(testResultDebugInfo)
+    }
+
     private fun Result<*>.logErrorAndSetCrashed(errorMessage: () -> String) {
         logErrorCustom("${errorMessage()}: ${exceptionOrNull()?.describe()}")
         state.value = AgentState.CRASHED

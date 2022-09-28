@@ -1,6 +1,5 @@
 package com.saveourtool.save.agent
 
-import generated.SAVE_CORE_VERSION
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -26,14 +25,13 @@ class SaveAgentTest {
     init {
         setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
         setenv(AgentEnvName.AGENT_NAME.name, "save-agent-for-test", 1)
-        setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
-        setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
+        setenv(AgentEnvName.HEARTBEAT_URL.name, "http://localhost:5100", 1)
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
         setenv(AgentEnvName.EXECUTION_ID.name, "1", 1)
     }
 
     private val configuration: AgentConfiguration = AgentConfiguration.initializeFromEnv().let {
-        if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-$SAVE_CORE_VERSION-linuxX64.bat") else it
+        if (Platform.osFamily == OsFamily.WINDOWS) it.copy(cliCommand = "save-linuxX64.bat") else it
     }
     private val saveAgentForTest = SaveAgent(configuration, httpClient = HttpClient(MockEngine) {
         install(ContentNegotiation) {
@@ -78,7 +76,11 @@ class SaveAgentTest {
     @Test
     fun `should change state to FINISHED after SAVE CLI returns`() = runBlocking {
         assertEquals(AgentState.BUSY, saveAgentForTest.state.value)
-        runBlocking { saveAgentForTest.run { startSaveProcess("") } }
+        runBlocking {
+            saveAgentForTest.run {
+                startSaveProcess(AgentRunConfig(emptyList(), "", "N/A", "N/A"))
+            }
+        }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
     }
 }

@@ -100,8 +100,7 @@ internal fun fillAgentPropertiesFromConfiguration(
     put(AgentEnvName.EXECUTION_ID, executionId.toString())
 
     with(agentSettings) {
-        backendUrl?.let { put(AgentEnvName.BACKEND_URL, it) }
-        orchestratorUrl?.let { put(AgentEnvName.ORCHESTRATOR_URL, it) }
+        orchestratorUrl?.let { put(AgentEnvName.HEARTBEAT_URL, it) }
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 }

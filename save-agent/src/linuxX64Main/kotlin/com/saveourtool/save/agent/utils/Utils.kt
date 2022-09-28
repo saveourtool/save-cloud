@@ -7,9 +7,8 @@ package com.saveourtool.save.agent.utils
 import com.saveourtool.save.agent.AgentConfiguration
 import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.core.logging.logTrace
-import generated.SAVE_CORE_VERSION
 
-internal const val SAVE_CLI_EXECUTABLE_NAME = "save-$SAVE_CORE_VERSION-linuxX64.kexe"
+internal const val SAVE_CLI_EXECUTABLE_NAME = "save-linuxX64.kexe"
 internal const val TEST_SUITES_DIR_NAME = "test-suites"
 
 /**
@@ -20,14 +19,11 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     return copy(
         id = optionalEnv(AgentEnvName.AGENT_ID) ?: id,
         name = optionalEnv(AgentEnvName.AGENT_NAME) ?: name,
+        heartbeat = heartbeat.copy(
+            url = optionalEnv(AgentEnvName.HEARTBEAT_URL) ?: heartbeat.url,
+        ),
         cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
         debug = optionalEnv(AgentEnvName.DEBUG)?.toBoolean() ?: debug,
-        backend = backend.copy(
-            url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
-        ),
-        orchestrator = orchestrator.copy(
-            url = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestrator.url,
-        ),
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
     )
 }

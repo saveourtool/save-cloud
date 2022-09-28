@@ -9,7 +9,6 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
-import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -50,11 +49,13 @@ class AgentService(
      * Sets new tests ids
      *
      * @param agentId
-     * @return Mono<NewJobResponse>
+     * @return [Mono] of [NewJobResponse] or [WaitResponse]
      */
     internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
-            agentRepository.getNextTestBatch(agentId)
-                .map { it.toHeartbeatResponse(agentId) }
+            agentRepository.getNextRunConfig(agentId)
+                .map { NewJobResponse(it) }
+                .cast(HeartbeatResponse::class.java)
+                .defaultIfEmpty(WaitResponse)
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
@@ -242,27 +243,6 @@ class AgentService(
         log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
         return agentRepository.setStatusByAgentIds(agentsList, status)
     }
-
-    private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
-            if (isNotEmpty()) {
-                // fixme: do we still need suitesToArgs, since we have execFlags in save.toml?
-                NewJobResponse(
-                    AgentRunConfig(
-                        tests = this,
-                        cliArgs = constructCliCommand(),
-                        executionDataUploadUrl = "${configProperties.agentSettings.backendUrl}/internal/saveTestResult",
-                        debugInfoUploadUrl = "${configProperties.agentSettings.backendUrl}/internal/files/debug-info"
-                    )
-                )
-            } else {
-                log.debug("Next test batch for agentId=$agentId is empty, setting it to wait")
-                WaitResponse
-            }
-
-    private fun TestBatch.constructCliCommand() = joinToString(" ") { it.filePath }
-        .also {
-            log.debug("Constructed cli args for SAVE-cli: $it")
-        }
 
     private fun Collection<AgentStatusDto>.areIdleOrFinished() = all {
         it.state == IDLE || it.state == FINISHED || it.state == STOPPED_BY_ORCH || it.state == CRASHED || it.state == TERMINATED
