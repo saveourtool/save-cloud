@@ -118,18 +118,17 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         }
     }
 
-    val (isModalOpen, setIsModalOpen) = useState(false)
+    val deletionModalOpener = useWindowOpenness()
     displayModal(
-        isModalOpen,
+        deletionModalOpener,
         "Warning: deletion of project",
         "You are about to delete project $projectPath. Are you sure?",
-        onCloseButtonPressed = { setIsModalOpen(false) },
     ) {
         buttonBuilder("Yes, delete $projectPath", "danger") {
             deleteProject()
         }
         buttonBuilder("Cancel") {
-            setIsModalOpen(false)
+            deletionModalOpener.closeWindow()
         }
     }
 
@@ -278,7 +277,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("btn btn-sm btn-danger")
                             disabled = !props.selfRole.hasDeletePermission()
                             onClick = {
-                                setIsModalOpen(true)
+                                deletionModalOpener.openWindow()
                             }
                             +"Delete project"
                         }

@@ -115,7 +115,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
                     className = ClassName("col-md-6 pl-0 pr-0")
                     label {
                         className = ClassName("control-label col-auto justify-content-between pl-0")
-                        +projectInformationHeaders[fieldId]!!
+                        +projectInformationHeaders.getValue(fieldId)
                     }
                 }
                 div {
@@ -131,7 +131,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
                             disabled = fieldId != "name" && props.onProjectUpdate != null && isEditDisabled
                             readOnly = fieldId == "name" || props.onProjectUpdate == null
                             onChange = { event ->
-                                setDraftProject(idToValueSetter[fieldId]!!(event.target.value))
+                                setDraftProject(idToValueSetter.getValue(fieldId)(event.target.value))
                             }
                         }
                     }

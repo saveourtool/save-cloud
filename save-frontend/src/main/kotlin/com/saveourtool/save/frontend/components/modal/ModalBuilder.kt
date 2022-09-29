@@ -44,6 +44,30 @@ fun ChildrenBuilder.displayModal(
 }
 
 /**
+ * Universal function to create modals with bootstrap styles inside react modals.
+ *
+ * @param opener [WindowOpenness]
+ * @param title title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+fun ChildrenBuilder.displayModal(
+    opener: WindowOpenness,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = opener.isOpen()
+        props.style = modalStyle
+        modalBuilder(title, message, opener.closeWindowAction(), buttonBuilder)
+    }
+}
+
+/**
  * Universal function to create modals ащк confirmation.
  *
  * @param windowOpenness
