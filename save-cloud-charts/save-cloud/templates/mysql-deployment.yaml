@@ -9,7 +9,7 @@ stringData:
   spring.datasource.backend-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.backend_schema }}'
   spring.datasource.sandbox-url: 'jdbc:mysql://mysql-service:3306/{{ .Values.mysql.sandbox_schema }}'
   spring.datasource.username: root
-  spring.datasource.password: {{ .Values.mysql.root_password }}
+  spring.datasource.password: {{ .Values.mysql.root_password | quote }}
 
 ---
   {{ end }}
@@ -37,7 +37,7 @@ spec:
               name: mysql
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mysql.root_password }}
+              value: {{ .Values.mysql.root_password | quote }}
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /var/lib/mysql
