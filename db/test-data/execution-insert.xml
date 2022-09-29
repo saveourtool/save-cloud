@@ -13,7 +13,6 @@
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
             <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
@@ -42,7 +41,6 @@
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
             <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
@@ -71,7 +69,6 @@
             <column name="end_time" value="2021-03-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="4" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
             <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
@@ -100,7 +97,6 @@
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="1, 2, 3" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="10" />
             <column name="type" value="PRIVATE_TESTS" />
             <column name="version" value="0.0.1" />
@@ -129,7 +125,6 @@
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="11" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
             <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
@@ -159,7 +154,6 @@
             <column name="end_time" value="2021-02-01 00:00:00" />
             <column name="status" value="RUNNING" />
             <column name="test_suite_ids" value="11" />
-            <column name="resources_root_path" value="resources_root_path" />
             <column name="batch_size" value="20" />
             <column name="type" value="PUBLIC_TESTS" />
             <column name="version" value="0.0.1" />
