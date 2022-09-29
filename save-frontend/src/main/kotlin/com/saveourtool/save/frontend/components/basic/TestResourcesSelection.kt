@@ -12,9 +12,8 @@ import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPriv
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.utils.WindowOpenness
-import com.saveourtool.save.frontend.utils.useWindowOpenness
-import com.saveourtool.save.frontend.utils.withUnusedArg
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
 import react.*
@@ -45,12 +44,12 @@ external interface TestResourcesProps : PropsWithChildren {
     var setSelectedContest: (ContestDto) -> Unit
 
     // properties for PRIVATE_TESTS mode
-    var selectedPrivateTestSuiteIds: List<Long>
-    var setSelectedPrivateTestSuiteIds: (List<Long>) -> Unit
+    var selectedPrivateTestSuiteIds: List<TestSuiteDto>
+    var setSelectedPrivateTestSuiteIds: (List<TestSuiteDto>) -> Unit
 
     // properties for PUBLIC_TESTS mode
-    var selectedPublicTestSuiteIds: List<Long>
-    var setSelectedPublicTestSuiteIds: (List<Long>) -> Unit
+    var selectedPublicTestSuiteIds: List<TestSuiteDto>
+    var setSelectedPublicTestSuiteIds: (List<TestSuiteDto>) -> Unit
     var execCmd: String
     var setExecCmd: (String) -> Unit
     var batchSizeForAnalyzer: String
@@ -103,13 +102,13 @@ private fun ChildrenBuilder.addAdditionalProperty(
 
 private fun ContestDto.label(): String = "$organizationName/$name"
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "TYPE_ALIAS")
 private fun ChildrenBuilder.renderForPublicAndPrivateTests(
     props: TestResourcesProps,
     testSuiteSelectorWindowOpenness: WindowOpenness,
-    testSuiteIdsInSelectorState: StateInstance<List<Long>>,
-    selectedTestSuiteIds: List<Long>,
-    setSelectedTestSuiteIds: (List<Long>) -> Unit,
+    testSuitesInSelectorState: StateInstance<List<TestSuiteDto>>,
+    selectedTestSuites: List<TestSuiteDto>,
+    setSelectedTestSuiteIds: (List<TestSuiteDto>) -> Unit,
 ) {
     div {
         className = ClassName("card shadow mb-4 w-100")
@@ -139,15 +138,16 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
             when (props.testingType) {
                 TestingType.PRIVATE_TESTS -> showPrivateTestSuitesSelectorModal(
                     props.organizationName,
-                    selectedTestSuiteIds,
+                    selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
-                    testSuiteIdsInSelectorState,
+                    testSuitesInSelectorState,
                     setSelectedTestSuiteIds
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
-                    selectedTestSuiteIds,
+                    props.organizationName,
+                    selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
-                    testSuiteIdsInSelectorState,
+                    testSuitesInSelectorState,
                     setSelectedTestSuiteIds
                 )
                 else -> throw IllegalStateException("Not supported testingType ${props.testingType}")
@@ -158,7 +158,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                 className = ClassName("mt-2")
                 inputTextFormRequired {
                     form = InputTypes.TEST_SUITE_IDS
-                    textValue = selectedTestSuiteIds.joinToString(", ")
+                    textValue = selectedTestSuites.joinToString(", ") { it.name }
                     validInput = true
                     classes = "col-12 pl-2 pr-2 text-center"
                     name = "Test Suites:"
@@ -234,10 +234,10 @@ private fun ChildrenBuilder.renderForContestMode(
 private fun prepareTestResourcesSelection() = FC<TestResourcesProps> { props ->
     // states for private mode
     val testSuiteSelectorWindowOpennessPrivateMode = useWindowOpenness()
-    val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<Long>())
+    val testSuiteIdsInSelectorStatePrivateMode = useState(emptyList<TestSuiteDto>())
     // states for public mode
     val testSuiteSelectorWindowOpennessPublicMode = useWindowOpenness()
-    val testSuiteIdsInSelectorStatePublicMode = useState(emptyList<Long>())
+    val testSuiteIdsInSelectorStatePublicMode = useState(emptyList<TestSuiteDto>())
     // states for contest mode
     val contestEnrollerWindowOpenness = useWindowOpenness()
 

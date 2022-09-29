@@ -81,6 +81,11 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
      * Selected language
      */
     var lang: String
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -103,13 +108,15 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         scope.launch {
             getBenchmarks()
+            setState {
+                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            }
         }
     }
 
     override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
-                "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
         }

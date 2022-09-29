@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 /**
  * Class for properties
  *
+ * @property url url of backend
  * @property preprocessorUrl url of preprocessor
  * @property initialBatchSize initial size of tests batch (for further scaling)
  * @property fileStorage configuration of file storage
@@ -15,6 +16,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
 data class ConfigProperties(
+    val url: String,
     val preprocessorUrl: String,
     val orchestratorUrl: String,
     val initialBatchSize: Int,

@@ -1,51 +1,128 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.AgentVersion
+import com.saveourtool.save.agent.SaveCliOverrides
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
-import com.saveourtool.save.entities.Agent
-import com.saveourtool.save.entities.AgentStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusesForExecution
+import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+
+import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
-import reactor.kotlin.core.publisher.toMono
+import reactor.core.publisher.Mono
 
 /**
  * Controller to manipulate with Agent related data
  */
 @RestController
 @RequestMapping("/internal")
-class AgentsController(private val agentStatusRepository: AgentStatusRepository,
-                       private val agentRepository: AgentRepository,
+class AgentsController(
+    private val agentStatusRepository: AgentStatusRepository,
+    private val agentRepository: AgentRepository,
+    private val configProperties: ConfigProperties,
+    private val executionService: ExecutionService,
 ) {
     /**
-     * @param agents list of [Agent]s to save into the DB
+     * @param containerId [Agent.containerId]
+     * @return [Mono] with [AgentInitConfig]
+     */
+    @GetMapping("/agents/get-init-config")
+    fun getInitConfig(
+        @RequestParam containerId: String,
+    ): Mono<AgentInitConfig> = blockingToMono {
+        agentRepository.findByContainerId(containerId)
+    }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
+        .map {
+            it.execution
+        }
+        .map { execution ->
+            AgentInitConfig(
+                saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
+                testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
+                additionalFileNameToUrl = execution.getFileKeys()
+                    .associate { fileKey ->
+                        fileKey.name to buildString {
+                            append(configProperties.url)
+                            append("/internal/files/download?")
+                            mapOf(
+                                "organizationName" to fileKey.projectCoordinates.organizationName,
+                                "projectName" to fileKey.projectCoordinates.projectName,
+                                "name" to fileKey.name,
+                                "uploadedMillis" to fileKey.uploadedMillis,
+                            )
+                                .map { (key, value) -> "$key=$value" }
+                                .joinToString("&")
+                                .let { append(it) }
+                        }
+                    },
+                saveCliOverrides = SaveCliOverrides(
+                    overrideExecCmd = execution.execCmd,
+                    overrideExecFlags = null,
+                    batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
+                    batchSeparator = null,
+                ),
+            )
+        }
+
+    /**
+     * @param agents list of [AgentDto]s to save into the DB
      * @return a list of IDs, assigned to the agents
      */
-    @PostMapping("/addAgents")
-    @Suppress("UnsafeCallOnNullableType")  // hibernate should always assign ids
-    fun addAgents(@RequestBody agents: List<Agent>): List<Long> {
+    @PostMapping("/agents/insert")
+    fun addAgents(@RequestBody agents: List<AgentDto>): List<Long> {
         log.debug("Saving agents $agents")
-        return agentRepository.saveAll(agents).map { it.id!! }
+        return agents
+            .map { agent ->
+                agent.toEntity {
+                    executionService.findExecution(it)
+                        .orNotFound()
+                }
+            }
+            .let { agentRepository.saveAll(it) }
+            .map { it.requiredId() }
     }
 
     /**
      * @param agentStates list of [AgentStatus]es to update in the DB
+     * @throws ResponseStatusException code 409 if agent has already its final state that shouldn't be updated
      */
-    @PostMapping("/updateAgentStatuses")
-    fun updateAgentStatuses(@RequestBody agentStates: List<AgentStatus>) {
-        agentStatusRepository.saveAll(agentStates)
+    @PostMapping("/updateAgentStatusesWithDto")
+    @Transactional
+    fun updateAgentStatusesWithDto(@RequestBody agentStates: List<AgentStatusDto>) {
+        agentStates.forEach { agentState ->
+            val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
+            when (val latestState = agentStatus?.state) {
+                AgentState.STOPPED_BY_ORCH, AgentState.TERMINATED ->
+                    throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
+                agentState.state -> {
+                    // updating time
+                    agentStatus.endTime = agentState.time
+                    agentStatusRepository.save(agentStatus)
+                }
+                else -> {
+                    // insert new agent status
+                    agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
+                }
+            }
+        }
     }
 
     /**
@@ -56,29 +133,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
         agentRepository.findByContainerId(agentVersion.containerId)?.let {
             it.version = agentVersion.version
             agentRepository.save(it)
-        }
-    }
-
-    /**
-     * @param agentState an [AgentStatus] to update in the DB
-     * @throws ResponseStatusException code 409 if agent has already its final state that shouldn't be updated
-     */
-    @PostMapping("/updateAgentStatusWithDto")
-    @Transactional
-    @Suppress("AVOID_NULL_CHECKS")
-    fun updateAgentStatusesWithDto(@RequestBody agentState: AgentStatusDto) {
-        val agentStatus = agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agentState.containerId)
-        val latestState = agentStatus?.state
-        if (latestState == AgentState.STOPPED_BY_ORCH || latestState == AgentState.TERMINATED) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "Agent ${agentState.containerId} has state $latestState and shouldn't be updated")
-        } else if (latestState == agentState.state) {
-            // updating time
-            agentStatus.endTime = agentState.time
-            agentStatusRepository.save(agentStatus)
-        } else {
-            // insert new agent status
-            val agent = getAgentByContainerId(agentState.containerId)
-            agentStatusRepository.save(AgentStatus(agentState.time, agentState.time, agentState.state, agent))
         }
     }
 
@@ -142,17 +196,6 @@ class AgentsController(private val agentStatusRepository: AgentStatusRepository,
     @GetMapping("/getAgentsIdsForExecution")
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
-
-    /**
-     * Return ID of execution for which agent [agentId] has been created
-     *
-     * @param agentId id of an agent to look for
-     * @return id of an execution
-     */
-    @GetMapping("/agents/{agentId}/execution/id")
-    fun findExecutionIdByAgentId(@PathVariable agentId: String) = agentRepository.findByContainerId(agentId)
-        .toMono()
-        .mapNotNull { it.execution.id }
 
     /**
      * Get agent by containerId.

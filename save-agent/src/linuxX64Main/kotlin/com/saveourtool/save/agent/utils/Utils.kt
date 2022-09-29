@@ -19,18 +19,15 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     logTrace("Initial agent config: $this; applying overrides from env")
     return copy(
         id = optionalEnv(AgentEnvName.AGENT_ID) ?: id,
+        name = optionalEnv(AgentEnvName.AGENT_NAME) ?: name,
         cliCommand = optionalEnv(AgentEnvName.CLI_COMMAND) ?: cliCommand,
         debug = optionalEnv(AgentEnvName.DEBUG)?.toBoolean() ?: debug,
         backend = backend.copy(
             url = optionalEnv(AgentEnvName.BACKEND_URL) ?: backend.url,
         ),
-        orchestratorUrl = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestratorUrl,
+        orchestrator = orchestrator.copy(
+            url = optionalEnv(AgentEnvName.ORCHESTRATOR_URL) ?: orchestrator.url,
+        ),
         testSuitesDir = optionalEnv(AgentEnvName.TEST_SUITES_DIR) ?: testSuitesDir,
-        save = save.copy(
-            batchSize = optionalEnv(AgentEnvName.BATCH_SIZE)?.toInt(),
-            batchSeparator = optionalEnv(AgentEnvName.BATCH_SEPARATOR),
-            overrideExecCmd = optionalEnv(AgentEnvName.OVERRIDE_EXEC_CMD),
-            overrideExecFlags = optionalEnv(AgentEnvName.OVERRIDE_EXEC_FLAGS),
-        )
     )
 }

@@ -42,4 +42,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="add-public" author="sanyavertolet">
+        <addColumn tableName="test_suite">
+            <column name="is_public" type="boolean" defaultValue="true"/>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

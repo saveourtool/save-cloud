@@ -97,7 +97,7 @@ the version corresponds to the file `save-0.4.0-alpha.0.42+78a24a8-linuxX64.kexe
 
 #### Some workarounds:
 If setting `save-agent`'s path in `gradle.properties` didn't help you (something doesn't work on Mac), you still can place all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main`.
-Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be avaliable via TCP.
+Moreover, if you use Mac with Apple Silicon, you should run `docker-mac-settings.sh` in order to let docker be available via TCP.
 Do not forget to use `mac` profile.
 
 #### Note: 
@@ -113,6 +113,7 @@ Do not forget to use `mac` profile.
 | 5100 | save-orchestrator      |
 | 5200 | save-test-preprocessor |
 | 5300 | api-gateway            |
+ | 5400 | save-sandbox          |
 | 9090 | prometheus             |
 | 9091 | node_exporter          |
 | 9100 | grafana                |

@@ -13,22 +13,13 @@ import io.fabric8.kubernetes.client.KubernetesClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import org.springframework.web.reactive.function.client.WebClient
 
 /**
  * Configuration class with various beans
  */
 @Configuration
 @Suppress("KDOC_WITHOUT_PARAM_TAG")
-class Beans(private val configProperties: ConfigProperties) {
-    /**
-     * Used to send requests to backend
-     *
-     * @return [WebClient] with backend URL
-     */
-    @Bean
-    fun webClientBackend() = WebClient.create(configProperties.backendUrl)
-
+class Beans {
     /**
      * @param configProperties orchestrator configuration
      * @return instance of [DockerClient]

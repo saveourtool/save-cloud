@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.validation.isValidEmail
 
@@ -83,6 +84,14 @@ data class Project(
      * Return the shortest unique representation of this [Project] as a string
      */
     fun shortToString() = "[organization=${organization.name},name=$name]"
+
+    /**
+     * @return [ProjectCoordinates] is built for current entity
+     */
+    fun toProjectCoordinates(): ProjectCoordinates = ProjectCoordinates(
+        organizationName = organization.name,
+        projectName = name,
+    )
 
     companion object {
         /**

@@ -117,7 +117,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
-    implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.reactor.extra)
     implementation(libs.commons.io)
     testImplementation(libs.spring.security.test)
@@ -132,3 +132,33 @@ tasks.withType<Test> {
     }
 }
 configureSpotless()
+
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    inputs.file(pathToSaveCliVersion)
+    inputs.property("project version", version.toString())
+    outputs.file(versionsFile)
+
+    doFirst {
+        val saveCliVersion = readSaveCliVersion()
+        versionsFile.parentFile.mkdirs()
+        versionsFile.writeText(
+            """
+            package generated
+
+            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
+            internal const val SAVE_CLOUD_VERSION = "$version"
+
+            """.trimIndent()
+        )
+    }
+}
+kotlin.sourceSets.getByName("main") {
+    kotlin.srcDir("$buildDir/generated/src")
+}
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
+    it.dependsOn(generateVersionFileTaskProvider)
+}

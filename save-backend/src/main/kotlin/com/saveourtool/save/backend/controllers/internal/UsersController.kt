@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-
-typealias StringResponse = ResponseEntity<String>
 
 /**
  * Controller that handles operation with users

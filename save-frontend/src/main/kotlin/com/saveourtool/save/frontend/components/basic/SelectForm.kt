@@ -142,7 +142,6 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                 id = props.formType.name
                 required = true
                 disabled = props.disabled
-                // TODO: why we need an extra option
                 elements.find {
                     props.dataToString(it) == props.selectedValue
                 } ?: run {

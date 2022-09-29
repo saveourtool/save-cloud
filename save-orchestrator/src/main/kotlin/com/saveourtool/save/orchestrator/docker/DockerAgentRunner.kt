@@ -1,11 +1,12 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.orchestrator.*
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
 import com.saveourtool.save.orchestrator.createTgzStream
+import com.saveourtool.save.orchestrator.execTimed
+import com.saveourtool.save.orchestrator.getHostIp
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.runner.AgentRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
@@ -31,7 +32,6 @@ import java.util.concurrent.ConcurrentMap
 
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
-import kotlin.math.abs
 import kotlin.random.Random
 
 /**
@@ -152,13 +152,12 @@ class DockerAgentRunner(
         logger.info("Reclaimed $reclaimedBytes bytes after prune command")
     }
 
+    override fun getContainerIdentifier(containerId: String): String = dockerClient.inspectContainerCmd(containerId).exec().name
+
     /**
      * Creates a docker container
      *
-     * @param runCmd an entrypoint for docker container with CLI arguments
      * @param containerName a name for the created container
-     * @param baseImageTag tag of the base docker image for this container
-     * @param workingDir working directory for [runCmd]
      * @return id of created container or null if it wasn't created
      * @throws DockerException if docker daemon has returned an error
      * @throws RuntimeException if an exception not specific to docker has occurred
@@ -170,6 +169,10 @@ class DockerAgentRunner(
         val baseImageTag = configuration.imageTag
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
+        val envVariables = configuration.env.map { (key, value) ->
+            "$key=$value"
+        } + "${AgentEnvName.AGENT_NAME.name}=$containerName"
+
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
         val createContainerCmdResponse: CreateContainerResponse = dockerClient.createContainerCmd(baseImageTag)
             .withWorkingDir(EXECUTION_DIR)
@@ -185,9 +188,7 @@ class DockerAgentRunner(
             .withName(containerName)
             .withUser("save-agent")
             .withEnv(
-                configuration.env.map { (key, value) ->
-                    "$key=$value"
-                }
+                envVariables
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
@@ -212,7 +213,7 @@ class DockerAgentRunner(
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
 
         val containerId = createContainerCmdResponse.id
-        val envFile = createTempDirectory("orchestrator").resolve(".env").apply {
+        val envFile = createTempDirectory("orchestrator").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
                 ${AgentEnvName.AGENT_ID.name}=$containerId
                 """.trimIndent()
@@ -254,4 +255,4 @@ class DockerAgentRunner(
  * @param id
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
-private fun containerName(id: String) = "save-execution-$id-${abs(Random.nextInt(100, 999))}"
+private fun containerName(id: String) = "save-execution-$id-${Random.nextInt(100, 999)}"

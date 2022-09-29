@@ -29,6 +29,7 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
@@ -82,6 +83,11 @@ external interface ContestRunState : State {
      * All available contest
      */
     var availableContests: List<ContestDto>
+
+    /**
+     * All available contest
+     */
+    var selectedContestTestSuites: List<TestSuiteDto>
 }
 
 /**
@@ -159,14 +165,14 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var confirmationType: ConfirmationType
 
     /**
-     * List of IDs of private [TestSuiteDto] for execution run
+     * List of Test Suites of private [TestSuiteDto] for execution run
      */
-    var selectedPrivateTestSuiteIds: List<Long>
+    var selectedPrivateTestSuites: List<TestSuiteDto>
 
     /**
-     * List of IDs of public [TestSuiteDto] for execution run
+     * List of Test Suites of public [TestSuiteDto] for execution run
      */
-    var selectedPublicTestSuiteIds: List<Long>
+    var selectedPublicTestSuites: List<TestSuiteDto>
 
     /**
      * Execution command for standard mode
@@ -207,6 +213,11 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -251,8 +262,8 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         )
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
-        state.selectedPrivateTestSuiteIds = emptyList()
-        state.selectedPublicTestSuiteIds = emptyList()
+        state.selectedPrivateTestSuites = emptyList()
+        state.selectedPublicTestSuites = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
         state.confirmationType = ConfirmationType.NO_CONFIRM
@@ -274,6 +285,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
+        state.selectedContestTestSuites = emptyList()
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -287,9 +299,12 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        }
+        if (prevState.selectedContestTestSuites != state.selectedContestTestSuites) {
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
@@ -304,13 +319,25 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             } else {
                 result.getOrThrow()
             }
-            setState { this.project = project }
+            setState {
+                this.project = project
+                paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            }
 
-            val currentUserRole: Role = get(
+            val currentUserRoleInProject: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
                 jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+
+            val currentUserRoleInOrganization: Role = get(
+                url = "$apiUrl/organizations/${project.organization.name}/users/roles",
+                headers = jsonHeaders,
+                loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
+
+            val currentUserRole = getHighestRole(currentUserRoleInProject, currentUserRoleInOrganization)
+
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
@@ -331,28 +358,29 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             fetchLatestExecutionId()
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
     private fun NavigateFunctionContext.submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuites, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuites, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContestTestSuites, state.testingType)
             else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
+    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
         val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = RunExecutionRequest(
+        val executionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
                 projectName = state.project.name
             ),
-            testSuiteIds = selectedTestSuiteIds,
-            files = state.files.map { it.toStorageKey() },
+            testSuiteIds = selectedTestSuites.map { it.requiredId() },
+            files = state.files.map { it.key },
             sdk = selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
@@ -372,6 +400,23 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             )
             if (response.ok) {
                 navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
+            }
+        }
+    }
+
+    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
+    private fun fetchTestSuiteDtos(ids: List<Long>) {
+        scope.launch {
+            val testSuitesFromBackend: List<TestSuiteDto> = post(
+                url = "$apiUrl/test-suites/${props.owner}/get-by-ids",
+                headers = jsonHeaders,
+                body = Json.encodeToString(ids),
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString()
+            setState {
+                selectedContestTestSuites = testSuitesFromBackend
             }
         }
     }
@@ -498,7 +543,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     projectCoordinates = ProjectCoordinates(props.owner, props.name)
                     onFileSelect = { element ->
                         setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
+                            val availableFile = availableFiles.first { it.key.name == element.value }
                             files.add(availableFile)
                             bytesReceived += availableFile.sizeBytes
                             suiteByteSize += availableFile.sizeBytes
@@ -557,17 +602,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     availableContests = state.availableContests
                     // properties for PRIVATE_TESTS mode
-                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuiteIds
+                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuites
                     setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
                         setState {
-                            this.selectedPrivateTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPrivateTestSuites = selectedTestSuiteIds
                         }
                     }
                     // properties for PUBLIC_TESTS mode
-                    selectedPublicTestSuiteIds = state.selectedPublicTestSuiteIds
+                    selectedPublicTestSuiteIds = state.selectedPublicTestSuites
                     setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
                         setState {
-                            this.selectedPublicTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPublicTestSuites = selectedTestSuiteIds
                         }
                     }
                     // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
@@ -622,14 +667,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     div {
                         className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
                         fontAwesomeIcon(icon = faHistory)
-
-                        button {
-                            className = ClassName("btn btn-link text-left")
-                            +"Latest Execution"
-                            disabled = state.latestExecutionId == null
-
-                            onClick = {
-                                window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                        withNavigate { navigateContext ->
+                            button {
+                                className = ClassName("btn btn-link text-left")
+                                +"Latest Execution"
+                                disabled = state.latestExecutionId == null
+                                onClick = {
+                                    navigateContext.navigateToLinkWithSuffix(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
+                                }
                             }
                         }
                     }
@@ -637,7 +682,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
                         a {
-                            href = "#/${state.project.organization.name}/${state.project.name}/history"
+                            href = "#${state.paths.pathDefaultTab}/history"
                             className = ClassName("btn btn-link text-left")
                             +"Execution History"
                         }
@@ -691,7 +736,9 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fileDelete(file: FileInfo) {
         scope.launch {
             val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
+                with(file.key) {
+                    "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
+                },
                 jsonHeaders,
                 Json.encodeToString(file),
                 loadingHandler = ::noopLoadingHandler,
@@ -709,7 +756,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
     private fun postFileDelete(fileForDelete: FileInfo) {
         val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.name} file?"
+            "Are you sure you want to delete ${fileForDelete.key.name} file?"
         )
 
         if (confirm) {
@@ -728,7 +775,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 element.files!!.asList().forEach { file ->
                     val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
+                        "$apiUrl/files/${props.owner}/${props.name}/upload",
                         Headers(),
                         FormData().apply {
                             append("file", file)
