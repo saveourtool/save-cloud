@@ -71,7 +71,12 @@ class AgentsController(
                     agentService.saveAgentsWithInitialStatuses(
                         containerIds.map { containerId ->
                             val containerName = agentRunner.getContainerIdentifier(containerId)
-                            AgentDto(containerId, containerName, request.executionId)
+                            AgentDto(
+                                containerId = containerId,
+                                containerName = containerName,
+                                executionId = request.executionId,
+                                version = request.saveAgentVersion
+                            )
                         }
                     )
                         .doOnError(WebClientResponseException::class) { exception ->

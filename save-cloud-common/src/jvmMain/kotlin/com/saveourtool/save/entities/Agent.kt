@@ -20,7 +20,7 @@ class Agent(
     @JoinColumn(name = "execution_id")
     var execution: Execution,
 
-    var version: String? = null,
+    var version: String,
 ) : BaseEntity() {
     /**
      * @return [AgentDto] from [Agent]

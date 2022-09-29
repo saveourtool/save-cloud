@@ -21,6 +21,7 @@ import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import generated.SAVE_CLOUD_VERSION
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus
@@ -201,7 +202,7 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution.toRunRequest())
+        .bodyValue(execution.toRunRequest(SAVE_CLOUD_VERSION))
         .retrieve()
         .toBodilessEntity()
 
