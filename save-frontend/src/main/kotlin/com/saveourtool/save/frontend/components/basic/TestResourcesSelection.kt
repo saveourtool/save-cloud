@@ -143,6 +143,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                     setSelectedTestSuiteIds
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
+                    props.organizationName,
                     selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
                     testSuitesInSelectorState,
