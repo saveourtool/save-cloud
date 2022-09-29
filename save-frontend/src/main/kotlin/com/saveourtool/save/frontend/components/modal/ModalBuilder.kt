@@ -60,11 +60,7 @@ fun ChildrenBuilder.displayModal(
     modalStyle: Styles = mediumTransparentModalStyle,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
-    modal { props ->
-        props.isOpen = opener.isOpen()
-        props.style = modalStyle
-        modalBuilder(title, message, opener.closeWindowAction(), buttonBuilder)
-    }
+    displayModal(opener.isOpen(), title, message, modalStyle, opener.closeWindowAction(), buttonBuilder)
 }
 
 /**
