@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    id("com.saveourtool.save.buildutils.spring-data-configuration")
     id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
     id("org.gradle.test-retry") version "1.4.1"
 }
@@ -29,17 +30,10 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    api(projects.saveCloudCommon)
     implementation(projects.saveOrchestratorCommon)
-    implementation(libs.dockerJava.core)
-    implementation(libs.dockerJava.transport.httpclient5)
-    implementation(libs.kotlinx.serialization.json.jvm)
-    implementation(libs.commons.compress)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
-    implementation(libs.fabric8.kubernetes.client)
-    implementation(libs.spring.kafka)
+    implementation(libs.hibernate.jpa21.api)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
 }

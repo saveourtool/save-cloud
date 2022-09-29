@@ -142,7 +142,7 @@ class AgentService(
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return agentRepository
-            .getAgentsStatuses(executionId, agentIds)
+            .getAgentsStatuses(agentIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
@@ -209,27 +209,6 @@ class AgentService(
             log.debug("For executionId=$executionId agent statuses are $agentStatuses")
             agentStatuses.areIdleOrFinished()
         }
-
-    /**
-     * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
-     * and mark this agent as BUSY
-     *
-     * @param agentContainerId id of an agent that receives tests
-     * @param newJobResponse a heartbeat response with tests
-     */
-    internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        agentRepository.assignAgent(agentContainerId, newJobResponse.tests)
-            .zipWith(
-                updateAgentStatusesWithDto(
-                    AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
-                )
-            )
-            .doOnSuccess {
-                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
 
     /**
      * Mark agent's test executions as failed

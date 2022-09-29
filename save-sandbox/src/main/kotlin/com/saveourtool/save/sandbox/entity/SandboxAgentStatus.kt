@@ -1,8 +1,7 @@
-/**
- * Data classes for agent status
- */
+package com.saveourtool.save.sandbox.entity
 
-package com.saveourtool.save.entities
+import com.saveourtool.save.entities.AgentStatusDto
+import com.saveourtool.save.entities.BaseEntity
 
 import com.saveourtool.save.agent.AgentState
 import java.time.LocalDateTime
@@ -20,7 +19,7 @@ import javax.persistence.ManyToOne
  * @property agent agent who's state is described
  */
 @Entity
-class AgentStatus(
+class SandboxAgentStatus(
     var startTime: LocalDateTime,
     var endTime: LocalDateTime,
 
@@ -29,7 +28,7 @@ class AgentStatus(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
-    var agent: Agent,
+    var agent: SandboxAgent,
 ) : BaseEntity() {
     /**
      * @return this object converted to [AgentStatusDto]
@@ -38,10 +37,10 @@ class AgentStatus(
 }
 
 /**
- * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
- * @return [AgentStatus] built from [AgentStatusDto]
+ * @param agentResolver resolver for [SandboxAgent] by [AgentStatusDto.containerId]
+ * @return [SandboxAgentStatus] built from [AgentStatusDto]
  */
-fun AgentStatusDto.toEntity(agentResolver: (String) -> Agent) = AgentStatus(
+fun AgentStatusDto.toEntity(agentResolver: (String) -> SandboxAgent) = SandboxAgentStatus(
     startTime = time,
     endTime = time,
     state = state,

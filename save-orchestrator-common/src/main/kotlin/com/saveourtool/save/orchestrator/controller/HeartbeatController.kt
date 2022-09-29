@@ -101,11 +101,6 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
-                .doOnSuccess {
-                    if (it is NewJobResponse) {
-                        agentService.updateAssignedAgent(agentId, it)
-                    }
-                }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed

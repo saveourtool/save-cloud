@@ -35,9 +35,9 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun getNextTestBatch(agentId: String): Mono<TestBatch> = webClientBackend
+    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = webClientBackend
         .get()
-        .uri("/getTestBatches?agentId=$agentId")
+        .uri("/agents/get-next-test-batch?agentId=$containerId")
         .retrieve()
         .bodyToMono()
 
@@ -56,17 +56,16 @@ class BackendAgentRepository(
                 .retrieve()
                 .toBodilessEntity()
 
-    override fun getReadyForTestingTestExecutions(agentId: String): Mono<TestExecutionList> = webClientBackend.get()
-        .uri("/testExecutions/agent/$agentId/${TestResultStatus.READY_FOR_TESTING}")
+    override fun getReadyForTestingTestExecutions(containerId: String): Mono<TestExecutionList> = webClientBackend.get()
+        .uri("/testExecutions/agent/$containerId/${TestResultStatus.READY_FOR_TESTING}")
         .retrieve()
         .bodyToMono()
 
     override fun getAgentsStatuses(
-        executionId: Long,
-        agentIds: List<String>,
+        containerIds: List<String>,
     ): Mono<AgentStatusList> = webClientBackend
         .get()
-        .uri("/agents/statuses?ids=${agentIds.joinToString(separator = DATABASE_DELIMITER)}")
+        .uri("/agents/statuses?ids=${containerIds.joinToString(separator = DATABASE_DELIMITER)}")
         .retrieve()
         .bodyToMono()
 
@@ -81,22 +80,16 @@ class BackendAgentRepository(
                 .retrieve()
                 .toBodilessEntity()
 
-    override fun getAgentsStatusesForSameExecution(agentId: String): Mono<AgentStatusesForExecution> = webClientBackend
+    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = webClientBackend
         .get()
-        .uri("/getAgentsStatusesForSameExecution?agentId=$agentId")
+        .uri("/getAgentsStatusesForSameExecution?agentId=$containerId")
         .retrieve()
         .bodyToMono()
 
-    override fun assignAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity> = webClientBackend.post()
-        .uri("/testExecution/assignAgent?agentContainerId=$agentId")
-        .bodyValue(testDtos)
-        .retrieve()
-        .toBodilessEntity()
-
-    override fun setStatusByAgentIds(agentIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
+    override fun setStatusByAgentIds(containerIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
             webClientBackend.post()
                 .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
-                .bodyValue(agentIds)
+                .bodyValue(containerIds)
                 .retrieve()
                 .toBodilessEntity()
 }

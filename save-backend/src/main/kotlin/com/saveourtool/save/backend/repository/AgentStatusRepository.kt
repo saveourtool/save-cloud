@@ -6,6 +6,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.AgentStatus
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import javax.transaction.Transactional
@@ -14,7 +15,7 @@ import javax.transaction.Transactional
  * JPA repository for agent statuses.
  */
 @Repository
-interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecificationExecutor<AgentStatus> {
+interface AgentStatusRepository : BaseEntityRepository<AgentStatus> {
     /**
      * Find latest [AgentStatus] for agent with provided [containerId]
      *
@@ -42,7 +43,7 @@ interface AgentStatusRepository : BaseEntityRepository<AgentStatus>, JpaSpecific
  * JPA repository for agents.
  */
 @Repository
-interface AgentRepository : BaseEntityRepository<Agent>, JpaSpecificationExecutor<Agent> {
+interface AgentRepository : BaseEntityRepository<Agent> {
     /**
      * Find agent by its agent id
      *

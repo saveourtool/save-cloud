@@ -85,7 +85,7 @@ spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot = { module = "org.springframework.boot:spring-boot" }
-spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 spring-security-core = { module = "org.springframework.security:spring-security-core" }
 spring-security-oauth2-client = { module = "org.springframework.security:spring-security-oauth2-client" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
@@ -94,6 +94,7 @@ spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-clou
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-context-indexer = { module = "org.springframework:spring-context-indexer", version.ref = "spring" }
+spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }

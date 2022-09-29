@@ -8,10 +8,14 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.trace
 
 import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
@@ -25,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import java.time.LocalDateTime
 
 /**
  * Controller to manipulate with Agent related data
@@ -36,6 +42,8 @@ class AgentsController(
     private val agentRepository: AgentRepository,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
+    private val testService: TestService,
+    private val testExecutionService: TestExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -82,6 +90,40 @@ class AgentsController(
             )
         }
 
+
+    /**
+     * @param containerId
+     * @return test batches
+     */
+    @GetMapping("/agents/get-next-test-batch")
+    @Transactional
+    fun getNextTestBatch(
+        @RequestParam containerId: String,
+    ): Mono<TestBatch> {
+        return testService.getTestBatches(containerId)
+            .flatMap { testBatch ->
+                if (testBatch.isNotEmpty()) {
+                    blockingToMono {
+                        testExecutionService.assignAgentByTest(containerId, testBatch)
+                        updateAgentStatusesWithDto(
+                            listOf(
+                                AgentStatusDto(
+                                    time = LocalDateTime.now(),
+                                    state = AgentState.BUSY,
+                                    containerId = containerId
+                                )
+                            )
+                        )
+                    }
+                        .doOnSuccess {
+                            log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
+                        }
+                        .then(testBatch.toMono())
+                } else {
+                    testBatch.toMono()
+                }
+            }
+    }
     /**
      * @param agents list of [AgentDto]s to save into the DB
      * @return a list of IDs, assigned to the agents
