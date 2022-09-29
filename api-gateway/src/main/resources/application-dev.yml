@@ -3,6 +3,8 @@ gateway:
     url: http://localhost:5800
   frontend:
     url: http://localhost:5810
+  sandbox:
+    url: http://localhost:5400
 spring:
   security:
     oauth2:

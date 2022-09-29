@@ -53,7 +53,6 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
-                           |      - "MYSQL_DATABASE=save_cloud"
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -105,6 +104,7 @@ fun Project.createStackDeployTask(profile: String) {
                     FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     PROFILE=$profile
                 """.trimIndent()
@@ -140,6 +140,7 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("backend"))
             Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
+            Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
         description =
@@ -225,6 +226,7 @@ fun Project.createStackDeployTask(profile: String) {
             "up",
             "-d",
             "orchestrator",
+            "sandbox",
             "backend",
             "frontend",
             "preprocessor"
@@ -243,7 +245,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-frontend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-sandbox", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }

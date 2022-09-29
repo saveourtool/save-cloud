@@ -11,7 +11,7 @@ enum class AgentEnvName {
     DEBUG,
     EXECUTION_ID,
     GET_AGENT_LINK,
-    ORCHESTRATOR_URL,
+    HEARTBEAT_URL,
     TEST_SUITES_DIR,
     ;
 }

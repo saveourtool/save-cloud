@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentInitConfig
+import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
@@ -35,9 +36,9 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun getNextTestBatch(agentId: String): Mono<TestBatch> = webClientBackend
+    override fun getNextRunConfig(containerId: String): Mono<AgentRunConfig> = webClientBackend
         .get()
-        .uri("/getTestBatches?agentId=$agentId")
+        .uri("/agents/get-run-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 

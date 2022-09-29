@@ -97,13 +97,13 @@ class HeartbeatControllerTest {
         val list = listOf(TestDto("qwe", "WarnPlugin", 0, "hash", listOf("tag")))
         doReturn(Mono.just(list))
             .whenever(agentRepository)
-            .getNextTestBatch(agentContainerId)
+            .getNextRunConfig(agentContainerId)
 
         val monoResponse = agentService.getNewTestsIds(agentContainerId).block() as NewJobResponse
 
         assertTrue(monoResponse.tests.isNotEmpty())
         assertEquals("qwe", monoResponse.tests.first().filePath)
-        verify(agentRepository).getNextTestBatch(any())
+        verify(agentRepository).getNextRunConfig(any())
     }
 
     @Test
@@ -365,7 +365,7 @@ class HeartbeatControllerTest {
                 .thenReturn(Mono.just(it))
         }
         testBatch?.let {
-            whenever(agentRepository.getNextTestBatch(any()))
+            whenever(agentRepository.getNextRunConfig(any()))
                 .thenReturn(Mono.just(it))
         }
 
@@ -410,7 +410,7 @@ class HeartbeatControllerTest {
         verify(agentRepository, times(initConfigs.size)).getInitConfig(any())
         heartbeatResponses.filterIsInstance<InitResponse>().shouldHaveSize(initConfigs.size)
         testBatch?.let {
-            verify(agentRepository).getNextTestBatch(any())
+            verify(agentRepository).getNextRunConfig(any())
         }
         verify(agentRepository, times(mockAssignAgentCount)).assignAgent(any(), any())
         verify(agentRepository, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())

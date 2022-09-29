@@ -26,7 +26,7 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
 class SandboxAgentRepository : AgentRepository {
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = Mono.empty()
 
-    override fun getNextTestBatch(agentId: String): Mono<TestBatch> = Mono.empty()
+    override fun getNextRunConfig(containerId: String): Mono<TestBatch> = Mono.empty()
 
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = Mono.empty()
 

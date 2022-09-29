@@ -1,14 +1,13 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.agent.AgentInitConfig
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.AgentVersion
-import com.saveourtool.save.agent.SaveCliOverrides
+import com.saveourtool.save.agent.*
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -25,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 /**
  * Controller to manipulate with Agent related data
@@ -36,6 +37,7 @@ class AgentsController(
     private val agentRepository: AgentRepository,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
+    private val testService: TestService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -79,6 +81,35 @@ class AgentsController(
                     batchSize = execution.batchSizeForAnalyzer?.takeIf { it.isNotBlank() }?.toInt(),
                     batchSeparator = null,
                 ),
+            )
+        }
+
+    /**
+     * @param containerId [Agent.containerId]
+     * @return [Mono] with [AgentRunConfig]
+     */
+    @GetMapping("/agents/get-run-config")
+    fun getRunConfig(
+        @RequestParam containerId: String,
+    ): Mono<AgentRunConfig> = blockingToMono {
+        agentRepository.findByContainerId(containerId)
+    }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
+        .map {
+            it.execution
+        }
+        .zipWhen { execution ->
+            testService.getTestBatches(execution)
+        }
+        .filter { (_, testBatch) -> testBatch.isNotEmpty() }
+        .map { (execution, testBatch) ->
+            AgentRunConfig(
+                tests = testBatch,
+                cliArgs = testBatch.constructCliCommand(),
+                executionDataUploadUrl = "${configProperties.url}/internal/saveTestResult",
+                debugInfoUploadUrl = "${configProperties.url}/internal/files/debug-info?executionId=${execution.requiredId()}"
             )
         }
 
@@ -209,6 +240,11 @@ class AgentsController(
         }
         return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
     }
+
+    private fun List<TestDto>.constructCliCommand() = joinToString(" ") { it.filePath }
+        .also {
+            log.debug("Constructed cli args for SAVE-cli: $it")
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.PropertySource
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -25,7 +24,6 @@ typealias AgentStateWithTimeStamp = Pair<String, Instant>
  * TODO: can be used to store data about existing agents on orchestrator startup ([#11](https://github.com/saveourtool/save-cloud/issues/11))
  */
 @Component
-@PropertySource("classpath:META-INF/save-orchestrator-common/application.properties")
 class HeartBeatInspector(
     private val configProperties: ConfigProperties,
     private val dockerService: DockerService,

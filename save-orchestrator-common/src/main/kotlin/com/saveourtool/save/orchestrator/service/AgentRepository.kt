@@ -1,6 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentInitConfig
+import com.saveourtool.save.agent.AgentRunConfig
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
@@ -31,10 +32,10 @@ interface AgentRepository {
     /**
      * Gets new tests ids
      *
-     * @param agentId
+     * @param containerId
      * @return [Mono] of [TestBatch]
      */
-    fun getNextTestBatch(agentId: String): Mono<TestBatch>
+    fun getNextRunConfig(containerId: String): Mono<AgentRunConfig>
 
     /**
      * Save new agents to the DB and insert their statuses. This logic is performed in two consecutive requests.
