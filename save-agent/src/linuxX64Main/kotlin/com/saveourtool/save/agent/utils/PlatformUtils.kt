@@ -1,34 +1,27 @@
+/**
+ * Platform dependent utility methods
+ */
+
 package com.saveourtool.save.agent.utils
-import kotlinx.cinterop.staticCFunction
-import kotlinx.cinterop.toKString
+
 import platform.posix.SIGTERM
-import platform.posix.__sighandler_t
 import platform.posix.exit
 import platform.posix.getenv
 import platform.posix.signal
 
-/**
- * Atomic values
- */
+import kotlinx.cinterop.staticCFunction
+import kotlinx.cinterop.toKString
+
+@Suppress("MemberNameEqualsClassName")
 actual class AtomicLong actual constructor(value: Long) {
     private val atomicLong = kotlin.native.concurrent.AtomicLong(value)
 
-    /**
-     * @return value
-     */
     actual fun get(): Long = atomicLong.value
 
-    /**
-     *
-     */
     actual fun set(newValue: Long) {
         atomicLong.value = newValue
     }
 
-    /**
-     * @param delta increments the value_ by delta
-     * @return the new value
-     */
     actual fun addAndGet(delta: Long): Long = atomicLong.addAndGet(delta)
 }
 
@@ -43,7 +36,7 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
 
 internal actual fun getenv(envName: String): String? = getenv(envName)?.toKString()
 
-internal actual fun catchSigterm() {
+internal actual fun handleSigterm() {
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
         exit(1)

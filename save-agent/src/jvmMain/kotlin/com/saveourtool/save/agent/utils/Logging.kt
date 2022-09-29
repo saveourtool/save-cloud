@@ -1,3 +1,7 @@
+/**
+ * Logging utilities for save-agent
+ */
+
 @file:JvmName("LoggingJVM")
 
 package com.saveourtool.save.agent.utils

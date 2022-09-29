@@ -26,7 +26,6 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -247,7 +246,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     .exceptionOrNull()
                     ?.let {
                         state.set(AgentState.CLI_FAILED)
-                        logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
+                        logErrorCustom("Error executing SAVE: ${it.describe()}\n${it.stackTraceToString()}")
                     }
             })
         }

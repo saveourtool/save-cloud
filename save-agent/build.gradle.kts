@@ -131,7 +131,7 @@ kotlin {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
     testLogging.showStandardStreams = true
 }
-//configureSpotless()
+configureSpotless()
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
 val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {

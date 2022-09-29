@@ -1,3 +1,8 @@
+/**
+ * Platform dependent utility methods
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 @file:JvmName("PlatformUtilsJVM")
 
 package com.saveourtool.save.agent.utils
@@ -15,6 +20,6 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
 
 internal actual fun getenv(envName: String): String? = System.getenv(envName)
 
-internal actual fun catchSigterm() {
+internal actual fun handleSigterm() {
     TODO("Not yet implemented")
 }

@@ -57,7 +57,7 @@ fun main() {
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
-    catchSigterm()
+    handleSigterm()
 
     val httpClient = configureHttpClient(config)
 

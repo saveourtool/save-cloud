@@ -1,3 +1,7 @@
+/**
+ * Platform dependent utility methods
+ */
+
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.AgentEnvName
@@ -13,7 +17,7 @@ expect class AtomicLong(value: Long) {
     fun get(): Long
 
     /**
-     *
+     * @param newValue
      */
     fun set(newValue: Long)
 
@@ -42,6 +46,10 @@ expect class GenericAtomicReference<T>(valueToStore: T) {
     fun set(newValue: T)
 }
 
+/**
+ * @param envName
+ * @return env variable name
+ */
 internal expect fun getenv(envName: String): String?
 
 /**
@@ -66,5 +74,7 @@ internal fun optionalEnv(envName: AgentEnvName): String? = getenv(envName.name)
     }
     ?.toString()
 
-
-internal expect fun catchSigterm()
+/**
+ * Process sigterm signal
+ */
+internal expect fun handleSigterm()
