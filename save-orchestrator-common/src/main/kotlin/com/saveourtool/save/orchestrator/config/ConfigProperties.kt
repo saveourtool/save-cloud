@@ -95,13 +95,11 @@ data class ConfigProperties(
     )
 
     /**
-     * @property backendUrl url of save-backend that will be used by save-agent
-     * @property orchestratorUrl url of save-orchestrator that will be used by save-agent
+     * @property heartbeatUrl url that will be used by save-agent to post heartbeats
      * @property debug whether debug logging should be enabled or not
      */
     data class AgentSettings(
-        val backendUrl: String? = null,
-        val orchestratorUrl: String? = null,
+        val heartbeatUrl: String? = null,
         val debug: Boolean? = null,
     )
 

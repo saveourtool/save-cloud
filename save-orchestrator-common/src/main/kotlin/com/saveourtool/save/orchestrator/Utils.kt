@@ -96,11 +96,10 @@ internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
     executionId: Long,
 ): Map<AgentEnvName, String> = buildMap {
-    put(AgentEnvName.GET_AGENT_LINK, "${agentSettings.backendUrl}/internal/files/download-save-agent")
     put(AgentEnvName.EXECUTION_ID, executionId.toString())
 
     with(agentSettings) {
-        orchestratorUrl?.let { put(AgentEnvName.HEARTBEAT_URL, it) }
+        heartbeatUrl?.let { put(AgentEnvName.HEARTBEAT_URL, it) }
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 }

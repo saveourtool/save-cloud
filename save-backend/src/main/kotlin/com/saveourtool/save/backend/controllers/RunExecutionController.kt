@@ -52,7 +52,7 @@ class RunExecutionController(
     private val testExecutionService: TestExecutionService,
     private val lnkContestProjectService: LnkContestProjectService,
     private val meterRegistry: MeterRegistry,
-    configProperties: ConfigProperties,
+    private val configProperties: ConfigProperties,
     objectMapper: ObjectMapper,
 ) {
     private val webClientOrchestrator = WebClient.builder()
@@ -202,7 +202,12 @@ class RunExecutionController(
         .post()
         .uri("/initializeAgents")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(execution.toRunRequest(SAVE_CLOUD_VERSION))
+        .bodyValue(
+            execution.toRunRequest(
+                saveAgentVersion = SAVE_CLOUD_VERSION,
+                saveAgentUrl = "${configProperties.url}/internal/files/download-save-agent",
+            )
+        )
         .retrieve()
         .toBodilessEntity()
 

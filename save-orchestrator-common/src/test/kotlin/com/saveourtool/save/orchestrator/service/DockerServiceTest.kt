@@ -76,7 +76,7 @@ class DockerServiceTest {
             sdk = "Java:11"
             status = ExecutionStatus.PENDING
         }
-        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest(SAVE_AGENT_VERSION))
+        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration

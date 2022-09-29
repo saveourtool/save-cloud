@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.test.TestDto
-
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
