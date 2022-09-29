@@ -13,6 +13,7 @@
             <column name="container_id" type="varchar(64)">
                 <constraints unique="true" uniqueConstraintName="uq_container_id" nullable="false"/>
             </column>
+            <column name="container_name" type="varchar(256)"/>
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_agent_execution" references="execution(id)" nullable="false"/>
             </column>
