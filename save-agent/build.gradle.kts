@@ -3,7 +3,6 @@ import com.saveourtool.save.buildutils.pathToSaveCliVersion
 import com.saveourtool.save.buildutils.readSaveCliVersion
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-//import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 plugins {
@@ -12,14 +11,10 @@ plugins {
 }
 
 kotlin {
-
-    val additionalCompilerArgs = "-Xruntime-logs=gc=info"
-
     jvm {
         compilations.all {
             kotlinOptions {
                 jvmTarget = Versions.jdk
-                freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
             }
         }
     }
@@ -32,7 +27,7 @@ kotlin {
         }
         binaries.all {
             binaryOptions["memoryModel"] = "experimental"
-            freeCompilerArgs = freeCompilerArgs + additionalCompilerArgs
+            freeCompilerArgs = freeCompilerArgs + "-Xruntime-logs=gc=info"
         }
     }
 
