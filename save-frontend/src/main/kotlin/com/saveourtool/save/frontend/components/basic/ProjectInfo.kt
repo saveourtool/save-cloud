@@ -14,13 +14,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
-import kotlinx.browser.document
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.w3c.dom.HTMLButtonElement
 import react.FC
 import react.Props
-import react.StateSetter
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -30,6 +25,9 @@ import react.dom.html.ReactHTML.label
 import react.useEffect
 import react.useRef
 import react.useState
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val projectInfo = projectInfo()
 
@@ -51,7 +49,7 @@ external interface ProjectInfoProps : Props {
     /**
      * Callback to update project state in ProjectView after update request's response is received.
      */
-    var onProjectUpdate: (Project) -> Unit
+    var onProjectUpdate: ((Project) -> Unit)?
 }
 
 @Suppress(
@@ -71,14 +69,16 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
     }
 
     val updateProject = useDeferredRequest {
-        post(
-            "$apiUrl/projects/update",
-            jsonHeaders,
-            Json.encodeToString(draftProject.toDto()),
-            loadingHandler = ::loadingHandler,
-        ).let {
-            if (it.ok) {
-                props.onProjectUpdate(draftProject)
+        props.onProjectUpdate?.let { onProjectUpdate ->
+            post(
+                "$apiUrl/projects/update",
+                jsonHeaders,
+                Json.encodeToString(draftProject.toDto()),
+                loadingHandler = ::loadingHandler,
+            ).let {
+                if (it.ok) {
+                    onProjectUpdate(draftProject)
+                }
             }
         }
     }
@@ -94,14 +94,16 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
         "description" to { draftProject.copy(description = it) },
     )
     val (isEditDisabled, setIsEditDisabled) = useState(true)
-    div {
-        className = ClassName("d-flex justify-content-center")
-        button {
-            className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
-            +"Edit  "
-            fontAwesomeIcon(icon = faEdit)
-            onClick = {
-                setIsEditDisabled { !it }
+    props.onProjectUpdate?.let {
+        div {
+            className = ClassName("d-flex justify-content-center")
+            button {
+                className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
+                +"Edit  "
+                fontAwesomeIcon(icon = faEdit)
+                onClick = {
+                    setIsEditDisabled { !it }
+                }
             }
         }
     }
@@ -126,7 +128,8 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
                             this.id = fieldId
                             value = text ?: ""
                             // temporary workaround for https://github.com/saveourtool/save-cloud/issues/589#issuecomment-1049674021
-                            disabled = fieldId == "name" || isEditDisabled
+                            disabled = fieldId != "name" && props.onProjectUpdate != null && isEditDisabled
+                            readOnly = fieldId == "name" || props.onProjectUpdate == null
                             onChange = { event ->
                                 setDraftProject(idToValueSetter[fieldId]!!(event.target.value))
                             }
@@ -141,22 +144,20 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
             button {
                 className = ClassName("btn")
                 fontAwesomeIcon(icon = faCheck)
-                id = "Save new project info"
                 hidden = isEditDisabled
                 onClick = {
-                    setIsEditDisabled(true)
                     updateProject()
+                    setIsEditDisabled(true)
                 }
             }
 
             button {
                 className = ClassName("btn")
                 fontAwesomeIcon(icon = faTimesCircle)
-                id = "Cancel"
                 hidden = isEditDisabled
                 onClick = {
-                    setIsEditDisabled(true)
                     setDraftProject(props.project)
+                    setIsEditDisabled(true)
                 }
             }
         }

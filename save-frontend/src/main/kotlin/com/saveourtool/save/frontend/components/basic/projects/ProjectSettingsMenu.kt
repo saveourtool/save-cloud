@@ -14,9 +14,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
@@ -31,6 +28,9 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * SETTINGS tab in ProjectView
@@ -122,7 +122,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     displayModal(
         isModalOpen,
         "Warning: deletion of project",
-    "You are about to delete project $projectPath. Are you sure?",
+        "You are about to delete project $projectPath. Are you sure?",
         onCloseButtonPressed = { setIsModalOpen(false) },
     ) {
         buttonBuilder("Yes, delete $projectPath", "danger") {
@@ -134,9 +134,6 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
 
     val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
-
-
-
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================

@@ -217,7 +217,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     select {
-                        className = ClassName("form-control")
+                        className = ClassName("form-control custom-select")
                         value = "default"
                         option {
                             value = "default"

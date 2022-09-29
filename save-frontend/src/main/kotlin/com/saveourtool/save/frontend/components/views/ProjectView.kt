@@ -19,7 +19,6 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
-import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
@@ -35,11 +34,9 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import history.Location
-import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
 import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.ButtonType
@@ -51,11 +48,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -63,7 +57,7 @@ import kotlinx.serialization.json.Json
  * [Props] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface ProjectExecutionRouteProps : PropsWithChildren {
+external interface ProjectViewProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
@@ -197,12 +191,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
-class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private fun onProjectUpdate(updatedProject: Project) {
-        setState{
-            project = updatedProject
-        }
-    }
+class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
 
@@ -242,7 +231,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
+    override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
             changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
@@ -595,7 +584,11 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 projectInfoCard {
                     projectInfo {
                         project = state.project
-                        onProjectUpdate = ::onProjectUpdate
+                        onProjectUpdate = {
+                            setState {
+                                project = it
+                            }
+                        }
                     }
 
                     div {
@@ -789,7 +782,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
 
     companion object :
-        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
+        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>
