@@ -3,7 +3,7 @@ import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
 }
 
 dependencies {
