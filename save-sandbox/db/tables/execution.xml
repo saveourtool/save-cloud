@@ -19,17 +19,11 @@
             <column name="status" type="varchar(100)">
                 <constraints nullable="false" />
             </column>
-            <column name="resources_root_path" type="varchar(255)">
-                <constraints nullable="true"/>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_user_organization_user" references="save_cloud.user(id)" nullable="false"/>
             </column>
             <column name="batch_size" type="integer">
                 <constraints nullable="true"/>
-            </column>
-            <column name="type" type="varchar(100)">
-                <constraints nullable="false" />
-            </column>
-            <column name="version" type="varchar(255)">
-                <constraints nullable="true" />
             </column>
             <column name="running_tests" type="bigint">
                 <constraints nullable="false" />

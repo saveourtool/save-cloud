@@ -19,7 +19,9 @@
             <column name="end_time" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="agent_id" type="bigint" />
+            <column name="agent_id" type="bigint">
+                <constraints foreignKeyName="fk_agent_status_agent" references="agent(id)" nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
