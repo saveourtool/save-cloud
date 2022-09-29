@@ -7,8 +7,11 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import org.w3c.dom.HTMLInputElement
@@ -24,6 +27,10 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.router.useNavigate
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * SETTINGS tab in ProjectView
@@ -50,14 +57,9 @@ external interface ProjectSettingsMenuProps : Props {
     var selfRole: Role
 
     /**
-     * Callback to delete project
+     * Callback to update project state in ProjectView after update request's response is received.
      */
-    var deleteProjectCallback: () -> Unit
-
-    /**
-     * Callback to update project settings
-     */
-    var updateProjectSettings: (Project) -> Unit
+    var onProjectUpdate: (Project) -> Unit
 
     /**
      * Callback to show error message
@@ -82,18 +84,55 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
-
     useEffect(props.project) {
         if (projectRef.current !== props.project) {
             setDraftProject(props.project)
             projectRef.current = props.project
         }
     }
+    val navigate = useNavigate()
 
     val projectPath = props.project.let { "${it.organization.name}/${it.name}" }
+    val deleteProject = useDeferredRequest {
+        val responseFromDeleteProject = delete(
+            "$apiUrl/projects/$projectPath/delete",
+            jsonHeaders,
+            body = undefined,
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (responseFromDeleteProject.ok) {
+            navigate("/${FrontendRoutes.PROJECTS}")
+        }
+    }
+
+    val updateProject = useDeferredRequest {
+        post(
+            "$apiUrl/projects/update",
+            jsonHeaders,
+            Json.encodeToString(draftProject.toDto()),
+            loadingHandler = ::loadingHandler,
+        ).let {
+            if (it.ok) {
+                props.onProjectUpdate(draftProject)
+            }
+        }
+    }
+
+    val deletionModalOpener = useWindowOpenness()
+    displayModal(
+        deletionModalOpener,
+        "Warning: deletion of project",
+        "You are about to delete project $projectPath. Are you sure?",
+    ) {
+        buttonBuilder("Yes, delete $projectPath", "danger") {
+            deleteProject()
+        }
+        buttonBuilder("Cancel") {
+            deletionModalOpener.closeWindow()
+        }
+    }
 
     val (wasConfirmationModalShown, showGlobalRoleWarning) = useGlobalRoleWarningCallback(props.updateNotificationMessage)
-
     div {
         className = ClassName("row justify-content-center mb-2")
         // ===================== LEFT COLUMN =======================================================================
@@ -226,7 +265,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             type = ButtonType.button
                             className = ClassName("btn btn-sm btn-primary")
                             onClick = {
-                                props.updateProjectSettings(draftProject)
+                                updateProject()
                             }
                             +"Save changes"
                         }
@@ -238,7 +277,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             className = ClassName("btn btn-sm btn-danger")
                             disabled = !props.selfRole.hasDeletePermission()
                             onClick = {
-                                props.deleteProjectCallback()
+                                deletionModalOpener.openWindow()
                             }
                             +"Delete project"
                         }
