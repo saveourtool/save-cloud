@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
