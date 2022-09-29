@@ -239,6 +239,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     label {
+                        className = ClassName("btn btn-outline-secondary m-0")
                         input {
                             type = InputType.file
                             multiple = true
@@ -251,7 +252,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "top"
                         title = "Regular files/Executable files/ZIP Archives"
-                        strong { +"Upload files:" }
+                        strong { +" Upload files:" }
                     }
                 }
 
