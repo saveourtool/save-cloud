@@ -12,7 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    sandbox.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeats
+    sandbox.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     sandbox.agent-settings.debug=true
 
     sandbox.test-resources.tmp-path=/tmp/save/resources

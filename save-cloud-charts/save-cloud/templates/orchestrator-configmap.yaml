@@ -12,7 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    orchestrator.agent-settings.heartbeat-url=http://{{ .Values.orchestrator.name }}/heartbeats
+    orchestrator.agent-settings.heartbeat-url=http://{{ .Values.orchestrator.name }}/heartbeat
     orchestrator.agent-settings.debug=true
 
     orchestrator.test-resources.tmp-path=/tmp/save/resources
