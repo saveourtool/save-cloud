@@ -278,7 +278,7 @@ internal class ContestController(
             testSuitesService.findTestSuitesByIds(testSuiteIds).toFlux()
         }
         .map {
-            it.toDto(it.requiredId())
+            it.toDto()
         }
 
     @PostMapping("/create")

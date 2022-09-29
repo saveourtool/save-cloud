@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
  * @property tags [com.saveourtool.save.entities.TestSuite.tags]
  * @property id
  * @property plugins
+ * @property isPublic
  */
 @Serializable
 data class TestSuiteDto(
@@ -23,6 +24,7 @@ data class TestSuiteDto(
     val tags: List<String>? = null,
     val id: Long? = null,
     val plugins: List<PluginType> = emptyList(),
+    val isPublic: Boolean = true,
 ) {
     /**
      * @return non-nullable [id]

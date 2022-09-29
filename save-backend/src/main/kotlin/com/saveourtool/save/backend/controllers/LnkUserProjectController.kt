@@ -43,7 +43,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping("/api/$v1/projects/")
+@RequestMapping("/api/$v1/projects")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,

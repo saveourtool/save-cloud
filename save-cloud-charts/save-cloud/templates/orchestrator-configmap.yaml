@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://backend/internal
+    orchestrator.backend-url=http://backend/internal
 
     orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
     orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
