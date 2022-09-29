@@ -22,19 +22,12 @@ liquibase {
         )
         // Configuring luiquibase
         register("main") {
-            arguments = mapOf(
-                "changeLogFile" to "db/db.changelog-master.xml",
-                "liquibaseSchemaName" to "save_cloud",
-            ) +
+            arguments = mapOf("changeLogFile" to "db/db.changelog-master.xml") +
                     getBackendDatabaseCredentials(profile).toLiquibaseArguments() +
                     commonArguments
         }
         register("sandbox") {
-            arguments = mapOf(
-                "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
-                "liquibaseSchemaName" to "save_sandbox",
-                "defaultSchemaName" to "save_sandbox",
-            ) +
+            arguments = mapOf("changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml") +
                     getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
                     commonArguments
         }
