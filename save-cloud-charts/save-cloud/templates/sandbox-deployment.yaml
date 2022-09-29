@@ -1,47 +1,62 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: sandbox
   labels:
-    {{- include "common.labels" (merge (dict "service" .Values.backend) .) | nindent 4 }}
+    {{- include "common.labels" (merge (dict "service" .Values.sandbox) .) | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      io.kompose.service: backend
-  strategy:
-    # Because of shared volume with multi-attach problem
-    type: Recreate
+      io.kompose.service: sandbox
+  replicas: 1
   template:
     metadata:
       labels:
-        {{- include "pod.common.labels" (merge (dict "service" .Values.backend ) .) | nindent 8 }}
+        {{- include "pod.common.labels" (merge (dict "service" .Values.sandbox ) .) | nindent 8 }}
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
+      serviceAccountName: sandbox-sa
       restartPolicy: Always
+      {{- if .Values.sandbox.nodeName }}
+      nodeName: {{ .Values.sandbox.nodeName }}
+      {{- end }}
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
-        - name: backend
-          {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
+        - name: sandbox
+          {{- include "spring-boot.common" (merge (dict "service" .Values.sandbox) .) | nindent 10 }}
           env:
-            {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
-            - name: DATABASE_SECRETS_PATH
-              value: {{ .Values.mysql.dbPasswordFile }}
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.sandbox) .) | nindent 12 }}
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
-          {{- include "spring-boot.management" .Values.backend | nindent 10 }}
+          {{- include "spring-boot.management" .Values.sandbox | nindent 10 }}
           resources:
             limits:
-              memory: 500M
+              memory: 800M
             requests:
-              memory: 300M
-      {{ if .Values.mysql.migrations.enabled }}
+              memory: 600M
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -63,7 +78,7 @@ spec:
             runAsGroup: 1001
           args:
             - --url=$(DB_URL)?createDatabaseIfNotExist=true
-            - --changeLogFile=db/db.changelog-master.xml
+            - --changeLogFile=save-sandbox/db/db.changelog-sandbox.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
             - --log-level=info
@@ -82,7 +97,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: spring.datasource.backend-url
+                  key: spring.datasource.sandbox-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -98,9 +113,8 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
-      {{ end }}
       volumes:
-        - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.sandbox) | indent 10 | trim }}
         - name: fs-storage
           persistentVolumeClaim:
             claimName: save-fs-storage
@@ -108,4 +122,4 @@ spec:
           secret:
             secretName: db-secrets
         - name: migrations-data
-          emptyDir: {}
+          emptyDir: { }

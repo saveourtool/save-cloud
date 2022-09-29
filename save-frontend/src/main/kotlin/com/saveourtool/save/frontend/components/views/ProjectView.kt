@@ -408,7 +408,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
     private fun fetchTestSuiteDtos(ids: List<Long>) {
         scope.launch {
             val testSuitesFromBackend: List<TestSuiteDto> = post(
-                url = "$apiUrl/test-suites/get-by-ids",
+                url = "$apiUrl/test-suites/${props.owner}/get-by-ids",
                 headers = jsonHeaders,
                 body = Json.encodeToString(ids),
                 loadingHandler = ::classLoadingHandler,

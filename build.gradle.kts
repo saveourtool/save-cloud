@@ -9,41 +9,34 @@ plugins {
 }
 
 val profile = properties.getOrDefault("save.profile", "dev") as String
-val databaseCredentials = getDatabaseCredentials(profile)
 
 liquibase {
     activities {
+        val commonArguments = mapOf(
+            "logLevel" to "info",
+            "contexts" to when (profile) {
+                "prod" -> "prod"
+                "dev" -> "dev"
+                else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
+            }
+        )
         // Configuring luiquibase
         register("main") {
             arguments = mapOf(
                 "changeLogFile" to "db/db.changelog-master.xml",
-                "url" to "${ databaseCredentials.databaseUrl}?createDatabaseIfNotExist=true",
-                "username" to databaseCredentials.username,
-                "password" to databaseCredentials.password,
-                "logLevel" to "info",
-                "contexts" to when (profile) {
-                    "prod" -> "prod"
-                    "dev" -> "dev"
-                    else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
-                },
-                "liquibaseSchemaName" to "save_cloud"
-            )
+                "liquibaseSchemaName" to "save_cloud",
+            ) +
+                    getBackendDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
         }
         register("sandbox") {
             arguments = mapOf(
                 "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
-                "url" to "${ databaseCredentials.databaseUrl}?createDatabaseIfNotExist=true",
-                "username" to databaseCredentials.username,
-                "password" to databaseCredentials.password,
-                "logLevel" to "info",
-                "contexts" to when (profile) {
-                    "prod" -> "prod"
-                    "dev" -> "dev"
-                    else -> throw GradleException("Profile $profile not configured to map on a particular liquibase context")
-                },
                 "liquibaseSchemaName" to "save_sandbox",
                 "defaultSchemaName" to "save_sandbox",
-            )
+            ) +
+                    getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
+                    commonArguments
         }
     }
 }
