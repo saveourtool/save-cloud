@@ -47,4 +47,10 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
      * @return List of [TestSuite]s
      */
     fun findBySourceOrganizationName(organizationName: String): List<TestSuite>
+
+    /**
+     * @param isPublic flag that indicates if given [TestSuite] is available for every organization or not
+     * @return List of [TestSuite]s
+     */
+    fun findByIsPublic(isPublic: Boolean): List<TestSuite>
 }

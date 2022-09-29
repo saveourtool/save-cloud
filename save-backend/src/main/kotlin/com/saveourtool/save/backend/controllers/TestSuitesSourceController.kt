@@ -437,7 +437,7 @@ class TestSuitesSourceController(
                 testSuitesSource,
                 version
             ).map {
-                it.toDto(it.requiredId())
+                it.toDto()
             }
         }
 
@@ -576,7 +576,7 @@ class TestSuitesSourceController(
         .flatMap { testSuitesSourceService.branchList(it.toDto()) }
         .map { ResponseEntity.ok().body(it) }
 
-    @GetMapping("/api/$v1/test-suites-sources/avaliable")
+    @GetMapping("/api/$v1/test-suites-sources/available")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
