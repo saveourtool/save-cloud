@@ -5,14 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <preConditions>
-        <dbms type="mysql"/>
-    </preConditions>
+    <include file="execution.xml" relativeToChangelogFile="true" />
+    <include file="agent.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="master-init-changelog" author="frolov">
-        <tagDatabase tag="db_sandbox_init"/>
+    <changeSet id="sandbox-tag" author="frolov">
+        <tagDatabase tag="sandbox-tables"/>
     </changeSet>
-
-    <include file="tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
