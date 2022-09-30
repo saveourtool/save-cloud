@@ -7,6 +7,9 @@
 
 package com.saveourtool.save.agent.utils
 
+import sun.misc.Signal
+import kotlin.system.exitProcess
+
 actual typealias AtomicLong = java.util.concurrent.atomic.AtomicLong
 
 @Suppress("USE_DATA_CLASS")
@@ -21,5 +24,8 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
 internal actual fun getenv(envName: String): String? = System.getenv(envName)
 
 internal actual fun handleSigterm() {
-    TODO("Not yet implemented")
+    Signal.handle(Signal("TERM")) {
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
+        exitProcess(1)
+    }
 }

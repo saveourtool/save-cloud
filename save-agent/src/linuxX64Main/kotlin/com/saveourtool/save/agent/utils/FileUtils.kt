@@ -16,24 +16,12 @@ import platform.posix.S_IXUSR
 
 internal actual val fs = FileSystem.SYSTEM
 
-/**
- * Extract path as ZIP archive to provided directory
- *
- * @param targetPath
- */
 internal actual fun Path.extractZipTo(targetPath: Path) {
     require(fs.metadata(targetPath).isDirectory)
     logDebugCustom("Unzip ${fs.canonicalize(this)} into ${fs.canonicalize(targetPath)}")
     platform.posix.system("unzip $this -d $targetPath")
 }
 
-/**
- * Write content of [this] into a file [file]
- *
- * @receiver [ByteArray] to be written into a file
- * @param file target [Path]
- * @param mustCreate will be passed to Okio's [FileSystem.write]
- */
 internal actual fun ByteArray.writeToFile(file: Path, mustCreate: Boolean) {
     fs.write(
         file = file,
@@ -43,9 +31,6 @@ internal actual fun ByteArray.writeToFile(file: Path, mustCreate: Boolean) {
     }
 }
 
-/**
- * Mark [this] file as executable. Sets permissions to rwxr--r--
- */
 internal actual fun Path.markAsExecutable() {
     platform.posix.chmod(
         this.toString(),
@@ -53,12 +38,6 @@ internal actual fun Path.markAsExecutable() {
     )
 }
 
-/**
- * Read file as a list of strings
- *
- * @param filePath a file to read
- * @return list of string from file
- */
 internal actual fun readFile(filePath: String): List<String> = try {
     val path = filePath.toPath()
     FileSystem.SYSTEM.read(path) {
