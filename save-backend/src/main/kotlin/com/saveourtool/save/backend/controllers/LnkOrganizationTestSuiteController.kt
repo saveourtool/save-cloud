@@ -260,7 +260,7 @@ class LnkOrganizationTestSuiteController(
             )
         }
 
-    @PostMapping("/{ownerOrganizationName}")
+    @PostMapping("/{ownerOrganizationName}/set-rights-many")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(

@@ -130,7 +130,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
     val testSuitePermissionModalOpener = useWindowOpenness()
     manageTestSuitePermissionsComponent {
-        selfUserInfo = props.selfRole
         organizationName = props.organizationName
         isModalOpen = testSuitePermissionModalOpener.isOpen()
         closeModal = testSuitePermissionModalOpener.closeWindowAction()
