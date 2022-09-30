@@ -7206,6 +7206,16 @@
               }
             }
           },
+          "409": {
+            "description": "There are projects connected to organization. Please delete all of them and try again.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
