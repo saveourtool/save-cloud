@@ -358,7 +358,7 @@
         }
       }
     },
-    "/api/v1/test-suites/{ownerOrganizationName}": {
+    "/api/v1/test-suites/{ownerOrganizationName}/{testSuiteId}": {
       "post": {
         "tags": [
           "rights",
@@ -367,7 +367,7 @@
         ],
         "summary": "Set organization\u0027s rights for given test suite.",
         "description": "Set organization\u0027s rights for given test suite.",
-        "operationId": "setRightsBatched",
+        "operationId": "setRights",
         "parameters": [
           {
             "name": "ownerOrganizationName",
@@ -376,6 +376,16 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "testSuiteId",
+            "in": "path",
+            "description": "id of test suite that is maintained",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           },
           {
@@ -444,7 +454,7 @@
         ]
       }
     },
-    "/api/v1/test-suites/{ownerOrganizationName}/{testSuiteId}": {
+    "/api/v1/test-suites/{ownerOrganizationName}/set-rights-many": {
       "post": {
         "tags": [
           "rights",
@@ -453,7 +463,7 @@
         ],
         "summary": "Set organization\u0027s rights for given test suite.",
         "description": "Set organization\u0027s rights for given test suite.",
-        "operationId": "setRights",
+        "operationId": "setRightsBatched",
         "parameters": [
           {
             "name": "ownerOrganizationName",
@@ -462,16 +472,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "testSuiteId",
-            "in": "path",
-            "description": "id of test suite that is maintained",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
             }
           },
           {
