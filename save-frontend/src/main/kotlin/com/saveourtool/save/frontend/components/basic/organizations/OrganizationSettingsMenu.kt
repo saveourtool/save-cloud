@@ -5,19 +5,19 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
+import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationFun
 import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
-import csstype.ClassName
 
+import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-
-import react.dom.html.ButtonType
 import react.dom.html.InputType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+
+import kotlinx.browser.window
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -44,11 +44,6 @@ external interface OrganizationSettingsMenuProps : Props {
      * [Role] of user that is observing this component
      */
     var selfRole: Role
-
-    /**
-     * Callback to delete organization
-     */
-    var deleteOrganizationCallback: () -> Unit
 
     /**
      * Callback to show error message
@@ -150,14 +145,17 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-danger")
-                        disabled = !props.selfRole.hasDeletePermission()
-                        onClick = {
-                            props.deleteOrganizationCallback()
+                    deleteOrganizationFun {
+                        organizationName = props.organizationName
+                        onDeletionSuccess = {
+                            window.location.href = "${window.location.origin}/"
                         }
-                        +"Delete organization"
+                        buttonStyleBuilder = { childrenBuilder ->
+                            with(childrenBuilder) {
+                                +props.organizationName
+                            }
+                        }
+                        classes = "btn btn-sm btn-danger"
                     }
                 }
             }

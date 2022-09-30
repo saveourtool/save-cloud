@@ -82,8 +82,15 @@ class ProjectService(
 
     /**
      * @param organizationName
+     * @return List of the Organization projects
      */
-    fun findByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName).let { Flux.fromIterable(it) }
+    fun getByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName)
+
+    /**
+     * @param organizationName
+     * @return Flux of the Organization projects
+     */
+    fun findByOrganizationName(organizationName: String) = getByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
     /**
      * @return project's without status

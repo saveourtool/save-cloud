@@ -304,6 +304,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -319,6 +320,12 @@ internal class OrganizationController(
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for deletion of organization $organizationName."
+        }
+        .filter {
+            organizationService.nasNoProjects(it.name)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
             organizationService.deleteOrganization(it.name)

@@ -219,7 +219,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             confirmationType = ConfirmationType.DELETE_CONFIRM
             isConfirmWindowOpen = true
             confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this organization?"
+            confirmMessage = "Are you sure you want to delete organization ${props.organizationName}?"
         }
     }
 
@@ -273,18 +273,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
-        }
-        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
-            buttonBuilder("Ok") {
-                when (state.confirmationType) {
-                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                    else -> TODO("Not implemented yet")
-                }
-                setState { isConfirmWindowOpen = false }
-            }
-            buttonBuilder("Close", "secondary") {
-                setState { isConfirmWindowOpen = false }
-            }
         }
 
         renderOrganizationMenuBar()
@@ -502,18 +490,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             organizationName = props.organizationName
             currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             selfRole = state.selfRole
-            deleteOrganizationCallback = {
-                if (state.projects?.size != 0) {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = ""
-                        errorMessage = "You cannot delete an organization because there are projects connected to it. " +
-                                "Delete all the projects and try again."
-                    }
-                } else {
-                    deleteOrganization()
-                }
-            }
             updateErrorMessage = { response, message ->
                 setState {
                     isErrorOpen = true
@@ -540,9 +516,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
         url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
+        headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -550,11 +524,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private fun onCanCreateContestsChange(canCreateContests: Boolean) {
-        val headers = jsonHeaders
         scope.launch {
             val response = post(
                 "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
-                headers,
+                headers = jsonHeaders,
                 undefined,
                 loadingHandler = ::classLoadingHandler,
             )
@@ -721,7 +694,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
         }
     }
-
     private fun deleteOrganizationBuilder() {
         val headers = jsonHeaders
         scope.launch {

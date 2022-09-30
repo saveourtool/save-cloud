@@ -3,8 +3,6 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -12,36 +10,25 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
 
 import csstype.ClassName
-import kotlinx.browser.window
 import org.w3c.fetch.Response
-import react.FC
+import react.*
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
-import react.useState
 
 import kotlinx.coroutines.launch
+
+val deleteOrganizationFun = deleteOrganizationButton()
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { _ ->
-        val (deleteOrganization, setDeleteOrganization) = useState(OrganizationDto.empty)
-        val windowOpenness = useWindowOpenness()
-        displayConfirmationModal(
-            windowOpenness,
-            "Deletion Organization",
-            "Please confirm deletion of ${deleteOrganization.name}. " +
-                    "Note! This action deletes all the projects of this organization and the organization itself!",
-            mediumTransparentModalStyle
-        ) {
-            deleteOrganization(deleteOrganization)
-        }
+
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
@@ -61,8 +48,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3")
                                 img {
-                                    className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
@@ -83,16 +69,17 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     +role.formattedName
                                 }
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    div {
-                                        button {
-                                            className = ClassName("btn mr-3")
-                                            fontAwesomeIcon(icon = faTrashAlt)
-                                            id = "remove-organization-${organizationDto.name}"
-                                            onClick = {
-                                                setDeleteOrganization(organizationDto)
-                                                windowOpenness.openWindow()
+                                    deleteOrganizationFun {
+                                        organizationName = organizationDto.name
+                                        onDeletionSuccess = {
+                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                        }
+                                        buttonStyleBuilder = { childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                fontAwesomeIcon(icon = faTrashAlt)
                                             }
                                         }
+                                        classes = "btn mr-3"
                                     }
                                 }
                             }
@@ -117,7 +104,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }.invokeOnCompletion {
             if (responseFromDeleteOrganization.ok) {
                 setState {
-                    window.location.reload()
+                    selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
                 }
             }
         }
