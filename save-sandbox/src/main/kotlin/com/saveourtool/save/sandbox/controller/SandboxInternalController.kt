@@ -2,7 +2,6 @@ package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.service.SandboxAgentRepository
@@ -12,6 +11,7 @@ import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.sandbox.storage.SandboxStorage
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.ClassPathResource
@@ -40,43 +40,21 @@ typealias StringResponse = ResponseEntity<String>
 @RestController
 @RequestMapping("/sandbox/internal")
 class SandboxInternalController(
-    private val storage: Storage<SandboxStorageKey>,
+    private val storage: SandboxStorage,
     private val agentRepository: SandboxAgentRepository,
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param agentVersion
-     * @return Mono with empty body
-     */
-    @PostMapping("/saveAgentVersion")
-    fun saveAdditionalData(
-        @RequestBody agentVersion: AgentVersion
-    ): Mono<Unit> = {
-        // Do nothing for now
-    }.toMono()
-
-    /**
-     * @param testExecutionsDto
-     * @return response with text value
-     */
-    @PostMapping("/saveTestResult")
-    fun saveExecutionData(
-        @RequestBody testExecutionsDto: List<TestExecutionDto>
-    ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
-        .toMono()
-
-    /**
-     * @param executionId
+     * @param userName
      * @return content of requested snapshot
      */
     @PostMapping(
-        "/test-suites-sources/download-snapshot-by-execution-id",
+        "/download-test-files",
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
     )
-    fun downloadTestSourceSnapshot(
-        @RequestParam executionId: Long
+    fun downloadTestFiles(
+        @RequestParam userName: String,
     ): Mono<ByteBufferFluxResponse> {
-        val userName = agentRepository.getUserNameByExecutionId(executionId)
         val archiveFile = kotlin.io.path.createTempFile(
             prefix = "tests-",
             suffix = ARCHIVE_EXTENSION
@@ -84,10 +62,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list()
-                    .filter {
-                        it.userName == userName && it.type == SandboxStorageKeyType.TEST
-                    }
+                storage.list(userName, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()
@@ -117,32 +92,29 @@ class SandboxInternalController(
     }
 
     /**
-     * @param executionId
-     * @param fileKey
+     * @param userName
+     * @param fileName
      * @return content of requested file
      */
-    @PostMapping("/files/download", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
-        @RequestParam executionId: Long,
-        @RequestBody fileKey: FileKey,
-    ): Mono<ByteBufferFluxResponse> {
-        val userName = agentRepository.getUserNameByExecutionId(executionId)
-        return storage.list()
-            .filter { it.type == SandboxStorageKeyType.FILE && it.userName == userName && it.fileName == fileKey.name }
-            .singleOrEmpty()
-            .switchIfEmptyToNotFound {
-                "No single file for $fileKey"
-            }
-            .map { key ->
-                ResponseEntity.ok(storage.download(key))
-            }
-    }
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+    ): Mono<ByteBufferFluxResponse> = storage.list(userName, SandboxStorageKeyType.FILE)
+        .filter { it.fileName == fileName }
+        .singleOrEmpty()
+        .switchIfEmptyToNotFound {
+            "No found file $fileName for user $userName"
+        }
+        .map { key ->
+            ResponseEntity.ok(storage.download(key))
+        }
 
     /**
      * @param version
      * @return content of requested save-cli
      */
-    @PostMapping("/files/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
     ): Mono<BodilessResponseEntity> =
@@ -155,11 +127,32 @@ class SandboxInternalController(
     /**
      * @return content of save-agent
      */
-    @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
                 .filter { it.exists() }
                 .switchIfEmptyToNotFound()
+
+    /**
+     * @param agentVersion
+     * @return Mono with empty body
+     */
+    @PostMapping("/saveAgentVersion")
+    fun saveAdditionalData(
+        @RequestBody agentVersion: AgentVersion
+    ): Mono<Unit> = {
+        // Do nothing for now
+    }.toMono()
+
+    /**
+     * @param testExecutionsDto
+     * @return response with text value
+     */
+    @PostMapping("/saveTestResult")
+    fun saveExecutionData(
+        @RequestBody testExecutionsDto: List<TestExecutionDto>
+    ): Mono<StringResponse> = ResponseEntity.ok("Do nothing for now")
+        .toMono()
 
     /**
      * @param executionId
@@ -167,7 +160,7 @@ class SandboxInternalController(
      * @return [Mono] with count of uploaded bytes
      */
     @PostMapping("/files/debug-info")
-    fun saveDebugInfo(
+    fun uploadDebugInfo(
         @RequestParam executionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = blockingToMono {

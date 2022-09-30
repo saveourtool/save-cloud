@@ -7,7 +7,6 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
 
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
@@ -92,9 +91,9 @@ interface AgentRepository {
     /**
      * Mark agent's test executions as failed
      *
-     * @param containerIds the list of agent IDs, for which, according the [status] corresponding test executions should be marked as failed
-     * @param status
+     * @param containerIds the list of agent IDs, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
      * @return a Mono without body
      */
-    fun setStatusByAgentIds(containerIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity>
+    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity>
 }

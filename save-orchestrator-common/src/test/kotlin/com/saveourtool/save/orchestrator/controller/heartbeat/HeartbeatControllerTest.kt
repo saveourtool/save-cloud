@@ -311,7 +311,7 @@ class HeartbeatControllerTest {
             .whenever(agentRepository)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(agentRepository.setStatusByAgentIds(any(), any()))
+        whenever(agentRepository.markTestExecutionsOfAgentsAsFailed(any(), any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
@@ -326,7 +326,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(agentRepository).getReadyForTestingTestExecutions(any())
-            verify(agentRepository).setStatusByAgentIds(any(), any())
+            verify(agentRepository).markTestExecutionsOfAgentsAsFailed(any(), any())
         }
     }
 

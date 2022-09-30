@@ -101,7 +101,7 @@ class DockerService(
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                            ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
+                            ).then(agentService.markTestExecutionsAsFailed(agentIds, false))
                                 .subscribe()
                         }
                         areAgentsHaveStarted.remove(executionId)

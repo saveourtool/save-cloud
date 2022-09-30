@@ -129,7 +129,7 @@ class HeartbeatController(private val agentService: AgentService,
         handleVacantAgent(agentId)
     } else {
         // Agent finished its work, however only part of results were received, other should be marked as failed
-        agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
+        agentService.markTestExecutionsAsFailed(listOf(agentId), true)
             .subscribeOn(agentService.scheduler)
             .subscribe()
         Mono.just(WaitResponse)

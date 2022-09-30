@@ -41,6 +41,7 @@
                 <constraints nullable="false" />
             </column>
             <column name="additional_files" type="text" defaultValue="null"/>
+            <column name="fail_reason" type="text" defaultValue="null"/>
         </createTable>
     </changeSet>
 

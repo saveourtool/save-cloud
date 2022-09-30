@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentInitConfig
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
@@ -10,8 +9,8 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 import org.springframework.http.ResponseEntity
 
 import org.springframework.stereotype.Component
@@ -86,10 +85,16 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun setStatusByAgentIds(containerIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> =
-            webClientBackend.post()
-                .uri("/testExecution/setStatusByAgentIds?status=${status.name}")
-                .bodyValue(containerIds)
-                .retrieve()
-                .toBodilessEntity()
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> {
+        log.debug("Attempt to mark test executions of agents=$containerIds as failed with internal error")
+        return webClientBackend.post()
+            .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting")
+            .bodyValue(containerIds)
+            .retrieve()
+            .toBodilessEntity()
+    }
+
+    companion object {
+        private val log: Logger = getLogger<BackendAgentRepository>()
+    }
 }

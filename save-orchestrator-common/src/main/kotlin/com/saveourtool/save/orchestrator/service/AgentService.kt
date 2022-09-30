@@ -154,7 +154,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
+                    ).then(markTestExecutionsAsFailed(agentIds, false))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -213,14 +213,14 @@ class AgentService(
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
-     * @param status
+     * @param agentsList the list of agents, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting
      * @return a bodiless response entity
      */
-    fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
-        return agentRepository.setStatusByAgentIds(agentsList, status)
-    }
+    fun markTestExecutionsAsFailed(
+        agentsList: Collection<String>,
+        onlyReadyForTesting: Boolean
+    ): Mono<BodilessResponseEntity> = agentRepository.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
 
     private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
             if (isNotEmpty()) {

@@ -1,31 +1,33 @@
 package com.saveourtool.save.sandbox.service
 
 import com.saveourtool.save.agent.AgentInitConfig
-import com.saveourtool.save.agent.AgentState
-import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.SaveCliOverrides
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
-import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.TestExecutionList
+import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.entity.toEntity
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.storage.SandboxStorage
+import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orConflict
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
+import generated.SAVE_CORE_VERSION
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
@@ -37,10 +39,50 @@ class SandboxAgentRepository(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
+    private val sandboxStorage: SandboxStorage,
+    @Value("sandbox.url") private val sandboxUrl: String,
 ): com.saveourtool.save.orchestrator.service.AgentRepository {
-    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = Mono.empty()
+    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = blockingToMono {
+        getAgent(containerId).execution
+    }
+        .zipWhen { execution ->
+            sandboxStorage.list(execution.getUserName(), SandboxStorageKeyType.FILE)
+                .map { storageKey ->
+                    storageKey.fileName to "$sandboxUrl/sandbox/internal/download-file?userName=${storageKey.userName}&fileName=${storageKey.fileName}"
+                }
+                .collectList()
+                .map {
+                    it.toMap()
+                }
+        }
+        .map { (execution, fileToUrls) ->
+            val userName = execution.getUserName()
+            AgentInitConfig(
+                saveCliUrl = "$sandboxUrl/sandbox/internal/download-save-cli?version=$SAVE_CORE_VERSION",
+                testSuitesSourceSnapshotUrl = "$sandboxUrl/sandbox/internal/download-test-files?userName=$userName",
+                additionalFileNameToUrl = fileToUrls,
+                // sandbox doesn't support save-cli overrides for now
+                saveCliOverrides = SaveCliOverrides(),
+            )
+        }
 
-    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = Mono.empty()
+    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = blockingToMono {
+        getAgent(containerId).execution
+    }
+        .flatMap { execution ->
+            sandboxStorage.list(execution.getUserName(), SandboxStorageKeyType.TEST)
+                .map { it.fileName }
+                .map { fileName ->
+                    TestDto(
+                        filePath = fileName,
+                        pluginName = com.saveourtool.save.plugin.warn.WarnPlugin::class.simpleName ?: "N/A",
+                        testSuiteId = -1,
+                        hash = "N/A",
+                        additionalFiles = emptyList(),
+                    )
+                }
+                .collectList()
+        }
 
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
         agents
@@ -73,7 +115,20 @@ class SandboxAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
-    ): Mono<BodilessResponseEntity> = Mono.empty()
+    ): Mono<BodilessResponseEntity> = blockingToMono {
+        getExecution(executionId)
+            .let { execution ->
+                sandboxExecutionRepository.save(
+                    execution.apply {
+                        this.status = executionStatus
+                        this.failReason = failReason
+                    }
+                )
+            }
+            .let {
+                ResponseEntity.ok().build()
+            }
+    }
 
     override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = blockingToMono {
         val execution = getAgent(containerId).execution
@@ -92,7 +147,7 @@ class SandboxAgentRepository(
             }
     }
 
-    override fun setStatusByAgentIds(containerIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> = Mono.fromCallable {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }
@@ -101,12 +156,7 @@ class SandboxAgentRepository(
      * @param executionId
      * @return userName for provided [executionId]
      */
-    fun getUserNameByExecutionId(executionId: Long): String = getExecution(executionId)
-        .user
-        .name
-        .orConflict {
-            "All users should have name"
-        }
+    fun getUserNameByExecutionId(executionId: Long): String = getExecution(executionId).getUserName()
 
     private fun getExecution(executionId: Long) = sandboxExecutionRepository
         .findByIdOrNull(executionId)
