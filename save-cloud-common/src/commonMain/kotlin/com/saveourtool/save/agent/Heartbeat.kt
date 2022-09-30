@@ -60,10 +60,17 @@ object WaitResponse : HeartbeatResponse()
 object ContinueResponse : HeartbeatResponse()
 
 /**
+ * @property config configuration to init agent
+ */
+@Serializable
+data class InitResponse(val config: AgentInitConfig) : HeartbeatResponse()
+
+/**
  * @property tests a list of new jobs for this agent
  * @property cliArgs command line arguments for SAVE launch
  */
-@Serializable data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
+@Serializable
+data class NewJobResponse(val tests: List<TestDto>, val cliArgs: String) : HeartbeatResponse()
 
 /**
  * A response that indicates that agent should exit gracefully

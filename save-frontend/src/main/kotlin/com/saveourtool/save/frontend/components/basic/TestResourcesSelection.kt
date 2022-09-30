@@ -33,7 +33,6 @@ val testResourcesSelection = prepareTestResourcesSelection()
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface TestResourcesProps : PropsWithChildren {
     var testingType: TestingType
-    var isSubmitButtonPressed: Boolean?
 
     // properties for CONTEST_MODE
     var projectName: String
@@ -144,6 +143,7 @@ private fun ChildrenBuilder.renderForPublicAndPrivateTests(
                     setSelectedTestSuiteIds
                 )
                 TestingType.PUBLIC_TESTS -> showPublicTestSuitesSelectorModal(
+                    props.organizationName,
                     selectedTestSuites,
                     testSuiteSelectorWindowOpenness,
                     testSuitesInSelectorState,

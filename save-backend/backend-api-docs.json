@@ -358,15 +358,122 @@
         }
       }
     },
-    "/api/v1/test-suites/get-by-ids": {
+    "/api/v1/test-suites/{ownerOrganizationName}/{testSuiteId}": {
       "post": {
         "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Set organization\u0027s rights for given test suite.",
+        "description": "Set organization\u0027s rights for given test suite.",
+        "operationId": "setRights",
+        "parameters": [
+          {
+            "name": "ownerOrganizationName",
+            "in": "path",
+            "description": "name of an organization-maintainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testSuiteId",
+            "in": "path",
+            "description": "id of test suite that is maintained",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRightsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Given organization has been forbidden to change given test suite rights",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization, test suite or organization-maintainer doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Rights changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/{organizationName}/get-by-ids": {
+      "post": {
+        "tags": [
+          "rights",
+          "organizations",
           "test-suites"
         ],
         "summary": "Get test suites by ids.",
-        "description": "Get list of available test suites by their ids.",
+        "description": "Get list of available test suites for given organization by their ids.",
         "operationId": "getTestSuitesByIds",
         "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "isContest",
             "in": "query",
@@ -376,6 +483,12 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -393,8 +506,34 @@
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
           "200": {
             "description": "Successfully fetched test suites by ids.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current user doesn\u0027t have enough permissions to access test suites from current organization.",
             "content": {
               "*/*": {
                 "schema": {
@@ -880,7 +1019,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunExecutionRequest"
+                "$ref": "#/components/schemas/CreateExecutionRequest"
               }
             }
           },
@@ -2091,8 +2230,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  },
-                  "returnShortFileInfo": {}
+                  }
                 }
               }
             }
@@ -2104,7 +2242,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/FileInfo"
                 }
               }
             }
@@ -2122,11 +2260,14 @@
         "tags": [
           "files"
         ],
+        "summary": "Download a file by execution ID and FileKey.",
+        "description": "Download a file by execution ID and FileKey.",
         "operationId": "download",
         "parameters": [
           {
             "name": "organizationName",
             "in": "path",
+            "description": "organization name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
@@ -2135,23 +2276,121 @@
           {
             "name": "projectName",
             "in": "path",
+            "description": "project name of additional file key",
             "required": true,
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "name of additional file key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "description": "uploaded mills of additional file key",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FileInfo"
+        "responses": {
+          "404": {
+            "description": "Execution with provided ID is not found.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
               }
             }
           },
-          "required": true
-        },
-        "responses": {
+          "200": {
+            "description": "Returns content of the file.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "char": {
+                        "type": "string"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -3301,45 +3540,70 @@
         ]
       }
     },
-    "/api/v1/test-suites/get-by-organization": {
+    "/api/v1/test-suites/{organizationName}/{testSuiteId}": {
       "get": {
         "tags": [
+          "rights",
+          "organizations",
           "test-suites"
         ],
-        "summary": "Get test suites by organization.",
-        "description": "Get list of available test suites posted by given organization.",
-        "operationId": "getTestSuitesByOrganizationName",
+        "summary": "Get organization\u0027s rights for given test suite.",
+        "description": "Get organization\u0027s rights for given test suite.",
+        "operationId": "getRights",
         "parameters": [
           {
             "name": "organizationName",
-            "in": "query",
-            "description": "name of an organization",
+            "in": "path",
+            "description": "name of an organization for rights check",
             "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "isContest",
-            "in": "query",
-            "description": "is given request sent for browsing test suites for contest, default is false",
-            "required": false,
+            "name": "testSuiteId",
+            "in": "path",
+            "description": "id of a test suite",
+            "required": true,
             "schema": {
-              "type": "boolean",
-              "default": false
+              "type": "integer",
+              "format": "int64"
             }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successfully fetched test suites by organization name.",
+          "403": {
+            "description": "Permissions for test suite access were not gained.",
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched organization\u0027s rights.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization or test suite doesn\u0027t exist.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3349,10 +3613,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TestSuiteDto"
-                  }
+                  "$ref": "#/components/schemas/LnkOrganizationTestSuiteDto"
                 }
               }
             }
@@ -3365,15 +3626,25 @@
         ]
       }
     },
-    "/api/v1/test-suites/filtered": {
+    "/api/v1/test-suites/{organizationName}/filtered": {
       "get": {
         "tags": [
+          "rights",
+          "organizations",
           "test-suites"
         ],
         "summary": "Get test suites with filters.",
         "description": "Get test suites with filters.",
         "operationId": "getFilteredTestSuites",
         "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "tags",
             "in": "query",
@@ -3450,13 +3721,122 @@
         ]
       }
     },
-    "/api/v1/test-suites/available": {
+    "/api/v1/test-suites/{organizationName}/available": {
       "get": {
         "tags": [
+          "rights",
+          "organizations",
           "test-suites"
         ],
-        "summary": "Get public test suites.",
-        "description": "Get list of available test suites.",
+        "summary": "Get list of test suites that are available for given organization.",
+        "description": "Get list of test suites that are available for given organization.",
+        "operationId": "getAvailableTestSuitesByOrganization",
+        "parameters": [
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isContest",
+            "in": "query",
+            "description": "is given request sent for browsing test suites for contest, default is false",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "onlyPrivate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Organization with such name was not found.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully fetched test suites available for given organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Current user doesn\u0027t have enough permissions to access test suites from current organization.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestSuiteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/public": {
+      "get": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Get list of public test suites.",
+        "description": "Get list of public test suites.",
         "operationId": "getPublicTestSuites",
         "parameters": [
           {
@@ -3468,6 +3848,12 @@
               "type": "boolean",
               "default": false
             }
+          },
+          {
+            "name": "organizationName",
+            "in": "path",
+            "description": "name of an organization",
+            "required": true
           }
         ],
         "responses": {
@@ -3802,7 +4188,7 @@
         ]
       }
     },
-    "/api/v1/test-suites-sources/avaliable": {
+    "/api/v1/test-suites-sources/available": {
       "get": {
         "tags": [
           "test-suites-source"
@@ -5207,7 +5593,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successfully fetched contests avaliable for project.",
+            "description": "Successfully fetched contests available for project.",
             "content": {
               "*/*": {
                 "schema": {
@@ -6411,6 +6797,101 @@
         ]
       }
     },
+    "/api/v1/test-suites/{ownerOrganizationName}/{testSuiteId}/{requestedOrganizationName}": {
+      "delete": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Remove organization\u0027s rights over test suite with given id.",
+        "description": "Remove organization\u0027s rights over test suite with given id.",
+        "operationId": "removeRights",
+        "parameters": [
+          {
+            "name": "ownerOrganizationName",
+            "in": "path",
+            "description": "name of an organization-maintainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "testSuiteId",
+            "in": "path",
+            "description": "id of test suite that is maintained",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "requestedOrganizationName",
+            "in": "path",
+            "description": "name of an organization to be maintained",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Given organization has been forbidden to change given test suite rights",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization, test suite or organization-maintainer doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Rights were successfully removed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/projects/{organizationName}/{projectName}/users/roles/{userName}": {
       "delete": {
         "tags": [
@@ -6826,7 +7307,7 @@
         ]
       }
     },
-    "/api/v1/files/{organizationName}/{projectName}/{creationTimestamp}": {
+    "/api/v1/files/{organizationName}/{projectName}/delete": {
       "delete": {
         "tags": [
           "files"
@@ -6850,11 +7331,20 @@
             }
           },
           {
-            "name": "creationTimestamp",
-            "in": "path",
+            "name": "name",
+            "in": "query",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "uploadedMillis",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           }
         ],
@@ -6974,6 +7464,26 @@
           }
         }
       },
+      "SetRightsRequest": {
+        "required": [
+          "organizationName",
+          "rights"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "rights": {
+            "type": "string",
+            "enum": [
+              "MAINTAIN",
+              "NONE",
+              "USE"
+            ]
+          }
+        }
+      },
       "GitDto": {
         "required": [
           "url"
@@ -6993,6 +7503,7 @@
       },
       "TestSuiteDto": {
         "required": [
+          "isPublic",
           "name",
           "plugins",
           "source",
@@ -7036,6 +7547,9 @@
                 "FIX AND WARN"
               ]
             }
+          },
+          "isPublic": {
+            "type": "boolean"
           }
         }
       },
@@ -7107,6 +7621,9 @@
             "type": "string"
           },
           "agentContainerId": {
+            "type": "string"
+          },
+          "agentContainerName": {
             "type": "string"
           },
           "status": {
@@ -7189,38 +7706,7 @@
           }
         }
       },
-      "FileKey": {
-        "required": [
-          "name",
-          "uploadedMillis"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ProjectCoordinates": {
-        "required": [
-          "organizationName",
-          "projectName"
-        ],
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string"
-          },
-          "projectName": {
-            "type": "string"
-          }
-        }
-      },
-      "RunExecutionRequest": {
+      "CreateExecutionRequest": {
         "required": [
           "files",
           "projectCoordinates",
@@ -7264,6 +7750,41 @@
             ]
           },
           "contestName": {
+            "type": "string"
+          }
+        }
+      },
+      "FileKey": {
+        "required": [
+          "name",
+          "projectCoordinates",
+          "uploadedMillis"
+        ],
+        "type": "object",
+        "properties": {
+          "projectCoordinates": {
+            "$ref": "#/components/schemas/ProjectCoordinates"
+          },
+          "name": {
+            "type": "string"
+          },
+          "uploadedMillis": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProjectCoordinates": {
+        "required": [
+          "organizationName",
+          "projectName"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string"
+          },
+          "projectName": {
             "type": "string"
           }
         }
@@ -7503,18 +8024,13 @@
       "FileInfo": {
         "required": [
           "isExecutable",
-          "name",
-          "sizeBytes",
-          "uploadedMillis"
+          "key",
+          "sizeBytes"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "uploadedMillis": {
-            "type": "integer",
-            "format": "int64"
+          "key": {
+            "$ref": "#/components/schemas/FileKey"
           },
           "sizeBytes": {
             "type": "integer",
@@ -7602,6 +8118,7 @@
           "allTests",
           "expectedChecks",
           "failedTests",
+          "fileKeys",
           "matchedChecks",
           "passedTests",
           "project",
@@ -7716,6 +8233,12 @@
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "fileKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileKey"
+            }
           }
         }
       },
@@ -7798,6 +8321,30 @@
               "READY_FOR_TESTING",
               "RUNNING",
               "TEST_ERROR"
+            ]
+          }
+        }
+      },
+      "LnkOrganizationTestSuiteDto": {
+        "required": [
+          "organization",
+          "rights",
+          "testSuite"
+        ],
+        "type": "object",
+        "properties": {
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "testSuite": {
+            "$ref": "#/components/schemas/TestSuiteDto"
+          },
+          "rights": {
+            "type": "string",
+            "enum": [
+              "MAINTAIN",
+              "NONE",
+              "USE"
             ]
           }
         }

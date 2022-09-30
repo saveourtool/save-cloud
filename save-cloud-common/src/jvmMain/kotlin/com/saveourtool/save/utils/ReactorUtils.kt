@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.utils
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -11,7 +13,11 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
+import java.io.InputStream
+import java.io.SequenceInputStream
+import java.nio.ByteBuffer
 
 /**
  * @param status
@@ -78,6 +84,25 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
         Mono.just(value)
     }
 }
+
+/**
+ * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
+ */
+fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
+    // take simple implementation from Jackson library
+    .map { ByteBufferBackedInputStream(it) }
+    .cast(InputStream::class.java)
+    .reduce { in1, in2 ->
+        SequenceInputStream(in1, in2)
+    }
+
+/**
+ * @param objectMapper
+ * @return convert current object to [Flux] of [ByteBuffer] as Json string using [objectMapper]
+ */
+fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
+    .map { ByteBuffer.wrap(it) }
+    .toFlux()
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking

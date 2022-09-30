@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
  * Configuration for save agent.
  *
  * @property id agent id
+ * @property name agent name
  * @property backend configuration for connection to backend
  * @property orchestrator configuration for connection to orchestrator
  * @property cliCommand a command that agent will use to run SAVE cli
@@ -31,6 +32,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AgentConfiguration(
     val id: String,
+    val name: String,
     val backend: BackendConfig,
     val orchestrator: OrchestratorConfig,
     val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
@@ -48,6 +50,7 @@ data class AgentConfiguration(
          */
         internal fun initializeFromEnv() = AgentConfiguration(
             id = requiredEnv(AgentEnvName.AGENT_ID),
+            name = requiredEnv(AgentEnvName.AGENT_NAME),
             backend = BackendConfig(
                 url = requiredEnv(AgentEnvName.BACKEND_URL),
             ),
@@ -71,13 +74,11 @@ data class HeartbeatConfig(
  *
  * @property url URL of orchestrator
  * @property heartbeatEndpoint endpoint to post heartbeats to
- * @property executionLogsEndpoint endpoint to post executionLogs to
  */
 @Serializable
 data class OrchestratorConfig(
     val url: String,
     val heartbeatEndpoint: String = "/heartbeat",
-    val executionLogsEndpoint: String = "/executionLogs",
 )
 
 /**
@@ -87,18 +88,12 @@ data class OrchestratorConfig(
  * @property additionalDataEndpoint endpoint to post additional data (version etc.) to
  * @property executionDataEndpoint endpoint to post execution data to
  * @property debugInfoEndpoint endpoint to post debug info to
- * @property fileEndpoint endpoint to download files from
- * @property testSourceSnapshotEndpoint endpoint to download test source snapshots from
- * @property saveCliDownloadEndpoint endpoint to download save-cli binary from
  */
 @Serializable
 data class BackendConfig(
     val url: String,
     val additionalDataEndpoint: String = "/internal/saveAgentVersion",
     val executionDataEndpoint: String = "/internal/saveTestResult",
-    val fileEndpoint: String = "/internal/files/download",
-    val testSourceSnapshotEndpoint: String = "/internal/test-suites-sources/download-snapshot-by-execution-id",
-    val saveCliDownloadEndpoint: String = "/internal/files/download-save-cli",
     val debugInfoEndpoint: String = "/internal/files/debug-info",
 )
 
@@ -117,10 +112,6 @@ data class RetryConfig(
  * @property reportDir corresponds to flag `--report-dir` of save-cli
  * @property logType corresponds to flag `--log` of save-cli
  * @property resultOutput corresponds to flag `--result-output` of save-cli
- * @property batchSize corresponds to flag `--batch-size` of save-cli (optional)
- * @property batchSeparator corresponds to flag `--batch-separator` of save-cli (optional)
- * @property overrideExecCmd corresponds to flag `--override-exec-cmd` of save-cli (optional)
- * @property overrideExecFlags corresponds to flag `--override-exec-flags` of save-cli (optional)
  */
 @Serializable
 data class SaveCliConfig(
@@ -128,8 +119,4 @@ data class SaveCliConfig(
     val resultOutput: OutputStreamType = OutputStreamType.FILE,
     val reportDir: String = "save-reports",
     val logType: LogType = LogType.ALL,
-    val batchSize: Int? = null,
-    val batchSeparator: String? = null,
-    val overrideExecCmd: String? = null,
-    val overrideExecFlags: String? = null,
 )

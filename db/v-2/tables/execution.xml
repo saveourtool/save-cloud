@@ -52,4 +52,8 @@
         </sql>
     </changeSet>
 
+    <changeSet id="drop_resources_root_path" author="frolov">
+        <dropColumn tableName="execution" columnName="resources_root_path"/>
+    </changeSet>
+
 </databaseChangeLog>

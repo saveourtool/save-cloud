@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.validation.isValidEmail
 
@@ -84,6 +85,14 @@ data class Project(
      */
     fun shortToString() = "[organization=${organization.name},name=$name]"
 
+    /**
+     * @return [ProjectCoordinates] is built for current entity
+     */
+    fun toProjectCoordinates(): ProjectCoordinates = ProjectCoordinates(
+        organizationName = organization.name,
+        projectName = name,
+    )
+
     companion object {
         /**
          * Create a stub for testing. Since all fields are mutable, only required ones can be set after calling this method.
@@ -101,10 +110,9 @@ data class Project(
             description = null,
             status = ProjectStatus.CREATED,
             userId = -1,
-            organization = Organization("stub", OrganizationStatus.CREATED, null, null, null),
+            organization = organization,
         ).apply {
             this.id = id
-            this.organization = organization
         }
     }
 }

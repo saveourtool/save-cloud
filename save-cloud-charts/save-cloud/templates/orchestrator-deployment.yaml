@@ -47,8 +47,6 @@ spec:
                   fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: execution-logs-storage
-              mountPath: /home/cnb/executionLogs/
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
           resources:
             limits:
@@ -57,6 +55,3 @@ spec:
               memory: 600M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
-        - name: execution-logs-storage
-          # FixMe: Do we still need logs storage? All logs should be stored in Loki.
-          emptyDir: {}

@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
@@ -131,3 +131,33 @@ tasks.withType<Test> {
     }
 }
 configureSpotless()
+
+// todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
+val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
+    val versionsFile = File("$buildDir/generated/src/generated/Versions.kt")
+
+    dependsOn(rootProject.tasks.named("getSaveCliVersion"))
+    inputs.file(pathToSaveCliVersion)
+    inputs.property("project version", version.toString())
+    outputs.file(versionsFile)
+
+    doFirst {
+        val saveCliVersion = readSaveCliVersion()
+        versionsFile.parentFile.mkdirs()
+        versionsFile.writeText(
+            """
+            package generated
+
+            internal const val SAVE_CORE_VERSION = "$saveCliVersion"
+            internal const val SAVE_CLOUD_VERSION = "$version"
+
+            """.trimIndent()
+        )
+    }
+}
+kotlin.sourceSets.getByName("main") {
+    kotlin.srcDir("$buildDir/generated/src")
+}
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().forEach {
+    it.dependsOn(generateVersionFileTaskProvider)
+}

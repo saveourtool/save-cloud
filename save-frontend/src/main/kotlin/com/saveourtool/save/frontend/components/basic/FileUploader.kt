@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.toPrettyString
@@ -95,11 +96,6 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Submit button was pressed
-     */
-    var isSubmitButtonPressed: Boolean?
-
-    /**
      * General size of test suite in bytes
      */
     var suiteByteSize: Long
@@ -162,6 +158,9 @@ external interface FileIconProps : Props {
     var onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
 }
 
+private fun FileKey.getHref() =
+        "/api/$v1/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/download?name=$name&uploadedMillis=$uploadedMillis"
+
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
@@ -198,8 +197,8 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                                 className = ClassName("btn")
                                 fontAwesomeIcon(icon = faDownload)
                             }
-                            download = fileInfo.name
-                            href = getHref(fileInfo, props.projectCoordinates)
+                            download = fileInfo.key.name
+                            href = fileInfo.key.getHref()
                         }
                         button {
                             className = ClassName("btn")
@@ -218,17 +217,17 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     select {
-                        className = ClassName("form-control")
+                        className = ClassName("form-control custom-select")
                         value = "default"
                         option {
                             value = "default"
                             disabled = true
                             +"Select a file from existing"
                         }
-                        props.availableFiles.sortedByDescending { it.uploadedMillis }.map {
+                        props.availableFiles.sortedByDescending { it.key.uploadedMillis }.map {
                             option {
                                 className = ClassName("list-group-item")
-                                value = it.name
+                                value = it.key.name
                                 +it.toPrettyString()
                             }
                         }
@@ -240,6 +239,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     label {
+                        className = ClassName("btn btn-outline-secondary m-0")
                         input {
                             type = InputType.file
                             multiple = true
@@ -252,7 +252,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "top"
                         title = "Regular files/Executable files/ZIP Archives"
-                        strong { +"Upload files:" }
+                        strong { +" Upload files:" }
                     }
                 }
 
@@ -277,9 +277,3 @@ private fun fileUploader() = FC<UploaderProps> { props ->
 
     useTooltip()
 }
-
-private fun getHref(
-    fileInfo: FileInfo,
-    projectCoordinates: ProjectCoordinates?
-) =
-        "/api/$v1/resource/${projectCoordinates?.organizationName}/${projectCoordinates?.projectName}/${fileInfo.uploadedMillis}/${fileInfo.name}"
