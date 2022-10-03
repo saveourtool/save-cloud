@@ -101,22 +101,22 @@ class AgentsController(
     ): Mono<TestBatch> = testService.getTestBatches(containerId)
         .flatMap { testBatch ->
             if (testBatch.isNotEmpty()) {
-                blockingToMono {
-                    testExecutionService.assignAgentByTest(containerId, testBatch)
-                    updateAgentStatusesWithDto(
-                        listOf(
-                            AgentStatusDto(
-                                time = LocalDateTime.now(),
-                                state = AgentState.BUSY,
-                                containerId = containerId
+                blockingToMono { testExecutionService.assignAgentByTest(containerId, testBatch) }
+                    .map {
+                        updateAgentStatusesWithDto(
+                            listOf(
+                                AgentStatusDto(
+                                    time = LocalDateTime.now(),
+                                    state = AgentState.BUSY,
+                                    containerId = containerId
+                                )
                             )
                         )
-                    )
-                }
+                    }
                     .doOnSuccess {
                         log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
                     }
-                    .then(testBatch.toMono())
+                    .thenReturn(testBatch)
             } else {
                 testBatch.toMono()
             }

@@ -44,7 +44,7 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param userName
+     * @param userId
      * @return content of requested snapshot
      */
     @PostMapping(
@@ -52,7 +52,7 @@ class SandboxInternalController(
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
     )
     fun downloadTestFiles(
-        @RequestParam userName: String,
+        @RequestParam userId: Long,
     ): Mono<ByteBufferFluxResponse> {
         val archiveFile = kotlin.io.path.createTempFile(
             prefix = "tests-",
@@ -61,7 +61,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list(userName, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
+                storage.list(userId, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()
@@ -91,23 +91,25 @@ class SandboxInternalController(
     }
 
     /**
-     * @param userName
+     * @param userId
      * @param fileName
      * @return content of requested file
      */
     @PostMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
-        @RequestParam userName: String,
+        @RequestParam userId: Long,
         @RequestParam fileName: String,
-    ): Mono<ByteBufferFluxResponse> = storage.list(userName, SandboxStorageKeyType.FILE)
-        .filter { it.fileName == fileName }
-        .singleOrEmpty()
-        .switchIfEmptyToNotFound {
-            "No found file $fileName for user $userName"
-        }
-        .map { key ->
-            ResponseEntity.ok(storage.download(key))
-        }
+    ): Mono<ByteBufferFluxResponse> = blockingToMono {
+        ResponseEntity.ok(
+            storage.download(
+                SandboxStorageKey(
+                    userId = userId,
+                    type = SandboxStorageKeyType.FILE,
+                    fileName = fileName,
+                )
+            )
+        )
+    }
 
     /**
      * @param version
