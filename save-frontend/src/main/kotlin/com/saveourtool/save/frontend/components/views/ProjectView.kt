@@ -164,11 +164,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var bytesReceived: Long
 
     /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean?
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -215,7 +210,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.selectedSdkVersion = Sdk.Default.version
         state.suiteByteSize = state.files.sumOf { it.sizeBytes }
         state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
-        state.isUploading = false
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -466,36 +460,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
                 // ======== file selector =========
                 fileUploader {
-                    files = state.files
-                    availableFiles = state.availableFiles
-                    suiteByteSize = state.suiteByteSize
-                    bytesReceived = state.bytesReceived
-                    isUploading = state.isUploading
                     projectCoordinates = ProjectCoordinates(props.owner, props.name)
-                    onFileSelect = { element ->
-                        setState {
-                            val availableFile = availableFiles.first { it.key.name == element.value }
-                            files.add(availableFile)
-                            bytesReceived += availableFile.sizeBytes
-                            suiteByteSize += availableFile.sizeBytes
-                            availableFiles.remove(availableFile)
-                        }
-                    }
-                    onFileRemove = {
-                        setState {
-                            files.remove(it)
-                            bytesReceived -= it.sizeBytes
-                            suiteByteSize -= it.sizeBytes
-                            availableFiles.add(it)
-                        }
-                    }
-                    onFileInput = { postFileUpload(it) }
-                    onFileDelete = { postFileDelete(it) }
-                    onExecutableChange = { selectedFile, checked ->
-                        setState {
-                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
-                        }
-                    }
                 }
 
                 // ======== sdk selection =========
@@ -670,46 +635,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         }
     }
 
-    private fun postFileDelete(fileForDelete: FileInfo) {
-        val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.key.name} file?"
-        )
-
-        if (confirm) {
-            fileDelete(fileForDelete)
-        }
-    }
-
-    private fun postFileUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                    element.files!!.asList().forEach { file ->
-                        suiteByteSize += file.size.toLong()
-                    }
-                }
-
-                element.files!!.asList().forEach { file ->
-                    val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-
-                    setState {
-                        // add only to selected files so that this entry isn't duplicated
-                        files.add(response)
-                        bytesReceived += response.sizeBytes
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
 
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
