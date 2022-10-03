@@ -19,26 +19,26 @@ class SandboxStorage(
 ) {
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): SandboxStorageKey {
-        val (filename, typeName, username) = pathToContent.pathNamesTill(rootDir)
+        val (filename, typeName, userId) = pathToContent.pathNamesTill(rootDir)
         return SandboxStorageKey(
-            username,
+            userId.toLong(),
             SandboxStorageKeyType.valueOf(typeName),
             filename,
         )
     }
 
     override fun buildPathToContent(rootDir: Path, key: SandboxStorageKey): Path =
-            rootDir / key.userName / key.type.name / key.fileName
+            rootDir / key.userId.toString() / key.type.name / key.fileName
 
     /**
-     * @param userName
+     * @param userId
      * @param types
-     * @return list of keys in storage with requested [SandboxStorageKey.type] and [SandboxStorageKey.userName]
+     * @return list of keys in storage with requested [SandboxStorageKey.type] and [SandboxStorageKey.userId]
      */
     fun list(
-        userName: String,
+        userId: Long,
         vararg types: SandboxStorageKeyType
     ): Flux<SandboxStorageKey> = list().filter {
-        it.userName == userName && it.type in types
+        it.userId == userId && it.type in types
     }
 }

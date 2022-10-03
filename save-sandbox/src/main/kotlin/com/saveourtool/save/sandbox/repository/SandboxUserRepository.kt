@@ -24,17 +24,4 @@ class SandboxUserRepository(
                 Long::class.java
             )
                 .orNotFound { "There is not user with name $name" }
-
-    /**
-     * @param id
-     * @return name of [com.saveourtool.save.entities.User]
-     */
-    @Transactional(readOnly = true)
-    fun getNameById(id: Long): String =
-            namedParameterJdbcTemplate.queryForObject(
-                "SELECT name FROM save_cloud.user WHERE id = :id",
-                mapOf("id" to id),
-                String::class.java
-            )
-                .orNotFound { "There is not user with id $id" }
 }

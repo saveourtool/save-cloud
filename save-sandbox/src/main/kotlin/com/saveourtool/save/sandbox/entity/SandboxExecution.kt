@@ -30,17 +30,16 @@ class SandboxExecution(
     var failReason: String?,
 ) : BaseEntity() {
     /**
-     * @param userNameResolver
      * @return [RunExecutionRequest] created from current entity
      */
-    fun toRunRequest(userNameResolver: (Long) -> String): RunExecutionRequest {
+    fun toRunRequest(): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
         }
         return RunExecutionRequest(
             projectCoordinates = ProjectCoordinates(
-                organizationName = userNameResolver(userId),
-                projectName = "sandbox",
+                organizationName = "sandbox",
+                projectName = "user-$userId",
             ),
             executionId = requiredId(),
             sdk = sdk.toSdk()

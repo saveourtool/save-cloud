@@ -39,58 +39,58 @@ class SandboxController(
     val agentsController: AgentsController,
 ) {
     /**
-     * @param userName
+     * @param userId
      * @param file
      * @return count of written bytes
      */
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
-        @RequestPart userName: String,
+        @RequestPart userId: Long,
         @RequestPart file: Mono<FilePart>,
     ): Mono<Long> = doUpload(
-        userName,
+        userId,
         SandboxStorageKeyType.FILE,
         file
     )
 
     /**
-     * @param userName
+     * @param userId
      * @param file
      * @return count of written bytes
      */
     @PostMapping("/upload-test", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadTest(
-        @RequestPart userName: String,
+        @RequestPart userId: Long,
         @RequestPart file: Mono<FilePart>,
     ): Mono<Long> = doUpload(
-        userName,
+        userId,
         SandboxStorageKeyType.TEST,
         file
     )
 
     /**
-     * @param userName
+     * @param userId
      * @param file
      * @return count of written bytes
      */
     @PostMapping("/upload-test-resource", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadTestResource(
-        @RequestPart userName: String,
+        @RequestPart userId: Long,
         @RequestPart file: Mono<FilePart>,
     ): Mono<Long> = doUpload(
-        userName,
+        userId,
         SandboxStorageKeyType.TEST_RESOURCE,
         file
     )
 
     private fun doUpload(
-        userName: String,
+        userId: Long,
         type: SandboxStorageKeyType,
         file: Mono<FilePart>,
     ): Mono<Long> = file.flatMap { filePart ->
         storage.overwrite(
             key = SandboxStorageKey(
-                userName,
+                userId,
                 type,
                 filePart.filename()
             ),
@@ -99,14 +99,14 @@ class SandboxController(
     }
 
     /**
-     * @param userName
+     * @param userId
      * @return [Mono] with content of DebugInfo
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @PostMapping(path = ["/get-debug-info"])
     fun getDebugInfo(
-        @RequestParam userName: String,
-    ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userName))
+        @RequestParam userId: Long,
+    ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userId))
 
     /**
      * @param userName
@@ -129,7 +129,7 @@ class SandboxController(
         )
         sandboxExecutionRepository.save(execution)
     }.map { execution ->
-        execution.toRunRequest(sandboxUserRepository::getNameById)
+        execution.toRunRequest()
     }.flatMap { request ->
         agentsController.initialize(request)
     }

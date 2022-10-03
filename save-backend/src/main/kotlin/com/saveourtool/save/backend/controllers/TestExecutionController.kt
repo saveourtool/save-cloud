@@ -224,7 +224,11 @@ class TestExecutionController(
         @RequestBody containerIds: Collection<String>,
     ) {
         testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
-            !onlyReadyForTesting || it.status == TestResultStatus.READY_FOR_TESTING
+            if (onlyReadyForTesting) {
+                it.status == TestResultStatus.READY_FOR_TESTING
+            } else {
+                true
+            }
         }
     }
 

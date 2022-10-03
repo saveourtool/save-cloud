@@ -163,9 +163,9 @@ class SandboxInternalController(
         @RequestParam executionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
     ): Mono<Long> = blockingToMono {
-        agentRepository.getUserNameByExecutionId(executionId)
+        agentRepository.getUserIdByExecutionId(executionId)
     }
-        .map { userName -> SandboxStorageKey.debugInfoKey(userName) }
+        .map { userId -> SandboxStorageKey.debugInfoKey(userId) }
         .flatMap { storageKey ->
             storage.overwrite(
                 key = storageKey,

@@ -9,12 +9,10 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.TestExecutionList
-import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.entity.toEntity
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
-import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.test.TestBatch
@@ -40,7 +38,6 @@ class SandboxAgentRepository(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
-    private val sandboxUserRepository: SandboxUserRepository,
     private val sandboxStorage: SandboxStorage,
     @Value("sandbox.url") private val sandboxUrl: String,
 ) : com.saveourtool.save.orchestrator.service.AgentRepository {
@@ -48,9 +45,9 @@ class SandboxAgentRepository(
         getAgent(containerId).execution
     }
         .zipWhen { execution ->
-            sandboxStorage.list(execution.getUserName(), SandboxStorageKeyType.FILE)
+            sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
                 .map { storageKey ->
-                    storageKey.fileName to "$sandboxUrl/sandbox/internal/download-file?userName=${storageKey.userName}&fileName=${storageKey.fileName}"
+                    storageKey.fileName to "$sandboxUrl/sandbox/internal/download-file?userName=${storageKey.userId}&fileName=${storageKey.fileName}"
                 }
                 .collectList()
                 .map {
@@ -58,10 +55,9 @@ class SandboxAgentRepository(
                 }
         }
         .map { (execution, fileToUrls) ->
-            val userName = execution.getUserName()
             AgentInitConfig(
                 saveCliUrl = "$sandboxUrl/sandbox/internal/download-save-cli?version=$SAVE_CORE_VERSION",
-                testSuitesSourceSnapshotUrl = "$sandboxUrl/sandbox/internal/download-test-files?userName=$userName",
+                testSuitesSourceSnapshotUrl = "$sandboxUrl/sandbox/internal/download-test-files?userId=${execution.userId}",
                 additionalFileNameToUrl = fileToUrls,
                 // sandbox doesn't support save-cli overrides for now
                 saveCliOverrides = SaveCliOverrides(),
@@ -72,7 +68,7 @@ class SandboxAgentRepository(
         getAgent(containerId).execution
     }
         .flatMap { execution ->
-            sandboxStorage.list(execution.getUserName(), SandboxStorageKeyType.TEST)
+            sandboxStorage.list(execution.userId, SandboxStorageKeyType.TEST)
                 .map { it.fileName }
                 .map { fileName ->
                     TestDto(
@@ -158,9 +154,7 @@ class SandboxAgentRepository(
      * @param executionId
      * @return userName for provided [executionId]
      */
-    fun getUserNameByExecutionId(executionId: Long): String = getExecution(executionId).getUserName()
-
-    private fun SandboxExecution.getUserName(): String = sandboxUserRepository.getNameById(userId)
+    fun getUserIdByExecutionId(executionId: Long): Long = getExecution(executionId).userId
 
     private fun getExecution(executionId: Long) = sandboxExecutionRepository
         .findByIdOrNull(executionId)
