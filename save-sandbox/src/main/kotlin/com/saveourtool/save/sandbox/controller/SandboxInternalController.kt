@@ -128,7 +128,7 @@ class SandboxInternalController(
     /**
      * @return content of save-agent
      */
-    @PostMapping("/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PostMapping("/files/download-save-agent", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveAgent(): Mono<out Resource> =
             Mono.just(ClassPathResource("save-agent.kexe"))
                 .filter { it.exists() }
