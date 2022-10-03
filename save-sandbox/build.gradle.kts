@@ -6,7 +6,7 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
-    id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
+    alias(libs.plugins.download)
     id("org.gradle.test-retry") version "1.4.1"
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
