@@ -27,6 +27,7 @@ class SandboxExecution(
     var status: ExecutionStatus,
     var sdk: String,
     var userId: Long,
+    var initialized: Boolean,
     var failReason: String?,
 ) : BaseEntity() {
     /**

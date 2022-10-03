@@ -65,6 +65,8 @@ class SandboxAgentRepository(
         }
 
     override fun getNextTestBatch(containerId: String): Mono<TestBatch> = getExecutionAsMonoByContainerId(containerId)
+        .filter { !it.initialized }
+        .map { execution -> sandboxExecutionRepository.save(execution.apply { initialized = true }) }
         .flatMap { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.TEST)
                 .map { it.fileName }
@@ -79,6 +81,7 @@ class SandboxAgentRepository(
                 }
                 .collectList()
         }
+        .defaultIfEmpty(emptyList())
 
     override fun addAgents(agents: List<AgentDto>): Mono<IdList> = blockingToMono {
         agents
