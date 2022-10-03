@@ -1,17 +1,17 @@
 package com.saveourtool.save.sandbox.controller
 
-import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.toSdk
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.overwrite
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
@@ -21,10 +21,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
 
 /**
  * @property configProperties
@@ -36,6 +32,8 @@ class SandboxController(
     val configProperties: ConfigProperties,
     val storage: Storage<SandboxStorageKey>,
     val sandboxExecutionRepository: SandboxExecutionRepository,
+    val sandboxUserRepository: SandboxUserRepository,
+    val agentsController: AgentsController,
 ) {
     /**
      * @param userName
@@ -118,11 +116,17 @@ class SandboxController(
                 endTime = null,
                 status = ExecutionStatus.PENDING,
                 sdk = sdk,
-                user =
-            var user: User,
-            var failReason: String?,
+                user = sandboxUserRepository.findByName(userName)
+                    .orNotFound {
+                         "There is no user $userName"
+                    },
+                failReason = null,
             )
-            sandboxExecutionRepository
+            sandboxExecutionRepository.save(execution)
+        }.map { execution ->
+            execution.toRunRequest()
+        }.flatMap { request ->
+            agentsController.initialize(request)
         }
     }
 }
