@@ -214,6 +214,10 @@ class TestExecutionController(
         }
     }
 
+    /**
+     * @param onlyReadyForTesting
+     * @param containerIds
+     */
     @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
     fun markTestExecutionsOfAgentsAsFailed(
         @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,

@@ -5,7 +5,7 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface SandboxAgentRepository: BaseEntityRepository<SandboxAgent> {
+interface SandboxAgentRepository : BaseEntityRepository<SandboxAgent> {
     /**
      * Find agent by its container id
      *

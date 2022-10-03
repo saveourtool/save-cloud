@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import org.springframework.data.repository.query.QueryByExampleExecutor
 import org.springframework.stereotype.Repository
 
 /**

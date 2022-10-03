@@ -14,34 +14,36 @@ import com.saveourtool.save.sandbox.entity.toEntity
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
+import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.*
+
 import generated.SAVE_CORE_VERSION
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
-
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 /**
  * Sandbox implementation for agent service
  */
-@Component
+@Component("SandboxAgentRepositoryForOrchestrator")
 class SandboxAgentRepository(
     private val sandboxAgentRepository: SandboxAgentRepository,
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
+    private val sandboxUserRepository: SandboxUserRepository,
     private val sandboxStorage: SandboxStorage,
     @Value("sandbox.url") private val sandboxUrl: String,
-): com.saveourtool.save.orchestrator.service.AgentRepository {
+) : com.saveourtool.save.orchestrator.service.AgentRepository {
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = blockingToMono {
         getAgent(containerId).execution
     }
@@ -157,6 +159,8 @@ class SandboxAgentRepository(
      * @return userName for provided [executionId]
      */
     fun getUserNameByExecutionId(executionId: Long): String = getExecution(executionId).getUserName()
+
+    private fun SandboxExecution.getUserName(): String = sandboxUserRepository.getNameById(userId)
 
     private fun getExecution(executionId: Long) = sandboxExecutionRepository
         .findByIdOrNull(executionId)

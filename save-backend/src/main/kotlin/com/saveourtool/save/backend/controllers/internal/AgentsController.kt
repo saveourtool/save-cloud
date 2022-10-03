@@ -90,7 +90,6 @@ class AgentsController(
             )
         }
 
-
     /**
      * @param containerId
      * @return test batches
@@ -99,31 +98,30 @@ class AgentsController(
     @Transactional
     fun getNextTestBatch(
         @RequestParam containerId: String,
-    ): Mono<TestBatch> {
-        return testService.getTestBatches(containerId)
-            .flatMap { testBatch ->
-                if (testBatch.isNotEmpty()) {
-                    blockingToMono {
-                        testExecutionService.assignAgentByTest(containerId, testBatch)
-                        updateAgentStatusesWithDto(
-                            listOf(
-                                AgentStatusDto(
-                                    time = LocalDateTime.now(),
-                                    state = AgentState.BUSY,
-                                    containerId = containerId
-                                )
+    ): Mono<TestBatch> = testService.getTestBatches(containerId)
+        .flatMap { testBatch ->
+            if (testBatch.isNotEmpty()) {
+                blockingToMono {
+                    testExecutionService.assignAgentByTest(containerId, testBatch)
+                    updateAgentStatusesWithDto(
+                        listOf(
+                            AgentStatusDto(
+                                time = LocalDateTime.now(),
+                                state = AgentState.BUSY,
+                                containerId = containerId
                             )
                         )
-                    }
-                        .doOnSuccess {
-                            log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
-                        }
-                        .then(testBatch.toMono())
-                } else {
-                    testBatch.toMono()
+                    )
                 }
+                    .doOnSuccess {
+                        log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
+                    }
+                    .then(testBatch.toMono())
+            } else {
+                testBatch.toMono()
             }
-    }
+        }
+
     /**
      * @param agents list of [AgentDto]s to save into the DB
      * @return a list of IDs, assigned to the agents

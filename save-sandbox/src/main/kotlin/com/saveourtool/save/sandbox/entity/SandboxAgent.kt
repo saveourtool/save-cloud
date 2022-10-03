@@ -7,6 +7,7 @@ import javax.persistence.Entity
 import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.Table
 
 /**
  * @property containerId id of the container, inside which the agent is running
@@ -14,7 +15,8 @@ import javax.persistence.ManyToOne
  * @property execution id of the execution, which the agent is serving
  * @property version
  */
-@Entity(name = "agent")
+@Entity
+@Table(name = "agent")
 class SandboxAgent(
     var containerId: String,
     var containerName: String,

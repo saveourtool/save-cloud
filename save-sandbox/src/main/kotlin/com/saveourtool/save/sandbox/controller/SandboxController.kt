@@ -11,7 +11,6 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.overwrite
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
@@ -21,10 +20,14 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
+import javax.transaction.Transactional
 
 /**
  * @property configProperties
  * @property storage
+ * @property sandboxExecutionRepository
+ * @property sandboxUserRepository
+ * @property agentsController
  */
 @RestController
 @RequestMapping("/sandbox/api")
@@ -105,28 +108,31 @@ class SandboxController(
         @RequestParam userName: String,
     ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userName))
 
+    /**
+     * @param userName
+     * @param sdk
+     * @return empty response
+     */
     @PostMapping("/run-execution")
+    @Transactional
     fun runExecution(
         @RequestParam userName: String,
         @RequestParam sdk: String,
-    ): Mono<BodilessResponseEntity> {
-        return blockingToMono {
-            val execution = SandboxExecution(
-                startTime = LocalDateTime.now(),
-                endTime = null,
-                status = ExecutionStatus.PENDING,
-                sdk = sdk,
-                user = sandboxUserRepository.findByName(userName)
-                    .orNotFound {
-                         "There is no user $userName"
-                    },
-                failReason = null,
-            )
-            sandboxExecutionRepository.save(execution)
-        }.map { execution ->
-            execution.toRunRequest()
-        }.flatMap { request ->
-            agentsController.initialize(request)
-        }
+    ): Mono<BodilessResponseEntity> = blockingToMono {
+        val execution = SandboxExecution(
+            startTime = LocalDateTime.now(),
+            endTime = null,
+            status = ExecutionStatus.PENDING,
+            sdk = sdk,
+            userId = sandboxUserRepository.getIdByName(userName),
+            failReason = null,
+        )
+        sandboxExecutionRepository.save(execution)
+    }.map { execution ->
+        execution.toRunRequest(sandboxUserRepository::getNameById)
+    }.flatMap { request ->
+        agentsController.initialize(request)
     }
+
+
 }

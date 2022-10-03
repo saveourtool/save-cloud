@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
