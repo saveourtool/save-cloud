@@ -60,11 +60,9 @@ kotlin {
                 implementation(libs.ktor.client.apache)
                 implementation(libs.commons.compress)
             }
-            dependsOn(commonMain)
         }
 
         val jvmTest by getting {
-            dependsOn(commonTest)
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
@@ -72,14 +70,12 @@ kotlin {
         }
 
         val linuxX64Main by getting {
-            dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.curl)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
         val linuxX64Test by getting {
-            dependsOn(commonTest)
             dependencies {
                 implementation(libs.ktor.client.mock)
             }

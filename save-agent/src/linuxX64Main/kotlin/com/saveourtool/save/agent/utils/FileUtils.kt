@@ -4,10 +4,8 @@
 
 package com.saveourtool.save.agent.utils
 
-import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
 import platform.posix.S_IRGRP
 import platform.posix.S_IROTH
 import platform.posix.S_IRUSR
@@ -36,14 +34,4 @@ internal actual fun Path.markAsExecutable() {
         this.toString(),
         (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).toUInt()
     )
-}
-
-internal actual fun readFile(filePath: String): List<String> = try {
-    val path = filePath.toPath()
-    FileSystem.SYSTEM.read(path) {
-        generateSequence { readUtf8Line() }.toList()
-    }
-} catch (e: FileNotFoundException) {
-    logErrorCustom("Not able to find file in the following path: $filePath")
-    emptyList()
 }

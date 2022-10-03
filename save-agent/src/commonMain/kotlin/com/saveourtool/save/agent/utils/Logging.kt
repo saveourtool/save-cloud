@@ -6,6 +6,9 @@
 
 package com.saveourtool.save.agent.utils
 
+import com.saveourtool.save.core.logging.logDebug
+import com.saveourtool.save.core.logging.logError
+import com.saveourtool.save.core.logging.logInfo
 import io.ktor.client.plugins.logging.*
 
 internal val ktorLogger = object : Logger {
@@ -14,8 +17,16 @@ internal val ktorLogger = object : Logger {
     }
 }
 
-expect fun logErrorCustom(msg: String)
+fun logErrorCustom(msg: String) = logError(
+    "[tid ${getThreadId()}] $msg"
+)
 
-expect fun logInfoCustom(msg: String)
+fun logInfoCustom(msg: String) = logInfo(
+    "[tid ${getThreadId()}] $msg"
+)
 
-expect fun logDebugCustom(msg: String)
+fun logDebugCustom(msg: String) = logDebug(
+    "[tid ${getThreadId()}] $msg"
+)
+
+internal expect fun getThreadId(): Long

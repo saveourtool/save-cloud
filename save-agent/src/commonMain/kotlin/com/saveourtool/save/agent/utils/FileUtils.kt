@@ -5,8 +5,10 @@
 package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.core.files.findAllFilesMatching
+import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
+import okio.Path.Companion.toPath
 
 internal expect val fs: FileSystem
 
@@ -37,7 +39,15 @@ internal expect fun Path.markAsExecutable()
  * @param filePath a file to read
  * @return list of string from file
  */
-internal expect fun readFile(filePath: String): List<String>
+internal fun readFile(filePath: String): List<String> = try {
+    val path = filePath.toPath()
+    fs.read(path) {
+        generateSequence { readUtf8Line() }.toList()
+    }
+} catch (e: FileNotFoundException) {
+    logErrorCustom("Not able to find file in the following path: $filePath")
+    emptyList()
+}
 
 /**
  * Read properties file as a map
