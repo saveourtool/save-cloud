@@ -9,6 +9,8 @@ import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.service.AgentStatusList
 import com.saveourtool.save.orchestrator.service.IdList
 import com.saveourtool.save.orchestrator.service.TestExecutionList
+import com.saveourtool.save.sandbox.entity.SandboxAgent
+import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.entity.toEntity
 import com.saveourtool.save.sandbox.repository.SandboxAgentRepository
 import com.saveourtool.save.sandbox.repository.SandboxAgentStatusRepository
@@ -41,9 +43,7 @@ class SandboxAgentRepository(
     private val sandboxStorage: SandboxStorage,
     @Value("\${sandbox.url}") private val sandboxUrl: String,
 ) : com.saveourtool.save.orchestrator.service.AgentRepository {
-    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = blockingToMono {
-        getAgent(containerId).execution
-    }
+    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
                 .map { storageKey ->
@@ -64,9 +64,7 @@ class SandboxAgentRepository(
             )
         }
 
-    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = blockingToMono {
-        getAgent(containerId).execution
-    }
+    override fun getNextTestBatch(containerId: String): Mono<TestBatch> = getExecutionAsMonoByContainerId(containerId)
         .flatMap { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.TEST)
                 .map { it.fileName }
@@ -113,37 +111,33 @@ class SandboxAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
-    ): Mono<BodilessResponseEntity> = blockingToMono {
-        getExecution(executionId)
-            .let { execution ->
-                sandboxExecutionRepository.save(
-                    execution.apply {
-                        this.status = executionStatus
-                        this.failReason = failReason
-                    }
-                )
-            }
-            .let {
-                ResponseEntity.ok().build()
-            }
-    }
+    ): Mono<BodilessResponseEntity> = getExecutionAsMono(executionId)
+        .map { execution ->
+            sandboxExecutionRepository.save(
+                execution.apply {
+                    this.status = executionStatus
+                    this.failReason = failReason
+                }
+            )
+        }
+        .thenReturn(ResponseEntity.ok().build())
 
-    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = blockingToMono {
-        val execution = getAgent(containerId).execution
-        sandboxAgentRepository.findByExecutionId(execution.requiredId())
-            .map { agent ->
-                sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
-                    .orNotFound {
-                        "AgentStatus not found for agent id=${agent.containerId}"
-                    }
-            }
-            .map {
-                it.toDto()
-            }
-            .let {
-                AgentStatusesForExecution(execution.requiredId(), it)
-            }
-    }
+    override fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution> = getExecutionAsMonoByContainerId(containerId)
+        .map { execution ->
+            sandboxAgentRepository.findByExecutionId(execution.requiredId())
+                .map { agent ->
+                    sandboxAgentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
+                        .orNotFound {
+                            "AgentStatus not found for agent id=${agent.containerId}"
+                        }
+                }
+                .map {
+                    it.toDto()
+                }
+                .let {
+                    AgentStatusesForExecution(execution.requiredId(), it)
+                }
+        }
 
     override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
@@ -152,15 +146,26 @@ class SandboxAgentRepository(
 
     /**
      * @param executionId
-     * @return userName for provided [executionId]
+     * @return [Mono] with userId for provided [executionId]
      */
-    fun getUserIdByExecutionId(executionId: Long): Long = getExecution(executionId).userId
+    fun getUserIdAsMonoByExecutionId(executionId: Long): Mono<Long> = getExecutionAsMono(executionId)
+        .map { it.userId }
 
-    private fun getExecution(executionId: Long) = sandboxExecutionRepository
+    private fun getExecution(executionId: Long): SandboxExecution = sandboxExecutionRepository
         .findByIdOrNull(executionId)
         .orNotFound { "No execution with id $executionId" }
 
-    private fun getAgent(containerId: String) = sandboxAgentRepository
+    private fun getExecutionAsMono(executionId: Long): Mono<SandboxExecution> = blockingToMono {
+        getExecution(executionId)
+    }
+
+    private fun getAgent(containerId: String): SandboxAgent = sandboxAgentRepository
         .findByContainerId(containerId)
-        .orNotFound { "No agent with containerId $containerId" }
+        .orNotFound {
+            "No agent with containerId $containerId"
+        }
+
+    private fun getExecutionAsMonoByContainerId(containerId: String): Mono<SandboxExecution> = blockingToMono {
+        getAgent(containerId).execution
+    }
 }

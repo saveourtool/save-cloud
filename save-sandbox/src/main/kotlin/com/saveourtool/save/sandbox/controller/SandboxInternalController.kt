@@ -3,7 +3,6 @@ package com.saveourtool.save.sandbox.controller
 import com.saveourtool.save.agent.AgentVersion
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
@@ -15,7 +14,6 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,7 +21,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
-import java.net.URI
 import java.nio.ByteBuffer
 
 import kotlin.io.path.createTempDirectory
@@ -164,9 +161,7 @@ class SandboxInternalController(
     fun uploadDebugInfo(
         @RequestParam executionId: Long,
         @RequestBody testResultDebugInfo: TestResultDebugInfo,
-    ): Mono<Long> = blockingToMono {
-        agentRepository.getUserIdByExecutionId(executionId)
-    }
+    ): Mono<Long> = agentRepository.getUserIdAsMonoByExecutionId(executionId)
         .map { userId -> SandboxStorageKey.debugInfoKey(userId) }
         .flatMap { storageKey ->
             storage.overwrite(
