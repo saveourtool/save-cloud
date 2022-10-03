@@ -165,7 +165,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         setBackendResponseMessage(message)
     }
 
-    val cleanFields = {
+    val clearFields = {
         setSelectedTestSuites(emptyList())
         setCurrentMode(PermissionManagerMode.MAIN)
         setBackendResponseMessage("")
@@ -220,11 +220,11 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             buttonBuilder("Cancel", "secondary") {
                 when (currentMode) {
                     PermissionManagerMode.MESSAGE -> {
-                        cleanFields()
+                        clearFields()
                         props.closeModal()
                     }
                     PermissionManagerMode.MAIN -> {
-                        cleanFields()
+                        clearFields()
                         props.closeModal()
                     }
                     PermissionManagerMode.TEST_SUITES_SELECTOR -> {

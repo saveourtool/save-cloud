@@ -229,14 +229,21 @@ class LnkOrganizationTestSuiteController(
     @ApiResponse(responseCode = "200", description = "Rights changed")
     @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite rights")
     @ApiResponse(responseCode = "404", description = "Requested organization, test suite or organization-maintainer doesn't exist")
+    @ApiResponse(responseCode = "409", description = "Cannot set Rights.NONE with this method.")
     fun setRights(
         @PathVariable ownerOrganizationName: String,
         @PathVariable testSuiteId: Long,
         @RequestBody setRightsRequest: SetRightsRequest,
         authentication: Authentication,
-    ): Mono<StringResponse> = getTestSuiteAndOrganizationWithPermissions(testSuiteId, ownerOrganizationName, Permission.WRITE, authentication)
+    ): Mono<StringResponse> = Mono.just(setRightsRequest)
         .filter {
-            setRightsRequest.rights != Rights.NONE
+            it.rights != Rights.NONE
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Cannot set Rights.NONE with this method. Use DELETE method instead."
+        }
+        .flatMap {
+            getTestSuiteAndOrganizationWithPermissions(testSuiteId, ownerOrganizationName, Permission.WRITE, authentication)
         }
         .filter { (organizationMaintainer, testSuite) ->
             testSuitePermissionEvaluator.hasPermission(organizationMaintainer, testSuite, Permission.WRITE, authentication)
@@ -260,7 +267,7 @@ class LnkOrganizationTestSuiteController(
             )
         }
 
-    @PostMapping("/{ownerOrganizationName}/set-rights-many")
+    @PostMapping("/{ownerOrganizationName}/batch-set-rights")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -315,19 +322,18 @@ class LnkOrganizationTestSuiteController(
             }
         }
         .map { listOfFilteredOutTestSuiteIds ->
-            val responseMessage: String = "Successfully " +
-                    if (setRightsRequest.rights == Rights.NONE) {
-                        "deleted"
-                    } else {
-                        "set"
-                    } + " rights ${setRightsRequest.rights} for organization ${setRightsRequest.organizationName} over requested test suites. " +
-                    if (listOfFilteredOutTestSuiteIds.isNotEmpty()) {
-                        "Test suites [${
-                            listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")
-                        }] were skipped."
-                    } else {
-                        ""
-                    }
+            val responseMessage: String = buildString {
+                append("Successfully ")
+                if (setRightsRequest.rights == Rights.NONE) {
+                    append("deleted")
+                } else {
+                    append("set")
+                }
+                append(" rights ${setRightsRequest.rights} for organization ${setRightsRequest.organizationName} over requested test suites. ")
+                if (listOfFilteredOutTestSuiteIds.isNotEmpty()) {
+                    append("Test suites [${listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")}] were skipped.")
+                }
+            }
             ResponseEntity.ok(responseMessage)
         }
 
