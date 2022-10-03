@@ -1,13 +1,13 @@
 package com.saveourtool.save.sandbox.repository
 
 import com.saveourtool.save.utils.orNotFound
-import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
 class SandboxUserRepository(
-    private val jdbcTemplate: JdbcTemplate,
+    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
      * @param name
@@ -15,7 +15,11 @@ class SandboxUserRepository(
      */
     @Transactional(readOnly = true)
     fun getIdByName(name: String): Long =
-            jdbcTemplate.queryForObject("SELECT id FROM save_cloud.user WHERE name = $name", Long::class.java)
+            namedParameterJdbcTemplate.queryForObject(
+                "SELECT id FROM save_cloud.user WHERE name = :name",
+                mapOf("name" to name),
+                Long::class.java
+            )
                 .orNotFound { "There is not user with name $name" }
 
     /**
@@ -24,6 +28,10 @@ class SandboxUserRepository(
      */
     @Transactional(readOnly = true)
     fun getNameById(id: Long): String =
-            jdbcTemplate.queryForObject("SELECT name FROM save_cloud.user WHERE id = $id", String::class.java)
-            .orNotFound { "There is not user with id $id" }
+            namedParameterJdbcTemplate.queryForObject(
+                "SELECT name FROM save_cloud.user WHERE id = :id",
+                mapOf("id" to id),
+                String::class.java
+            )
+                .orNotFound { "There is not user with id $id" }
 }
