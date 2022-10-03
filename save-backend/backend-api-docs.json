@@ -436,6 +436,16 @@
               }
             }
           },
+          "409": {
+            "description": "Cannot set Rights.NONE with this method.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -454,7 +464,7 @@
         ]
       }
     },
-    "/api/v1/test-suites/{ownerOrganizationName}/set-rights-many": {
+    "/api/v1/test-suites/{ownerOrganizationName}/batch-set-rights": {
       "post": {
         "tags": [
           "rights",
