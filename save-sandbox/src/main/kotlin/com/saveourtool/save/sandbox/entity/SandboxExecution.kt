@@ -15,11 +15,12 @@ import javax.persistence.*
  * @property status
  * @property sdk
  * @property userId
+ * @property initialized
  * @property failReason
- * @property userId
  */
 @Entity
 @Table(name = "execution")
+@Suppress("LongParameterList")
 class SandboxExecution(
     var startTime: LocalDateTime,
     var endTime: LocalDateTime?,
