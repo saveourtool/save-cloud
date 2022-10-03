@@ -1,3 +1,7 @@
+/**
+ * Contains extra class [com.saveourtool.save.entities.AgentStatusesForExecution]
+ */
+
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.AgentState

@@ -5,6 +5,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Repository for [com.saveourtool.save.entities.User]
+ */
 @Component
 class SandboxUserRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,

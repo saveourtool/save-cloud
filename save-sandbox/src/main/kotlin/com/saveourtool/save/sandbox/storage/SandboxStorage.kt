@@ -13,7 +13,7 @@ import kotlin.io.path.div
  */
 @Component
 class SandboxStorage(
-    @Value("sandbox.file-storage-location") fileStorageLocation: String,
+    @Value("\${sandbox.file-storage-location}") fileStorageLocation: String,
 ) : AbstractFileBasedStorage<SandboxStorageKey>(
     Path.of(fileStorageLocation) / "sandbox"
 ) {

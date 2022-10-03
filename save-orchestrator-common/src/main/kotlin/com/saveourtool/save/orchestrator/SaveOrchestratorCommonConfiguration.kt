@@ -3,8 +3,6 @@ package com.saveourtool.save.orchestrator
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.*
-import org.springframework.core.env.ConfigurableEnvironment
-import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableScheduling
 
 /**

@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.BaseEntity
 import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.request.RunExecutionRequest
 import java.time.LocalDateTime
@@ -15,8 +14,9 @@ import javax.persistence.*
  * @property endTime
  * @property status
  * @property sdk
- * @property user
+ * @property userId
  * @property failReason
+ * @property userId
  */
 @Entity
 @Table(name = "execution")
@@ -30,6 +30,7 @@ class SandboxExecution(
     var failReason: String?,
 ) : BaseEntity() {
     /**
+     * @param userNameResolver
      * @return [RunExecutionRequest] created from current entity
      */
     fun toRunRequest(userNameResolver: (Long) -> String): RunExecutionRequest {
