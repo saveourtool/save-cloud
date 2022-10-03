@@ -39,7 +39,7 @@ class SandboxAgentRepository(
     private val sandboxAgentStatusRepository: SandboxAgentStatusRepository,
     private val sandboxExecutionRepository: SandboxExecutionRepository,
     private val sandboxStorage: SandboxStorage,
-    @Value("sandbox.url") private val sandboxUrl: String,
+    @Value("\${sandbox.url}") private val sandboxUrl: String,
 ) : com.saveourtool.save.orchestrator.service.AgentRepository {
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = blockingToMono {
         getAgent(containerId).execution
@@ -47,7 +47,7 @@ class SandboxAgentRepository(
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
                 .map { storageKey ->
-                    storageKey.fileName to "$sandboxUrl/sandbox/internal/download-file?userName=${storageKey.userId}&fileName=${storageKey.fileName}"
+                    storageKey.fileName to "$sandboxUrl/sandbox/internal/download-file?userId=${storageKey.userId}&fileName=${storageKey.fileName}"
                 }
                 .collectList()
                 .map {

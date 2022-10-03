@@ -118,12 +118,12 @@ class SandboxInternalController(
     @PostMapping("/download-save-cli", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadSaveCli(
         @RequestParam version: String,
-    ): Mono<BodilessResponseEntity> =
-            ResponseEntity
-                .status(HttpStatus.FOUND)
-                .location(URI.create("https://github.com/saveourtool/save-cli/releases/download/v$version/save-$version-linuxX64.kexe"))
-                .build<Void>()
-                .toMono()
+    ): Mono<out Resource> =
+            Mono.just(ClassPathResource("save-$version-linuxX64.kexe"))
+                .filter { it.exists() }
+                .switchIfEmptyToNotFound {
+                    "Can't find save-$version-linuxX64.kexe with the requested version $version"
+                }
 
     /**
      * @return content of save-agent
