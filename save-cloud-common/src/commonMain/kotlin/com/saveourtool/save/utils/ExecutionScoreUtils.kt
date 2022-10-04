@@ -36,6 +36,7 @@ fun ExecutionDto.getPrecisionRate() = calculateRate(matchedChecks, matchedChecks
 fun ExecutionDto.getRecallRate() = calculateRate(matchedChecks, matchedChecks + unmatchedChecks) ?: 0
 
 /**
+ * @param scoreType
  * @return score according execution [type]
  */
 fun ExecutionDto.calculateScore(scoreType: ScoreType): Double = when (type) {
