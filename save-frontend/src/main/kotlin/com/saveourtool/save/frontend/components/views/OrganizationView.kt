@@ -57,7 +57,6 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString

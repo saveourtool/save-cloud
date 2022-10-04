@@ -1,6 +1,11 @@
+/**
+ * Utilities for cli args parsing
+ */
+
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.frontend.components.RequestModalProps
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -12,37 +17,10 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
 /**
- * DeleteOrganizationButton props
- */
-external interface DeleteOrganizationButtonProps : Props {
-    /**
-     * All filters in one class property [organizationName]
-     */
-    var organizationName: String
-
-    /**
-     * lambda to change [organizationName]
-     */
-    var onDeletionSuccess: () -> Unit
-
-    /**
-     * Button View
-     */
-    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
-
-    /**
-     * classname for the button
-     */
-    var classes: String
-}
-
-/**
  * Button for delete organization
  *
  * @return noting
  */
-
-
 val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
     val windowOpenness = useWindowOpenness()
 
@@ -82,4 +60,29 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
             }
         }
     }
+}
+
+/**
+ * DeleteOrganizationButton props
+ */
+external interface DeleteOrganizationButtonProps : Props {
+    /**
+     * All filters in one class property [organizationName]
+     */
+    var organizationName: String
+
+    /**
+     * lambda to change [organizationName]
+     */
+    var onDeletionSuccess: () -> Unit
+
+    /**
+     * Button View
+     */
+    var buttonStyleBuilder: (ChildrenBuilder) -> Unit
+
+    /**
+     * classname for the button
+     */
+    var classes: String
 }
