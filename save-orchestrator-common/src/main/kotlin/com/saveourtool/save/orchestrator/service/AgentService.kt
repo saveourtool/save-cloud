@@ -50,7 +50,7 @@ class AgentService(
      * @param agentId
      * @return [Mono] of [NewJobResponse] or [WaitResponse]
      */
-    internal fun getNewTestsIds(agentId: String): Mono<HeartbeatResponse> =
+    internal fun getNextRunConfig(agentId: String): Mono<HeartbeatResponse> =
             agentRepository.getNextRunConfig(agentId)
                 .map { NewJobResponse(it) }
                 .cast(HeartbeatResponse::class.java)

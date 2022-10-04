@@ -76,7 +76,13 @@ class DockerServiceTest {
             sdk = "Java:11"
             status = ExecutionStatus.PENDING
         }
-        val configuration = dockerService.prepareConfiguration(testExecution.toRunRequest(SAVE_AGENT_VERSION, "someUrl"))
+        val url = "/internal/files/download-save-agent"
+        val configuration = dockerService.prepareConfiguration(
+            testExecution.toRunRequest(
+                saveAgentVersion = SAVE_AGENT_VERSION,
+                saveAgentUrl = "http://host.docker.internal:${mockServer.port}$url",
+            )
+        )
         testContainerId = dockerService.createContainers(
             testExecution.id!!,
             configuration
@@ -85,7 +91,7 @@ class DockerServiceTest {
 
         // start container and query backend
         mockServer.enqueue(
-            "/internal/files/download-save-agent",
+            url,
             MockResponse()
                 .setHeader("Content-Type", "application/octet-stream")
                 .setResponseCode(200)
