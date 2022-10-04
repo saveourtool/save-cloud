@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
+import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -57,14 +58,18 @@ fun deleteOrganizationButton() = FC<DeleteOrganizationButton> { props ->
         }
     }
 
-    displayConfirmationModal(
+
+    displayModal(
         windowOpenness,
-        "Deletion Organization",
-        "Please confirm deletion of ${props.organizationName}. " +
-                "Note! This action deletes all the projects of this organization and the organization itself!",
-        mediumTransparentModalStyle
+        "Warning: deletion of organization",
+        "You are about to delete organization ${props.organizationName}. Are you sure?",
     ) {
-        deleteOrganization()
+        buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+            deleteOrganization()
+        }
+        buttonBuilder("Cancel") {
+            windowOpenness.closeWindow()
+        }
     }
 
     div {
