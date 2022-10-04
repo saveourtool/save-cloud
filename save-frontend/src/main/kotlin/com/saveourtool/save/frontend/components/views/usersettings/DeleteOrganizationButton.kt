@@ -6,8 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.domain.EntitySaveStatus
-import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
