@@ -67,7 +67,7 @@ class AgentService(
         .addAgents(agents)
         .flatMap {
             agentRepository.updateAgentStatusesWithDto(agents.map { agent ->
-                AgentStatusDto(LocalDateTime.now(), STARTING, agent.containerId)
+                STARTING.newAgentStatus(agent.containerId)
             })
         }
 

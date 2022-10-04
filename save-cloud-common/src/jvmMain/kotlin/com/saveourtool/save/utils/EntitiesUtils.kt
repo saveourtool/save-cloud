@@ -16,7 +16,7 @@ actual typealias LocalDateTime = java.time.LocalDateTime
  * @param containerId
  * @return [AgentStatusDto] with state from receiver
  */
-fun AgentState.newFor(containerId: String): AgentStatusDto = AgentStatusDto(
+fun AgentState.newAgentStatus(containerId: String): AgentStatusDto = AgentStatusDto(
     time = LocalDateTime.now(),
     state = this,
     containerId = containerId,

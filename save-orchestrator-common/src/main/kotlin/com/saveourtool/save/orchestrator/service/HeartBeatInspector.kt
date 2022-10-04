@@ -2,8 +2,8 @@ package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.Heartbeat
-import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.config.ConfigProperties
+import com.saveourtool.save.utils.newAgentStatus
 
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -105,9 +105,7 @@ class HeartBeatInspector(
         val areAgentsStopped = dockerService.stopAgents(crashedAgents)
         if (areAgentsStopped) {
             Flux.fromIterable(crashedAgents).flatMap { agentId ->
-                agentService.updateAgentStatusesWithDto(
-                    AgentStatusDto(LocalDateTime.now(), AgentState.CRASHED, agentId)
-                )
+                agentService.updateAgentStatusesWithDto(AgentState.CRASHED.newAgentStatus(agentId))
             }.blockLast()
             if (agentsLatestHeartBeatsMap.keys.toList() == crashedAgents.toList()) {
                 logger.warn("All agents are crashed, initialize shutdown sequence. Crashed agents: $crashedAgents")
