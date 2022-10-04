@@ -14,10 +14,6 @@ expect annotation class Entity()
 
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
-expect annotation class NotNull()
-
-@OptIn(ExperimentalMultiplatform::class)
-@OptionalExpectation
 expect annotation class Id()
 
 @OptIn(ExperimentalMultiplatform::class)
@@ -42,14 +38,6 @@ expect annotation class JoinColumn(
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 expect annotation class ManyToOne()
-
-@OptIn(ExperimentalMultiplatform::class)
-@OptionalExpectation
-expect annotation class OneToMany()
-
-@OptIn(ExperimentalMultiplatform::class)
-@OptionalExpectation
-expect annotation class MappedSuperclass()
 
 /**
  * @property value

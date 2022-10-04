@@ -2,13 +2,11 @@ package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.AgentRunConfig
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.test.TestDto
 
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
@@ -53,23 +51,21 @@ interface AgentRepository {
     fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity>
 
     /**
-     * Get List of [TestExecutionDto] for agent [agentId] have status READY_FOR_TESTING
+     * Get List of [TestExecutionDto] for agent [containerId] have status READY_FOR_TESTING
      *
-     * @param agentId agent for which data is checked
+     * @param containerId agent for which data is checked
      * @return list of saved [TestExecutionDto]
      */
-    fun getReadyForTestingTestExecutions(agentId: String): Mono<TestExecutionList>
+    fun getReadyForTestingTestExecutions(containerId: String): Mono<TestExecutionList>
 
     /**
-     * Get list of [AgentStatus] for provided values
+     * Get list of [AgentStatus] for provided container ids
      *
-     * @param executionId id of an [com.saveourtool.save.entities.Execution]
-     * @param agentIds ids of agents
+     * @param containerIds ids of agents
      * @return Mono with response from backend
      */
     fun getAgentsStatuses(
-        executionId: Long,
-        agentIds: List<String>,
+        containerIds: List<String>,
     ): Mono<AgentStatusList>
 
     /**
@@ -87,24 +83,17 @@ interface AgentRepository {
     ): Mono<BodilessResponseEntity>
 
     /**
-     * @param agentId containerId of an agent
+     * @param containerId containerId of an agent
      * @return Mono with [AgentStatusesForExecution]: agent statuses belonged to a single [com.saveourtool.save.entities.Execution]
      */
-    fun getAgentsStatusesForSameExecution(agentId: String): Mono<AgentStatusesForExecution>
-
-    /**
-     * @param agentId
-     * @param testDtos
-     * @return a Mono without body
-     */
-    fun assignAgent(agentId: String, testDtos: List<TestDto>): Mono<BodilessResponseEntity>
+    fun getAgentsStatusesForSameExecution(containerId: String): Mono<AgentStatusesForExecution>
 
     /**
      * Mark agent's test executions as failed
      *
-     * @param agentIds the list of agent IDs, for which, according the [status] corresponding test executions should be marked as failed
-     * @param status
+     * @param containerIds the list of agent IDs, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
      * @return a Mono without body
      */
-    fun setStatusByAgentIds(agentIds: Collection<String>, status: AgentState): Mono<BodilessResponseEntity>
+    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity>
 }

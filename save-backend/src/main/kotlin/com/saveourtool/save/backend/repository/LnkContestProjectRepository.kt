@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.util.Optional

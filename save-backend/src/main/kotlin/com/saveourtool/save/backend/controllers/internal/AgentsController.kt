@@ -5,12 +5,12 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
@@ -38,6 +38,7 @@ class AgentsController(
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
     private val testService: TestService,
+    private val testExecutionService: TestExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -89,6 +90,7 @@ class AgentsController(
      * @return [Mono] with [AgentRunConfig]
      */
     @GetMapping("/agents/get-run-config")
+    @Transactional
     fun getRunConfig(
         @RequestParam containerId: String,
     ): Mono<AgentRunConfig> = blockingToMono {
@@ -111,6 +113,12 @@ class AgentsController(
                 executionDataUploadUrl = "${configProperties.url}/internal/saveTestResult",
                 debugInfoUploadUrl = "${configProperties.url}/internal/files/debug-info?executionId=${execution.requiredId()}"
             )
+        }
+        .asyncEffectIf({ tests.isNotEmpty() }) { runConfig ->
+            blockingToMono { testExecutionService.assignAgentByTest(containerId, runConfig.tests) }
+                .doOnSuccess {
+                    log.trace { "Agent $containerId has been set as executor for tests ${runConfig.tests} and its status has been set to BUSY" }
+                }
         }
 
     /**

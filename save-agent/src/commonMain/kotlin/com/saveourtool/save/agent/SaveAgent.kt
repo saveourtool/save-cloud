@@ -25,13 +25,10 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
-import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 
-import kotlin.native.concurrent.AtomicLong
-import kotlin.native.concurrent.AtomicReference
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
@@ -54,12 +51,12 @@ class SaveAgent(private val config: AgentConfiguration,
     /**
      * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
      */
-    val state = AtomicReference(AgentState.BUSY)
+    val state = GenericAtomicReference(AgentState.BUSY)
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
-    private val executionStartSeconds = AtomicLong()
-    private val saveProcessJob: AtomicReference<Job?> = AtomicReference(null)
+    private val executionStartSeconds = AtomicLong(0L)
+    private val saveProcessJob: GenericAtomicReference<Job?> = GenericAtomicReference(null)
     private val backgroundContext = newSingleThreadContext("background")
     private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
@@ -78,7 +75,7 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     fun start(): Job {
         logInfoCustom("Starting agent")
-        state.value = AgentState.STARTING
+        state.set(AgentState.STARTING)
         return coroutineScope.launch { startHeartbeats(this) }
     }
 
@@ -99,7 +96,7 @@ class SaveAgent(private val config: AgentConfiguration,
             ?.let { fileName ->
                 val targetFile = targetDirectory / fileName
                 logDebugCustom("Additionally setup of evaluated tool by $targetFile")
-                val setupResult = ProcessBuilder(true, FileSystem.SYSTEM)
+                val setupResult = ProcessBuilder(true, fs)
                     .exec(
                         "./$targetFile",
                         "",
@@ -139,7 +136,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
             }
             if (saveOverridesTomlContent.isNotEmpty()) {
-                FileSystem.SYSTEM.write(targetDirectory.resolveSaveOverridesTomlConfig(), true) {
+                fs.write(targetDirectory.resolveSaveOverridesTomlConfig(), true) {
                     writeUtf8(saveOverridesTomlContent)
                 }
             }
@@ -170,7 +167,7 @@ class SaveAgent(private val config: AgentConfiguration,
                     is NewJobResponse -> coroutineScope.launch {
                         maybeStartSaveProcess(heartbeatResponse.config)
                     }
-                    is WaitResponse -> state.value = AgentState.IDLE
+                    is WaitResponse -> state.set(AgentState.IDLE)
                     is ContinueResponse -> Unit  // do nothing
                     is TerminateResponse -> shutdown()
                 }
@@ -185,7 +182,7 @@ class SaveAgent(private val config: AgentConfiguration,
     }
 
     private suspend fun initAgent(agentInitConfig: AgentInitConfig) {
-        state.value = AgentState.BUSY
+        state.set(AgentState.BUSY)
 
         downloadSaveCli(agentInitConfig.saveCliUrl)
 
@@ -226,24 +223,24 @@ class SaveAgent(private val config: AgentConfiguration,
                 }
                 return@initAgent
             }
-        state.value = AgentState.IDLE
+        state.set(AgentState.IDLE)
     }
 
     private fun CoroutineScope.maybeStartSaveProcess(config: AgentRunConfig) {
-        if (saveProcessJob.value?.isCompleted == false) {
+        if (saveProcessJob.get()?.isCompleted == false) {
             logErrorCustom("Shouldn't start new process when there is the previous running")
         } else {
-            saveProcessJob.value = launch(saveProcessContext) {
+            saveProcessJob.set(launch(saveProcessContext) {
                 runCatching {
                     // new job received from Orchestrator, spawning SAVE CLI process
                     startSaveProcess(config)
                 }
                     .exceptionOrNull()
                     ?.let {
-                        state.value = AgentState.CLI_FAILED
-                        logErrorCustom("Error executing SAVE: ${it.describe()}\n" + it.stackTraceToString())
+                        state.set(AgentState.CLI_FAILED)
+                        logErrorCustom("Error executing SAVE: ${it.describe()}\n${it.stackTraceToString()}")
                     }
-            }
+            })
         }
     }
 
@@ -252,14 +249,14 @@ class SaveAgent(private val config: AgentConfiguration,
      */
     internal fun CoroutineScope.startSaveProcess(runConfig: AgentRunConfig) {
         // blocking execution of OS process
-        state.value = AgentState.BUSY
-        executionStartSeconds.value = Clock.System.now().epochSeconds
+        state.set(AgentState.BUSY)
+        executionStartSeconds.set(Clock.System.now().epochSeconds)
         logInfoCustom("Starting SAVE in ${getWorkingDirectory()} with provided args ${runConfig.cliArgs}")
         val executionResult = runSave(runConfig.cliArgs)
         logInfoCustom("SAVE has completed execution with status ${executionResult.code}")
 
         val saveCliLogFilePath = config.logFilePath
-        val saveCliLogData = FileSystem.SYSTEM.source(saveCliLogFilePath.toPath())
+        val saveCliLogData = fs.source(saveCliLogFilePath.toPath())
             .buffer()
             .readByteArray()
             .let { String(it) }
@@ -271,15 +268,15 @@ class SaveAgent(private val config: AgentConfiguration,
 
         when (executionResult.code) {
             0 -> if (saveCliLogData.isEmpty()) {
-                state.value = AgentState.CLI_FAILED
+                state.set(AgentState.CLI_FAILED)
             } else {
                 handleSuccessfulExit(runConfig).invokeOnCompletion { cause ->
-                    state.value = if (cause == null) AgentState.FINISHED else AgentState.CRASHED
+                    state.set(if (cause == null) AgentState.FINISHED else AgentState.CRASHED)
                 }
             }
             else -> {
                 logErrorCustom("SAVE has exited abnormally with status ${executionResult.code}")
-                state.value = AgentState.CLI_FAILED
+                state.set(AgentState.CLI_FAILED)
             }
         }
     }
@@ -296,7 +293,7 @@ class SaveAgent(private val config: AgentConfiguration,
                 append(" --log ${logType.name.lowercase()}")
             }
         }
-        return ProcessBuilder(true, FileSystem.SYSTEM)
+        return ProcessBuilder(true, fs)
             .exec(
                 fullCliCommand,
                 "",
@@ -320,7 +317,7 @@ class SaveAgent(private val config: AgentConfiguration,
                         config.id,
                         config.name,
                         testResultStatus,
-                        executionStartSeconds.value,
+                        executionStartSeconds.get(),
                         currentTime.epochSeconds,
                         unmatched = debugInfo.getCountWarningsAsLong { it.unmatched },
                         matched = debugInfo.getCountWarningsAsLong { it.matched },
@@ -387,7 +384,7 @@ class SaveAgent(private val config: AgentConfiguration,
             url(config.heartbeat.url)
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-            setBody(Heartbeat(config.id, state.value, executionProgress, Clock.System.now()))
+            setBody(Heartbeat(config.id, state.get(), executionProgress, Clock.System.now()))
         }
             .body()
     }
@@ -407,7 +404,7 @@ class SaveAgent(private val config: AgentConfiguration,
 
     private fun Result<*>.logErrorAndSetCrashed(errorMessage: () -> String) {
         logErrorCustom("${errorMessage()}: ${exceptionOrNull()?.describe()}")
-        state.value = AgentState.CRASHED
+        state.set(AgentState.CRASHED)
     }
 
     companion object {

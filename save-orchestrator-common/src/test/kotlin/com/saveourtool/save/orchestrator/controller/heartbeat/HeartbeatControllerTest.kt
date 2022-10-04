@@ -138,7 +138,6 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockAssignAgentCount = 1,
             mockUpdateAgentStatusesCount = 2,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(any())
@@ -188,7 +187,6 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockAssignAgentCount = 1,
             mockUpdateAgentStatusesCount = 3,
         ) { heartbeatResponses ->
             verify(dockerService, times(0)).stopAgents(any())
@@ -224,7 +222,6 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockAssignAgentCount = 1,
             mockUpdateAgentStatusesCount = 8,
         ) {
             heartBeatInspector.crashedAgents.shouldContainExactly(
@@ -253,7 +250,6 @@ class HeartbeatControllerTest {
                 TestDto("/path/to/test-2", "WarnPlugin", 1, "hash2", listOf("tag")),
                 TestDto("/path/to/test-3", "WarnPlugin", 1, "hash3", listOf("tag")),
             ),
-            mockAssignAgentCount = 1,
             mockUpdateAgentStatusesCount = 4,
         ) {
             heartBeatInspector.crashedAgents shouldContainExactlyInAnyOrder setOf("test-1", "test-2")
@@ -315,7 +311,7 @@ class HeartbeatControllerTest {
             .whenever(agentRepository)
             .getReadyForTestingTestExecutions(argThat { this == "test-1" })
 
-        whenever(agentRepository.setStatusByAgentIds(any(), any()))
+        whenever(agentRepository.markTestExecutionsOfAgentsAsFailed(any(), any()))
             .thenReturn(Mono.just(ResponseEntity.ok().build()))
 
         testHeartbeat(
@@ -330,7 +326,7 @@ class HeartbeatControllerTest {
         ) {
             // not interested in any checks for heartbeats
             verify(agentRepository).getReadyForTestingTestExecutions(any())
-            verify(agentRepository).setStatusByAgentIds(any(), any())
+            verify(agentRepository).markTestExecutionsOfAgentsAsFailed(any(), any())
         }
     }
 
@@ -355,7 +351,6 @@ class HeartbeatControllerTest {
         heartBeatInterval: Long = 0,
         initConfigs: List<AgentInitConfig>,
         testBatch: TestBatch?,
-        mockAssignAgentCount: Int = 0,
         mockUpdateAgentStatusesCount: Int = 0,
         mockAgentStatusesForSameExecution: Boolean = false,
         verification: (heartbeatResponses: List<HeartbeatResponse?>) -> Unit,
@@ -369,10 +364,6 @@ class HeartbeatControllerTest {
                 .thenReturn(Mono.just(it))
         }
 
-        repeat(mockAssignAgentCount) {
-            whenever(agentRepository.assignAgent(any(), any()))
-                .thenReturn(ResponseEntity.ok().build<Void>().toMono())
-        }
         repeat(mockUpdateAgentStatusesCount) {
             whenever(agentRepository.updateAgentStatusesWithDto(any()))
                 .thenReturn(ResponseEntity.ok().build<Void>().toMono())
@@ -412,7 +403,6 @@ class HeartbeatControllerTest {
         testBatch?.let {
             verify(agentRepository).getNextRunConfig(any())
         }
-        verify(agentRepository, times(mockAssignAgentCount)).assignAgent(any(), any())
         verify(agentRepository, times(mockUpdateAgentStatusesCount)).updateAgentStatusesWithDto(any())
         if (mockAgentStatusesForSameExecution) {
             verify(agentRepository).getAgentsStatusesForSameExecution(any())

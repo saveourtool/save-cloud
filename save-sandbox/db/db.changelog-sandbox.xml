@@ -9,4 +9,10 @@
         <dbms type="mysql"/>
     </preConditions>
 
+    <changeSet id="master-init-changelog" author="frolov">
+        <tagDatabase tag="db_sandbox_init"/>
+    </changeSet>
+
+    <include file="tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
