@@ -210,19 +210,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.confirmationType = ConfirmationType.DELETE_CONFIRM
     }
 
-    private fun deleteOrganization() {
-        val newOrganization = state.organization
-            ?.copy(status = OrganizationStatus.DELETED)
-            ?.apply { id = state.organization?.id }
-        setState {
-            organization = newOrganization
-            confirmationType = ConfirmationType.DELETE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete organization ${props.organizationName}?"
-        }
-    }
-
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
             isErrorOpen = true

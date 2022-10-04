@@ -89,24 +89,4 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
             }
         }
     }
-
-    private fun deleteOrganization(organizationDto: OrganizationDto) {
-        val headers = jsonHeaders
-        lateinit var responseFromDeleteOrganization: Response
-        scope.launch {
-            responseFromDeleteOrganization =
-                    delete(
-                        "$apiUrl/organizations/${organizationDto.name}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteOrganization.ok) {
-                setState {
-                    selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
-                }
-            }
-        }
-    }
 }

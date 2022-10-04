@@ -8,7 +8,8 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
 
 /**
  * DeleteOrganizationButton props
@@ -66,8 +67,8 @@ fun deleteOrganizationButton() = FC<DeleteOrganizationButton> { props ->
         deleteOrganization()
     }
 
-    ReactHTML.div {
-        ReactHTML.button {
+    div {
+        button {
             className = ClassName(props.classes)
             props.buttonStyleBuilder(this)
             id = "remove-organization-${props.organizationName}"
