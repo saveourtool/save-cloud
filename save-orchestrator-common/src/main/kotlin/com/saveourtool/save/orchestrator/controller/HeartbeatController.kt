@@ -11,7 +11,9 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.utils.asyncEffectIf
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.newFor
 import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
@@ -101,6 +103,9 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
+                .asyncEffectIf({ this is NewJobResponse }) {
+                    agentService.updateAgentStatusesWithDto(BUSY.newFor(agentId))
+                }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
                     // fixme: if orchestrator can shut down some agents while others are still doing work, this call won't be needed
