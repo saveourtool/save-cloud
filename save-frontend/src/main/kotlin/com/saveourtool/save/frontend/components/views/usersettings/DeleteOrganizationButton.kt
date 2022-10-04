@@ -1,8 +1,6 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import csstype.ClassName
@@ -57,7 +55,6 @@ fun deleteOrganizationButton() = FC<DeleteOrganizationButton> { props ->
             props.onDeletionSuccess()
         }
     }
-
 
     displayModal(
         windowOpenness,

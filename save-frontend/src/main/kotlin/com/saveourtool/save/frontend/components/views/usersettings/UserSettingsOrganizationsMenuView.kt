@@ -1,16 +1,13 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
 
 import csstype.ClassName
-import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -18,8 +15,6 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
-
-import kotlinx.coroutines.launch
 
 val deleteOrganizationFun = deleteOrganizationButton()
 
@@ -64,10 +59,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                div {
-                                    className = ClassName("mr-3")
-                                    +role.formattedName
-                                }
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     deleteOrganizationFun {
                                         organizationName = organizationDto.name
@@ -81,6 +72,10 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         }
                                         classes = "btn mr-3"
                                     }
+                                }
+                                div {
+                                    className = ClassName("mr-3")
+                                    +role.formattedName
                                 }
                             }
                         }
