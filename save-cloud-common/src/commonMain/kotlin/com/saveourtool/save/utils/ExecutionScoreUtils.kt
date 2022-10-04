@@ -38,8 +38,8 @@ fun ExecutionDto.getRecallRate() = calculateRate(matchedChecks, matchedChecks + 
 /**
  * @return score according execution [type]
  */
-fun ExecutionDto.calculateScore(): Double = when (type) {
-    TestingType.CONTEST_MODE -> calculateScoreForContestMode()
+fun ExecutionDto.calculateScore(scoreType: ScoreType): Double = when (type) {
+    TestingType.CONTEST_MODE -> calculateScoreForContestMode(scoreType)
     // TODO: how to calculate score for other types?
     else -> 0.0
 }
@@ -54,7 +54,10 @@ fun Double.isValidScore() = this.toInt().isValidScore()
  */
 fun Int.isValidScore() = this in 0..100
 
-private fun ExecutionDto.calculateScoreForContestMode(): Double = calculateFmeasure()
+private fun ExecutionDto.calculateScoreForContestMode(scoreType: ScoreType): Double = when (scoreType) {
+    ScoreType.F_MEASURE -> calculateFmeasure()
+    else -> TODO("Invalid score type for contest mode!")
+}
 
 private fun ExecutionDto.calculateFmeasure(): Double {
     val denominator = (getPrecisionRate() + getRecallRate())
