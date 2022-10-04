@@ -125,6 +125,7 @@ class SandboxController(
             status = ExecutionStatus.PENDING,
             sdk = sdk,
             userId = sandboxUserRepository.getIdByName(userName),
+            initialized = false,
             failReason = null,
         )
         sandboxExecutionRepository.save(execution)
