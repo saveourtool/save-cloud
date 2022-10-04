@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
 

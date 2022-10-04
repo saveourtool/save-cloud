@@ -11,7 +11,9 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.service.HeartBeatInspector
+import com.saveourtool.save.utils.asyncEffectIf
 import com.saveourtool.save.utils.debug
+import com.saveourtool.save.utils.newAgentStatus
 import com.saveourtool.save.utils.warn
 
 import org.slf4j.LoggerFactory
@@ -101,10 +103,8 @@ class HeartbeatController(private val agentService: AgentService,
 
     private fun handleVacantAgent(agentId: String): Mono<HeartbeatResponse> =
             agentService.getNewTestsIds(agentId)
-                .doOnSuccess {
-                    if (it is NewJobResponse) {
-                        agentService.updateAssignedAgent(agentId, it)
-                    }
+                .asyncEffectIf({ this is NewJobResponse }) {
+                    agentService.updateAgentStatusesWithDto(BUSY.newAgentStatus(agentId))
                 }
                 .zipWhen {
                     // Check if all agents have completed their jobs; if true - we can terminate agent [agentId].
@@ -118,7 +118,7 @@ class HeartbeatController(private val agentService: AgentService,
                 }
                 .flatMap { (response, shouldStop) ->
                     if (shouldStop) {
-                        agentService.updateAgentStatusesWithDto(AgentStatusDto(LocalDateTime.now(), TERMINATED, agentId))
+                        agentService.updateAgentStatusesWithDto(TERMINATED.newAgentStatus(agentId))
                             .thenReturn<HeartbeatResponse>(TerminateResponse)
                             .defaultIfEmpty(ContinueResponse)
                             .doOnSuccess {
@@ -134,7 +134,7 @@ class HeartbeatController(private val agentService: AgentService,
         handleVacantAgent(agentId)
     } else {
         // Agent finished its work, however only part of results were received, other should be marked as failed
-        agentService.markTestExecutionsAsFailed(listOf(agentId), FINISHED)
+        agentService.markTestExecutionsAsFailed(listOf(agentId), true)
             .subscribeOn(agentService.scheduler)
             .subscribe()
         Mono.just(WaitResponse)

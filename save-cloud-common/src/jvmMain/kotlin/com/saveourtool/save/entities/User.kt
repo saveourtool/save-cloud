@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.spring.entity.BaseEntity
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 

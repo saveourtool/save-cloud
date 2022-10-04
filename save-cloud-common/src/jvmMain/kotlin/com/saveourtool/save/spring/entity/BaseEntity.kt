@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities
+package com.saveourtool.save.spring.entity
 
 import com.saveourtool.save.validation.Validatable
 import javax.persistence.GeneratedValue

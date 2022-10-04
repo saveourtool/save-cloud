@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**

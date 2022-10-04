@@ -1,12 +1,12 @@
 package com.saveourtool.save.sandbox.storage
 
 /**
- * @property userName
+ * @property userId
  * @property type
  * @property fileName
  */
 data class SandboxStorageKey(
-    val userName: String,
+    val userId: Long,
     val type: SandboxStorageKeyType,
     val fileName: String,
 ) {
@@ -16,13 +16,13 @@ data class SandboxStorageKey(
         /**
          * create key for DebugInfoKey
          *
-         * @param userName
+         * @param userId
          * @return [SandboxStorageKey] with type [SandboxStorageKeyType.DEBUG_INFO]
          */
         fun debugInfoKey(
-            userName: String
+            userId: Long
         ): SandboxStorageKey = SandboxStorageKey(
-            userName,
+            userId,
             SandboxStorageKeyType.DEBUG_INFO,
             DEBUG_INFO_FILE_NAME
         )

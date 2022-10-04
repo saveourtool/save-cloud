@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

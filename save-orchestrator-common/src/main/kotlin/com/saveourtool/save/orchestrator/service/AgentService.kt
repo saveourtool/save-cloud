@@ -20,7 +20,6 @@ import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.onErrorResume
 import java.time.Duration
-import java.time.LocalDateTime
 
 /**
  * Service for work with agents and backend
@@ -67,7 +66,7 @@ class AgentService(
         .addAgents(agents)
         .flatMap {
             agentRepository.updateAgentStatusesWithDto(agents.map { agent ->
-                AgentStatusDto(LocalDateTime.now(), STARTING, agent.containerId)
+                STARTING.newAgentStatus(agent.containerId)
             })
         }
 
@@ -142,7 +141,7 @@ class AgentService(
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return agentRepository
-            .getAgentsStatuses(executionId, agentIds)
+            .getAgentsStatuses(agentIds)
             .flatMap { agentStatuses ->
                 // todo: take test execution statuses into account too
                 if (agentStatuses.map { it.state }.all {
@@ -154,7 +153,7 @@ class AgentService(
                 }) {
                     updateExecution(executionId, ExecutionStatus.ERROR,
                         "All agents for this execution were crashed unexpectedly"
-                    ).then(markTestExecutionsAsFailed(agentIds, CRASHED))
+                    ).then(markTestExecutionsAsFailed(agentIds, false))
                 } else {
                     Mono.error(NotImplementedError("Updating execution (id=$executionId) status for agents with statuses $agentStatuses is not supported yet"))
                 }
@@ -211,37 +210,16 @@ class AgentService(
         }
 
     /**
-     * Perform two operations in arbitrary order: assign `agentContainerId` agent to test executions
-     * and mark this agent as BUSY
-     *
-     * @param agentContainerId id of an agent that receives tests
-     * @param newJobResponse a heartbeat response with tests
-     */
-    internal fun updateAssignedAgent(agentContainerId: String, newJobResponse: NewJobResponse) {
-        agentRepository.assignAgent(agentContainerId, newJobResponse.tests)
-            .zipWith(
-                updateAgentStatusesWithDto(
-                    AgentStatusDto(LocalDateTime.now(), BUSY, agentContainerId)
-                )
-            )
-            .doOnSuccess {
-                log.trace { "Agent $agentContainerId has been set as executor for tests ${newJobResponse.tests} and its status has been set to BUSY" }
-            }
-            .subscribeOn(scheduler)
-            .subscribe()
-    }
-
-    /**
      * Mark agent's test executions as failed
      *
-     * @param agentsList the list of agents, for which, according the [status] corresponding test executions should be marked as failed
-     * @param status
+     * @param agentsList the list of agents, for which, corresponding test executions should be marked as failed
+     * @param onlyReadyForTesting
      * @return a bodiless response entity
      */
-    fun markTestExecutionsAsFailed(agentsList: Collection<String>, status: AgentState): Mono<BodilessResponseEntity> {
-        log.debug("Attempt to mark test executions of agents=$agentsList as failed with internal error")
-        return agentRepository.setStatusByAgentIds(agentsList, status)
-    }
+    fun markTestExecutionsAsFailed(
+        agentsList: Collection<String>,
+        onlyReadyForTesting: Boolean
+    ): Mono<BodilessResponseEntity> = agentRepository.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
 
     private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
             if (isNotEmpty()) {
