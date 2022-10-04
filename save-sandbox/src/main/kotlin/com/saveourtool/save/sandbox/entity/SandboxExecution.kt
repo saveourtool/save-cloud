@@ -33,9 +33,14 @@ class SandboxExecution(
     var failReason: String?,
 ) : BaseEntity() {
     /**
+     * @param saveAgentVersion version of save-agent [generated.SAVE_CLOUD_VERSION]
+     * @param saveAgentUrl an url to download save-agent
      * @return [RunExecutionRequest] created from current entity
      */
-    fun toRunRequest(): RunExecutionRequest {
+    fun toRunRequest(
+        saveAgentVersion: String,
+        saveAgentUrl: String,
+    ): RunExecutionRequest {
         require(status == ExecutionStatus.PENDING) {
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
         }
@@ -45,7 +50,9 @@ class SandboxExecution(
                 projectName = "user-$userId",
             ),
             executionId = requiredId(),
-            sdk = sdk.toSdk()
+            sdk = sdk.toSdk(),
+            saveAgentVersion = saveAgentVersion,
+            saveAgentUrl = saveAgentUrl,
         )
     }
 }

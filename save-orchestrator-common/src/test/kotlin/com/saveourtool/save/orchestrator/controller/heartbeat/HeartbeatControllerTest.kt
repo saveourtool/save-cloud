@@ -101,8 +101,8 @@ class HeartbeatControllerTest {
 
         val monoResponse = agentService.getNewTestsIds(agentContainerId).block() as NewJobResponse
 
-        assertTrue(monoResponse.tests.isNotEmpty())
-        assertEquals("qwe", monoResponse.tests.first().filePath)
+        assertTrue(monoResponse.config.cliArgs.isNotEmpty())
+        assertEquals("qwe", monoResponse.config.cliArgs.substringBefore(" "))
         verify(agentRepository).getNextRunConfig(any())
     }
 
@@ -336,7 +336,7 @@ class HeartbeatControllerTest {
      * @param agentStatusDtos agent statuses that are returned from backend (mocked response)
      * @param heartbeats a [Heartbeat] that is received by sandbox
      * @param testBatch a batch of tests returned from backend (mocked response)
-     * @param mockAgentStatuses whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
+     * @param mockAgentStatusesForSameExecution whether a mocked response for `/getAgentsStatusesForSameExecution` should be added to queue
      * @param verification a lambda for test assertions
      */
     @Suppress(
@@ -361,7 +361,13 @@ class HeartbeatControllerTest {
         }
         testBatch?.let {
             whenever(agentRepository.getNextRunConfig(any()))
-                .thenReturn(Mono.just(it))
+                .thenReturn(
+                    AgentRunConfig(
+                        cliArgs = it.joinToString(" "),
+                        executionDataUploadUrl = "N/A",
+                        debugInfoUploadUrl = "N/A",
+                    ).toMono()
+                )
         }
 
         repeat(mockUpdateAgentStatusesCount) {

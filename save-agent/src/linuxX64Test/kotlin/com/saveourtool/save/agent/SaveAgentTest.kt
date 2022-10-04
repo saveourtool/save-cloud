@@ -78,7 +78,7 @@ class SaveAgentTest {
         assertEquals(AgentState.BUSY, saveAgentForTest.state.get())
         runBlocking {
             saveAgentForTest.run {
-                startSaveProcess(AgentRunConfig(emptyList(), "", "N/A", "N/A"))
+                startSaveProcess(AgentRunConfig("", "N/A", "N/A"))
             }
         }
         assertEquals(AgentState.FINISHED, saveAgentForTest.state.get())

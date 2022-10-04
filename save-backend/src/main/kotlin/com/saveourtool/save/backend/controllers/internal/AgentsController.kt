@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
@@ -107,19 +106,19 @@ class AgentsController(
         }
         .filter { (_, testBatch) -> testBatch.isNotEmpty() }
         .map { (execution, testBatch) ->
-            AgentRunConfig(
-                tests = testBatch,
+            testBatch to AgentRunConfig(
                 cliArgs = testBatch.constructCliCommand(),
                 executionDataUploadUrl = "${configProperties.url}/internal/saveTestResult",
                 debugInfoUploadUrl = "${configProperties.url}/internal/files/debug-info?executionId=${execution.requiredId()}"
             )
         }
-        .asyncEffectIf({ tests.isNotEmpty() }) { runConfig ->
-            blockingToMono { testExecutionService.assignAgentByTest(containerId, runConfig.tests) }
+        .asyncEffect { (testBatch, _) ->
+            blockingToMono { testExecutionService.assignAgentByTest(containerId, testBatch) }
                 .doOnSuccess {
-                    log.trace { "Agent $containerId has been set as executor for tests ${runConfig.tests} and its status has been set to BUSY" }
+                    log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
                 }
         }
+        .map { (_, runConfig) -> runConfig }
 
     /**
      * @param agents list of [AgentDto]s to save into the DB
@@ -161,17 +160,6 @@ class AgentsController(
                     agentStatusRepository.save(agentState.toEntity { getAgentByContainerId(it) })
                 }
             }
-        }
-    }
-
-    /**
-     * @param agentVersion [AgentVersion] to update agent version
-     */
-    @PostMapping("/saveAgentVersion")
-    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
-        agentRepository.findByContainerId(agentVersion.containerId)?.let {
-            it.version = agentVersion.version
-            agentRepository.save(it)
         }
     }
 

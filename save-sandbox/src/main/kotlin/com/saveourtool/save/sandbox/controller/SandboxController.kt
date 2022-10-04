@@ -7,6 +7,7 @@ import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
+import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
@@ -28,6 +29,7 @@ import javax.transaction.Transactional
  * @property sandboxExecutionRepository
  * @property sandboxUserRepository
  * @property agentsController
+ * @property agentRepository
  */
 @RestController
 @RequestMapping("/sandbox/api")
@@ -37,6 +39,7 @@ class SandboxController(
     val sandboxExecutionRepository: SandboxExecutionRepository,
     val sandboxUserRepository: SandboxUserRepository,
     val agentsController: AgentsController,
+    val agentRepository: SandboxAgentRepository,
 ) {
     /**
      * @param userId
@@ -129,9 +132,11 @@ class SandboxController(
             failReason = null,
         )
         sandboxExecutionRepository.save(execution)
-    }.map { execution ->
-        execution.toRunRequest()
-    }.flatMap { request ->
-        agentsController.initialize(request)
     }
+        .map { execution ->
+            agentRepository.getRunRequest(execution)
+        }
+        .flatMap { request ->
+            agentsController.initialize(request)
+        }
 }
