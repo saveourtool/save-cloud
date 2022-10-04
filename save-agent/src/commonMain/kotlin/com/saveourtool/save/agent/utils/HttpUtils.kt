@@ -36,10 +36,10 @@ internal suspend fun SaveAgent.processRequestToBackendWrapped(
     requestToBackend: suspend () -> Result<HttpResponse>
 ): Result<HttpResponse> = requestToBackend().runIf({ failureOrNotOk() }) {
     val reason = if (notOk()) {
-        state.value = AgentState.BACKEND_FAILURE
+        state.set(AgentState.BACKEND_FAILURE)
         "Backend returned status ${getOrNull()?.status}"
     } else {
-        state.value = AgentState.BACKEND_UNREACHABLE
+        state.set(AgentState.BACKEND_UNREACHABLE)
         if (exceptionOrNull() is CancellationException) {
             "Request has been interrupted, switching to ${AgentState.BACKEND_UNREACHABLE} state"
         } else {

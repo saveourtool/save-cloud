@@ -17,11 +17,8 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
-import okio.FileSystem
 import okio.Path.Companion.toPath
-import platform.posix.*
 
-import kotlinx.cinterop.staticCFunction
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -46,8 +43,6 @@ internal val json = Json {
     }
 }
 
-internal val fs = FileSystem.SYSTEM
-
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val propertiesFile = "agent.properties".toPath()
@@ -62,10 +57,7 @@ fun main() {
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
     logDebugCustom("Instantiating save-agent version $SAVE_CLOUD_VERSION with config $config")
 
-    signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exit(1)
-    })
+    handleSigterm()
 
     val httpClient = configureHttpClient(config)
 

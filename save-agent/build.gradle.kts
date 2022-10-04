@@ -11,8 +11,16 @@ plugins {
 }
 
 kotlin {
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = Versions.jdk
+            }
+        }
+    }
+
     // Create a target for the host platform.
-    val hostTarget = linuxX64 {
+    val linuxTarget = linuxX64 {
         binaries.executable {
             entryPoint = "com.saveourtool.save.agent.main"
             baseName = "save-agent"
@@ -28,20 +36,42 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        val linuxX64Main by getting {
+
+        val commonMain by getting {
             dependencies {
+                implementation(libs.save.common)
                 implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
                 implementation(libs.save.plugins.fix)
                 implementation(libs.save.reporters)
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.curl)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
                 implementation(libs.ktor.client.logging)
                 implementation(libs.kotlinx.serialization.properties)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
+            }
+        }
+        val commonTest by getting
+
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.apache)
+                implementation(libs.commons.compress)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+            }
+        }
+
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.curl)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
@@ -54,6 +84,7 @@ kotlin {
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val linkTask: TaskProvider<KotlinNativeLink> = tasks.named<KotlinNativeLink>("linkReleaseExecutableLinuxX64")
+
     val copyAgentDistribution by tasks.registering(Jar::class) {
         dependsOn(linkTask)
         archiveClassifier.set("distribution")
@@ -69,15 +100,15 @@ kotlin {
     // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/samples/coverage/build.gradle.kts
     if (false) {
         // this doesn't work for 1.4.31, maybe will be fixed later
-        hostTarget.binaries.getTest("DEBUG").apply {
-            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${hostTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
+        linuxTarget.binaries.getTest("DEBUG").apply {
+            freeCompilerArgs = freeCompilerArgs + listOf("-Xlibrary-to-cover=${linuxTarget.compilations["main"].output.classesDirs.singleFile.absolutePath}")
         }
         val createCoverageReportTask by tasks.creating {
-            dependsOn("${hostTarget.name}Test")
+            dependsOn("${linuxTarget.name}Test")
             description = "Create coverage report"
 
             doLast {
-                val testDebugBinary = hostTarget.binaries.getTest("DEBUG").outputFile
+                val testDebugBinary = linuxTarget.binaries.getTest("DEBUG").outputFile
                 val llvmPath = "${System.getenv()["HOME"]}/.konan/dependencies/clang-llvm-8.0.0-linux-x86-64/bin"
                 exec {
                     commandLine("$llvmPath/llvm-profdata", "merge", "$testDebugBinary.profraw", "-o", "$testDebugBinary.profdata")
@@ -87,7 +118,7 @@ kotlin {
                 }
             }
         }
-        tasks.named("${hostTarget.name}Test") {
+        tasks.named("${linuxTarget.name}Test") {
             finalizedBy(createCoverageReportTask)
         }
     }
@@ -124,7 +155,7 @@ val generateVersionFileTaskProvider = tasks.register("generateVersionFile") {
 val generatedKotlinSrc = kotlin.sourceSets.create("commonGenerated") {
     kotlin.srcDir("$buildDir/generated/src")
 }
-kotlin.sourceSets.getByName("linuxX64Main").dependsOn(generatedKotlinSrc)
+kotlin.sourceSets.getByName("commonMain").dependsOn(generatedKotlinSrc)
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
     dependsOn(generateVersionFileTaskProvider)
 }
