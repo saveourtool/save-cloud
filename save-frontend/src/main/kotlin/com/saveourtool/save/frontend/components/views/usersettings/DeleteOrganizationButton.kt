@@ -17,26 +17,25 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.useState
 
+
 /**
  * Button for delete organization
  *
  * @return noting
  */
 val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
+    val displayButtonEntry = {}
     val windowOpenness = useWindowOpenness()
-    val errorWindowOpenness = useWindowOpenness()
-    val (errorMessage, putErrorMessage) = useState<String?>(null)
+    val (displayTitle, putDisplayTitle) = useState<String?>(null)
+    val (displayMessage, putDisplayMessage) = useState<String?>(null)
+    val (displayButton, putDisplayButtons) = useState(displayButtonEntry)
 
-    displayModal(
-        isOpen = errorWindowOpenness.isOpen(),
-        title = "You cannot delete ${props.organizationName}",
-        message = errorMessage ?: "",
-        onCloseButtonPressed = errorWindowOpenness.closeWindowAction()
-    ) {
+    val displayButtonErrors = {
         buttonBuilder("Ok") {
-            errorWindowOpenness.closeWindow()
+            windowOpenness.closeWindow()
         }
     }
+
 
     val deleteOrganization = useDeferredRequest {
         val responseFromDeleteOrganization =
@@ -50,16 +49,23 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
         if (responseFromDeleteOrganization.ok) {
             props.onDeletionSuccess()
         } else {
-            putErrorMessage(responseFromDeleteOrganization.unpackMessage())
-            errorWindowOpenness.openWindow()
+            putDisplayTitle("You cannot delete ${props.organizationName}")
+            putDisplayMessage(responseFromDeleteOrganization.unpackMessage())
+            putDisplayButtons(displayButtonErrors)
+            windowOpenness.openWindow()
         }
     }
 
     displayModal(
-        windowOpenness,
-        "Warning: deletion of organization",
-        "You are about to delete organization ${props.organizationName}. Are you sure?",
+        isOpen = windowOpenness.isOpen(),
+        title = displayTitle ?: "",
+        message = displayMessage ?: "",
+        onCloseButtonPressed = windowOpenness.closeWindowAction()
     ) {
+        displayButton
+    }
+
+    val displayButtonDelete = {
         buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
             deleteOrganization()
             windowOpenness.closeWindow()
@@ -75,7 +81,11 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
             props.buttonStyleBuilder(this)
             id = "remove-organization-${props.organizationName}"
             onClick = {
+                putDisplayTitle("Warning: deletion of organization")
+                putDisplayMessage("You are about to delete organization ${props.organizationName}. Are you sure?")
+                putDisplayButtons(displayButtonDelete)
                 windowOpenness.openWindow()
+                //windowOpenness.openWindow()
             }
         }
     }
