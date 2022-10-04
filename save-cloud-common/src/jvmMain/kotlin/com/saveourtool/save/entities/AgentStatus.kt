@@ -5,6 +5,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.spring.entity.BaseEntity
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType

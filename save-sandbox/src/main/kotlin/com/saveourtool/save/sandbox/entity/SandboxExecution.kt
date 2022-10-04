@@ -2,10 +2,11 @@ package com.saveourtool.save.sandbox.entity
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
-import com.saveourtool.save.entities.BaseEntity
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.spring.entity.BaseEntity
+
 import java.time.LocalDateTime
 import javax.persistence.*
 

@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import javax.persistence.Entity
 import javax.persistence.JoinColumn

@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne

@@ -1,7 +1,7 @@
 package com.saveourtool.save.sandbox.entity
 
 import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.BaseEntity
+import com.saveourtool.save.spring.entity.BaseEntity
 
 import javax.persistence.Entity
 import javax.persistence.FetchType

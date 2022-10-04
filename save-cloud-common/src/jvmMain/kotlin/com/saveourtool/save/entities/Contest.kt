@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isValidName

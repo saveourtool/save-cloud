@@ -2,7 +2,7 @@ package com.saveourtool.save.sandbox.entity
 
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.BaseEntity
+import com.saveourtool.save.spring.entity.BaseEntity
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
