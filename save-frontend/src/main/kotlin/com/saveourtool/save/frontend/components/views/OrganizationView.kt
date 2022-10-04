@@ -681,22 +681,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
         }
     }
-    private fun deleteOrganizationBuilder() {
-        val headers = jsonHeaders
-        scope.launch {
-            responseFromDeleteOrganization =
-                    delete(
-                        "$apiUrl/organizations/${props.organizationName}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteOrganization.ok) {
-                window.location.href = "${window.location.origin}/"
-            }
-        }
-    }
 
     companion object :
         RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(

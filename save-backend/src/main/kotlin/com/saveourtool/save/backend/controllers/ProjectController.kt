@@ -139,7 +139,7 @@ class ProjectController(
     fun getProjectsByOrganizationName(
         @RequestParam organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+    ): Flux<Project> = projectService.getAsFluxByOrganizationName(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }

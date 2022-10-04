@@ -22,8 +22,7 @@ val deleteOrganizationFun = deleteOrganizationButton()
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
-    override fun renderMenu(): FC<UserSettingsProps> = FC { _ ->
-
+    override fun renderMenu(): FC<UserSettingsProps> = VFC {
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
