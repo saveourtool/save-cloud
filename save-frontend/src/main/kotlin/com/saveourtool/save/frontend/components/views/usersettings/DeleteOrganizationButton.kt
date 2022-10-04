@@ -1,19 +1,20 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
+import com.saveourtool.save.frontend.components.RequestModalProps
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
-import react.PropsWithChildren
+import react.Props
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
 /**
  * DeleteOrganizationButton props
  */
-external interface DeleteOrganizationButton : PropsWithChildren {
+external interface DeleteOrganizationButtonProps : Props {
     /**
      * All filters in one class property [organizationName]
      */
@@ -40,7 +41,9 @@ external interface DeleteOrganizationButton : PropsWithChildren {
  *
  * @return noting
  */
-fun deleteOrganizationButton() = FC<DeleteOrganizationButton> { props ->
+
+
+val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
     val windowOpenness = useWindowOpenness()
 
     val deleteOrganization = useDeferredRequest {

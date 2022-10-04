@@ -16,7 +16,6 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
-val deleteOrganizationFun = deleteOrganizationButton()
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
 class UserSettingsOrganizationsMenuView : UserSettingsView() {
@@ -59,7 +58,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
-                                    deleteOrganizationFun {
+                                    deleteOrganizationButton {
                                         organizationName = organizationDto.name
                                         onDeletionSuccess = {
                                             setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }

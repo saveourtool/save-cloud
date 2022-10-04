@@ -79,7 +79,7 @@ class OrganizationService(
      * @param organizationName
      * @return number of Organization projects
      */
-    fun numberOfProjectInOrganization(organizationName: String) = projectService.getByOrganizationName(organizationName).size
+    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).size
 
     /**
      * @param organizationId

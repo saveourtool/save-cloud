@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.basic.organizations
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationFun
+import com.saveourtool.save.frontend.components.views.usersettings.deleteOrganizationButton
 import com.saveourtool.save.frontend.utils.useGlobalRoleWarningCallback
 import com.saveourtool.save.info.UserInfo
 
@@ -145,7 +145,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
-                    deleteOrganizationFun {
+                    deleteOrganizationButton {
                         organizationName = props.organizationName
                         onDeletionSuccess = {
                             window.location.href = "${window.location.origin}/"
