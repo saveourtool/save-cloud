@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Rights
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**

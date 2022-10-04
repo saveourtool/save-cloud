@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.spring.entity.BaseEntity
 import javax.persistence.*
 import javax.persistence.Entity
 import javax.persistence.Enumerated

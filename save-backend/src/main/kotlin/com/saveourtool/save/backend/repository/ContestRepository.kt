@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.LocalDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

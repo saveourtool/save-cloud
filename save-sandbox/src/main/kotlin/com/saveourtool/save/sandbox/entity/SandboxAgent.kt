@@ -1,10 +1,13 @@
-package com.saveourtool.save.entities
+package com.saveourtool.save.sandbox.entity
 
+import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.spring.entity.BaseEntity
+
 import javax.persistence.Entity
 import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.Table
 
 /**
  * @property containerId id of the container, inside which the agent is running
@@ -13,13 +16,14 @@ import javax.persistence.ManyToOne
  * @property version
  */
 @Entity
-class Agent(
+@Table(name = "agent")
+class SandboxAgent(
     var containerId: String,
     var containerName: String,
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "execution_id")
-    var execution: Execution,
+    var execution: SandboxExecution,
 
     var version: String? = null,
 ) : BaseEntity() {
@@ -35,10 +39,10 @@ class Agent(
 }
 
 /**
- * @param executionResolver resolves [Execution] by [AgentDto.executionId]
- * @return [Agent] from [AgentDto]
+ * @param executionResolver resolves [SandboxExecution] by [AgentDto.executionId]
+ * @return [SandboxAgent] from [AgentDto]
  */
-fun AgentDto.toEntity(executionResolver: (Long) -> Execution) = Agent(
+fun AgentDto.toEntity(executionResolver: (Long) -> SandboxExecution) = SandboxAgent(
     containerId = containerId,
     containerName = containerName,
     execution = executionResolver(executionId),

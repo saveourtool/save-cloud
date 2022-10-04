@@ -1,9 +1,11 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import javax.persistence.Entity
+import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**

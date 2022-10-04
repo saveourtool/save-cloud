@@ -1,7 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.AgentEnvName
-import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
@@ -101,7 +100,7 @@ class DockerService(
                             agentRunner.stop(executionId)
                             agentService.updateExecution(executionId, ExecutionStatus.ERROR,
                                 "Internal error, raise an issue at https://github.com/saveourtool/save-cloud/issues/new"
-                            ).then(agentService.markTestExecutionsAsFailed(agentIds, AgentState.CRASHED))
+                            ).then(agentService.markTestExecutionsAsFailed(agentIds, false))
                                 .subscribe()
                         }
                         areAgentsHaveStarted.remove(executionId)

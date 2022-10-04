@@ -8,10 +8,11 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.ExecutionService
+import com.saveourtool.save.backend.service.TestExecutionService
+import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.utils.*
 
 import generated.SAVE_CORE_VERSION
 import org.slf4j.LoggerFactory
@@ -36,6 +37,8 @@ class AgentsController(
     private val agentRepository: AgentRepository,
     private val configProperties: ConfigProperties,
     private val executionService: ExecutionService,
+    private val testService: TestService,
+    private val testExecutionService: TestExecutionService,
 ) {
     /**
      * @param containerId [Agent.containerId]
@@ -80,6 +83,22 @@ class AgentsController(
                     batchSeparator = null,
                 ),
             )
+        }
+
+    /**
+     * @param containerId
+     * @return test batches
+     */
+    @GetMapping("/agents/get-next-test-batch")
+    @Transactional
+    fun getNextTestBatch(
+        @RequestParam containerId: String,
+    ): Mono<TestBatch> = testService.getTestBatches(containerId)
+        .asyncEffectIf(TestBatch::isNotEmpty) { testBatch ->
+            blockingToMono { testExecutionService.assignAgentByTest(containerId, testBatch) }
+                .doOnSuccess {
+                    log.trace { "Agent $containerId has been set as executor for tests $testBatch and its status has been set to BUSY" }
+                }
         }
 
     /**
