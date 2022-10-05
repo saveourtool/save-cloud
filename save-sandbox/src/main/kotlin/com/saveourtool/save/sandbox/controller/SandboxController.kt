@@ -11,6 +11,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.overwrite
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
@@ -39,64 +40,75 @@ class SandboxController(
     val agentsController: AgentsController,
 ) {
     /**
-     * @param userId
+     * @param userName
      * @param file
      * @return count of written bytes
      */
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
-        @RequestPart userId: Long,
+        @RequestPart userName: String,
         @RequestPart file: Mono<FilePart>,
-    ): Mono<Long> = doUpload(
-        userId,
-        SandboxStorageKeyType.FILE,
-        file
-    )
-
-    /**
-     * @param userId
-     * @param file
-     * @return count of written bytes
-     */
-    @PostMapping("/upload-test", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadTest(
-        @RequestPart userId: Long,
-        @RequestPart file: Mono<FilePart>,
-    ): Mono<Long> = doUpload(
-        userId,
-        SandboxStorageKeyType.TEST,
-        file
-    )
-
-    /**
-     * @param userId
-     * @param file
-     * @return count of written bytes
-     */
-    @PostMapping("/upload-test-resource", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun uploadTestResource(
-        @RequestPart userId: Long,
-        @RequestPart file: Mono<FilePart>,
-    ): Mono<Long> = doUpload(
-        userId,
-        SandboxStorageKeyType.TEST_RESOURCE,
-        file
-    )
-
-    private fun doUpload(
-        userId: Long,
-        type: SandboxStorageKeyType,
-        file: Mono<FilePart>,
     ): Mono<Long> = file.flatMap { filePart ->
-        storage.overwrite(
-            key = SandboxStorageKey(
+        getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, filePart.filename())
+            .flatMap { key ->
+                storage.overwrite(
+                    key = key,
+                    content = filePart
+                )
+            }
+    }
+
+    /**
+     * @param userName
+     * @param type
+     * @param fileName
+     * @param content
+     * @return count of written bytes
+     */
+    @PostMapping("/upload-as-text")
+    fun uploadAsText(
+        @RequestParam userName: String,
+        @RequestParam type: SandboxStorageKeyType,
+        @RequestParam fileName: String,
+        @RequestBody content: String,
+    ): Mono<Long> = getAsMonoStorageKey(userName, type, fileName)
+        .flatMap { key ->
+            storage.overwrite(
+                key = key,
+                content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
+            )
+        }
+
+    /**
+     * @param userName
+     * @param type
+     * @param fileName
+     * @return content as text
+     */
+    @GetMapping("/download-as-text")
+    fun downloadAsText(
+        @RequestParam userName: String,
+        @RequestParam type: SandboxStorageKeyType,
+        @RequestParam fileName: String,
+    ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
+        .flatMap { key ->
+            storage.download(key)
+                .mapToInputStream()
+                .map { it.bufferedReader().readText() }
+        }
+
+    private fun getAsMonoStorageKey(
+        userName: String,
+        type: SandboxStorageKeyType,
+        fileName: String,
+    ): Mono<SandboxStorageKey> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
+        .map { userId ->
+            SandboxStorageKey(
                 userId,
                 type,
-                filePart.filename()
-            ),
-            content = filePart
-        )
-    }
+                fileName,
+            )
+        }
 
     /**
      * @param userId

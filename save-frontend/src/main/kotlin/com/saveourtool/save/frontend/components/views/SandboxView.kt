@@ -12,8 +12,11 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.v1
 
 import csstype.ClassName
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -28,6 +31,8 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.coroutines.launch
+
+val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
 /**
  * [Props] of [SandboxView]
@@ -87,6 +92,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Currently selected FileType - config, test or setup.sh
      */
     var selectedFile: FileType?
+
+    /**
+     * Flag that control the first load
+     */
+    var firstLoad: Boolean
 }
 
 /**
@@ -96,15 +106,13 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
 @OptIn(ExperimentalJsExport::class)
 class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     init {
-        state.codeText = codeExample
-        state.configText = configExample
-        state.setupShText = setupShExample
         state.debugInfo = null
         state.files = mutableListOf()
         state.suiteByteSize = 0
         state.isUploading = false
         state.bytesReceived = 0
         state.selectedFile = null
+        state.firstLoad = true
     }
 
     override fun ChildrenBuilder.render() {
@@ -112,6 +120,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             className = ClassName("text-center")
             +"Sandbox"
         }
+
         renderCodeEditor()
 
         renderDebugInfo()
@@ -125,8 +134,16 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             codeEditorComponent {
                 editorTitle = "Code editor"
                 selectedFile = state.selectedFile
-                onSelectedFileUpdate = {
-                    setState { selectedFile = it }
+                onSelectedFileUpdate = { fileType ->
+                    if (state.firstLoad) {
+                        loadTests()
+                    } else if (selectedFile != null) {
+                        uploadTests()
+                    }
+                    setState {
+                        selectedFile = fileType
+                        firstLoad = false
+                    }
                 }
                 editorText = when (state.selectedFile) {
                     FileType.CODE -> state.codeText
@@ -143,6 +160,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                             else -> { }
                         }
                     }
+                }
+                onSaveChanges = {
+                    uploadTests()
+                }
+                onReloadChanges = {
+                    loadTests()
                 }
             }
         }
@@ -241,6 +264,69 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 isUploading = false
             }
         }
+    }
+
+    private fun uploadTests() {
+        scope.launch {
+            setState {
+                isUploading = true
+            }
+
+            postTestAsText("TEST", "test", state.codeText)
+            postTestAsText("TEST_RESOURCE", "save.toml", state.configText)
+            postTestAsText("TEST_RESOURCE", "setup.sh", state.setupShText)
+
+            setState {
+                isUploading = false
+            }
+        }
+    }
+
+    private fun loadTests() {
+        scope.launch {
+            val newCodeText = getTestAsText("TEST", "test", codeExample)
+            val newConfigText = getTestAsText("TEST_RESOURCE", "save.toml", configExample)
+            val newSetupShText = getTestAsText("TEST_RESOURCE", "setup.sh", setupShExample)
+
+            setState {
+                codeText = newCodeText
+                configText = newConfigText
+                setupShText = newSetupShText
+            }
+        }
+    }
+
+    private suspend fun postTestAsText(
+        type: String,
+        fileName: String,
+        text: String,
+    ) {
+        post(
+            url = "$sandboxApiUrl/upload-as-text?userName=${props.currentUserInfo?.name}&type=$type&fileName=$fileName",
+            headers = jsonHeaders,
+            body = text,
+            loadingHandler = ::noopLoadingHandler,
+        )
+    }
+
+    private suspend fun getTestAsText(
+        type: String,
+        fileName: String,
+        defaultValue: String,
+    ): String {
+        return props.currentUserInfo?.name?.let { userName ->
+            val response = get(
+                url = "$sandboxApiUrl/download-as-text?userName=$userName&type=$type&fileName=$fileName",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+            )
+            if (response.ok) {
+                response.text().await()
+            } else {
+                postTestAsText(type, fileName, defaultValue)
+                defaultValue
+            }
+        } ?: "Unknown user"
     }
 
     companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
