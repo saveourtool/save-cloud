@@ -53,6 +53,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
+                           |    command: ["--log_bin_trust_function_creators=1"]
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:

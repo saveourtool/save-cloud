@@ -3,9 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.utils.asyncEffectIf
@@ -39,6 +37,7 @@ class ExecutionService(
     private val configProperties: ConfigProperties,
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
+    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     private val log = LoggerFactory.getLogger(ExecutionService::class.java)
 
@@ -52,9 +51,17 @@ class ExecutionService(
 
     /**
      * @param execution
-     * @return created/updated [Execution]
+     * @param testSuites
      */
-    fun saveExecution(execution: Execution): Execution = executionRepository.save(execution)
+    @Transactional
+    fun save(execution: Execution, testSuites: List<TestSuite>): Execution {
+        val newExecution = executionRepository.save(execution)
+        testSuites.map {
+            val lnkExecutionTestSuite = LnkExecutionTestSuite(newExecution, it)
+            lnkExecutionTestSuiteService.save(lnkExecutionTestSuite)
+        }
+        return newExecution
+    }
 
     /**
      * @param execution [Execution]
@@ -156,7 +163,8 @@ class ExecutionService(
      * @param testSuiteId
      * @return list of [Execution]'s
      */
-    fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> = executionRepository.findAllByTestSuiteIdsContaining(testSuiteId.toString())
+    fun getExecutionsByTestSuiteId(testSuiteId: Long): List<Execution> =
+            lnkExecutionTestSuiteService.getAllExecutionsByTestSuiteId(testSuiteId)
 
     /**
      * @param projectCoordinates
@@ -190,7 +198,7 @@ class ExecutionService(
         }
         return doCreateNew(
             project = project,
-            formattedTestSuiteIds = Execution.formatTestSuiteIds(testSuiteIds),
+            testSuiteIds = testSuiteIds,
             version = testSuitesService.getSingleVersionByIds(testSuiteIds),
             allTests = testSuiteIds.flatMap { testRepository.findAllByTestSuiteId(it) }
                 .count()
@@ -214,25 +222,28 @@ class ExecutionService(
     fun createNewCopy(
         execution: Execution,
         username: String,
-    ): Mono<Execution> = doCreateNew(
-        project = execution.project,
-        formattedTestSuiteIds = execution.testSuiteIds,
-        version = execution.version,
-        allTests = execution.allTests,
-        additionalFiles = execution.additionalFiles,
-        username = username,
-        sdk = execution.sdk,
-        execCmd = execution.execCmd,
-        batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
-        testingType = execution.type,
-        contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
-            ?.findContestByExecution(execution)?.name,
-    )
+    ): Mono<Execution> {
+        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(execution.requiredId())
+        return doCreateNew(
+            project = execution.project,
+            testSuiteIds = testSuiteIds,
+            version = execution.version,
+            allTests = execution.allTests,
+            additionalFiles = execution.additionalFiles,
+            username = username,
+            sdk = execution.sdk,
+            execCmd = execution.execCmd,
+            batchSizeForAnalyzer = execution.batchSizeForAnalyzer,
+            testingType = execution.type,
+            contestName = lnkContestExecutionService.takeIf { execution.type == TestingType.CONTEST_MODE }
+                ?.findContestByExecution(execution)?.name,
+        )
+    }
 
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "UnsafeCallOnNullableType")
     private fun doCreateNew(
         project: Project,
-        formattedTestSuiteIds: String?,
+        testSuiteIds: List<Long>,
         version: String?,
         allTests: Long,
         additionalFiles: String,
@@ -246,15 +257,15 @@ class ExecutionService(
         val user = userRepository.findByName(username).orNotFound {
             "Not found user $username"
         }
+        val testSuites = testSuiteIds.map { testSuitesService.getById(it) }
         val testSuiteSourceName = testSuitesService.getById(
-            Execution.parseAndGetTestSuiteIds(formattedTestSuiteIds)!!.first()
+            testSuiteIds.first()
         ).source.name
         val execution = Execution(
             project = project,
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.PENDING,
-            testSuiteIds = formattedTestSuiteIds,
             batchSize = configProperties.initialBatchSize,
             type = testingType,
             version = version,
@@ -276,7 +287,7 @@ class ExecutionService(
             score = null,
         )
         return blockingToMono {
-            saveExecution(execution)
+            save(execution, testSuites)
         }
             .asyncEffectIf({ testingType == TestingType.CONTEST_MODE }) { savedExecution ->
                 lnkContestExecutionService.createLink(

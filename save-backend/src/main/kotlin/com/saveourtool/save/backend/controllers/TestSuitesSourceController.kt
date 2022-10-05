@@ -45,6 +45,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @Tags(
     Tag(name = "test-suites-source"),
 )
+@Suppress("LongParameterList")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
@@ -52,6 +53,7 @@ class TestSuitesSourceController(
     private val organizationService: OrganizationService,
     private val gitService: GitService,
     private val executionService: ExecutionService,
+    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     @GetMapping(
         path = [
@@ -400,10 +402,8 @@ class TestSuitesSourceController(
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         val execution = executionService.findExecution(executionId)
             .orNotFound { "Execution (id=$executionId) not found" }
-        val testSuiteId = execution.parseAndGetTestSuiteIds()?.firstOrNull()
-            .orConflict { "Execution (id=$executionId) doesn't contain testSuiteIds" }
-        testSuitesService.findTestSuiteById(testSuiteId)
-            .orNotFound { "TestSuite (id=$testSuiteId) not found" }
+        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).first()
+        testSuite
             .toDto()
             .let { it.source to it.version }
     }.flatMap { (source, version) ->
