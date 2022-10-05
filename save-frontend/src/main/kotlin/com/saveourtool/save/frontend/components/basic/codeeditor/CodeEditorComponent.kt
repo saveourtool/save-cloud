@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.externals.reactace.aceBuilder
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.useOnceAction
 import com.saveourtool.save.frontend.utils.withUnusedArg
 import csstype.ClassName
 import react.ChildrenBuilder
@@ -58,14 +59,14 @@ external interface CodeEditorComponentProps : Props {
     var onEditorTextUpdate: (String) -> Unit
 
     /**
-     * Callback invoked on saving changes
+     * Action to save changes
      */
-    var onSaveChanges: () -> Unit
+    var doUploadChanges: () -> Unit
 
     /**
-     * Callback invoked on reloading changes
+     * Action to reload changes
      */
-    var onReloadChanges: () -> Unit
+    var doReloadChanges: () -> Unit
 }
 
 /**
@@ -86,7 +87,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
     selectedFileType: FileType?,
     setSelectedMode: (String) -> Unit,
     setSelectedTheme: (String) -> Unit,
-    onSaveChanges: () -> Unit,
+    onUploadChanges: () -> Unit,
     onReloadChanges: () -> Unit,
     onFileTypeChange: (FileType) -> Unit,
 ) {
@@ -98,7 +99,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
 
                 button {
                     className = ClassName("btn btn-outline-primary")
-                    onClick = onSaveChanges.withUnusedArg()
+                    onClick = onUploadChanges.withUnusedArg()
                     fontAwesomeIcon(icon = faUpload)
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "top"
@@ -146,6 +147,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
 private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
     val (selectedMode, setSelectedMode) = useState(AceModes.KOTLIN)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.CHROME)
+    val firstLoader = useOnceAction()
     div {
         h6 {
             className = ClassName("text-center text-primary")
@@ -161,9 +163,15 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             { newThemeName ->
                 setSelectedTheme(AceThemes.values().find { it.themeName == newThemeName }!!)
             },
-            onSaveChanges = props.onSaveChanges,
-            onReloadChanges = props.onReloadChanges,
+            onUploadChanges = props.doUploadChanges,
+            onReloadChanges = props.doReloadChanges,
         ) { fileType ->
+            firstLoader {
+                props.doReloadChanges()
+            }
+            props.selectedFile?.run {
+                props.doUploadChanges()
+            }
             if (fileType == props.selectedFile) {
                 props.onSelectedFileUpdate(null)
             } else {

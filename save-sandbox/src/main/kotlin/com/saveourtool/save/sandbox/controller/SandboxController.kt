@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.overwrite
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
@@ -60,17 +61,35 @@ class SandboxController(
 
     /**
      * @param userName
-     * @param type
      * @param fileName
      * @param content
      * @return count of written bytes
      */
-    @PostMapping("/upload-as-text")
-    fun uploadAsText(
+    @PostMapping("/upload-test-as-text")
+    fun uploadTestAsText(
         @RequestParam userName: String,
-        @RequestParam type: SandboxStorageKeyType,
         @RequestParam fileName: String,
         @RequestBody content: String,
+    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
+
+    /**
+     * @param userName
+     * @param fileName
+     * @param content
+     * @return count of written bytes
+     */
+    @PostMapping("/upload-test-resource-as-text")
+    fun uploadTestResourceAsText(
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+        @RequestBody content: String,
+    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
+
+    private fun doUploadAsText(
+        userName: String,
+        type: SandboxStorageKeyType,
+        fileName: String,
+        content: String,
     ): Mono<Long> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
             storage.overwrite(
@@ -81,12 +100,27 @@ class SandboxController(
 
     /**
      * @param userName
-     * @param type
      * @param fileName
      * @return content as text
      */
-    @GetMapping("/download-as-text")
-    fun downloadAsText(
+    @GetMapping("/download-test-as-text")
+    fun downloadTestAsText(
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST, fileName)
+
+    /**
+     * @param userName
+     * @param fileName
+     * @return content as text
+     */
+    @GetMapping("/download-test-resource-as-text")
+    fun downloadTestResourceAsText(
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName)
+
+    private fun doDownloadAsText(
         @RequestParam userName: String,
         @RequestParam type: SandboxStorageKeyType,
         @RequestParam fileName: String,
@@ -95,6 +129,9 @@ class SandboxController(
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
+        }
+        .switchIfEmptyToNotFound {
+            "There is no file $fileName ($type) for user $userName"
         }
 
     private fun getAsMonoStorageKey(

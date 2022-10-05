@@ -91,11 +91,6 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Currently selected FileType - config, test or setup.sh
      */
     var selectedFile: FileType?
-
-    /**
-     * Flag that control the first load
-     */
-    var firstLoad: Boolean
 }
 
 /**
@@ -105,13 +100,15 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
 @OptIn(ExperimentalJsExport::class)
 class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     init {
+        state.codeText = ""
+        state.configText = ""
+        state.setupShText = ""
         state.debugInfo = null
         state.files = mutableListOf()
         state.suiteByteSize = 0
         state.isUploading = false
         state.bytesReceived = 0
         state.selectedFile = null
-        state.firstLoad = true
     }
 
     override fun ChildrenBuilder.render() {
@@ -119,7 +116,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             className = ClassName("text-center")
             +"Sandbox"
         }
-
         renderCodeEditor()
 
         renderDebugInfo()
@@ -133,16 +129,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             codeEditorComponent {
                 editorTitle = "Code editor"
                 selectedFile = state.selectedFile
-                onSelectedFileUpdate = { fileType ->
-                    if (state.firstLoad) {
-                        loadTests()
-                    } else selectedFile?.let {
-                        uploadTests()
-                    }
-                    setState {
-                        selectedFile = fileType
-                        firstLoad = false
-                    }
+                onSelectedFileUpdate = {
+                    setState { selectedFile = it }
                 }
                 editorText = when (state.selectedFile) {
                     FileType.CODE -> state.codeText
@@ -160,10 +148,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                         }
                     }
                 }
-                onSaveChanges = {
+                doUploadChanges = {
                     uploadTests()
                 }
-                onReloadChanges = {
+                doReloadChanges = {
                     loadTests()
                 }
             }
@@ -271,9 +259,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 isUploading = true
             }
 
-            postTestAsText("TEST", "test", state.codeText)
-            postTestAsText("TEST_RESOURCE", "save.toml", state.configText)
-            postTestAsText("TEST_RESOURCE", "setup.sh", state.setupShText)
+            postTestAsText("test", "test", state.codeText)
+            postTestAsText("test-resource", "save.toml", state.configText)
+            postTestAsText("test-resource", "setup.sh", state.setupShText)
 
             setState {
                 isUploading = false
@@ -283,9 +271,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
 
     private fun loadTests() {
         scope.launch {
-            val newCodeText = getTestAsText("TEST", "test", codeExample)
-            val newConfigText = getTestAsText("TEST_RESOURCE", "save.toml", configExample)
-            val newSetupShText = getTestAsText("TEST_RESOURCE", "setup.sh", setupShExample)
+            val newCodeText = getTestAsText("test", "test", codeExample)
+            val newConfigText = getTestAsText("test-resource", "save.toml", configExample)
+            val newSetupShText = getTestAsText("test-resource", "setup.sh", setupShExample)
 
             setState {
                 codeText = newCodeText
@@ -296,12 +284,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     }
 
     private suspend fun postTestAsText(
-        type: String,
+        urlPart: String,
         fileName: String,
         text: String,
     ) {
         post(
-            url = "$sandboxApiUrl/upload-as-text?userName=${props.currentUserInfo?.name}&type=$type&fileName=$fileName",
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
             headers = jsonHeaders,
             body = text,
             loadingHandler = ::noopLoadingHandler,
@@ -309,19 +297,19 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     }
 
     private suspend fun getTestAsText(
-        type: String,
+        urlPart: String,
         fileName: String,
         defaultValue: String,
     ): String = props.currentUserInfo?.name?.let { userName ->
         val response = get(
-            url = "$sandboxApiUrl/download-as-text?userName=$userName&type=$type&fileName=$fileName",
+            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
         if (response.ok) {
             response.text().await()
         } else {
-            postTestAsText(type, fileName, defaultValue)
+            postTestAsText(urlPart, fileName, defaultValue)
             defaultValue
         }
     } ?: "Unknown user"

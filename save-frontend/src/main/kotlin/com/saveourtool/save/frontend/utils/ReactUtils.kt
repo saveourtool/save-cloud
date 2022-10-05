@@ -30,10 +30,23 @@ fun ChildrenBuilder.useGlobalRoleWarningOnce() {
  * @param action
  */
 fun useOnce(action: () -> Unit) {
-    val (isFirstRender, setFirstRender) = useState(true)
-    if (isFirstRender) {
+    val useOnceAction = useOnceAction()
+    useOnceAction {
         action()
-        setFirstRender(false)
+    }
+}
+
+
+/**
+ * @return action which will be run once per function component
+ */
+fun useOnceAction(): (() -> Unit) -> Unit {
+    val (isFirstRender, setFirstRender) = useState(true)
+    return { action ->
+        if (isFirstRender) {
+            action()
+            setFirstRender(false)
+        }
     }
 }
 
