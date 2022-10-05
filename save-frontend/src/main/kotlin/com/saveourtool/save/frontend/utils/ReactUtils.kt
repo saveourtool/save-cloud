@@ -36,7 +36,6 @@ fun useOnce(action: () -> Unit) {
     }
 }
 
-
 /**
  * @return action which will be run once per function component
  */
