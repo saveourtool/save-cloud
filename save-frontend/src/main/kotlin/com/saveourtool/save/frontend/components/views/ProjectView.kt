@@ -47,6 +47,9 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -455,6 +458,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                             with(fileInfo.key) {
                                 "$apiUrl/files/$projectCoordinates/delete?name=$name&uploadedMillis=$uploadedMillis"
                             }
+                        }
+                        fileInfoToPrettyPrint = {
+                            it as FileInfo
+                            "${it.key.name} (uploaded at ${
+                                Instant.fromEpochMilliseconds(it.key.uploadedMillis).toLocalDateTime(
+                                    TimeZone.UTC
+                                )
+                            }, size ${it.sizeBytes / 1024} KiB)"
                         }
                         setSelectedFiles = { newFiles ->
                             val newFileInfos = newFiles.map { it as FileInfo }

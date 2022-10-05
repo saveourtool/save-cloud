@@ -111,6 +111,11 @@ external interface UploaderProps : PropsWithChildren {
      * Callback to get url for file deletion from storage
      */
     var getUrlForFileDeletion: (AbstractFileInfo) -> String
+
+    /**
+     * Transform [AbstractFileInfo] to String suitable for displaying
+     */
+    var fileInfoToPrettyPrint: (AbstractFileInfo) -> String
 }
 
 /**
@@ -260,7 +265,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                         }
                     }
 
-                    +file.toPrettyString()
+                    +props.fileInfoToPrettyPrint(file)
                 }
             }
             props.urlForAvailableFilesFetch?.let {
@@ -277,15 +282,19 @@ private fun fileUploader() = FC<UploaderProps> { props ->
 
                         availableFiles.sortedByDescending {
                             if (it is FileInfo) {
-                                it.key.uploadedMillis
+                                it.key.uploadedMillis.toString()
                             } else {
-                                it.sizeBytes
+                                it.name
                             }
                         }.map {
                             option {
                                 className = ClassName("list-group-item")
-                                value = it.name
-                                +it.toPrettyString()
+                                value = if (it is FileInfo) {
+                                    "${it.name}-${it.key.uploadedMillis}"
+                                } else {
+                                    it.name
+                                }
+                                +props.fileInfoToPrettyPrint(it)
                             }
                         }
                         onChange = { event ->
