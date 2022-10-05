@@ -56,10 +56,7 @@ class ExecutionService(
     @Transactional
     fun save(execution: Execution, testSuites: List<TestSuite>): Execution {
         val newExecution = executionRepository.save(execution)
-        testSuites.map {
-            val lnkExecutionTestSuite = LnkExecutionTestSuite(newExecution, it)
-            lnkExecutionTestSuiteService.save(lnkExecutionTestSuite)
-        }
+        testSuites.map { LnkExecutionTestSuite(newExecution, it) }.let { lnkExecutionTestSuiteService.saveAll(it) }
         return newExecution
     }
 

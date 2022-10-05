@@ -46,4 +46,9 @@ class LnkExecutionTestSuiteService(
      * @param lnkExecutionTestSuite
      */
     fun save(lnkExecutionTestSuite: LnkExecutionTestSuite): LnkExecutionTestSuite = lnkExecutionTestSuiteRepository.save(lnkExecutionTestSuite)
+
+    /**
+     * @param lnkExecutionTestSuites
+     */
+    fun saveAll(lnkExecutionTestSuites: List<LnkExecutionTestSuite>): List<LnkExecutionTestSuite> = lnkExecutionTestSuiteRepository.saveAll(lnkExecutionTestSuites)
 }

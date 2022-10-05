@@ -402,7 +402,9 @@ class TestSuitesSourceController(
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         val execution = executionService.findExecution(executionId)
             .orNotFound { "Execution (id=$executionId) not found" }
-        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).first()
+        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).firstOrNull().orNotFound {
+            "Execution (id=$executionId) doesn't have any testSuites"
+        }
         testSuite
             .toDto()
             .let { it.source to it.version }
