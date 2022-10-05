@@ -12,11 +12,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 
 import csstype.ClassName
-import kotlinx.browser.window
-import kotlinx.coroutines.await
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -30,6 +27,8 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.strong
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
@@ -137,7 +136,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 onSelectedFileUpdate = { fileType ->
                     if (state.firstLoad) {
                         loadTests()
-                    } else if (selectedFile != null) {
+                    } else selectedFile?.let {
                         uploadTests()
                     }
                     setState {
@@ -313,21 +312,19 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         type: String,
         fileName: String,
         defaultValue: String,
-    ): String {
-        return props.currentUserInfo?.name?.let { userName ->
-            val response = get(
-                url = "$sandboxApiUrl/download-as-text?userName=$userName&type=$type&fileName=$fileName",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok) {
-                response.text().await()
-            } else {
-                postTestAsText(type, fileName, defaultValue)
-                defaultValue
-            }
-        } ?: "Unknown user"
-    }
+    ): String = props.currentUserInfo?.name?.let { userName ->
+        val response = get(
+            url = "$sandboxApiUrl/download-as-text?userName=$userName&type=$type&fileName=$fileName",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            response.text().await()
+        } else {
+            postTestAsText(type, fileName, defaultValue)
+            defaultValue
+        }
+    } ?: "Unknown user"
 
     companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         private val configExample = """
