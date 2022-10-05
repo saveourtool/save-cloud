@@ -3,15 +3,21 @@
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faDownload
+import com.saveourtool.save.frontend.externals.fontawesome.faUpload
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.externals.reactace.aceBuilder
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.useOnceAction
+import com.saveourtool.save.frontend.utils.withUnusedArg
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
@@ -51,6 +57,16 @@ external interface CodeEditorComponentProps : Props {
      * Callback invoked on ace editor change
      */
     var onEditorTextUpdate: (String) -> Unit
+
+    /**
+     * Action to save changes
+     */
+    var doUploadChanges: () -> Unit
+
+    /**
+     * Action to reload changes
+     */
+    var doReloadChanges: () -> Unit
 }
 
 /**
@@ -71,6 +87,8 @@ private fun ChildrenBuilder.displayEditorToolbar(
     selectedFileType: FileType?,
     setSelectedMode: (String) -> Unit,
     setSelectedTheme: (String) -> Unit,
+    onUploadChanges: () -> Unit,
+    onReloadChanges: () -> Unit,
     onFileTypeChange: (FileType) -> Unit,
 ) {
     toolbarCard {
@@ -78,6 +96,23 @@ private fun ChildrenBuilder.displayEditorToolbar(
             className = ClassName("input-group")
             div {
                 className = ClassName("input-group-prepend")
+
+                button {
+                    className = ClassName("btn btn-outline-primary")
+                    onClick = onUploadChanges.withUnusedArg()
+                    fontAwesomeIcon(icon = faUpload)
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "top"
+                    title = "Save changes on server"
+                }
+                button {
+                    className = ClassName("btn btn-outline-primary")
+                    onClick = onReloadChanges.withUnusedArg()
+                    fontAwesomeIcon(icon = faDownload)
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "top"
+                    title = "Load changes from server"
+                }
                 FileType.values().forEach { fileType ->
                     buttonBuilder(
                         fileType.prettyName,
@@ -112,6 +147,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
 private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
     val (selectedMode, setSelectedMode) = useState(AceModes.KOTLIN)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.CHROME)
+    val firstLoader = useOnceAction()
     div {
         h6 {
             className = ClassName("text-center text-primary")
@@ -127,7 +163,15 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             { newThemeName ->
                 setSelectedTheme(AceThemes.values().find { it.themeName == newThemeName }!!)
             },
+            onUploadChanges = props.doUploadChanges,
+            onReloadChanges = props.doReloadChanges,
         ) { fileType ->
+            firstLoader {
+                props.doReloadChanges()
+            }
+            props.selectedFile?.run {
+                props.doUploadChanges()
+            }
             if (fileType == props.selectedFile) {
                 props.onSelectedFileUpdate(null)
             } else {
