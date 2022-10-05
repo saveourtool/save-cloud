@@ -27,7 +27,11 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.strong
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+
+val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
 /**
  * [Props] of [SandboxView]
@@ -96,9 +100,9 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
 @OptIn(ExperimentalJsExport::class)
 class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     init {
-        state.codeText = codeExample
-        state.configText = configExample
-        state.setupShText = setupShExample
+        state.codeText = ""
+        state.configText = ""
+        state.setupShText = ""
         state.debugInfo = null
         state.files = mutableListOf()
         state.suiteByteSize = 0
@@ -143,6 +147,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                             else -> { }
                         }
                     }
+                }
+                doUploadChanges = {
+                    uploadTests()
+                }
+                doReloadChanges = {
+                    reloadTests()
                 }
             }
         }
@@ -242,6 +252,67 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             }
         }
     }
+
+    private fun uploadTests() {
+        scope.launch {
+            setState {
+                isUploading = true
+            }
+
+            postTestAsText("test", "test", state.codeText)
+            postTestAsText("test-resource", "save.toml", state.configText)
+            postTestAsText("test-resource", "setup.sh", state.setupShText)
+
+            setState {
+                isUploading = false
+            }
+        }
+    }
+
+    private fun reloadTests() {
+        scope.launch {
+            val newCodeText = getTestAsText("test", "test", codeExample)
+            val newConfigText = getTestAsText("test-resource", "save.toml", configExample)
+            val newSetupShText = getTestAsText("test-resource", "setup.sh", setupShExample)
+
+            setState {
+                codeText = newCodeText
+                configText = newConfigText
+                setupShText = newSetupShText
+            }
+        }
+    }
+
+    private suspend fun postTestAsText(
+        urlPart: String,
+        fileName: String,
+        text: String,
+    ) {
+        post(
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            headers = jsonHeaders,
+            body = text,
+            loadingHandler = ::noopLoadingHandler,
+        )
+    }
+
+    private suspend fun getTestAsText(
+        urlPart: String,
+        fileName: String,
+        defaultValue: String,
+    ): String = props.currentUserInfo?.name?.let { userName ->
+        val response = get(
+            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            response.text().await()
+        } else {
+            postTestAsText(urlPart, fileName, defaultValue)
+            defaultValue
+        }
+    } ?: "Unknown user"
 
     companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         private val configExample = """
