@@ -25,6 +25,7 @@ dependencyResolutionManagement {
 
 include("api-gateway")
 include("save-backend")
+include("save-orchestrator-common")
 include("save-orchestrator")
 include("save-frontend")
 include("save-cloud-common")

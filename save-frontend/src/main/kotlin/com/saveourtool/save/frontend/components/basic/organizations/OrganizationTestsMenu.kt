@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.manageTestSuitePermissionsComponent
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -24,8 +25,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
-
-import kotlinx.serialization.json.*
 
 /**
  * TESTS tab in OrganizationView
@@ -129,7 +128,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
-
+    val testSuitePermissionModalOpener = useWindowOpenness()
+    manageTestSuitePermissionsComponent {
+        organizationName = props.organizationName
+        isModalOpen = testSuitePermissionModalOpener.isOpen()
+        closeModal = testSuitePermissionModalOpener.closeWindowAction()
+    }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
         testSuitesSourceWithId = testSuiteSourceWithIdToUpsert,
@@ -139,15 +143,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
     }
     div {
         className = ClassName("d-flex justify-content-center mb-3")
-        button {
-            type = ButtonType.button
-            className = ClassName("btn btn-sm btn-primary")
-            disabled = !props.selfRole.hasWritePermission()
-            onClick = {
-                setTestSuiteSourceWithIdToUpsert(null)
-                testSuitesSourceUpsertWindowOpenness.openWindow()
-            }
-            +"+ Create test suites source"
+        buttonBuilder("+ Create test suites source", "primary", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2") {
+            setTestSuiteSourceWithIdToUpsert(null)
+            testSuitesSourceUpsertWindowOpenness.openWindow()
+        }
+        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
+            testSuitePermissionModalOpener.openWindow()
         }
     }
     div {

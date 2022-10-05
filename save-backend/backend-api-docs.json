@@ -436,6 +436,102 @@
               }
             }
           },
+          "409": {
+            "description": "Cannot set Rights.NONE with this method.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/{ownerOrganizationName}/batch-set-rights": {
+      "post": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Set organization\u0027s rights for given test suite.",
+        "description": "Set organization\u0027s rights for given test suite.",
+        "operationId": "setRightsBatched",
+        "parameters": [
+          {
+            "name": "ownerOrganizationName",
+            "in": "path",
+            "description": "name of an organization-maintainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRightsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Given organization has been forbidden to change given test suite rights",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization, test suite or organization-maintainer doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Rights changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -7467,7 +7563,8 @@
       "SetRightsRequest": {
         "required": [
           "organizationName",
-          "rights"
+          "rights",
+          "testSuiteIds"
         ],
         "type": "object",
         "properties": {
@@ -7481,6 +7578,13 @@
               "NONE",
               "USE"
             ]
+          },
+          "testSuiteIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
           }
         }
       },

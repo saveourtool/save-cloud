@@ -44,7 +44,27 @@ fun ChildrenBuilder.displayModal(
 }
 
 /**
- * Universal function to create modals ащк confirmation.
+ * Universal function to create modals with bootstrap styles inside react modals.
+ *
+ * @param opener [WindowOpenness]
+ * @param title title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+fun ChildrenBuilder.displayModal(
+    opener: WindowOpenness,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    displayModal(opener.isOpen(), title, message, modalStyle, opener.closeWindowAction(), buttonBuilder)
+}
+
+/**
+ * Universal function to create modals for confirmation.
  *
  * @param windowOpenness
  * @param title title of the modal that will be shown in top-left corner
@@ -71,6 +91,33 @@ fun ChildrenBuilder.displayConfirmationModal(
             windowOpenness.closeWindow()
         }
         buttonBuilder("Cancel", "secondary") {
+            windowOpenness.closeWindow()
+        }
+    }
+}
+
+/**
+ * Universal function to create modals for confirmation.
+ *
+ * @param windowOpenness
+ * @param title title of the modal that will be shown in top-left corner
+ * @param message main text that will be shown in the center of modal
+ * @param modalStyle [Styles] that will be applied to react modal
+ */
+fun ChildrenBuilder.displayInfoModal(
+    windowOpenness: WindowOpenness,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+) {
+    displayModal(
+        isOpen = windowOpenness.isOpen(),
+        title = title,
+        message = message,
+        modalStyle = modalStyle,
+        onCloseButtonPressed = windowOpenness.closeWindowAction()
+    ) {
+        buttonBuilder("Ok") {
             windowOpenness.closeWindow()
         }
     }
@@ -107,18 +154,20 @@ fun ChildrenBuilder.modalBuilder(
  * Universal function to create modals with bootstrap styles.
  *
  * @param title title of the modal that will be shown in top-left corner
+ * @param classes
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param bodyBuilder lambda that generates body of modal
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
  */
 fun ChildrenBuilder.modalBuilder(
     title: String,
+    classes: String = "",
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     div {
-        className = ClassName("modal-dialog")
+        className = ClassName("modal-dialog $classes")
         div {
             className = ClassName("modal-content")
             div {

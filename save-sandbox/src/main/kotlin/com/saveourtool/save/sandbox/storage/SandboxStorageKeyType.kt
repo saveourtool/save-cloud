@@ -7,5 +7,6 @@ enum class SandboxStorageKeyType {
     DEBUG_INFO,
     FILE,
     TEST,
+    TEST_RESOURCE,
     ;
 }

@@ -5,6 +5,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.spring.entity.BaseEntity
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.EnumType
@@ -38,34 +39,12 @@ class AgentStatus(
 }
 
 /**
- * @property state current state of the agent
- * @property containerId id of the agent's container
- * @property time
+ * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
+ * @return [AgentStatus] built from [AgentStatusDto]
  */
-data class AgentStatusDto(
-    val time: LocalDateTime,
-    val state: AgentState,
-    val containerId: String,
-) {
-    /**
-     * @param agentResolver resolver for [Agent] by [AgentStatusDto.containerId]
-     * @return [AgentStatus] built from [AgentStatusDto]
-     */
-    fun toEntity(agentResolver: (String) -> Agent) = AgentStatus(
-        startTime = time,
-        endTime = time,
-        state = state,
-        agent = agentResolver(containerId)
-    )
-}
-
-/**
- * Statuses of a group of agents for a single Execution
- *
- * @property executionId id of Execution
- * @property agentStatuses list of [AgentStatusDto]s
- */
-data class AgentStatusesForExecution(
-    val executionId: Long,
-    val agentStatuses: List<AgentStatusDto>,
+fun AgentStatusDto.toEntity(agentResolver: (String) -> Agent) = AgentStatus(
+    startTime = time,
+    endTime = time,
+    state = state,
+    agent = agentResolver(containerId)
 )

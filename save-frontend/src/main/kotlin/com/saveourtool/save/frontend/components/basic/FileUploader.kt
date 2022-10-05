@@ -96,11 +96,6 @@ external interface UploaderProps : PropsWithChildren {
     var files: List<FileInfo>
 
     /**
-     * Submit button was pressed
-     */
-    var isSubmitButtonPressed: Boolean?
-
-    /**
      * General size of test suite in bytes
      */
     var suiteByteSize: Long
@@ -222,7 +217,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     select {
-                        className = ClassName("form-control")
+                        className = ClassName("form-control custom-select")
                         value = "default"
                         option {
                             value = "default"
@@ -244,6 +239,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     label {
+                        className = ClassName("btn btn-outline-secondary m-0")
                         input {
                             type = InputType.file
                             multiple = true
@@ -256,7 +252,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                         asDynamic()["data-toggle"] = "tooltip"
                         asDynamic()["data-placement"] = "top"
                         title = "Regular files/Executable files/ZIP Archives"
-                        strong { +"Upload files:" }
+                        strong { +" Upload files:" }
                     }
                 }
 
