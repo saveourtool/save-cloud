@@ -80,3 +80,17 @@ configMap:
     - key: application.properties
       path: application.properties
 {{- end}}
+
+{{- define "spring-boot.sa-token-mount" -}}
+name: service-account-projected-token
+mountPath: /var/run/secrets/tokens
+{{- end }}
+
+{{- define "spring-boot.sa-token-volume" -}}
+name: service-account-projected-token
+projected:
+  sources:
+    - serviceAccountToken:
+        path: service-account-projected-token
+        expirationSeconds: 7200
+{{- end}}

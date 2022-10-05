@@ -36,8 +36,7 @@ spec:
               mountPath: /home/cnb/files
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
-            - name: service-account-projected-token
-              mountPath: /var/run/secrets/tokens
+            - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -112,9 +111,4 @@ spec:
             secretName: db-secrets
         - name: migrations-data
           emptyDir: {}
-        - name: service-account-projected-token
-          projected:
-            sources:
-              - serviceAccountToken:
-                  path: sa-token
-                  expirationSeconds: 7200
+        - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.backend) | indent 10 | trim }}
