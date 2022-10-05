@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-
+import org.springframework.security.core.Authentication
 import java.nio.ByteBuffer
 
 import kotlin.io.path.createTempDirectory
@@ -41,7 +41,7 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param userId
+     * @param authentication
      * @return content of requested snapshot
      */
     @PostMapping(
@@ -49,7 +49,7 @@ class SandboxInternalController(
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
     )
     fun downloadTestFiles(
-        @RequestParam userId: Long,
+        authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> {
         val archiveFile = kotlin.io.path.createTempFile(
             prefix = "tests-",
@@ -58,7 +58,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list(userId, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
+                storage.list((authentication.details as AuthenticationDetails).id, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()

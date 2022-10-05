@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.utils
 
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
