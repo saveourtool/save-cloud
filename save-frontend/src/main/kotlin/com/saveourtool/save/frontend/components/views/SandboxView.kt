@@ -152,7 +152,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                     uploadTests()
                 }
                 doReloadChanges = {
-                    loadTests()
+                    reloadTests()
                 }
             }
         }
@@ -269,7 +269,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         }
     }
 
-    private fun loadTests() {
+    private fun reloadTests() {
         scope.launch {
             val newCodeText = getTestAsText("test", "test", codeExample)
             val newConfigText = getTestAsText("test-resource", "save.toml", configExample)
