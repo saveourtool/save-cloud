@@ -7,9 +7,9 @@ import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
 import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
+import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
-import com.saveourtool.save.storage.Storage
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.overwrite
@@ -35,11 +35,22 @@ import javax.transaction.Transactional
 @RequestMapping("/sandbox/api")
 class SandboxController(
     val configProperties: ConfigProperties,
-    val storage: Storage<SandboxStorageKey>,
+    val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
     val sandboxUserRepository: SandboxUserRepository,
     val agentsController: AgentsController,
 ) {
+    /**
+     * @param userName
+     * @return list of available files for provided [userName]
+     */
+    @GetMapping("/list-file")
+    fun listFiles(
+        @RequestParam userName: String,
+    ): Flux<String> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
+        .flatMapMany { userId -> storage.list(userId, SandboxStorageKeyType.FILE) }
+        .map { it.fileName }
+
     /**
      * @param userName
      * @param file
@@ -58,6 +69,34 @@ class SandboxController(
                 )
             }
     }
+
+    /**
+     * @param userName
+     * @param fileName
+     * @return count of written bytes
+     */
+    @GetMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    fun downloadFile(
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+    ): Flux<ByteBuffer> = getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, fileName)
+        .flatMapMany {
+            storage.download(it)
+        }
+
+    /**
+     * @param userName
+     * @param fileName
+     * @return result of delete operation
+     */
+    @DeleteMapping("/delete-file")
+    fun deleteFile(
+        @RequestParam userName: String,
+        @RequestParam fileName: String,
+    ): Mono<Boolean> = getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, fileName)
+        .flatMap {
+            storage.delete(it)
+        }
 
     /**
      * @param userName
@@ -152,7 +191,7 @@ class SandboxController(
      * @return [Mono] with content of DebugInfo
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
-    @PostMapping(path = ["/get-debug-info"])
+    @GetMapping(path = ["/get-debug-info"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun getDebugInfo(
         @RequestParam userId: Long,
     ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userId))
