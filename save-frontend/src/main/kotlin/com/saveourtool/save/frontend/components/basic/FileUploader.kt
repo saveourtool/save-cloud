@@ -6,20 +6,17 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.FileKey
-import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.domain.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.v1
 
 import csstype.ClassName
 import csstype.Width
-import kotlinx.browser.window
-import kotlinx.coroutines.launch
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLSelectElement
+import org.w3c.dom.asList
+import org.w3c.fetch.Headers
+import org.w3c.files.File
+import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
@@ -34,17 +31,9 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
 
+import kotlinx.browser.window
 import kotlinx.js.jso
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.w3c.dom.asList
-import org.w3c.fetch.Headers
-import org.w3c.files.File
-import org.w3c.xhr.FormData
 
-/**
- * Component used to upload file
- */
 val fileUploader = fileUploader()
 
 /**
@@ -52,35 +41,40 @@ val fileUploader = fileUploader()
  */
 @Suppress("TYPE_ALIAS", "EMPTY_BLOCK_STRUCTURE_ERROR")
 internal val fileIconWithMode: FC<FileIconProps> = FC { props ->
-    span {
-        className = ClassName("fa-layers mr-3")
-        title = "Click to mark file ${if (props.fileInfo.isExecutable) "regular" else "executable"}"
-        asDynamic()["data-toggle"] = "tooltip"
-        asDynamic()["data-placement"] = "top"
-        // if file was not executable, after click it will be; and vice versa
-        onClick = { _ ->
-            // hide previous tooltip, otherwise it gets stuck during re-render
-            val jquery = kotlinext.js.require("jquery")
-            jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
-            props.onExecutableChange(props.fileInfo, !props.fileInfo.isExecutable)
-        }
-        onDoubleClick = {}
-        val checked = props.fileInfo.isExecutable
-        fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
-            if (checked) {
-                asDynamic()["color"] = "Green"
-            }
-        }
+    if (props.fileInfo is FileInfo) {
+        val fileInfo = props.fileInfo as FileInfo
         span {
-            className = ClassName("fa-layers-text file-extension fa-inverse pl-2 pt-2 small")
+            className = ClassName("fa-layers mr-3")
+            title = "Click to mark file ${if (fileInfo.isExecutable) "regular" else "executable"}"
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
+            // if file was not executable, after click it will be; and vice versa
+            onClick = { _ ->
+                // hide previous tooltip, otherwise it gets stuck during re-render
+                val jquery = kotlinext.js.require("jquery")
+                jquery("[data-toggle=\"tooltip\"]").tooltip("hide")
+                props.onExecutableChange(!fileInfo.isExecutable)
+            }
             onDoubleClick = {}
-            asDynamic()["data-fa-transform"] = "down-3 shrink-12.5"
-            if (checked) {
-                +"exe"
-            } else {
-                +"file"
+            val checked = fileInfo.isExecutable
+            fontAwesomeIcon(icon = faFile, classes = "fa-2x") {
+                if (checked) {
+                    asDynamic()["color"] = "Green"
+                }
+            }
+            span {
+                className = ClassName("fa-layers-text file-extension fa-inverse pl-2 pt-2 small")
+                onDoubleClick = {}
+                asDynamic()["data-fa-transform"] = "down-3 shrink-12.5"
+                if (checked) {
+                    +"exe"
+                } else {
+                    +"file"
+                }
             }
         }
+    } else {
+        fontAwesomeIcon(icon = faFile, classes = "fa-2x")
     }
 }
 
@@ -89,18 +83,34 @@ internal val fileIconWithMode: FC<FileIconProps> = FC { props ->
  */
 external interface UploaderProps : PropsWithChildren {
     /**
-     * Header of the card
+     * List of currently selected files.
      */
-    var header: String
+    var selectedFiles: List<AbstractFileInfo>
 
     /**
-     * Organization and project names
+     * Callback to update [selectedFiles]
      */
-    var projectCoordinates: ProjectCoordinates?
+    var setSelectedFiles: (List<AbstractFileInfo>) -> Unit
 
-    var selectedFiles: List<FileInfo>
+    /**
+     * Url for fetching existing in storage files
+     */
+    var urlForAvailableFilesFetch: String?
 
-    var setSelectedFiles: (List<FileInfo>) -> Unit
+    /**
+     * Callback to get url for file uploading to storage
+     */
+    var getUrlForFileUpload: () -> String
+
+    /**
+     * Callback to get url for file downloading from storage
+     */
+    var getUrlForFileDownload: (AbstractFileInfo) -> String
+
+    /**
+     * Callback to get url for file deletion from storage
+     */
+    var getUrlForFileDeletion: (AbstractFileInfo) -> String
 }
 
 /**
@@ -110,50 +120,48 @@ external interface FileIconProps : Props {
     /**
      * [FileInfo] to base the icon on
      */
-    var fileInfo: FileInfo
+    var fileInfo: AbstractFileInfo
 
     /**
      * a handler that is invoked when icon is clicked
      */
     @Suppress("TYPE_ALIAS")
-    var onExecutableChange: (file: FileInfo, checked: Boolean) -> Unit
+    var onExecutableChange: (checked: Boolean) -> Unit
 }
-
-private fun FileKey.getHref() =
-        "/api/$v1/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/download?name=$name&uploadedMillis=$uploadedMillis"
 
 @Suppress(
     "TOO_LONG_FUNCTION",
     "TYPE_ALIAS",
     "LongMethod",
+    "ComplexMethod",
 )
 private fun fileUploader() = FC<UploaderProps> { props ->
     val (bytesReceived, setBytesReceived) = useState(0L)
     val (suiteByteSize, setSuiteByteSize) = useState(0L)
-    val (availableFiles, setAvailableFiles) = useState<List<FileInfo>>(emptyList())
+    val (availableFiles, setAvailableFiles) = useState<List<AbstractFileInfo>>(emptyList())
     useRequest {
-        get(
-            "$apiUrl/files/${props.projectCoordinates}/list",
-            jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-            .unsafeMap {
-                it.decodeFromJsonString<List<FileInfo>>()
-            }
-            .also {
-                setAvailableFiles(it)
-            }
+        props.urlForAvailableFilesFetch?.let { urlForAvailableFilesFetch ->
+            get(
+                urlForAvailableFilesFetch,
+                jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+            )
+                .unsafeMap {
+                    it.decodeFromJsonString<List<FileInfo>>()
+                }
+                .also {
+                    setAvailableFiles(it)
+                }
+        }
     }
 
-    val (fileToDelete, setFileToDelete) = useState<FileInfo?>(null)
+    val (fileToDelete, setFileToDelete) = useState<AbstractFileInfo?>(null)
     val deleteFile = useDeferredRequest {
         fileToDelete?.let {
             val response = delete(
-                with(fileToDelete.key) {
-                    "${apiUrl}/files/$projectCoordinates/delete?name=$name&uploadedMillis=$uploadedMillis"
-                },
+                props.getUrlForFileDeletion(fileToDelete),
                 jsonHeaders,
-                Json.encodeToString(fileToDelete),
+                undefined,
                 loadingHandler = ::noopLoadingHandler,
             )
 
@@ -176,7 +184,7 @@ private fun fileUploader() = FC<UploaderProps> { props ->
 
         filesForUploading.forEach { file ->
             val response: FileInfo = post(
-                "$apiUrl/files/${props.projectCoordinates}/upload",
+                props.getUrlForFileUpload(),
                 Headers(),
                 FormData().apply {
                     append("file", file)
@@ -185,7 +193,6 @@ private fun fileUploader() = FC<UploaderProps> { props ->
             )
                 .decodeFromJsonString()
 
-                // add only to selected files so that this entry isn't duplicated
             props.setSelectedFiles(props.selectedFiles + response)
             setBytesReceived(bytesReceived + response.sizeBytes)
         }
@@ -194,70 +201,69 @@ private fun fileUploader() = FC<UploaderProps> { props ->
     }
 
     div {
-        className = ClassName("mb-3")
-        div {
-            className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
-            +props.header
-        }
-
-        div {
-            label {
-                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                +"1. Upload or select the tool (and other resources) for testing:"
-            }
-
-            ul {
-                className = ClassName("list-group")
-                props.selectedFiles.map { fileInfo ->
-                    li {
-                        className = ClassName("list-group-item")
+        ul {
+            className = ClassName("list-group")
+            props.selectedFiles.map { file ->
+                li {
+                    className = ClassName("list-group-item")
+                    if (file is FileInfo) {
                         button {
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
                             onClick = {
-                                props.setSelectedFiles(props.selectedFiles - fileInfo)
-                                setAvailableFiles(availableFiles + fileInfo)
-                                setBytesReceived(bytesReceived - fileInfo.sizeBytes)
-                                setSuiteByteSize(suiteByteSize - fileInfo.sizeBytes)
+                                props.setSelectedFiles(props.selectedFiles - file)
+                                setAvailableFiles(availableFiles + file)
+                                setBytesReceived(bytesReceived - file.sizeBytes)
+                                setSuiteByteSize(suiteByteSize - file.sizeBytes)
                             }
                         }
-                        a {
-                            button {
-                                className = ClassName("btn")
-                                fontAwesomeIcon(icon = faDownload)
-                            }
-                            download = fileInfo.key.name
-                            href = fileInfo.key.getHref()
-                        }
+                    }
+                    a {
                         button {
                             className = ClassName("btn")
-                            fontAwesomeIcon(icon = faTrash)
-                            onClick = {
-                                val confirm = window.confirm(
-                                    "Are you sure you want to delete ${fileInfo.key.name} file?"
-                                )
-                                if (confirm) {
-                                    setFileToDelete(fileInfo)
-                                    deleteFile()
-                                }
+                            fontAwesomeIcon(icon = faDownload)
+                        }
+                        download = file.name
+                        href = props.getUrlForFileDownload(file)
+                    }
+                    button {
+                        className = ClassName("btn")
+                        fontAwesomeIcon(icon = faTrash)
+                        onClick = {
+                            val confirm = window.confirm(
+                                "Are you sure you want to delete ${file.name} file?"
+                            )
+                            if (confirm) {
+                                setFileToDelete(file)
+                                deleteFile()
                             }
                         }
-                        fileIconWithMode {
-                            this.fileInfo = fileInfo
-                            this.onExecutableChange = { selectedFile, checked ->
-                                setAvailableFiles { oldAvailableFiles ->
-                                    oldAvailableFiles.apply {
-                                        toMutableList().add(
-                                            availableFiles.indexOf(selectedFile),
-                                            selectedFile.copy(isExecutable = checked),
+                    }
+                    fileIconWithMode {
+                        this.fileInfo = file
+                        this.onExecutableChange = { checked ->
+                            if (file is FileInfo) {
+                                val index = props.selectedFiles.indexOf(file)
+                                props.selectedFiles.toMutableList()
+                                    .apply {
+                                        removeAt(index)
+                                        add(
+                                            index,
+                                            file.copy(isExecutable = checked),
                                         )
                                     }
-                                }
+                                    .toList()
+                                    .let {
+                                        props.setSelectedFiles(it)
+                                    }
                             }
                         }
-                        +fileInfo.toPrettyString()
                     }
+
+                    +file.toPrettyString()
                 }
+            }
+            props.urlForAvailableFilesFetch?.let {
                 li {
                     className = ClassName("list-group-item d-flex justify-content-between align-items-center")
                     select {
@@ -268,15 +274,22 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                             disabled = true
                             +"Select a file from existing"
                         }
-                        availableFiles.sortedByDescending { it.key.uploadedMillis }.map {
+
+                        availableFiles.sortedByDescending {
+                            if (it is FileInfo) {
+                                it.key.uploadedMillis
+                            } else {
+                                it.sizeBytes
+                            }
+                        }.map {
                             option {
                                 className = ClassName("list-group-item")
-                                value = it.key.name
+                                value = it.name
                                 +it.toPrettyString()
                             }
                         }
                         onChange = { event ->
-                            val availableFile = availableFiles.first { it.key.name == event.target.value }
+                            val availableFile = availableFiles.first { it.name == event.target.value }
                             props.setSelectedFiles(props.selectedFiles + availableFile)
                             setBytesReceived(bytesReceived + availableFile.sizeBytes)
                             setSuiteByteSize(suiteByteSize + availableFile.sizeBytes)
@@ -284,41 +297,41 @@ private fun fileUploader() = FC<UploaderProps> { props ->
                         }
                     }
                 }
-                li {
-                    className = ClassName("list-group-item d-flex justify-content-between align-items-center")
-                    label {
-                        className = ClassName("btn btn-outline-secondary m-0")
-                        input {
-                            type = InputType.file
-                            multiple = true
-                            hidden = true
-                            onChange = {
-                                setFilesForUploading(it.target.files!!.asList())
-                                uploadFiles()
-                            }
+            }
+            li {
+                className = ClassName("list-group-item d-flex justify-content-between align-items-center")
+                label {
+                    className = ClassName("btn btn-outline-secondary m-0")
+                    input {
+                        type = InputType.file
+                        multiple = true
+                        hidden = true
+                        onChange = {
+                            setFilesForUploading(it.target.files!!.asList())
+                            uploadFiles()
                         }
-                        fontAwesomeIcon(icon = faUpload)
-                        asDynamic()["data-toggle"] = "tooltip"
-                        asDynamic()["data-placement"] = "top"
-                        title = "Regular files/Executable files/ZIP Archives"
-                        strong { +" Upload files:" }
                     }
+                    fontAwesomeIcon(icon = faUpload)
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "top"
+                    title = "Regular files/Executable files/ZIP Archives"
+                    strong { +" Upload files:" }
                 }
+            }
 
+            div {
+                className = ClassName("progress")
+                hidden = !isUploading
                 div {
-                    className = ClassName("progress")
-                    hidden = !isUploading
-                    div {
-                        className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
-                        style = jso {
-                            width = if (suiteByteSize != 0L) {
-                                "${ (100 * bytesReceived / suiteByteSize) }%"
-                            } else {
-                                "100%"
-                            }.unsafeCast<Width>()
-                        }
-                        +"${bytesReceived / 1024} / ${suiteByteSize / 1024} kb"
+                    className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
+                    style = jso {
+                        width = if (suiteByteSize != 0L) {
+                            "${ (100 * bytesReceived / suiteByteSize) }%"
+                        } else {
+                            "100%"
+                        }.unsafeCast<Width>()
                     }
+                    +"${bytesReceived / 1024} / ${suiteByteSize / 1024} kb"
                 }
             }
         }

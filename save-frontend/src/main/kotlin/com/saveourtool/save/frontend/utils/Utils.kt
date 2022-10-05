@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.domain.AbstractFileInfo
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 
@@ -33,11 +34,15 @@ import kotlinx.serialization.json.Json
  * @return a nicely formatted string representation of [FileInfo]
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
-fun FileInfo.toPrettyString() = "${key.name} (uploaded at ${
-    Instant.fromEpochMilliseconds(key.uploadedMillis).toLocalDateTime(
-        TimeZone.UTC
-    )
-}, size ${sizeBytes / 1024} KiB)"
+fun AbstractFileInfo.toPrettyString() = if (this is FileInfo) {
+    "${key.name} (uploaded at ${
+        Instant.fromEpochMilliseconds(key.uploadedMillis).toLocalDateTime(
+            TimeZone.UTC
+        )
+    }, size ${sizeBytes / 1024} KiB)"
+} else {
+    name
+}
 
 /**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization

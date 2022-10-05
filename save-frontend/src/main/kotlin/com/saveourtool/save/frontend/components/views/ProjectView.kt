@@ -34,21 +34,18 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import history.Location
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -96,12 +93,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Files required for tests execution for this project
      */
-    var files: MutableList<FileInfo>
-
-    /**
-     * Files that are available on server side
-     */
-    var availableFiles: MutableList<FileInfo>
+    var files: List<FileInfo>
 
     /**
      * Message of error
@@ -154,16 +146,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var batchSizeForAnalyzer: String
 
     /**
-     * General size of test suite in bytes
-     */
-    var suiteByteSize: Long
-
-    /**
-     * Bytes received by server
-     */
-    var bytesReceived: Long
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -205,11 +187,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.errorMessage = ""
         state.errorLabel = ""
         state.files = mutableListOf()
-        state.availableFiles = mutableListOf()
         state.selectedSdk = Sdk.Default.name
         state.selectedSdkVersion = Sdk.Default.version
-        state.suiteByteSize = state.files.sumOf { it.sizeBytes }
-        state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -271,12 +250,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             }
 
             urlAnalysis(ProjectMenuBar, role, false)
-
-            val availableFiles = getFilesList(project.organization.name, project.name)
-            setState {
-                this.availableFiles.clear()
-                this.availableFiles.addAll(availableFiles)
-            }
 
             val contests = getContests()
             setState {
@@ -459,8 +432,37 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 }
 
                 // ======== file selector =========
-                fileUploader {
-                    projectCoordinates = ProjectCoordinates(props.owner, props.name)
+                div {
+                    label {
+                        className =
+                                ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                        +"1. Upload or select the tool (and other resources) for testing:"
+                    }
+                    fileUploader {
+                        selectedFiles = state.files
+                        urlForAvailableFilesFetch = "$apiUrl/files/${props.owner}/${props.name}/list"
+                        getUrlForFileUpload = {
+                            "$apiUrl/files/${props.owner}/${props.name}/upload"
+                        }
+                        getUrlForFileDownload = { fileInfo ->
+                            fileInfo as FileInfo
+                            with(fileInfo.key) {
+                                "$apiUrl/files/$projectCoordinates/download?name=$name&uploadedMillis=$uploadedMillis"
+                            }
+                        }
+                        getUrlForFileDeletion = { fileInfo ->
+                            fileInfo as FileInfo
+                            with(fileInfo.key) {
+                                "$apiUrl/files/$projectCoordinates/delete?name=$name&uploadedMillis=$uploadedMillis"
+                            }
+                        }
+                        setSelectedFiles = { newFiles ->
+                            val newFileInfos = newFiles.map { it as FileInfo }
+                            setState {
+                                files = newFileInfos
+                            }
+                        }
+                    }
                 }
 
                 // ======== sdk selection =========
@@ -614,28 +616,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         }
     }
 
-    private fun fileDelete(file: FileInfo) {
-        scope.launch {
-            val response = delete(
-                with(file.key) {
-                    "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
-                },
-                jsonHeaders,
-                Json.encodeToString(file),
-                loadingHandler = ::noopLoadingHandler,
-            )
-
-            if (response.ok) {
-                setState {
-                    files.remove(file)
-                    bytesReceived -= file.sizeBytes
-                    suiteByteSize -= file.sizeBytes
-                }
-            }
-        }
-    }
-
-
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
             className = ClassName(divClass)
@@ -684,18 +664,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             }
         }
     }
-
-    private suspend fun getFilesList(
-        organizationName: String,
-        projectName: String,
-    ) = get(
-        "$apiUrl/files/$organizationName/$projectName/list",
-        jsonHeaders,
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<List<FileInfo>>()
-        }
 
     private suspend fun getContests() = get(
         "$apiUrl/contests/active",

@@ -43,9 +43,9 @@ class FileIconTest {
             val (fileInfo, setFileInfo) = useState(fileInfoForTest)
             fileIconWithMode {
                 this.fileInfo = fileInfo
-                onExecutableChange = { file, isChecked ->
+                onExecutableChange = { isChecked ->
                     setFileInfo(
-                        file.copy(isExecutable = isChecked)
+                        fileInfo.copy(isExecutable = isChecked)
                     )
                 }
             }
