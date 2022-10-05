@@ -10,6 +10,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.sandbox.utils.userId
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.springframework.core.io.ClassPathResource
@@ -58,7 +59,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list((authentication.details as AuthenticationDetails).id, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
+                storage.list(authentication.userId(), SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()
@@ -94,13 +95,13 @@ class SandboxInternalController(
      */
     @PostMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
-        @RequestParam userId: Long,
+        authentication: Authentication,
         @RequestParam fileName: String,
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         ResponseEntity.ok(
             storage.download(
                 SandboxStorageKey(
-                    userId = userId,
+                    userId = authentication.userId(),
                     type = SandboxStorageKeyType.FILE,
                     fileName = fileName,
                 )
