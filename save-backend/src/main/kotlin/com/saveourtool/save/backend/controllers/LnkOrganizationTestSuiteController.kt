@@ -21,6 +21,7 @@ import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.filters.TestSuiteFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -228,12 +229,22 @@ class LnkOrganizationTestSuiteController(
     @ApiResponse(responseCode = "200", description = "Rights changed")
     @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite rights")
     @ApiResponse(responseCode = "404", description = "Requested organization, test suite or organization-maintainer doesn't exist")
+    @ApiResponse(responseCode = "409", description = "Cannot set Rights.NONE with this method.")
     fun setRights(
         @PathVariable ownerOrganizationName: String,
         @PathVariable testSuiteId: Long,
         @RequestBody setRightsRequest: SetRightsRequest,
         authentication: Authentication,
-    ): Mono<StringResponse> = getTestSuiteAndOrganizationWithPermissions(testSuiteId, ownerOrganizationName, Permission.WRITE, authentication)
+    ): Mono<StringResponse> = Mono.just(setRightsRequest)
+        .filter {
+            it.rights != Rights.NONE
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Cannot set Rights.NONE with this method. Use DELETE method instead."
+        }
+        .flatMap {
+            getTestSuiteAndOrganizationWithPermissions(testSuiteId, ownerOrganizationName, Permission.WRITE, authentication)
+        }
         .filter { (organizationMaintainer, testSuite) ->
             testSuitePermissionEvaluator.hasPermission(organizationMaintainer, testSuite, Permission.WRITE, authentication)
         }
@@ -250,10 +261,80 @@ class LnkOrganizationTestSuiteController(
             "Organization with name ${setRightsRequest.organizationName} was not found."
         }
         .map { (requestedOrganization, testSuite) ->
-            lnkOrganizationTestSuiteService.setRights(requestedOrganization, testSuite, setRightsRequest.rights)
+            lnkOrganizationTestSuiteService.setOrDeleteRights(requestedOrganization, testSuite, setRightsRequest.rights)
             ResponseEntity.ok(
                 "Successfully set rights ${setRightsRequest.rights} for organization ${setRightsRequest.organizationName} over test suite ${testSuite.name}."
             )
+        }
+
+    @PostMapping("/{ownerOrganizationName}/batch-set-rights")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Set organization's rights for given test suite.",
+        description = "Set organization's rights for given test suite.",
+    )
+    @Parameters(
+        Parameter(name = "ownerOrganizationName", `in` = ParameterIn.PATH, description = "name of an organization-maintainer", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Rights changed")
+    @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite rights")
+    @ApiResponse(responseCode = "404", description = "Requested organization, test suite or organization-maintainer doesn't exist")
+    fun setRightsBatched(
+        @PathVariable ownerOrganizationName: String,
+        @RequestBody setRightsRequest: SetRightsRequest,
+        authentication: Authentication,
+    ): Mono<StringResponse> = getOrganizationWithPermissions(ownerOrganizationName, Permission.WRITE, authentication)
+        .zipWith(testSuitesService.findTestSuitesByIds(setRightsRequest.testSuiteIds).toMono())
+        .map { (organizationMaintainer, testSuites) ->
+            testSuites.filter { testSuite ->
+                testSuitePermissionEvaluator.hasPermission(
+                    organizationMaintainer,
+                    testSuite,
+                    if (setRightsRequest.rights == Rights.NONE) {
+                        Permission.DELETE
+                    } else {
+                        Permission.WRITE
+                    },
+                    authentication,
+                )
+            }
+        }
+        .flatMap { testSuites ->
+            Mono.zip(
+                organizationService.findByName(setRightsRequest.organizationName).toMono(),
+                testSuites.toMono(),
+            )
+        }
+        .switchIfEmptyToNotFound {
+            "Organization with name ${setRightsRequest.organizationName} was not found."
+        }
+        .map { (requestedOrganization, testSuites) ->
+            testSuites.forEach { testSuite ->
+                lnkOrganizationTestSuiteService.setOrDeleteRights(requestedOrganization, testSuite, setRightsRequest.rights)
+            }
+            testSuites
+        }
+        .map { testSuites ->
+            setRightsRequest.testSuiteIds.filter { testSuiteId ->
+                testSuiteId !in testSuites.map { it.requiredId() }
+            }
+        }
+        .map { listOfFilteredOutTestSuiteIds ->
+            val responseMessage: String = buildString {
+                append("Successfully ")
+                if (setRightsRequest.rights == Rights.NONE) {
+                    append("deleted")
+                } else {
+                    append("set")
+                }
+                append(" rights ${setRightsRequest.rights} for organization ${setRightsRequest.organizationName} over requested test suites. ")
+                if (listOfFilteredOutTestSuiteIds.isNotEmpty()) {
+                    append("Test suites [${listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")}] were skipped.")
+                }
+            }
+            ResponseEntity.ok(responseMessage)
         }
 
     @DeleteMapping("/{ownerOrganizationName}/{testSuiteId}/{requestedOrganizationName}")

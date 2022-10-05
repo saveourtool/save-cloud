@@ -497,17 +497,17 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                     }
                     availableContests = state.availableContests
                     // properties for PRIVATE_TESTS mode
-                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuites
-                    setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
+                    selectedPrivateTestSuiteDtos = state.selectedPrivateTestSuites
+                    setSelectedPrivateTestSuiteDtos = { selectedTestSuiteDtos ->
                         setState {
-                            this.selectedPrivateTestSuites = selectedTestSuiteIds
+                            this.selectedPrivateTestSuites = selectedTestSuiteDtos
                         }
                     }
                     // properties for PUBLIC_TESTS mode
-                    selectedPublicTestSuiteIds = state.selectedPublicTestSuites
-                    setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
+                    selectedPublicTestSuiteDtos = state.selectedPublicTestSuites
+                    setSelectedPublicTestSuiteDtos = { selectedTestSuiteDtos ->
                         setState {
-                            this.selectedPublicTestSuites = selectedTestSuiteIds
+                            this.selectedPublicTestSuites = selectedTestSuiteDtos
                         }
                     }
                     // properties for PRIVATE_TESTS and PUBLIC_TESTS modes

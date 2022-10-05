@@ -33,14 +33,12 @@ class LnkOrganizationTestSuiteService(
             lnkOrganizationTestSuiteRepository.findByOrganizationAndTestSuite(organization, testSuite)
 
     /**
-     * Set [rights] of [organization] over [testSuite].
-     *
-     * @throws IllegalStateException if [rights] is [Role.NONE]
+     * Set [rights] of [organization] over [testSuite] or delete them if [rights] is [Role.NONE].
      */
     @Suppress("KDOC_WITHOUT_PARAM_TAG")
-    fun setRights(organization: Organization, testSuite: TestSuite, rights: Rights) {
+    fun setOrDeleteRights(organization: Organization, testSuite: TestSuite, rights: Rights) {
         if (rights == Rights.NONE) {
-            throw IllegalStateException("NONE rights should not be present in database!")
+            removeRights(organization, testSuite)
         }
         val lnkOrganizationTestSuite = findByOrganizationAndTestSuite(organization, testSuite)
             ?.apply { this.rights = rights }

@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.permission.Rights
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import javax.persistence.*
 import javax.persistence.Entity
 import javax.persistence.Enumerated
