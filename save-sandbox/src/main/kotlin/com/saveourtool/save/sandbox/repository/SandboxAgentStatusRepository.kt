@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.repository
 
-import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.sandbox.entity.SandboxAgentStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
@@ -16,5 +15,5 @@ interface SandboxAgentStatusRepository : BaseEntityRepository<SandboxAgentStatus
      * @param containerId id of an agent
      * @return [SandboxAgentStatus] of an agent
      */
-    fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): AgentStatus?
+    fun findTopByAgentContainerIdOrderByEndTimeDescIdDesc(containerId: String): SandboxAgentStatus?
 }
