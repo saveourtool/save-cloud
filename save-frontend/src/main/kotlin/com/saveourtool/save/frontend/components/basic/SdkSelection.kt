@@ -6,8 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.getSdkVersions
-import com.saveourtool.save.domain.sdks
+import com.saveourtool.save.domain.*
 
 import csstype.ClassName
 import org.w3c.dom.HTMLSelectElement
@@ -18,6 +17,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.useState
 
 /**
  * Component for sdk selection
@@ -34,24 +34,14 @@ external interface SdkProps : PropsWithChildren {
     var title: String
 
     /**
-     * Name of the selected SDK
+     * The selected SDK
      */
-    var selectedSdkName: String
+    var selectedSdk: Sdk
 
     /**
-     * Version of the selected SDK
+     * Callback invoked when SDK is changed
      */
-    var selectedSdkVersion: String
-
-    /**
-     * Callback invoked when `input` for SDK name is changed
-     */
-    var onSdkChange: (HTMLSelectElement) -> Unit
-
-    /**
-     * Callback invoked when `input` for SDK version is changed
-     */
-    var onVersionChange: (HTMLSelectElement) -> Unit
+    var onSdkChange: (Sdk) -> Unit
 }
 
 private fun ChildrenBuilder.selection(
@@ -87,6 +77,9 @@ private fun ChildrenBuilder.selection(
 
 private fun sdkSelection() =
         FC<SdkProps> { props ->
+            val (sdkName, setSdkName) = useState(props.selectedSdk.name)
+            val (sdkVersion, setSdkVersion) = useState(props.selectedSdk.version)
+            val (sdkVersions, setSdkVersions) = useState(sdkName.getSdkVersions())
             label {
                 className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                 +props.title
@@ -99,20 +92,30 @@ private fun sdkSelection() =
                         className = ClassName("row no-gutters align-items-left")
                         selection(
                             "SDK",
-                            props.selectedSdkName,
+                            sdkName,
                             sdks,
-                            props.onSdkChange,
-                        )
+                        ) { element ->
+                            val newSdkName = element.value
+                            val newSdkVersions = newSdkName.getSdkVersions()
+                            val newSdkVersion = newSdkVersions.first()
+                            setSdkName(newSdkName)
+                            setSdkVersion(newSdkVersion)
+                            setSdkVersions(newSdkVersions)
+                            props.onSdkChange("$newSdkName:$newSdkVersion".toSdk())
+                        }
                     }
                     div {
                         className = ClassName("row no-gutters align-items-left")
                         className = ClassName("d-inline")
                         selection(
                             "Version",
-                            props.selectedSdkVersion,
-                            props.selectedSdkName.getSdkVersions(),
-                            props.onVersionChange,
-                        )
+                            sdkVersion,
+                            sdkVersions,
+                        ) { element ->
+                            val newSdkVersion = element.value
+                            setSdkVersion(newSdkVersion)
+                            props.onSdkChange("$sdkName:$newSdkVersion".toSdk())
+                        }
                     }
                 }
             }

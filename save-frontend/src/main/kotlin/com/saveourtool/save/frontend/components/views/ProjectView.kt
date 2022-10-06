@@ -113,12 +113,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Selected sdk
      */
-    var selectedSdk: String
-
-    /**
-     * Selected version
-     */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 
     /**
      * Flag to handle upload type project
@@ -187,8 +182,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.errorMessage = ""
         state.errorLabel = ""
         state.files = mutableListOf()
-        state.selectedSdk = Sdk.Default.name
-        state.selectedSdkVersion = Sdk.Default.version
+        state.selectedSdk = Sdk.Default
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -273,7 +267,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     }
 
     private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
@@ -281,7 +274,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ),
             testSuiteIds = selectedTestSuites.map { it.requiredId() },
             files = state.files.map { it.key },
-            sdk = selectedSdk,
+            sdk = state.selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
             testingType = testingType,
@@ -448,15 +441,12 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 // ======== sdk selection =========
                 sdkSelection {
                     title = "2. Select the SDK if needed:"
-                    selectedSdkName = state.selectedSdk
-                    selectedSdkVersion = state.selectedSdkVersion
+                    selectedSdk = state.selectedSdk
                     onSdkChange = {
                         setState {
-                            selectedSdk = it.value
-                            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+                            selectedSdk = it
                         }
                     }
-                    onVersionChange = { setState { selectedSdkVersion = it.value } }
                 }
 
                 // ======== test resources selection =========

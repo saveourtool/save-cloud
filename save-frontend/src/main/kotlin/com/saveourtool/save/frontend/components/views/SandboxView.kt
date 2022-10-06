@@ -4,8 +4,6 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.domain.getSdkVersions
-import com.saveourtool.save.domain.getSdks
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
@@ -97,14 +95,9 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     var selectedFile: FileType?
 
     /**
-     * Selected SDK name
+     * Selected SDK
      */
-    var selectedSdkName: String
-
-    /**
-     * Selected SDK version
-     */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 }
 
 /**
@@ -123,8 +116,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         state.isUploading = false
         state.bytesReceived = 0
         state.selectedFile = null
-        state.selectedSdkName = Sdk.Default.name
-        state.selectedSdkVersion = Sdk.Default.version
+        state.selectedSdk = Sdk.Default
     }
 
     override fun ChildrenBuilder.render() {
@@ -141,17 +133,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         // ======== sdk selection =========
         sdkSelection {
             title = "Select the SDK:"
-            selectedSdkName = state.selectedSdkName
-            selectedSdkVersion = state.selectedSdkVersion
-            onSdkChange = { element ->
+            selectedSdk = state.selectedSdk
+            onSdkChange = { newSdk ->
                 setState {
-                    selectedSdkName = element.value
-                    selectedSdkVersion = selectedSdkName.getSdkVersions().first()
-                }
-            }
-            onVersionChange = { element ->
-                setState {
-                    selectedSdkVersion = element.value
+                    selectedSdk = newSdk
                 }
             }
         }
@@ -354,7 +339,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     private fun runExecution() {
         scope.launch {
             post(
-                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdkName}:${state.selectedSdkVersion}",
+                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
                 headers = jsonHeaders,
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
