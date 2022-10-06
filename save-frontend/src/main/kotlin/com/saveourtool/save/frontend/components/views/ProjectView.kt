@@ -770,7 +770,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
-            val serializer = serializer<List<FileInfo>>()
             it.decodeFromJsonString<List<FileInfo>>()
         }
 

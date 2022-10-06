@@ -94,18 +94,6 @@ class SandboxController(
     }
 
     @Operation(
-        method = "POST",
-        summary = "Upload a test file as text for provided user with provide file name",
-        description = "Upload a test file as text for provided user with provide file name",
-    )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
-        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
-    @ApiResponse(responseCode = "404", description = "User with such name was not found")
-    @Operation(
         method = "GET",
         summary = "Get a file for provided user with requested file name",
         description = "Get a file for provided user with requested file name",
