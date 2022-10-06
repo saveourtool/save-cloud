@@ -1,14 +1,14 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.ContestService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Contest.Companion.toContest
 import com.saveourtool.save.entities.ContestDto

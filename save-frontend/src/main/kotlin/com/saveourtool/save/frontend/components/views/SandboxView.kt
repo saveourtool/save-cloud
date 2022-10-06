@@ -128,10 +128,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     }
                 }
                 doUploadChanges = {
-                    uploadTests()
+                    uploadChanges()
                 }
                 doReloadChanges = {
-                    reloadTests()
+                    reloadChanges()
                 }
             }
         }
@@ -166,19 +166,19 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     }
 
-    private fun uploadTests() {
+    private fun uploadChanges() {
         scope.launch {
-            postTestAsText("test", "test", state.codeText)
-            postTestAsText("test-resource", "save.toml", state.configText)
-            postTestAsText("test-resource", "setup.sh", state.setupShText)
+            postContentAsText("test", "test", state.codeText)
+            postContentAsText("test", "save.toml", state.configText)
+            postContentAsText("file", "setup.sh", state.setupShText)
         }
     }
 
-    private fun reloadTests() {
+    private fun reloadChanges() {
         scope.launch {
-            val newCodeText = getTestAsText("test", "test", codeExample)
-            val newConfigText = getTestAsText("test-resource", "save.toml", configExample)
-            val newSetupShText = getTestAsText("test-resource", "setup.sh", setupShExample)
+            val newCodeText = getContentAsText("test", "test", codeExample)
+            val newConfigText = getContentAsText("test", "save.toml", configExample)
+            val newSetupShText = getContentAsText("file", "setup.sh", setupShExample)
 
             setState {
                 codeText = newCodeText
@@ -188,7 +188,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     }
 
-    private suspend fun postTestAsText(
+    private suspend fun postContentAsText(
         urlPart: String,
         fileName: String,
         text: String,
@@ -201,7 +201,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         )
     }
 
-    private suspend fun getTestAsText(
+    private suspend fun getContentAsText(
         urlPart: String,
         fileName: String,
         defaultValue: String,
@@ -214,7 +214,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         if (response.ok) {
             response.text().await()
         } else {
-            postTestAsText(urlPart, fileName, defaultValue)
+            postContentAsText(urlPart, fileName, defaultValue)
             defaultValue
         }
     } ?: "Unknown user"
