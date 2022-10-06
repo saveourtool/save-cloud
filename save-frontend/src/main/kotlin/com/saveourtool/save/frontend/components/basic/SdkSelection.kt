@@ -29,9 +29,14 @@ val sdkSelection = sdkSelection()
  */
 external interface SdkProps : PropsWithChildren {
     /**
+     * Title for sdk selector
+     */
+    var title: String
+
+    /**
      * Name of the selected SDK
      */
-    var selectedSdk: String
+    var selectedSdkName: String
 
     /**
      * Version of the selected SDK
@@ -84,7 +89,7 @@ private fun sdkSelection() =
         FC<SdkProps> { props ->
             label {
                 className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                +"2. Select the SDK if needed:"
+                +props.title
             }
             div {
                 className = ClassName("card align-items-left mb-3 pt-0 pb-0")
@@ -94,7 +99,7 @@ private fun sdkSelection() =
                         className = ClassName("row no-gutters align-items-left")
                         selection(
                             "SDK",
-                            props.selectedSdk,
+                            props.selectedSdkName,
                             sdks,
                             props.onSdkChange,
                         )
@@ -105,7 +110,7 @@ private fun sdkSelection() =
                         selection(
                             "Version",
                             props.selectedSdkVersion,
-                            props.selectedSdk.getSdkVersions(),
+                            props.selectedSdkName.getSdkVersions(),
                             props.onVersionChange,
                         )
                     }

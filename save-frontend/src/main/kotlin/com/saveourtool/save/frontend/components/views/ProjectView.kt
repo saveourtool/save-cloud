@@ -447,7 +447,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
                 // ======== sdk selection =========
                 sdkSelection {
-                    selectedSdk = state.selectedSdk
+                    title = "2. Select the SDK if needed:"
+                    selectedSdkName = state.selectedSdk
                     selectedSdkVersion = state.selectedSdkVersion
                     onSdkChange = {
                         setState {

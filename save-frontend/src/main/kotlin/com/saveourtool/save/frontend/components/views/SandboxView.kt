@@ -3,9 +3,13 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.getSdkVersions
+import com.saveourtool.save.domain.getSdks
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faUpload
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -91,6 +95,16 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Currently selected FileType - config, test or setup.sh
      */
     var selectedFile: FileType?
+
+    /**
+     * Selected SDK name
+     */
+    var selectedSdkName: String
+
+    /**
+     * Selected SDK version
+     */
+    var selectedSdkVersion: String
 }
 
 /**
@@ -109,6 +123,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         state.isUploading = false
         state.bytesReceived = 0
         state.selectedFile = null
+        state.selectedSdkName = Sdk.Default.name
+        state.selectedSdkVersion = Sdk.Default.version
     }
 
     override fun ChildrenBuilder.render() {
@@ -121,6 +137,24 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         renderDebugInfo()
 
         renderToolUpload()
+
+        // ======== sdk selection =========
+        sdkSelection {
+            title = "Select the SDK:"
+            selectedSdkName = state.selectedSdkName
+            selectedSdkVersion = state.selectedSdkVersion
+            onSdkChange = { element ->
+                setState {
+                    selectedSdkName = element.value
+                    selectedSdkVersion = selectedSdkName.getSdkVersions().first()
+                }
+            }
+            onVersionChange = { element ->
+                setState {
+                    selectedSdkVersion = element.value
+                }
+            }
+        }
     }
 
     private fun ChildrenBuilder.renderCodeEditor() {
@@ -153,6 +187,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 }
                 doReloadChanges = {
                     reloadChanges()
+                }
+                doRunExecution = {
+                    runExecution()
                 }
             }
         }
@@ -313,6 +350,17 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             defaultValue
         }
     } ?: "Unknown user"
+
+    private fun runExecution() {
+        scope.launch {
+            post(
+                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdkName}:${state.selectedSdkVersion}",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+            )
+        }
+    }
 
     companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         private val configExample = """

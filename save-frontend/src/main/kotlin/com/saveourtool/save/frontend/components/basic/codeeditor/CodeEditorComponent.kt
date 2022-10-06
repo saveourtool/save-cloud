@@ -3,9 +3,7 @@
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.externals.fontawesome.faDownload
-import com.saveourtool.save.frontend.externals.fontawesome.faUpload
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.externals.reactace.aceBuilder
@@ -67,6 +65,11 @@ external interface CodeEditorComponentProps : Props {
      * Action to reload changes
      */
     var doReloadChanges: () -> Unit
+
+    /**
+     * Action to run execution
+     */
+    var doRunExecution: () -> Unit
 }
 
 /**
@@ -89,6 +92,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
     setSelectedTheme: (String) -> Unit,
     onUploadChanges: () -> Unit,
     onReloadChanges: () -> Unit,
+    onRunExecution: () -> Unit,
     onFileTypeChange: (FileType) -> Unit,
 ) {
     toolbarCard {
@@ -140,6 +144,18 @@ private fun ChildrenBuilder.displayEditorToolbar(
             ) { event ->
                 setSelectedTheme(event.target.value)
             }
+            div {
+                className = ClassName("input-group-append")
+
+                button {
+                    className = ClassName("btn btn-outline-success")
+                    onClick = onRunExecution.withUnusedArg()
+                    fontAwesomeIcon(icon = faCaretSquareRight)
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "top"
+                    title = "Run execution"
+                }
+            }
         }
     }
 }
@@ -165,6 +181,7 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             },
             onUploadChanges = props.doUploadChanges,
             onReloadChanges = props.doReloadChanges,
+            onRunExecution = props.doRunExecution,
         ) { fileType ->
             firstLoader {
                 props.doReloadChanges()
