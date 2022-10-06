@@ -45,10 +45,6 @@ class SandboxExecution(
             "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
         }
         return RunExecutionRequest(
-            projectCoordinates = ProjectCoordinates(
-                organizationName = "sandbox",
-                projectName = "user-$userId",
-            ),
             executionId = requiredId(),
             sdk = sdk.toSdk(),
             saveAgentVersion = saveAgentVersion,
