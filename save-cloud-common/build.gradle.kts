@@ -53,6 +53,7 @@ kotlin {
                 implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
+                implementation(libs.swagger.annotations)
             }
         }
         val jvmTest by getting {
