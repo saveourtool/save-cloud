@@ -45,8 +45,8 @@ dependencies {
     implementation(libs.save.plugins.warn.jvm)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
-    implementation(libs.spring.boot.starter.security)
-    implementation(libs.spring.security.core)
+    //implementation(libs.spring.boot.starter.security)
+    //implementation(libs.spring.security.core)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

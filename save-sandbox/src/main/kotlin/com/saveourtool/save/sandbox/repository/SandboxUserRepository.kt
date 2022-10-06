@@ -23,5 +23,5 @@ class SandboxUserRepository(
                 mapOf("name" to name),
                 Long::class.java
             )
-                .orNotFound { "There is not user with name $name" }
+                .orNotFound { "There is no user with name $name" }
 }
