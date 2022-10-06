@@ -1,6 +1,7 @@
 package com.saveourtool.save.sandbox.controller
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.domain.SandboxFileInfo
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
@@ -27,6 +28,9 @@ import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import javax.transaction.Transactional
@@ -64,9 +68,19 @@ class SandboxController(
     @GetMapping("/list-file")
     fun listFiles(
         @RequestParam userName: String,
-    ): Flux<String> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
-        .flatMapMany { userId -> storage.list(userId, SandboxStorageKeyType.FILE) }
-        .map { it.fileName }
+    ): Flux<SandboxFileInfo> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
+        .flatMapMany { userId ->
+            storage.list(userId, SandboxStorageKeyType.FILE)
+        }
+        .flatMap {
+            Flux.zip(
+                it.toMono(),
+                storage.contentSize(it),
+            )
+        }
+        .map { (storageKey, size) ->
+            SandboxFileInfo(storageKey.fileName, size)
+        }
 
     @Operation(
         method = "POST",
@@ -83,13 +97,16 @@ class SandboxController(
     fun uploadFile(
         @RequestParam userName: String,
         @RequestPart file: Mono<FilePart>,
-    ): Mono<Long> = file.flatMap { filePart ->
+    ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
         getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
                 storage.overwrite(
                     key = key,
                     content = filePart
                 )
+            }
+            .map {
+                SandboxFileInfo(filePart.filename(), it)
             }
     }
 
