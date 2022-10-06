@@ -3,10 +3,12 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.SandboxFileInfo
+import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
+import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -67,6 +69,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Currently selected FileType - config, test or setup.sh
      */
     var selectedFile: FileType?
+
+    /**
+     * Selected SDK
+     */
+    var selectedSdk: Sdk
 }
 
 /**
@@ -82,6 +89,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         state.debugInfo = null
         state.files = listOf()
         state.selectedFile = null
+        state.selectedSdk = Sdk.Default
     }
 
     override fun ChildrenBuilder.render() {
@@ -98,6 +106,17 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                 renderDebugInfo()
 
                 renderToolUpload()
+
+                // ======== sdk selection =========
+                sdkSelection {
+                    title = "Select the SDK:"
+                    selectedSdk = state.selectedSdk
+                    onSdkChange = { newSdk ->
+                        setState {
+                            selectedSdk = newSdk
+                        }
+                    }
+                }
             }
         }
     }
@@ -132,6 +151,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                 }
                 doReloadChanges = {
                     reloadChanges()
+                }
+                doRunExecution = {
+                    runExecution()
                 }
             }
         }
@@ -218,6 +240,17 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             defaultValue
         }
     } ?: "Unknown user"
+
+    private fun runExecution() {
+        scope.launch {
+            post(
+                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+            )
+        }
+    }
 
     companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         private val configExample = """
