@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
@@ -12,6 +10,8 @@ import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
