@@ -47,9 +47,6 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -441,37 +438,9 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                                 ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                         +"1. Upload or select the tool (and other resources) for testing:"
                     }
-                    fileUploader {
-                        selectedFiles = state.files
-                        urlForAvailableFilesFetch = "$apiUrl/files/${props.owner}/${props.name}/list"
-                        getUrlForFileUpload = {
-                            "$apiUrl/files/${props.owner}/${props.name}/upload"
-                        }
-                        getUrlForFileDownload = { fileInfo ->
-                            fileInfo as FileInfo
-                            with(fileInfo.key) {
-                                "$apiUrl/files/$projectCoordinates/download?name=$name&uploadedMillis=$uploadedMillis"
-                            }
-                        }
-                        getUrlForFileDeletion = { fileInfo ->
-                            fileInfo as FileInfo
-                            with(fileInfo.key) {
-                                "$apiUrl/files/$projectCoordinates/delete?name=$name&uploadedMillis=$uploadedMillis"
-                            }
-                        }
-                        fileInfoToPrettyPrint = {
-                            it as FileInfo
-                            "${it.key.name} (uploaded at ${
-                                Instant.fromEpochMilliseconds(it.key.uploadedMillis).toLocalDateTime(
-                                    TimeZone.UTC
-                                )
-                            }, size ${it.sizeBytes / 1024} KiB)"
-                        }
-                        setSelectedFiles = { newFiles ->
-                            val newFileInfos = newFiles.map { it as FileInfo }
-                            setState {
-                                files = newFileInfos
-                            }
+                    fileUploaderForProjectRun(ProjectCoordinates(props.owner, props.name), state.files) { newFiles ->
+                        setState {
+                            files = newFiles
                         }
                     }
                 }
