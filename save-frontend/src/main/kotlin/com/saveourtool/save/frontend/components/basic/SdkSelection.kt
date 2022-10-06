@@ -79,7 +79,6 @@ private fun sdkSelection() =
         FC<SdkProps> { props ->
             val (sdkName, setSdkName) = useState(props.selectedSdk.name)
             val (sdkVersion, setSdkVersion) = useState(props.selectedSdk.version)
-            val (sdkVersions, setSdkVersions) = useState(sdkName.getSdkVersions())
             label {
                 className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                 +props.title
@@ -96,11 +95,9 @@ private fun sdkSelection() =
                             sdks,
                         ) { element ->
                             val newSdkName = element.value
-                            val newSdkVersions = newSdkName.getSdkVersions()
-                            val newSdkVersion = newSdkVersions.first()
+                            val newSdkVersion = newSdkName.getSdkVersions().first()
                             setSdkName(newSdkName)
                             setSdkVersion(newSdkVersion)
-                            setSdkVersions(newSdkVersions)
                             props.onSdkChange("$newSdkName:$newSdkVersion".toSdk())
                         }
                     }
@@ -110,7 +107,7 @@ private fun sdkSelection() =
                         selection(
                             "Version",
                             sdkVersion,
-                            sdkVersions,
+                            sdkName.getSdkVersions(),
                         ) { element ->
                             val newSdkVersion = element.value
                             setSdkVersion(newSdkVersion)
