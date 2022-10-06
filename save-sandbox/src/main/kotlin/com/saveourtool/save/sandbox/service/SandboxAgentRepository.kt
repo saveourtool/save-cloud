@@ -72,6 +72,7 @@ class SandboxAgentRepository(
         .flatMap { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.TEST)
                 .map { it.fileName }
+                .filter { it.endsWith("save.toml") }
                 .collect(Collectors.joining(" "))
                 .zipWith(execution.userId.toMono())
         }

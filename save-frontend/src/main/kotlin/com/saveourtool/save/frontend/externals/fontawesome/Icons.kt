@@ -175,3 +175,7 @@ external val faTag: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faCodeBranch")
 @JsNonModule
 external val faCodeBranch: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faCaretSquareRight")
+@JsNonModule
+external val faCaretSquareRight: FontAwesomeIconModule

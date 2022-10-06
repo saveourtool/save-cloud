@@ -8129,6 +8129,7 @@
         "required": [
           "isExecutable",
           "key",
+          "name",
           "sizeBytes"
         ],
         "type": "object",
@@ -8142,6 +8143,9 @@
           },
           "isExecutable": {
             "type": "boolean"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },

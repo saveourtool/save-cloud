@@ -56,7 +56,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list(userId, SandboxStorageKeyType.TEST, SandboxStorageKeyType.TEST_RESOURCE)
+                storage.list(userId, SandboxStorageKeyType.TEST)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()
