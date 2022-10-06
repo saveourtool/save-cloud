@@ -208,25 +208,6 @@ class SandboxController(
         @RequestBody content: String,
     ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
 
-    @Operation(
-        method = "POST",
-        summary = "Upload a test resource file as text for provided user with provide file name",
-        description = "Upload a test resource file as text for provided user with provide file name",
-    )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
-        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
-    @ApiResponse(responseCode = "404", description = "User with such name was not found")
-    @PostMapping("/upload-test-resource-as-text")
-    fun uploadTestResourceAsText(
-        @RequestParam userName: String,
-        @RequestParam fileName: String,
-        @RequestBody content: String,
-    ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
-
     private fun doUploadAsText(
         userName: String,
         type: SandboxStorageKeyType,
