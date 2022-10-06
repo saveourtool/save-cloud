@@ -52,6 +52,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 /**
  * [Props] retrieved from router
@@ -769,6 +770,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
+            val serializer = serializer<List<FileInfo>>()
             it.decodeFromJsonString<List<FileInfo>>()
         }
 

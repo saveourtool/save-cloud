@@ -94,6 +94,18 @@ class SandboxController(
     }
 
     @Operation(
+        method = "POST",
+        summary = "Upload a test file as text for provided user with provide file name",
+        description = "Upload a test file as text for provided user with provide file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
+    @Operation(
         method = "GET",
         summary = "Get a file for provided user with requested file name",
         description = "Get a file for provided user with requested file name",
@@ -153,33 +165,7 @@ class SandboxController(
         @RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
-
-    @Operation(
-        method = "POST",
-        summary = "Upload a test resource file as text for provided user with provide file name",
-        description = "Upload a test resource file as text for provided user with provide file name",
-    )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
-        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
-    @ApiResponse(responseCode = "404", description = "User with such name was not found")
-    @PostMapping("/upload-test-resource-as-text")
-    fun uploadTestResourceAsText(
-        @RequestParam userName: String,
-        @RequestParam fileName: String,
-        @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
-
-    private fun doUploadAsText(
-        userName: String,
-        type: SandboxStorageKeyType,
-        fileName: String,
-        content: String,
-    ): Mono<Long> = getAsMonoStorageKey(userName, type, fileName)
+    ): Mono<Long> = getAsMonoStorageKey(userName, SandboxStorageKeyType.TEST, fileName)
         .flatMap { key ->
             storage.overwrite(
                 key = key,
@@ -202,37 +188,14 @@ class SandboxController(
     fun downloadTestAsText(
         @RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST, fileName)
-
-    @Operation(
-        method = "GET",
-        summary = "Download a test resource file as text for provided user and requested file name",
-        description = "Download a test resource file as text for provided user and requested file name",
-    )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
-    )
-    @ApiResponse(responseCode = "200", description = "Content of the test resource file as text")
-    @ApiResponse(responseCode = "404", description = "User with such name was not found")
-    @GetMapping("/download-test-resource-as-text")
-    fun downloadTestResourceAsText(
-        @RequestParam userName: String,
-        @RequestParam fileName: String,
-    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName)
-
-    private fun doDownloadAsText(
-        @RequestParam userName: String,
-        @RequestParam type: SandboxStorageKeyType,
-        @RequestParam fileName: String,
-    ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
+    ): Mono<String> = getAsMonoStorageKey(userName, SandboxStorageKeyType.TEST, fileName)
         .flatMap { key ->
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
         }
         .switchIfEmptyToNotFound {
-            "There is no file $fileName ($type) for user $userName"
+            "There is no test file $fileName for user $userName"
         }
 
     private fun getAsMonoStorageKey(

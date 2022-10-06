@@ -259,9 +259,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                 isUploading = true
             }
 
-            postTestAsText("test", "test", state.codeText)
-            postTestAsText("test-resource", "save.toml", state.configText)
-            postTestAsText("test-resource", "setup.sh", state.setupShText)
+            postTestAsText("test", state.codeText)
+            postTestAsText("save.toml", state.configText)
+            postTestAsText("setup.sh", state.setupShText)
 
             setState {
                 isUploading = false
@@ -271,9 +271,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
 
     private fun reloadTests() {
         scope.launch {
-            val newCodeText = getTestAsText("test", "test", codeExample)
-            val newConfigText = getTestAsText("test-resource", "save.toml", configExample)
-            val newSetupShText = getTestAsText("test-resource", "setup.sh", setupShExample)
+            val newCodeText = getTestAsText("test", codeExample)
+            val newConfigText = getTestAsText("save.toml", configExample)
+            val newSetupShText = getTestAsText("setup.sh", setupShExample)
 
             setState {
                 codeText = newCodeText
@@ -284,12 +284,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     }
 
     private suspend fun postTestAsText(
-        urlPart: String,
         fileName: String,
         text: String,
     ) {
         post(
-            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            url = "$sandboxApiUrl/upload-test-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
             headers = jsonHeaders,
             body = text,
             loadingHandler = ::noopLoadingHandler,
@@ -297,19 +296,18 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
     }
 
     private suspend fun getTestAsText(
-        urlPart: String,
         fileName: String,
         defaultValue: String,
     ): String = props.currentUserInfo?.name?.let { userName ->
         val response = get(
-            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
+            url = "$sandboxApiUrl/download-test-as-text?userName=$userName&fileName=$fileName",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
         if (response.ok) {
             response.text().await()
         } else {
-            postTestAsText(urlPart, fileName, defaultValue)
+            postTestAsText(fileName, defaultValue)
             defaultValue
         }
     } ?: "Unknown user"
