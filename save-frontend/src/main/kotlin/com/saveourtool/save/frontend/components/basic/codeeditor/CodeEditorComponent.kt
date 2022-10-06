@@ -83,7 +83,12 @@ enum class FileType(val prettyName: String, val editorMode: AceModes?) {
     ;
 }
 
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 private fun ChildrenBuilder.displayEditorToolbar(
     selectedMode: AceModes,
     selectedTheme: AceThemes,
