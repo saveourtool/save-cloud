@@ -1,5 +1,6 @@
 package com.saveourtool.save.sandbox.controller
 
+import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
@@ -14,10 +15,16 @@ import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.overwrite
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.Parameters
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
@@ -31,6 +38,10 @@ import javax.transaction.Transactional
  * @property sandboxUserRepository
  * @property agentsController
  */
+@ApiSwaggerSupport
+@Tags(
+    Tag(name = "sandbox"),
+)
 @RestController
 @RequestMapping("/sandbox/api")
 class SandboxController(
@@ -40,10 +51,16 @@ class SandboxController(
     val sandboxUserRepository: SandboxUserRepository,
     val agentsController: AgentsController,
 ) {
-    /**
-     * @param userName
-     * @return list of available files for provided [userName]
-     */
+    @Operation(
+        method = "GET",
+        summary = "Get a list of files for provided user",
+        description = "Get a list of files for provided user",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "A list of files")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/list-file")
     fun listFiles(
         @RequestParam userName: String,
@@ -51,14 +68,20 @@ class SandboxController(
         .flatMapMany { userId -> storage.list(userId, SandboxStorageKeyType.FILE) }
         .map { it.fileName }
 
-    /**
-     * @param userName
-     * @param file
-     * @return count of written bytes
-     */
+    @Operation(
+        method = "POST",
+        summary = "Upload a file for provided user",
+        description = "Upload a file for provided user",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
-        @RequestPart userName: String,
+        @RequestParam userName: String,
         @RequestPart file: Mono<FilePart>,
     ): Mono<Long> = file.flatMap { filePart ->
         getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, filePart.filename())
@@ -70,11 +93,17 @@ class SandboxController(
             }
     }
 
-    /**
-     * @param userName
-     * @param fileName
-     * @return count of written bytes
-     */
+    @Operation(
+        method = "GET",
+        summary = "Get a file for provided user with requested file name",
+        description = "Get a file for provided user with requested file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Contest of a requested file")
+    @ApiResponse(responseCode = "404", description = "User with such name or file with such file name and user was not found")
     @GetMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
         @RequestParam userName: String,
@@ -83,12 +112,21 @@ class SandboxController(
         .flatMapMany {
             storage.download(it)
         }
+        .switchIfEmptyToNotFound {
+            "There is no file $fileName for user $userName"
+        }
 
-    /**
-     * @param userName
-     * @param fileName
-     * @return result of delete operation
-     */
+    @Operation(
+        method = "DELETE",
+        summary = "Delete a file for provided user with requested file name",
+        description = "Delete a file for provided user with requested file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Result of delete operation of a requested file")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @DeleteMapping("/delete-file")
     fun deleteFile(
         @RequestParam userName: String,
@@ -98,12 +136,18 @@ class SandboxController(
             storage.delete(it)
         }
 
-    /**
-     * @param userName
-     * @param fileName
-     * @param content
-     * @return count of written bytes
-     */
+    @Operation(
+        method = "POST",
+        summary = "Upload a test file as text for provided user with provide file name",
+        description = "Upload a test file as text for provided user with provide file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-test-as-text")
     fun uploadTestAsText(
         @RequestParam userName: String,
@@ -111,12 +155,18 @@ class SandboxController(
         @RequestBody content: String,
     ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
 
-    /**
-     * @param userName
-     * @param fileName
-     * @param content
-     * @return count of written bytes
-     */
+    @Operation(
+        method = "POST",
+        summary = "Upload a test resource file as text for provided user with provide file name",
+        description = "Upload a test resource file as text for provided user with provide file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+        Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Uploaded bytes")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-test-resource-as-text")
     fun uploadTestResourceAsText(
         @RequestParam userName: String,
@@ -137,22 +187,34 @@ class SandboxController(
             )
         }
 
-    /**
-     * @param userName
-     * @param fileName
-     * @return content as text
-     */
+    @Operation(
+        method = "GET",
+        summary = "Download a test file as text for provided user and requested file name",
+        description = "Download a test file as text for provided user and requested file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Content of the test file as text")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/download-test-as-text")
     fun downloadTestAsText(
         @RequestParam userName: String,
         @RequestParam fileName: String,
     ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST, fileName)
 
-    /**
-     * @param userName
-     * @param fileName
-     * @return content as text
-     */
+    @Operation(
+        method = "GET",
+        summary = "Download a test resource file as text for provided user and requested file name",
+        description = "Download a test resource file as text for provided user and requested file name",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Content of the test resource file as text")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/download-test-resource-as-text")
     fun downloadTestResourceAsText(
         @RequestParam userName: String,
@@ -186,21 +248,35 @@ class SandboxController(
             )
         }
 
-    /**
-     * @param userId
-     * @return [Mono] with content of DebugInfo
-     * @throws ResponseStatusException if request is invalid or result cannot be returned
-     */
+    @Operation(
+        method = "GET",
+        summary = "Download a debug info for provided user",
+        description = "Download a debug info for provided user",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Content of the debug info")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping(path = ["/get-debug-info"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun getDebugInfo(
-        @RequestParam userId: Long,
-    ): Flux<ByteBuffer> = storage.download(SandboxStorageKey.debugInfoKey(userId))
+        @RequestParam userName: String,
+    ): Flux<ByteBuffer> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
+        .flatMapMany { userId ->
+            storage.download(SandboxStorageKey.debugInfoKey(userId))
+        }
 
-    /**
-     * @param userName
-     * @param sdk
-     * @return empty response
-     */
+    @Operation(
+        method = "POST",
+        summary = "Run a new execution for provided user",
+        description = "Run a new execution for provided user",
+    )
+    @Parameters(
+        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
+        Parameter(name = "sdk", `in` = ParameterIn.QUERY, description = "SDK", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "empty response for execution run")
+    @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/run-execution")
     @Transactional
     fun runExecution(
