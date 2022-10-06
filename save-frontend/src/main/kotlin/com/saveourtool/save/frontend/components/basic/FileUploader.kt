@@ -55,7 +55,7 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
     /**
      * Url for fetching existing in storage files
      */
-    var urlForAvailableFilesFetch: String
+    var getUrlForAvailableFilesFetch: () -> String
 
     /**
      * Callback to get url for file uploading to storage
@@ -108,7 +108,7 @@ fun ChildrenBuilder.fileUploaderForProjectRun(
     fileUploaderOverFileInfo {
         isSandboxMode = false
         selectedFiles = selectedFilesFromState
-        urlForAvailableFilesFetch = "$apiUrl/files/$projectCoordinates/list"
+        getUrlForAvailableFilesFetch = { "$apiUrl/files/$projectCoordinates/list" }
         getUrlForFileUpload = { "$apiUrl/files/$projectCoordinates/upload" }
         getUrlForFileDownload = { fileInfo ->
             with(fileInfo.key) {
@@ -151,7 +151,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     val (availableFiles, setAvailableFiles) = useState<List<F>>(emptyList())
     useRequest {
         val listOfFileInfos = get(
-            props.urlForAvailableFilesFetch,
+            props.getUrlForAvailableFilesFetch(),
             jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
@@ -182,14 +182,14 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
         }
     }
 
-    val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
-    val uploadFiles = useDeferredRequest {
-        filesForUploading.forEach { file ->
+    val (fileForUploading, setFileForUploading) = useState<File>()
+    val uploadFile = useDeferredRequest {
+        fileForUploading?.let {
             val response = post(
                 props.getUrlForFileUpload(),
                 Headers(),
                 FormData().apply {
-                    append("file", file)
+                    append("file", fileForUploading)
                 },
                 loadingHandler = ::noopLoadingHandler,
             )
@@ -209,7 +209,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             props.selectedFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    if (file is FileInfo) {
+                    if (!props.isSandboxMode) {
                         button {
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
@@ -257,15 +257,15 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         +"Select a file from existing"
                     }
 
-                    availableFiles.sortedByDescending {
-                        props.fileInfoToPrettyPrint(it)
-                    }.map {
-                        option {
-                            className = ClassName("list-group-item")
-                            value = props.fileInfoToPrettyPrint(it)
-                            +props.fileInfoToPrettyPrint(it)
+                    availableFiles.map(props.fileInfoToPrettyPrint)
+                        .sortedDescending()
+                        .map {
+                            option {
+                                className = ClassName("list-group-item")
+                                value = it
+                                +it
+                            }
                         }
-                    }
                     onChange = { event ->
                         val availableFile = availableFiles.first {
                             props.fileInfoToPrettyPrint(it) == event.target.value
@@ -285,9 +285,11 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         type = InputType.file
                         multiple = false
                         hidden = true
-                        onChange = {
-                            setFilesForUploading(it.target.files!!.asList())
-                            uploadFiles()
+                        onChange = { event ->
+                            event.target.files!!.asList()
+                                .single()
+                                .let { setFileForUploading(it) }
+                            uploadFile()
                         }
                     }
                     fontAwesomeIcon(icon = faUpload)
