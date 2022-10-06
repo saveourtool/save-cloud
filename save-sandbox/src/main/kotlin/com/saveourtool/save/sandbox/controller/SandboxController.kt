@@ -73,7 +73,7 @@ class SandboxController(
             storage.list(userId, SandboxStorageKeyType.FILE)
         }
         .flatMap {
-            Flux.zip(
+            Mono.zip(
                 it.toMono(),
                 storage.contentSize(it),
             )
