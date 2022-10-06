@@ -170,7 +170,7 @@ class SandboxController(
         @RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
+    ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
 
     @Operation(
         method = "POST",
@@ -189,19 +189,22 @@ class SandboxController(
         @RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
+    ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
 
     private fun doUploadAsText(
         userName: String,
         type: SandboxStorageKeyType,
         fileName: String,
         content: String,
-    ): Mono<Long> = getAsMonoStorageKey(userName, type, fileName)
+    ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
             storage.overwrite(
                 key = key,
                 content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
             )
+        }
+        .map {
+            SandboxFileInfo(fileName, it)
         }
 
     @Operation(
