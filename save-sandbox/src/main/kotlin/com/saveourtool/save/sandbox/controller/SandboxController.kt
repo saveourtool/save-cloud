@@ -86,6 +86,7 @@ class SandboxController(
     ): Mono<Long> = file.flatMap { filePart ->
         getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
+                println("\n\n\n\n-------------uploadFile")
                 storage.overwrite(
                     key = key,
                     content = filePart
@@ -110,6 +111,7 @@ class SandboxController(
         @RequestParam fileName: String,
     ): Flux<ByteBuffer> = getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, fileName)
         .flatMapMany {
+            println("\n\n\n\n-------------downloadFile")
             storage.download(it)
         }
         .switchIfEmptyToNotFound {
@@ -181,6 +183,7 @@ class SandboxController(
         content: String,
     ): Mono<Long> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
+            println("\n\n\n\n--------doUploadAsText")
             storage.overwrite(
                 key = key,
                 content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
@@ -227,6 +230,7 @@ class SandboxController(
         @RequestParam fileName: String,
     ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
+            println("\n\n\n\n--------doDownloadAsText")
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
