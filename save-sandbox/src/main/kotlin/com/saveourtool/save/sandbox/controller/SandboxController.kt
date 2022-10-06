@@ -16,6 +16,7 @@ import com.saveourtool.save.utils.overwrite
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -47,10 +48,10 @@ class SandboxController(
      */
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
-        @RequestPart userName: String,
         @RequestPart file: Mono<FilePart>,
+        authentication: Authentication,
     ): Mono<Long> = file.flatMap { filePart ->
-        getAsMonoStorageKey(userName, SandboxStorageKeyType.FILE, filePart.filename())
+        getAsMonoStorageKey(authentication.name, SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
                 storage.overwrite(
                     key = key,
@@ -67,10 +68,10 @@ class SandboxController(
      */
     @PostMapping("/upload-test-as-text")
     fun uploadTestAsText(
-        @RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
+        authentication: Authentication,
+    ): Mono<Long> = doUploadAsText(authentication.name, SandboxStorageKeyType.TEST, fileName, content)
 
     /**
      * @param userName
@@ -80,10 +81,10 @@ class SandboxController(
      */
     @PostMapping("/upload-test-resource-as-text")
     fun uploadTestResourceAsText(
-        @RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<Long> = doUploadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
+        authentication: Authentication,
+    ): Mono<Long> = doUploadAsText(authentication.name, SandboxStorageKeyType.TEST_RESOURCE, fileName, content)
 
     private fun doUploadAsText(
         userName: String,
@@ -105,9 +106,9 @@ class SandboxController(
      */
     @GetMapping("/download-test-as-text")
     fun downloadTestAsText(
-        @RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST, fileName)
+        authentication: Authentication,
+    ): Mono<String> = doDownloadAsText(authentication.name, SandboxStorageKeyType.TEST, fileName)
 
     /**
      * @param userName
@@ -116,9 +117,9 @@ class SandboxController(
      */
     @GetMapping("/download-test-resource-as-text")
     fun downloadTestResourceAsText(
-        @RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST_RESOURCE, fileName)
+        authentication: Authentication,
+    ): Mono<String> = doDownloadAsText(authentication.name, SandboxStorageKeyType.TEST_RESOURCE, fileName)
 
     private fun doDownloadAsText(
         @RequestParam userName: String,
@@ -165,15 +166,15 @@ class SandboxController(
     @PostMapping("/run-execution")
     @Transactional
     fun runExecution(
-        @RequestParam userName: String,
         @RequestParam sdk: String,
+        authentication: Authentication,
     ): Mono<BodilessResponseEntity> = blockingToMono {
         val execution = SandboxExecution(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.PENDING,
             sdk = sdk,
-            userId = sandboxUserRepository.getIdByName(userName),
+            userId = sandboxUserRepository.getIdByName(authentication.name),
             initialized = false,
             failReason = null,
         )
