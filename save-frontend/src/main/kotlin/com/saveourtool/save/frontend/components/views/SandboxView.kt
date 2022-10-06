@@ -149,10 +149,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                     }
                 }
                 doUploadChanges = {
-                    uploadTests()
+                    uploadChanges()
                 }
                 doReloadChanges = {
-                    reloadTests()
+                    reloadChanges()
                 }
             }
         }
@@ -253,15 +253,15 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         }
     }
 
-    private fun uploadTests() {
+    private fun uploadChanges() {
         scope.launch {
             setState {
                 isUploading = true
             }
 
-            postTestAsText("test", state.codeText)
-            postTestAsText("save.toml", state.configText)
-            postTestAsText("setup.sh", state.setupShText)
+            postContentAsText("test", "test", state.codeText)
+            postContentAsText("test", "save.toml", state.configText)
+            postContentAsText("file", "setup.sh", state.setupShText)
 
             setState {
                 isUploading = false
@@ -269,11 +269,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         }
     }
 
-    private fun reloadTests() {
+    private fun reloadChanges() {
         scope.launch {
-            val newCodeText = getTestAsText("test", codeExample)
-            val newConfigText = getTestAsText("save.toml", configExample)
-            val newSetupShText = getTestAsText("setup.sh", setupShExample)
+            val newCodeText = getContentAsText("test", "test", codeExample)
+            val newConfigText = getContentAsText("test", "save.toml", configExample)
+            val newSetupShText = getContentAsText("file", "setup.sh", setupShExample)
 
             setState {
                 codeText = newCodeText
@@ -283,31 +283,33 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
         }
     }
 
-    private suspend fun postTestAsText(
+    private suspend fun postContentAsText(
+        urlPart: String,
         fileName: String,
         text: String,
     ) {
         post(
-            url = "$sandboxApiUrl/upload-test-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
             headers = jsonHeaders,
             body = text,
             loadingHandler = ::noopLoadingHandler,
         )
     }
 
-    private suspend fun getTestAsText(
+    private suspend fun getContentAsText(
+        urlPart: String,
         fileName: String,
         defaultValue: String,
     ): String = props.currentUserInfo?.name?.let { userName ->
         val response = get(
-            url = "$sandboxApiUrl/download-test-as-text?userName=$userName&fileName=$fileName",
+            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
         )
         if (response.ok) {
             response.text().await()
         } else {
-            postTestAsText(fileName, defaultValue)
+            postContentAsText(urlPart, fileName, defaultValue)
             defaultValue
         }
     } ?: "Unknown user"
