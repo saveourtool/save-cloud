@@ -7,6 +7,8 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.domain.Sdk.Default.name
+import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -37,6 +39,9 @@ import kotlinx.datetime.toLocalDateTime
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()
+
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+private val fileUploaderOverSandboxFileInfo = fileUploader<SandboxFileInfo>()
 
 /**
  * Props for file uploader
@@ -91,6 +96,38 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
      * Flag that defines if current component is for Sandbox
      */
     var isSandboxMode: Boolean
+}
+
+/**
+ * @param userName
+ * @param selectedFilesFromState
+ * @param selectedFilesStateSetter
+ */
+fun ChildrenBuilder.fileUploaderForSandbox(
+    userName: String?,
+    selectedFilesFromState: List<SandboxFileInfo>,
+    selectedFilesStateSetter: (List<SandboxFileInfo>) -> Unit,
+) {
+    fileUploaderOverSandboxFileInfo {
+        isSandboxMode = true
+        selectedFiles = selectedFilesFromState
+        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file?userName=$userName" }
+        getUrlForFileUpload = { "$sandboxApiUrl/upload-file?userName=$userName" }
+        getUrlForFileDownload = { fileInfo ->
+            "$sandboxApiUrl/download-file?userName=$userName&fileName=${fileInfo.name}"
+        }
+        getUrlForFileDeletion = { fileInfo ->
+            "$sandboxApiUrl/delete-file?userName=$userName&fileName=${fileInfo.name}"
+        }
+        fileInfoToPrettyPrint = { it.name }
+        decodeFileInfoFromString = {
+            it.decodeFromJsonString()
+        }
+        decodeListOfFileInfosFromString = {
+            it.decodeFromJsonString()
+        }
+        setSelectedFiles = selectedFilesStateSetter
+    }
 }
 
 /**
@@ -197,7 +234,14 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     props.decodeFileInfoFromString(it)
                 }
 
-            props.setSelectedFiles(props.selectedFiles + response)
+            props.selectedFiles
+                .plus(response)
+                .distinctBy {
+                    props.fileInfoToPrettyPrint(it)
+                }
+                .let {
+                    props.setSelectedFiles(it)
+                }
         }
     }
 
@@ -246,32 +290,34 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             }
 
             // ===== SELECTOR =====
-            li {
-                className = ClassName("list-group-item d-flex justify-content-between align-items-center")
-                select {
-                    className = ClassName("form-control custom-select")
-                    value = "default"
-                    option {
+            if (!props.isSandboxMode) {
+                li {
+                    className = ClassName("list-group-item d-flex justify-content-between align-items-center")
+                    select {
+                        className = ClassName("form-control custom-select")
                         value = "default"
-                        disabled = true
-                        +"Select a file from existing"
-                    }
+                        option {
+                            value = "default"
+                            disabled = true
+                            +"Select a file from existing"
+                        }
 
-                    availableFiles.map(props.fileInfoToPrettyPrint)
-                        .sortedDescending()
-                        .map {
-                            option {
-                                className = ClassName("list-group-item")
-                                value = it
-                                +it
+                        availableFiles.map(props.fileInfoToPrettyPrint)
+                            .sortedDescending()
+                            .map {
+                                option {
+                                    className = ClassName("list-group-item")
+                                    value = it
+                                    +it
+                                }
                             }
+                        onChange = { event ->
+                            val availableFile = availableFiles.first {
+                                props.fileInfoToPrettyPrint(it) == event.target.value
+                            }
+                            props.setSelectedFiles(props.selectedFiles + availableFile)
+                            setAvailableFiles(availableFiles - availableFile)
                         }
-                    onChange = { event ->
-                        val availableFile = availableFiles.first {
-                            props.fileInfoToPrettyPrint(it) == event.target.value
-                        }
-                        props.setSelectedFiles(props.selectedFiles + availableFile)
-                        setAvailableFiles(availableFiles - availableFile)
                     }
                 }
             }
