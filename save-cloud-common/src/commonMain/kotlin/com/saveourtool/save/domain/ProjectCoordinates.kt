@@ -10,4 +10,9 @@ import kotlinx.serialization.Serializable
 data class ProjectCoordinates(
     val organizationName: String,
     val projectName: String,
-)
+) {
+    /**
+     * @return ProjectCoordinates as formatted string "{organizationName}/{projectName}"
+     */
+    override fun toString() = "$organizationName/$projectName"
+}
