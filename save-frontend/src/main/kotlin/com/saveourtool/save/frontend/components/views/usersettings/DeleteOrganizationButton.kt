@@ -17,25 +17,16 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.useState
 
-
 /**
  * Button for delete organization
  *
  * @return noting
  */
 val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
-    val displayButtonEntry = {}
     val windowOpenness = useWindowOpenness()
-    val (displayTitle, putDisplayTitle) = useState<String?>(null)
-    val (displayMessage, putDisplayMessage) = useState<String?>(null)
-    val (displayButton, putDisplayButtons) = useState(displayButtonEntry)
-
-    val displayButtonErrors = {
-        buttonBuilder("Ok") {
-            windowOpenness.closeWindow()
-        }
-    }
-
+    val (displayTitle, putDisplayTitle) = useState("")
+    val (displayMessage, putDisplayMessage) = useState("")
+    val (modalButtons, putModalButtons) = useState(ModalPurpose.default)
 
     val deleteOrganization = useDeferredRequest {
         val responseFromDeleteOrganization =
@@ -51,27 +42,8 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
         } else {
             putDisplayTitle("You cannot delete ${props.organizationName}")
             putDisplayMessage(responseFromDeleteOrganization.unpackMessage())
-            putDisplayButtons(displayButtonErrors)
+            putModalButtons(ModalPurpose.ERROR_MODAL)
             windowOpenness.openWindow()
-        }
-    }
-
-    displayModal(
-        isOpen = windowOpenness.isOpen(),
-        title = displayTitle ?: "",
-        message = displayMessage ?: "",
-        onCloseButtonPressed = windowOpenness.closeWindowAction()
-    ) {
-        displayButton
-    }
-
-    val displayButtonDelete = {
-        buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
-            deleteOrganization()
-            windowOpenness.closeWindow()
-        }
-        buttonBuilder("Cancel") {
-            windowOpenness.closeWindow()
         }
     }
 
@@ -83,10 +55,29 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
             onClick = {
                 putDisplayTitle("Warning: deletion of organization")
                 putDisplayMessage("You are about to delete organization ${props.organizationName}. Are you sure?")
-                putDisplayButtons(displayButtonDelete)
+                putModalButtons(ModalPurpose.DELETE_MODAL)
                 windowOpenness.openWindow()
-                //windowOpenness.openWindow()
             }
+        }
+    }
+
+    displayModal(
+        isOpen = windowOpenness.isOpen(),
+        title = displayTitle,
+        message = displayMessage,
+        onCloseButtonPressed = windowOpenness.closeWindowAction()
+    ) {
+        when (modalButtons) {
+            ModalPurpose.DELETE_MODAL -> {
+                buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+                    deleteOrganization()
+                    windowOpenness.closeWindow()
+                }
+                buttonBuilder("Cancel") {
+                    windowOpenness.closeWindow()
+                }
+            }
+            ModalPurpose.ERROR_MODAL -> buttonBuilder("Ok") { windowOpenness.closeWindow() }
         }
     }
 }
@@ -114,4 +105,14 @@ external interface DeleteOrganizationButtonProps : Props {
      * classname for the button
      */
     var classes: String
+}
+
+private enum class ModalPurpose {
+    DELETE_MODAL,
+    ERROR_MODAL,
+    ;
+
+    companion object {
+        val default = DELETE_MODAL
+    }
 }
