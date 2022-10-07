@@ -13,3 +13,6 @@ save-cloud-charts/save-cloud/charts
 
 # JPA Buddy
 /.jpb/
+
+# Vim swap files
+*.swp
