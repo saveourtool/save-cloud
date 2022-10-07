@@ -216,7 +216,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         text: String,
     ) {
         post(
-            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            //url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?fileName=$fileName",
             headers = jsonHeaders,
             body = text,
             loadingHandler = ::noopLoadingHandler,

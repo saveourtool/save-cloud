@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -125,10 +126,14 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-file-as-text")
     fun uploadFileAsText(
-        @RequestParam userName: String,
+        //@RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.FILE, fileName, content)
+        authentication: Authentication,
+    ): Mono<SandboxFileInfo> {
+        println("\n\n\n==============Authentication uploadFileAsText ${authentication == null} ${authentication?.name}")
+        return doUploadAsText(authentication.name, SandboxStorageKeyType.FILE, fileName, content)
+    }
 
     @Operation(
         method = "GET",
@@ -205,10 +210,14 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-test-as-text")
     fun uploadTestAsText(
-        @RequestParam userName: String,
+        //@RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
-    ): Mono<SandboxFileInfo> = doUploadAsText(userName, SandboxStorageKeyType.TEST, fileName, content)
+        authentication: Authentication,
+    ): Mono<SandboxFileInfo> {
+        println("\n\n\n==============Authentication uploadTestAsText ${authentication == null} ${authentication?.name}")
+        return doUploadAsText(authentication.name, SandboxStorageKeyType.TEST, fileName, content)
+    }
 
     private fun doUploadAsText(
         userName: String,
@@ -217,7 +226,7 @@ class SandboxController(
         content: String,
     ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
-            println("\n\n\n\n--------doUploadAsText")
+            println("\n\n\n\n--------doUploadAsText [${userName}]")
             storage.overwrite(
                 key = key,
                 content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
@@ -240,9 +249,10 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/download-test-as-text")
     fun downloadTestAsText(
-        @RequestParam userName: String,
+        //@RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadTestAsText(userName, SandboxStorageKeyType.TEST, fileName)
+        authentication: Authentication,
+    ): Mono<String> = doDownloadTestAsText(authentication.name, SandboxStorageKeyType.TEST, fileName)
 
     private fun doDownloadTestAsText(
         userName: String,
@@ -250,7 +260,7 @@ class SandboxController(
         fileName: String,
     ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
-            println("\n\n\n\n--------doDownloadAsText")
+            println("\n\n\n\n--------doDownloadAsText ${userName}")
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
