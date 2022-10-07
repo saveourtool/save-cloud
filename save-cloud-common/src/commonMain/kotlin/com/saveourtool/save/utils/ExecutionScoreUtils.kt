@@ -37,7 +37,7 @@ fun ExecutionDto.getRecallRate() = calculateRate(matchedChecks, matchedChecks + 
 
 /**
  * @param scoreType
- * @return score according execution [type] and [scoreType]
+ * @return score according execution [type]
  */
 fun ExecutionDto.calculateScore(scoreType: ScoreType): Double = when (type) {
     TestingType.CONTEST_MODE -> calculateScoreForContestMode(scoreType)
