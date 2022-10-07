@@ -110,4 +110,5 @@ external interface DeleteOrganizationButtonProps : Props {
 private enum class ModalPurpose {
     DELETE_MODAL,
     ERROR_MODAL,
+    ;
 }
