@@ -152,7 +152,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                         }
                         buttonStyleBuilder = { childrenBuilder ->
                             with(childrenBuilder) {
-                                +props.organizationName
+                                +"Delete ${props.organizationName}"
                             }
                         }
                         classes = "btn btn-sm btn-danger"
