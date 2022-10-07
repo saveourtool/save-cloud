@@ -68,5 +68,5 @@ fun String.getSdkVersions(): List<String> =
         when (this) {
             Jdk.NAME -> Jdk.versions
             Python.NAME -> Python.versions
-            else -> listOf("latest")
+            else -> listOf(Sdk.Default.version)
         }

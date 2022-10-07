@@ -2,32 +2,29 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.FileInfo
+import com.saveourtool.save.domain.SandboxFileInfo
+import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
+import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.fontawesome.faUpload
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
-import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h6
-import react.dom.html.ReactHTML.input
-import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.strong
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+
+val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
 /**
  * [Props] of [SandboxView]
@@ -61,22 +58,7 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
      * Selected files
      */
-    var files: MutableList<FileInfo>
-
-    /**
-     * Flag that indicates if any file is uploading
-     */
-    var isUploading: Boolean
-
-    /**
-     * Bytes to send
-     */
-    var suiteByteSize: Long
-
-    /**
-     * Bytes sent to server
-     */
-    var bytesReceived: Long
+    var files: List<SandboxFileInfo>
 
     /**
      * Result of save-cli execution
@@ -87,6 +69,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Currently selected FileType - config, test or setup.sh
      */
     var selectedFile: FileType?
+
+    /**
+     * Selected SDK
+     */
+    var selectedSdk: Sdk
 }
 
 /**
@@ -94,17 +81,15 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
+class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     init {
-        state.codeText = codeExample
-        state.configText = configExample
-        state.setupShText = setupShExample
+        state.codeText = ""
+        state.configText = ""
+        state.setupShText = ""
         state.debugInfo = null
-        state.files = mutableListOf()
-        state.suiteByteSize = 0
-        state.isUploading = false
-        state.bytesReceived = 0
+        state.files = listOf()
         state.selectedFile = null
+        state.selectedSdk = Sdk.Default
     }
 
     override fun ChildrenBuilder.render() {
@@ -112,11 +97,28 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             className = ClassName("text-center")
             +"Sandbox"
         }
-        renderCodeEditor()
+        div {
+            className = ClassName("d-flex justify-content-center")
+            div {
+                className = ClassName(" flex-wrap col-10")
+                renderCodeEditor()
 
-        renderDebugInfo()
+                renderDebugInfo()
 
-        renderToolUpload()
+                renderToolUpload()
+
+                // ======== sdk selection =========
+                sdkSelection {
+                    title = "Select the SDK:"
+                    selectedSdk = state.selectedSdk
+                    onSdkChange = { newSdk ->
+                        setState {
+                            selectedSdk = newSdk
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun ChildrenBuilder.renderCodeEditor() {
@@ -144,35 +146,18 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
                         }
                     }
                 }
+                doUploadChanges = {
+                    uploadChanges()
+                }
+                doReloadChanges = {
+                    reloadChanges()
+                }
+                doRunExecution = {
+                    runExecution()
+                }
             }
         }
     }
-
-    // private fun ChildrenBuilder.renderFileSelector() {
-    // div {
-    // className = ClassName("d-flex justify-content-end")
-    // button {
-    // className = ClassName("btn btn-info-outline")
-    // asDynamic()["data-toggle"] = "collapse"
-    // asDynamic()["data-target"] = "#codeEditorFileSelector"
-    // asDynamic()["data-controls"] = "codeEditorFileSelector"
-    // ariaExpanded = false
-    // onClick = {
-    // setState {
-    // isFileSelectorCollapsed = !isFileSelectorCollapsed
-    // }
-    // }
-    // +">>>"
-    // }
-    // displayCodeEditorFileSelector(
-    // state.selectedFileType,
-    // ) {
-    // setState {
-    // selectedFileType = it
-    // }
-    // }
-    // }
-    // }
 
     private fun ChildrenBuilder.renderDebugInfo() {
         state.debugInfo?.let { debugInfo ->
@@ -191,55 +176,79 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(false) {
             className = ClassName("m-3")
             div {
                 className = ClassName("d-flex justify-content-center")
-                label {
-                    className = ClassName("btn btn-outline-secondary")
-                    input {
-                        type = InputType.file
-                        multiple = true
-                        hidden = true
-                        onChange = {
-                            onFileInput(it.target)
-                        }
+                fileUploaderForSandbox(
+                    props.currentUserInfo?.name,
+                    state.files
+                ) { selectedFiles ->
+                    setState {
+                        files = selectedFiles
                     }
-                    fontAwesomeIcon(icon = faUpload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Regular files/Executable files/ZIP Archives"
-                    strong { +"Upload tool" }
                 }
             }
         }
     }
 
-    private fun onFileInput(element: HTMLInputElement) {
+    private fun uploadChanges() {
         scope.launch {
-            setState {
-                isUploading = true
-                element.files!!.asList().forEach { file ->
-                    suiteByteSize += file.size.toLong()
-                }
-            }
+            postContentAsText("test", "test", state.codeText)
+            postContentAsText("test", "save.toml", state.configText)
+            postContentAsText("file", "setup.sh", state.setupShText)
+        }
+    }
 
-            element.files!!.asList().forEach { file ->
-                val response: FileInfo = post(
-                    "",
-                    Headers(),
-                    FormData().apply {
-                        append("file", file)
-                    },
-                    loadingHandler = ::noopLoadingHandler,
-                )
-                    .decodeFromJsonString()
+    private fun reloadChanges() {
+        scope.launch {
+            val newCodeText = getContentAsText("test", "test", codeExample)
+            val newConfigText = getContentAsText("test", "save.toml", configExample)
+            val newSetupShText = getContentAsText("file", "setup.sh", setupShExample)
 
-                setState {
-                    // add only to selected files so that this entry isn't duplicated
-                    files.add(response)
-                    bytesReceived += response.sizeBytes
-                }
-            }
             setState {
-                isUploading = false
+                codeText = newCodeText
+                configText = newConfigText
+                setupShText = newSetupShText
             }
+        }
+    }
+
+    private suspend fun postContentAsText(
+        urlPart: String,
+        fileName: String,
+        text: String,
+    ) {
+        post(
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            headers = jsonHeaders,
+            body = text,
+            loadingHandler = ::noopLoadingHandler,
+        )
+    }
+
+    private suspend fun getContentAsText(
+        urlPart: String,
+        fileName: String,
+        defaultValue: String,
+    ): String = props.currentUserInfo?.name?.let { userName ->
+        val response = get(
+            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            response.text().await()
+        } else {
+            postContentAsText(urlPart, fileName, defaultValue)
+            defaultValue
+        }
+    } ?: "Unknown user"
+
+    private fun runExecution() {
+        scope.launch {
+            post(
+                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+            )
         }
     }
 

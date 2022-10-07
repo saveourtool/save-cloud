@@ -161,10 +161,10 @@ fun topBar() = FC<TopBarProps> { props ->
                 a {
                     className = ClassName("nav-link d-flex align-items-center me-2 active")
                     style = jso {
-                        width = 8.rem
+                        width = 9.rem
                     }
-                    href = "https://github.com/saveourtool/save-cli"
-                    +"SAVE format"
+                    href = "#/${FrontendRoutes.SANDBOX.path}"
+                    +"Try SAVE format"
                 }
             }
             li {

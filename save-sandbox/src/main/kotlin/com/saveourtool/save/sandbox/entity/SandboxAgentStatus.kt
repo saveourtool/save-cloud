@@ -28,7 +28,7 @@ class SandboxAgentStatus(
     @Enumerated(EnumType.STRING)
     var state: AgentState,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "agent_id")
     var agent: SandboxAgent,
 ) : BaseEntity() {

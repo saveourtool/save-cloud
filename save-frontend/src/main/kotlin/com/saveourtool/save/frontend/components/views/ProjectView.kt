@@ -34,21 +34,18 @@ import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import history.Location
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -96,12 +93,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Files required for tests execution for this project
      */
-    var files: MutableList<FileInfo>
-
-    /**
-     * Files that are available on server side
-     */
-    var availableFiles: MutableList<FileInfo>
+    var files: List<FileInfo>
 
     /**
      * Message of error
@@ -121,12 +113,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Selected sdk
      */
-    var selectedSdk: String
-
-    /**
-     * Selected version
-     */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 
     /**
      * Flag to handle upload type project
@@ -152,21 +139,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Batch size for static analyzer tool in standard mode
      */
     var batchSizeForAnalyzer: String
-
-    /**
-     * General size of test suite in bytes
-     */
-    var suiteByteSize: Long
-
-    /**
-     * Bytes received by server
-     */
-    var bytesReceived: Long
-
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean?
 
     /**
      * latest execution id for this project
@@ -210,12 +182,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         state.errorMessage = ""
         state.errorLabel = ""
         state.files = mutableListOf()
-        state.availableFiles = mutableListOf()
-        state.selectedSdk = Sdk.Default.name
-        state.selectedSdkVersion = Sdk.Default.version
-        state.suiteByteSize = state.files.sumOf { it.sizeBytes }
-        state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
-        state.isUploading = false
+        state.selectedSdk = Sdk.Default
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
@@ -278,12 +245,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
             urlAnalysis(ProjectMenuBar, role, false)
 
-            val availableFiles = getFilesList(project.organization.name, project.name)
-            setState {
-                this.availableFiles.clear()
-                this.availableFiles.addAll(availableFiles)
-            }
-
             val contests = getContests()
             setState {
                 availableContests = contests
@@ -306,7 +267,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     }
 
     private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
         val executionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
@@ -314,7 +274,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ),
             testSuiteIds = selectedTestSuites.map { it.requiredId() },
             files = state.files.map { it.key },
-            sdk = selectedSdk,
+            sdk = state.selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
             testingType = testingType,
@@ -465,50 +425,28 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 }
 
                 // ======== file selector =========
-                fileUploader {
-                    files = state.files
-                    availableFiles = state.availableFiles
-                    suiteByteSize = state.suiteByteSize
-                    bytesReceived = state.bytesReceived
-                    isUploading = state.isUploading
-                    projectCoordinates = ProjectCoordinates(props.owner, props.name)
-                    onFileSelect = { element ->
-                        setState {
-                            val availableFile = availableFiles.first { it.key.name == element.value }
-                            files.add(availableFile)
-                            bytesReceived += availableFile.sizeBytes
-                            suiteByteSize += availableFile.sizeBytes
-                            availableFiles.remove(availableFile)
-                        }
+                div {
+                    label {
+                        className =
+                                ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                        +"1. Upload or select the tool (and other resources) for testing:"
                     }
-                    onFileRemove = {
+                    fileUploaderForProjectRun(ProjectCoordinates(props.owner, props.name), state.files) { newFiles ->
                         setState {
-                            files.remove(it)
-                            bytesReceived -= it.sizeBytes
-                            suiteByteSize -= it.sizeBytes
-                            availableFiles.add(it)
-                        }
-                    }
-                    onFileInput = { postFileUpload(it) }
-                    onFileDelete = { postFileDelete(it) }
-                    onExecutableChange = { selectedFile, checked ->
-                        setState {
-                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                            files = newFiles
                         }
                     }
                 }
 
                 // ======== sdk selection =========
                 sdkSelection {
+                    title = "2. Select the SDK if needed:"
                     selectedSdk = state.selectedSdk
-                    selectedSdkVersion = state.selectedSdkVersion
                     onSdkChange = {
                         setState {
-                            selectedSdk = it.value
-                            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+                            selectedSdk = it
                         }
                     }
-                    onVersionChange = { setState { selectedSdkVersion = it.value } }
                 }
 
                 // ======== test resources selection =========
@@ -649,68 +587,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
         }
     }
 
-    private fun fileDelete(file: FileInfo) {
-        scope.launch {
-            val response = delete(
-                with(file.key) {
-                    "$apiUrl/files/${projectCoordinates.organizationName}/${projectCoordinates.projectName}/delete?name=$name&uploadedMillis=$uploadedMillis"
-                },
-                jsonHeaders,
-                Json.encodeToString(file),
-                loadingHandler = ::noopLoadingHandler,
-            )
-
-            if (response.ok) {
-                setState {
-                    files.remove(file)
-                    bytesReceived -= file.sizeBytes
-                    suiteByteSize -= file.sizeBytes
-                }
-            }
-        }
-    }
-
-    private fun postFileDelete(fileForDelete: FileInfo) {
-        val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.key.name} file?"
-        )
-
-        if (confirm) {
-            fileDelete(fileForDelete)
-        }
-    }
-
-    private fun postFileUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                    element.files!!.asList().forEach { file ->
-                        suiteByteSize += file.size.toLong()
-                    }
-                }
-
-                element.files!!.asList().forEach { file ->
-                    val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-
-                    setState {
-                        // add only to selected files so that this entry isn't duplicated
-                        files.add(response)
-                        bytesReceived += response.sizeBytes
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
-
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
             className = ClassName(divClass)
@@ -759,18 +635,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             }
         }
     }
-
-    private suspend fun getFilesList(
-        organizationName: String,
-        projectName: String,
-    ) = get(
-        "$apiUrl/files/$organizationName/$projectName/list",
-        jsonHeaders,
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<List<FileInfo>>()
-        }
 
     private suspend fun getContests() = get(
         "$apiUrl/contests/active",
