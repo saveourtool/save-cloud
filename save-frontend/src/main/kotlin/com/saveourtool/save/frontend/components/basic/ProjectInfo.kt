@@ -28,6 +28,7 @@ import react.useState
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.dom.html.ButtonType
 
 val projectInfo = projectInfo()
 
@@ -98,6 +99,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
         div {
             className = ClassName("d-flex justify-content-center")
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
                 +"Edit  "
                 fontAwesomeIcon(icon = faEdit)
@@ -143,6 +145,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
             className = ClassName("ml-3 mt-2 align-items-right float-right")
             button {
                 className = ClassName("btn")
+                type = ButtonType.button
                 fontAwesomeIcon(icon = faCheck)
                 hidden = isEditDisabled
                 onClick = {
@@ -153,6 +156,7 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
 
             button {
                 className = ClassName("btn")
+                type = ButtonType.button
                 fontAwesomeIcon(icon = faTimesCircle)
                 hidden = isEditDisabled
                 onClick = {

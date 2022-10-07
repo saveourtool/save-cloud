@@ -12,6 +12,7 @@ import org.w3c.dom.HTMLSelectElement
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
@@ -49,6 +50,7 @@ fun ChildrenBuilder.buttonBuilder(
     onClickFun: MouseEventHandler<HTMLButtonElement>,
 ) {
     button {
+        type = ButtonType.button
         val outline = if (isOutline) {
             "outline-"
         } else {

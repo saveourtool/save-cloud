@@ -36,6 +36,7 @@ import kotlinx.browser.window
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import react.dom.html.ButtonType
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()
@@ -255,6 +256,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     className = ClassName("list-group-item")
                     if (!props.isSandboxMode) {
                         button {
+                            type = ButtonType.button
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
                             onClick = {
@@ -265,6 +267,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     }
                     a {
                         button {
+                            type = ButtonType.button
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faDownload)
                         }
@@ -272,6 +275,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         href = props.getUrlForFileDownload(file)
                     }
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn")
                         fontAwesomeIcon(icon = faTrash)
                         onClick = {

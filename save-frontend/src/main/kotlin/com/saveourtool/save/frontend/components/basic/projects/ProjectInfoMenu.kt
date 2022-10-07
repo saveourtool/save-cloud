@@ -21,6 +21,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
 import kotlinx.browser.window
+import react.dom.html.ButtonType
 
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
 
@@ -148,6 +149,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                     fontAwesomeIcon(icon = faHistory)
 
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn btn-link text-left")
                         +"Latest Execution"
                         disabled = props.latestExecutionId == null

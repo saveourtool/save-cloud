@@ -17,6 +17,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -187,6 +188,7 @@ private fun ChildrenBuilder.renderForContestMode(
         div {
             className = ClassName("card-body d-flex justify-content-center")
             button {
+                type = ButtonType.button
                 className = ClassName("d-flex justify-content-center btn btn-primary")
                 +"Enroll for a contest"
                 onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
