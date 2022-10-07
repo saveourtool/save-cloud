@@ -20,6 +20,7 @@ import org.w3c.fetch.Response
 import org.w3c.files.File
 import org.w3c.xhr.FormData
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -36,7 +37,6 @@ import kotlinx.browser.window
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import react.dom.html.ButtonType
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()

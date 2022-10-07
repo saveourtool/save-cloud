@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.utils.*
 import csstype.ClassName
 import react.FC
 import react.Props
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -28,7 +29,6 @@ import react.useState
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ButtonType
 
 val projectInfo = projectInfo()
 

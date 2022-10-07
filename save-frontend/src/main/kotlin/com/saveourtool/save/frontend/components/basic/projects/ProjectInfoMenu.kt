@@ -14,6 +14,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -21,7 +22,6 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 
 import kotlinx.browser.window
-import react.dom.html.ButtonType
 
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
 
