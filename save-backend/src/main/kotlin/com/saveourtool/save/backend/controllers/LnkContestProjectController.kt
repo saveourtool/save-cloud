@@ -10,7 +10,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.StringResponse
 
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.ContestResult
