@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.Role
 
 import csstype.ClassName
@@ -23,21 +22,8 @@ import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-/**
- * @return a nicely formatted string representation of [FileInfo]
- */
-@Suppress("MAGIC_NUMBER", "MagicNumber")
-fun FileInfo.toPrettyString() = "${key.name} (uploaded at ${
-    Instant.fromEpochMilliseconds(key.uploadedMillis).toLocalDateTime(
-        TimeZone.UTC
-    )
-}, size ${sizeBytes / 1024} KiB)"
 
 /**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization
