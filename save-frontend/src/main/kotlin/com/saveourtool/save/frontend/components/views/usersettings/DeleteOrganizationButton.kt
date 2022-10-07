@@ -24,9 +24,9 @@ import react.useState
  */
 val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
     val windowOpenness = useWindowOpenness()
-    val (displayTitle, putDisplayTitle) = useState("")
-    val (displayMessage, putDisplayMessage) = useState("")
-    val (modalButtons, putModalButtons) = useState(ModalPurpose.default)
+    val (displayTitle, setDisplayTitle) = useState("")
+    val (displayMessage, setDisplayMessage) = useState("")
+    val (modalButtons, setModalButtons) = useState(ModalPurpose.DELETE_MODAL)
 
     val deleteOrganization = useDeferredRequest {
         val responseFromDeleteOrganization =
@@ -40,9 +40,9 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
         if (responseFromDeleteOrganization.ok) {
             props.onDeletionSuccess()
         } else {
-            putDisplayTitle("You cannot delete ${props.organizationName}")
-            putDisplayMessage(responseFromDeleteOrganization.unpackMessage())
-            putModalButtons(ModalPurpose.ERROR_MODAL)
+            setDisplayTitle("You cannot delete ${props.organizationName}")
+            setDisplayMessage(responseFromDeleteOrganization.unpackMessage())
+            setModalButtons(ModalPurpose.ERROR_MODAL)
             windowOpenness.openWindow()
         }
     }
@@ -53,9 +53,9 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
             props.buttonStyleBuilder(this)
             id = "remove-organization-${props.organizationName}"
             onClick = {
-                putDisplayTitle("Warning: deletion of organization")
-                putDisplayMessage("You are about to delete organization ${props.organizationName}. Are you sure?")
-                putModalButtons(ModalPurpose.DELETE_MODAL)
+                setDisplayTitle("Warning: deletion of organization")
+                setDisplayMessage("You are about to delete organization ${props.organizationName}. Are you sure?")
+                setModalButtons(ModalPurpose.DELETE_MODAL)
                 windowOpenness.openWindow()
             }
         }
@@ -110,9 +110,4 @@ external interface DeleteOrganizationButtonProps : Props {
 private enum class ModalPurpose {
     DELETE_MODAL,
     ERROR_MODAL,
-    ;
-
-    companion object {
-        val default = DELETE_MODAL
-    }
 }
