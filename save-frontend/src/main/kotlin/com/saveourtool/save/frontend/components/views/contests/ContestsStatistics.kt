@@ -19,6 +19,7 @@ import react.dom.html.ReactHTML.strong
 import react.useState
 
 import kotlinx.js.jso
+import react.ChildrenBuilder
 
 val statistics = statistics()
 
@@ -51,58 +52,69 @@ private fun statistics() = VFC {
         ReactHTML.div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 10.rem
+                minHeight = 15.rem
             }
             div {
-                className = ClassName("col-lg-6 mt-2")
-                div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
-                    strong {
-                        className = ClassName("d-inline-block mb-2 card-text")
-                        +"Active contests:"
-                    }
-                }
-                div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
-                    h2 {
-                        className = ClassName("text-dark")
-                        +activeContests.size.toString()
-                    }
-                }
-            }
-            div {
-                className = ClassName("col-lg-6 mt-2")
-                div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
-                    strong {
-                        className = ClassName("d-inline-block mb-2 card-text ")
-                        +"Finished contests:"
-                    }
-                }
-                div {
-                    className = ClassName("row")
-                    style = jso {
-                        justifyContent = JustifyContent.center
-                        alignItems = AlignItems.center
-                    }
-                    h2 {
-                        className = ClassName("text-dark")
-                        +finishedContests.size.toString()
-                    }
-                }
+                className = ClassName("col-lg-12")
+                stats(activeContests, finishedContests)
+                proposeContest()
             }
         }
     }
 }
+
+fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set<ContestDto>) =
+    div {
+        className = ClassName("row border-bottom mb-3 mx-3")
+
+        div {
+            className = ClassName("col-lg-6 mt-2 mb-2")
+            div {
+                className = ClassName("row")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    alignItems = AlignItems.center
+                }
+                strong {
+                    className = ClassName("d-inline-block mb-2 card-text")
+                    +"Active contests:"
+                }
+            }
+            div {
+                className = ClassName("row")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    alignItems = AlignItems.center
+                }
+                h2 {
+                    className = ClassName("text-dark")
+                    +activeContests.size.toString()
+                }
+            }
+        }
+        div {
+            className = ClassName("col-lg-6 mt-2")
+            div {
+                className = ClassName("row")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    alignItems = AlignItems.center
+                }
+                strong {
+                    className = ClassName("d-inline-block mb-2 card-text ")
+                    +"Finished contests:"
+                }
+            }
+            div {
+                className = ClassName("row")
+                style = jso {
+                    justifyContent = JustifyContent.center
+                    alignItems = AlignItems.center
+                }
+                h2 {
+                    className = ClassName("text-dark")
+                    +finishedContests.size.toString()
+                }
+            }
+        }
+    }

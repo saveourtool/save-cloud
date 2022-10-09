@@ -74,7 +74,6 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             className = ClassName("row mb-2")
                             yourContests()
                             statistics()
-                            proposeContest()
                         }
 
                         div {

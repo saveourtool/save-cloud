@@ -70,8 +70,8 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                             alignItems = AlignItems.center
                             justifyContent = JustifyContent.center
                         }
-                        p {
-                            +it.name
+                        h4 {
+                            +it.contestRating.toString()
                         }
                     }
                     div {
@@ -80,10 +80,11 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                             alignItems = AlignItems.center
                             justifyContent = JustifyContent.center
                         }
-                        h4 {
-                            +"432796"
+                        p {
+                            +it.name
                         }
                     }
+
                 }
             }
         }
