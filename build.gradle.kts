@@ -44,8 +44,7 @@ tasks.withType<org.liquibase.gradle.LiquibaseTask>().configureEach {
     @Suppress("MAGIC_NUMBER")
     this.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
         // liquibase-core 4.7.0 and liquibase-gradle 2.1.1 fails on Java >= 13 on Windows; works on Mac
-        val javaVersion = if (Os.isFamily(Os.FAMILY_WINDOWS)) 11 else 17
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        languageVersion.set(JavaLanguageVersion.of(11))
     })
 }
 
