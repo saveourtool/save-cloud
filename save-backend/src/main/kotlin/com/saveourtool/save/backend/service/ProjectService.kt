@@ -82,8 +82,15 @@ class ProjectService(
 
     /**
      * @param organizationName
+     * @return List of the Organization projects
      */
-    fun findByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName).let { Flux.fromIterable(it) }
+    fun getAllByOrganizationName(organizationName: String) = projectRepository.findByOrganizationName(organizationName)
+
+    /**
+     * @param organizationName
+     * @return Flux of the Organization projects
+     */
+    fun getAllAsFluxByOrganizationName(organizationName: String) = getAllByOrganizationName(organizationName).let { Flux.fromIterable(it) }
 
     /**
      * @return project's without status
@@ -103,7 +110,7 @@ class ProjectService(
     fun getNotDeletedProjectsByOrganizationName(
         organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = findByOrganizationName(organizationName)
+    ): Flux<Project> = getAllAsFluxByOrganizationName(organizationName)
         .filter {
             it.status != ProjectStatus.DELETED
         }

@@ -70,6 +70,18 @@ class OrganizationService(
     }
 
     /**
+     * @param organizationName
+     * @return [true] if number of Organization projects is zero, else - [false]
+     */
+    fun organizationHasNoProjects(organizationName: String) = numberOfProjectInOrganization(organizationName) == 0
+
+    /**
+     * @param organizationName
+     * @return number of Organization projects
+     */
+    fun numberOfProjectInOrganization(organizationName: String) = projectService.getAllByOrganizationName(organizationName).size
+
+    /**
      * @param organizationId
      * @return organization by id
      */
