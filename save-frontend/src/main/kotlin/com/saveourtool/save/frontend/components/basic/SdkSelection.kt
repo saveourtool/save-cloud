@@ -82,7 +82,7 @@ private fun sdkSelection() =
             if (props.title.isNotBlank()) {
                 label {
                     className =
-                        ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                            ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                     +props.title
                 }
             }

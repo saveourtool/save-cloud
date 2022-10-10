@@ -297,4 +297,4 @@ fun topBar() = FC<TopBarProps> { props ->
 }
 
 private fun textColor(hrefAnchor: String, location: history.Location) =
-    if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"
+        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"

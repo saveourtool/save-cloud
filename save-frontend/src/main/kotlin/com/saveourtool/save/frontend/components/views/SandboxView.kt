@@ -10,30 +10,27 @@ import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorCompo
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowDown
 import com.saveourtool.save.frontend.externals.fontawesome.faArrowLeft
-import com.saveourtool.save.frontend.externals.fontawesome.faKey
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import csstype.AlignItems
 
+import csstype.AlignItems
 import csstype.ClassName
 import csstype.Color
 import csstype.Display
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.p
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
@@ -131,23 +128,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                             className = ClassName("card")
                             div {
                                 className = ClassName("row")
-                                div {
-                                    className = ClassName("col-6")
-                                    renderToolUpload()
-                                }
-                                div {
-                                    className = ClassName("col-6")
-                                    style = jso {
-                                        display = Display.flex
-                                        alignItems = AlignItems.flexEnd
-                                    }
-
-                                    p {
-                                        className = ClassName("text-info mt-1")
-                                        fontAwesomeIcon(icon = faArrowLeft)
-                                        +" upload your tested tool and all other needed files"
-                                    }
-                                }
+                                renderToolUpload()
+                                renderUploadHint()
                             }
                         }
                     }
@@ -208,6 +190,22 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     }
 
+    private fun ChildrenBuilder.renderUploadHint() {
+        div {
+            className = ClassName("col-6")
+            style = jso {
+                display = Display.flex
+                alignItems = AlignItems.flexEnd
+            }
+
+            p {
+                className = ClassName("text-info mt-1")
+                fontAwesomeIcon(icon = faArrowLeft)
+                +" upload your tested tool and all other needed files"
+            }
+        }
+    }
+
     private fun ChildrenBuilder.renderDebugInfo() {
         state.debugInfo?.let { debugInfo ->
             div {
@@ -221,12 +219,15 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
 
     private fun ChildrenBuilder.renderToolUpload() {
-        fileUploaderForSandbox(
-            props.currentUserInfo?.name,
-            state.files
-        ) { selectedFiles ->
-            setState {
-                files = selectedFiles
+        div {
+            className = ClassName("col-6")
+            fileUploaderForSandbox(
+                props.currentUserInfo?.name,
+                state.files
+            ) { selectedFiles ->
+                setState {
+                    files = selectedFiles
+                }
             }
         }
     }
