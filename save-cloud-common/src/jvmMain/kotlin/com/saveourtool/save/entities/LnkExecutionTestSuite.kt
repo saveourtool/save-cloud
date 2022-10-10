@@ -6,8 +6,8 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property execution
- * @property testSuite
+ * @property execution execution that is connected to [testSuite]
+ * @property testSuite manageable test suite
  */
 @Entity
 class LnkExecutionTestSuite(
