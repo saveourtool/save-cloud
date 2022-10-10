@@ -84,6 +84,10 @@ external val faSearch: FontAwesomeIconModule
 @JsNonModule
 external val faRedo: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faSync")
+@JsNonModule
+external val faReload: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faCopyright")
 @JsNonModule
 external val faCopyright: FontAwesomeIconModule

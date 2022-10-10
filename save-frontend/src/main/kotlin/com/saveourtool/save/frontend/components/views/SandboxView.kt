@@ -2,23 +2,37 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.SandboxFileInfo
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
+import org.w3c.fetch.Headers
 import react.*
+import react.dom.aria.AriaRole
+import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.h6
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -63,7 +77,7 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     /**
      * Result of save-cli execution
      */
-    var debugInfo: String?
+    var debugInfo: TestResultDebugInfo?
 
     /**
      * Currently selected FileType - config, test or setup.sh
@@ -74,6 +88,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Selected SDK
      */
     var selectedSdk: Sdk
+
+    /**
+     * Flag that displays if modal is open
+     */
+    var isModalOpen: Boolean
 }
 
 /**
@@ -82,6 +101,11 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
+    private val closeModal = {
+        setState {
+            isModalOpen = false
+        }
+    }
     init {
         state.codeText = ""
         state.configText = ""
@@ -90,6 +114,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         state.files = listOf()
         state.selectedFile = null
         state.selectedSdk = Sdk.Default
+        state.isModalOpen = false
     }
 
     override fun ChildrenBuilder.render() {
@@ -97,13 +122,28 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             className = ClassName("text-center")
             +"Sandbox"
         }
+
+        state.debugInfo?.let { debugInfo ->
+            displayModal(
+                isOpen = state.isModalOpen,
+                title = "Additional debug info",
+                classes = "modal-lg",
+                bodyBuilder = { displayTestResultDebugInfo(debugInfo) },
+                modalStyle = largeTransparentModalStyle,
+                onCloseButtonPressed = closeModal,
+            ) {
+                buttonBuilder("Ok") { closeModal() }
+            }
+        }
+
         div {
             className = ClassName("d-flex justify-content-center")
             div {
                 className = ClassName(" flex-wrap col-10")
-                renderCodeEditor()
 
                 renderDebugInfo()
+
+                renderCodeEditor()
 
                 renderToolUpload()
 
@@ -146,15 +186,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                         }
                     }
                 }
-                doUploadChanges = {
-                    uploadChanges()
-                }
-                doReloadChanges = {
-                    reloadChanges()
-                }
-                doRunExecution = {
-                    runExecution()
-                }
+                doUploadChanges = ::uploadChanges
+                doReloadChanges = ::reloadChanges
+                doRunExecution = ::runExecution
+                doResultReload = ::resultReload
             }
         }
     }
@@ -162,11 +197,41 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private fun ChildrenBuilder.renderDebugInfo() {
         state.debugInfo?.let { debugInfo ->
             div {
-                h6 {
-                    className = ClassName("text-center")
-                    +"DebugInfo"
+                val alertStyle = when (debugInfo.testStatus) {
+                    is Pass -> "success"
+                    is Fail -> "danger"
+                    is Ignored -> "secondary"
+                    is Crash -> "danger"
+                    else -> "info"
                 }
-                +debugInfo
+                div {
+                    className = ClassName("alert alert-$alertStyle alert-dismissible fade show")
+                    role = AriaRole.alert
+                    div {
+                        displayTestResultDebugInfoStatus(debugInfo)
+                        a {
+                            href = "/#/sandbox"
+                            +"See more details..."
+                            onClick = {
+                                setState {
+                                    isModalOpen = true
+                                }
+                            }
+                        }
+                    }
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("align-self-center close")
+                        asDynamic()["data-dismiss"] = "alert"
+                        ariaLabel = "Close"
+                        fontAwesomeIcon(icon = faTimesCircle)
+                        onClick = {
+                            setState {
+                                this.debugInfo = null
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -241,6 +306,22 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     } ?: "Unknown user"
 
+    private fun resultReload() {
+        scope.launch {
+            val resultDebugInfo: TestResultDebugInfo = get(
+                "$sandboxApiUrl/get-debug-info?userName=${props.currentUserInfo?.name}",
+                Headers().apply {
+                    set("Accept", "application/octet-stream")
+                },
+                loadingHandler = ::classLoadingHandler,
+            )
+                .decodeFromJsonString()
+            setState {
+                debugInfo = resultDebugInfo
+            }
+        }
+    }
+
     private fun runExecution() {
         scope.launch {
             post(
@@ -257,7 +338,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             |[general]
             |tags = ["demo"]
             |description = "saveourtool online demo"
-            |suiteName = Test
+            |suiteName = "Test"
             |execCmd="RUN_COMMAND"
             |language = "Kotlin"
             |
@@ -280,7 +361,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             |}
         """.trimMargin()
         private val setupShExample = """
-            |python3.10 -m pip install pylint
+            |# Here you can add some additional commands required to run your tool e.g.
+            |# python3.10 -m pip install pylint
         """.trimMargin()
         init {
             ContestView.contextType = requestStatusContext
