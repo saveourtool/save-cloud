@@ -210,6 +210,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
                         a {
+                            href = window.location.hash
                             +"See more details..."
                             onClick = {
                                 setState {
