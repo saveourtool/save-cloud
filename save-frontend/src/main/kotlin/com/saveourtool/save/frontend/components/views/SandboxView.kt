@@ -29,12 +29,9 @@ import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.strong
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -211,14 +208,10 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     role = "alert".unsafeCast<AriaRole>()
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
-                        a {
-                            role = "button".unsafeCast<AriaRole>()
-                            p {
-                                className = ClassName("font-italic mb-0")
-                                strong {
-                                    +"See more details..."
-                                }
-                            }
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-link p-0")
+                            +"See more details..."
                             onClick = {
                                 setState {
                                     isModalOpen = true
