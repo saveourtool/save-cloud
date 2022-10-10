@@ -30,6 +30,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
+        println("\n\n\n\n-----------------------------------authenticate ConvertingAuthenticationManager!!!!")
         val identitySource = (authentication.details as AuthenticationDetails).identitySource
         if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
             throw BadCredentialsException(authentication.name)

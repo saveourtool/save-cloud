@@ -29,7 +29,7 @@ import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-@Profile("secure")
+@Profile("dev")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
@@ -41,19 +41,23 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
+        println("\n\n\n\nsecurityWebFilterChain!!!!")
         // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
+            //.pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
+            //.permitAll()
+            .pathMatchers("/", "/sandbox/internal/**", *publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
-            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
-            .permitAll()
+            //.pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
+            //.permitAll()
     }
         .and()
         .run {
             authorizeExchange()
                 .pathMatchers("/**")
+                //.pathMatchers("/sandbox/api/**")
                 .authenticated()
         }
         .and()
@@ -122,21 +126,21 @@ class WebSecurityConfig(
     }
 }
 
-@EnableWebFluxSecurity
-@Profile("!secure")
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-class NoopWebSecurityConfig {
-    @Bean
-    fun securityWebFilterChain(
-        http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http.authorizeExchange()
-        .anyExchange()
-        .permitAll()
-        .and()
-        .csrf()
-        .disable()
-        .build()
-}
+//@EnableWebFluxSecurity
+//@Profile("!secure")
+//@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+//class NoopWebSecurityConfig {
+//    @Bean
+//    fun securityWebFilterChain(
+//        http: ServerHttpSecurity
+//    ): SecurityWebFilterChain = http.authorizeExchange()
+//        .anyExchange()
+//        .permitAll()
+//        .and()
+//        .csrf()
+//        .disable()
+//        .build()
+//}
 
 /**
  * @return a bean with default [PasswordEncoder], that can be used throughout the application
