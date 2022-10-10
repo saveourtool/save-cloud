@@ -7,8 +7,8 @@
 package com.saveourtool.save.frontend.utils
 
 import csstype.ClassName
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLSelectElement
+import dom.html.HTMLButtonElement
+import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
