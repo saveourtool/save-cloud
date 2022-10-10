@@ -11,19 +11,19 @@ import org.springframework.stereotype.Repository
 @Repository
 interface LnkExecutionTestSuiteRepository : BaseEntityRepository<LnkExecutionTestSuite> {
     /**
-     * @param execution
+     * @param execution execution that is connected to testSuite
      * @return [LnkExecutionTestSuite] by [execution]
      */
     fun findByExecution(execution: Execution): List<LnkExecutionTestSuite>
 
     /**
-     * @param executionId
+     * @param executionId execution id execution that is connected to testSuite
      * @return [LnkExecutionTestSuite] by [executionId]
      */
     fun findByExecutionId(executionId: Long): List<LnkExecutionTestSuite>
 
     /**
-     * @param testSuiteId
+     * @param testSuiteId manageable test suite
      * @return [LnkExecutionTestSuite] by [testSuiteId]
      */
     fun findByTestSuiteId(testSuiteId: Long): List<LnkExecutionTestSuite>

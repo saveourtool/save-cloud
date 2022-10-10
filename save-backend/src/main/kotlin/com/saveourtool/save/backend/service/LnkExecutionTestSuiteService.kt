@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.LnkExecutionTestSuiteRepository
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.LnkExecutionTestSuite
+import com.saveourtool.save.entities.LnkOrganizationTestSuite
 import com.saveourtool.save.entities.TestSuite
 import org.springframework.stereotype.Service
 
@@ -14,8 +15,8 @@ class LnkExecutionTestSuiteService(
     private val lnkExecutionTestSuiteRepository: LnkExecutionTestSuiteRepository,
 ) {
     /**
-     * @param execution
-     * @return all [TestSuite]s with rights for [execution]
+     * @param execution execution that is connected to testSuite
+     * @return all [TestSuite]s with [execution]
      */
     fun getAllTestSuitesByExecution(execution: Execution) =
             lnkExecutionTestSuiteRepository.findByExecution(execution)
@@ -24,8 +25,8 @@ class LnkExecutionTestSuiteService(
                 }
 
     /**
-     * @param executionId
-     * @return all [TestSuite]s with rights for [executionId]
+     * @param executionId execution id that is connected to testSuite
+     * @return all [TestSuite]s with [executionId]
      */
     fun getAllTestSuiteIdsByExecutionId(executionId: Long) =
             lnkExecutionTestSuiteRepository.findByExecutionId(executionId)
@@ -34,8 +35,8 @@ class LnkExecutionTestSuiteService(
                 }
 
     /**
-     * @param testSuiteId
-     * @return all [Execution]s with rights for [testSuiteId]
+     * @param testSuiteId manageable test suite
+     * @return all [Execution]s with [testSuiteId]
      */
     fun getAllExecutionsByTestSuiteId(testSuiteId: Long) = lnkExecutionTestSuiteRepository.findByTestSuiteId(testSuiteId)
         .map {
@@ -43,12 +44,12 @@ class LnkExecutionTestSuiteService(
         }
 
     /**
-     * @param lnkExecutionTestSuite
+     * @param [lnkExecutionTestSuite] link execution to testSuites
      */
     fun save(lnkExecutionTestSuite: LnkExecutionTestSuite): LnkExecutionTestSuite = lnkExecutionTestSuiteRepository.save(lnkExecutionTestSuite)
 
     /**
-     * @param lnkExecutionTestSuites
+     * @param [lnkExecutionTestSuites] link execution to testSuites
      */
     fun saveAll(lnkExecutionTestSuites: List<LnkExecutionTestSuite>): List<LnkExecutionTestSuite> = lnkExecutionTestSuiteRepository.saveAll(lnkExecutionTestSuites)
 }

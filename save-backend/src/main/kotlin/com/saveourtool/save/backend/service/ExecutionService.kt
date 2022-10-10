@@ -50,8 +50,8 @@ class ExecutionService(
     fun findExecution(id: Long): Execution? = executionRepository.findByIdOrNull(id)
 
     /**
-     * @param execution
-     * @param testSuites
+     * @param execution execution that is connected to testSuite
+     * @param testSuites manageable test suite
      */
     @Transactional
     fun save(execution: Execution, testSuites: List<TestSuite>): Execution {
