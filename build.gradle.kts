@@ -1,7 +1,5 @@
 import com.saveourtool.save.buildutils.*
 
-import org.apache.tools.ant.taskdefs.condition.Os
-
 plugins {
     alias(libs.plugins.talaiot.base)
     alias(libs.plugins.liquibase.gradle)
