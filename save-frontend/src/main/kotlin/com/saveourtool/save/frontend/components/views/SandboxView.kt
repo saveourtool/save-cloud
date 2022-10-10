@@ -33,13 +33,12 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import react.dom.html.ReactHTML.mark
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.strong
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
