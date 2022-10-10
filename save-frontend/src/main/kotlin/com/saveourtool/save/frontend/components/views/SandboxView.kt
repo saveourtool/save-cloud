@@ -37,6 +37,9 @@ import react.dom.html.ReactHTML.h3
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import react.dom.html.ReactHTML.mark
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
@@ -206,12 +209,17 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                 }
                 div {
                     className = ClassName("alert alert-$alertStyle alert-dismissible fade show")
-                    role = AriaRole.alert
+                    role = "alert".unsafeCast<AriaRole>()
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
                         a {
-                            href = window.location.hash
-                            +"See more details..."
+                            role = "button".unsafeCast<AriaRole>()
+                            p {
+                                className = ClassName("font-italic mb-0")
+                                strong {
+                                    +"See more details..."
+                                }
+                            }
                             onClick = {
                                 setState {
                                     isModalOpen = true
