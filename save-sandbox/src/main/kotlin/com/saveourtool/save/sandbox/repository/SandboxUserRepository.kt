@@ -35,11 +35,14 @@ class SandboxUserRepository(
     @Transactional
     fun findByName(name: String): User? =
         namedParameterJdbcTemplate.queryForObject(
-            "SELECT id FROM save_cloud.user WHERE name = :name",
+            "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name),
             User::class.java
         )
-            .orNotFound { "There is no user with name $name" }
+            .orNotFound {
+                println("There is no user with name $name")
+                "There is no user with name $name"
+            }
 
 
     /**
@@ -49,9 +52,12 @@ class SandboxUserRepository(
      */
     fun findByNameAndSource(name: String, source: String): User? =
         namedParameterJdbcTemplate.queryForObject(
-            "SELECT id FROM save_cloud.user WHERE name = :name AND source = :source",
+            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
             mapOf("name" to name, "source" to source),
             User::class.java
         )
-            .orNotFound { "There is no user with name $name" }
+            .orNotFound {
+                println("There is no user with name $name and source $source")
+                "There is no user with name $name and source $source"
+            }
 }

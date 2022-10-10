@@ -23,7 +23,10 @@ class SandboxUserDetailsService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun findByUsername(username: String): Mono<UserDetails> = {
-        sandboxUserRepository.findByName(username)
+        println("\n\n========== findByUsername")
+        val user = sandboxUserRepository.findByName(username)
+        println("USER: ${user?.name} ${user?.password}")
+        user
     }.toMono().getIdentitySourceAwareUserDetails(username)
 
     /**

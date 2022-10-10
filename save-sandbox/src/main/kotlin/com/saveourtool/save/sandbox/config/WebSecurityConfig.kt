@@ -42,22 +42,16 @@ class WebSecurityConfig(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
         println("\n\n\n\nsecurityWebFilterChain!!!!")
-        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
+        // All `/sandbox/internal/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
-            //.pathMatchers("/", "/internal/**", "/actuator/**", *publicEndpoints.toTypedArray())
-            //.permitAll()
             .pathMatchers("/", "/sandbox/internal/**", *publicEndpoints.toTypedArray())
             .permitAll()
-            // resources for frontend
-            //.pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
-            //.permitAll()
     }
         .and()
         .run {
             authorizeExchange()
-                .pathMatchers("/**")
-                //.pathMatchers("/sandbox/api/**")
+                .pathMatchers("/sandbox/api/**")
                 .authenticated()
         }
         .and()
@@ -107,21 +101,6 @@ class WebSecurityConfig(
          */
         internal val publicEndpoints = listOf(
             "/error",
-            // `CollectionView` is a public page
-            "/api/$v1/projects/not-deleted",
-            "/api/$v1/awesome-benchmarks",
-            "/api/$v1/check-git-connectivity-adaptor",
-            // `OrganizationView` is a public page
-            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
-            "/api/$v1/organizations/**",
-            "/api/$v1/projects/get/projects-by-organization",
-            // `ContestListView` and `ContestView` are public pages
-            "/api/$v1/contests/*",
-            "/api/$v1/contests/active",
-            "/api/$v1/contests/finished",
-            "/api/$v1/contests/*/public-test",
-            "/api/$v1/contests/*/scores",
-            "/api/$v1/contests/*/*/best",
         )
     }
 }
