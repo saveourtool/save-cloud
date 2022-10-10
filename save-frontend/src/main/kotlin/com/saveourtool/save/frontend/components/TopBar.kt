@@ -17,7 +17,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
-import org.w3c.dom.HTMLButtonElement
+import dom.html.HTMLButtonElement
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes

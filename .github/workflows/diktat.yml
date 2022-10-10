@@ -40,5 +40,5 @@ jobs:
         if: ${{ always() }}
         with:
           name: sarif-reports
-          path: "**/build/diktat-sarif-reports/"
+          path: "**/build/reports/diktat"
           retention-days: 1
