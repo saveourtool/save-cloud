@@ -116,6 +116,14 @@ external val faAlignJustify: FontAwesomeIconModule
 @JsNonModule
 external val faArrowRight: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowLeft")
+@JsNonModule
+external val faArrowLeft: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowDown")
+@JsNonModule
+external val faArrowDown: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faLightbulb")
 @JsNonModule
 external val faLightbulb: FontAwesomeIconModule

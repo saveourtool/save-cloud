@@ -10,11 +10,18 @@ import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorCompo
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.externals.fontawesome.faArrowDown
+import com.saveourtool.save.frontend.externals.fontawesome.faArrowLeft
+import com.saveourtool.save.frontend.externals.fontawesome.faKey
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import csstype.AlignItems
 
 import csstype.ClassName
+import csstype.Color
+import csstype.Display
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -23,6 +30,10 @@ import react.dom.html.ReactHTML.h6
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import kotlinx.js.jso
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.p
 
 val sandboxApiUrl = "${window.location.origin}/sandbox/api"
 
@@ -93,9 +104,16 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
 
     override fun ChildrenBuilder.render() {
-        h3 {
-            className = ClassName("text-center")
+        h2 {
+            className = ClassName("text-center mt-3")
+            style = jso {
+                color = Color("#FFFFFF")
+            }
             +"Sandbox"
+        }
+        h4 {
+            className = ClassName("text-center")
+            +"try your SAVE configuration online"
         }
         div {
             className = ClassName("d-flex justify-content-center")
@@ -105,15 +123,46 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
                 renderDebugInfo()
 
-                renderToolUpload()
+                div {
+                    className = ClassName("row mt-3 mb-3")
+                    div {
+                        className = ClassName("col-4")
+                        div {
+                            className = ClassName("card")
+                            div {
+                                className = ClassName("row")
+                                div {
+                                    className = ClassName("col-6")
+                                    renderToolUpload()
+                                }
+                                div {
+                                    className = ClassName("col-6")
+                                    style = jso {
+                                        display = Display.flex
+                                        alignItems = AlignItems.flexEnd
+                                    }
 
-                // ======== sdk selection =========
-                sdkSelection {
-                    title = "Select the SDK:"
-                    selectedSdk = state.selectedSdk
-                    onSdkChange = { newSdk ->
-                        setState {
-                            selectedSdk = newSdk
+                                    p {
+                                        className = ClassName("text-info mt-1")
+                                        fontAwesomeIcon(icon = faArrowLeft)
+                                        +" upload your tested tool and all other needed files"
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    div {
+                        className = ClassName("col-8")
+                        // ======== sdk selection =========
+                        sdkSelection {
+                            title = ""
+                            selectedSdk = state.selectedSdk
+                            onSdkChange = { newSdk ->
+                                setState {
+                                    selectedSdk = newSdk
+                                }
+                            }
                         }
                     }
                 }
@@ -125,7 +174,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         div {
             className = ClassName("")
             codeEditorComponent {
-                editorTitle = "Code editor"
+                editorTitle = ""
                 selectedFile = state.selectedFile
                 onSelectedFileUpdate = {
                     setState { selectedFile = it }
@@ -142,7 +191,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                             FileType.CODE -> codeText = it
                             FileType.SAVE_TOML -> configText = it
                             FileType.SETUP_SH -> setupShText = it
-                            else -> { }
+                            else -> {}
                         }
                     }
                 }
@@ -172,18 +221,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
 
     private fun ChildrenBuilder.renderToolUpload() {
-        div {
-            className = ClassName("m-3")
-            div {
-                className = ClassName("d-flex justify-content-center")
-                fileUploaderForSandbox(
-                    props.currentUserInfo?.name,
-                    state.files
-                ) { selectedFiles ->
-                    setState {
-                        files = selectedFiles
-                    }
-                }
+        fileUploaderForSandbox(
+            props.currentUserInfo?.name,
+            state.files
+        ) { selectedFiles ->
+            setState {
+                files = selectedFiles
             }
         }
     }
@@ -252,7 +295,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     }
 
-    companion object : RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
+    companion object :
+        RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
         private val configExample = """
             |[general]
             |tags = ["demo"]
@@ -276,12 +320,13 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             |
             |fun main {
             |    val bestLanguage = BestLanguage()
-            |    println("saveourtool loves ${ '$' }{bestLanguage.name}")
+            |    println("saveourtool loves ${'$'}{bestLanguage.name}")
             |}
         """.trimMargin()
         private val setupShExample = """
             |python3.10 -m pip install pylint
         """.trimMargin()
+
         init {
             ContestView.contextType = requestStatusContext
         }
