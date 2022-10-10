@@ -210,7 +210,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
                         a {
-                            href = "/#/sandbox"
                             +"See more details..."
                             onClick = {
                                 setState {
@@ -362,7 +361,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         """.trimMargin()
         private val setupShExample = """
             |# Here you can add some additional commands required to run your tool e.g.
-            |# python3.10 -m pip install pylint
+            |# python -m pip install pylint
         """.trimMargin()
         init {
             ContestView.contextType = requestStatusContext
