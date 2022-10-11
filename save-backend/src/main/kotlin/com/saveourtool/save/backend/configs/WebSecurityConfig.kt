@@ -39,8 +39,6 @@ import javax.annotation.PostConstruct
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
-    private val serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
-    private val serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
 ) {
     @Autowired
     private lateinit var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
@@ -140,8 +138,12 @@ class WebSecurityConfig(
     @Order(2)
     fun internalSecuredSecurityChain(
         http: ServerHttpSecurity,
+        serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
+        serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
     ): SecurityWebFilterChain = http.run {
         authorizeExchange().pathMatchers("/actuator/**")
+            // all requests to `/actuator` should be sent only from inside the cluster
+            // access to this port should be controlled by a NetworkPolicy
             .permitAll()
             .and()
             .authorizeExchange()

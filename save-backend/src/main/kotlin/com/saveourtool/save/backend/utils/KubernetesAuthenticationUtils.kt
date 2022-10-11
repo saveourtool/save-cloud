@@ -15,6 +15,7 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
@@ -31,13 +32,12 @@ class ServiceAccountTokenExtractorConverter : ServerAuthenticationConverter {
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 class ServiceAccountAuthenticatingManager(
-//    val kubernetesClient: ApiClient,
     val kubernetesClient: KubernetesClient,
 ) : ReactiveAuthenticationManager {
     override fun authenticate(authentication: Authentication): Mono<Authentication> {
-        val token = (authentication as PreAuthenticatedAuthenticationToken).credentials
-        @Language("yaml")
-        val tokenReview = """
+        return (authentication as PreAuthenticatedAuthenticationToken).credentials.toMono().map { token ->
+            @Language("yaml")
+            val tokenReview = """
             |apiVersion: authentication.k8s.io/v1
             |kind: TokenReview
             |metadata:
@@ -46,21 +46,21 @@ class ServiceAccountAuthenticatingManager(
             |spec:
             |  token: $token
         """.trimMargin()
-/*        val tokenReview = V1TokenReview().apply {
-            spec = V1TokenReviewSpec().apply {
-                setToken(token)
+            logger.debug {
+                "Will create k8s resource from the following YAML:\n${tokenReview.prependIndent("    ")}"
             }
+            val response = kubernetesClient.resource(tokenReview).createOrReplace() as TokenReview
+            logger.debug {
+                "Got the following response from the API server:\n${
+                    Serialization.yamlMapper().writeValueAsString(response).prependIndent("    ")
+                }"
+            }
+            response
         }
-        AuthenticationV1Api(kubernetesClient).createTokenReview(tokenReview)*/
-        logger.debug {
-            "Will create k8s resource from the following YAML:\n${tokenReview.prependIndent("    ")}"
-        }
-        val response = kubernetesClient.resource(tokenReview).createOrReplace() as TokenReview
-        logger.debug {
-            "Got the following response from the API server:\n${Serialization.yamlMapper().writeValueAsString(response).prependIndent("    ")}"
-        }
-        authentication.isAuthenticated = response.status.error == null && response.status.authenticated
-        return Mono.just(authentication)
+            .map { response ->
+                authentication.isAuthenticated = response.status.error == null && response.status.authenticated
+                authentication
+            }
     }
 
     private val logger = getLogger<ServiceAccountAuthenticatingManager>()
