@@ -3,6 +3,7 @@ package com.saveourtool.save.sandbox.security
 import com.saveourtool.save.sandbox.service.SandboxUserDetailsService
 import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import extractUserNameAndIdentitySource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -30,19 +31,12 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        val identitySource = (authentication.details as AuthenticationDetails).identitySource
-        if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
-            throw BadCredentialsException(authentication.name)
-        }
-        val name = authentication.name.drop(identitySource.length + 1)
-        println("\n\n\n\n-------------authentication.name: ${name} | identitySource: ${identitySource}")
+        val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
         sandboxUserDetailsService.findByUsername(name)
             .map {
-                println("USER DETAILS ${it.username} ${it.password}")
                 it as IdentitySourceAwareUserDetails
             }
             .filter {
-                println("USER DETAILS 22222 ${it.username} ${it.identitySource}")
                 it.identitySource == identitySource
             }
             .switchIfEmpty {
