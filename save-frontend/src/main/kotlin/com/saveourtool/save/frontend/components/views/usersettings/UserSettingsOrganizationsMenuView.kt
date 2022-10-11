@@ -4,9 +4,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.externals.fontawesome.faPlus
-import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.getHighestRole
@@ -32,6 +30,22 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         val windowOpenness = useWindowOpenness()
         val (organizationDto, setOrganizationDto) = useState(OrganizationDto.empty)
+
+        fun recoveryOrganization(organizationDto: OrganizationDto) {
+            useDeferredRequest {
+                post (
+                    "$apiUrl/organizations/${organizationDto.name}/recovery",
+                    headers = jsonHeaders,
+                    body = undefined,
+                    loadingHandler = ::noopLoadingHandler,
+                )
+            }
+            setState {
+                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
+                selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
+            }
+        }
+
         displayModal(
             isOpen = windowOpenness.isOpen(),
             title = "Warning: recovered of organization",
@@ -139,7 +153,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     div {
                                         ReactHTML.button {
                                             className = ClassName("btn mr-3")
-                                            fontAwesomeIcon(icon = faPlus)
+                                            fontAwesomeIcon(icon = faRedo)
                                             id = "recovery-organization-${organizationDto.name}"
                                             onClick = {
                                                 setState { setOrganizationDto(organizationDto) }
@@ -157,21 +171,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     }
                 }
             }
-        }
-    }
-
-    private fun recoveryOrganization(organizationDto: OrganizationDto) {
-        useDeferredRequest {
-            post (
-                "$apiUrl/organizations/${organizationDto.name}/recovery",
-                headers = jsonHeaders,
-                body = undefined,
-                loadingHandler = ::noopLoadingHandler,
-            )
-        }
-        setState {
-            selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
-            selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
         }
     }
 }

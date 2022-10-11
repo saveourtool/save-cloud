@@ -115,9 +115,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val user = props.userName
                 ?.let { getUser(it) }
             val organizationDtos = getOrganizationDtos()
-            console.log(organizationDtos.size)
             val deletedOrganizationDtos = getDeletedOrganizationDtos()
-            console.log(deletedOrganizationDtos.size)
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
