@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+
+    <changeSet id="clearing-tables" author="frolov" context="prod">
+        <sql>
+            DELETE FROM lnk_organization_test_suite;
+
+            DELETE FROM lnk_contest_project;
+
+            DELETE FROM lnk_contest_execution;
+
+            DELETE FROM lnk_execution_test_suite;
+
+            DELETE FROM test_execution;
+
+            DELETE FROM agent_status;
+
+            DELETE FROM agent;
+
+            DELETE FROM test;
+
+            DELETE FROM test_suite;
+
+            DELETE FROM execution;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

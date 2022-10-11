@@ -32,6 +32,11 @@ enum class AceModes(val modeName: String) {
     KOTLIN("kotlin"),
 
     /**
+     * Python highlight mode
+     */
+    PYTHON("python"),
+
+    /**
      * Shell highlight mode
      */
     SHELL("sh"),

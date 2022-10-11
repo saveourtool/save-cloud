@@ -97,13 +97,13 @@ class OrganizationViewTest {
                 userEvent.click(it)
             }
             .then { _: Unit ->
-                screen.findByText("Delete organization")
+                screen.findByText("Delete ${testOrganization.name}")
             }
             .then {
                 userEvent.click(it)
             }
             .then { _: Unit ->
-                screen.findByText("Ok")
+                screen.findByText("Yes, delete ${testOrganization.name}")
             }
             .then {
                 assertNotNull(it, "Should show confirmation window")

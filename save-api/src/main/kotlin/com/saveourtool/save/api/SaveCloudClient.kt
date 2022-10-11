@@ -4,6 +4,7 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.EvaluatedToolProperties
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.api.config.toSdk
+import com.saveourtool.save.api.http.allowedPostResponseCodes
 import com.saveourtool.save.api.utils.getAvailableFilesList
 import com.saveourtool.save.api.utils.getExecutionById
 import com.saveourtool.save.api.utils.getLatestExecution
@@ -13,10 +14,12 @@ import com.saveourtool.save.api.utils.uploadAdditionalFile
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.execution.ExecutionStatus.PENDING
+import com.saveourtool.save.execution.ExecutionStatus.RUNNING
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+import com.saveourtool.save.utils.getLogger
 
 import arrow.core.Either
 import arrow.core.getOrHandle
@@ -26,10 +29,7 @@ import arrow.core.rightIfNotNull
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.Accepted
-import io.ktor.http.HttpStatusCode.Companion.OK
 import okio.Path.Companion.toPath
-import org.slf4j.LoggerFactory
 
 import java.io.File
 import java.time.LocalDateTime
@@ -37,7 +37,10 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.delay
 
 /**
- * Class, that provides logic for execution submission and result receiving
+ * Class, that provides logic for execution submission and result receiving.
+ * As an alternative, consider using [SaveCloudClientEx].
+ *
+ * @see SaveCloudClientEx
  */
 class SaveCloudClient(
     webClientProperties: WebClientProperties,
@@ -46,7 +49,8 @@ class SaveCloudClient(
     private val contestName: String?,
     authorization: Authorization,
 ) {
-    private val log = LoggerFactory.getLogger(SaveCloudClient::class.java)
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+    private val log = getLogger<SaveCloudClient>()
     private var httpClient: HttpClient = initializeHttpClient(authorization, webClientProperties)
 
     /**
@@ -63,7 +67,7 @@ class SaveCloudClient(
         }
 
         if (evaluatedToolProperties.additionalFiles != null && additionalFileInfoList == null) {
-            return "Unable to parse `additionalFiles`: \"${evaluatedToolProperties.additionalFiles}\"".left()
+            return "Unable to parse or find `additionalFiles` (use ';' as a separator): \"${evaluatedToolProperties.additionalFiles}\"".left()
         }
 
         val msg = additionalFileInfoList?.let {
@@ -121,7 +125,7 @@ class SaveCloudClient(
         )
         val response = httpClient.submitExecution(createExecutionRequest)
         val httpStatus = response.status
-        if (httpStatus !in arrayOf(OK, Accepted)) {
+        if (httpStatus !in allowedPostResponseCodes) {
             log.error("Received HTTP $httpStatus while submitting execution: $createExecutionRequest")
             val responseBody = response.bodyAsText()
             if (responseBody.isNotBlank()) {
@@ -151,7 +155,7 @@ class SaveCloudClient(
         var executionDto = httpClient.getExecutionById(executionId)
         val initialTime = LocalDateTime.now()
 
-        while (executionDto.status == ExecutionStatus.PENDING || executionDto.status == ExecutionStatus.RUNNING) {
+        while (executionDto.status in arrayOf(PENDING, RUNNING)) {
             val currTime = LocalDateTime.now()
             if (currTime.minusMinutes(TIMEOUT_MINUTES_FOR_EXECUTION_RESULTS) >= initialTime) {
                 log.error("Couldn't get execution result, timeout ${TIMEOUT_MINUTES_FOR_EXECUTION_RESULTS}min is reached!")

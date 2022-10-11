@@ -9,7 +9,7 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.*
 
 import csstype.ClassName
-import org.w3c.dom.HTMLSelectElement
+import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren

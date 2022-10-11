@@ -18,7 +18,8 @@ class FooterTest {
             createElement(type = Footer::class.react),
         )
 
-        val versionLabel = screen.queryByText("Version $SAVE_VERSION", jso {
+        val versionLabel = screen.queryByText( "Version $SAVE_VERSION",
+            options = jso {
             // match substring
             exact = false
         })
