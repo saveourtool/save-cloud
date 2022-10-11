@@ -31,21 +31,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         val windowOpenness = useWindowOpenness()
         val (organizationDto, setOrganizationDto) = useState(OrganizationDto.empty)
 
-        fun recoveryOrganization(organizationDto: OrganizationDto) {
-            useDeferredRequest {
-                post (
-                    "$apiUrl/organizations/${organizationDto.name}/recovery",
-                    headers = jsonHeaders,
-                    body = undefined,
-                    loadingHandler = ::noopLoadingHandler,
-                )
-            }
-            setState {
-                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
-                selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
-            }
-        }
-
         displayModal(
             isOpen = windowOpenness.isOpen(),
             title = "Warning: recovered of organization",
@@ -169,6 +154,23 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private fun recoveryOrganization(organizationDto: OrganizationDto) {
+        useDeferredRequest {
+            val response = post (
+                "$apiUrl/organizations/${organizationDto.name}/recovery",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+            )
+            if (response.ok){
+                setState {
+                    selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
+                    selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
                 }
             }
         }
