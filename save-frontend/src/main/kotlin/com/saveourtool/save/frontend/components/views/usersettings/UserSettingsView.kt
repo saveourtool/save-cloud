@@ -78,6 +78,11 @@ external interface UserSettingsViewState : State {
      * Organizations connected to user
      */
     var selfOrganizationDtos: List<OrganizationDto>
+
+    /**
+     * Organizations deleted to user
+     */
+    var selfDeletedOrganizationDtos: List<OrganizationDto>
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -109,11 +114,13 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             val user = props.userName
                 ?.let { getUser(it) }
             val organizationDtos = getOrganizationDtos()
+            val deletedOrganizationDtos = getDeletedOrganizationDtos()
             setState {
                 userInfo = user
                 image = ImageInfo(user?.avatar)
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationDtos = organizationDtos
+                selfDeletedOrganizationDtos = deletedOrganizationDtos
             }
         }
     }
@@ -338,6 +345,14 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     @Suppress("TYPE_ALIAS")
     private suspend fun getOrganizationDtos() = get(
         "$apiUrl/organizations/by-user/not-deleted",
+        Headers(),
+        loadingHandler = ::classLoadingHandler,
+    )
+        .unsafeMap { it.decodeFromJsonString<List<OrganizationDto>>() }
+
+    @Suppress("TYPE_ALIAS")
+    private suspend fun getDeletedOrganizationDtos() = get(
+        "$apiUrl/organizations/by-user/deleted",
         Headers(),
         loadingHandler = ::classLoadingHandler,
     )

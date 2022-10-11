@@ -156,6 +156,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                             }
                         }
                         classes = "btn btn-sm btn-danger"
+                        userRole = props.selfRole
                     }
                 }
             }

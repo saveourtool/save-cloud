@@ -275,11 +275,41 @@ class LnkUserOrganizationController(
             Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
         }
         .filter {
-            it.organization != null && it.organization?.status != OrganizationStatus.DELETED
+            it.organization != null && it.organization?.status == OrganizationStatus.CREATED
         }
         .map {
             it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
         }
+
+
+    @GetMapping("/by-user/deleted")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get deleted user's organizations.",
+        description = "Get deleted organizations where user is a member, and his roles in those organizations.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched organization infos.")
+    @ApiResponse(responseCode = "404", description = "Could not find user with this id.")
+    @Suppress("UnsafeCallOnNullableType")
+    fun getDeletedOrganizationWithRoles(
+        authentication: Authentication,
+    ): Flux<OrganizationDto> = Mono.justOrEmpty(
+        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+    )
+        .switchIfEmptyToNotFound()
+        .flatMapMany {
+            Flux.fromIterable(lnkUserOrganizationService.getOrganizationsAndRolesByUser(it))
+        }
+        .filter {
+            it.organization != null && ((it.organization?.status == OrganizationStatus.DELETED) ||
+                    (it.role != null && it.role!!.isHigherOrEqualThan(Role.SUPER_ADMIN) && it.organization?.status == OrganizationStatus.BANNED))
+        }
+        .map {
+            it.organization!!.toDto(mapOf(it.user.name!! to (it.role ?: Role.NONE)))
+        }
+
 
     private fun getUserAndOrganizationWithPermissions(
         userName: String,

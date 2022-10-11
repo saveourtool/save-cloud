@@ -39,19 +39,44 @@ class OrganizationService(
     }
 
     /**
-     * Mark organization with [organizationName] as deleted
+     * Mark organization with [organizationName] as deleted or banned
      *
-     * @param organizationName an [Organization]'s name to delete
+     * @param organizationName an [Organization]'s name to delete or banned
+     * @param status on [deleted] or [banned]
      * @return deleted organization
      */
     @Suppress("UnsafeCallOnNullableType")
-    fun deleteOrganization(organizationName: String): Organization = getByName(organizationName)
+    fun deleteOrganization(organizationName: String, status: OrganizationStatus): Organization =
+        changeOrganizationStatus(organizationName, status)
+
+
+    /**
+     * Mark organization with [organizationName] as recovery
+     *
+     * @param organizationName an [Organization]'s name to recovery
+     * @return deleted organization
+     */
+    fun recoveryOrganization(organizationName: String): Organization =
+        changeOrganizationStatus(organizationName, OrganizationStatus.CREATED)
+
+
+    /**
+     * Mark organization with [organizationName] as recovery
+     *
+     * @param organizationName an [Organization]'s name to recovery
+     * @param changeStatus - the status to be assigned to the [Organization]
+     * @return deleted organization
+     */
+    @Suppress("UnsafeCallOnNullableType")
+    fun changeOrganizationStatus(organizationName: String, changeStatus: OrganizationStatus): Organization = getByName(organizationName)
         .apply {
-            status = OrganizationStatus.DELETED
+            status = changeStatus
         }
         .let {
             organizationRepository.save(it)
         }
+
+
 
     /**
      * @param organizationFilters
@@ -63,7 +88,7 @@ class OrganizationService(
             val namePredicate = name?.let { cb.like(root.get("name"), it) } ?: cb.and()
             cb.and(
                 namePredicate,
-                cb.notEqual(root.get<String>("status"), OrganizationStatus.DELETED)
+                cb.equal(root.get<String>("status"), OrganizationStatus.CREATED)
             )
         }
         return organizations

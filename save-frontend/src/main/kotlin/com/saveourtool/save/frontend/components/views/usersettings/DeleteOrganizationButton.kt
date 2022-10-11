@@ -6,10 +6,14 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import csstype.ClassName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -27,13 +31,14 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
     val (displayTitle, setDisplayTitle) = useState("")
     val (displayMessage, setDisplayMessage) = useState("")
     val (modalButtons, setModalButtons) = useState(ModalPurpose.DELETE_MODAL)
+    val (statusDeleted, setStatusDeleted) = useState(OrganizationStatus.DELETED)
 
     val deleteOrganization = useDeferredRequest {
         val responseFromDeleteOrganization =
                 delete(
                     "$apiUrl/organizations/${props.organizationName}/delete",
                     headers = jsonHeaders,
-                    body = undefined,
+                    body = Json.encodeToString(statusDeleted),
                     loadingHandler = ::noopLoadingHandler,
                     errorHandler = ::noopResponseHandler,
                 )
@@ -69,9 +74,16 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
     ) {
         when (modalButtons) {
             ModalPurpose.DELETE_MODAL -> {
-                buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+                buttonBuilder("Yes, delete ${props.organizationName}", "warning") {
                     deleteOrganization()
                     windowOpenness.closeWindow()
+                }
+                if (props.userRole.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
+                    buttonBuilder("Yes, banned ${props.organizationName}", "danger") {
+                        setStatusDeleted(OrganizationStatus.BANNED)
+                        deleteOrganization()
+                        windowOpenness.closeWindow()
+                    }
                 }
                 buttonBuilder("Cancel") {
                     windowOpenness.closeWindow()
@@ -102,9 +114,14 @@ external interface DeleteOrganizationButtonProps : Props {
     var buttonStyleBuilder: (ChildrenBuilder) -> Unit
 
     /**
-     * classname for the button
+     * Classname for the button
      */
     var classes: String
+
+    /**
+     * User role
+     */
+    var userRole: Role
 }
 
 private enum class ModalPurpose {

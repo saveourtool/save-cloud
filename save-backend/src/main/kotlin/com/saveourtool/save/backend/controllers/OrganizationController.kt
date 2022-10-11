@@ -17,6 +17,7 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
+import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -98,7 +99,7 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Flux<OrganizationDto> =
             organizationService.getNotDeletedOrganizations(organizationFilters)
-                .toFlux<Organization>()
+                .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it
@@ -294,7 +295,7 @@ internal class OrganizationController(
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE",
+        method = "DELETE OR BANNED",
         summary = "Delete existing organization.",
         description = "Delete existing organization by its name.",
     )
@@ -308,6 +309,7 @@ internal class OrganizationController(
     fun deleteOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
+        @RequestBody(required = false) status: OrganizationStatus,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -322,13 +324,49 @@ internal class OrganizationController(
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            organizationService.organizationHasNoProjects(it.name)
+            organizationService.organizationHasNoProjects(it.name) && status == OrganizationStatus.CREATED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            organizationService.deleteOrganization(it.name)
+            organizationService.deleteOrganization(it.name, status)
+            ResponseEntity.ok("Organization deleted")
+        }
+
+    @DeleteMapping("/{organizationName}/recovery")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+        method = "RECOVERY",
+        summary = "Recovery existing organization.",
+        description = "Recovery existing organization by its name.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully recovery an organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for recovering this organization.")
+    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    fun recoveryOrganization(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+        @RequestBody(required = false) role: Role,
+    ): Mono<StringResponse> = Mono.just(organizationName)
+        .flatMap {
+            organizationService.findByName(it).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "Could not find an organization with name $organizationName."
+        }
+        .filter {
+            organizationPermissionEvaluator.hasPermission(authentication, it, Permission.RECOVERY)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for recovery of organization $organizationName."
+        }
+        .map {
+            organizationService.recoveryOrganization(it.name)
             ResponseEntity.ok("Organization deleted")
         }
 

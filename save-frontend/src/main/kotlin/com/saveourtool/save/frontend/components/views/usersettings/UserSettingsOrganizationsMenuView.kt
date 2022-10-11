@@ -2,13 +2,18 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.externals.fontawesome.faPlus
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.v1
+import csstype.BorderRadius
 
 import csstype.ClassName
+import kotlinx.js.jso
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
@@ -39,7 +44,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3")
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className =
+                                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
@@ -53,13 +59,19 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 }
                             }
                             div {
-                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                className =
+                                    ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     deleteOrganizationButton {
                                         organizationName = organizationDto.name
                                         onDeletionSuccess = {
-                                            setState { selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto) }
+                                            setState {
+                                                selfOrganizationDtos =
+                                                    selfOrganizationDtos.minusElement(organizationDto)
+                                                selfDeletedOrganizationDtos =
+                                                    selfDeletedOrganizationDtos.plusElement(organizationDto)
+                                            }
                                         }
                                         buttonStyleBuilder = { childrenBuilder ->
                                             with(childrenBuilder) {
@@ -67,6 +79,59 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         classes = "btn mr-3"
+                                        userRole = role
+                                    }
+                                }
+                                div {
+                                    className = ClassName("mr-3")
+                                    +role.formattedName
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ul {
+                state.selfDeletedOrganizationDtos.forEach { organizationDto ->
+                    li {
+                        className = ClassName("list-group-item")
+                        div {
+                            className = ClassName("row justify-content-between align-items-center")
+                            div {
+                                className = ClassName("align-items-center ml-3")
+                                img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = organizationDto.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    height = 60.0
+                                    width = 60.0
+                                }
+                                td {
+                                    organizationDto.name
+                                    ReactHTML.span {
+                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                        style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                        +"deleted"
+                                    }
+                                }
+                            }
+                            div {
+                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
+                                if (role.isHigherOrEqualThan(Role.OWNER)) {
+                                    div {
+                                        ReactHTML.button {
+                                            className = ClassName("btn mr-3")
+                                            fontAwesomeIcon(icon = faPlus)
+                                            id = "recovery-organization-${organizationDto.name}"
+                                            onClick = {
+                                                setState {
+                                                    selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
+                                                    selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 div {
