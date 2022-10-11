@@ -37,37 +37,16 @@ class SandboxUserRepository(
     @Transactional
     fun findByName(name: String): User? {
         println("findByName namedParameterJdbcTemplate...")
-        val id  = namedParameterJdbcTemplate.queryForObject(
-            "SELECT id FROM save_cloud.user WHERE name = :name",
-            mapOf("name" to name),
-            Long::class.java
-        ).also {
-            println("\nFUCK1")
-        }
-            .orNotFound { "There is no user with name $name" }
-        println("\n\n\n---------------ID ${id}")
 
-        val user = namedParameterJdbcTemplate.queryForMap(
+        val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)
-        )
+        ).single()
+            .orNotFound {
+                "There is no user with name $name"
+            }
 
-        println("USER1: ${user}")
-
-
-        val a = user.values as User
-
-
-        println("USER2: ${a}")
-
-//        return user.mapValues { //entry ->
-//            //val (name, password, role, source, email, avatar, company, location, linkedin, gitHub, twitter, isActive, originalLogins) = entry.value
-//            User(
-//                it.value[0]
-//            )
-//        }
-
-        return null
+        return record.toUserEntity()
     }
 
 
@@ -77,14 +56,35 @@ class SandboxUserRepository(
      * @param source
      * @return user or null if no results have been found
      */
-    fun findByNameAndSource(name: String, source: String): User? =
-        namedParameterJdbcTemplate.queryForList(
+    fun findByNameAndSource(name: String, source: String): User? {
+        val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
             mapOf("name" to name, "source" to source),
-            User::class.java
-        )
+        ).single()
             .orNotFound {
-                println("There is no user with name $name and source $source")
                 "There is no user with name $name and source $source"
-            }.single()
+            }
+        return record.toUserEntity()
+    }
+
+
+    private fun Map<String, Any>.toUserEntity(): User {
+        val record = this
+        return User(
+            name = record["name"] as String?,
+            password = record["password"] as String?,
+            role = record["role"] as String?,
+            source = record["source"] as String,
+            email = record["email"] as String?,
+            avatar = record["avatar"] as String?,
+            company = record["company"] as String?,
+            location = record["location"] as String?,
+            linkedin = record["linkedin"] as String?,
+            gitHub = record["git_hub"] as String?,
+            twitter = record["twitter"] as String?,
+            isActive = record["is_active"] as Boolean,
+        ).apply {
+            this.id = record["id"] as Long
+        }
+    }
 }
