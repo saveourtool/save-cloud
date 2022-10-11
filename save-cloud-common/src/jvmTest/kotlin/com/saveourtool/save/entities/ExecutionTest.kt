@@ -22,44 +22,6 @@ internal class ExecutionTest {
     private val execution = Execution.stub(project)
 
     @Test
-    fun parseAndGetTestSuiteIds() {
-        execution.testSuiteIds = null
-        assertNull(execution.parseAndGetTestSuiteIds())
-
-        execution.testSuiteIds = "1, 2, 3"
-        assertNotNull(execution.parseAndGetTestSuiteIds()) {
-            assertEquals(listOf(1L, 2L, 3L), it)
-        }
-
-        execution.testSuiteIds = "3, 2, 1"
-        assertNotNull(execution.parseAndGetTestSuiteIds()) {
-            assertEquals(listOf(3L, 2L, 1L), it)
-        }
-    }
-
-    @Test
-    fun formatAndSetTestSuiteIds() {
-        execution.testSuiteIds = null
-
-        execution.formatAndSetTestSuiteIds(emptyList())
-        assertEquals("", execution.testSuiteIds)
-
-        execution.testSuiteIds = null
-        execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L))
-        assertEquals("1,2,3", execution.testSuiteIds)
-        execution.formatAndSetTestSuiteIds(listOf(4L))
-        assertEquals("4", execution.testSuiteIds)
-
-        execution.testSuiteIds = null
-        execution.formatAndSetTestSuiteIds(listOf(3L, 2L, 1L))
-        assertEquals("1,2,3", execution.testSuiteIds)
-
-        execution.testSuiteIds = null
-        execution.formatAndSetTestSuiteIds(listOf(1L, 2L, 3L, 2L, 1L))
-        assertEquals("1,2,3", execution.testSuiteIds)
-    }
-
-    @Test
     fun parseAndGetAdditionalFiles() {
         execution.additionalFiles = ""
         assertEquals(emptyList(), execution.getFileKeys())

@@ -145,6 +145,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 div {
                     className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faEdit)
                         id = "edit-git-credential-$index"
@@ -155,6 +156,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                         }
                     }
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
                         id = "remove-git-credential-$index"

@@ -15,7 +15,6 @@ import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager
@@ -32,12 +31,14 @@ import java.util.concurrent.ConcurrentHashMap
  * Service that is used for manipulating data with tests
  */
 @Service
+@Suppress("LongParameterList")
 class TestService(
     private val testRepository: TestRepository,
     private val agentRepository: AgentRepository,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesService: TestSuitesService,
+    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
     transactionManager: PlatformTransactionManager,
 ) {
     private val locks: ConcurrentHashMap<Long, Any> = ConcurrentHashMap()
@@ -122,11 +123,8 @@ class TestService(
      * @throws ResponseStatusException when execution is not found by [executionId] or found execution doesn't contain testSuiteIds
      */
     fun findTestsByExecutionId(executionId: Long): List<Test> {
-        val execution = executionRepository.findById(executionId).orElseThrow {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Execution (id=$executionId) not found")
-        }
-        return execution.parseAndGetTestSuiteIds()?.flatMap { findTestsByTestSuiteId(it) }
-            ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Execution (id=$executionId) doesn't contain testSuiteIds")
+        val testSuiteIds = lnkExecutionTestSuiteService.getAllTestSuiteIdsByExecutionId(executionId)
+        return testSuiteIds.flatMap { findTestsByTestSuiteId(it) }
     }
 
     /**

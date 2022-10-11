@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import csstype.ClassName
 import react.FC
 import react.Props
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -176,6 +177,7 @@ private fun testExecutionFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
@@ -183,6 +185,7 @@ private fun testExecutionFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
@@ -231,6 +234,7 @@ private fun nameFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-secondary mr-3")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
@@ -238,6 +242,7 @@ private fun nameFiltersRow(
                 }
             }
             button {
+                type = ButtonType.button
                 className = ClassName("btn btn-secondary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {

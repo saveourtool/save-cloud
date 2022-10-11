@@ -18,7 +18,7 @@ import com.saveourtool.save.utils.isValidScore
 
 import csstype.ClassName
 import csstype.Width
-import org.w3c.dom.HTMLAnchorElement
+import dom.html.HTMLAnchorElement
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax

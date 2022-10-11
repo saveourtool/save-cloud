@@ -111,7 +111,6 @@ class RunExecutionControllerTest(
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
-        Assertions.assertEquals("2,3", newExecution.testSuiteIds)
         Assertions.assertEquals(testsCount, newExecution.allTests)
         Assertions.assertEquals("test1:123", newExecution.additionalFiles)
         Assertions.assertEquals("eclipse-temurin:8", newExecution.sdk)
@@ -163,12 +162,11 @@ class RunExecutionControllerTest(
 
         assertions.forEach { Assertions.assertNotNull(it) }
         val testsCount = testRepository.findAll()
-            .count { it.testSuite.requiredId() in originalExecution.parseAndGetTestSuiteIds().orEmpty() }
+            .count { it.testSuite.requiredId() == 11L }
             .toLong()
         val newExecution = executionRepository.findById(executionId).get()
         Assertions.assertEquals(originalExecution.project, newExecution.project)
         Assertions.assertEquals("admin", newExecution.user?.name)
-        Assertions.assertEquals(originalExecution.testSuiteIds, newExecution.testSuiteIds)
         Assertions.assertEquals(originalExecution.allTests, newExecution.allTests)
         Assertions.assertEquals(originalExecution.additionalFiles, newExecution.additionalFiles)
         Assertions.assertEquals(originalExecution.sdk, newExecution.sdk)

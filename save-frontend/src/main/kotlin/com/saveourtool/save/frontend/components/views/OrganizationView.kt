@@ -57,7 +57,6 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
@@ -210,19 +209,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.confirmationType = ConfirmationType.DELETE_CONFIRM
     }
 
-    private fun deleteOrganization() {
-        val newOrganization = state.organization
-            ?.copy(status = OrganizationStatus.DELETED)
-            ?.apply { id = state.organization?.id }
-        setState {
-            organization = newOrganization
-            confirmationType = ConfirmationType.DELETE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this organization?"
-        }
-    }
-
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
             isErrorOpen = true
@@ -273,18 +259,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
-        }
-        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
-            buttonBuilder("Ok") {
-                when (state.confirmationType) {
-                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                    else -> TODO("Not implemented yet")
-                }
-                setState { isConfirmWindowOpen = false }
-            }
-            buttonBuilder("Close", "secondary") {
-                setState { isConfirmWindowOpen = false }
-            }
         }
 
         renderOrganizationMenuBar()
@@ -370,6 +344,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             }
                             if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
                                 button {
+                                    type = ButtonType.button
                                     className = ClassName("btn btn-link text-xs text-muted text-left ml-auto")
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -502,18 +477,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             organizationName = props.organizationName
             currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             selfRole = state.selfRole
-            deleteOrganizationCallback = {
-                if (state.projects?.size != 0) {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = ""
-                        errorMessage = "You cannot delete an organization because there are projects connected to it. " +
-                                "Delete all the projects and try again."
-                    }
-                } else {
-                    deleteOrganization()
-                }
-            }
             updateErrorMessage = { response, message ->
                 setState {
                     isErrorOpen = true
@@ -540,9 +503,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
         url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
+        headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -550,11 +511,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private fun onCanCreateContestsChange(canCreateContests: Boolean) {
-        val headers = jsonHeaders
         scope.launch {
             val response = post(
                 "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
-                headers,
+                headers = jsonHeaders,
                 undefined,
                 loadingHandler = ::classLoadingHandler,
             )
@@ -718,26 +678,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private fun deleteOrganizationBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            responseFromDeleteOrganization =
-                    delete(
-                        "$apiUrl/organizations/${props.organizationName}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteOrganization.ok) {
-                window.location.href = "${window.location.origin}/"
             }
         }
     }

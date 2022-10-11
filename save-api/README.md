@@ -29,3 +29,17 @@ however there could be used any other convenient implementation.
 
 With completed configuration, provided to the `SaveCloudClient` by `WebClientProperties`, `EvaluatedToolProperties`
 and `Authorization` instances the only `SaveCloudClient.start()` method is enough for automatic initialization of execution process.
+
+## Alternative API
+
+Alternatively, you can use `SaveCloudClientEx`. It allows you to:
+
+ - list organizations;
+ - list projects within an organization;
+ - list test suites within an organization;
+ - list active contests;
+ - list uploaded files;
+ - upload and delete files;
+ - list executions;
+ - submit an execution;
+ - look up an execution by id.
