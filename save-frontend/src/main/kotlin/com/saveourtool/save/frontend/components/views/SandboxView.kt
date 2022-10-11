@@ -155,8 +155,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             div {
                 className = ClassName(" flex-wrap col-10")
 
-                renderCodeEditor()
                 renderDebugInfo()
+                renderCodeEditor()
 
                 div {
                     className = ClassName("row mt-3 mb-3")
