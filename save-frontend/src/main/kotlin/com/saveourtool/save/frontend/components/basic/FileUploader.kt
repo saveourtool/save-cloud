@@ -346,7 +346,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "top"
                     title = "Regular files/Executable files/ZIP Archives"
-                    strong { +" Upload files:" }
+                    strong { +" Upload files " }
                 }
             }
         }

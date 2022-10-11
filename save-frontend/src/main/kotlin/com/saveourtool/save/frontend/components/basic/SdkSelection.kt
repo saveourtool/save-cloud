@@ -79,9 +79,12 @@ private fun sdkSelection() =
         FC<SdkProps> { props ->
             val (sdkName, setSdkName) = useState(props.selectedSdk.name)
             val (sdkVersion, setSdkVersion) = useState(props.selectedSdk.version)
-            label {
-                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                +props.title
+            if (props.title.isNotBlank()) {
+                label {
+                    className =
+                            ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                    +props.title
+                }
             }
             div {
                 className = ClassName("card align-items-left mb-3 pt-0 pb-0")
