@@ -124,18 +124,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
 
     override fun ChildrenBuilder.render() {
-        h2 {
-            className = ClassName("text-center mt-3")
-            style = jso {
-                color = Color("#FFFFFF")
-            }
-            +"Sandbox"
-        }
-        
-        h4 {
-            className = ClassName("text-center")
-            +"try your SAVE configuration online"
-        }
+
+        renderHeader()
 
         state.debugInfo?.let { debugInfo ->
             displayModal(
@@ -186,6 +176,21 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     }
                 }
             }
+        }
+    }
+
+    private fun ChildrenBuilder.renderHeader() {
+        h2 {
+            className = ClassName("text-center mt-3")
+            style = jso {
+                color = Color("#FFFFFF")
+            }
+            +"Sandbox"
+        }
+
+        h4 {
+            className = ClassName("text-center")
+            +"try your SAVE configuration online"
         }
     }
 
