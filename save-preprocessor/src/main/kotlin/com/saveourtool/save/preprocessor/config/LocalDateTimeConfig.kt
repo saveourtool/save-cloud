@@ -14,6 +14,7 @@ package com.saveourtool.save.preprocessor.config
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.saveourtool.save.configs.WebClientCustomizers
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean
@@ -28,6 +29,7 @@ import java.time.LocalDateTime
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import org.springframework.context.annotation.Import
 
 internal val json = Json {
     serializersModule = SerializersModule {
@@ -36,6 +38,7 @@ internal val json = Json {
 }
 
 @Configuration
+@Import(WebClientCustomizers::class)
 class LocalDateTimeConfig {
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->

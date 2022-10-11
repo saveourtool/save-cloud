@@ -19,16 +19,18 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 
 /**
- * A bridge from preprocesor to backend (rest api wrapper)
+ * A bridge from preprocessor to backend (rest api wrapper)
  */
 @Service
 class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
     kotlinSerializationWebClientCustomizer: WebClientCustomizer,
+    serviceAccountTokenHeaderWebClientCustomizer: WebClientCustomizer,
 ) {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backend)
         .apply(kotlinSerializationWebClientCustomizer::customize)
+        .apply(serviceAccountTokenHeaderWebClientCustomizer::customize)
         .build()
 
     /**

@@ -141,7 +141,11 @@ class WebSecurityConfig(
     fun internalSecuredSecurityChain(
         http: ServerHttpSecurity,
     ): SecurityWebFilterChain = http.run {
-        authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
+        authorizeExchange().pathMatchers("/actuator/**")
+            .permitAll()
+            .and()
+            .authorizeExchange()
+            .pathMatchers("/internal/**")
             .authenticated()
             .and()
             .addFilterBefore(
