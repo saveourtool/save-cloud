@@ -14,6 +14,8 @@ import csstype.BorderRadius
 
 import csstype.ClassName
 import kotlinx.js.jso
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
@@ -31,6 +33,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         val windowOpenness = useWindowOpenness()
         val (organizationDto, setOrganizationDto) = useState(OrganizationDto.empty)
+        val (highestRole, setHighestRole) = useState(Role.NONE)
 
         displayModal(
             isOpen = windowOpenness.isOpen(),
@@ -39,7 +42,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
             onCloseButtonPressed = windowOpenness.closeWindowAction()
         ) {
             buttonBuilder("Yes, recovered ${organizationDto.name}", "warning") {
-                recoveryOrganization(organizationDto)
+                recoveryOrganization(organizationDto, highestRole)
                 windowOpenness.closeWindow()
             }
             buttonBuilder("Cancel") {
@@ -135,7 +138,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
+                                setHighestRole(getHighestRole(role, state.userInfo?.globalRole))
+                                if (highestRole.isHigherOrEqualThan(Role.OWNER)) {
                                     div {
                                         ReactHTML.button {
                                             className = ClassName("btn mr-3")
@@ -161,12 +165,13 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     }
 
 
-    private fun recoveryOrganization(organizationDto: OrganizationDto): FC<Props> = VFC {
+    private fun recoveryOrganization(organizationDto: OrganizationDto, role: Role): FC<Props> = VFC {
+        console.log("recovery")
         useDeferredRequest {
             val response = post (
                 "$apiUrl/organizations/${organizationDto.name}/recovery",
                 headers = jsonHeaders,
-                body = undefined,
+                body = Json.encodeToString(role),
                 loadingHandler = ::noopLoadingHandler,
             )
             if (response.ok){
