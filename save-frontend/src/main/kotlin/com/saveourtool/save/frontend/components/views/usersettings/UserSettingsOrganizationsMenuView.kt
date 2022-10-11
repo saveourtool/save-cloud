@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.modal.displayModal
@@ -159,7 +160,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
 
-    private fun recoveryOrganization(organizationDto: OrganizationDto) {
+
+    private fun recoveryOrganization(organizationDto: OrganizationDto): FC<Props> = VFC {
         useDeferredRequest {
             val response = post (
                 "$apiUrl/organizations/${organizationDto.name}/recovery",
