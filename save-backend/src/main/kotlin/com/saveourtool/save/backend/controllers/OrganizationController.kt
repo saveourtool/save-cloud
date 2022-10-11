@@ -17,7 +17,6 @@ import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
-import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -334,7 +333,7 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization deleted")
         }
 
-    @DeleteMapping("/{organizationName}/recovery")
+    @PostMapping("/{organizationName}/recovery")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
@@ -367,7 +366,7 @@ internal class OrganizationController(
         }
         .map {
             organizationService.recoveryOrganization(it.name)
-            ResponseEntity.ok("Organization deleted")
+            ResponseEntity.ok("Organization recovery")
         }
 
     @GetMapping("/{organizationName}/list-git")

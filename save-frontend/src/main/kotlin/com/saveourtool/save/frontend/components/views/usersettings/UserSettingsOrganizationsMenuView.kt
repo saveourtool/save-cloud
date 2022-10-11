@@ -2,9 +2,12 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.externals.fontawesome.faPlus
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.v1
 import csstype.BorderRadius
 
@@ -13,7 +16,7 @@ import kotlinx.js.jso
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.td
+
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
@@ -25,6 +28,24 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+        val windowOpenness = useWindowOpenness()
+        val (stateOrganizationName, setOrganizationName) = useState("")
+        displayModal(
+            isOpen = windowOpenness.isOpen(),
+            title = "Warning: recovered of organization",
+            message = "You are about to recove organization $stateOrganizationName. Are you sure?",
+            onCloseButtonPressed = windowOpenness.closeWindowAction()
+        ) {
+            buttonBuilder("Yes, recovered $stateOrganizationName", "warning") {
+                recoveryOrganization(stateOrganizationName)
+                windowOpenness.closeWindow()
+            }
+            buttonBuilder("Cancel") {
+                windowOpenness.closeWindow()
+            }
+        }
+
+
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
@@ -44,8 +65,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3")
                                 img {
-                                    className =
-                                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
@@ -59,8 +79,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 }
                             }
                             div {
-                                className =
-                                    ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     deleteOrganizationButton {
@@ -90,8 +109,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                         }
                     }
                 }
-            }
-            ul {
+
                 state.selfDeletedOrganizationDtos.forEach { organizationDto ->
                     li {
                         className = ClassName("list-group-item")
@@ -100,20 +118,18 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("align-items-center ml-3")
                                 img {
-                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: "img/company.svg"
                                     height = 60.0
                                     width = 60.0
                                 }
-                                td {
-                                    organizationDto.name
-                                    ReactHTML.span {
-                                        className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
-                                        style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
-                                        +"deleted"
-                                    }
+                                +organizationDto.name
+                                ReactHTML.span {
+                                    className = ClassName("border ml-2 pr-1 pl-1 text-xs text-muted ")
+                                    style = jso { borderRadius = "2em".unsafeCast<BorderRadius>() }
+                                    +"deleted"
                                 }
                             }
                             div {
@@ -127,6 +143,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             id = "recovery-organization-${organizationDto.name}"
                                             onClick = {
                                                 setState {
+                                                    setOrganizationName(organizationDto.name)
+                                                    windowOpenness.openWindow()
                                                     selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
                                                     selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
                                                 }
@@ -143,6 +161,17 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                     }
                 }
             }
+        }
+    }
+
+    private fun recoveryOrganization(organizationName: String) {
+        useDeferredRequest {
+            post (
+                "$apiUrl/organizations/${organizationName}/recovery",
+                headers = jsonHeaders,
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+            )
         }
     }
 }

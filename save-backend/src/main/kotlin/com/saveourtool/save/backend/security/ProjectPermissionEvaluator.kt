@@ -5,9 +5,7 @@ import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -34,8 +32,7 @@ class ProjectPermissionEvaluator(
     fun hasPermission(authentication: Authentication?, project: Project, permission: Permission): Boolean {
         authentication ?: return when (permission) {
             Permission.READ -> project.public
-            Permission.WRITE -> false
-            Permission.DELETE -> false
+            Permission.RECOVERY, Permission.DELETE, Permission.WRITE -> false
         }
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
@@ -48,6 +45,7 @@ class ProjectPermissionEvaluator(
             Permission.READ -> project.public || hasReadAccess(userId, projectRole)
             Permission.WRITE -> hasWriteAccess(userId, projectRole)
             Permission.DELETE -> hasDeleteAccess(userId, projectRole)
+            Permission.RECOVERY -> hasRecoveryAccess(userId, projectRole, project.status)
         }
     }
 
@@ -90,6 +88,9 @@ class ProjectPermissionEvaluator(
     private fun hasDeleteAccess(userId: Long?, projectRole: Role): Boolean = userId?.let {
         projectRole == Role.OWNER || projectRole == Role.SUPER_ADMIN
     } ?: false
+
+    private fun hasRecoveryAccess(userId: Long?, projectRole: Role, projectStatus: ProjectStatus): Boolean =
+        userId?.let { projectRole.isHigherOrEqualThan(Role.ADMIN) && projectStatus == ProjectStatus.DELETED} ?: false
 
     /**
      * @param authentication
