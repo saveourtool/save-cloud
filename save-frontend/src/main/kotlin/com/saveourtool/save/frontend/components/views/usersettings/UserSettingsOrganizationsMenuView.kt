@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.externals.fontawesome.faPlus
@@ -8,6 +9,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 import csstype.BorderRadius
 
@@ -29,15 +31,15 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
         val windowOpenness = useWindowOpenness()
-        val (stateOrganizationName, setOrganizationName) = useState("")
+        val (organizationDto, setOrganizationDto) = useState(OrganizationDto.empty)
         displayModal(
             isOpen = windowOpenness.isOpen(),
             title = "Warning: recovered of organization",
-            message = "You are about to recove organization $stateOrganizationName. Are you sure?",
+            message = "You are about to recovered organization ${organizationDto.name}. Are you sure?",
             onCloseButtonPressed = windowOpenness.closeWindowAction()
         ) {
-            buttonBuilder("Yes, recovered $stateOrganizationName", "warning") {
-                recoveryOrganization(stateOrganizationName)
+            buttonBuilder("Yes, recovered ${organizationDto.name}", "warning") {
+                recoveryOrganization(organizationDto)
                 windowOpenness.closeWindow()
             }
             buttonBuilder("Cancel") {
@@ -81,15 +83,13 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                if (role.isHigherOrEqualThan(Role.OWNER)) {
+                                if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     deleteOrganizationButton {
                                         organizationName = organizationDto.name
                                         onDeletionSuccess = {
                                             setState {
-                                                selfOrganizationDtos =
-                                                    selfOrganizationDtos.minusElement(organizationDto)
-                                                selfDeletedOrganizationDtos =
-                                                    selfDeletedOrganizationDtos.plusElement(organizationDto)
+                                                selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationDto)
                                             }
                                         }
                                         buttonStyleBuilder = { childrenBuilder ->
@@ -135,19 +135,15 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                if (role.isHigherOrEqualThan(Role.OWNER)) {
+                                if (getHighestRole(role, state.userInfo?.globalRole).isHigherOrEqualThan(Role.OWNER)) {
                                     div {
                                         ReactHTML.button {
                                             className = ClassName("btn mr-3")
                                             fontAwesomeIcon(icon = faPlus)
                                             id = "recovery-organization-${organizationDto.name}"
                                             onClick = {
-                                                setState {
-                                                    setOrganizationName(organizationDto.name)
-                                                    windowOpenness.openWindow()
-                                                    selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
-                                                    selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
-                                                }
+                                                setState { setOrganizationDto(organizationDto) }
+                                                windowOpenness.openWindow()
                                             }
                                         }
                                     }
@@ -164,14 +160,18 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
         }
     }
 
-    private fun recoveryOrganization(organizationName: String) {
+    private fun recoveryOrganization(organizationDto: OrganizationDto) {
         useDeferredRequest {
             post (
-                "$apiUrl/organizations/${organizationName}/recovery",
+                "$apiUrl/organizations/${organizationDto.name}/recovery",
                 headers = jsonHeaders,
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
             )
+        }
+        setState {
+            selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
+            selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
         }
     }
 }
