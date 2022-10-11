@@ -344,6 +344,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             }
                             if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
                                 button {
+                                    type = ButtonType.button
                                     className = ClassName("btn btn-link text-xs text-muted text-left ml-auto")
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)

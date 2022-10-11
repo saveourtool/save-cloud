@@ -15,6 +15,7 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
@@ -113,6 +114,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
                 className = ClassName("input-group-prepend")
 
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-primary")
                     onClick = onUploadChanges.withUnusedArg()
                     fontAwesomeIcon(icon = faUpload)
@@ -121,6 +123,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
                     title = "Save changes on server"
                 }
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-primary")
                     onClick = onReloadChanges.withUnusedArg()
                     fontAwesomeIcon(icon = faDownload)
@@ -159,6 +162,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
                 className = ClassName("input-group-append")
 
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-info")
                     onClick = onResultReload.withUnusedArg()
                     fontAwesomeIcon(icon = faReload)
@@ -167,6 +171,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
                     title = "Fetch debug info"
                 }
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-success")
                     onClick = onRunExecution.withUnusedArg()
                     fontAwesomeIcon(icon = faCaretSquareRight)
