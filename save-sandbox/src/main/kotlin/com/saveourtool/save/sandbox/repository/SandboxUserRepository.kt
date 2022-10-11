@@ -33,8 +33,9 @@ class SandboxUserRepository(
      * @return user or null if no results have been found
      */
     @Transactional
-    fun findByName(name: String): User? =
-        namedParameterJdbcTemplate.queryForObject(
+    fun findByName(name: String): User? {
+        println("findByName namedParameterJdbcTemplate...")
+        val user = namedParameterJdbcTemplate.queryForObject(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name),
             User::class.java
@@ -43,6 +44,10 @@ class SandboxUserRepository(
                 println("There is no user with name $name")
                 "There is no user with name $name"
             }
+        println("FOUND : ${user.name}")
+        return user
+    }
+
 
 
     /**
