@@ -22,6 +22,34 @@ import react.dom.html.ReactHTML.span
  *
  * @param isOpen modal openness indicator - should be in state
  * @param title title of the modal that will be shown in top-left corner
+ * @param bodyBuilder callback that defined modal body content
+ * @param classes classes that will be applied to bootstrap modal div
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "LAMBDA_IS_NOT_LAST_PARAMETER")
+fun ChildrenBuilder.displayModal(
+    isOpen: Boolean,
+    title: String,
+    bodyBuilder: ChildrenBuilder.() -> Unit,
+    classes: String = "",
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilder(title, classes, onCloseButtonPressed, bodyBuilder, buttonBuilder)
+    }
+}
+
+/**
+ * Universal function to create modals with bootstrap styles inside react modals.
+ *
+ * @param isOpen modal openness indicator - should be in state
+ * @param title title of the modal that will be shown in top-left corner
  * @param message main text that will be shown in the center of modal
  * @param modalStyle [Styles] that will be applied to react modal
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
