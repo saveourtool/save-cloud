@@ -56,4 +56,8 @@
         <dropColumn tableName="execution" columnName="resources_root_path"/>
     </changeSet>
 
+    <changeSet id="drop_test_suite_ids" author="frolov">
+        <dropColumn tableName="execution" columnName="test_suite_ids"/>
+    </changeSet>
+
 </databaseChangeLog>

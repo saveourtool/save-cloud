@@ -8272,9 +8272,6 @@
               "RUNNING"
             ]
           },
-          "testSuiteIds": {
-            "type": "string"
-          },
           "batchSize": {
             "type": "integer",
             "format": "int32"

@@ -159,9 +159,7 @@ class RunExecutionController(
     private fun asyncTrigger(execution: Execution) {
         val executionId = execution.requiredId()
         blockingToMono {
-            val tests = execution.parseAndGetTestSuiteIds()
-                .orEmpty()
-                .flatMap { testService.findTestsByTestSuiteId(it) }
+            val tests = testService.findTestsByExecutionId(executionId)
             log.debug { "Received the following test ids for saving test execution under executionId=$executionId: ${tests.map { it.requiredId() }}" }
             meterRegistry.timer("save.backend.saveTestExecution").record {
                 testExecutionService.saveTestExecutions(execution, tests)
