@@ -221,7 +221,7 @@ fun <D : Any> ChildrenBuilder.jumpToPage(tableInstance: TableInstance<D>, setPag
                         div {
                             className = ClassName("input-group-append mt-3")
                             button {
-                                type = ButtonType.submit
+                                type = ButtonType.button
                                 className = ClassName("btn btn-outline-secondary")
                                 onClick = {
                                     setPageIndexAndGoToPage(tableInstance, setPageIndex, number)
