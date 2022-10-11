@@ -71,6 +71,11 @@ external interface CodeEditorComponentProps : Props {
      * Action to run execution
      */
     var doRunExecution: () -> Unit
+
+    /**
+     * Action to reload debug info
+     */
+    var doResultReload: () -> Unit
 }
 
 /**
@@ -99,6 +104,7 @@ private fun ChildrenBuilder.displayEditorToolbar(
     onUploadChanges: () -> Unit,
     onReloadChanges: () -> Unit,
     onRunExecution: () -> Unit,
+    onResultReload: () -> Unit,
     onFileTypeChange: (FileType) -> Unit,
 ) {
     toolbarCard {
@@ -157,6 +163,15 @@ private fun ChildrenBuilder.displayEditorToolbar(
 
                 button {
                     type = ButtonType.button
+                    className = ClassName("btn btn-outline-info")
+                    onClick = onResultReload.withUnusedArg()
+                    fontAwesomeIcon(icon = faReload)
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "top"
+                    title = "Fetch debug info"
+                }
+                button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-success")
                     onClick = onRunExecution.withUnusedArg()
                     fontAwesomeIcon(icon = faCaretSquareRight)
@@ -191,6 +206,7 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             onUploadChanges = props.doUploadChanges,
             onReloadChanges = props.doReloadChanges,
             onRunExecution = props.doRunExecution,
+            onResultReload = props.doResultReload,
         ) { fileType ->
             firstLoader {
                 props.doReloadChanges()
