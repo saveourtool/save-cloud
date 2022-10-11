@@ -111,16 +111,12 @@ fun ChildrenBuilder.fileUploaderForSandbox(
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
         selectedFiles = selectedFilesFromState
-        //getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file?userName=$userName" }
         getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file" }
-        //getUrlForFileUpload = { "$sandboxApiUrl/upload-file?userName=$userName" }
         getUrlForFileUpload = { "$sandboxApiUrl/upload-file" }
         getUrlForFileDownload = { fileInfo ->
-            //"$sandboxApiUrl/download-file?userName=$userName&fileName=${fileInfo.name}"
             "$sandboxApiUrl/download-file?fileName=${fileInfo.name}"
         }
         getUrlForFileDeletion = { fileInfo ->
-            //"$sandboxApiUrl/delete-file?userName=$userName&fileName=${fileInfo.name}"
             "$sandboxApiUrl/delete-file?fileName=${fileInfo.name}"
         }
         fileInfoToPrettyPrint = { it.name }

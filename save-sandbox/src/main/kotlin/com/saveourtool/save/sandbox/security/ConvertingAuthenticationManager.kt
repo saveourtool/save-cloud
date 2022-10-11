@@ -53,18 +53,19 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
     }
 
     // TODO: Move to common
+
     /**
      * Fixme: since identitySource is in `AuthenticationDetails`, it can be removed from principal
      */
     private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
-        UsernamePasswordAuthenticationToken(
-            "$identitySource:$username",
-            authentication.credentials,
-            authorities
-        ).apply {
-            details = AuthenticationDetails(
-                id = id,
-                identitySource = identitySource,
-            )
-        }
+            UsernamePasswordAuthenticationToken(
+                "$identitySource:$username",
+                authentication.credentials,
+                authorities
+            ).apply {
+                details = AuthenticationDetails(
+                    id = id,
+                    identitySource = identitySource,
+                )
+            }
 }

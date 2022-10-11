@@ -12,6 +12,7 @@ import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.sandbox.utils.userName
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.mapToInputStream
 import com.saveourtool.save.utils.overwrite
@@ -32,7 +33,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-import userName
 import java.nio.ByteBuffer
 import java.time.LocalDateTime
 import javax.transaction.Transactional
@@ -70,22 +70,19 @@ class SandboxController(
     @GetMapping("/list-file")
     fun listFiles(
         authentication: Authentication,
-    ): Flux<SandboxFileInfo> {
-        println("\n\n\n\n=================== listFiles: ${authentication.userName()}")
-        return blockingToMono { sandboxUserRepository.getIdByName(authentication.userName()) }
-            .flatMapMany { userId ->
-                storage.list(userId, SandboxStorageKeyType.FILE)
-            }
-            .flatMap {
-                Mono.zip(
-                    it.toMono(),
-                    storage.contentSize(it),
-                )
-            }
-            .map { (storageKey, size) ->
-                SandboxFileInfo(storageKey.fileName, size)
-            }
-    }
+    ): Flux<SandboxFileInfo> = blockingToMono { sandboxUserRepository.getIdByName(authentication.userName()) }
+        .flatMapMany { userId ->
+            storage.list(userId, SandboxStorageKeyType.FILE)
+        }
+        .flatMap {
+            Mono.zip(
+                it.toMono(),
+                storage.contentSize(it),
+            )
+        }
+        .map { (storageKey, size) ->
+            SandboxFileInfo(storageKey.fileName, size)
+        }
 
     @Operation(
         method = "POST",
@@ -100,13 +97,11 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun uploadFile(
-        //@RequestParam userName: String,
         @RequestPart file: Mono<FilePart>,
         authentication: Authentication,
     ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
         getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
-                println("\n\n\n\n-------------uploadFile")
                 storage.overwrite(
                     key = key,
                     content = filePart
@@ -131,14 +126,10 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-file-as-text")
     fun uploadFileAsText(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<SandboxFileInfo> {
-        println("\n\n\n==============Authentication uploadFileAsText ${authentication == null} ${authentication.userName()}")
-        return doUploadAsText(authentication.userName(), SandboxStorageKeyType.FILE, fileName, content)
-    }
+    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userName(), SandboxStorageKeyType.FILE, fileName, content)
 
     @Operation(
         method = "GET",
@@ -153,12 +144,10 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name or file with such file name and user was not found")
     @GetMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         authentication: Authentication,
     ): Flux<ByteBuffer> = getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
         .flatMapMany {
-            println("\n\n\n\n-------------downloadFile")
             storage.download(it)
         }
         .switchIfEmptyToNotFound {
@@ -178,7 +167,6 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/download-file-as-text")
     fun downloadFileAsText(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         authentication: Authentication,
     ): Mono<String> = doDownloadTestAsText(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
@@ -196,7 +184,6 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @DeleteMapping("/delete-file")
     fun deleteFile(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         authentication: Authentication,
     ): Mono<Boolean> = getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
@@ -218,14 +205,10 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-test-as-text")
     fun uploadTestAsText(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<SandboxFileInfo> {
-        println("\n\n\n==============Authentication uploadTestAsText ${authentication == null} ${authentication.userName()}")
-        return doUploadAsText(authentication.userName(), SandboxStorageKeyType.TEST, fileName, content)
-    }
+    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userName(), SandboxStorageKeyType.TEST, fileName, content)
 
     private fun doUploadAsText(
         userName: String,
@@ -234,7 +217,6 @@ class SandboxController(
         content: String,
     ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
-            println("\n\n\n\n--------doUploadAsText [${userName}]")
             storage.overwrite(
                 key = key,
                 content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
@@ -257,7 +239,6 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/download-test-as-text")
     fun downloadTestAsText(
-        //@RequestParam userName: String,
         @RequestParam fileName: String,
         authentication: Authentication,
     ): Mono<String> = doDownloadTestAsText(authentication.userName(), SandboxStorageKeyType.TEST, fileName)
@@ -268,7 +249,6 @@ class SandboxController(
         fileName: String,
     ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
         .flatMap { key ->
-            println("\n\n\n\n--------doDownloadAsText ${userName}")
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
@@ -302,7 +282,6 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping(path = ["/get-debug-info"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun getDebugInfo(
-        //@RequestParam userName: String,
         authentication: Authentication,
     ): Flux<ByteBuffer> = blockingToMono { sandboxUserRepository.getIdByName(authentication.userName()) }
         .flatMapMany { userId ->

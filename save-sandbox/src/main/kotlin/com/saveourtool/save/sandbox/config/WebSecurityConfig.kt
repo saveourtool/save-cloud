@@ -4,10 +4,10 @@
 
 package com.saveourtool.save.sandbox.config
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.sandbox.security.ConvertingAuthenticationManager
 import com.saveourtool.save.sandbox.security.CustomAuthenticationBasicConverter
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.v1
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
@@ -25,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+
 import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
@@ -41,7 +42,6 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        println("\n\n\n\nsecurityWebFilterChain!!!!")
         // All `/sandbox/internal/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
@@ -105,21 +105,21 @@ class WebSecurityConfig(
     }
 }
 
-//@EnableWebFluxSecurity
-//@Profile("!secure")
-//@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-//class NoopWebSecurityConfig {
-//    @Bean
-//    fun securityWebFilterChain(
-//        http: ServerHttpSecurity
-//    ): SecurityWebFilterChain = http.authorizeExchange()
-//        .anyExchange()
-//        .permitAll()
-//        .and()
-//        .csrf()
-//        .disable()
-//        .build()
-//}
+// @EnableWebFluxSecurity
+// @Profile("!secure")
+// @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+// class NoopWebSecurityConfig {
+// @Bean
+// fun securityWebFilterChain(
+// http: ServerHttpSecurity
+// ): SecurityWebFilterChain = http.authorizeExchange()
+// .anyExchange()
+// .permitAll()
+// .and()
+// .csrf()
+// .disable()
+// .build()
+// }
 
 /**
  * @return a bean with default [PasswordEncoder], that can be used throughout the application

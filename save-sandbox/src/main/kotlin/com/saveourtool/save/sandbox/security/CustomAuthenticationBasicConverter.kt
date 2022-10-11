@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
  */
 @Component
 class CustomAuthenticationBasicConverter : org.springframework.security.web.server.authentication.ServerHttpBasicAuthenticationConverter(),
-    ServerAuthenticationConverter {
+ServerAuthenticationConverter {
     /**
      * Convert exchange, received from gateway into UsernamePasswordAuthenticationToken, specify source identity, laid
      * by gateway into X-Authorization-Source header

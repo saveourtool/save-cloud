@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-//import org.springframework.security.core.Authentication
 import java.nio.ByteBuffer
 
 import kotlin.io.path.createTempDirectory
@@ -50,7 +49,6 @@ class SandboxInternalController(
     )
     fun downloadTestFiles(
         @RequestParam userId: Long,
-        //authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> {
         val archiveFile = kotlin.io.path.createTempFile(
             prefix = "tests-",
@@ -97,13 +95,11 @@ class SandboxInternalController(
     fun downloadFile(
         @RequestParam userId: Long,
         @RequestParam fileName: String,
-        // authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         ResponseEntity.ok(
             storage.download(
                 SandboxStorageKey(
                     userId = userId,
-                    // userId = authentication.userId(),
                     type = SandboxStorageKeyType.FILE,
                     fileName = fileName,
                 )

@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.service
 
-
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
@@ -23,10 +22,7 @@ class SandboxUserDetailsService(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun findByUsername(username: String): Mono<UserDetails> = {
-        println("\n\n========== findByUsername")
-        val user = sandboxUserRepository.findByName(username)
-        println("\n\n\n\n\nUSER: ${user?.name} ${user?.password}")
-        user
+        sandboxUserRepository.findByName(username)
     }.toMono().getIdentitySourceAwareUserDetails(username)
 
     /**
@@ -35,10 +31,9 @@ class SandboxUserDetailsService(
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
     fun findByUsernameAndSource(username: String, source: String) =
-        { sandboxUserRepository.findByNameAndSource(username, source) }
-            .toMono()
-            .getIdentitySourceAwareUserDetails(username, source)
-
+            { sandboxUserRepository.findByNameAndSource(username, source) }
+                .toMono()
+                .getIdentitySourceAwareUserDetails(username, source)
 
     // TODO: MOVE TO COMMON
     private fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this

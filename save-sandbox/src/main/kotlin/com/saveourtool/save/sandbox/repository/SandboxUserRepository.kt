@@ -1,14 +1,10 @@
 package com.saveourtool.save.sandbox.repository
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import javax.persistence.FetchType
-import javax.persistence.OneToMany
 
 /**
  * Repository for [com.saveourtool.save.entities.User]
@@ -36,8 +32,6 @@ class SandboxUserRepository(
      */
     @Transactional
     fun findByName(name: String): User? {
-        println("findByName namedParameterJdbcTemplate...")
-
         val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)
@@ -48,8 +42,6 @@ class SandboxUserRepository(
 
         return record.toUserEntity()
     }
-
-
 
     /**
      * @param name
@@ -66,7 +58,6 @@ class SandboxUserRepository(
             }
         return record.toUserEntity()
     }
-
 
     private fun Map<String, Any>.toUserEntity(): User {
         val record = this
