@@ -37,9 +37,7 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.h3
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -139,7 +137,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             +"try your SAVE configuration online"
         }
 
-
         state.debugInfo?.let { debugInfo ->
             displayModal(
                 isOpen = state.isModalOpen,
@@ -153,12 +150,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             }
         }
 
-
         div {
             className = ClassName("d-flex justify-content-center")
             div {
                 className = ClassName(" flex-wrap col-10")
 
+                renderCodeEditor()
                 renderDebugInfo()
 
                 div {
@@ -174,8 +171,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                             }
                         }
                     }
-
-
                     div {
                         className = ClassName("col-8")
                         // ======== sdk selection =========
