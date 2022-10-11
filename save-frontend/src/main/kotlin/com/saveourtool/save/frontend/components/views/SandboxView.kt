@@ -124,7 +124,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
 
     override fun ChildrenBuilder.render() {
-
         renderHeader()
 
         state.debugInfo?.let { debugInfo ->
