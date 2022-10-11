@@ -1,7 +1,6 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.modal.displayModal
@@ -138,15 +137,18 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             div {
                                 className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
-                                setHighestRole(getHighestRole(role, state.userInfo?.globalRole))
-                                if (highestRole.isHigherOrEqualThan(Role.OWNER)) {
+                                val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
+                                if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
                                     div {
                                         ReactHTML.button {
                                             className = ClassName("btn mr-3")
                                             fontAwesomeIcon(icon = faRedo)
                                             id = "recovery-organization-${organizationDto.name}"
                                             onClick = {
-                                                setState { setOrganizationDto(organizationDto) }
+                                                setState {
+                                                    setOrganizationDto(organizationDto)
+                                                    setHighestRole(highestLocalRole)
+                                                }
                                                 windowOpenness.openWindow()
                                             }
                                         }
