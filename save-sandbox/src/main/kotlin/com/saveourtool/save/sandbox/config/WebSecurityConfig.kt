@@ -30,7 +30,7 @@ import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-@Profile("dev")
+@Profile("secure")
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
@@ -94,32 +94,27 @@ class WebSecurityConfig(
     }
 
     companion object {
-        /**
-         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
-         * because it won't allow us to configure authenticated access to all other endpoints by default.
-         * Or we can use custom AccessDecisionManager later.
-         */
         internal val publicEndpoints = listOf(
             "/error",
         )
     }
 }
 
-// @EnableWebFluxSecurity
-// @Profile("!secure")
-// @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-// class NoopWebSecurityConfig {
-// @Bean
-// fun securityWebFilterChain(
-// http: ServerHttpSecurity
-// ): SecurityWebFilterChain = http.authorizeExchange()
-// .anyExchange()
-// .permitAll()
-// .and()
-// .csrf()
-// .disable()
-// .build()
-// }
+@EnableWebFluxSecurity
+@Profile("!secure")
+@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+class NoopWebSecurityConfig {
+    @Bean
+    fun securityWebFilterChain(
+        http: ServerHttpSecurity
+    ): SecurityWebFilterChain = http.authorizeExchange()
+        .anyExchange()
+        .permitAll()
+        .and()
+        .csrf()
+        .disable()
+        .build()
+}
 
 /**
  * @return a bean with default [PasswordEncoder], that can be used throughout the application

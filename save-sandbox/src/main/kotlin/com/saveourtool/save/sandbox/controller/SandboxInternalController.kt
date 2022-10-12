@@ -7,6 +7,7 @@ import com.saveourtool.save.sandbox.service.SandboxAgentRepository
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.sandbox.utils.userId
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -16,10 +17,12 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+
 import java.nio.ByteBuffer
 
 import kotlin.io.path.createTempDirectory
@@ -40,7 +43,7 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param userId
+     * @param authentication
      * @return content of requested snapshot
      */
     @PostMapping(
@@ -48,7 +51,7 @@ class SandboxInternalController(
         produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE]
     )
     fun downloadTestFiles(
-        @RequestParam userId: Long,
+        authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> {
         val archiveFile = kotlin.io.path.createTempFile(
             prefix = "tests-",
@@ -57,7 +60,7 @@ class SandboxInternalController(
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()
             .flatMap { directory ->
-                storage.list(userId, SandboxStorageKeyType.TEST)
+                storage.list(authentication.userId(), SandboxStorageKeyType.TEST)
                     .flatMap { key ->
                         storage.download(key)
                             .mapToInputStream()
@@ -87,19 +90,19 @@ class SandboxInternalController(
     }
 
     /**
-     * @param userId
      * @param fileName
+     * @param authentication
      * @return content of requested file
      */
     @PostMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun downloadFile(
-        @RequestParam userId: Long,
         @RequestParam fileName: String,
+        authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         ResponseEntity.ok(
             storage.download(
                 SandboxStorageKey(
-                    userId = userId,
+                    userId = authentication.userId(),
                     type = SandboxStorageKeyType.FILE,
                     fileName = fileName,
                 )

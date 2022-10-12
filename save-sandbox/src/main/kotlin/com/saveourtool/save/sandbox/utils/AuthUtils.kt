@@ -1,3 +1,7 @@
+/**
+ * Authentication utilities
+ */
+
 package com.saveourtool.save.sandbox.utils
 
 import com.saveourtool.save.utils.AuthenticationDetails
@@ -20,7 +24,7 @@ fun Authentication.userName() = this.extractUserNameAndIdentitySource().first
 fun Authentication.identitySource() = this.extractUserNameAndIdentitySource().second
 
 /**
- * @return
+ * @return pair of username and identitySource
  * @throws BadCredentialsException
  */
 fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> {

@@ -1,9 +1,9 @@
 package com.saveourtool.save.sandbox.security
 
 import com.saveourtool.save.sandbox.service.SandboxUserDetailsService
+import com.saveourtool.save.sandbox.utils.extractUserNameAndIdentitySource
 import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
-import extractUserNameAndIdentitySource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -52,11 +52,6 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    // TODO: Move to common
-
-    /**
-     * Fixme: since identitySource is in `AuthenticationDetails`, it can be removed from principal
-     */
     private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
             UsernamePasswordAuthenticationToken(
                 "$identitySource:$username",

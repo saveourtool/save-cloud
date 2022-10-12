@@ -62,9 +62,6 @@ class SandboxController(
         summary = "Get a list of files for provided user",
         description = "Get a list of files for provided user",
     )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-    )
     @ApiResponse(responseCode = "200", description = "A list of files")
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping("/list-file")
@@ -90,7 +87,6 @@ class SandboxController(
         description = "Upload a file for provided user",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "file", `in` = ParameterIn.DEFAULT, description = "a file which needs to be uploaded", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Uploaded bytes")
@@ -118,7 +114,6 @@ class SandboxController(
         description = "Upload a file as text for provided user with provide file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
         Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
     )
@@ -137,7 +132,6 @@ class SandboxController(
         description = "Get a file for provided user with requested file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Contest of a requested file")
@@ -160,7 +154,6 @@ class SandboxController(
         description = "Download a file as text for provided user and requested file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Content of the file as text")
@@ -177,7 +170,6 @@ class SandboxController(
         description = "Delete a file for provided user with requested file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Result of delete operation of a requested file")
@@ -197,7 +189,6 @@ class SandboxController(
         description = "Upload a test file as text for provided user with provide file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
         Parameter(name = "content", `in` = ParameterIn.DEFAULT, description = "a content of an uploading file", required = true),
     )
@@ -232,7 +223,6 @@ class SandboxController(
         description = "Download a test file as text for provided user and requested file name",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "fileName", `in` = ParameterIn.QUERY, description = "file name", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Content of the test file as text")
@@ -275,9 +265,6 @@ class SandboxController(
         summary = "Download a debug info for provided user",
         description = "Download a debug info for provided user",
     )
-    @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
-    )
     @ApiResponse(responseCode = "200", description = "Content of the debug info")
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @GetMapping(path = ["/get-debug-info"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
@@ -294,7 +281,6 @@ class SandboxController(
         description = "Run a new execution for provided user",
     )
     @Parameters(
-        Parameter(name = "userName", `in` = ParameterIn.QUERY, description = "user name", required = true),
         Parameter(name = "sdk", `in` = ParameterIn.QUERY, description = "SDK", required = true),
     )
     @ApiResponse(responseCode = "200", description = "empty response for execution run")
