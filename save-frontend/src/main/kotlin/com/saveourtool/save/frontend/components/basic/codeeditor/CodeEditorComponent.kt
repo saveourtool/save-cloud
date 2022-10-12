@@ -252,13 +252,23 @@ private fun getAceMarker(lineIndex: Int): AceMarker = jso {
 }
 
 private fun getChangedLinesIndices(oldFile: String, newFile: String): Set<Int> {
-    val oldLines = oldFile.split("\n")
-    val newLines = newFile.split("\n")
-    val changedIndices: MutableSet<Int> = mutableSetOf()
-    oldLines.zip(newLines).forEachIndexed { index, (oldLine, newLine) ->
-        if (oldLine != newLine) {
-            changedIndices.add(index)
+    val oldLines = oldFile.split("\n").map { "$it\n" }
+    val newLines = newFile.split("\n").map { "$it\n" }
+
+    val extendedOldLines: List<String> = oldLines.extendWithEmptyStrings(maxOf(oldLines.size, newLines.size))
+    val extendedNewLines: List<String> = newLines.extendWithEmptyStrings(maxOf(oldLines.size, newLines.size))
+
+    return extendedOldLines.zip(extendedNewLines)
+        .mapIndexed { index, (oldLine, newLine) ->
+            Triple(index, oldLine, newLine)
         }
-    }
-    return changedIndices.toSet()
+        .filter { (_, oldLine, newLine) ->
+            oldLine != newLine
+        }
+        .map { (index, _, _) ->
+            index
+        }
+        .toSet()
 }
+
+private fun List<String>.extendWithEmptyStrings(requiredSize: Int) = plus(List(requiredSize - size) { "" })
