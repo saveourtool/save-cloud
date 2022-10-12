@@ -24,4 +24,13 @@
         <addUniqueConstraint tableName="original_login" columnNames="name,source"/>
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-original-login" author="frolov">
+        <dropForeignKeyConstraint baseTableName="original_login" constraintName="fk_original_login_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="original_login"
+          constraintName="fk_original_login_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>
