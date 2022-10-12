@@ -32,6 +32,7 @@ class IdentitySourceAwareUserDetails(
 /**
  * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
+@Suppress("UnsafeCallOnNullableType")
 fun com.saveourtool.save.entities.User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
     username = this.name!!,
     password = this.password.orEmpty(),
