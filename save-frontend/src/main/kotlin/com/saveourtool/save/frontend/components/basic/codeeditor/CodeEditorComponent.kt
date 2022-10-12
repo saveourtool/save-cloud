@@ -244,11 +244,12 @@ private fun getAceMarkers(oldFile: String, newFile: String): Array<AceMarker> = 
 
 private fun getAceMarker(lineIndex: Int): AceMarker = jso {
     startRow = lineIndex
-    endRow = lineIndex + 1
+    endRow = lineIndex
     startCol = 0
-    endCol = 0
+    endCol = 1
     className = "unsaved-marker"
     type = "fullLine"
+    inFront = false
 }
 
 private fun getChangedLinesIndices(oldFile: String, newFile: String): Set<Int> {
