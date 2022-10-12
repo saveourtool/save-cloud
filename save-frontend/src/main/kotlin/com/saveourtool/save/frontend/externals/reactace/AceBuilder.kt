@@ -11,13 +11,16 @@ import react.dom.html.ReactHTML.div
  * @param text displayed text
  * @param selectedMode highlight mode
  * @param selectedTheme displayed theme
+ * @param aceMarkers array of [AceMarker]s that defines which lines should be marked as unsaved
  * @param disabled should this editor be readonly
  * @param onChangeFun callback invoked on input
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.aceBuilder(
     text: String,
     selectedMode: AceModes,
     selectedTheme: AceThemes = AceThemes.CHROME,
+    aceMarkers: Array<AceMarker> = emptyArray(),
     disabled: Boolean = false,
     onChangeFun: (String) -> Unit,
 ) {
@@ -37,6 +40,7 @@ fun ChildrenBuilder.aceBuilder(
             onChange = { value, _ ->
                 onChangeFun(value)
             }
+            markers = aceMarkers
         }
     }
 }

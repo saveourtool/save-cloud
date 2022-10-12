@@ -4,22 +4,23 @@ package com.saveourtool.save.frontend.components.basic.codeeditor
 
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.reactace.AceMarker
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.externals.reactace.aceBuilder
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.selectorBuilder
-import com.saveourtool.save.frontend.utils.useOnceAction
-import com.saveourtool.save.frontend.utils.withUnusedArg
+import com.saveourtool.save.frontend.utils.*
+
 import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.useState
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-import react.useState
+
+import kotlinx.js.jso
 
 /**
  * CodeEditor component
@@ -41,6 +42,11 @@ external interface CodeEditorComponentProps : Props {
      * Currently inputted text
      */
     var editorText: String
+
+    /**
+     * Text saved on backend
+     */
+    var savedEditorText: String
 
     /**
      * Currently selected [FileType]
@@ -221,6 +227,38 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             }
         }
 
-        aceBuilder(props.editorText, selectedMode, selectedTheme, props.selectedFile == null, props.onEditorTextUpdate)
+        aceBuilder(
+            props.editorText,
+            selectedMode,
+            selectedTheme,
+            getAceMarkers(props.savedEditorText, props.editorText),
+            props.selectedFile == null,
+            props.onEditorTextUpdate,
+        )
     }
+}
+
+private fun getAceMarkers(oldFile: String, newFile: String): Array<AceMarker> = getChangedLinesIndices(oldFile, newFile)
+    .map { getAceMarker(it) }
+    .toTypedArray()
+
+private fun getAceMarker(lineIndex: Int): AceMarker = jso {
+    startRow = lineIndex
+    endRow = lineIndex + 1
+    startCol = 0
+    endCol = 0
+    className = "unsaved-marker"
+    type = "fullLine"
+}
+
+private fun getChangedLinesIndices(oldFile: String, newFile: String): Set<Int> {
+    val oldLines = oldFile.split("\n")
+    val newLines = newFile.split("\n")
+    val changedIndices: MutableSet<Int> = mutableSetOf()
+    oldLines.zip(newLines).forEachIndexed { index, (oldLine, newLine) ->
+        if (oldLine != newLine) {
+            changedIndices.add(index)
+        }
+    }
+    return changedIndices.toSet()
 }

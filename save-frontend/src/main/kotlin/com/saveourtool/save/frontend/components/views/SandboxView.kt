@@ -66,14 +66,29 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     var codeText: String
 
     /**
+     * Code from backend
+     */
+    var savedCodeText: String
+
+    /**
      * Config from text editor
      */
     var configText: String
 
     /**
+     * Config from backend
+     */
+    var savedConfigText: String
+
+    /**
      * setup.sh from text editor
      */
     var setupShText: String
+
+    /**
+     * setup.sh from backend
+     */
+    var savedSetupShText: String
 
     /**
      * Selected files
@@ -114,8 +129,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
     init {
         state.codeText = ""
+        state.savedCodeText = ""
         state.configText = ""
+        state.savedConfigText = ""
         state.setupShText = ""
+        state.savedSetupShText = ""
         state.debugInfo = null
         state.files = listOf()
         state.selectedFile = null
@@ -206,6 +224,12 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
                     FileType.CODE -> state.codeText
                     FileType.SAVE_TOML -> state.configText
                     FileType.SETUP_SH -> state.setupShText
+                    else -> "Press on any of the buttons above to start editing"
+                }
+                savedEditorText = when (state.selectedFile) {
+                    FileType.CODE -> state.savedCodeText
+                    FileType.SAVE_TOML -> state.savedConfigText
+                    FileType.SETUP_SH -> state.savedSetupShText
                     else -> "Press on any of the buttons above to start editing"
                 }
                 onEditorTextUpdate = {
@@ -301,9 +325,18 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
     private fun uploadChanges() {
         scope.launch {
-            postContentAsText("test", "test", state.codeText)
-            postContentAsText("test", "save.toml", state.configText)
-            postContentAsText("file", "setup.sh", state.setupShText)
+            val codeText = state.codeText
+            val configText = state.configText
+            val setupShText = state.setupShText
+            postContentAsText("test", "test", codeText)
+            postContentAsText("test", "save.toml", configText)
+            postContentAsText("file", "setup.sh", setupShText)
+
+            setState {
+                savedCodeText = codeText
+                savedConfigText = configText
+                savedSetupShText = setupShText
+            }
         }
     }
 
@@ -315,8 +348,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
             setState {
                 codeText = newCodeText
+                savedCodeText = newCodeText
                 configText = newConfigText
+                savedConfigText = newConfigText
                 setupShText = newSetupShText
+                savedSetupShText = newSetupShText
             }
         }
     }
@@ -394,7 +430,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             |actualWarningsPattern = "\\w+ - (\\d+)/(\\d+) - (.*)${'$'}" # (default value)
             |testNameRegex = ".*Test.*" # (default value)
             |patternForRegexInWarning = ["{{", "}}"]
-            |# Extra flags will be extracted from a line that mathces this regex if it's present in a file
+            |# Extra flags will be extracted from a line that matches this regex if it's present in a file
             |runConfigPattern = "# RUN: (.+)"
         """.trimMargin()
         private val codeExample = """
