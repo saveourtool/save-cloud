@@ -57,13 +57,15 @@ class AgentsController(
             it.execution
         }
         .map { execution ->
+            val backendUrl = configProperties.agentSettings.backendUrl
+
             AgentInitConfig(
-                saveCliUrl = "${configProperties.url}/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
-                testSuitesSourceSnapshotUrl = "${configProperties.url}/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
+                saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
+                testSuitesSourceSnapshotUrl = "$backendUrl/internal/test-suites-sources/download-snapshot-by-execution-id?executionId=${execution.requiredId()}",
                 additionalFileNameToUrl = execution.getFileKeys()
                     .associate { fileKey ->
                         fileKey.name to buildString {
-                            append(configProperties.url)
+                            append(backendUrl)
                             append("/internal/files/download?")
                             mapOf(
                                 "organizationName" to fileKey.projectCoordinates.organizationName,
