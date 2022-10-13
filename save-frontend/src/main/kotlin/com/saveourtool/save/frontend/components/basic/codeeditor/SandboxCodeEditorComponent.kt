@@ -22,12 +22,12 @@ import react.useState
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 
+private const val DEFAULT_EDITOR_MESSAGE = "Select one of the files above to start editing it!"
+
 /**
  * CodeEditor component
  */
 val sandboxCodeEditorComponent = sandboxCodeEditorComponent()
-
-private const val DEFAULT_EDITOR_MESSAGE = "Select one of the files above to start editing it!"
 
 /**
  * SandboxCodeEditor functional component [Props]
