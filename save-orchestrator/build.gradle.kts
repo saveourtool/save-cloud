@@ -40,7 +40,6 @@ dependencies {
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.spring.kafka)
-    implementation(libs.save.common)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
 }

@@ -33,7 +33,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml"
-        val composeFile = "$buildDir/docker-compose.yaml"
+        val composeFile = file("$buildDir/docker-compose.yaml")
         val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
@@ -84,7 +84,7 @@ fun Project.createStackDeployTask(profile: String) {
                         it
                     }
                 }
-            file(composeFile)
+            composeFile
                 .apply { createNewFile() }
                 .writeText(newText)
         }
@@ -105,7 +105,7 @@ fun Project.createStackDeployTask(profile: String) {
                 // overridden explicitly).
                 findProperty("dockerNetwork") as String?
                     // https://docs.docker.com/compose/networking/
-                    ?: rootDir.name
+                    ?: "${composeFile.parentFile.name}_default"
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
