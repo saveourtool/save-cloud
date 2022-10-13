@@ -43,4 +43,22 @@
     <addUniqueConstraint tableName="lnk_user_project" columnNames="user_id, project_id" constraintName="user_project_constraint"/>
   </changeSet>
 
+  <changeSet id="remove-and-add-fk-lnk-user-project" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_project"/>
+    <addForeignKeyConstraint baseColumnNames="project_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_project"
+      referencedColumnNames="id"
+      referencedTableName="project"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_user_project" constraintName="fk_lnk_user_project_user"/>
+    <addForeignKeyConstraint baseColumnNames="user_id"
+      baseTableName="lnk_user_project"
+      constraintName="fk_lnk_user_project_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+  </changeSet>
+
 </databaseChangeLog>
