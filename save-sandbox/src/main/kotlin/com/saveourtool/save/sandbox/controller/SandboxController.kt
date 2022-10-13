@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
+import org.intellij.lang.annotations.Language
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.web.bind.annotation.*
@@ -167,7 +168,7 @@ class SandboxController(
     fun downloadFileAsText(
         @RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadTestAsText(userName, SandboxStorageKeyType.FILE, fileName)
+    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.FILE, fileName)
 
     @Operation(
         method = "DELETE",
@@ -217,7 +218,7 @@ class SandboxController(
         .flatMap { key ->
             storage.overwrite(
                 key = key,
-                content = Flux.just(ByteBuffer.wrap(content.toByteArray()))
+                content = Flux.just(ByteBuffer.wrap(content.replace("\r\n", "\n").toByteArray()))
             )
         }
         .map {
@@ -239,9 +240,9 @@ class SandboxController(
     fun downloadTestAsText(
         @RequestParam userName: String,
         @RequestParam fileName: String,
-    ): Mono<String> = doDownloadTestAsText(userName, SandboxStorageKeyType.TEST, fileName)
+    ): Mono<String> = doDownloadAsText(userName, SandboxStorageKeyType.TEST, fileName)
 
-    private fun doDownloadTestAsText(
+    private fun doDownloadAsText(
         userName: String,
         type: SandboxStorageKeyType,
         fileName: String,
@@ -251,9 +252,17 @@ class SandboxController(
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
         }
-        .switchIfEmptyToNotFound {
-            "There is no test file $fileName for user $userName"
-        }
+        .switchIfEmpty(
+            examples[fileName].toMono()
+                .flatMap { example ->
+                    doUploadAsText(userName, type, fileName, example)
+                        .thenReturn(example)
+                }
+                .switchIfEmptyToNotFound {
+                    "There is no test file $fileName for user $userName"
+                }
+        )
+
 
     private fun getAsMonoStorageKey(
         userName: String,
@@ -317,5 +326,78 @@ class SandboxController(
         execution.toRunRequest()
     }.flatMap { request ->
         agentsController.initialize(request)
+    }
+
+    companion object {
+        @Language("toml")
+        private val saveTomlExample = """
+            |# special configuration file to use save test framework: https://github.com/saveourtool/save-cli
+            |[general]
+            |execCmd = "python -m pylint"
+            |# === example of expected tests CHECK-MESSAGES: :[[@LINE-1]]:12: warning: test [warning-name] ===
+            |expectedWarningsPattern = "# CHECK-MESSAGES:?\\[\\[(.+)\\]\\]: (.*)"
+            |
+            |tags = ["check_only", "clang_tidy", "huawei_specific"]
+            |description = "Demo suite of Huawei specific tests for Clang tidy"
+            |suiteName = "Fixbot codecheck-python tests"
+            |
+            |
+            |[warn]
+            |actualWarningsPattern=".*[\\\\\\/](.*):(\\d+): (.*)"
+            |
+            |execFlags = "--msg-template=\"{path}:{line}: {msg_id}: {msg} ({symbol})\""
+            |linePlaceholder = "@LINE"
+            |
+            |exactWarningsMatch = false
+            |partialWarnTextMatch = true
+            |testNameRegex = ".*test.*"
+            |#testNameRegex = ".*.py"
+            |warningTextHasColumn = false
+            |warningTextHasLine = true
+            |
+            |lineCaptureGroup = 1
+            |#columnCaptureGroup = null
+            |messageCaptureGroup = 2
+            |
+            |
+            |fileNameCaptureGroupOut = 1
+            |lineCaptureGroupOut = 2
+            |#columnCaptureGroupOut = null
+            |messageCaptureGroupOut = 3
+        """.trimMargin()
+        @Language("python")
+        private val testExample = """
+            |# CHECK-MESSAGES:[[1]]: C0114: Missing module docstring (missing-module-docstring)
+            |import tkinter as tk
+            |
+            |root=tk.Tk()
+            |
+            |canvas1 = tk.Canvas(root, width = 300, height = 300)
+            |canvas1.pack()
+            |
+            |# CHECK-MESSAGES:[[10]]: C0116: Missing function or method docstring (missing-function-docstring)
+            |def hello ():
+            |    label1 = tk.Label(root, text= 'Hello World!', fg='blue', font=('helvetica', 12, 'bold'))
+            |    canvas1.create_window(150, 200, window=label1)
+            |
+            |button1 = tk.Button(text='Click Me', command=hello, bg='brown',fg='white')
+            |canvas1.create_window(150, 150, window=button1)
+            |
+            |root.mainloop()
+        """.trimMargin()
+        @Language("bash")
+        private val setupShExample = """
+            |#!/usr/bin/env bash
+            |
+            |# Here you can add some additional commands required to run your tool e.g.
+            |# setup pylint, it setups all required dependencies
+            |pip install pylint --no-input --disable-pip-version-check --no-warn-script-location
+        """.trimMargin()
+
+        private val examples = mapOf(
+            "test" to testExample,
+            "save.toml" to saveTomlExample,
+            "setup.sh" to setupShExample,
+        )
     }
 }

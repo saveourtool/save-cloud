@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
@@ -309,9 +310,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
     private fun reloadChanges() {
         scope.launch {
-            val newCodeText = getContentAsText("test", "test", codeExample)
-            val newConfigText = getContentAsText("test", "save.toml", configExample)
-            val newSetupShText = getContentAsText("file", "setup.sh", setupShExample)
+            val newCodeText = getContentAsText("test", "test")
+            val newConfigText = getContentAsText("test", "save.toml")
+            val newSetupShText = getContentAsText("file", "setup.sh")
 
             setState {
                 codeText = newCodeText
@@ -337,7 +338,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private suspend fun getContentAsText(
         urlPart: String,
         fileName: String,
-        defaultValue: String,
     ): String = props.currentUserInfo?.name?.let { userName ->
         val response = get(
             url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
@@ -347,8 +347,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         if (response.ok) {
             response.text().await()
         } else {
-            postContentAsText(urlPart, fileName, defaultValue)
-            defaultValue
+            "No content for $fileName"
         }
     } ?: "Unknown user"
 
@@ -357,11 +356,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             val resultDebugInfo: TestResultDebugInfo = get(
                 "$sandboxApiUrl/get-debug-info?userName=${props.currentUserInfo?.name}",
                 Headers().apply {
-                    set("Accept", "application/octet-stream")
+                    set("Content-Type", "application/json")
                 },
                 loadingHandler = ::classLoadingHandler,
             )
-                .decodeFromJsonString()
+                .decodeFromJsonString<TestResultDebugInfo>()
             setState {
                 debugInfo = resultDebugInfo
             }
@@ -381,37 +380,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
     companion object :
         RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
-        private val configExample = """
-            |[general]
-            |tags = ["demo"]
-            |description = "saveourtool online demo"
-            |suiteName = "Test"
-            |execCmd="RUN_COMMAND"
-            |language = "Kotlin"
-            |
-            |[warn]
-            |execFlags = "--build-upon-default-config -i"
-            |actualWarningsPattern = "\\w+ - (\\d+)/(\\d+) - (.*)${'$'}" # (default value)
-            |testNameRegex = ".*Test.*" # (default value)
-            |patternForRegexInWarning = ["{{", "}}"]
-            |# Extra flags will be extracted from a line that mathces this regex if it's present in a file
-            |runConfigPattern = "# RUN: (.+)"
-        """.trimMargin()
-        private val codeExample = """
-            |package com.example
-            |
-            |data class BestLanguage(val name = "Kotlin")
-            |
-            |fun main {
-            |    val bestLanguage = BestLanguage()
-            |    println("saveourtool loves ${'$'}{bestLanguage.name}")
-            |}
-        """.trimMargin()
-        private val setupShExample = """
-            |# Here you can add some additional commands required to run your tool e.g.
-            |# python -m pip install pylint
-        """.trimMargin()
-
         init {
             ContestView.contextType = requestStatusContext
         }
