@@ -11,5 +11,13 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-agent" author="frolov">
+        <dropForeignKeyConstraint baseTableName="agent" constraintName="fk_agent_execution"/>
+        <addForeignKeyConstraint baseTableName="agent" baseColumnNames="execution_id"
+          constraintName="fk_agent_execution"
+          referencedTableName="execution"
+          referencedColumnNames="id"
+          onDelete="CASCADE"/>
+    </changeSet>
 
 </databaseChangeLog>
