@@ -99,13 +99,13 @@ fun Project.createStackDeployTask(profile: String) {
                     ?: versionForDockerImages()
             }
             val defaultDockerNetworkOrProperty =
-                // When deploying to Docker Swarm, the network name cannot be determined automatically.
-                // The network name is assigned on swarm creation and hence should be passed as a property to Gradle.
-                // In Docker Compose mode, however, network name defaults to project directoy name (unless
-                // overridden explicitly).
-                findProperty("dockerNetwork") as String?
-                    // https://docs.docker.com/compose/networking/
-                    ?: "${composeFile.parentFile.name}_default"
+                    // When deploying to Docker Swarm, the network name cannot be determined automatically.
+                    // The network name is assigned on swarm creation and hence should be passed as a property to Gradle.
+                    // In Docker Compose mode, however, network name defaults to project directoy name (unless
+                    // overridden explicitly).
+                    findProperty("dockerNetwork") as String?
+                        // https://docs.docker.com/compose/networking/
+                        ?: "${composeFile.parentFile.name}_default"
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
