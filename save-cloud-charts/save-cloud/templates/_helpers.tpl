@@ -1,12 +1,24 @@
 {{- define "common.labels" -}}
 io.kompose.service: {{ .service.name }}
-version: {{ .Values.dockerTag }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
-prometheus-job: {{ .service.imageName }}
 {{- end }}
 
-{{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
-{{- define "spring-boot.securityContext" -}}
+{{- define "pod.common.labels" }}
+io.kompose.service: {{ .service.name }}
+version: {{ or .service.dockerTag .Values.dockerTag }}
+{{- end }}
+
+{{- define "pod.common.annotations" }}
+prometheus.io/scrape: 'true'
+prometheus.io/path: /actuator/prometheus
+{{- if (hasKey .service "managementPort") }}
+prometheus.io/port: {{ .service.managementPort | quote }}
+{{- end }}
+{{- end }}
+
+{{/* Common Linux user configuration for paketo-created containers, where user is cnb:cnb */}}
+{{- define "cnb.securityContext" -}}
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
@@ -19,17 +31,17 @@ startupProbe:
   # give spring-boot enough time to start
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
-  failureThreshold: 10
+    port: {{ or .managementPort .containerPort }}
+  failureThreshold: 30
   periodSeconds: 10
 livenessProbe:
   httpGet:
     path: /actuator/health/liveness
-    port: {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 readinessProbe:
   httpGet:
     path: /actuator/health/readiness
-    port:  {{ .containerPort }}
+    port: {{ or .managementPort .containerPort }}
 lifecycle:
   preStop:
     exec:
@@ -39,10 +51,15 @@ lifecycle:
 
 {{/* Common configuration of deployment for spring-boot microservice */}}
 {{- define "spring-boot.common" -}}
-image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ .Values.dockerTag }}'
+image: '{{ .Values.imageRegistry }}/{{ .service.imageName }}:{{ or .service.dockerTag .Values.dockerTag }}'
+imagePullPolicy: {{ .Values.pullPolicy }}
 ports:
   - name: http
     containerPort:  {{ .service.containerPort }}
+  {{ if .service.managementPort }}
+  - name: mgmt
+    containerPort:  {{ .service.managementPort }}
+  {{ end }}
 {{- end }}
 
 {{- define "spring-boot.common.env" -}}

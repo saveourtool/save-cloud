@@ -1,12 +1,11 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
-    kotlin("jvm")
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     alias(libs.plugins.kotlin.plugin.serialization)
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
 }
-
-configureSpringBoot()
 
 dependencies {
     implementation(projects.saveCloudCommon)
@@ -21,17 +20,8 @@ dependencies {
     implementation(libs.ktoml.file)
     implementation(libs.ktoml.core)
     implementation(libs.kotlinx.serialization.json)
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+    implementation(libs.commons.compress)
 }
 
 configureJacoco()
+configureSpotless()

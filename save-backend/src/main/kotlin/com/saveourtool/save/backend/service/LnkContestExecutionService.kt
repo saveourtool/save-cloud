@@ -1,0 +1,73 @@
+package com.saveourtool.save.backend.service
+
+import com.saveourtool.save.backend.repository.ContestRepository
+import com.saveourtool.save.backend.repository.LnkContestExecutionRepository
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import org.springframework.data.domain.PageRequest
+import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
+
+/**
+ * Service of [LnkContestExecution]
+ */
+@Service
+class LnkContestExecutionService(
+    private val contestRepository: ContestRepository,
+    private val lnkContestExecutionRepository: LnkContestExecutionRepository,
+) {
+    /**
+     * @param contest
+     * @param project
+     * @param pageRequest
+     * @return list of [LnkContestExecution]s by [Contest] and [Project]
+     */
+    fun getPageExecutionsByContestAndProject(
+        contest: Contest,
+        project: Project,
+        pageRequest: PageRequest,
+    ): List<LnkContestExecution> = lnkContestExecutionRepository
+        .findByExecutionProjectAndContestOrderByExecutionStartTimeDesc(project, contest, pageRequest)
+        .content
+
+    /**
+     * @param contest
+     * @param project
+     * @return latest [LnkContestExecution] by [Contest] and [Project]
+     */
+    fun getLatestExecutionByContestAndProject(contest: Contest, project: Project) = lnkContestExecutionRepository
+        .findFirstByContestAndExecutionProjectOrderByExecutionStartTimeDesc(contest, project)
+
+    /**
+     * @param contest
+     * @param projectIds
+     * @return list of latest [LnkContestExecution] of [Project]s with [Project.id] in [projectIds] in [Contest]
+     */
+    fun getLatestExecutionByContestAndProjectIds(contest: Contest, projectIds: List<Long>) = lnkContestExecutionRepository
+        .findByContestAndExecutionProjectIdInOrderByExecutionStartTimeDesc(contest, projectIds)
+        .distinctBy { it.execution.project }
+
+    /**
+     * @param execution
+     * @return a [Contest] under which [execution] has been performed, or `null` if [execution] is not associated
+     * with any [Contest]
+     */
+    fun findContestByExecution(execution: Execution) = lnkContestExecutionRepository.findByExecution(execution)?.contest
+
+    /**
+     * @param execution
+     * @param contestName
+     * @return [Mono] containing a created [LnkContestExecution] or `Mono.error` with code 404
+     */
+    fun createLink(execution: Execution, contestName: String) = blockingToMono {
+        contestRepository.findByName(contestName)
+    }
+        .filter { it.isPresent }
+        .switchIfEmptyToNotFound()
+        .map {
+            lnkContestExecutionRepository.save(
+                LnkContestExecution(execution = execution, contest = it.get())
+            )
+        }
+}

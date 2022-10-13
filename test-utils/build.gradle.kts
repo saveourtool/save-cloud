@@ -1,24 +1,13 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
-    kotlin("jvm")
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-    }
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
 }
 
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 dependencies {
@@ -28,3 +17,5 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
+
+configureSpotless()

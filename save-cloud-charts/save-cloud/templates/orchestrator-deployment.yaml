@@ -8,13 +8,20 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: orchestrator
+  replicas: 1
   template:
     metadata:
       labels:
-        io.kompose.service: orchestrator
+        {{- include "pod.common.labels" (merge (dict "service" .Values.orchestrator ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
+      serviceAccountName: orchestrator-sa
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- if .Values.orchestrator.nodeName }}
+      nodeName: {{ .Values.orchestrator.nodeName }}
+      {{- end }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: orchestrator
           {{- include "spring-boot.common" (merge (dict "service" .Values.orchestrator) .) | nindent 10 }}
@@ -24,18 +31,27 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
-            - name: repos-storage
-              mountPath: /home/cnb
-            - name: execution-logs-storage
-              mountPath: /home/cnb/executionLogs/
           {{- include "spring-boot.management" .Values.orchestrator | nindent 10 }}
+          resources:
+            limits:
+              memory: 800M
+            requests:
+              memory: 600M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
-        - name: repos-storage
-          hostPath:
-            path: /tmp/save/repos
-        - name: execution-logs-storage
-          # FixMe: Do we still need logs storage? All logs should be stored in Loki.
-          emptyDir: {}

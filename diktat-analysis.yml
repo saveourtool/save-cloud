@@ -1,14 +1,14 @@
 - name: DIKTAT_COMMON
   enabled: true
   configuration:
-    domainName: org.cqfn.save
-    kotlinVersion: 1.5
+    domainName: com.saveourtool.save
+    kotlinVersion: 1.7
     srcDirectories: "main,nativeMain,linuxX64Main"
-    testDirs: "test,nativeTest,linuxX64Test"
+    testDirs: "test,nativeTest,linuxX64Test,jvmTest"
 - name: ENUM_VALUE
   enabled: true
   configuration:
-    enumStyle: snakeCase
+    enumStyle: SNAKE_CASE
 - name: KDOC_CONTAINS_DATE_OR_AUTHOR
   enabled: true
   configuration:
@@ -51,6 +51,7 @@
     extendedIndentBeforeDot: false
     # The indentation size for each file
     indentationSize: 4
+    extendedIndentForExpressionBodies: true
 - name: EMPTY_BLOCK_STRUCTURE_ERROR
   enabled: true
   configuration:
@@ -91,7 +92,7 @@
 - name: TOO_LONG_FUNCTION
   enabled: true
   configuration:
-    maxFunctionLength: 35 # max length of function
+    maxFunctionLength: 55 # max length of function
     isIncludeHeader: false # count function's header
 - name: TOO_MANY_PARAMETERS
   enabled: true
@@ -110,3 +111,20 @@
   enabled: true
 - name: COMPLEX_EXPRESSION
   enabled: true
+- name: USE_DATA_CLASS
+  ignoreAnnotated:
+    - Entity
+- name: MISSING_KDOC_CLASS_ELEMENTS
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter
+    - JsName
+- name: MISSING_KDOC_ON_FUNCTION
+  ignoreAnnotated:
+    - Operation
+    - Parameters
+    - Parameter
+- name: MISSING_KDOC_TOP_LEVEL
+  ignoreAnnotated:
+    - JsName

@@ -316,6 +316,9 @@ naming:
     excludes: ['**/resources/**']
     active: true
     ignoreOverridden: true
+  NoNameShadowing:
+    # Different rule (in Diktat) checks that implicit lambda hasn't been shadowed.
+    active: false
   NonBooleanPropertyPrefixedWithIs:
     active: true
   ObjectPropertyNaming:
@@ -487,7 +490,7 @@ style:
   ForbiddenMethodCall:
     excludes: ['**/resources/**', '**/src/test/**']
     active: true
-    methods: ['kotlin.io.println', 'kotlin.io.print']
+    methods: ['kotlin.io.println', 'kotlin.io.print', 'react.fc']
   ForbiddenPublicDataClass:
     excludes: ['**/resources/**']
     active: false

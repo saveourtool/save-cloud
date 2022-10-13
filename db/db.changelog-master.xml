@@ -14,13 +14,14 @@
     </changeSet>
 
     <include file="v-1/tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
-    <include file="v-1/insert-test-data/db.changelog-insert.xml" relativeToChangelogFile="true"/>
     <include file="v-1/events/db.changelog-events.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="master-v-2" author="frolov">
         <tagDatabase tag="v-2"/>
     </changeSet>
+
     <include file="v-2/tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
-    <include file="v-2/insert-test-data/db.changelog-insert.xml" relativeToChangelogFile="true"/>
+    <include file="test-data/db.changelog-insert.xml" relativeToChangelogFile="true" context="dev"/>
+    <include file="after-all-migrations/db.changelog-after-all.xml" relativeToChangelogFile="true" context="dev or prod or test"/>
 
 </databaseChangeLog>

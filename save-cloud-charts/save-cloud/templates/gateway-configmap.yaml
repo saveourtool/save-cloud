@@ -4,8 +4,11 @@ metadata:
   name: {{ .Values.gateway.name }}-config
 data:
   application.properties: |
+    gateway.backend.url=http://backend
+    gateway.frontend.url=http://frontend
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.gateway.managementPort }}
     {{ if .Values.gateway.applicationProperties }}
     {{- .Values.gateway.applicationProperties | nindent 4 }}
     {{ end }}

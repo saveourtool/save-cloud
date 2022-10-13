@@ -17,7 +17,7 @@ x-logging:
 
 services:
   orchestrator:
-    image: ghcr.io/analysis-dev/save-orchestrator:${TAG}
+    image: ghcr.io/saveourtool/save-orchestrator:${ORCHESTRATOR_TAG}
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
@@ -26,25 +26,42 @@ services:
       - "5100:5100"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - save:/home/cnb
-      - /home/saveu/executionLogs:/home/cnb/executionLogs/
       - /home/saveu/configs/orchestrator:/home/cnb/config
+      - save-tmp-resources:/tmp
     extra_hosts:
       - "host.docker.internal:host-gateway"
     deploy:
       labels:
         - "prometheus-job=save-orchestrator"
     logging: *loki-logging-jvm
-  backend:
-    image: ghcr.io/analysis-dev/save-backend:${TAG}
+  sandbox:
+    image: ghcr.io/saveourtool/save-sandbox:${SANDBOX_TAG}
+    user: root  # to access host's docker socket
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
-      - "MYSQL_USER=/run/secrets/db_username"
-      - "MYSQL_PASSWORD_FILE=/run/secrets/db_password"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
     secrets:
       - db_username
       - db_password
-      - db_url
+    ports:
+      - "5400:5400"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - /home/saveu/configs/sandbox:/home/cnb/config
+      - save-fs-storage:/home/cnb/files
+      - save-tmp-resources:/tmp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      labels:
+        - "prometheus-job=save-sandbox"
+    logging: *loki-logging-jvm
+  backend:
+    image: ghcr.io/saveourtool/save-backend:${BACKEND_TAG}
+    environment:
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
+    secrets:
+      - db_username
+      - db_password
     volumes:
       - save-fs-storage:/home/cnb/files
       - /home/saveu/configs/backend:/home/cnb/config
@@ -54,8 +71,14 @@ services:
       labels:
         - "prometheus-job=save-backend"
     logging: *loki-logging-jvm
+  frontend:
+    image: ghcr.io/saveourtool/save-frontend:${FRONTEND_TAG}
+    environment:
+      - "PORT=5810"
+    ports:
+      - "5810:5810"
   preprocessor:
-    image: ghcr.io/analysis-dev/save-preprocessor:${TAG}
+    image: ghcr.io/saveourtool/save-preprocessor:${PREPROCESSOR_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     volumes:
@@ -73,7 +96,7 @@ services:
         max_attempts: 3
     logging: *loki-logging-jvm
   gateway:
-    image: ghcr.io/analysis-dev/api-gateway:${TAG}
+    image: ghcr.io/saveourtool/api-gateway:${GATEWAY_TAG}
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
     ports:
@@ -85,7 +108,7 @@ services:
         - "prometheus-job=api-gateway"
     logging: *loki-logging-jvm
   prometheus:
-    image: prom/prometheus:v2.35.0
+    image: prom/prometheus:v2.39.1
     user: root  # to access host's docker socket for service discovery, see https://groups.google.com/g/prometheus-users/c/EuEW0qRzXvg/m/0aqKh_ZABQAJ
     ports:
       - "9090:9090"
@@ -101,10 +124,8 @@ services:
         max_replicas_per_node: 1
         constraints:
           - "node.role==manager"
-    secrets:
-      - prometheus_scrape_pwd
   grafana:
-    image: grafana/grafana:8.5.1
+    image: grafana/grafana:9.1.7
     ports:
       - "9100:3000"
     volumes:
@@ -116,7 +137,7 @@ services:
         constraints:
           - "node.role==manager"
   loki:
-    image: grafana/loki:2.5.0
+    image: grafana/loki:2.6.1
     ports:
       - "9110:3100"
     command: -config.file=/etc/loki/loki.yaml
@@ -135,13 +156,10 @@ volumes:
   grafana-storage:
   prometheus-storage:
   loki-storage:
+  save-tmp-resources:
 
 secrets:
   db_password:
     external: true
   db_username:
-    external: true
-  db_url:
-    external: true
-  prometheus_scrape_pwd:
     external: true

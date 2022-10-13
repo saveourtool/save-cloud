@@ -8,13 +8,16 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: gateway
+  replicas: 1
   template:
     metadata:
       labels:
-        io.kompose.service: gateway
+        {{- include "pod.common.labels" (merge (dict "service" .Values.gateway ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: gateway
           {{- include "spring-boot.common" (merge (dict "service" .Values.gateway) .) | nindent 10 }}
@@ -22,7 +25,14 @@ spec:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.gateway) .) | nindent 12 }}
             - name: OAUTH_CONFIG_PATH
               value: /home/cnb/secrets/oauth
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M -Dreactor.netty.http.server.accessLogEnabled=true
           {{- include "spring-boot.management" .Values.gateway | nindent 10 }}
+          resources:
+            limits:
+              memory: 400M
+            requests:
+              memory: 300M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - mountPath: /home/cnb/secrets/oauth

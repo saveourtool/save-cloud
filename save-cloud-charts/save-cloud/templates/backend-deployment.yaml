@@ -8,54 +8,97 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: backend
+  strategy:
+    # Because of shared volume with multi-attach problem
+    type: Recreate
   template:
     metadata:
       labels:
-        io.kompose.service: backend
+        {{- include "pod.common.labels" (merge (dict "service" .Values.backend ) .) | nindent 8 }}
+      annotations:
+        {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
       restartPolicy: Always
-      {{- include "spring-boot.securityContext" . | nindent 6 }}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
         - name: backend
           {{- include "spring-boot.common" (merge (dict "service" .Values.backend) .) | nindent 10 }}
           env:
             {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
-              value: {{ .Values.backend.dbPasswordFile }}
+              value: {{ .Values.mysql.dbPasswordFile }}
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:ReservedCodeCacheSize=48M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: fs-storage
               mountPath: /home/cnb/files
             - name: database-secret
-              mountPath: {{ .Values.backend.dbPasswordFile }}
+              mountPath: {{ .Values.mysql.dbPasswordFile }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
+          resources:
+            limits:
+              memory: 500M
+            requests:
+              memory: 300M
+      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
           args:
             - clone
             - --single-branch
+            - --branch
+            - {{ .Values.mysql.migrations.branch | default "master" }}
             - --
-            - https://github.com/analysis-dev/save-cloud.git
+            - https://github.com/saveourtool/save-cloud.git
             - /data
           volumeMounts:
             - mountPath: /data
               name: migrations-data
         - name: liquibase-runner
-          image: gradle:7.4.2-jdk11-alpine
-          workingDir: /data
+          image: liquibase/liquibase:4.15
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
           args:
-            - ./gradlew
-            - -Psave.profile={{ .Values.profile }}
-            - liquibaseUpdate
+            - --url=$(DB_URL)?createDatabaseIfNotExist=true
+            - --changeLogFile=db/db.changelog-master.xml
+            - --username=$(DB_USERNAME)
+            - --password=$(DB_PASSWORD)
+            - --log-level=info
+            - --contexts={{ .Values.profile }}
+            - update
+          resources:
+            requests:
+              memory: 100M
+            limits:
+              memory: 300M
           env:
-            - name: DB_SECRETS_PATH
-              value: {{ .Values.backend.dbPasswordFile }}
+            # See https://hub.docker.com/r/liquibase/liquibase, section 'Notice for MySQL Users'
+            - name: INSTALL_MYSQL
+              value: 'true'
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.backend-url
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secrets
+                  key: spring.datasource.password
           volumeMounts:
-            - mountPath: /data
+            - mountPath: /liquibase/changelog
               name: migrations-data
-            - mountPath: {{ .Values.backend.dbPasswordFile }}
+            - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: fs-storage

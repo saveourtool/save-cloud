@@ -1,0 +1,68 @@
+name: Package and push Helm chart
+
+on:
+  push:
+    paths:
+      - 'save-cloud-charts/**'
+    branches:
+      - 'master'
+    tags:
+      - 'chart/v*'
+  workflow_dispatch:
+    inputs:
+      branch:
+        type: string
+        default: master
+        description: Branch to package chart from
+        required: false
+
+jobs:
+  deploy_chart:
+    name: Package and push Helm chart
+    runs-on: ubuntu-20.04
+    env:
+      CHARTS_DIR: save-cloud-charts/save-cloud
+
+    steps:
+      - name: checkout save-cloud
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: github.event_name == 'workflow_dispatch'
+        name: Prepare to build from branch
+        run: |
+          git checkout origin/${{ inputs.branch }}
+      - uses: gittools/actions/gitversion/setup@v0.9.13
+        with:
+          versionSpec: 5.x
+      - uses: gittools/actions/gitversion/execute@v0.9.13
+        id: calculate-semver
+        with:
+          targetPath: ${{ env.CHARTS_DIR }}
+          configFilePath: save-cloud-charts/GitVersion.yml
+          useConfigFile: true
+      - name: Set chart version into env
+        run: |
+          echo VERSION=${{ steps.calculate-semver.outputs.fullSemVer }} | tee -a $GITHUB_ENV
+      # https://helm.sh/docs/topics/registries/
+      # The registry reference basename is inferred from the chart's name, and the tag is inferred from the chart's semantic version.
+      - name: Build and push chart version ${{ env.VERSION }}
+        run: |
+          cd ${{ env.CHARTS_DIR }}
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add prometheus https://prometheus-community.github.io/helm-charts
+          helm dependency build
+          cd -
+          helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
+          find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+          echo "Packaged and uploaded chart with version ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY

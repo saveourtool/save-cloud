@@ -4,15 +4,22 @@ metadata:
   name: {{ .Values.orchestrator.name }}-config
 data:
   application.properties: |
-    orchestrator.backendUrl=http://backend:5800/internal
-    orchestrator.docker.host=tcp://${HOST_IP}:2375
-    orchestrator.docker.runtime=runc
-    orchestrator.docker.loggingDriver=json
+    orchestrator.backend-url=http://backend/internal
+
+    orchestrator.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    orchestrator.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
+    orchestrator.kubernetes.namespace=${POD_NAMESPACE}
+
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
-    {{- if .Values.orchestrator.clusterIP }}
-    orchestrator.agentSettings.orchestratorUrl=http://{{ .Values.orchestrator.clusterIP }}:{{ .Values.orchestrator.containerPort }}
-    {{- end }}
-    {{- if .Values.backend.clusterIP }}
-    orchestrator.agentSettings.backendUrl=http://{{ .Values.backend.clusterIP }}:{{ .Values.backend.containerPort }}
-    {{- end }}
+    orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
+    orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
+    orchestrator.agent-settings.debug=true
+
+    orchestrator.test-resources.tmp-path=/tmp/save/resources
+
+    logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
+
+    {{ if .Values.orchestrator.applicationProperties }}
+    {{- .Values.orchestrator.applicationProperties | nindent 4 }}
+    {{ end }}

@@ -22,4 +22,40 @@
             <where>status='READY'</where>
         </update>
     </changeSet>
+
+    <changeSet id="precision-recall-supporting" author="nulls" context="dev or prod">
+        <renameColumn tableName="test_execution"
+                      oldColumnName="missing_warnings" newColumnName="unmatched"
+                      columnDataType="bigint" />
+        <renameColumn tableName="test_execution"
+                      oldColumnName="matched_warnings" newColumnName="matched"
+                      columnDataType="bigint" />
+
+        <addColumn tableName="test_execution">
+            <column name="expected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="unexpected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-test-execution" author="frolov">
+        <dropForeignKeyConstraint baseTableName="test_execution" constraintName="fk_test_execution_execution"/>
+        <addForeignKeyConstraint baseColumnNames="execution_id"
+          baseTableName="test_execution"
+          constraintName="fk_test_execution_execution"
+          referencedColumnNames="id"
+          referencedTableName="execution"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="test_execution" constraintName="fk_test_execution_test"/>
+        <addForeignKeyConstraint baseColumnNames="test_id"
+          baseTableName="test_execution"
+          constraintName="fk_test_execution_test"
+          referencedColumnNames="id"
+          referencedTableName="test"
+          onDelete="CASCADE"/>
+    </changeSet>
 </databaseChangeLog>

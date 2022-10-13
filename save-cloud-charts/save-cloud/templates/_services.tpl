@@ -4,7 +4,7 @@ name: {{ .service.name }}
 
 {{- define "service.common.ports" -}}
 - name: http
-  port: {{ .service.containerPort }}
+  port: 80
   targetPort: http
 {{- end }}
 

@@ -1,9 +1,10 @@
-imageRegistry: ghcr.io/analysis-dev
+imageRegistry: ghcr.io/saveourtool
 dockerTag: latest  # this should be set explicitly during chart installation
 
 env: staging
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
+pullPolicy: IfNotPresent
 backend:
   name: backend
   profile: dev,secure,kubernetes
@@ -12,13 +13,24 @@ backend:
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
-  dbPasswordFile: /home/cnb/secrets/db_secrets
+frontend:
+  name: frontend
+  imageName: save-frontend
+  containerPort: 5810
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator
   containerPort: 5100
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
+sandbox:
+  name: sandbox
+  imageName: save-sandbox
+  containerPort: 5400
+  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
+  clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
@@ -30,6 +42,7 @@ gateway:
   profile: dev,kubernetes
   imageName: api-gateway
   containerPort: 5300
+  managementPort: 5301
   # Additional properties for `application.properties` file that will be mounted as an optional property source.
   applicationProperties:
   svc:
@@ -49,11 +62,23 @@ mysql:
   # IP address of an external MySQL database.
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
+  # Name of the database schema that will be used by save-cloud deployment
+  backend_schema: save_cloud
+  sandbox_schema: save_sandbox
+  root_password: '123'
+  migrations:
+    # Whether database migrations should be executed while deploying the application
+    enabled: false
+  dbPasswordFile: /home/cnb/secrets/db_secrets
 
 # Values for dependencies
 grafana:
+  enabled: false
   image:
-    tag: 8.4.5
+    tag: 9.0.1
+  deploymentStrategy:
+    # If we have a single replica of Grafana and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
+    type: Recreate
   service:
     port: 9100
   persistence:
@@ -61,5 +86,64 @@ grafana:
   rbac:
     create: false
 
+prometheus:
+  enabled: false
+  alertmanager:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  configmapReload:
+    prometheus:
+      enabled: false
+    alertmanager:
+      enabled: false
+  nodeExporter:
+    enabled: false
+  server:
+    image:
+      tag: v2.36.2
+    strategy:
+      # If we have a single replica of Prometheus and PV doesn't support MultiAttach, then `RollingUpdate` will fail.
+      type: Recreate
+  pushgateway:
+    enabled: false
+
+promtail:
+  image:
+    tag: 2.5.0
+  podLabels:
+    # This label will make promtail scrape itself according to the pipeeline stages below.
+    io.kompose.service: promtail
+  config:
+    clients:
+      - url: http://save-cloud-loki:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        - cri: {}
+        - output:
+            source: output
+        - labels:
+            stream:
+        - multiline:
+            firstline: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - regex:
+            expression: '^\d{2}:\d{2}:\d{2}\.\d{3} \[(?P<thread>[\w\d\-.]+)\] (?P<level>\w+)'
+        - labels:
+            level:
+      extraRelabelConfigs:
+        - action: keep
+          regex: .*true.*
+          source_labels:
+            - __meta_kubernetes_pod_labelpresent_io_kompose_service
+            - __meta_kubernetes_pod_labelpresent_executionId
 loki:
-  tag: 2.4.2
+  enabled: false
+  image:
+    tag: 2.5.0
+  persistence:
+    enabled: true
+  config:
+    ingester:
+      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+      max_chunk_age: 2h
+      chunk_idle_period: 2h

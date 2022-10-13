@@ -1,8 +1,12 @@
+import com.saveourtool.save.buildutils.configurePublishing
+import com.saveourtool.save.buildutils.configureSpotless
+
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
+    `maven-publish`
 }
 kotlin {
     allOpen {
@@ -18,7 +22,7 @@ kotlin {
         }
     }
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
     js(BOTH).browser()
 
@@ -38,10 +42,30 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
+                implementation(libs.spring.web)
+                implementation(libs.spring.boot)
+                implementation(libs.spring.data.jpa)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
+                api(libs.slf4j.api)
+                implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+                implementation(libs.commons.compress)
+                implementation(libs.validation.api)
+                implementation(libs.swagger.annotations)
+            }
+        }
+        val jvmTest by getting {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
+            dependencies {
+                implementation(libs.kotlin.test)
             }
         }
     }
 }
+
+configureSpotless()
+configurePublishing()

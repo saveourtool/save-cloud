@@ -1,23 +1,9 @@
-import org.cqfn.save.buildutils.configureJacoco
-import org.cqfn.save.buildutils.configureSpringBoot
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.saveourtool.save.buildutils.configureJacoco
+import com.saveourtool.save.buildutils.configureSpotless
 
 plugins {
-    kotlin("jvm")
-}
-
-configureSpringBoot()
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
 }
 
 dependencies {
@@ -30,3 +16,4 @@ dependencies {
 }
 
 configureJacoco()
+configureSpotless()

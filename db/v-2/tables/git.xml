@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="git-2" author="frolov" context="dev or prod">
+        <addUniqueConstraint tableName="git" columnNames="project_id" constraintName="uq_project_id"/>
+    </changeSet>
+
+    <changeSet id="move-git-to-organization" author="nulls">
+        <addColumn tableName="git">
+            <column name="organization_id" type="bigint" />
+        </addColumn>
+        <update tableName="git">
+            <column name="organization_id" valueComputed="(select organization_id from project where id = project_id)"/>
+        </update>
+        <dropForeignKeyConstraint baseTableName="git" constraintName="fk_git_project"/>
+        <dropUniqueConstraint tableName="git" constraintName="uq_project_id"/>
+        <dropColumn tableName="git">
+            <column name="branch"/>
+            <column name="project_id"/>
+        </dropColumn>
+        <addForeignKeyConstraint baseTableName="git" baseColumnNames="organization_id"
+                                 constraintName="fk_git_organization"
+                                 referencedTableName="organization"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="git" columnNames="organization_id,url" constraintName="uq_git_organization_url"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-git" author="frolov">
+        <dropForeignKeyConstraint baseTableName="git" constraintName="fk_git_organization"/>
+        <addForeignKeyConstraint baseColumnNames="organization_id"
+          baseTableName="git"
+          constraintName="fk_git_organization"
+          referencedColumnNames="id"
+          referencedTableName="organization"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
