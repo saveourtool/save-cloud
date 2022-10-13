@@ -20,7 +20,6 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.DockerException
 import com.github.dockerjava.api.model.*
-import com.saveourtool.save.core.utils.runIf
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -193,8 +192,8 @@ class DockerAgentRunner(
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
-                    .runIf({ System.getenv("DOCKER_NETWORK_NAME") != null }) {
-                        withNetworkMode(System.getenv("DOCKER_NETWORK_NAME"))
+                    .run {
+                        System.getenv("DOCKER_NETWORK_NAME")?.let(::withNetworkMode) ?: this
                     }
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
