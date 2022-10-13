@@ -40,4 +40,22 @@
     <addUniqueConstraint tableName="lnk_user_organization" columnNames="user_id, organization_id"/>
   </changeSet>
 
+  <changeSet id="remove-and-add-fk-lnk-user-organization" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_user_organization" constraintName="fk_lnk_user_organization_user"/>
+    <addForeignKeyConstraint baseColumnNames="user_id"
+      baseTableName="lnk_user_organization"
+      constraintName="fk_lnk_user_organization_user"
+      referencedColumnNames="id"
+      referencedTableName="user"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_user_organization" constraintName="fk_lnk_user_organization_organization"/>
+    <addForeignKeyConstraint baseColumnNames="organization_id"
+      baseTableName="lnk_user_organization"
+      constraintName="fk_lnk_user_organization_organization"
+      referencedColumnNames="id"
+      referencedTableName="organization"
+      onDelete="CASCADE"/>
+  </changeSet>
+
 </databaseChangeLog>
