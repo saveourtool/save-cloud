@@ -18,10 +18,9 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * where user identity is already guaranteed.
  */
 @Component
-class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
-    @Autowired
-    private lateinit var userDetailsService: UserDetailsService
-
+class ConvertingAuthenticationManager(
+    @Autowired private var userDetailsService: UserDetailsService
+) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
      * by [CustomAuthenticationBasicConverter] with record in DB

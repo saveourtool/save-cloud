@@ -1,17 +1,20 @@
 package com.saveourtool.save.utils
 
-import org.slf4j.LoggerFactory
+import com.saveourtool.save.entities.User
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.User as SpringUser
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
-private val logger = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+private val logger = getLogger<IdentitySourceAwareUserDetails>()
 
 /**
  * @param authorities comma-separated authorities as a single string
- * @property identitySource
+ * @property identitySource where the user identity is coming from
  * @property id
  */
 class IdentitySourceAwareUserDetails(
@@ -20,7 +23,7 @@ class IdentitySourceAwareUserDetails(
     authorities: String?,
     val identitySource: String,
     val id: Long,
-) : org.springframework.security.core.userdetails.User(
+) : SpringUser(
     username,
     password,
     authorities?.split(',')
@@ -30,23 +33,11 @@ class IdentitySourceAwareUserDetails(
 )
 
 /**
- * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
- */
-@Suppress("UnsafeCallOnNullableType")
-fun com.saveourtool.save.entities.User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
-    username = this.name!!,
-    password = this.password.orEmpty(),
-    authorities = this.role,
-    identitySource = this.source,
-    id = this.id!!,
-)
-
-/**
  * @param username
- * @param source
+ * @param source where the user identity is coming from
  * @return mono of IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
-fun Mono<com.saveourtool.save.entities.User>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this
+fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this
     .map<UserDetails> { user ->
         user.toIdentitySourceAwareUserDetails()
     }
@@ -60,3 +51,15 @@ fun Mono<com.saveourtool.save.entities.User>.getIdentitySourceAwareUserDetails(u
             Mono.error(UsernameNotFoundException(username))
         }
     }
+
+/**
+ * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
+ */
+@Suppress("UnsafeCallOnNullableType")
+private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
+    username = this.name!!,
+    password = this.password.orEmpty(),
+    authorities = this.role,
+    identitySource = this.source,
+    id = this.id!!,
+)

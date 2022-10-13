@@ -22,14 +22,4 @@ class SandboxUserDetailsService(
     override fun findByUsername(username: String): Mono<UserDetails> = {
         sandboxUserRepository.findByName(username)
     }.toMono().getIdentitySourceAwareUserDetails(username)
-
-    /**
-     * @param username
-     * @param source source (where the user identity is coming from)
-     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
-     */
-    fun findByUsernameAndSource(username: String, source: String) =
-            { sandboxUserRepository.findByNameAndSource(username, source) }
-                .toMono()
-                .getIdentitySourceAwareUserDetails(username, source)
 }

@@ -30,7 +30,6 @@ class SandboxUserRepository(
      * @param name
      * @return user or null if no results have been found
      */
-    @Transactional
     fun findByName(name: String): User? {
         val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
@@ -38,23 +37,6 @@ class SandboxUserRepository(
         ).single()
             .orNotFound {
                 "There is no user with name $name"
-            }
-
-        return record.toUserEntity()
-    }
-
-    /**
-     * @param name
-     * @param source
-     * @return user or null if no results have been found
-     */
-    fun findByNameAndSource(name: String, source: String): User? {
-        val record = namedParameterJdbcTemplate.queryForList(
-            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
-            mapOf("name" to name, "source" to source),
-        ).single()
-            .orNotFound {
-                "There is no user with name $name and source $source"
             }
         return record.toUserEntity()
     }

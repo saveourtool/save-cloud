@@ -43,7 +43,7 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param authentication
+     * @param authentication [Authentication] describing an authenticated request
      * @return content of requested snapshot
      */
     @PostMapping(
@@ -91,7 +91,7 @@ class SandboxInternalController(
 
     /**
      * @param fileName
-     * @param authentication
+     * @param authentication [Authentication] describing an authenticated request
      * @return content of requested file
      */
     @PostMapping("/download-file", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
