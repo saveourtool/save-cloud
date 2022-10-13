@@ -7,12 +7,12 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.info.UserInfo
@@ -43,7 +43,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping("/api/$v1/projects/")
+@RequestMapping("/api/$v1/projects")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,

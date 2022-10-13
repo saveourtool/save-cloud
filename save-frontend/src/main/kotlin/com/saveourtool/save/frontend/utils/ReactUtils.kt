@@ -4,8 +4,25 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.frontend.components.modal.displayInfoModal
+import react.ChildrenBuilder
 import react.useEffect
 import react.useState
+
+/**
+ * Custom react hook that once shows global role warning.
+ *
+ * Can only be called from functional components
+ */
+fun ChildrenBuilder.useGlobalRoleWarningOnce() {
+    useOnce {
+        displayInfoModal(
+            useWindowOpenness(),
+            "Warning: global role",
+            "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions.",
+        )
+    }
+}
 
 /**
  * Runs the provided [action] only once of first render
@@ -13,10 +30,22 @@ import react.useState
  * @param action
  */
 fun useOnce(action: () -> Unit) {
-    val (isFirstRender, setFirstRender) = useState(true)
-    if (isFirstRender) {
+    val useOnceAction = useOnceAction()
+    useOnceAction {
         action()
-        setFirstRender(false)
+    }
+}
+
+/**
+ * @return action which will be run once per function component
+ */
+fun useOnceAction(): (() -> Unit) -> Unit {
+    val (isFirstRender, setFirstRender) = useState(true)
+    return { action ->
+        if (isFirstRender) {
+            action()
+            setFirstRender(false)
+        }
     }
 }
 

@@ -43,4 +43,22 @@
     <dropColumn tableName="lnk_contest_execution" columnName="score"/>
   </changeSet>
 
+  <changeSet id="remove-and-add-fk-lnk-contest-execution" author="frolov">
+    <dropForeignKeyConstraint baseTableName="lnk_contest_execution" constraintName="fk_lnk_contest_execution_contest"/>
+    <addForeignKeyConstraint baseColumnNames="contest_id"
+      baseTableName="lnk_contest_execution"
+      constraintName="fk_lnk_contest_execution_contest"
+      referencedColumnNames="id"
+      referencedTableName="contest"
+      onDelete="CASCADE"/>
+
+    <dropForeignKeyConstraint baseTableName="lnk_contest_execution" constraintName="fk_lnk_contest_execution_execution"/>
+    <addForeignKeyConstraint baseColumnNames="execution_id"
+      baseTableName="lnk_contest_execution"
+      constraintName="fk_lnk_contest_execution_execution"
+      referencedColumnNames="id"
+      referencedTableName="execution"
+      onDelete="CASCADE"/>
+  </changeSet>
+
 </databaseChangeLog>

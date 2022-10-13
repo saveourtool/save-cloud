@@ -2,14 +2,14 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.entities.TestSuitesSource
-import org.springframework.data.repository.query.QueryByExampleExecutor
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
  * JPA repositories for TestSuite
  */
 @Repository
-interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleExecutor<TestSuite> {
+interface TestSuiteRepository : BaseEntityRepository<TestSuite> {
     /**
      * @param name name of the test suite
      * @param tags tags of the test suite
@@ -47,4 +47,10 @@ interface TestSuiteRepository : BaseEntityRepository<TestSuite>, QueryByExampleE
      * @return List of [TestSuite]s
      */
     fun findBySourceOrganizationName(organizationName: String): List<TestSuite>
+
+    /**
+     * @param isPublic flag that indicates if given [TestSuite] is available for every organization or not
+     * @return List of [TestSuite]s
+     */
+    fun findByIsPublic(isPublic: Boolean): List<TestSuite>
 }

@@ -1,3 +1,12 @@
+# A dex configuration file, see
+# https://github.com/dexidp/dex/blob/master/examples/config-dev.yaml and
+# https://github.com/wearearima/spring-boot-dex/blob/master/dex/spring-boot-demo.yaml
+# for more details.
+#
+# In order to start dex, run "gradlew generateComposeFile" followed by
+# (from the build/ directory) "docker compose up -d dex" or
+# "docker compose up dex" (using a separate terminal window, useful for debugging).
+
 issuer: http://127.0.0.1:5556/dex
 storage:
   type: sqlite3
@@ -13,7 +22,7 @@ logger:
 staticClients:
   - id: save-gateway-dev
     redirectURIs:
-      - 'http://localhost:5300/login/oauth2/code/dex'
+      - 'http://localhost:8080/login/oauth2/code/dex'
     name: 'SAVE Cloud Service'
     secret: 123test123
 
@@ -25,3 +34,23 @@ staticPasswords:
     hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
     username: "admin"
     userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+
+  - email: "dexuser@example.com"
+    # bcrypt hash of the string "dexpassword": $(echo 'dexpassword' | htpasswd -BinC 16 'dexuser' | cut -d: -f2)
+    #
+    # "htpasswd" is a part of apache2-utils.
+    #
+    # The maximum cost supported by htpasswd is 17.
+    # dex, on the other hand, only supports values up to 16.
+    hash: "$2y$16$XVnJU8BZX/fUck0sqEn6quDCzgBHaYOYAhjeI2sC/QkoYM/7u9bHa"
+    # This is the name of the user from dex perspective only.
+    #
+    # Since dex (unlike GitHub), provides no means to query user details (i.e.
+    # it has no User API), the auto-generated username in the "user" table will
+    # initially look like "CiRlOGI3NWFmNC1kMDkzLTRhZjUtODk3NC0xMzZlY2IxMGNiNzcSBWxvY2Fs".
+    username: "dexuser"
+    # A version 4 (random) GUID (DCE 1.1, ISO/IEC 11578:1996),
+    # can be generated at https://www.guidgenerator.com/online-guid-generator.aspx,
+    # using "uuidgen -r" (uuid-runtime), "uuid", or "uuidcdef -u" (Linux),
+    # or by running "python3 -c 'import uuid; print(str(uuid.uuid4()))'".
+    userID: "e8b75af4-d093-4af5-8974-136ecb10cb77"

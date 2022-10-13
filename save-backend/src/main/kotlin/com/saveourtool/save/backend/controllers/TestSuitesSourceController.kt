@@ -2,11 +2,11 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.toResponseEntity
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
@@ -45,6 +45,7 @@ typealias StringListResponse = ResponseEntity<List<String>>
 @Tags(
     Tag(name = "test-suites-source"),
 )
+@Suppress("LongParameterList")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testSuitesSourceSnapshotStorage: TestSuitesSourceSnapshotStorage,
@@ -52,6 +53,7 @@ class TestSuitesSourceController(
     private val organizationService: OrganizationService,
     private val gitService: GitService,
     private val executionService: ExecutionService,
+    private val lnkExecutionTestSuiteService: LnkExecutionTestSuiteService,
 ) {
     @GetMapping(
         path = [
@@ -400,10 +402,10 @@ class TestSuitesSourceController(
     ): Mono<ByteBufferFluxResponse> = blockingToMono {
         val execution = executionService.findExecution(executionId)
             .orNotFound { "Execution (id=$executionId) not found" }
-        val testSuiteId = execution.parseAndGetTestSuiteIds()?.firstOrNull()
-            .orConflict { "Execution (id=$executionId) doesn't contain testSuiteIds" }
-        testSuitesService.findTestSuiteById(testSuiteId)
-            .orNotFound { "TestSuite (id=$testSuiteId) not found" }
+        val testSuite = lnkExecutionTestSuiteService.getAllTestSuitesByExecution(execution).firstOrNull().orNotFound {
+            "Execution (id=$executionId) doesn't have any testSuites"
+        }
+        testSuite
             .toDto()
             .let { it.source to it.version }
     }.flatMap { (source, version) ->
@@ -437,7 +439,7 @@ class TestSuitesSourceController(
                 testSuitesSource,
                 version
             ).map {
-                it.toDto(it.requiredId())
+                it.toDto()
             }
         }
 
@@ -576,7 +578,7 @@ class TestSuitesSourceController(
         .flatMap { testSuitesSourceService.branchList(it.toDto()) }
         .map { ResponseEntity.ok().body(it) }
 
-    @GetMapping("/api/$v1/test-suites-sources/avaliable")
+    @GetMapping("/api/$v1/test-suites-sources/available")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(

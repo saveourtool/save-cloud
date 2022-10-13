@@ -17,7 +17,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
 import csstype.rem
-import org.w3c.dom.HTMLButtonElement
+import dom.html.HTMLButtonElement
 import react.*
 import react.dom.aria.*
 import react.dom.html.ButtonHTMLAttributes
@@ -159,12 +159,13 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = FrontendRoutes.SANDBOX.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
-                        width = 8.rem
+                        width = 9.rem
                     }
-                    href = "https://github.com/saveourtool/save-cli"
-                    +"SAVE format"
+                    href = "#/$hrefAnchor"
+                    +"Try SAVE format"
                 }
             }
             li {

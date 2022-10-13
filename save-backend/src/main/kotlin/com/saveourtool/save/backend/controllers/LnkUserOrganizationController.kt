@@ -8,13 +8,13 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toUser
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationDto
@@ -55,13 +55,13 @@ import java.util.*
     Tag(name = "organizations"),
 )
 @RestController
-@RequestMapping("/api/$v1/organizations/")
+@RequestMapping("/api/$v1/organizations")
 class LnkUserOrganizationController(
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationService: OrganizationService,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
-    @GetMapping("{organizationName}/users")
+    @GetMapping("/{organizationName}/users")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -122,7 +122,7 @@ class LnkUserOrganizationController(
             lnkUserOrganizationService.getRole(user, organization)
         }
 
-    @PostMapping("{organizationName}/users/roles")
+    @PostMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -155,7 +155,7 @@ class LnkUserOrganizationController(
             )
         }
 
-    @DeleteMapping("{organizationName}/users/roles/{userName}")
+    @DeleteMapping("/{organizationName}/users/roles/{userName}")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
@@ -186,7 +186,7 @@ class LnkUserOrganizationController(
             ResponseEntity.ok("Successfully removed role of user ${user.name} in organization ${organization.name}")
         }
 
-    @GetMapping("{organizationName}/users/not-from")
+    @GetMapping("/{organizationName}/users/not-from")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(

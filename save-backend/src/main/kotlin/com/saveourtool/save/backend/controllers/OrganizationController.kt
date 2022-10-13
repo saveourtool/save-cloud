@@ -1,9 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.StringResponse
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.GitService
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
@@ -12,6 +10,8 @@ import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
@@ -304,6 +304,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -319,6 +320,12 @@ internal class OrganizationController(
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for deletion of organization $organizationName."
+        }
+        .filter {
+            organizationService.organizationHasNoProjects(it.name)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
             organizationService.deleteOrganization(it.name)
@@ -438,7 +445,7 @@ internal class OrganizationController(
             // List of test suites for removing data from storage at next step
             val testSuitesList = testSuitesSources.mapNotNull { testSuitesSource ->
                 val testSuites = testSuitesService.getBySource(testSuitesSource)
-                testSuitesService.deleteTestSuiteDto(testSuites.map { it.toDto() })
+                testSuitesService.deleteTestSuitesDto(testSuites.map { it.toDto() })
                 testSuitesSourceService.delete(testSuitesSource)
                 // Since storage data is common for all test suites from one test suite source, it's enough to take any one of them
                 testSuites.firstOrNull()

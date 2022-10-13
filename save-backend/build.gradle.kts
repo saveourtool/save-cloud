@@ -9,8 +9,9 @@ import java.nio.file.Paths
 
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.spring-data-configuration")
+    alias(libs.plugins.download)
     // this plugin will generate generateOpenApiDocs task
     // running this task, it will write the OpenAPI spec into a backend-api-docs.json file in save-backend dir.
     id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
@@ -106,7 +107,7 @@ dependencies {
                 "save-agent, please test them on Linux " +
                 "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
         )
-        runtimeOnly(fileTree("$buildDir/agentDistro").apply {
+        runtimeOnly(files("$buildDir/agentDistro").apply {
             builtBy(downloadSaveAgentDistroTaskProvider)
         })
     } else {

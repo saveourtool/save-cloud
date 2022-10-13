@@ -148,6 +148,11 @@ class TestSuitesService(
         .orNotFound { "TestSuite (id=$id) not found" }
 
     /**
+     * @return public [TestSuite]s
+     */
+    fun getPublicTestSuites() = testSuiteRepository.findByIsPublic(true)
+
+    /**
      * @param source source of the test suite
      * @param version version of snapshot of source
      * @return matched test suites
@@ -170,7 +175,7 @@ class TestSuitesService(
      *
      * @param testSuiteDtos suites, which need to be deleted
      */
-    fun deleteTestSuiteDto(testSuiteDtos: List<TestSuiteDto>) {
+    fun deleteTestSuitesDto(testSuiteDtos: List<TestSuiteDto>) {
         doDeleteTestSuite(testSuiteDtos.map { getSavedEntityByDto(it) })
     }
 
