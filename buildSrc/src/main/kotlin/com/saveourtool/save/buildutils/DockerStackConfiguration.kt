@@ -104,7 +104,7 @@ fun Project.createStackDeployTask(profile: String) {
                     // In Docker Compose mode, however, network name defaults to project directoy name (unless
                     // overridden explicitly).
                     findProperty("dockerNetwork") as String?
-                        // https://docs.docker.com/compose/networking/
+                    // https://docs.docker.com/compose/networking/
                         ?: "${composeFile.parentFile.name}_default"
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
