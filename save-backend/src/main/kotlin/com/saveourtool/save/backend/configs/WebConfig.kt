@@ -7,8 +7,9 @@
 
 package com.saveourtool.save.backend.configs
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.domain.supportTestStatus
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.context.annotation.Bean

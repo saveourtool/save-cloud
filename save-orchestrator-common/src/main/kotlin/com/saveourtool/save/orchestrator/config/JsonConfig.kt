@@ -6,10 +6,10 @@
 
 package com.saveourtool.save.orchestrator.config
 
+import com.saveourtool.save.domain.supportTestStatus
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.saveourtool.save.domain.supportTestStatus
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

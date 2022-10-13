@@ -4,9 +4,10 @@
 
 package com.saveourtool.save.domain
 
+import com.saveourtool.save.core.result.*
+
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.saveourtool.save.core.result.*
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 
 /**

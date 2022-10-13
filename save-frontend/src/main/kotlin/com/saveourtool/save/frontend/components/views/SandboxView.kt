@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
@@ -356,11 +355,11 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             val resultDebugInfo: TestResultDebugInfo = get(
                 "$sandboxApiUrl/get-debug-info?userName=${props.currentUserInfo?.name}",
                 Headers().apply {
-                    set("Content-Type", "application/json")
+                    set("Accept", "application/octet-stream")
                 },
                 loadingHandler = ::classLoadingHandler,
             )
-                .decodeFromJsonString<TestResultDebugInfo>()
+                .decodeFromJsonString()
             setState {
                 debugInfo = resultDebugInfo
             }

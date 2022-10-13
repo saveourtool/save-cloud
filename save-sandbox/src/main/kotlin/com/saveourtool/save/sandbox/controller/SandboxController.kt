@@ -263,7 +263,6 @@ class SandboxController(
                 }
         )
 
-
     private fun getAsMonoStorageKey(
         userName: String,
         type: SandboxStorageKeyType,
@@ -365,6 +364,7 @@ class SandboxController(
             |#columnCaptureGroupOut = null
             |messageCaptureGroupOut = 3
         """.trimMargin()
+
         @Language("python")
         private val testExample = """
             |# CHECK-MESSAGES:[[1]]: C0114: Missing module docstring (missing-module-docstring)
@@ -385,6 +385,7 @@ class SandboxController(
             |
             |root.mainloop()
         """.trimMargin()
+
         @Language("bash")
         private val setupShExample = """
             |#!/usr/bin/env bash
@@ -393,7 +394,6 @@ class SandboxController(
             |# setup pylint, it setups all required dependencies
             |pip install pylint --no-input --disable-pip-version-check --no-warn-script-location
         """.trimMargin()
-
         private val examples = mapOf(
             "test" to testExample,
             "save.toml" to saveTomlExample,
