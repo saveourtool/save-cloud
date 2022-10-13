@@ -20,7 +20,7 @@ class SandboxUserRepository(
         val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)
-        ).single()
+        ).singleOrNull()
             .orNotFound {
                 "There is no user with name $name"
             }

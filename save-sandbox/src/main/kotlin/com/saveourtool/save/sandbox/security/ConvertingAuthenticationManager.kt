@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
@@ -32,9 +33,7 @@ class ConvertingAuthenticationManager(
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
         sandboxUserDetailsService.findByUsername(name)
-            .map {
-                it as IdentitySourceAwareUserDetails
-            }
+            .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource
             }

@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
@@ -35,7 +36,7 @@ class ConvertingAuthenticationManager(
         }
         val name = authentication.name.drop(identitySource.length + 1)
         userDetailsService.findByUsername(name)
-            .map { it as IdentitySourceAwareUserDetails }
+            .cast<IdentitySourceAwareUserDetails>()
             .filter { it.identitySource == identitySource }
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
