@@ -40,9 +40,9 @@ dependencies {
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.fabric8.kubernetes.client)
     implementation(libs.spring.kafka)
+    implementation(libs.save.common)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
-    implementation(libs.save.common)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc
