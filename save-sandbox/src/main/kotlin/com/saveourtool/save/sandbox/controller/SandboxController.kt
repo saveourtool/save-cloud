@@ -7,11 +7,11 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.controller.AgentsController
 import com.saveourtool.save.sandbox.entity.SandboxExecution
 import com.saveourtool.save.sandbox.repository.SandboxExecutionRepository
-import com.saveourtool.save.sandbox.repository.SandboxUserRepository
 import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
+import com.saveourtool.save.sandbox.utils.userId
 import com.saveourtool.save.sandbox.utils.userName
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.mapToInputStream
@@ -41,7 +41,6 @@ import javax.transaction.Transactional
  * @property configProperties
  * @property storage
  * @property sandboxExecutionRepository
- * @property sandboxUserRepository
  * @property agentsController
  */
 @ApiSwaggerSupport
@@ -54,7 +53,6 @@ class SandboxController(
     val configProperties: ConfigProperties,
     val storage: SandboxStorage,
     val sandboxExecutionRepository: SandboxExecutionRepository,
-    val sandboxUserRepository: SandboxUserRepository,
     val agentsController: AgentsController,
 ) {
     @Operation(
@@ -67,7 +65,7 @@ class SandboxController(
     @GetMapping("/list-file")
     fun listFiles(
         authentication: Authentication,
-    ): Flux<SandboxFileInfo> = blockingToMono { sandboxUserRepository.getIdByName(authentication.userName()) }
+    ): Flux<SandboxFileInfo> = Mono.just(authentication.userId())
         .flatMapMany { userId ->
             storage.list(userId, SandboxStorageKeyType.FILE)
         }
@@ -96,7 +94,7 @@ class SandboxController(
         @RequestPart file: Mono<FilePart>,
         authentication: Authentication,
     ): Mono<SandboxFileInfo> = file.flatMap { filePart ->
-        getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, filePart.filename())
+        getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, filePart.filename())
             .flatMap { key ->
                 storage.overwrite(
                     key = key,
@@ -124,7 +122,7 @@ class SandboxController(
         @RequestParam fileName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userName(), SandboxStorageKeyType.FILE, fileName, content)
+    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userId(), SandboxStorageKeyType.FILE, fileName, content)
 
     @Operation(
         method = "GET",
@@ -140,7 +138,7 @@ class SandboxController(
     fun downloadFile(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Flux<ByteBuffer> = getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
+    ): Flux<ByteBuffer> = getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
         .flatMapMany {
             storage.download(it)
         }
@@ -162,7 +160,7 @@ class SandboxController(
     fun downloadFileAsText(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<String> = doDownloadTestAsText(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
+    ): Mono<String> = doDownloadTestAsText(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
 
     @Operation(
         method = "DELETE",
@@ -178,7 +176,7 @@ class SandboxController(
     fun deleteFile(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<Boolean> = getAsMonoStorageKey(authentication.userName(), SandboxStorageKeyType.FILE, fileName)
+    ): Mono<Boolean> = getAsMonoStorageKey(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
         .flatMap {
             storage.delete(it)
         }
@@ -199,14 +197,14 @@ class SandboxController(
         @RequestParam fileName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userName(), SandboxStorageKeyType.TEST, fileName, content)
+    ): Mono<SandboxFileInfo> = doUploadAsText(authentication.userId(), SandboxStorageKeyType.TEST, fileName, content)
 
     private fun doUploadAsText(
-        userName: String,
+        userId: Long,
         type: SandboxStorageKeyType,
         fileName: String,
         content: String,
-    ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userName, type, fileName)
+    ): Mono<SandboxFileInfo> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
             storage.overwrite(
                 key = key,
@@ -231,30 +229,30 @@ class SandboxController(
     fun downloadTestAsText(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<String> = doDownloadTestAsText(authentication.userName(), SandboxStorageKeyType.TEST, fileName)
+    ): Mono<String> = doDownloadTestAsText(authentication.userId(), SandboxStorageKeyType.TEST, fileName)
 
     private fun doDownloadTestAsText(
-        userName: String,
+        userId: Long,
         type: SandboxStorageKeyType,
         fileName: String,
-    ): Mono<String> = getAsMonoStorageKey(userName, type, fileName)
+    ): Mono<String> = getAsMonoStorageKey(userId, type, fileName)
         .flatMap { key ->
             storage.download(key)
                 .mapToInputStream()
                 .map { it.bufferedReader().readText() }
         }
         .switchIfEmptyToNotFound {
-            "There is no test file $fileName for user $userName"
+            "There is no test file $fileName for user id $userId"
         }
 
     private fun getAsMonoStorageKey(
-        userName: String,
+        userId: Long,
         type: SandboxStorageKeyType,
         fileName: String,
-    ): Mono<SandboxStorageKey> = blockingToMono { sandboxUserRepository.getIdByName(userName) }
-        .map { userId ->
+    ): Mono<SandboxStorageKey> = Mono.just(userId)
+        .map { uid ->
             SandboxStorageKey(
-                userId,
+                uid,
                 type,
                 fileName,
             )
@@ -270,7 +268,7 @@ class SandboxController(
     @GetMapping(path = ["/get-debug-info"], produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun getDebugInfo(
         authentication: Authentication,
-    ): Flux<ByteBuffer> = blockingToMono { sandboxUserRepository.getIdByName(authentication.userName()) }
+    ): Flux<ByteBuffer> = Mono.just(authentication.userId())
         .flatMapMany { userId ->
             storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
@@ -288,15 +286,15 @@ class SandboxController(
     @PostMapping("/run-execution")
     @Transactional
     fun runExecution(
-        @RequestParam userName: String,
         @RequestParam sdk: String,
+        authentication: Authentication,
     ): Mono<BodilessResponseEntity> = blockingToMono {
         val execution = SandboxExecution(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.PENDING,
             sdk = sdk,
-            userId = sandboxUserRepository.getIdByName(userName),
+            userId = authentication.userId(),
             initialized = false,
             failReason = null,
         )

@@ -372,7 +372,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private fun runExecution() {
         scope.launch {
             post(
-                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
+                url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
                 headers = jsonHeaders,
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
