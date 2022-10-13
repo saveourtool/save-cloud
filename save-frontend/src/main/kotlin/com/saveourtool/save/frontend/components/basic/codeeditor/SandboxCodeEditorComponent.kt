@@ -193,6 +193,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
 
         codeEditorComponent {
             editorTitle = props.editorTitle
+            isDisabled = selectedFileType == null
             this.selectedTheme = selectedTheme
             this.selectedMode = selectedMode
             onDraftTextUpdate = { text -> getTypedOption(selectedFileType, setDraftCodeText, setDraftConfigText, setDraftSetupShText)?.invoke(text) }

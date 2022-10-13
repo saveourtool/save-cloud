@@ -49,6 +49,11 @@ external interface CodeEditorComponentProps : Props {
      * Update [draftText]
      */
     var onDraftTextUpdate: (String) -> Unit
+
+    /**
+     * Flag to disable form editing
+     */
+    var isDisabled: Boolean
 }
 
 private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
@@ -65,7 +70,7 @@ private fun codeEditorComponent() = FC<CodeEditorComponentProps> { props ->
             props.selectedMode,
             props.selectedTheme,
             getAceMarkers(props.savedText, props.draftText),
-            false,
+            props.isDisabled,
         ) {
             props.onDraftTextUpdate(it)
         }
