@@ -36,7 +36,7 @@ class BackendAgentRepository(
 
     override fun getNextTestBatch(containerId: String): Mono<TestBatch> = webClientBackend
         .get()
-        .uri("/agents/get-next-test-batch?agentId=$containerId")
+        .uri("/agents/get-next-test-batch?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 
