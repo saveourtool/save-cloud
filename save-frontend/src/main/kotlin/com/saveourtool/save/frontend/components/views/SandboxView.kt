@@ -11,7 +11,7 @@ import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
-import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
+import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
 import com.saveourtool.save.frontend.components.modal.displayModal
@@ -40,7 +40,6 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
@@ -214,36 +213,9 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private fun ChildrenBuilder.renderCodeEditor() {
         div {
             className = ClassName("")
-            codeEditorComponent {
+            sandboxCodeEditorComponent {
                 editorTitle = ""
-                selectedFile = state.selectedFile
-                onSelectedFileUpdate = {
-                    setState { selectedFile = it }
-                }
-                editorText = when (state.selectedFile) {
-                    FileType.CODE -> state.codeText
-                    FileType.SAVE_TOML -> state.configText
-                    FileType.SETUP_SH -> state.setupShText
-                    else -> "Press on any of the buttons above to start editing"
-                }
-                savedEditorText = when (state.selectedFile) {
-                    FileType.CODE -> state.savedCodeText
-                    FileType.SAVE_TOML -> state.savedConfigText
-                    FileType.SETUP_SH -> state.savedSetupShText
-                    else -> "Press on any of the buttons above to start editing"
-                }
-                onEditorTextUpdate = {
-                    setState {
-                        when (state.selectedFile) {
-                            FileType.CODE -> codeText = it
-                            FileType.SAVE_TOML -> configText = it
-                            FileType.SETUP_SH -> setupShText = it
-                            else -> {}
-                        }
-                    }
-                }
-                doUploadChanges = ::uploadChanges
-                doReloadChanges = ::reloadChanges
+                currentUserInfo = props.currentUserInfo ?: UserInfo("")
                 doRunExecution = ::runExecution
                 doResultReload = ::resultReload
             }
@@ -323,71 +295,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         }
     }
 
-    private fun uploadChanges() {
-        scope.launch {
-            val codeText = state.codeText
-            val configText = state.configText
-            val setupShText = state.setupShText
-            postContentAsText("test", "test", codeText)
-            postContentAsText("test", "save.toml", configText)
-            postContentAsText("file", "setup.sh", setupShText)
-
-            setState {
-                savedCodeText = codeText
-                savedConfigText = configText
-                savedSetupShText = setupShText
-            }
-        }
-    }
-
-    private fun reloadChanges() {
-        scope.launch {
-            val newCodeText = getContentAsText("test", "test", codeExample)
-            val newConfigText = getContentAsText("test", "save.toml", configExample)
-            val newSetupShText = getContentAsText("file", "setup.sh", setupShExample)
-
-            setState {
-                codeText = newCodeText
-                savedCodeText = newCodeText
-                configText = newConfigText
-                savedConfigText = newConfigText
-                setupShText = newSetupShText
-                savedSetupShText = newSetupShText
-            }
-        }
-    }
-
-    private suspend fun postContentAsText(
-        urlPart: String,
-        fileName: String,
-        text: String,
-    ) {
-        post(
-            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
-            headers = jsonHeaders,
-            body = text,
-            loadingHandler = ::noopLoadingHandler,
-        )
-    }
-
-    private suspend fun getContentAsText(
-        urlPart: String,
-        fileName: String,
-        defaultValue: String,
-    ): String = props.currentUserInfo?.name?.let { userName ->
-        val response = get(
-            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-        if (response.ok) {
-            response.text().await()
-        } else {
-            postContentAsText(urlPart, fileName, defaultValue)
-            defaultValue
-        }
-    } ?: "Unknown user"
-
     private fun resultReload() {
         scope.launch {
             val resultDebugInfo: TestResultDebugInfo = get(
@@ -417,37 +324,6 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
 
     companion object :
         RStatics<SandboxViewProps, SandboxViewState, SandboxView, Context<RequestStatusContext>>(SandboxView::class) {
-        private val configExample = """
-            |[general]
-            |tags = ["demo"]
-            |description = "saveourtool online demo"
-            |suiteName = "Test"
-            |execCmd="RUN_COMMAND"
-            |language = "Kotlin"
-            |
-            |[warn]
-            |execFlags = "--build-upon-default-config -i"
-            |actualWarningsPattern = "\\w+ - (\\d+)/(\\d+) - (.*)${'$'}" # (default value)
-            |testNameRegex = ".*Test.*" # (default value)
-            |patternForRegexInWarning = ["{{", "}}"]
-            |# Extra flags will be extracted from a line that matches this regex if it's present in a file
-            |runConfigPattern = "# RUN: (.+)"
-        """.trimMargin()
-        private val codeExample = """
-            |package com.example
-            |
-            |data class BestLanguage(val name = "Kotlin")
-            |
-            |fun main {
-            |    val bestLanguage = BestLanguage()
-            |    println("saveourtool loves ${'$'}{bestLanguage.name}")
-            |}
-        """.trimMargin()
-        private val setupShExample = """
-            |# Here you can add some additional commands required to run your tool e.g.
-            |# python -m pip install pylint
-        """.trimMargin()
-
         init {
             ContestView.contextType = requestStatusContext
         }
