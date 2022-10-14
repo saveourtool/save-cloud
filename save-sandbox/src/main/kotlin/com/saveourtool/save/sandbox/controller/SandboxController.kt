@@ -281,6 +281,9 @@ class SandboxController(
         .flatMapMany { userId ->
             storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
+        .switchIfEmptyToNotFound {
+            "There is no DebugInfo for ${authentication.userName()}"
+        }
 
     @Operation(
         method = "POST",

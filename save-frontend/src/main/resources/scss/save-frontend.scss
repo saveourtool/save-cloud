@@ -31,3 +31,9 @@
 .modal-dialog {
   pointer-events: all;
 }
+
+.unsaved-marker {
+  position: absolute;
+  background: lightgoldenrodyellow;
+  z-index: 0;
+}
