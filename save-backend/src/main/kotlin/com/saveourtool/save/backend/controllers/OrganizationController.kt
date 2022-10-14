@@ -294,16 +294,16 @@ internal class OrganizationController(
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "DELETE OR BANNED",
-        summary = "Delete existing organization.",
-        description = "Delete existing organization by its name.",
+        method = "DELETE",
+        summary = "Delete or banned existing organization.",
+        description = "Delete or banned existing organization by its name.",
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
-    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
-    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @ApiResponse(responseCode = "200", description = "Successfully deleted/banned an organization.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for deleting/banning this organization.")
+    @ApiResponse(responseCode = "404", description = "Could not find an created organization with such name.")
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
@@ -317,13 +317,19 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
+            it.status != OrganizationStatus.CREATED
+        }
+        .switchIfEmptyToNotFound {
+            "The organization has the status not ${OrganizationStatus.CREATED}"
+        }
+        .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for deletion of organization $organizationName."
         }
         .filter {
-            organizationService.organizationHasNoProjects(it.name) && status == OrganizationStatus.CREATED
+            organizationService.organizationHasNoProjects(it.name)
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
@@ -337,7 +343,7 @@ internal class OrganizationController(
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
-        method = "RECOVERY",
+        method = "POST",
         summary = "Recovery existing organization.",
         description = "Recovery existing organization by its name.",
     )
@@ -346,7 +352,7 @@ internal class OrganizationController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully recovery an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for recovering this organization.")
-    @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @ApiResponse(responseCode = "404", description = "Could not find deleted organization with such name.")
     fun recoveryOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -359,6 +365,12 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
+            it.status != OrganizationStatus.DELETED
+        }
+        .switchIfEmptyToNotFound{
+            "Could not find deleted organization with name $organizationName."
+        }
+        .filter {
             organizationPermissionEvaluator.hasPermission(authentication, it, Permission.RECOVERY)
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
@@ -368,6 +380,7 @@ internal class OrganizationController(
             organizationService.recoveryOrganization(it.name)
             ResponseEntity.ok("Organization recovery")
         }
+
 
     @GetMapping("/{organizationName}/list-git")
     @RequiresAuthorizationSourceHeader

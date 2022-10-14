@@ -30,26 +30,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
     private val organizationListCard = cardComponent(isBordered = false, hasBg = true)
 
     override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
-        val windowOpenness = useWindowOpenness()
-        val (organizationDto, setOrganizationDto) = useState(OrganizationDto.empty)
-        val (highestRole, setHighestRole) = useState(Role.NONE)
-
-        displayModal(
-            isOpen = windowOpenness.isOpen(),
-            title = "Warning: recovered of organization",
-            message = "You are about to recovered organization ${organizationDto.name}. Are you sure?",
-            onCloseButtonPressed = windowOpenness.closeWindowAction()
-        ) {
-            buttonBuilder("Yes, recovered ${organizationDto.name}", "warning") {
-                recoveryOrganization(organizationDto, highestRole)
-                windowOpenness.closeWindow()
-            }
-            buttonBuilder("Cancel") {
-                windowOpenness.closeWindow()
-            }
-        }
-
-
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
@@ -90,8 +70,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                         organizationName = organizationDto.name
                                         onDeletionSuccess = {
                                             setState {
-                                                selfOrganizationDtos = selfOrganizationDtos.minusElement(organizationDto)
-                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plusElement(organizationDto)
+                                                selfOrganizationDtos = selfOrganizationDtos.minus(organizationDto)
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.plus(organizationDto)
                                             }
                                         }
                                         buttonStyleBuilder = { childrenBuilder ->
@@ -139,19 +119,21 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 val role = state.userInfo?.name?.let { organizationDto.userRoles[it] } ?: Role.NONE
                                 val highestLocalRole = getHighestRole(role, state.userInfo?.globalRole)
                                 if (highestLocalRole.isHigherOrEqualThan(Role.OWNER)) {
-                                    div {
-                                        ReactHTML.button {
-                                            className = ClassName("btn mr-3")
-                                            fontAwesomeIcon(icon = faRedo)
-                                            id = "recovery-organization-${organizationDto.name}"
-                                            onClick = {
-                                                setState {
-                                                    setOrganizationDto(organizationDto)
-                                                    setHighestRole(highestLocalRole)
-                                                }
-                                                windowOpenness.openWindow()
+                                    recoveryOrganizationButton {
+                                        userRole = highestLocalRole
+                                        organizationName = organizationDto.name
+                                        onRecoverySuccess = {
+                                            setState {
+                                                selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minus(organizationDto)
+                                                selfOrganizationDtos = selfOrganizationDtos.plus(organizationDto)
                                             }
                                         }
+                                        buttonStyleBuilder = { childrenBuilder ->
+                                            with(childrenBuilder) {
+                                                fontAwesomeIcon(icon = faRedo)
+                                            }
+                                        }
+                                        classes = "btn mr-3"
                                     }
                                 }
                                 div {
@@ -161,25 +143,6 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-
-
-    private fun recoveryOrganization(organizationDto: OrganizationDto, role: Role): FC<Props> = VFC {
-        console.log("recovery")
-        useDeferredRequest {
-            val response = post (
-                "$apiUrl/organizations/${organizationDto.name}/recovery",
-                headers = jsonHeaders,
-                body = Json.encodeToString(role),
-                loadingHandler = ::noopLoadingHandler,
-            )
-            if (response.ok){
-                setState {
-                    selfDeletedOrganizationDtos = selfDeletedOrganizationDtos.minusElement(organizationDto)
-                    selfOrganizationDtos = selfOrganizationDtos.plusElement(organizationDto)
                 }
             }
         }

@@ -51,7 +51,7 @@ class OrganizationPermissionEvaluator(
             Permission.READ -> hasReadAccess(userId, organizationRole)
             Permission.WRITE -> hasWriteAccess(userId, organizationRole)
             Permission.DELETE -> hasDeleteAccess(userId, organizationRole)
-            Permission.RECOVERY -> hasRecoveryAccess(userId, organizationRole, organization.status)
+            Permission.RECOVERY -> hasRecoveryAccess(userId, organizationRole)
         }
     }
 
@@ -73,8 +73,8 @@ class OrganizationPermissionEvaluator(
     private fun hasDeleteAccess(userId: Long?, organizationRole: Role): Boolean =
             userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
-    private fun hasRecoveryAccess(userId: Long?, organizationRole: Role, organizationStatus: OrganizationStatus): Boolean =
-        userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) && organizationStatus == OrganizationStatus.DELETED} ?: false
+    private fun hasRecoveryAccess(userId: Long?, organizationRole: Role): Boolean =
+        userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.

@@ -2,20 +2,26 @@
 
 package com.saveourtool.save.frontend.components.modal
 
+import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
+import kotlinx.browser.window
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
+import react.dom.html.InputType
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.input
+import react.useState
 
 /**
  * Universal function to create modals with bootstrap styles inside react modals.
@@ -70,6 +76,30 @@ fun ChildrenBuilder.displayModal(
         modalBuilder(title, message, onCloseButtonPressed, buttonBuilder)
     }
 }
+
+
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+fun ChildrenBuilder.displayModalWithClick(
+    isOpen: Boolean,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+    textClickIcon: String,
+    conditionClickIcon: () -> Boolean = {false},
+    clickButtonBuilder: ChildrenBuilder.() -> Unit
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilderWithClick(
+            title, message, onCloseButtonPressed, buttonBuilder,
+            textClickIcon, conditionClickIcon, clickButtonBuilder,
+        )
+    }
+}
+
 
 /**
  * Universal function to create modals with bootstrap styles inside react modals.
@@ -220,6 +250,114 @@ fun ChildrenBuilder.modalBuilder(
             div {
                 className = ClassName("modal-body")
                 bodyBuilder()
+            }
+            div {
+                className = ClassName("modal-footer")
+                buttonBuilder()
+            }
+        }
+    }
+}
+
+
+fun ChildrenBuilder.modalBuilderWithClick(
+    title: String,
+    message: String,
+    onCloseButtonPressed: (() -> Unit)?,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+    textClickIcon: String = "",
+    conditionClickIcon: () -> Boolean,
+    clickButtonBuilder: ChildrenBuilder.() -> Unit
+) {
+    val (isClick, setClick) = useState(false)
+    modalBuilderWithClick(
+        title = title,
+        onCloseButtonPressed = onCloseButtonPressed,
+        bodyBuilder = {
+            h2 {
+                className = ClassName("h6 text-gray-800 mb-2")
+                +message
+            }
+        },
+        textClickIcon = textClickIcon,
+        conditionClickIcon = conditionClickIcon,
+        buttonBuilder = {
+            div {
+                className = ClassName("col-3 ml-2")
+                if (isClick)
+                    clickButtonBuilder()
+                buttonBuilder()
+            }
+        },
+        changeClick = { setClick(it) }
+    )
+
+}
+
+
+fun ChildrenBuilder.modalBuilderWithClick(
+    title: String,
+    classes: String = "",
+    onCloseButtonPressed: (() -> Unit)?,
+    bodyBuilder: ChildrenBuilder.() -> Unit,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+    textClickIcon: String = "",
+    conditionClickIcon: () -> Boolean,
+    changeClick: (Boolean) -> Unit,
+) {
+    val (click, setClick) = useState(false)
+    div {
+        className = ClassName("modal-dialog $classes")
+        div {
+            className = ClassName("modal-content")
+            div {
+                className = ClassName("modal-header")
+                h5 {
+                    className = ClassName("modal-title")
+                    +title
+                }
+                onCloseButtonPressed?.let {
+                    button {
+                        type = ButtonType.button
+                        className = ClassName("close")
+                        asDynamic()["data-dismiss"] = "modal"
+                        ariaLabel = "Close"
+                        span {
+                            fontAwesomeIcon(icon = faTimesCircle)
+                            onClick = { onCloseButtonPressed() }
+                        }
+                    }
+                }
+            }
+            className = ClassName("card card-body mt-0 p-0")
+            div {
+                className = ClassName("modal-body")
+                bodyBuilder()
+            }
+            if (conditionClickIcon()) {
+                div {
+                    className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
+                    div {
+                        input {
+                            className = ClassName("click")
+                            type = InputType.checkbox
+                            value = click
+                            id = "click"
+                            checked = click
+                            onChange = {
+                                setClick(!click)
+                                changeClick(!click)
+                            }
+                        }
+                    }
+                    div {
+                        ReactHTML.label {
+                            className = ClassName("click")
+                            htmlFor = "click"
+                            + textClickIcon
+                        }
+                    }
+                }
             }
             div {
                 className = ClassName("modal-footer")
