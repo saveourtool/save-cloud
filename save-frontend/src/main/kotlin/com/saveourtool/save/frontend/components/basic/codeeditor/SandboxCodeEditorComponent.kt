@@ -2,10 +2,10 @@
 
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
-import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.CODE
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.Companion.getTypedOption
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SAVE_TOML
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SETUP_SH
+import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.TEST
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
@@ -42,7 +42,7 @@ external interface SandboxCodeEditorComponentProps : Props {
     /**
      * Action to run execution
      */
-    var doRunExecution: () -> Unit
+    var doRunExecution: (String) -> Unit
 
     /**
      * Action to reload debug info
@@ -93,8 +93,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
 
     val fetchTexts = useDeferredRequest {
         FileType.values().forEach { fileType ->
-            val (urlPart, fileName) = getTypedOption(fileType, "test" to "test", "test" to "save.toml", "file" to "setup.sh")
-            val text = getTextRequest(urlPart, fileName) ?: TEXT_PLACEHOLDER
+            val text = getTextRequest(fileType.urlPart, fileType.fileName) ?: TEXT_PLACEHOLDER
             getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(text)
             getTypedOption(fileType, setDraftCodeText, setDraftConfigText, setDraftSetupShText)(text)
         }
@@ -102,8 +101,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
 
     val fetchText = useDeferredRequest {
         selectedFileType?.let { fileType ->
-            val (urlPart, fileName) = getTypedOption(fileType, "test" to "test", "test" to "save.toml", "file" to "setup.sh")
-            val text = getTextRequest(urlPart, fileName) ?: TEXT_PLACEHOLDER
+            val text = getTextRequest(fileType.urlPart, fileType.fileName) ?: TEXT_PLACEHOLDER
             getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(text)
             getTypedOption(fileType, setDraftCodeText, setDraftConfigText, setDraftSetupShText)(text)
         }
@@ -111,13 +109,8 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
 
     val uploadText = useDeferredRequest {
         selectedFileType?.let { fileType ->
-            val (urlPart, content, fileName) = getTypedOption(
-                fileType,
-                Triple("test", draftCodeText, "test"),
-                Triple("test", draftConfigText, "save.toml"),
-                Triple("file", draftSetupShText, "setup.sh"),
-            )
-            if (postTextRequest(urlPart, content, fileName)) {
+            val content = getTypedOption(fileType, draftCodeText, draftConfigText, draftSetupShText)
+            if (postTextRequest(fileType.urlPart, content, fileType.fileName)) {
                 getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(content)
             }
         }
@@ -125,13 +118,8 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
 
     val uploadTexts = useDeferredRequest {
         FileType.values().forEach { fileType ->
-            val (urlPart, content, fileName) = getTypedOption(
-                fileType,
-                Triple("test", draftCodeText, "test"),
-                Triple("test", draftConfigText, "save.toml"),
-                Triple("file", draftSetupShText, "setup.sh"),
-            )
-            if (postTextRequest(urlPart, content, fileName)) {
+            val content = getTypedOption(fileType, draftCodeText, draftConfigText, draftSetupShText)
+            if (postTextRequest(fileType.urlPart, content, fileType.fileName)) {
                 getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(content)
             }
         }
@@ -147,7 +135,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
             }
         }
         val hasUncommittedChanges = mapOf(
-            CODE to (savedCodeText != draftCodeText),
+            TEST to (savedCodeText != draftCodeText),
             SAVE_TOML to (savedConfigText != draftConfigText),
             SETUP_SH to (savedSetupShText != draftSetupShText),
         )
@@ -168,15 +156,13 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                 if (hasAnyUncommittedChanges) {
                     if (window.confirm("Some changes are not saved. Save and run execution?")) {
                         uploadTexts()
-                        props.doRunExecution()
-                        window.alert("Successfully saved and started execution.")
+                        props.doRunExecution("Successfully saved and started execution.")
                     } else {
                         window.alert("Run canceled.")
                     }
                 } else {
                     uploadTexts()
-                    props.doRunExecution()
-                    window.alert("Successfully started execution.")
+                    props.doRunExecution("Successfully started execution.")
                 }
             },
         ) { fileType ->

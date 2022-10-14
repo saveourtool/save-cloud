@@ -80,7 +80,7 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
                         "primary"
                     }
                     buttonBuilder(
-                        fileType.prettyName,
+                        fileType.fileName,
                         buttonStyle,
                         isOutline = true,
                         isActive = selectedFileType == fileType,

@@ -8,4 +8,10 @@ import org.springframework.stereotype.Repository
  * Repository for [SandboxExecution]
  */
 @Repository
-interface SandboxExecutionRepository : BaseEntityRepository<SandboxExecution>
+interface SandboxExecutionRepository : BaseEntityRepository<SandboxExecution> {
+    /**
+     * @param userId
+     * @return list of [SandboxExecution] for requested [userId]
+     */
+    fun findByUserId(userId: Long): List<SandboxExecution>
+}
