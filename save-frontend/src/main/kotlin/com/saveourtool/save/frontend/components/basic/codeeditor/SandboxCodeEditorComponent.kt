@@ -169,7 +169,6 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                     if (window.confirm("Some changes are not saved. Save and run execution?")) {
                         uploadTexts()
                         props.doRunExecution()
-                        window.alert("Successfully saved and started execution.")
                     } else {
                         window.alert("Run canceled.")
                     }

@@ -264,12 +264,18 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
 
     private fun runExecution() {
         scope.launch {
-            post(
+            val response = post(
                 url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
                 headers = jsonHeaders,
                 body = undefined,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
             )
+            if (response.isConflict()) {
+                window.alert(response.unpackMessage())
+            } else {
+                window.alert("Successfully saved and started execution.")
+            }
         }
     }
 
