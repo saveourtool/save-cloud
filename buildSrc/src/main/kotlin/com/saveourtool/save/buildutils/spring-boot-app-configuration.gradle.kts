@@ -27,7 +27,7 @@ tasks.withType<BootRun>().configureEach {
             os.isWindows -> append(",win")
             os.isMacOsX -> append(",mac")
         }
-        if (project.path.contains("save-backend")) {
+        if (listOf("save-sandbox", "save-backend").any { project.path.contains(it) }) {
             append(",secure")
         }
     }
