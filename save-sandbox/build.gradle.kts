@@ -1,5 +1,6 @@
 import com.saveourtool.save.buildutils.*
 
+import de.undercouch.gradle.tasks.download.Download
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -40,7 +41,7 @@ tasks.withType<Test> {
 
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveAgentDistroTaskProvider: TaskProvider<de.undercouch.gradle.tasks.download.Download> = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveAgentDistro") {
+val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
     enabled = findProperty("saveAgentDistroFilepath") != null
 
     src(KotlinClosure0(function = { findProperty("saveAgentDistroFilepath") ?: "file:\\\\" }))
@@ -50,7 +51,7 @@ val downloadSaveAgentDistroTaskProvider: TaskProvider<de.undercouch.gradle.tasks
 }
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val downloadSaveCliTaskProvider: TaskProvider<de.undercouch.gradle.tasks.download.Download> = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
+val downloadSaveCliTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveCli") {
     dependsOn(":getSaveCliVersion")
     inputs.file(pathToSaveCliVersion)
 
