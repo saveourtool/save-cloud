@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.toDataBufferFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -16,10 +17,12 @@ import kotlin.io.path.*
  * File based implementation of Storage
  *
  * @param rootDir root directory for storage
+ * @param pathPartsCount count of parts in path for key, if it's null -- this validation is not applicable
  * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
-    private val rootDir: Path
+    private val rootDir: Path,
+    private val pathPartsCount: Int? = null,
 ) : Storage<K> {
     init {
         rootDir.createDirectoriesIfRequired()
@@ -29,6 +32,9 @@ abstract class AbstractFileBasedStorage<K>(
     override fun list(): Flux<K> = Files.walk(rootDir)
         .toFlux()
         .filter { it.isRegularFile() }
+        .filter { pathToContent ->
+            pathPartsCount?.let { pathToContent.countPartsTill(rootDir) == it } ?: true
+        }
         .filter { isKey(rootDir, it) }
         .map { buildKey(rootDir, it) }
 

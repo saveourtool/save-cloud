@@ -24,7 +24,7 @@ import kotlin.io.path.*
 @Component
 class TestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites") {
+) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites", PATH_PARTS_COUNT) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
     /**
@@ -32,8 +32,7 @@ class TestSuitesSourceSnapshotStorage(
      * @param pathToContent
      * @return true if there is 4 parts between pathToContent and rootDir and ends with [ARCHIVE_EXTENSION]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            pathToContent.name.endsWith(ARCHIVE_EXTENSION) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(ARCHIVE_EXTENSION)
 
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
