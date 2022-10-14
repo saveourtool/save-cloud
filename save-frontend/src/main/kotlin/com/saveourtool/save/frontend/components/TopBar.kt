@@ -159,11 +159,12 @@ fun topBar() = FC<TopBarProps> { props ->
             li {
                 className = ClassName("nav-item")
                 a {
-                    className = ClassName("nav-link d-flex align-items-center me-2 active")
+                    val hrefAnchor = FrontendRoutes.SANDBOX.path
+                    className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(hrefAnchor, location)} active")
                     style = jso {
                         width = 9.rem
                     }
-                    href = "#/${FrontendRoutes.SANDBOX.path}"
+                    href = "#/$hrefAnchor"
                     +"Try SAVE format"
                 }
             }

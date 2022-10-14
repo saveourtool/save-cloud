@@ -56,4 +56,26 @@
         <dropColumn tableName="execution" columnName="resources_root_path"/>
     </changeSet>
 
+    <changeSet id="drop_test_suite_ids" author="frolov">
+        <dropColumn tableName="execution" columnName="test_suite_ids"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-execution" author="frolov">
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_project"/>
+        <addForeignKeyConstraint baseColumnNames="project_id"
+          baseTableName="execution"
+          constraintName="fk_execution_project"
+          referencedColumnNames="id"
+          referencedTableName="project"
+          onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_execution_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="execution"
+          constraintName="fk_execution_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

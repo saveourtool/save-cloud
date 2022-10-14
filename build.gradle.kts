@@ -25,7 +25,11 @@ liquibase {
                     commonArguments
         }
         register("sandbox") {
-            arguments = mapOf("changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml") +
+            arguments = mapOf(
+                "changeLogFile" to "save-sandbox/db/db.changelog-sandbox.xml",
+                "liquibaseSchemaName" to "save_sandbox",
+                "defaultSchemaName" to "save_sandbox",
+            ) +
                     getSandboxDatabaseCredentials(profile).toLiquibaseArguments() +
                     commonArguments
         }

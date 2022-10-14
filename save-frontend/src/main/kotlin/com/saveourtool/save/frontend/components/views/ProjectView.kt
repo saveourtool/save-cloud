@@ -534,6 +534,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                         fontAwesomeIcon(icon = faHistory)
                         withNavigate { navigateContext ->
                             button {
+                                type = ButtonType.button
                                 className = ClassName("btn btn-link text-left")
                                 +"Latest Execution"
                                 disabled = state.latestExecutionId == null
