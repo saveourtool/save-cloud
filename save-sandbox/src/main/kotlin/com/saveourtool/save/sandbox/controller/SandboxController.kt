@@ -161,7 +161,7 @@ class SandboxController(
     fun downloadFileAsText(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<String> = doDownloadTestAsText(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
+    ): Mono<String> = doDownloadAsText(authentication.userId(), SandboxStorageKeyType.FILE, fileName)
 
     @Operation(
         method = "DELETE",
@@ -231,9 +231,9 @@ class SandboxController(
     fun downloadTestAsText(
         @RequestParam fileName: String,
         authentication: Authentication,
-    ): Mono<String> = doDownloadTestAsText(authentication.userId(), SandboxStorageKeyType.TEST, fileName)
+    ): Mono<String> = doDownloadAsText(authentication.userId(), SandboxStorageKeyType.TEST, fileName)
 
-    private fun doDownloadTestAsText(
+    private fun doDownloadAsText(
         userId: Long,
         type: SandboxStorageKeyType,
         fileName: String,
