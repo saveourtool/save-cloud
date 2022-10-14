@@ -338,18 +338,17 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private suspend fun getContentAsText(
         urlPart: String,
         fileName: String,
-    ): String = props.currentUserInfo?.name?.let { userName ->
-        val response = get(
-            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
+    ): String = get(
+        url = "$sandboxApiUrl/download-$urlPart-as-text?fileName=$fileName",
+        headers = jsonHeaders,
+        loadingHandler = ::noopLoadingHandler,
+    ).let { response ->
         if (response.ok) {
             response.text().await()
         } else {
             response.unpackMessage()
         }
-    } ?: "Unknown user"
+    }
 
     private fun resultReload() {
         scope.launch {

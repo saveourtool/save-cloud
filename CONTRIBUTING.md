@@ -19,11 +19,11 @@ You can enable hot reload by passing `--continuous` flag.
 ## Spring Intellij Idea Ultimate plugin
 In order to make Spring Intellij Idea Ultimate plugin work properly, you need to set these active profiles in service's configuration:  
 
-|         | SaveApplication  | SaveGateway |   SaveOrchestrator   | SavePreprocessor |     SaveSandbox      |
-|:-------:|:----------------:|:-----------:|:--------------------:|:----------------:|:--------------------:|
-|   Mac   | `mac,dev,secure` |  `mac,dev`  | `dev,mac,docker-tcp` |    `dev,mac`     | `dev,mac,docker-tcp` | 
-| Windows |   `dev,secure`   |    `dev`    | `dev,win,docker-tcp` |    `dev,win`     | `dev,win,docker-tcp` |
-|  Linux  |   `dev,secure`   |    `dev`    |   `dev,docker-tcp`   |      `dev`       |   `dev,docker-tcp`   |
+|         | SaveApplication  | SaveGateway |   SaveOrchestrator   | SavePreprocessor |         SaveSandbox         |
+|:-------:|:----------------:|:-----------:|:--------------------:|:----------------:|:---------------------------:|
+|   Mac   | `mac,dev,secure` |  `mac,dev`  | `dev,mac,docker-tcp` |    `dev,mac`     | `dev,mac,docker-tcp,secure` | 
+| Windows |   `dev,secure`   |    `dev`    | `dev,win,docker-tcp` |    `dev,win`     | `dev,win,docker-tcp,secure` |
+|  Linux  |   `dev,secure`   |    `dev`    |   `dev,docker-tcp`   |      `dev`       |   `dev,docker-tcp,secure`   |
 
 ### Mac M1 contributors
 In file `save-cloud/build.gradle.kts` change languageVersion of `org.liquibase.gradle.LiquibaseTask` from 11 to 17
