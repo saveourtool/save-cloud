@@ -29,15 +29,17 @@ import kotlin.io.path.name
 class DebugInfoStorage(
     configProperties: ConfigProperties,
     private val objectMapper: ObjectMapper,
-) :
-    AbstractFileBasedStorage<DebugInfoStorageKey>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
+) : AbstractFileBasedStorage<DebugInfoStorageKey>(
+    Path.of(configProperties.fileStorage.location) / "debugInfo",
+    5,
+) {
     /**
      * @param rootDir
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
     override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            pathToContent.name.endsWith(SUFFIX_FILE_NAME) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+            super.isKey(rootDir, pathToContent) && pathToContent.name.endsWith(SUFFIX_FILE_NAME)
 
     /**
      * @param rootDir
@@ -89,7 +91,6 @@ class DebugInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
-        private const val PATH_PARTS_COUNT = 5
         private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

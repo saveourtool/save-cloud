@@ -20,20 +20,16 @@ import kotlin.io.path.div
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage") {
+) : AbstractFileBasedStorage<FileKey>(
+    Path.of(configProperties.fileStorage.location) / "storage",
+    4,  // organization + project + uploadedMills + fileName
+) {
     /**
      * @param projectCoordinates
      * @return list of keys in storage by [projectCoordinates]
      */
     fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
         .filter { it.projectCoordinates == projectCoordinates }
-
-    /**
-     * @param rootDir
-     * @param pathToContent
-     * @return true if there is 4 parts between pathToContent and rootDir
-     */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     @Suppress(
         "DestructuringDeclarationWithTooManyEntries"
@@ -98,9 +94,5 @@ class FileStorage(
                     it
                 )
             }
-    }
-
-    companion object {
-        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
     }
 }

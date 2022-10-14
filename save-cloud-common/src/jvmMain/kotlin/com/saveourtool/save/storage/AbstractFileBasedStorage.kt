@@ -1,5 +1,6 @@
 package com.saveourtool.save.storage
 
+import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.toDataBufferFlux
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -16,10 +17,12 @@ import kotlin.io.path.*
  * File based implementation of Storage
  *
  * @param rootDir root directory for storage
+ * @param pathPartsCount count of parts in path for key
  * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
-    private val rootDir: Path
+    private val rootDir: Path,
+    private val pathPartsCount: Int,
 ) : Storage<K> {
     init {
         rootDir.createDirectoriesIfRequired()
@@ -72,7 +75,7 @@ abstract class AbstractFileBasedStorage<K>(
      * @param pathToContent
      * @return true if provided path is key for content of this storage otherwise - false
      */
-    protected open fun isKey(rootDir: Path, pathToContent: Path): Boolean = true
+    protected open fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == pathPartsCount
 
     /**
      * @param rootDir
