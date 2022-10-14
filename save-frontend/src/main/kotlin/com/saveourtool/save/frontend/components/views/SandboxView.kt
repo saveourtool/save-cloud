@@ -28,6 +28,7 @@ import csstype.AlignItems
 import csstype.ClassName
 import csstype.Color
 import csstype.Display
+import io.ktor.http.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
@@ -40,6 +41,7 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
 
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 
@@ -65,29 +67,14 @@ external interface SandboxViewState : State, HasSelectedMenu<ContestMenuBar> {
     var codeText: String
 
     /**
-     * Code from backend
-     */
-    var savedCodeText: String
-
-    /**
      * Config from text editor
      */
     var configText: String
 
     /**
-     * Config from backend
-     */
-    var savedConfigText: String
-
-    /**
      * setup.sh from text editor
      */
     var setupShText: String
-
-    /**
-     * setup.sh from backend
-     */
-    var savedSetupShText: String
 
     /**
      * Selected files
@@ -128,11 +115,8 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     }
     init {
         state.codeText = ""
-        state.savedCodeText = ""
         state.configText = ""
-        state.savedConfigText = ""
         state.setupShText = ""
-        state.savedSetupShText = ""
         state.debugInfo = null
         state.files = listOf()
         state.selectedFile = null
@@ -294,6 +278,57 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
             }
         }
     }
+
+    private fun uploadChanges() {
+        scope.launch {
+            postContentAsText("test", "test", state.codeText)
+            postContentAsText("test", "save.toml", state.configText)
+            postContentAsText("file", "setup.sh", state.setupShText)
+        }
+    }
+
+    private fun reloadChanges() {
+        scope.launch {
+            val newCodeText = getContentAsText("test", "test")
+            val newConfigText = getContentAsText("test", "save.toml")
+            val newSetupShText = getContentAsText("file", "setup.sh")
+
+            setState {
+                codeText = newCodeText
+                configText = newConfigText
+                setupShText = newSetupShText
+            }
+        }
+    }
+
+    private suspend fun postContentAsText(
+        urlPart: String,
+        fileName: String,
+        text: String,
+    ) {
+        post(
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?fileName=${fileName.escapeIfNeeded()}",
+            headers = jsonHeaders,
+            body = text,
+            loadingHandler = ::noopLoadingHandler,
+        )
+    }
+
+    private suspend fun getContentAsText(
+        urlPart: String,
+        fileName: String,
+    ): String = props.currentUserInfo?.name?.let { userName ->
+        val response = get(
+            url = "$sandboxApiUrl/download-$urlPart-as-text?userName=$userName&fileName=$fileName",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            response.text().await()
+        } else {
+            response.unpackMessage()
+        }
+    } ?: "Unknown user"
 
     private fun resultReload() {
         scope.launch {

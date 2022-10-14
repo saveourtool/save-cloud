@@ -1,6 +1,7 @@
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.sandbox.security
 
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.sandbox.service.SandboxUserDetailsService
+import com.saveourtool.save.sandbox.utils.extractUserNameAndIdentitySource
 import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +21,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Component
 class ConvertingAuthenticationManager(
-    @Autowired private var userDetailsService: UserDetailsService
+    @Autowired private var sandboxUserDetailsService: SandboxUserDetailsService
 ) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
@@ -30,14 +31,12 @@ class ConvertingAuthenticationManager(
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        val identitySource = (authentication.details as AuthenticationDetails).identitySource
-        if (identitySource == null || !authentication.name.startsWith("$identitySource:")) {
-            throw BadCredentialsException(authentication.name)
-        }
-        val name = authentication.name.drop(identitySource.length + 1)
-        userDetailsService.findByUsername(name)
+        val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
+        sandboxUserDetailsService.findByUsername(name)
             .cast<IdentitySourceAwareUserDetails>()
-            .filter { it.identitySource == identitySource }
+            .filter {
+                it.identitySource == identitySource
+            }
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
             }
@@ -51,9 +50,6 @@ class ConvertingAuthenticationManager(
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    /**
-     * Fixme: since identitySource is in `AuthenticationDetails`, it can be removed from principal
-     */
     private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
             UsernamePasswordAuthenticationToken(
                 "$identitySource:$username",
