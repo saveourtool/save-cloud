@@ -13,10 +13,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.sandbox.utils.userId
 import com.saveourtool.save.sandbox.utils.userName
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.mapToInputStream
-import com.saveourtool.save.utils.overwrite
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -25,6 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.intellij.lang.annotations.Language
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
@@ -195,7 +193,6 @@ class SandboxController(
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
     @PostMapping("/upload-test-as-text")
     fun uploadTestAsText(
-
         @RequestParam fileName: String,
         @RequestBody content: String,
         authentication: Authentication,
@@ -281,6 +278,9 @@ class SandboxController(
         .flatMapMany { userId ->
             storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
+        .switchIfEmptyToNotFound {
+            "There is no DebugInfo for ${authentication.userName()}"
+        }
 
     @Operation(
         method = "POST",
@@ -297,22 +297,40 @@ class SandboxController(
     fun runExecution(
         @RequestParam sdk: String,
         authentication: Authentication,
-    ): Mono<BodilessResponseEntity> = blockingToMono {
-        val execution = SandboxExecution(
-            startTime = LocalDateTime.now(),
-            endTime = null,
-            status = ExecutionStatus.PENDING,
-            sdk = sdk,
-            userId = authentication.userId(),
-            initialized = false,
-            failReason = null,
-        )
-        sandboxExecutionRepository.save(execution)
-    }.map { execution ->
-        execution.toRunRequest()
-    }.flatMap { request ->
-        agentsController.initialize(request)
+    ): Mono<BodilessResponseEntity> {
+        val userId = authentication.userId()
+        return validateNoRunningExecution(userId)
+            .flatMap {
+                storage.delete(SandboxStorageKey.debugInfoKey(userId))
+            }
+            .map {
+                SandboxExecution(
+                    startTime = LocalDateTime.now(),
+                    endTime = null,
+                    status = ExecutionStatus.PENDING,
+                    sdk = sdk,
+                    userId = userId,
+                    initialized = false,
+                    failReason = null,
+                )
+            }
+            .map { sandboxExecutionRepository.save(it) }
+            .map { it.toRunRequest() }
+            .flatMap { request ->
+                agentsController.initialize(request)
+            }
     }
+
+    private fun validateNoRunningExecution(
+        userId: Long,
+    ): Mono<Void> = blockingToMono {
+        sandboxExecutionRepository.findByUserId(userId)
+            .filter { it.status in setOf(ExecutionStatus.RUNNING, ExecutionStatus.PENDING) }
+    }
+        .requireOrSwitchToResponseException({ isEmpty() }, HttpStatus.CONFLICT) {
+            "There is already running execution"
+        }
+        .then()
 
     companion object {
         @Language("toml")
