@@ -17,12 +17,12 @@ import kotlin.io.path.*
  * File based implementation of Storage
  *
  * @param rootDir root directory for storage
- * @param pathPartsCount count of parts in path for key
+ * @param pathPartsCount count of parts in path for key, if it's null -- this validation is not applicable
  * @param K type of key
  */
 abstract class AbstractFileBasedStorage<K>(
     private val rootDir: Path,
-    private val pathPartsCount: Int,
+    private val pathPartsCount: Int? = null,
 ) : Storage<K> {
     init {
         rootDir.createDirectoriesIfRequired()
@@ -32,6 +32,9 @@ abstract class AbstractFileBasedStorage<K>(
     override fun list(): Flux<K> = Files.walk(rootDir)
         .toFlux()
         .filter { it.isRegularFile() }
+        .filter { pathToContent ->
+            pathPartsCount?.let { pathToContent.countPartsTill(rootDir) == it } ?: true
+        }
         .filter { isKey(rootDir, it) }
         .map { buildKey(rootDir, it) }
 
@@ -75,7 +78,7 @@ abstract class AbstractFileBasedStorage<K>(
      * @param pathToContent
      * @return true if provided path is key for content of this storage otherwise - false
      */
-    protected open fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == pathPartsCount
+    protected open fun isKey(rootDir: Path, pathToContent: Path): Boolean = true
 
     /**
      * @param rootDir

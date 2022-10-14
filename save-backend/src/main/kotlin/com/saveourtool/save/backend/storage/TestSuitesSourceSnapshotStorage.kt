@@ -24,10 +24,7 @@ import kotlin.io.path.*
 @Component
 class TestSuitesSourceSnapshotStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(
-    Path.of(configProperties.fileStorage.location) / "testSuites",
-    4,  // organizationName + testSuitesSourceName + creationTime + version.zip
-) {
+) : AbstractFileBasedStorage<TestSuitesSourceSnapshotKey>(Path.of(configProperties.fileStorage.location) / "testSuites", PATH_PARTS_COUNT) {
     private val tmpDir = (Path.of(configProperties.fileStorage.location) / "tmp").createDirectories()
 
     /**
@@ -35,8 +32,7 @@ class TestSuitesSourceSnapshotStorage(
      * @param pathToContent
      * @return true if there is 4 parts between pathToContent and rootDir and ends with [ARCHIVE_EXTENSION]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            super.isKey(rootDir, pathToContent) && pathToContent.name.endsWith(ARCHIVE_EXTENSION)
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(ARCHIVE_EXTENSION)
 
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): TestSuitesSourceSnapshotKey {
@@ -131,4 +127,8 @@ class TestSuitesSourceSnapshotStorage(
     private fun String.encodeUrl(): String = URLEncoder.encode(this, StandardCharsets.UTF_8)
 
     private fun String.decodeUrl(): String = URLDecoder.decode(this, StandardCharsets.UTF_8)
+
+    companion object {
+        private const val PATH_PARTS_COUNT = 4  // organizationName + testSuitesSourceName + creationTime + version.zip
+    }
 }

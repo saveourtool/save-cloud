@@ -6,7 +6,6 @@ import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.pathNamesTill
@@ -31,15 +30,14 @@ class DebugInfoStorage(
     private val objectMapper: ObjectMapper,
 ) : AbstractFileBasedStorage<DebugInfoStorageKey>(
     Path.of(configProperties.fileStorage.location) / "debugInfo",
-    5,
+    PATH_PARTS_COUNT,
 ) {
     /**
      * @param rootDir
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            super.isKey(rootDir, pathToContent) && pathToContent.name.endsWith(SUFFIX_FILE_NAME)
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
 
     /**
      * @param rootDir
@@ -91,6 +89,7 @@ class DebugInfoStorage(
 
     companion object {
         private val log: Logger = getLogger<DebugInfoStorage>()
+        private const val PATH_PARTS_COUNT = 5
         private const val SUFFIX_FILE_NAME = "-debug.json"
     }
 }

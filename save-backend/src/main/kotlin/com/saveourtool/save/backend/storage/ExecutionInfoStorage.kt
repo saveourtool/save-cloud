@@ -25,17 +25,13 @@ import kotlin.io.path.name
 class ExecutionInfoStorage(
     configProperties: ConfigProperties,
     private val objectMapper: ObjectMapper,
-) : AbstractFileBasedStorage<Long>(
-    Path.of(configProperties.fileStorage.location) / "debugInfo",
-    2,
-) {
+) : AbstractFileBasedStorage<Long>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
     /**
      * @param rootDir
      * @param pathToContent
      * @return true if filename is [FILE_NAME]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            super.isKey(rootDir, pathToContent) && pathToContent.name == FILE_NAME
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name == FILE_NAME
 
     /**
      * @param rootDir

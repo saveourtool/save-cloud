@@ -5,7 +5,6 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
@@ -20,10 +19,7 @@ import kotlin.io.path.div
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<FileKey>(
-    Path.of(configProperties.fileStorage.location) / "storage",
-    4,  // organization + project + uploadedMills + fileName
-) {
+) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage", PATH_PARTS_COUNT) {
     /**
      * @param projectCoordinates
      * @return list of keys in storage by [projectCoordinates]
@@ -94,5 +90,9 @@ class FileStorage(
                     it
                 )
             }
+    }
+
+    companion object {
+        private const val PATH_PARTS_COUNT = 4  // organization + project + uploadedMills + fileName
     }
 }

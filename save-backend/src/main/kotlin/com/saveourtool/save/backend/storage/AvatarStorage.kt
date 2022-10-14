@@ -21,10 +21,7 @@ import kotlin.io.path.name
  */
 @Service
 class AvatarStorage(configProperties: ConfigProperties) :
-    AbstractFileBasedStorage<AvatarKey>(
-        Path.of(configProperties.fileStorage.location) / "images" / "avatars",
-        -1, // not applicable for avatar storage
-) {
+    AbstractFileBasedStorage<AvatarKey>(Path.of(configProperties.fileStorage.location) / "images" / "avatars") {
     /**
      * @param rootDir
      * @param pathToContent
