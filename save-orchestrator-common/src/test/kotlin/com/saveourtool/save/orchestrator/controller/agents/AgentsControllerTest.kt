@@ -51,7 +51,6 @@ class AgentsControllerTest {
         val execution = Execution.stub(project).apply {
             type = TestingType.PUBLIC_TESTS
             status = ExecutionStatus.PENDING
-            testSuiteIds = "1"
             id = 42L
         }
         whenever(dockerService.prepareConfiguration(any())).thenReturn(

@@ -84,6 +84,10 @@ external val faSearch: FontAwesomeIconModule
 @JsNonModule
 external val faRedo: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faSync")
+@JsNonModule
+external val faReload: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faCopyright")
 @JsNonModule
 external val faCopyright: FontAwesomeIconModule
@@ -115,6 +119,14 @@ external val faAlignJustify: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faArrowRight")
 @JsNonModule
 external val faArrowRight: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowLeft")
+@JsNonModule
+external val faArrowLeft: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faArrowDown")
+@JsNonModule
+external val faArrowDown: FontAwesomeIconModule
 
 @JsModule("@fortawesome/free-solid-svg-icons/faLightbulb")
 @JsNonModule

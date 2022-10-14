@@ -25,11 +25,13 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.http)
 }
 
 kotlin {

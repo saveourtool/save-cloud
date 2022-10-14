@@ -14,12 +14,14 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.ClassName
+import io.ktor.http.escapeIfNeeded
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import org.w3c.files.File
 import org.w3c.xhr.FormData
 import react.*
+import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
@@ -99,25 +101,23 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
 }
 
 /**
- * @param userName
  * @param selectedFilesFromState
  * @param selectedFilesStateSetter
  */
 fun ChildrenBuilder.fileUploaderForSandbox(
-    userName: String?,
     selectedFilesFromState: List<SandboxFileInfo>,
     selectedFilesStateSetter: (List<SandboxFileInfo>) -> Unit,
 ) {
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
         selectedFiles = selectedFilesFromState
-        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file?userName=$userName" }
-        getUrlForFileUpload = { "$sandboxApiUrl/upload-file?userName=$userName" }
+        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file" }
+        getUrlForFileUpload = { "$sandboxApiUrl/upload-file" }
         getUrlForFileDownload = { fileInfo ->
-            "$sandboxApiUrl/download-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/download-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         getUrlForFileDeletion = { fileInfo ->
-            "$sandboxApiUrl/delete-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/delete-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         fileInfoToPrettyPrint = { it.name }
         decodeFileInfoFromString = {
@@ -255,6 +255,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     className = ClassName("list-group-item")
                     if (!props.isSandboxMode) {
                         button {
+                            type = ButtonType.button
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faTimesCircle)
                             onClick = {
@@ -265,6 +266,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     }
                     a {
                         button {
+                            type = ButtonType.button
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faDownload)
                         }
@@ -272,6 +274,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         href = props.getUrlForFileDownload(file)
                     }
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn")
                         fontAwesomeIcon(icon = faTrash)
                         onClick = {
@@ -342,7 +345,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "top"
                     title = "Regular files/Executable files/ZIP Archives"
-                    strong { +" Upload files:" }
+                    strong { +" Upload files " }
                 }
             }
         }

@@ -14,11 +14,7 @@ import com.saveourtool.save.entities.Test
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.ScoreType
-import com.saveourtool.save.utils.calculateScore
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.isValidScore
+import com.saveourtool.save.utils.*
 
 import org.apache.commons.io.FilenameUtils
 import org.slf4j.Logger

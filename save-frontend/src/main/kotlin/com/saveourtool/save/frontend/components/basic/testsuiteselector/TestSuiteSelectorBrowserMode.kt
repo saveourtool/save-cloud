@@ -16,6 +16,7 @@ import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -264,6 +265,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     ""
                 }
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-secondary $active")
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "bottom"

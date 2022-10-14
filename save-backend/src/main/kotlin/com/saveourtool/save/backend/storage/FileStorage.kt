@@ -5,7 +5,6 @@ import com.saveourtool.save.domain.FileInfo
 import com.saveourtool.save.domain.FileKey
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
@@ -20,20 +19,13 @@ import kotlin.io.path.div
 @Service
 class FileStorage(
     configProperties: ConfigProperties,
-) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage") {
+) : AbstractFileBasedStorage<FileKey>(Path.of(configProperties.fileStorage.location) / "storage", PATH_PARTS_COUNT) {
     /**
      * @param projectCoordinates
      * @return list of keys in storage by [projectCoordinates]
      */
     fun list(projectCoordinates: ProjectCoordinates): Flux<FileKey> = list()
         .filter { it.projectCoordinates == projectCoordinates }
-
-    /**
-     * @param rootDir
-     * @param pathToContent
-     * @return true if there is 4 parts between pathToContent and rootDir
-     */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
 
     @Suppress(
         "DestructuringDeclarationWithTooManyEntries"

@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
@@ -13,7 +12,9 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -21,7 +22,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -139,7 +139,7 @@ class ProjectController(
     fun getProjectsByOrganizationName(
         @RequestParam organizationName: String,
         authentication: Authentication?,
-    ): Flux<Project> = projectService.findByOrganizationName(organizationName)
+    ): Flux<Project> = projectService.getAllAsFluxByOrganizationName(organizationName)
         .filter {
             projectPermissionEvaluator.hasPermission(authentication, it, Permission.READ)
         }

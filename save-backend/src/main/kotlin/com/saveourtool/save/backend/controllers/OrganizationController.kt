@@ -9,7 +9,6 @@ import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestSuitesSourceService
 import com.saveourtool.save.backend.storage.TestSuitesSourceSnapshotStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ImageInfo
@@ -18,6 +17,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
@@ -304,6 +304,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully deleted an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting this organization.")
     @ApiResponse(responseCode = "404", description = "Could not find an organization with such name.")
+    @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -319,6 +320,12 @@ internal class OrganizationController(
         }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
             "Not enough permission for deletion of organization $organizationName."
+        }
+        .filter {
+            organizationService.organizationHasNoProjects(it.name)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
             organizationService.deleteOrganization(it.name)

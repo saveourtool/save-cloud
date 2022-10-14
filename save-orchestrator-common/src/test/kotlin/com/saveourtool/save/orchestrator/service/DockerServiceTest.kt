@@ -72,7 +72,6 @@ class DockerServiceTest {
         val project = Project.stub(null)
         val testExecution = Execution.stub(project).apply {
             id = 42L
-            testSuiteIds = "1,2,3"
             sdk = "Java:11"
             status = ExecutionStatus.PENDING
         }

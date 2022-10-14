@@ -39,7 +39,7 @@ class SandboxInternalController(
     private val objectMapper: ObjectMapper,
 ) {
     /**
-     * @param userId
+     * @param userId ID of User
      * @return content of requested snapshot
      */
     @PostMapping(
@@ -86,7 +86,7 @@ class SandboxInternalController(
     }
 
     /**
-     * @param userId
+     * @param userId ID of User
      * @param fileName
      * @return content of requested file
      */

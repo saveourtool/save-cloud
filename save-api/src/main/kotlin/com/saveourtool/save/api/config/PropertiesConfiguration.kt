@@ -7,12 +7,12 @@ package com.saveourtool.save.api.config
 import com.saveourtool.save.domain.Jdk
 import com.saveourtool.save.domain.Python
 import com.saveourtool.save.domain.Sdk
-
-import org.slf4j.LoggerFactory
+import com.saveourtool.save.utils.getLogger
 
 import kotlinx.serialization.Serializable
 
-private val log = LoggerFactory.getLogger(PropertiesConfiguration::class.java)
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+private val log = getLogger<PropertiesConfiguration>()
 
 /**
  * Available types of configurations

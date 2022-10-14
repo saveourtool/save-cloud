@@ -33,7 +33,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml"
-        val composeFile = "$buildDir/docker-compose.yaml"
+        val composeFile = file("$buildDir/docker-compose.yaml")
         val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
@@ -53,6 +53,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
+                           |    command: ["--log_bin_trust_function_creators=1"]
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -83,7 +84,7 @@ fun Project.createStackDeployTask(profile: String) {
                         it
                     }
                 }
-            file(composeFile)
+            composeFile
                 .apply { createNewFile() }
                 .writeText(newText)
         }
@@ -97,6 +98,14 @@ fun Project.createStackDeployTask(profile: String) {
                     ?: findProperty("dockerTag") as String?
                     ?: versionForDockerImages()
             }
+            val defaultDockerNetworkOrProperty =
+                    // When deploying to Docker Swarm, the network name cannot be determined automatically.
+                    // The network name is assigned on swarm creation and hence should be passed as a property to Gradle.
+                    // In Docker Compose mode, however, network name defaults to project directoy name (unless
+                    // overridden explicitly).
+                    findProperty("dockerNetwork") as String?
+                    // https://docs.docker.com/compose/networking/
+                        ?: "${composeFile.parentFile.name}_default"
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
@@ -107,6 +116,7 @@ fun Project.createStackDeployTask(profile: String) {
                     SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     PROFILE=$profile
+                    DOCKER_NETWORK_NAME=$defaultDockerNetworkOrProperty
                 """.trimIndent()
             )
         }
