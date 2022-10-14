@@ -1,5 +1,6 @@
 import com.saveourtool.save.buildutils.*
 
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -37,8 +38,47 @@ tasks.withType<Test> {
     }
 }
 
+
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveAgentDistroTaskProvider: TaskProvider<de.undercouch.gradle.tasks.download.Download> = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveAgentDistro") {
+    enabled = findProperty("saveAgentDistroFilepath") != null
+
+    src(KotlinClosure0(function = { findProperty("saveAgentDistroFilepath") ?: "file:\\\\" }))
+    dest("$buildDir/agentDistro")
+    outputs.dir("$buildDir/agentDistro")
+    overwrite(false)
+}
+
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val downloadSaveCliTaskProvider: TaskProvider<de.undercouch.gradle.tasks.download.Download> = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadSaveCli") {
+    dependsOn(":getSaveCliVersion")
+    inputs.file(pathToSaveCliVersion)
+
+    src(KotlinClosure0(function = { getSaveCliPath() }))
+    dest("$buildDir/download")
+    outputs.dir("$buildDir/download")
+    overwrite(false)
+}
+
 dependencies {
     implementation(projects.saveOrchestratorCommon)
+    runtimeOnly(
+        files(layout.buildDirectory.dir("$buildDir/download")).apply {
+            builtBy(downloadSaveCliTaskProvider)
+        }
+    )
+    if (!DefaultNativePlatform.getCurrentOperatingSystem().isLinux) {
+        logger.warn("Dependency `save-agent` is omitted on Windows and Mac because of problems with linking in cross-compilation." +
+                " Task `:save-agent:copyAgentDistribution` would fail without correct libcurl.so. If your changes are about " +
+                "save-agent, please test them on Linux " +
+                "or put the file with name like `save-agent-*-distribution.jar` built on Linux into libs subfolder."
+        )
+        runtimeOnly(files("$buildDir/agentDistro").apply {
+            builtBy(downloadSaveAgentDistroTaskProvider)
+        })
+    } else {
+        runtimeOnly(project(":save-agent", "distribution"))
+    }
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.hibernate.jpa21.api)
