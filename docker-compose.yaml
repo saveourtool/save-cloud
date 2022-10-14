@@ -21,6 +21,7 @@ services:
     user: root  # to access host's docker socket
     environment:
       - "SPRING_PROFILES_ACTIVE=${PROFILE}"
+      - "DOCKER_NETWORK_NAME=${DOCKER_NETWORK_NAME}"
     ports:
       - "5100:5100"
     volumes:
@@ -37,7 +38,7 @@ services:
     image: ghcr.io/saveourtool/save-sandbox:${SANDBOX_TAG}
     user: root  # to access host's docker socket
     environment:
-      - "SPRING_PROFILES_ACTIVE=${PROFILE},docker-secrets"
+      - "SPRING_PROFILES_ACTIVE=${PROFILE},secure,docker-secrets"
     secrets:
       - db_username
       - db_password

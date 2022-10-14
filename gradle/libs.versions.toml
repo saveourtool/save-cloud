@@ -122,6 +122,7 @@ ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", vers
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 
 # java core libraries
 validation-api = { module = "jakarta.validation:jakarta.validation-api"}

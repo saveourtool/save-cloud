@@ -13,6 +13,7 @@ import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.useState
@@ -49,6 +50,7 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC { props ->
 
     div {
         button {
+            type = ButtonType.button
             className = ClassName(props.classes)
             props.buttonStyleBuilder(this)
             id = "remove-organization-${props.organizationName}"

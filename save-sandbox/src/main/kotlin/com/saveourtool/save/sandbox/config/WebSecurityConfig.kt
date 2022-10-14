@@ -2,18 +2,15 @@
  * Configuration beans for security in different profiles
  */
 
-package com.saveourtool.save.backend.configs
+package com.saveourtool.save.sandbox.config
 
-import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
-import com.saveourtool.save.backend.utils.CustomAuthenticationBasicConverter
-import com.saveourtool.save.backend.utils.ServiceAccountAuthenticatingManager
-import com.saveourtool.save.backend.utils.ServiceAccountTokenExtractorConverter
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.v1
+import com.saveourtool.save.sandbox.security.ConvertingAuthenticationManager
+import com.saveourtool.save.sandbox.security.CustomAuthenticationBasicConverter
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
-import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
@@ -28,9 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
-import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
-import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+
 import javax.annotation.PostConstruct
 
 @EnableWebFluxSecurity
@@ -42,28 +37,19 @@ class WebSecurityConfig(
     @Autowired private var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
 ) {
     @Bean
-    @Order(1)
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        securityMatcher(
-            AndServerWebExchangeMatcher(
-                ServerWebExchangeMatchers.anyExchange(),
-                NegatedServerWebExchangeMatcher(
-                    ServerWebExchangeMatchers.pathMatchers("/actuator", "/actuator/**", "/internal/**")
-                )
-            )
-        )
+        // All `/sandbox/internal/**` requests should be sent only from internal network,
+        // they are not proxied from gateway.
+        authorizeExchange()
+            .pathMatchers("/", "/sandbox/internal/**", "/heartbeat", *publicEndpoints.toTypedArray())
+            .permitAll()
     }
-        .run {
-            authorizeExchange()
-                .pathMatchers(*publicEndpoints.toTypedArray())
-                .permitAll()
-        }
         .and()
         .run {
             authorizeExchange()
-                .pathMatchers("/api/**")
+                .pathMatchers("/sandbox/api/**")
                 .authenticated()
         }
         .and()
@@ -106,75 +92,14 @@ class WebSecurityConfig(
     }
 
     companion object {
-        /**
-         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
-         * because it won't allow us to configure authenticated access to all other endpoints by default.
-         * Or we can use custom AccessDecisionManager later.
-         */
         internal val publicEndpoints = listOf(
             "/error",
-            // `CollectionView` is a public page
-            "/api/$v1/projects/not-deleted",
-            "/api/$v1/awesome-benchmarks",
-            "/api/$v1/check-git-connectivity-adaptor",
-            // `OrganizationView` is a public page
-            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
-            "/api/$v1/organizations/**",
-            "/api/$v1/projects/get/projects-by-organization",
-            // `ContestListView` and `ContestView` are public pages
-            "/api/$v1/contests/*",
-            "/api/$v1/contests/active",
-            "/api/$v1/contests/finished",
-            "/api/$v1/contests/*/public-test",
-            "/api/$v1/contests/*/scores",
-            "/api/$v1/contests/*/*/best",
         )
-    }
-
-    @Profile("kubernetes")
-    @Bean
-    @Order(2)
-    fun internalSecuredSecurityChain(
-        http: ServerHttpSecurity,
-        serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
-        serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
-    ): SecurityWebFilterChain = http.run {
-        authorizeExchange().pathMatchers("/actuator/**")
-            // all requests to `/actuator` should be sent only from inside the cluster
-            // access to this port should be controlled by a NetworkPolicy
-            .permitAll()
-            .and()
-            .authorizeExchange()
-            .pathMatchers("/internal/**")
-            .authenticated()
-            .and()
-            .addFilterBefore(
-                AuthenticationWebFilter(serviceAccountAuthenticatingManager).apply {
-                    setServerAuthenticationConverter(serviceAccountTokenExtractorConverter)
-                },
-                SecurityWebFiltersOrder.HTTP_BASIC
-            )
-            .build()
-    }
-
-    @Profile("!kubernetes")
-    @Bean
-    @Order(2)
-    fun internalInsecureSecurityChain(
-        http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http.run {
-        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
-        // they are not proxied from gateway.
-        authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
-            .permitAll()
-            .and()
-            .build()
     }
 }
 
 @EnableWebFluxSecurity
 @Profile("!secure")
-@Order(1)
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class NoopWebSecurityConfig {
     @Bean
