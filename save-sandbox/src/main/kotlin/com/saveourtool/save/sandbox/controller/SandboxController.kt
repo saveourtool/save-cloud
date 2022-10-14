@@ -292,6 +292,7 @@ class SandboxController(
     )
     @ApiResponse(responseCode = "200", description = "empty response for execution run")
     @ApiResponse(responseCode = "404", description = "User with such name was not found")
+    @ApiResponse(responseCode = "409", description = "There is a running execution")
     @PostMapping("/run-execution")
     @Transactional
     fun runExecution(
@@ -323,14 +324,14 @@ class SandboxController(
 
     private fun validateNoRunningExecution(
         userId: Long,
-    ): Mono<Void> = blockingToMono {
+    ): Mono<Unit> = blockingToMono {
         sandboxExecutionRepository.findByUserId(userId)
             .filter { it.status in setOf(ExecutionStatus.RUNNING, ExecutionStatus.PENDING) }
     }
         .requireOrSwitchToResponseException({ isEmpty() }, HttpStatus.CONFLICT) {
             "There is already running execution"
         }
-        .then()
+        .thenReturn(Unit)
 
     companion object {
         @Language("toml")
