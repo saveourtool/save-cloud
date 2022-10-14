@@ -28,6 +28,7 @@ import csstype.AlignItems
 import csstype.ClassName
 import csstype.Color
 import csstype.Display
+import io.ktor.http.*
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.AriaRole
@@ -327,7 +328,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         text: String,
     ) {
         post(
-            url = "$sandboxApiUrl/upload-$urlPart-as-text?userName=${props.currentUserInfo?.name}&fileName=$fileName",
+            url = "$sandboxApiUrl/upload-$urlPart-as-text?fileName=${fileName.escapeIfNeeded()}",
             headers = jsonHeaders,
             body = text,
             loadingHandler = ::noopLoadingHandler,
@@ -369,7 +370,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
     private fun runExecution() {
         scope.launch {
             post(
-                url = "$sandboxApiUrl/run-execution?userName=${props.currentUserInfo?.name}&sdk=${state.selectedSdk}",
+                url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
                 headers = jsonHeaders,
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
