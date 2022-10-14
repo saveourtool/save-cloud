@@ -329,7 +329,7 @@ class SandboxController(
             .filter { it.status in setOf(ExecutionStatus.RUNNING, ExecutionStatus.PENDING) }
     }
         .requireOrSwitchToResponseException({ isEmpty() }, HttpStatus.CONFLICT) {
-            "There is already running execution"
+            "There is already a running execution"
         }
         .thenReturn(Unit)
 

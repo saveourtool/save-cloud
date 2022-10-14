@@ -20,7 +20,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faArrowLeft
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.AlignItems
 import csstype.ClassName
@@ -262,7 +261,7 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
         }
     }
 
-    private fun runExecution() {
+    private fun runExecution(successMessage: String) {
         scope.launch {
             val response = post(
                 url = "$sandboxApiUrl/run-execution?sdk=${state.selectedSdk}",
@@ -271,10 +270,10 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
                 loadingHandler = ::classLoadingHandler,
                 responseHandler = ::classComponentResponseHandlerWithValidation,
             )
-            if (response.isConflict()) {
-                window.alert(response.unpackMessage())
-            } else {
-                window.alert("Successfully saved and started execution.")
+            if (response.ok) {
+                window.alert(successMessage)
+            } else if (response.isConflict()) {
+                window.alert("There is already a running execution")
             }
         }
     }
