@@ -346,7 +346,7 @@ class SandboxView : AbstractView<SandboxViewProps, SandboxViewState>(true) {
         if (response.ok) {
             response.text().await()
         } else {
-            "No content for $fileName"
+            response.unpackMessage()
         }
     } ?: "Unknown user"
 

@@ -218,7 +218,7 @@ class SandboxController(
         .flatMap { key ->
             storage.overwrite(
                 key = key,
-                content = Flux.just(ByteBuffer.wrap(content.replace("\r\n", "\n").toByteArray()))
+                content = Flux.just(ByteBuffer.wrap(content.replace("\r\n?".toRegex(), "\n").toByteArray()))
             )
         }
         .map {
