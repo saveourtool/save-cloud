@@ -1,6 +1,7 @@
 package com.saveourtool.save.sandbox.storage
 
 import com.saveourtool.save.storage.AbstractFileBasedStorage
+import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.pathNamesTill
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -17,6 +18,13 @@ class SandboxStorage(
 ) : AbstractFileBasedStorage<SandboxStorageKey>(
     Path.of(fileStorageLocation) / "sandbox"
 ) {
+    /**
+     * @param rootDir
+     * @param pathToContent
+     * @return true if path contains [PATH_PARTS_COUNT] parts
+     */
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+
     @Suppress("DestructuringDeclarationWithTooManyEntries")
     override fun buildKey(rootDir: Path, pathToContent: Path): SandboxStorageKey {
         val (filename, typeName, userId) = pathToContent.pathNamesTill(rootDir)
@@ -40,5 +48,9 @@ class SandboxStorage(
         vararg types: SandboxStorageKeyType
     ): Flux<SandboxStorageKey> = list().filter {
         it.userId == userId && it.type in types
+    }
+
+    companion object {
+        private const val PATH_PARTS_COUNT = 3  // userId + key.type + fileName
     }
 }
