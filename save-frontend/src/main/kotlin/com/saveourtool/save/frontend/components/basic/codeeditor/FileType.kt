@@ -3,13 +3,18 @@ package com.saveourtool.save.frontend.components.basic.codeeditor
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 
 /**
- * @property prettyName displayed name
+ * @property fileName displayed name
+ * @property urlPart part of url for uploading\downloading text
  * @property editorMode highlight mode that should be enabled, if null, mode can be chosen using selector
  */
-enum class FileType(val prettyName: String, val editorMode: AceModes?) {
-    CODE("code", null),
-    SAVE_TOML("save.toml", AceModes.TOML),
-    SETUP_SH("setup.sh", AceModes.SHELL),
+enum class FileType(
+    val fileName: String,
+    val urlPart: String,
+    val editorMode: AceModes?,
+) {
+    SAVE_TOML("save.toml", "test", AceModes.TOML),
+    SETUP_SH("setup.sh", "file", AceModes.SHELL),
+    TEST("test", "test", null),
     ;
     companion object {
         /**
@@ -25,7 +30,7 @@ enum class FileType(val prettyName: String, val editorMode: AceModes?) {
             optionForSaveToml: T,
             optionForSetupSh: T,
         ) = when (fileType) {
-            CODE -> optionForCode
+            TEST -> optionForCode
             SAVE_TOML -> optionForSaveToml
             SETUP_SH -> optionForSetupSh
         }
