@@ -101,7 +101,6 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
 }
 
 /**
- * @param userName
  * @param selectedFilesFromState
  * @param selectedFilesStateSetter
  */

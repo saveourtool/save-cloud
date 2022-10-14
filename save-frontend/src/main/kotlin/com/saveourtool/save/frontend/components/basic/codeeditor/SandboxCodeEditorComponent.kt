@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 
 import csstype.ClassName
 import react.FC
@@ -24,8 +23,10 @@ import kotlinx.coroutines.await
 
 private const val DEFAULT_EDITOR_MESSAGE = "Select one of the files above to start editing it!"
 
+private const val TEXT_PLACEHOLDER = "Please load data from server using button above."
+
 /**
- * CodeEditor component
+ * CodeEditor component for sandbox that encapsulates toolbar and oen editor for three different files.
  */
 val sandboxCodeEditorComponent = sandboxCodeEditorComponent()
 
@@ -75,8 +76,6 @@ private suspend fun WithRequestStatusContext.getTextRequest(
             null
         }
     }
-
-private val TEXT_PLACEHOLDER = "Please load data from server using button above."
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> { props ->

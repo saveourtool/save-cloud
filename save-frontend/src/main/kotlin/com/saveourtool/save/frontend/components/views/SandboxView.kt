@@ -10,7 +10,6 @@ import com.saveourtool.save.domain.SandboxFileInfo
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileUploaderForSandbox
 import com.saveourtool.save.frontend.components.basic.sdkSelection
@@ -22,7 +21,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.info.UserInfo
 
 import csstype.AlignItems
 import csstype.ClassName
@@ -244,16 +242,22 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
 
     private fun resultReload() {
         scope.launch {
-            val resultDebugInfo: TestResultDebugInfo = get(
+            val response = get(
                 "$sandboxApiUrl/get-debug-info",
                 Headers().apply {
                     set("Accept", "application/octet-stream")
                 },
                 loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
-                .decodeFromJsonString()
-            setState {
-                debugInfo = resultDebugInfo
+
+            if (response.ok) {
+                val resultDebugInfo: TestResultDebugInfo = response.decodeFromJsonString()
+                setState {
+                    debugInfo = resultDebugInfo
+                }
+            } else {
+                window.alert("There is no debug info yet. Try to run execution and wait until it is finished.")
             }
         }
     }
