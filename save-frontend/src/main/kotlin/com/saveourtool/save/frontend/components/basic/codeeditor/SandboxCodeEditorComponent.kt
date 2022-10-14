@@ -47,20 +47,14 @@ external interface SandboxCodeEditorComponentProps : Props {
      * Action to reload debug info
      */
     var doResultReload: () -> Unit
-
-    /**
-     * todo: will be removed soon
-     */
-    var currentUserInfo: UserInfo
 }
 
 private suspend fun WithRequestStatusContext.postTextRequest(
     urlPart: String,
     content: String,
     fileName: String,
-    userName: String,
 ) = post(
-    url = "$sandboxApiUrl/upload-$urlPart-as-text?fileName=$fileName&userName=$userName",
+    url = "$sandboxApiUrl/upload-$urlPart-as-text?fileName=$fileName",
     headers = jsonHeaders,
     body = content,
     loadingHandler = ::noopLoadingHandler,
@@ -69,9 +63,8 @@ private suspend fun WithRequestStatusContext.postTextRequest(
 private suspend fun WithRequestStatusContext.getTextRequest(
     urlPart: String,
     fileName: String,
-    userName: String,
 ) = get(
-    url = "$sandboxApiUrl/download-$urlPart-as-text?fileName=$fileName&userName=$userName",
+    url = "$sandboxApiUrl/download-$urlPart-as-text?fileName=$fileName",
     headers = jsonHeaders,
     loadingHandler = ::noopLoadingHandler,
 )
@@ -83,24 +76,26 @@ private suspend fun WithRequestStatusContext.getTextRequest(
         }
     }
 
+private val TEXT_PLACEHOLDER = "Please load data from server using button above."
+
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> { props ->
     val (selectedMode, setSelectedMode) = useState(AceModes.KOTLIN)
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.CHROME)
     val (selectedFileType, setSelectedFileType) = useState<FileType?>(null)
 
-    val (draftCodeText, setDraftCodeText) = useState(CODE.textExample)
-    val (draftConfigText, setDraftConfigText) = useState(SAVE_TOML.textExample)
-    val (draftSetupShText, setDraftSetupShText) = useState(SETUP_SH.textExample)
+    val (draftCodeText, setDraftCodeText) = useState(TEXT_PLACEHOLDER)
+    val (draftConfigText, setDraftConfigText) = useState(TEXT_PLACEHOLDER)
+    val (draftSetupShText, setDraftSetupShText) = useState(TEXT_PLACEHOLDER)
 
-    val (savedCodeText, setSavedCodeText) = useState(CODE.textExample)
-    val (savedConfigText, setSavedConfigText) = useState(SAVE_TOML.textExample)
-    val (savedSetupShText, setSavedSetupShText) = useState(SETUP_SH.textExample)
+    val (savedCodeText, setSavedCodeText) = useState(TEXT_PLACEHOLDER)
+    val (savedConfigText, setSavedConfigText) = useState(TEXT_PLACEHOLDER)
+    val (savedSetupShText, setSavedSetupShText) = useState(TEXT_PLACEHOLDER)
 
     val fetchTexts = useDeferredRequest {
         FileType.values().forEach { fileType ->
             val (urlPart, fileName) = getTypedOption(fileType, "test" to "test", "test" to "save.toml", "file" to "setup.sh")
-            val text = getTextRequest(urlPart, fileName, props.currentUserInfo.name) ?: fileType.textExample
+            val text = getTextRequest(urlPart, fileName) ?: TEXT_PLACEHOLDER
             getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(text)
             getTypedOption(fileType, setDraftCodeText, setDraftConfigText, setDraftSetupShText)(text)
         }
@@ -109,7 +104,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
     val fetchText = useDeferredRequest {
         selectedFileType?.let { fileType ->
             val (urlPart, fileName) = getTypedOption(fileType, "test" to "test", "test" to "save.toml", "file" to "setup.sh")
-            val text = getTextRequest(urlPart, fileName, props.currentUserInfo.name) ?: fileType.textExample
+            val text = getTextRequest(urlPart, fileName) ?: TEXT_PLACEHOLDER
             getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(text)
             getTypedOption(fileType, setDraftCodeText, setDraftConfigText, setDraftSetupShText)(text)
         }
@@ -123,7 +118,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                 Triple("test", draftConfigText, "save.toml"),
                 Triple("file", draftSetupShText, "setup.sh"),
             )
-            if (postTextRequest(urlPart, content, fileName, props.currentUserInfo.name)) {
+            if (postTextRequest(urlPart, content, fileName)) {
                 getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(content)
             }
         }
@@ -137,7 +132,7 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                 Triple("test", draftConfigText, "save.toml"),
                 Triple("file", draftSetupShText, "setup.sh"),
             )
-            if (postTextRequest(urlPart, content, fileName, props.currentUserInfo.name)) {
+            if (postTextRequest(urlPart, content, fileName)) {
                 getTypedOption(fileType, setSavedCodeText, setSavedConfigText, setSavedSetupShText)(content)
             }
         }
@@ -175,12 +170,14 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                     if (window.confirm("Some changes are not saved. Save and run execution?")) {
                         uploadTexts()
                         props.doRunExecution()
+                        window.alert("Successfully saved and started execution.")
                     } else {
                         window.alert("Run canceled.")
                     }
                 } else {
                     uploadTexts()
                     props.doRunExecution()
+                    window.alert("Successfully started execution.")
                 }
             },
         ) { fileType ->

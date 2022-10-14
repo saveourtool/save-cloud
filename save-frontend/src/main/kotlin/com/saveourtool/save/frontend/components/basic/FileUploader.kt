@@ -106,7 +106,6 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
  * @param selectedFilesStateSetter
  */
 fun ChildrenBuilder.fileUploaderForSandbox(
-    userName: String?,
     selectedFilesFromState: List<SandboxFileInfo>,
     selectedFilesStateSetter: (List<SandboxFileInfo>) -> Unit,
 ) {
