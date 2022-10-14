@@ -56,7 +56,7 @@ class AgentsController(
             it.execution
         }
         .map { execution ->
-            val backendUrl = configProperties.agentSettings.backendUrl
+            val backendUrl = configProperties.url
 
             AgentInitConfig(
                 saveCliUrl = "$backendUrl/internal/files/download-save-cli?version=$SAVE_CORE_VERSION",
@@ -90,9 +90,9 @@ class AgentsController(
      * @param containerId [Agent.containerId]
      * @return [Mono] with [AgentRunConfig]
      */
-    @GetMapping("/agents/get-run-config")
+    @GetMapping("/agents/get-next-run-config")
     @Transactional
-    fun getRunConfig(
+    fun getNextRunConfig(
         @RequestParam containerId: String,
     ): Mono<AgentRunConfig> = blockingToMono {
         agentRepository.findByContainerId(containerId)

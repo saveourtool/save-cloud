@@ -10,7 +10,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 /**
  * Class for properties
  *
- * @property backendUrl url of save-backend
  * @property testResources configuration for test resources
  * @property docker configuration for docker API
  * @property kubernetes configuration for setup in Kubernetes
@@ -28,7 +27,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
-    val backendUrl: String,
     val testResources: TestResources,
     val docker: DockerSettings?,
     val kubernetes: KubernetesSettings?,

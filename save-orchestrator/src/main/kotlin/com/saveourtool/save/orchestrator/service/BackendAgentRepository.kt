@@ -8,9 +8,9 @@ import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusesForExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 
 import org.springframework.stereotype.Component
@@ -25,9 +25,9 @@ internal typealias BodilessResponseEntity = ResponseEntity<Void>
  */
 @Component
 class BackendAgentRepository(
-    configProperties: ConfigProperties,
+    @Value("\${orchestrator.backend-url}") private val backendUrl: String,
 ) : AgentRepository {
-    private val webClientBackend = WebClient.create(configProperties.backendUrl)
+    private val webClientBackend = WebClient.create(backendUrl)
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
@@ -36,7 +36,7 @@ class BackendAgentRepository(
 
     override fun getNextRunConfig(containerId: String): Mono<AgentRunConfig> = webClientBackend
         .get()
-        .uri("/agents/get-run-config?containerId=$containerId")
+        .uri("/agents/get-next-run-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 
