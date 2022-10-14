@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.ClassName
+import io.ktor.http.escapeIfNeeded
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -112,13 +113,13 @@ fun ChildrenBuilder.fileUploaderForSandbox(
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
         selectedFiles = selectedFilesFromState
-        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file?userName=$userName" }
-        getUrlForFileUpload = { "$sandboxApiUrl/upload-file?userName=$userName" }
+        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file" }
+        getUrlForFileUpload = { "$sandboxApiUrl/upload-file" }
         getUrlForFileDownload = { fileInfo ->
-            "$sandboxApiUrl/download-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/download-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         getUrlForFileDeletion = { fileInfo ->
-            "$sandboxApiUrl/delete-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/delete-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         fileInfoToPrettyPrint = { it.name }
         decodeFileInfoFromString = {

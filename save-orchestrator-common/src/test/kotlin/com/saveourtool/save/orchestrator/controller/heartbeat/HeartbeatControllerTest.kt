@@ -3,7 +3,7 @@ package com.saveourtool.save.orchestrator.controller.heartbeat
 import com.saveourtool.save.agent.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.orchestrator.config.LocalDateTimeConfig
+import com.saveourtool.save.orchestrator.config.JsonConfig
 import com.saveourtool.save.orchestrator.controller.HeartbeatController
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.orchestrator.service.AgentService
@@ -47,7 +47,7 @@ import reactor.kotlin.core.publisher.toMono
 @Import(
     AgentService::class,
     HeartBeatInspector::class,
-    LocalDateTimeConfig::class,
+    JsonConfig::class,
 )
 @MockBeans(MockBean(AgentRunner::class))
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

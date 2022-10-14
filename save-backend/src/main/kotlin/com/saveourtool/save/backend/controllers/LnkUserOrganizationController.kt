@@ -11,7 +11,6 @@ import com.saveourtool.save.backend.StringResponse
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.toUser
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -22,6 +21,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import com.saveourtool.save.v1
@@ -43,8 +43,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-
-import java.util.*
 
 /**
  * Controller for processing links between users and their roles in organizations
