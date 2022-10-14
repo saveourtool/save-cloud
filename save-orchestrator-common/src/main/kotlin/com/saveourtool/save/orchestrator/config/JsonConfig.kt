@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.orchestrator.config
 
+import com.saveourtool.save.domain.supportTestStatus
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -30,11 +31,12 @@ internal val json = Json {
 }
 
 @Configuration
-class LocalDateTimeConfig {
+class JsonConfig {
     @Bean
     fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { jacksonObjectMapperBuilder: Jackson2ObjectMapperBuilder ->
         jacksonObjectMapperBuilder
             .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .supportTestStatus()
     }
 
     @Bean
