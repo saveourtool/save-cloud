@@ -1,6 +1,5 @@
 package com.saveourtool.save.sandbox.entity
 
-import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus

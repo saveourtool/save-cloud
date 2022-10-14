@@ -150,6 +150,7 @@ class DockerService(
     private fun prepareConfigurationForExecution(request: RunExecutionRequest): RunConfiguration {
         val env = fillAgentPropertiesFromConfiguration(
             configProperties.agentSettings,
+            request.saveAgentVersion,
             request.executionId,
         )
 

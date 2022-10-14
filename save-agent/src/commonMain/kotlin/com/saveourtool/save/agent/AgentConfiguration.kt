@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  *
  * @property id agent id
  * @property name agent name
+ * @property version agent version
  * @property heartbeat configuration of heartbeats
  * @property cliCommand a command that agent will use to run SAVE cli
  * @property requestTimeoutMillis timeout for all http request
@@ -31,6 +32,7 @@ import kotlinx.serialization.Serializable
 data class AgentConfiguration(
     val id: String,
     val name: String,
+    val version: String,
     val heartbeat: HeartbeatConfig,
     val cliCommand: String = "./$SAVE_CLI_EXECUTABLE_NAME",
     val requestTimeoutMillis: Long = 60000,
@@ -47,6 +49,7 @@ data class AgentConfiguration(
         internal fun initializeFromEnv() = AgentConfiguration(
             id = requiredEnv(AgentEnvName.AGENT_ID),
             name = requiredEnv(AgentEnvName.AGENT_NAME),
+            version = requiredEnv(AgentEnvName.AGENT_VERSION),
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL),
             ),

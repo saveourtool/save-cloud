@@ -1,6 +1,5 @@
 package com.saveourtool.save.request
 
-import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import kotlinx.serialization.Serializable
 

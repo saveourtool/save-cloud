@@ -1,7 +1,6 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
-import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.toFileKeyList
 import com.saveourtool.save.domain.toSdk

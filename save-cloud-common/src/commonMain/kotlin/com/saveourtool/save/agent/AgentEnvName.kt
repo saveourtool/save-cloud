@@ -6,6 +6,7 @@ package com.saveourtool.save.agent
 enum class AgentEnvName {
     AGENT_ID,
     AGENT_NAME,
+    AGENT_VERSION,
     CLI_COMMAND,
     DEBUG,
     EXECUTION_ID,

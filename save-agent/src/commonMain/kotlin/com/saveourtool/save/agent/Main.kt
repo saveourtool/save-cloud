@@ -54,7 +54,7 @@ fun main() {
     }
         .updateFromEnv()
     logType.set(if (config.debug) LogType.ALL else LogType.WARN)
-    logDebugCustom("Instantiating save-agent with config $config")
+    logDebugCustom("Instantiating save-agent version ${config.version} with config $config")
 
     handleSigterm()
 

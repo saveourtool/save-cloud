@@ -19,6 +19,7 @@ internal fun AgentConfiguration.updateFromEnv(): AgentConfiguration {
     return copy(
         id = optionalEnv(AgentEnvName.AGENT_ID) ?: id,
         name = optionalEnv(AgentEnvName.AGENT_NAME) ?: name,
+        version = optionalEnv(AgentEnvName.AGENT_VERSION) ?: version,
         heartbeat = heartbeat.copy(
             url = optionalEnv(AgentEnvName.HEARTBEAT_URL) ?: heartbeat.url,
         ),
