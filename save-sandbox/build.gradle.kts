@@ -39,7 +39,6 @@ tasks.withType<Test> {
     }
 }
 
-
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val downloadSaveAgentDistroTaskProvider: TaskProvider<Download> = tasks.register<Download>("downloadSaveAgentDistro") {
     enabled = findProperty("saveAgentDistroFilepath") != null
