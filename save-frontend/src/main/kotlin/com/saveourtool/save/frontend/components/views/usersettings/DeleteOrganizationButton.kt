@@ -119,6 +119,7 @@ val actionButton: FC<TemplateActionProps> = FC {props->
         clickButtonBuilder = {
             buttonBuilder("Banned ${props.name}", "danger") {
                 props.changeBannedMode(true)
+                props.modalButtons(action, windowOpenness)
                 windowOpenness.closeWindow()
             }
         }
