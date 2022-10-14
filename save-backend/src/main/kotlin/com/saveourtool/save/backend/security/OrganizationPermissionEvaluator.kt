@@ -1,12 +1,13 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.AuthenticationDetails
+
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
