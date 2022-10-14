@@ -24,7 +24,7 @@ Deployment is performed on server via docker swarm or locally via docker-compose
 * Secrets should be added to the swarm as well as to `$HOME/secrets` file.
 * If custom SSL certificates are used, they should be installed on the server and added into JDK's truststore inside images. See section below for details.
 * Loki logging driver should be added to docker installation: [instruction](https://grafana.com/docs/loki/latest/clients/docker-driver/#installing)
-* Pull new changes to the server and run `./gradlew -Psave.profile=prod deployDockerStack`.
+* Pull new changes to the server and run `./gradlew -Psave.profile=prod -PdockerNetwork=save_default deployDockerStack`.
   * If you wish to deploy save-cloud, that is not present in docker registry (e.g. to deploy from a branch), run `./gradlew -Psave.profile=prod buildAndDeployDockerStack` instead.
   * If you would like to use `docker-compose.override.yaml`, add `-PuseOverride=true` to the execution of tasks above.
     This file is configured to be read from `$HOME/configs`; you can use the one from the repository as an example.
