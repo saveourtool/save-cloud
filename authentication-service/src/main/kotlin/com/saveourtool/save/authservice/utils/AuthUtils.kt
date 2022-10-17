@@ -1,8 +1,8 @@
 /**
  * Authentication utilities
  */
-
-package com.saveourtool.save.sandbox.utils
+// TODO MOVE METHODS FROM COMMON HERE
+package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.utils.AuthenticationDetails
 import org.springframework.security.authentication.BadCredentialsException

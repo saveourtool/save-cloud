@@ -2,11 +2,11 @@
  * Configuration beans for security in different profiles
  */
 
-package com.saveourtool.save.sandbox.config
+package com.saveourtool.save.authservice.config
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.sandbox.security.ConvertingAuthenticationManager
-import com.saveourtool.save.sandbox.security.CustomAuthenticationBasicConverter
+import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
+import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean

@@ -1,7 +1,7 @@
-package com.saveourtool.save.sandbox.security
+package com.saveourtool.save.authservice.security
 
-import com.saveourtool.save.sandbox.service.SandboxUserDetailsService
-import com.saveourtool.save.sandbox.utils.extractUserNameAndIdentitySource
+import com.saveourtool.save.authservice.service.UserDetailsService
+import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
 import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +21,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Component
 class ConvertingAuthenticationManager(
-    @Autowired private var sandboxUserDetailsService: SandboxUserDetailsService
+    @Autowired private var userDetailsService: UserDetailsService
 ) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
@@ -32,7 +32,7 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        sandboxUserDetailsService.findByUsername(name)
+        userDetailsService.findByUsername(name)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource

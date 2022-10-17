@@ -1,4 +1,4 @@
-package com.saveourtool.save.sandbox.security
+package com.saveourtool.save.authservice.security
 
 import com.saveourtool.save.utils.AuthenticationDetails
 
