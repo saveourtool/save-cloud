@@ -1,8 +1,5 @@
 import com.saveourtool.save.buildutils.*
 
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
@@ -13,8 +10,23 @@ plugins {
     alias(libs.plugins.kotlin.plugin.jpa)
 }
 
-configureJacoco()
-configureSpotless()
+kotlin {
+    allOpen {
+        annotation("javax.persistence.Entity")
+        annotation("org.springframework.stereotype.Service")
+    }
+//
+//    jvmToolchain {
+//        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+//    }
+
+    sourceSets {
+        sourceSets.all {
+            languageSettings.optIn("kotlin.RequiresOptIn")
+        }
+
+    }
+}
 
 dependencies {
     implementation(projects.saveCloudCommon)
@@ -23,3 +35,6 @@ dependencies {
     implementation(libs.spring.security.core)
 }
 
+
+configureJacoco()
+configureSpotless()
