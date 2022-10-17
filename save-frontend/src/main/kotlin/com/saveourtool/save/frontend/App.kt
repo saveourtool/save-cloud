@@ -28,8 +28,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.url.URLSearchParams
+import dom.html.HTMLElement
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -37,6 +36,7 @@ import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
+import web.url.URLSearchParams
 
 import kotlinx.browser.document
 import kotlinx.browser.window

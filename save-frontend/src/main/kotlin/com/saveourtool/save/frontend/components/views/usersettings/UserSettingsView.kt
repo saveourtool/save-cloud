@@ -17,7 +17,7 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData
