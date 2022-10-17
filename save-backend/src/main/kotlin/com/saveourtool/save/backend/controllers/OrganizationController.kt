@@ -97,8 +97,9 @@ internal class OrganizationController(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication,
     ): Flux<OrganizationDto> =
-            organizationService.getNotDeletedOrganizations(organizationFilters)
-                .toFlux<Organization>()
+            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
+                .let { organizationService.getFiltered(it) }
+                .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it
@@ -159,7 +160,7 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
         @RequestParam prefix: String
-    ): Mono<List<String>> = organizationService.getByPrefixAndStatus(prefix, OrganizationStatus.CREATED)
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
         .map { it.name }
         .toMono()
 

@@ -163,6 +163,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             headers = jsonHeaders,
             body = Json.encodeToString(SetRightsRequest(organizationName, requiredRights, selectedTestSuites.map { it.requiredId() })),
             loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         val message = if (response.ok) {
             response.text().await()
