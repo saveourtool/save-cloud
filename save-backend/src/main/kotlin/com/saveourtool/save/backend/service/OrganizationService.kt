@@ -102,6 +102,20 @@ class OrganizationService(
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
+     * @param prefix prefix of organization name
+     * @param status status of required organizations
+     * @return list of organizations with required [status] which names start with [prefix]
+     */
+    fun getByPrefixAndStatus(prefix: String, status: OrganizationStatus) = if (prefix.isBlank()) {
+        organizationRepository.findByStatus(status)
+    } else {
+        organizationRepository.findByNameStartingWithAndStatus(
+            prefix,
+            OrganizationStatus.CREATED,
+        )
+    }
+
+    /**
      * @param organization
      * @return organization
      */

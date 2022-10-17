@@ -136,7 +136,6 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
     ): Flux<Organization> = authentication.toMono()
@@ -149,6 +148,20 @@ internal class OrganizationController(
         .mapNotNull {
             it.organization as Organization
         }
+
+    @GetMapping("/get/by-prefix")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organization by prefix.",
+        description = "Get list of organizations matching prefix.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationNamesByPrefix(
+        @RequestParam prefix: String
+    ): Mono<List<String>> = organizationService.getByPrefixAndStatus(prefix, OrganizationStatus.CREATED)
+        .map { it.name }
+        .toMono()
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")
