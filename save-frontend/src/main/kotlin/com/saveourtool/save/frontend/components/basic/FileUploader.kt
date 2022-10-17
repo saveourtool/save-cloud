@@ -224,7 +224,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val uploadFile = useDeferredRequest {
         fileForUploading?.let { fileForUploading ->
-            if (fileForUploading.name != FileType.SETUP_SH.fileName || !props.isSandboxMode) {
+            if (!props.isSandboxMode || fileForUploading.name != FileType.SETUP_SH.fileName) {
                 val response = post(
                     props.getUrlForFileUpload(),
                     Headers(),
@@ -257,7 +257,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
 
             // ===== SELECTED FILES =====
             props.selectedFiles
-                .filter { it.name != FileType.SETUP_SH.fileName || !props.isSandboxMode }
+                .filter { !props.isSandboxMode || it.name != FileType.SETUP_SH.fileName }
                 .map { file ->
                     li {
                         className = ClassName("list-group-item")
