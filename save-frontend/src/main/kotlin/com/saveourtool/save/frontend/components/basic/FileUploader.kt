@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.domain.Sdk.Default.name
+import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
@@ -38,8 +39,6 @@ import kotlinx.browser.window
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-
-private const val SETUP_SH_FILENAME = "setup.sh"
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()
@@ -225,7 +224,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val uploadFile = useDeferredRequest {
         fileForUploading?.let { fileForUploading ->
-            if (fileForUploading.name != SETUP_SH_FILENAME || !props.isSandboxMode) {
+            if (fileForUploading.name != FileType.SETUP_SH.fileName || !props.isSandboxMode) {
                 val response = post(
                     props.getUrlForFileUpload(),
                     Headers(),
@@ -258,7 +257,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
 
             // ===== SELECTED FILES =====
             props.selectedFiles
-                .filter { it.name != SETUP_SH_FILENAME }
+                .filter { it.name != FileType.SETUP_SH.fileName || !props.isSandboxMode }
                 .map { file ->
                     li {
                         className = ClassName("list-group-item")
