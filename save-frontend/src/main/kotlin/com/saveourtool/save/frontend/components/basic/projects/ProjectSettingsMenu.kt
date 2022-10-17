@@ -14,7 +14,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*

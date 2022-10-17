@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.domain.Role
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
