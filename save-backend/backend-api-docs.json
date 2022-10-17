@@ -8222,10 +8222,21 @@
         }
       },
       "OrganizationFilters": {
+        "required": [
+          "prefix",
+          "status"
+        ],
         "type": "object",
         "properties": {
-          "name": {
+          "prefix": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },
