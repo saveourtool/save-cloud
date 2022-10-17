@@ -7,6 +7,7 @@ package com.saveourtool.save.authservice.config
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
+import com.saveourtool.save.v1
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -40,10 +41,13 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        // All `/sandbox/internal/**` requests should be sent only from internal network,
+        // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/sandbox/internal/**", "/heartbeat", *publicEndpoints.toTypedArray())
+            .pathMatchers("/", "/actuator/**", "/internal/**", "/heartbeat", "/sandbox/internal/**", *publicEndpoints.toTypedArray())
+            .permitAll()
+            // resources for frontend
+            .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
             .permitAll()
     }
         .and()
@@ -92,8 +96,28 @@ class WebSecurityConfig(
     }
 
     companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
         internal val publicEndpoints = listOf(
             "/error",
+            // `CollectionView` is a public page
+            "/api/$v1/projects/not-deleted",
+            "/api/$v1/awesome-benchmarks",
+            "/api/$v1/check-git-connectivity-adaptor",
+            // `OrganizationView` is a public page
+            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
+            "/api/$v1/organizations/**",
+            "/api/$v1/projects/get/projects-by-organization",
+            // `ContestListView` and `ContestView` are public pages
+            "/api/$v1/contests/*",
+            "/api/$v1/contests/active",
+            "/api/$v1/contests/finished",
+            "/api/$v1/contests/*/public-test",
+            "/api/$v1/contests/*/scores",
+            "/api/$v1/contests/*/*/best",
         )
     }
 }

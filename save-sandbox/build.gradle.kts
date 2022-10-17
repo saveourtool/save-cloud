@@ -85,6 +85,7 @@ dependencies {
     implementation(libs.save.plugins.warn.jvm)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)
+    implementation(projects.authenticationService)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
 }
