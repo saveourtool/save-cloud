@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
  * Implementation of [ServerAuthenticationConverter] that embeds user identity source into [UsernamePasswordAuthenticationToken]
  */
 @Component
-class CustomAuthenticationBasicConverter : ServerHttpBasicAuthenticationConverter(),
+class SandboxCustomAuthenticationBasicConverter : ServerHttpBasicAuthenticationConverter(),
 ServerAuthenticationConverter {
     /**
      * Convert exchange, received from gateway into UsernamePasswordAuthenticationToken, specify source identity, laid

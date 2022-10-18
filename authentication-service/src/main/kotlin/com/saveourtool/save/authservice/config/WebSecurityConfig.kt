@@ -41,6 +41,7 @@ class WebSecurityConfig(
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
+        println("\n\n\n\n\n-------------------authservice WebSecurityConfig")
         // All `/internal/**` and `/actuator/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
