@@ -300,6 +300,7 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "status", `in` = ParameterIn.QUERY, description = "delete or ban organization", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully deleted/banned an organization.")
     @ApiResponse(responseCode = "403", description = "Not enough permission for deleting/banning this organization.")
@@ -307,8 +308,8 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "409", description = "There are projects connected to organization. Please delete all of them and try again.")
     fun deleteOrganization(
         @PathVariable organizationName: String,
+        @RequestParam status: String,
         authentication: Authentication,
-        @RequestBody(required = false) status: OrganizationStatus,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -317,7 +318,7 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            it.status != OrganizationStatus.CREATED
+            it.status == OrganizationStatus.CREATED
         }
         .switchIfEmptyToNotFound {
             "The organization has the status not ${OrganizationStatus.CREATED}"
@@ -335,7 +336,7 @@ internal class OrganizationController(
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
         .map {
-            organizationService.deleteOrganization(it.name, status)
+            organizationService.deleteOrganization(it.name, OrganizationStatus.valueOf(status.uppercase()))
             ResponseEntity.ok("Organization deleted")
         }
 
@@ -356,7 +357,6 @@ internal class OrganizationController(
     fun recoveryOrganization(
         @PathVariable organizationName: String,
         authentication: Authentication,
-        @RequestBody(required = false) role: Role,
     ): Mono<StringResponse> = Mono.just(organizationName)
         .flatMap {
             organizationService.findByName(it).toMono()
@@ -365,7 +365,7 @@ internal class OrganizationController(
             "Could not find an organization with name $organizationName."
         }
         .filter {
-            it.status != OrganizationStatus.DELETED
+            it.status == OrganizationStatus.DELETED
         }
         .switchIfEmptyToNotFound{
             "Could not find deleted organization with name $organizationName."

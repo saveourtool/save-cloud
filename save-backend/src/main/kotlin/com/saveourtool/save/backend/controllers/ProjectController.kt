@@ -261,6 +261,7 @@ class ProjectController(
     fun deleteProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
+        @RequestParam setStatus: String,
         authentication: Authentication
     ): Mono<StringResponse> =
             projectService.findWithPermissionByNameAndOrganization(
@@ -268,13 +269,42 @@ class ProjectController(
             )
                 .map { projectFromDb ->
                     projectFromDb.apply {
-                        status = ProjectStatus.DELETED
+                        status = ProjectStatus.valueOf(setStatus)
                     }
                 }
                 .map { updatedProject ->
                     projectService.updateProject(updatedProject)
-                    ResponseEntity.ok("Successfully deleted project")
+                    ResponseEntity.ok("Successfully $setStatus project")
                 }
+
+    @PostMapping("/{organizationName}/{projectName}/recovery")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Recovery a project.",
+        description = "Recovery a project.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully recovery a project.")
+    @ApiResponse(responseCode = "403", description = "Not enough permission for project recovery.")
+    @ApiResponse(responseCode = "404", description = "Either could not find such organization or such project in such organization.")
+    fun recoveryProject(
+        @PathVariable organizationName: String,
+        @PathVariable projectName: String,
+        authentication: Authentication
+    ): Mono<StringResponse> =
+        projectService.findWithPermissionByNameAndOrganization(
+            authentication, projectName, organizationName, Permission.RECOVERY
+        )
+            .map { projectFromDb ->
+                projectFromDb.apply {
+                    status = ProjectStatus.CREATED
+                }
+            }
+            .map { updatedProject ->
+                projectService.updateProject(updatedProject)
+                ResponseEntity.ok("Successfully recovery a project")
+            }
 
     companion object {
         @JvmStatic

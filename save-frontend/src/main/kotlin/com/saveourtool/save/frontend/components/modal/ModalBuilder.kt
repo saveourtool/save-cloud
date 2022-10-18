@@ -2,15 +2,14 @@
 
 package com.saveourtool.save.frontend.components.modal
 
-import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import csstype.ClassName
-import kotlinx.browser.window
 import react.ChildrenBuilder
+import react.cloneElement
 import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
@@ -87,7 +86,7 @@ fun ChildrenBuilder.displayModalWithClick(
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
     textClickIcon: String,
-    conditionClickIcon: () -> Boolean = {false},
+    conditionClickIcon: () -> Boolean,
     clickButtonBuilder: ChildrenBuilder.() -> Unit
 ) {
     modal { props ->
@@ -269,7 +268,7 @@ fun ChildrenBuilder.modalBuilderWithClick(
     conditionClickIcon: () -> Boolean,
     clickButtonBuilder: ChildrenBuilder.() -> Unit
 ) {
-    val (isClick, setClick) = useState(false)
+    val (click, setClick) = useState(false)
     modalBuilderWithClick(
         title = title,
         onCloseButtonPressed = onCloseButtonPressed,
@@ -279,19 +278,44 @@ fun ChildrenBuilder.modalBuilderWithClick(
                 +message
             }
         },
-        textClickIcon = textClickIcon,
-        conditionClickIcon = conditionClickIcon,
+        buttonAfterClick = {
+            if (conditionClickIcon()) {
+                div {
+                    className = ClassName("d-sm-flex justify-content-center form-check")
+                    if (!click) {
+                        div {
+                            className = ClassName("d-sm-flex justify-content-center form-check")
+                            div {
+                                input {
+                                    className = ClassName("click")
+                                    type = InputType.checkbox
+                                    value = click
+                                    id = "click"
+                                    checked = click
+                                    onChange = { setClick(!click) }
+                                }
+                            }
+                            div {
+                                ReactHTML.label {
+                                    className = ClassName("click")
+                                    htmlFor = "click"
+                                    +textClickIcon
+                                }
+                            }
+                        }
+                    } else {
+                        clickButtonBuilder()
+                    }
+                }
+            }
+        },
         buttonBuilder = {
             div {
-                className = ClassName("col-3 ml-2")
-                if (isClick)
-                    clickButtonBuilder()
+                className = ClassName("row d-flex justify-content-between")
                 buttonBuilder()
             }
         },
-        changeClick = { setClick(it) }
     )
-
 }
 
 
@@ -301,11 +325,8 @@ fun ChildrenBuilder.modalBuilderWithClick(
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    textClickIcon: String = "",
-    conditionClickIcon: () -> Boolean,
-    changeClick: (Boolean) -> Unit,
+    buttonAfterClick: ChildrenBuilder.() -> Unit,
 ) {
-    val (click, setClick) = useState(false)
     div {
         className = ClassName("modal-dialog $classes")
         div {
@@ -324,7 +345,9 @@ fun ChildrenBuilder.modalBuilderWithClick(
                         ariaLabel = "Close"
                         span {
                             fontAwesomeIcon(icon = faTimesCircle)
-                            onClick = { onCloseButtonPressed() }
+                            onClick = {
+                                onCloseButtonPressed()
+                            }
                         }
                     }
                 }
@@ -334,33 +357,12 @@ fun ChildrenBuilder.modalBuilderWithClick(
                 className = ClassName("modal-body")
                 bodyBuilder()
             }
-            if (conditionClickIcon()) {
-                div {
-                    className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
-                    div {
-                        input {
-                            className = ClassName("click")
-                            type = InputType.checkbox
-                            value = click
-                            id = "click"
-                            checked = click
-                            onChange = {
-                                setClick(!click)
-                                changeClick(!click)
-                            }
-                        }
-                    }
-                    div {
-                        ReactHTML.label {
-                            className = ClassName("click")
-                            htmlFor = "click"
-                            + textClickIcon
-                        }
-                    }
-                }
+            div{
+                className = ClassName("d-sm-flex justify-content-center form-check")
+                buttonAfterClick()
             }
             div {
-                className = ClassName("modal-footer")
+                className = ClassName("d-sm-flex justify-content-center form-check")
                 buttonBuilder()
             }
         }

@@ -7,6 +7,8 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.filters.TestExecutionFilters
+import com.saveourtool.save.frontend.components.basic.nameFiltersRow
 import com.saveourtool.save.frontend.components.modal.displayModalWithClick
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -16,12 +18,54 @@ import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.tr
 
 /**
  * Button for delete organization
  *
  * @return noting
  */
+
+
+data class DisplayText(
+
+    var modalTitle: String = "",
+
+    var modalMessage: String ="",
+
+    var errorTitle: String = "",
+
+    var clickMessage: String = "",
+
+    ) {
+    companion object {
+        fun deleteProject(name: String) = DisplayText(
+            modalTitle = "Warning: deletion of project",
+            modalMessage = "You are about to delete project $name. Are you sure?",
+            errorTitle = "You cannot delete $name",
+            clickMessage = "Do you want to ban an project $name?",
+        )
+        fun deleteOrganization(name: String) = DisplayText(
+            modalTitle = "Warning: deletion of organization",
+            modalMessage = "You are about to delete organization $name. Are you sure?",
+            errorTitle = "You cannot delete $name",
+            clickMessage = "Do you want to ban an organization $name?",
+        )
+        fun recoveryProject(name: String) = DisplayText(
+            modalTitle = "Warning: recovery of project",
+            modalMessage = "You are about to recovery project $name. Are you sure?",
+            errorTitle = "You cannot recover $name",
+            clickMessage = "Do you want to ban an project $name?",
+        )
+        fun recoveryOrganization(name: String) = DisplayText(
+            modalTitle = "Warning: recovery of organization",
+            modalMessage = "You are about to recovery organization $name. Are you sure?",
+            errorTitle = "You cannot recover $name",
+            clickMessage = "Do you want to ban an organization $name?",
+        )
+        val empty = DisplayText(modalTitle = "", modalMessage = "", errorTitle = "", clickMessage = "")
+    }
+}
 
 
 external interface TemplateActionProps:Props {
@@ -48,33 +92,20 @@ external interface TemplateActionProps:Props {
 
     var sendRequest: suspend (WithRequestStatusContext) -> Response
 
-    /**
-     * All filters in one class property [organizationName]
-     */
-    var modalTitle: String
+    var displayText: DisplayText
 
-    /**
-     * All filters in one class property [organizationName]
-     */
-    var modalMessage: String
+    var modalButtons: ( action: () -> Unit , WindowOpenness , ChildrenBuilder) -> Unit
 
-    var errorTitle: String
-
-    var clickMessage: String
-
-    var modalButtons: ( action: () -> Unit , WindowOpenness) -> Unit
+    var clickButtons: ( action: () -> Unit , WindowOpenness , ChildrenBuilder) -> Unit
 
     var role: Role
-
-    var changeBannedMode: (Boolean) -> Unit
 }
-
 
 
 val actionButton: FC<TemplateActionProps> = FC {props->
     val windowOpenness = useWindowOpenness()
-    val (displayTitle, setDisplayTitle) = useState(props.modalTitle)
-    val (displayMessage, setDisplayMessage) = useState(props.modalMessage)
+    val (displayTitle, setDisplayTitle) = useState(props.displayText.modalTitle)
+    val (displayMessage, setDisplayMessage) = useState(props.displayText.modalMessage)
     val (isError, setError) = useState(false)
 
     val action = useDeferredRequest {
@@ -82,7 +113,7 @@ val actionButton: FC<TemplateActionProps> = FC {props->
         if (responseFromDeleteOrganization.ok) {
             props.onActionSuccess()
         } else {
-            setDisplayTitle(props.errorTitle)
+            setDisplayTitle(props.displayText.errorTitle)
             setDisplayMessage(responseFromDeleteOrganization.unpackMessage())
             setError(true)
             windowOpenness.openWindow()
@@ -95,8 +126,8 @@ val actionButton: FC<TemplateActionProps> = FC {props->
             className = ClassName(props.classes)
             props.buttonStyleBuilder(this)
             onClick = {
-                setDisplayTitle(props.modalTitle)
-                setDisplayMessage(props.modalMessage)
+                setDisplayTitle(props.displayText.modalTitle)
+                setDisplayMessage(props.displayText.modalMessage)
                 windowOpenness.openWindow()
             }
         }
@@ -109,20 +140,17 @@ val actionButton: FC<TemplateActionProps> = FC {props->
         onCloseButtonPressed = windowOpenness.closeWindowAction(),
         buttonBuilder = {
             if (isError){
-                buttonBuilder("Ok") { windowOpenness.closeWindow() }
+                buttonBuilder("Ok") {
+                    windowOpenness.closeWindow()
+                    setError(false)
+                }
             } else {
-                props.modalButtons(action, windowOpenness)
+                props.modalButtons(action, windowOpenness, this)
             }
         },
-        textClickIcon = props.clickMessage,
-        conditionClickIcon = { props.role.isHigherOrEqualThan(Role.SUPER_ADMIN) },
-        clickButtonBuilder = {
-            buttonBuilder("Banned ${props.name}", "danger") {
-                props.changeBannedMode(true)
-                props.modalButtons(action, windowOpenness)
-                windowOpenness.closeWindow()
-            }
-        }
+        textClickIcon = props.displayText.clickMessage,
+        conditionClickIcon = if(!isError) { { props.role.isHigherOrEqualThan(Role.SUPER_ADMIN) } } else { {false} },
+        clickButtonBuilder = { props.clickButtons(action, windowOpenness, this) }
     )
 }
 
@@ -157,16 +185,16 @@ external interface DeleteOrganizationButtonProps : Props {
 }
 
 
-val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC {props->
-    val (isBannedMode, setBannedMode) = useState(false)
+val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC {props ->
+    val (isClickMode, setClickMode) = useState(false)
     actionButton {
         name = props.organizationName
         onActionSuccess = props.onDeletionSuccess
         buttonStyleBuilder = props.buttonStyleBuilder
         classes = props.classes
-        sendRequest = {
-            val bannedMode = if (isBannedMode) "banned" else "deleted"
-            with(it) {
+        sendRequest = { WithRequestStatusContext ->
+            val bannedMode = if (isClickMode) "banned" else "deleted"
+            with(WithRequestStatusContext) {
                 delete (
                     "$apiUrl/organizations/${props.organizationName}/delete?status=${bannedMode}",
                     headers = jsonHeaders,
@@ -176,20 +204,29 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC {props->
                 )
             }
         }
-        modalTitle = "Warning: deletion of organization"
-        modalMessage = "You are about to delete organization ${props.organizationName}. Are you sure?"
-        errorTitle = "You cannot delete ${props.organizationName}"
-        modalButtons = { action, window->
-            buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
-                action()
-                window.closeWindow()
+        displayText = DisplayText.deleteOrganization(props.organizationName)
+        modalButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder) {
+                buttonBuilder("Yes, delete ${props.organizationName}", "danger") {
+                    action()
+                    window.closeWindow()
+                }
+                buttonBuilder("Cancel") {
+                    window.closeWindow()
+                }
             }
-            buttonBuilder("Cancel") {
-                window.closeWindow()
+        }
+        clickButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder) {
+                buttonBuilder("Yes, ban ${props.organizationName}", "danger") {
+                    setClickMode(true)
+                    action()
+                    window.closeWindow()
+                    setClickMode(false)
+                }
             }
         }
         role = props.userRole
-        changeBannedMode = { setBannedMode(it) }
     }
 }
 
@@ -224,15 +261,15 @@ external interface DeleteProjectButtonProps : Props {
 
 
 val deleteProjectButton: FC<DeleteProjectButtonProps> = FC {props->
-    val (isBannedMode, setBannedMode) = useState(false)
+    val (isClickMode, setClickMode) = useState(false)
     actionButton {
         name = props.projectName
         onActionSuccess = props.onDeletionSuccess
         buttonStyleBuilder = props.buttonStyleBuilder
         classes = props.classes
-        sendRequest = {
-            val bannedMode = if (isBannedMode) "banned" else "deleted"
-            with(it) {
+        sendRequest = { WithRequestStatusContext ->
+            val bannedMode = if (isClickMode) "banned" else "deleted"
+            with(WithRequestStatusContext) {
                 delete (
                     url ="$apiUrl/projects/${props.organizationName}/${props.projectName}/delete?status=${bannedMode}",
                     headers = jsonHeaders,
@@ -242,20 +279,29 @@ val deleteProjectButton: FC<DeleteProjectButtonProps> = FC {props->
                 )
             }
         }
-        modalTitle = "Warning: deletion of project"
-        modalMessage = "You are about to delete project ${props.organizationName} in organization ${props.organizationName}. Are you sure?"
-        errorTitle = "You cannot delete ${props.projectName}"
-        modalButtons = { action, window->
-            buttonBuilder("Yes, delete ${props.projectName}", "danger") {
-                action()
-                window.closeWindow()
+        displayText = DisplayText.deleteProject(props.projectName)
+        modalButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder){
+                buttonBuilder("Yes, delete ${props.projectName}", "danger") {
+                    action()
+                    window.closeWindow()
+                }
+                buttonBuilder("Cancel") {
+                    window.closeWindow()
+                }
             }
-            buttonBuilder("Cancel") {
-                window.closeWindow()
+        }
+        clickButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder) {
+                buttonBuilder("Yes, ban ${props.projectName} in ${props.organizationName}", "danger") {
+                    setClickMode(true)
+                    action()
+                    window.closeWindow()
+                    setClickMode(false)
+                }
             }
         }
         role = props.userRole
-        changeBannedMode = { setBannedMode(it) }
     }
 }
 
@@ -288,16 +334,17 @@ external interface RecoveryOrganizationButtonProps : Props {
 }
 
 
-val recoveryOrganizationButton: FC<RecoveryOrganizationButtonProps> = FC {props->
+val recoveryOrganizationButton: FC<RecoveryOrganizationButtonProps> = FC {props ->
+    val (isClickMode, setClickMode) = useState(false)
     actionButton {
         name = props.organizationName
         onActionSuccess = props.onRecoverySuccess
         buttonStyleBuilder = props.buttonStyleBuilder
         classes = props.classes
-        sendRequest = {
-            with(it) {
+        sendRequest = { WithRequestStatusContext ->
+            with(WithRequestStatusContext) {
                 post (
-                    url ="$apiUrl/organization/${props.organizationName}/recovery?role=${props.userRole}",
+                    url ="$apiUrl/organization/${props.organizationName}/recovery",
                     headers = jsonHeaders,
                     body = undefined,
                     loadingHandler = ::noopLoadingHandler,
@@ -305,16 +352,26 @@ val recoveryOrganizationButton: FC<RecoveryOrganizationButtonProps> = FC {props-
                 )
             }
         }
-        modalTitle = "Warning: recovery of organization"
-        modalMessage = "You are about to recovery organization ${props.organizationName}. Are you sure?"
-        errorTitle = "You cannot recover ${props.organizationName}"
-        modalButtons = { action, window->
-            buttonBuilder("Yes, recover ${props.organizationName}", "danger") {
-                action()
-                window.closeWindow()
+        displayText = DisplayText.recoveryOrganization(props.organizationName)
+        modalButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder){
+                buttonBuilder("Yes, recover ${props.organizationName}", "danger") {
+                    action()
+                    window.closeWindow()
+                }
+                buttonBuilder("Cancel") {
+                    window.closeWindow()
+                }
             }
-            buttonBuilder("Cancel") {
-                window.closeWindow()
+        }
+        clickButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder) {
+                buttonBuilder("Yes, recover from ban ${props.organizationName}", "danger") {
+                    setClickMode(true)
+                    action()
+                    window.closeWindow()
+                    setClickMode(false)
+                }
             }
         }
         role = props.userRole
@@ -357,13 +414,14 @@ external interface RecoveryProjectButtonProps : Props {
 
 
 val recoveryProjectButton: FC<RecoveryProjectButtonProps> = FC {props->
+    val (isClickMode, setClickMode) = useState(false)
     actionButton {
         name = props.projectName
         onActionSuccess = props.onRecoverySuccess
         buttonStyleBuilder = props.buttonStyleBuilder
         classes = props.classes
-        sendRequest = {
-            with(it) {
+        sendRequest = { WithRequestStatusContext ->
+            with(WithRequestStatusContext) {
                 post (
                     url ="$apiUrl/projects/${props.organizationName}/${props.projectName}/recovery?role=${props.userRole}",
                     headers = jsonHeaders,
@@ -373,16 +431,26 @@ val recoveryProjectButton: FC<RecoveryProjectButtonProps> = FC {props->
                 )
             }
         }
-        modalTitle = "Warning: recovery of project"
-        modalMessage = "You are about to recovery project ${props.organizationName} in organization ${props.organizationName}. Are you sure?"
-        errorTitle = "You cannot recover ${props.projectName}"
-        modalButtons = { action, window->
-            buttonBuilder("Yes, recover ${props.projectName}", "danger") {
-                action()
-                window.closeWindow()
+        displayText = DisplayText.recoveryProject(props.projectName)
+        modalButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder){
+                buttonBuilder("Yes, recover ${props.projectName}", "danger") {
+                    action()
+                    window.closeWindow()
+                }
+                buttonBuilder("Cancel") {
+                    window.closeWindow()
+                }
             }
-            buttonBuilder("Cancel") {
-                window.closeWindow()
+        }
+        clickButtons = { action, window, childrenBuilder ->
+            with(childrenBuilder) {
+                buttonBuilder("Yes, recover from ban ${props.projectName} in ${props.organizationName}", "danger") {
+                    setClickMode(true)
+                    action()
+                    window.closeWindow()
+                    setClickMode(false)
+                }
             }
         }
         role = props.userRole

@@ -76,6 +76,9 @@ class OrganizationPermissionEvaluator(
     private fun hasRecoveryAccess(userId: Long?, organizationRole: Role): Boolean =
         userId?.let { organizationRole.isHigherOrEqualThan(Role.OWNER) } ?: false
 
+    private fun hasRecoveryBan(userId: Long?, organizationRole: Role): Boolean =
+        userId?.let { organizationRole.isHigherOrEqualThan(Role.SUPER_ADMIN) } ?: false
+
     /**
      * In case we widen number of users that can manage roles in an organization, there is a separate method.
      * Simply delegating now.

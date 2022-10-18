@@ -92,6 +92,7 @@ class ProjectPermissionEvaluator(
     private fun hasRecoveryAccess(userId: Long?, projectRole: Role): Boolean =
         userId?.let { projectRole.isHigherOrEqualThan(Role.ADMIN) } ?: false
 
+
     /**
      * @param authentication
      * @param execution
