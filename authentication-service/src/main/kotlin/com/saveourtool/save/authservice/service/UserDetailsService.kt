@@ -20,7 +20,6 @@ class UserDetailsService(
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
     override fun findByUsername(username: String): Mono<UserDetails> = {
-        println("\n\n\nauthservice UserDetailsService findByUsername")
         userRepository.findByName(username)
     }.toMono().getIdentitySourceAwareUserDetails(username)
 }

@@ -17,7 +17,6 @@ class UserRepository(
      * @return user or null if no results have been found
      */
     fun findByName(name: String): User? {
-        println("\n\n\n\nauthservice UserRepository findByName")
         val record = namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)

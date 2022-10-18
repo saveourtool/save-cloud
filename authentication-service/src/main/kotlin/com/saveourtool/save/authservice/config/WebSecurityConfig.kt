@@ -7,6 +7,7 @@ package com.saveourtool.save.authservice.config
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
+import com.saveourtool.save.authservice.utils.roleHierarchy
 import com.saveourtool.save.v1
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,9 +15,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
@@ -78,18 +76,6 @@ class WebSecurityConfig(
         .formLogin()
         .disable()
         .build()
-
-    fun roleHierarchy(): RoleHierarchy = mapOf(
-        Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
-        Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
-        Role.OWNER to listOf(Role.VIEWER),
-    )
-        .mapKeys { it.key.asSpringSecurityRole() }
-        .mapValues { (_, roles) -> roles.map { it.asSpringSecurityRole() } }
-        .let(RoleHierarchyUtils::roleHierarchyFromMap)
-        .let {
-            RoleHierarchyImpl().apply { setHierarchy(it) }
-        }
 
     @PostConstruct
     fun postConstruct() {

@@ -20,32 +20,17 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")
-@ComponentScan("com.saveourtool.save.authservice.config.WebSecurityConfig")
-@Import(WebSecurityConfig::class,
+@Import(
+    WebSecurityConfig::class,
     ConvertingAuthenticationManager::class,
     CustomAuthenticationBasicConverter::class,
     UserDetailsService::class,
     UserRepository::class,
 )
-class SandboxWebSecurityConfig(
-    @Autowired private val webSecurityConfig: WebSecurityConfig,
-    @Autowired private val convertingAuthenticationManager: ConvertingAuthenticationManager,
-    @Autowired private val customAuthenticationBasicConverter: CustomAuthenticationBasicConverter,
-) {
-    init {
-        println("\n\n\nSandboxWebSecurityConfig")
-    }
-}
+class SandboxWebSecurityConfig
 
 @EnableWebFluxSecurity
 @Profile("!secure")
-@ComponentScan("com.saveourtool.save.authservice.config.NoopWebSecurityConfig")
-@Import(SandboxNoopWebSecurityConfig::class)
-class SandboxNoopWebSecurityConfig(
-    @Autowired private val noopWebSecurityConfig: NoopWebSecurityConfig
-) {
-    init {
-        println("\n\n\nSandboxNoopWebSecurityConfig")
-    }
-}
+@Import(NoopWebSecurityConfig::class)
+class SandboxNoopWebSecurityConfig
 

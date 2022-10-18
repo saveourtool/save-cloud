@@ -22,7 +22,6 @@ ServerAuthenticationConverter {
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> = super.convert(exchange).map { authentication ->
-        println("\n\n\n\n\n-----------------authservice convert")
         val name = (authentication as UsernamePasswordAuthenticationToken).principal as String
         val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
         UsernamePasswordAuthenticationToken(
