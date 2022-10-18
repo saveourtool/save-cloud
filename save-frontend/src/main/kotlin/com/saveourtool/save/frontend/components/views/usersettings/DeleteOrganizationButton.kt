@@ -37,6 +37,8 @@ data class DisplayText(
 
     var clickMessage: String = "",
 
+    var afterClickMessage: String = "",
+
     ) {
     companion object {
         fun deleteProject(name: String) = DisplayText(
@@ -44,24 +46,28 @@ data class DisplayText(
             modalMessage = "You are about to delete project $name. Are you sure?",
             errorTitle = "You cannot delete $name",
             clickMessage = "Do you want to ban an project $name?",
+            afterClickMessage = "Do you want to return in non-ban mode?"
         )
         fun deleteOrganization(name: String) = DisplayText(
             modalTitle = "Warning: deletion of organization",
             modalMessage = "You are about to delete organization $name. Are you sure?",
             errorTitle = "You cannot delete $name",
             clickMessage = "Do you want to ban an organization $name?",
+            afterClickMessage = "Do you want to return in non-ban mode?"
         )
         fun recoveryProject(name: String) = DisplayText(
             modalTitle = "Warning: recovery of project",
             modalMessage = "You are about to recovery project $name. Are you sure?",
             errorTitle = "You cannot recover $name",
             clickMessage = "Do you want to ban an project $name?",
+            afterClickMessage = "Do you want to return in non-ban mode?"
         )
         fun recoveryOrganization(name: String) = DisplayText(
             modalTitle = "Warning: recovery of organization",
             modalMessage = "You are about to recovery organization $name. Are you sure?",
             errorTitle = "You cannot recover $name",
             clickMessage = "Do you want to ban an organization $name?",
+            afterClickMessage = "Do you want to return in non-ban mode?"
         )
         val empty = DisplayText(modalTitle = "", modalMessage = "", errorTitle = "", clickMessage = "")
     }
@@ -89,6 +95,9 @@ external interface TemplateActionProps:Props {
      */
     var classes: String
 
+    var isClick: Boolean
+
+    var changeClickMode: (Boolean) -> Unit
 
     var sendRequest: suspend (WithRequestStatusContext) -> Response
 
@@ -134,12 +143,11 @@ val actionButton: FC<TemplateActionProps> = FC {props->
     }
 
     displayModalWithClick(
+        displayText = props.displayText,
         isOpen = windowOpenness.isOpen(),
-        title = displayTitle,
-        message = displayMessage,
         onCloseButtonPressed = windowOpenness.closeWindowAction(),
         buttonBuilder = {
-            if (isError){
+            if (isError) {
                 buttonBuilder("Ok") {
                     windowOpenness.closeWindow()
                     setError(false)
@@ -148,9 +156,8 @@ val actionButton: FC<TemplateActionProps> = FC {props->
                 props.modalButtons(action, windowOpenness, this)
             }
         },
-        textClickIcon = props.displayText.clickMessage,
         conditionClickIcon = if(!isError) { { props.role.isHigherOrEqualThan(Role.SUPER_ADMIN) } } else { {false} },
-        clickButtonBuilder = { props.clickButtons(action, windowOpenness, this) }
+        clickButtonBuilder = { props.clickButtons(action, windowOpenness, this) },
     )
 }
 
@@ -225,6 +232,10 @@ val deleteOrganizationButton: FC<DeleteOrganizationButtonProps> = FC {props ->
                     setClickMode(false)
                 }
             }
+        }
+        isClick = isClickMode
+        changeClickMode = {
+            setClickMode(it)
         }
         role = props.userRole
     }

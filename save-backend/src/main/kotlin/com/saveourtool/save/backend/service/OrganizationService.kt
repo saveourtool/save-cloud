@@ -93,7 +93,6 @@ class OrganizationService(
         }
         return organizations
     }
-
     /**
      * @param organizationName
      * @return [true] if number of Organization projects is zero, else - [false]

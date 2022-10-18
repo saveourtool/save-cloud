@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.modal
 
+import com.saveourtool.save.frontend.components.views.usersettings.DisplayText
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
@@ -14,6 +15,7 @@ import react.dom.aria.ariaLabel
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
@@ -79,22 +81,20 @@ fun ChildrenBuilder.displayModal(
 
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.displayModalWithClick(
+    displayText: DisplayText,
     isOpen: Boolean,
-    title: String,
-    message: String,
     modalStyle: Styles = mediumTransparentModalStyle,
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    textClickIcon: String,
     conditionClickIcon: () -> Boolean,
-    clickButtonBuilder: ChildrenBuilder.() -> Unit
+    clickButtonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     modal { props ->
         props.isOpen = isOpen
         props.style = modalStyle
         modalBuilderWithClick(
-            title, message, onCloseButtonPressed, buttonBuilder,
-            textClickIcon, conditionClickIcon, clickButtonBuilder,
+            displayText, onCloseButtonPressed, buttonBuilder,
+            conditionClickIcon, clickButtonBuilder,
         )
     }
 }
@@ -260,22 +260,20 @@ fun ChildrenBuilder.modalBuilder(
 
 
 fun ChildrenBuilder.modalBuilderWithClick(
-    title: String,
-    message: String,
+    displayText: DisplayText,
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-    textClickIcon: String = "",
     conditionClickIcon: () -> Boolean,
-    clickButtonBuilder: ChildrenBuilder.() -> Unit
+    clickButtonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     val (click, setClick) = useState(false)
     modalBuilderWithClick(
-        title = title,
+        title = displayText.modalTitle,
         onCloseButtonPressed = onCloseButtonPressed,
         bodyBuilder = {
             h2 {
                 className = ClassName("h6 text-gray-800 mb-2")
-                +message
+                +displayText.modalMessage
             }
         },
         buttonAfterClick = {
@@ -296,22 +294,45 @@ fun ChildrenBuilder.modalBuilderWithClick(
                                 }
                             }
                             div {
-                                ReactHTML.label {
+                                label {
                                     className = ClassName("click")
                                     htmlFor = "click"
-                                    +textClickIcon
+                                    +displayText.clickMessage
                                 }
                             }
                         }
                     } else {
-                        clickButtonBuilder()
+                        div {
+                            className = ClassName("d-sm-flex justify-content-center form-check")
+                            div {
+                                input {
+                                    className = ClassName("click")
+                                    type = InputType.checkbox
+                                    value = click
+                                    id = "click"
+                                    checked = click
+                                    onChange = { setClick(!click) }
+                                }
+                            }
+                            div {
+                                label {
+                                    className = ClassName("click")
+                                    htmlFor = "click"
+                                    +displayText.afterClickMessage
+                                }
+                            }
+                        }
+                        div{
+                            className = ClassName("d-sm-flex justify-content-center form-check")
+                            clickButtonBuilder()
+                        }
                     }
                 }
             }
         },
         buttonBuilder = {
             div {
-                className = ClassName("row d-flex justify-content-between")
+                className = ClassName("h6 text-gray-800 mb-2")
                 buttonBuilder()
             }
         },
@@ -319,7 +340,7 @@ fun ChildrenBuilder.modalBuilderWithClick(
 }
 
 
-fun ChildrenBuilder.modalBuilderWithClick(
+fun ChildrenBuilder.modalBuilderWithClick (
     title: String,
     classes: String = "",
     onCloseButtonPressed: (() -> Unit)?,
