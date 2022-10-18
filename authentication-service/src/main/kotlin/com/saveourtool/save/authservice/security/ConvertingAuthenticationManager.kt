@@ -2,8 +2,8 @@ package com.saveourtool.save.authservice.security
 
 import com.saveourtool.save.authservice.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
-import com.saveourtool.save.utils.AuthenticationDetails
-import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager

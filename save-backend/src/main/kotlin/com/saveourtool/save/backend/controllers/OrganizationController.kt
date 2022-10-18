@@ -17,7 +17,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException

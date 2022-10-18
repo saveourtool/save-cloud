@@ -16,7 +16,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
 

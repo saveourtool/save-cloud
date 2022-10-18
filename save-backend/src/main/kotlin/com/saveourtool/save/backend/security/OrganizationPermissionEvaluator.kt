@@ -6,7 +6,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component

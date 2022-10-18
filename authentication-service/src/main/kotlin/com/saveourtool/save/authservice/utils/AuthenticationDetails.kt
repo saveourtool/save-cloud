@@ -1,4 +1,4 @@
-package com.saveourtool.save.utils
+package com.saveourtool.save.authservice.utils
 
 /**
  * @property id

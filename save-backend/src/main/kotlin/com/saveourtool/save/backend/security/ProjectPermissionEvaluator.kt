@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication

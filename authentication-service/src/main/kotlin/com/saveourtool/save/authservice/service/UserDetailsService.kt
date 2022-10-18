@@ -1,7 +1,7 @@
 package com.saveourtool.save.authservice.service
 
 import com.saveourtool.save.authservice.repository.UserRepository
-import com.saveourtool.save.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
