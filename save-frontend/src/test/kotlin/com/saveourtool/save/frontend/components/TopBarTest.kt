@@ -3,8 +3,8 @@ package com.saveourtool.save.frontend.components
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.info.UserInfo
 
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLSpanElement
+import dom.html.HTMLDivElement
+import dom.html.HTMLSpanElement
 import react.*
 import react.router.MemoryRouter
 
