@@ -39,17 +39,17 @@ external interface InputWithDebounceProps<T> : Props {
     /**
      * Callback to get url for options fetch
      */
-    var getUrlForOptions: (String) -> String
+    var getUrlForOptions: (prefix: String) -> String
 
     /**
      * Callback to get string from option
      */
-    var getString: (T) -> String
+    var getString: (option: T) -> String
 
     /**
      * Callback to get option from string
      */
-    var getOptionFromString: (String) -> T
+    var getOptionFromString: (optionAsString: String) -> T
 
     /**
      * Currently selected option
@@ -59,13 +59,13 @@ external interface InputWithDebounceProps<T> : Props {
     /**
      * Callback to set selected option
      */
-    var setSelectedOption: (T) -> Unit
+    var setSelectedOption: (option: T) -> Unit
 
     /**
      * Callback to create [option] tag from [T]
      */
     @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "TYPE_ALIAS")
-    var getHTMLDataListElementFromOption: (ChildrenBuilder, T) -> Unit
+    var getHTMLDataListElementFromOption: (ChildrenBuilder, option: T) -> Unit
 
     /**
      * Debounce period, equals to [DEFAULT_DEBOUNCE_PERIOD] by default
