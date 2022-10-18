@@ -37,6 +37,37 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "version of uploading snapshot",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creationTime",
+            "in": "query",
+            "description": "creationTime of uploading snapshot",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "description": "content of uploading snapshot",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -49,16 +80,7 @@
                 "type": "object",
                 "properties": {
                   "content": {
-                    "description": "content of uploading snapshot"
-                  },
-                  "version": {
-                    "description": "version of uploading snapshot"
-                  },
-                  "creationTime": {
-                    "description": "creationTime of uploading snapshot"
-                  },
-                  "X-Authorization-Source": {
-                    "example": "basic"
+                    "$ref": "#/components/schemas/Part"
                   }
                 }
               }
@@ -1694,6 +1716,7 @@
           },
           {
             "name": "setRoleRequest",
+            "in": "query",
             "description": "pair of userName and role that is requested to be set",
             "required": true
           },
@@ -2251,6 +2274,28 @@
           "files"
         ],
         "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "USER"
+              ]
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -2263,9 +2308,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  },
-                  "owner": {},
-                  "type": {}
+                  }
                 }
               }
             }
@@ -2760,6 +2803,7 @@
         "parameters": [
           {
             "name": "contestRequest",
+            "in": "query",
             "description": "name of an organization",
             "required": true
           },
@@ -2848,6 +2892,7 @@
           },
           {
             "name": "contestDto",
+            "in": "query",
             "description": "contest requested for creation",
             "required": true
           },
@@ -2908,6 +2953,7 @@
         "parameters": [
           {
             "name": "contestDto",
+            "in": "query",
             "description": "contest requested for creation",
             "required": true
           },
@@ -5303,6 +5349,59 @@
         ]
       }
     },
+    "/api/v1/organizations/get/by-prefix": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get organization by prefix.",
+        "description": "Get list of organizations matching prefix.",
+        "operationId": "getOrganizationNamesByPrefix",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched list of organizations.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/can-create-contests": {
       "get": {
         "tags": [
@@ -7476,6 +7575,9 @@
   },
   "components": {
     "schemas": {
+      "Part": {
+        "type": "object"
+      },
       "Unit": {
         "type": "object"
       },
@@ -8120,10 +8222,21 @@
         }
       },
       "OrganizationFilters": {
+        "required": [
+          "prefix",
+          "status"
+        ],
         "type": "object",
         "properties": {
-          "name": {
+          "prefix": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },

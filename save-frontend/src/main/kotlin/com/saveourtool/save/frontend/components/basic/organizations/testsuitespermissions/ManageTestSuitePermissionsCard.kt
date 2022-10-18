@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.basic.organizations.testsuitesp
 
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.testSuiteSelector
+import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.modal.modalBuilder
@@ -21,6 +22,7 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.option
 
 import kotlinx.coroutines.await
 import kotlinx.serialization.encodeToString
@@ -79,7 +81,7 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
     var closeModal: () -> Unit
 }
 
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION")
 private fun ChildrenBuilder.displayMainWindow(
     selectedTestSuites: List<TestSuiteDto>,
     organizationName: String,
@@ -115,13 +117,18 @@ private fun ChildrenBuilder.displayMainWindow(
             }
             div {
                 className = ClassName("pl-0 col-11")
-                // fixme: debounce seems like a good idea here
-                input {
-                    className = ClassName("form-control")
+                inputWithDebounceForString {
+                    selectedOption = organizationName
+                    setSelectedOption = { setOrganizationName(it) }
+                    getOptionFromString = { it }
+                    getString = { it }
+                    getUrlForOptions = { prefix -> "$apiUrl/organizations/get/by-prefix?prefix=$prefix" }
                     placeholder = "Select organization name..."
-                    value = organizationName
-                    onChange = {
-                        setOrganizationName(it.target.value)
+                    decodeListFromJsonString = { it.decodeFromJsonString() }
+                    getHTMLDataListElementFromOption = { childrenBuilder, organizationName ->
+                        with(childrenBuilder) {
+                            option { value = organizationName }
+                        }
                     }
                 }
             }
@@ -156,6 +163,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             headers = jsonHeaders,
             body = Json.encodeToString(SetRightsRequest(organizationName, requiredRights, selectedTestSuites.map { it.requiredId() })),
             loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         val message = if (response.ok) {
             response.text().await()

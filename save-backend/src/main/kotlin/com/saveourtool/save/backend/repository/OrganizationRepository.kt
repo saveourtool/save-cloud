@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.query.QueryByExampleExecutor
@@ -32,4 +33,17 @@ ValidateRepository {
      * @return list of organization by owner id
      */
     fun findByOwnerId(ownerId: Long): List<Organization>
+
+    /**
+     * @param prefix prefix of organization name
+     * @param status
+     * @return list of organizations with names that start with [prefix]
+     */
+    fun findByNameStartingWithAndStatus(prefix: String, status: OrganizationStatus): List<Organization>
+
+    /**
+     * @param status
+     * @return list of organizations with required status
+     */
+    fun findByStatus(status: OrganizationStatus): List<Organization>
 }
