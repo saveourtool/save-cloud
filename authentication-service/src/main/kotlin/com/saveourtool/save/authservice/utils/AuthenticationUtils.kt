@@ -1,7 +1,7 @@
 /**
  * Authentication utilities
  */
-// TODO MOVE METHODS FROM COMMON HERE
+
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role

@@ -11,8 +11,8 @@ import com.saveourtool.save.sandbox.service.BodilessResponseEntity
 import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
-import com.saveourtool.save.sandbox.utils.userId
-import com.saveourtool.save.sandbox.utils.userName
+import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.userName
 import com.saveourtool.save.utils.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
