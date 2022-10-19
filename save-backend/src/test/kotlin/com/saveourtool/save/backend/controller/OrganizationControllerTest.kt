@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.backend.configs.NoopWebSecurityConfig
+import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
