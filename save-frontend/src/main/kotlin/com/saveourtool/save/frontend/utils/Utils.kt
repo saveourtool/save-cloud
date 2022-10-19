@@ -26,6 +26,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
+ * An error message.
+ */
+internal typealias ErrorMessage = String
+
+/**
+ * A generic error handler.
+ */
+internal typealias ErrorHandler = (ErrorMessage) -> Unit
+
+/**
+ * The body of a [useDeferredRequest] invocation.
+ *
+ * @param T the return type of this action.
+ */
+internal typealias DeferredRequestAction<T> = suspend (WithRequestStatusContext, ErrorHandler) -> T
+
+/**
  * Append an object [obj] to `this` [FormData] as a JSON, using kx.serialization for serialization
  *
  * @param name key to be appended to the form data
