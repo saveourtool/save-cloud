@@ -381,6 +381,61 @@ class LnkOrganizationTestSuiteController(
             )
         }
 
+    @PostMapping("/{ownerOrganizationName}/batch-change-visibility")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Make given test suites public or private.",
+        description = "Make given test suites public or private.",
+    )
+    @Parameters(
+        Parameter(name = "isPublic", `in` = ParameterIn.PATH, description = "flag to make test suite public or private", required = true),
+        Parameter(name = "isPublic", `in` = ParameterIn.PATH, description = "flag to make test suite public or private", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Rights changed")
+    @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite rights")
+    @ApiResponse(responseCode = "404", description = "Requested organization, test suite or organization-maintainer doesn't exist")
+    fun changeVisibilityBatch(
+        @PathVariable ownerOrganizationName: String,
+        @RequestParam isPublic: Boolean,
+        @RequestBody testSuiteIds: List<Long>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = getOrganizationWithPermissions(ownerOrganizationName, Permission.WRITE, authentication)
+        .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
+        .map { (organizationMaintainer, testSuites) ->
+            testSuites.filter { testSuite ->
+                testSuitePermissionEvaluator.hasPermission(
+                    organizationMaintainer,
+                    testSuite,
+                    Permission.WRITE,
+                    authentication,
+                )
+            }
+        }
+        .map { testSuites ->
+            testSuites.onEach {
+                it.isPublic = isPublic
+            }
+                .also {
+                    testSuitesService.updateTestSuites(it)
+                }
+        }
+        .map {
+            val responseMessage: String = buildString {
+                append("Successfully made test suites ")
+                if (isPublic) {
+                    append("public.")
+                } else {
+                    append("private.")
+                }
+                // if (listOfFilteredOutTestSuiteIds.isNotEmpty()) {
+                // append("Test suites [${listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")}] were skipped.")
+                // }
+            }
+            ResponseEntity.ok(responseMessage)
+        }
+
     private fun getOrganizationIfParticipant(
         organizationName: String,
         authentication: Authentication?,

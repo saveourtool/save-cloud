@@ -6,6 +6,11 @@
 
 package com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions
 
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.MANAGE
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.MESSAGE
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.PUBLISH
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.SUITE_SELECTOR_FOR_PUBLISH
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.SUITE_SELECTOR_FOR_RIGHTS
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.testSuiteSelector
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
@@ -19,6 +24,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 
 import csstype.ClassName
 import react.*
+import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
@@ -32,34 +38,6 @@ import kotlinx.serialization.json.Json
  * Fully independent component that allows to manage test suites permissions.
  */
 val manageTestSuitePermissionsComponent = manageTestSuitePermissionsComponent()
-
-/**
- * Enum class that defines current state of [manageTestSuitePermissionsComponent] (mostly state of the modal inside component)
- */
-enum class PermissionManagerMode {
-    /**
-     * State when a modal with three input forms is shown: what, where and how to add.
-     */
-    MAIN,
-
-    /**
-     * State when success (or error) message is shown.
-     */
-    MESSAGE,
-
-    /**
-     * Make test suites public or private
-     *
-     * todo: Not implemented yet
-     */
-    PUBLISH,
-
-    /**
-     * Select test suites that should be managed.
-     */
-    TEST_SUITES_SELECTOR,
-    ;
-}
 
 /**
  * Props for ManageGitCredentialsCard
@@ -82,7 +60,7 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
 }
 
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION")
-private fun ChildrenBuilder.displayMainWindow(
+private fun ChildrenBuilder.displayPermissionManager(
     selectedTestSuites: List<TestSuiteDto>,
     organizationName: String,
     requestedRights: Rights,
@@ -149,13 +127,89 @@ private fun ChildrenBuilder.displayMainWindow(
     }
 }
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION", "LongMethod")
+private fun ChildrenBuilder.displayMassPermissionManager(
+    selectedTestSuites: List<TestSuiteDto>,
+    isToBePublic: Boolean,
+    openTestSuiteSelector: () -> Unit,
+    setIsToBePublic: (Boolean) -> Unit,
+) {
+    div {
+        div {
+            className = ClassName("row mb-2")
+            label {
+                className = ClassName("col-1 float-left align-self-center m-0")
+                +"1. "
+            }
+            div {
+                className = ClassName("pl-0 col-11")
+                input {
+                    className = ClassName("form-control")
+                    placeholder = "Choose test suites to share..."
+                    value = selectedTestSuites.map { it.name }.sorted().joinToString(", ")
+                    onClick = {
+                        openTestSuiteSelector()
+                    }
+                }
+            }
+        }
+        div {
+            className = ClassName("row mb-2")
+            label {
+                className = ClassName("col-1 float-left align-self-center m-0")
+                +"2. "
+            }
+            div {
+                className = ClassName("form-check form-check-inline")
+                input {
+                    className = ClassName("form-check-input")
+                    type = "radio".unsafeCast<InputType>()
+                    name = "visibility"
+                    id = "visibility-public"
+                    value = "public"
+                    checked = isToBePublic
+                    onChange = {
+                        setIsToBePublic(it.target.checked)
+                    }
+                }
+                label {
+                    className = ClassName("form-check-label")
+                    htmlFor = "visibility-public"
+                    +"Public"
+                }
+            }
+            div {
+                className = ClassName("form-check form-check-inline")
+                input {
+                    className = ClassName("form-check-input")
+                    type = "radio".unsafeCast<InputType>()
+                    name = "visibility"
+                    id = "visibility-private"
+                    value = "private"
+                    checked = !isToBePublic
+                    onChange = {
+                        setIsToBePublic(!it.target.checked)
+                    }
+                }
+                label {
+                    className = ClassName("form-check-label")
+                    htmlFor = "visibility-private"
+                    +"Private"
+                }
+            }
+        }
+    }
+}
+
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermissionsComponentProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (organizationName, setOrganizationName) = useState("")
     val (requiredRights, setRequiredRights) = useState(Rights.NONE)
 
-    val (currentMode, setCurrentMode) = useState(PermissionManagerMode.MAIN)
+    val (isToBePublic, setIsToBePublic) = useState(true)
+
+    val (currentMode, setCurrentMode) = useState(MANAGE)
     val (backendResponseMessage, setBackendResponseMessage) = useState("")
     val sendTransferRequest = useDeferredRequest {
         val response = post(
@@ -173,12 +227,29 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         setBackendResponseMessage(message)
     }
 
+    val sendPublishRequest = useDeferredRequest {
+        val response = post(
+            url = "$apiUrl/test-suites/${props.organizationName}/batch-change-visibility?isPublic=$isToBePublic",
+            headers = jsonHeaders,
+            body = Json.encodeToString(selectedTestSuites.map { it.requiredId() }),
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+        val message = if (response.ok) {
+            response.text().await()
+        } else {
+            response.unpackMessage()
+        }
+        setBackendResponseMessage(message)
+    }
+
     val clearFields = {
         setSelectedTestSuites(emptyList())
-        setCurrentMode(PermissionManagerMode.MAIN)
+        setCurrentMode(MANAGE)
         setBackendResponseMessage("")
         setRequiredRights(Rights.NONE)
         setOrganizationName("")
+        setIsToBePublic(true)
     }
 
     modal { modalProps ->
@@ -190,16 +261,14 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             onCloseButtonPressed = { props.closeModal() },
             bodyBuilder = {
                 when (currentMode) {
-                    PermissionManagerMode.MAIN -> displayMainWindow(
+                    MANAGE -> displayPermissionManager(
                         selectedTestSuites,
                         organizationName,
                         requiredRights,
-                        { setCurrentMode(PermissionManagerMode.TEST_SUITES_SELECTOR) },
+                        { setCurrentMode(SUITE_SELECTOR_FOR_RIGHTS) },
                         { setOrganizationName(it) }
-                    ) {
-                        setRequiredRights(it)
-                    }
-                    PermissionManagerMode.TEST_SUITES_SELECTOR -> testSuiteSelector {
+                    ) { setRequiredRights(it) }
+                    SUITE_SELECTOR_FOR_PUBLISH, SUITE_SELECTOR_FOR_RIGHTS -> testSuiteSelector {
                         this.onTestSuiteUpdate = {
                             setSelectedTestSuites(it)
                         }
@@ -207,41 +276,55 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
                         this.selectorPurpose = TestSuiteSelectorPurpose.PRIVATE
                         this.currentOrganizationName = props.organizationName
                     }
-                    PermissionManagerMode.PUBLISH -> {}
-                    PermissionManagerMode.MESSAGE -> +backendResponseMessage
+                    PUBLISH -> displayMassPermissionManager(
+                        selectedTestSuites,
+                        isToBePublic,
+                        { setCurrentMode(SUITE_SELECTOR_FOR_PUBLISH) },
+                    ) { setIsToBePublic(it) }
+                    MESSAGE -> +backendResponseMessage
                 }
             }
         ) {
             when (currentMode) {
-                PermissionManagerMode.MAIN -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                    sendTransferRequest()
-                    setCurrentMode(PermissionManagerMode.MESSAGE)
+                MANAGE -> {
+                    buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                        sendTransferRequest()
+                        setCurrentMode(MESSAGE)
+                    }
+                    buttonBuilder("Mass permissions", style = "info") {
+                        setCurrentMode(PUBLISH)
+                    }
                 }
-                PermissionManagerMode.TEST_SUITES_SELECTOR -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                    setCurrentMode(PermissionManagerMode.MAIN)
+                SUITE_SELECTOR_FOR_RIGHTS -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                    setCurrentMode(MANAGE)
                 }
-                PermissionManagerMode.PUBLISH -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                    throw NotImplementedError("Making test suite public and backwards will be featured in Ph. 2")
+                SUITE_SELECTOR_FOR_PUBLISH -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                    setCurrentMode(PUBLISH)
+                }
+                PUBLISH -> {
+                    buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                        sendPublishRequest()
+                        setCurrentMode(MESSAGE)
+                    }
+                    buttonBuilder("Transfers", style = "info") {
+                        setCurrentMode(MANAGE)
+                    }
                 }
                 else -> {}
             }
             buttonBuilder("Cancel", "secondary") {
                 when (currentMode) {
-                    PermissionManagerMode.MESSAGE -> {
+                    MANAGE, PUBLISH, MESSAGE -> {
                         clearFields()
                         props.closeModal()
                     }
-                    PermissionManagerMode.MAIN -> {
-                        clearFields()
-                        props.closeModal()
-                    }
-                    PermissionManagerMode.TEST_SUITES_SELECTOR -> {
+                    SUITE_SELECTOR_FOR_RIGHTS -> {
                         setSelectedTestSuites(emptyList())
-                        setCurrentMode(PermissionManagerMode.MAIN)
+                        setCurrentMode(MANAGE)
                     }
-                    PermissionManagerMode.PUBLISH -> {
-                        setCurrentMode(PermissionManagerMode.MAIN)
-                        throw NotImplementedError("Making test suite public and backwards will be featured in Ph. 2")
+                    SUITE_SELECTOR_FOR_PUBLISH -> {
+                        setSelectedTestSuites(emptyList())
+                        setCurrentMode(PUBLISH)
                     }
                 }
             }
