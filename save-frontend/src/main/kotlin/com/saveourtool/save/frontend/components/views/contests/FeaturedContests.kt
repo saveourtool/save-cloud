@@ -19,7 +19,6 @@ import react.StateSetter
 import react.VFC
 import react.dom.aria.AriaRole
 import react.dom.html.ButtonType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div

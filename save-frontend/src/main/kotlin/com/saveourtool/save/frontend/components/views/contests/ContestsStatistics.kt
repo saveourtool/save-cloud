@@ -13,7 +13,6 @@ import csstype.JustifyContent
 import csstype.rem
 import react.ChildrenBuilder
 import react.VFC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
