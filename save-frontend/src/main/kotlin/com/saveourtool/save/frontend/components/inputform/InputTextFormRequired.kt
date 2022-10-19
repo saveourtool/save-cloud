@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.frontend.utils.useTooltip
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import react.ChildrenBuilder
 import react.FC
 import react.Props

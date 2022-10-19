@@ -6,7 +6,6 @@ import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.storage.AbstractFileBasedStorage
-import com.saveourtool.save.utils.countPartsTill
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.pathNamesTill
@@ -29,15 +28,16 @@ import kotlin.io.path.name
 class DebugInfoStorage(
     configProperties: ConfigProperties,
     private val objectMapper: ObjectMapper,
-) :
-    AbstractFileBasedStorage<DebugInfoStorageKey>(Path.of(configProperties.fileStorage.location) / "debugInfo") {
+) : AbstractFileBasedStorage<DebugInfoStorageKey>(
+    Path.of(configProperties.fileStorage.location) / "debugInfo",
+    PATH_PARTS_COUNT,
+) {
     /**
      * @param rootDir
      * @param pathToContent
      * @return true if path endsWith [SUFFIX_FILE_NAME]
      */
-    override fun isKey(rootDir: Path, pathToContent: Path): Boolean =
-            pathToContent.name.endsWith(SUFFIX_FILE_NAME) && pathToContent.countPartsTill(rootDir) == PATH_PARTS_COUNT
+    override fun isKey(rootDir: Path, pathToContent: Path): Boolean = pathToContent.name.endsWith(SUFFIX_FILE_NAME)
 
     /**
      * @param rootDir

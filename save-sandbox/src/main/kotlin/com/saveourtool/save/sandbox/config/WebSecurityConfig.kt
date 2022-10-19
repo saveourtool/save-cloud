@@ -43,7 +43,7 @@ class WebSecurityConfig(
         // All `/sandbox/internal/**` requests should be sent only from internal network,
         // they are not proxied from gateway.
         authorizeExchange()
-            .pathMatchers("/", "/sandbox/internal/**", *publicEndpoints.toTypedArray())
+            .pathMatchers("/", "/sandbox/internal/**", "/heartbeat", *publicEndpoints.toTypedArray())
             .permitAll()
     }
         .and()
