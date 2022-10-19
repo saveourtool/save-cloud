@@ -4,21 +4,12 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.frontend.components.basic.ContestNameProps
-import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
 import csstype.ClassName
 import csstype.rem
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
@@ -26,8 +17,6 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
-import react.dom.html.ReactHTML.b
-import react.dom.html.ReactHTML.br
 
 val welcomeContest = welcomeContest()
 
@@ -47,7 +36,6 @@ private fun ChildrenBuilder.stayTunedImage() {
  */
 @Suppress("MAGIC_NUMBER", "TOO_LONG_FUNCTION", "LongMethod")
 private fun welcomeContest() = VFC {
-
     div {
         className = ClassName("col-lg-6")
         div {

@@ -11,60 +11,23 @@ import csstype.AlignItems
 import csstype.ClassName
 import csstype.JustifyContent
 import csstype.rem
+import react.ChildrenBuilder
 import react.VFC
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
 import react.useState
 
 import kotlinx.js.jso
-import react.ChildrenBuilder
-import react.dom.html.ReactHTML.h1
 
 val statistics = statistics()
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun statistics() = VFC {
-    val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
-    useRequest {
-        val contests: List<ContestDto> = get(
-            url = "$apiUrl/contests/active",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
-        setActiveContests(contests.toSet())
-    }
-
-    val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
-    useRequest {
-        val contests: List<ContestDto> = get(
-            url = "$apiUrl/contests/active",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
-        setFinishedContests(contests.toSet())
-    }
-
-    div {
-        className = ClassName("col-lg-4")
-        ReactHTML.div {
-            className = ClassName("card flex-md-row mb-1 box-shadow")
-            style = jso {
-                minHeight = 15.rem
-            }
-            div {
-                className = ClassName("col-lg-12")
-                stats(activeContests, finishedContests)
-                proposeContest()
-            }
-        }
-    }
-}
-
-fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set<ContestDto>) =
+/**
+ * @param activeContests
+ * @param finishedContests
+ */
+fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set<ContestDto>) {
     div {
         className = ClassName("row border-bottom mb-3 mx-3")
 
@@ -119,3 +82,44 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
             }
         }
     }
+}
+
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
+private fun statistics() = VFC {
+    val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/active",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setActiveContests(contests.toSet())
+    }
+
+    val (finishedContests, setFinishedContests) = useState<Set<ContestDto>>(emptySet())
+    useRequest {
+        val contests: List<ContestDto> = get(
+            url = "$apiUrl/contests/active",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+        setFinishedContests(contests.toSet())
+    }
+
+    div {
+        className = ClassName("col-lg-4")
+        ReactHTML.div {
+            className = ClassName("card flex-md-row mb-1 box-shadow")
+            style = jso {
+                minHeight = 15.rem
+            }
+            div {
+                className = ClassName("col-lg-12")
+                stats(activeContests, finishedContests)
+                proposeContest()
+            }
+        }
+    }
+}

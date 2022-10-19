@@ -9,9 +9,7 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -70,7 +68,6 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                         }
                     }
                     +("${project.description} ")
-
                 }
             }
 

@@ -84,7 +84,6 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                             +it.name
                         }
                     }
-
                 }
             }
         }
