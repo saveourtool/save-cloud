@@ -177,7 +177,7 @@ private fun ChildrenBuilder.contestDescription(
     }
 }
 
-@Suppress("TOO_LONG_FUNCTION, LongMethod")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun yourContests() = VFC {
     val (featuredContests, setFeaturedContests) = useState<List<ContestDto>>(emptyList())
     useRequest {

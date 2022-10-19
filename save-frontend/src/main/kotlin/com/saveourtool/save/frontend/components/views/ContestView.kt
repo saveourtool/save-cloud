@@ -32,6 +32,7 @@ import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
 import kotlinx.coroutines.launch
+import react.dom.html.ReactHTML.label
 
 /**
  * Enum that defines the bar that is chosen

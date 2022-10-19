@@ -12,6 +12,7 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
+import react.dom.html.ReactHTML.a
 
 /**
  * rendering of a card where we suggest to propose new custom contests
@@ -54,9 +55,12 @@ fun ChildrenBuilder.proposeContest() {
                 alignSelf = AlignSelf.flexEnd
             }
 
-            strong {
-                className = ClassName("d-inline-block mb-2 text-success")
-                +"saveourtool@gmail.com"
+            a {
+                href = "mailto:saveourtool@gmail.com"
+                strong {
+                    className = ClassName("d-inline-block mb-2 text-success")
+                    +"saveourtool@gmail.com"
+                }
             }
         }
     }
