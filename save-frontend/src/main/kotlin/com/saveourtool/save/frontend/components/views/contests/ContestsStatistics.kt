@@ -20,6 +20,7 @@ import react.useState
 
 import kotlinx.js.jso
 import react.ChildrenBuilder
+import react.dom.html.ReactHTML.h1
 
 val statistics = statistics()
 
@@ -86,7 +87,7 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
                     justifyContent = JustifyContent.center
                     alignItems = AlignItems.center
                 }
-                h2 {
+                h1 {
                     className = ClassName("text-dark")
                     +activeContests.size.toString()
                 }
@@ -111,7 +112,7 @@ fun ChildrenBuilder.stats(activeContests: Set<ContestDto>, finishedContests: Set
                     justifyContent = JustifyContent.center
                     alignItems = AlignItems.center
                 }
-                h2 {
+                h1 {
                     className = ClassName("text-dark")
                     +finishedContests.size.toString()
                 }
