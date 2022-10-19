@@ -381,6 +381,50 @@ class LnkOrganizationTestSuiteController(
             )
         }
 
+    @PostMapping("/{ownerOrganizationName}/batch-change-visibility")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Make given test suites public or private.",
+        description = "Make given test suites public or private.",
+    )
+    @Parameters(
+        Parameter(name = "ownerOrganizationName", `in` = ParameterIn.PATH, description = "name of an organization-maintainer", required = true),
+        Parameter(name = "isPublic", `in` = ParameterIn.QUERY, description = "flag to make test suite public or private", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Visibility changed")
+    @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite visibility")
+    @ApiResponse(responseCode = "404", description = "Test suite or organization-maintainer doesn't exist")
+    fun changeTestSuiteVisibilityBatch(
+        @PathVariable ownerOrganizationName: String,
+        @RequestParam isPublic: Boolean,
+        @RequestBody testSuiteIds: List<Long>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = getOrganizationWithPermissions(ownerOrganizationName, Permission.WRITE, authentication)
+        .zipWith(testSuitesService.findTestSuitesByIds(testSuiteIds).toMono())
+        .map { (organizationMaintainer, testSuites) ->
+            testSuites.filter { testSuite ->
+                testSuitePermissionEvaluator.hasPermission(
+                    organizationMaintainer,
+                    testSuite,
+                    Permission.WRITE,
+                    authentication,
+                )
+            }
+        }
+        .map { testSuites ->
+            testSuites.onEach {
+                it.isPublic = isPublic
+            }
+                .also {
+                    testSuitesService.updateTestSuites(it)
+                }
+            ResponseEntity.ok(
+                "Successfully made test suites ${if (isPublic) "public." else "private."}"
+            )
+        }
+
     private fun getOrganizationIfParticipant(
         organizationName: String,
         authentication: Authentication?,
