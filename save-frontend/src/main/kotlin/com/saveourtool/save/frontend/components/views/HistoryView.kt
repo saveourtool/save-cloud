@@ -7,12 +7,14 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.save.filters.ExecutionFilters
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
+import com.saveourtool.save.frontend.externals.calendar.calendar
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
@@ -86,6 +88,16 @@ external interface HistoryViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
+}
+
+/**
+ * [Props] of a data table with filters for execution
+ */
+external interface FiltersProps<D : Any> : TableProps<D> {
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ExecutionFilters
 }
 
 /**
@@ -313,28 +325,49 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         }
 
         div {
+            className = ClassName("d-flex bd-highlight")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-danger mb-4")
+                className = ClassName("btn btn-danger mb-4 ml-auto bd-highlight mr-5")
                 onClick = {
                     deleteExecutions()
                 }
                 +"Delete all executions"
             }
         }
-        executionsTable {
-            tableHeader = "Executions details"
-            getData = { _, _ ->
-                get(
-                    url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
-                    headers = jsonHeaders,
-                    loadingHandler = ::classLoadingHandler
-                )
-                    .unsafeMap {
-                        it.decodeFromJsonString<Array<ExecutionDto>>()
-                    }
+        div {
+            className = ClassName("row justify-content-center")
+
+            div {
+                className = ClassName("col-2 mr-3")
+                div {
+                    className = ClassName("card shadow mb-4")
+                    calendar(
+                        onChange = { d, _ ->
+                            println("this day is ${d.getDate()}, month: ${d.getMonth()}, year: ${d.getFullYear()}")
+                        }
+                        // defaultValue = arrayOf(Date(2022, 9, 12), Date())
+                    )
+                }
             }
-            getPageCount = null
+
+            div {
+                className = ClassName("col-9")
+                executionsTable {
+                    tableHeader = "Executions details"
+                    getData = { _, _ ->
+                        get(
+                            url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
+                            headers = jsonHeaders,
+                            loadingHandler = ::classLoadingHandler
+                        )
+                            .unsafeMap {
+                                it.decodeFromJsonString<Array<ExecutionDto>>()
+                            }
+                    }
+                    getPageCount = null
+                }
+            }
         }
     }
 
