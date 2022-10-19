@@ -141,8 +141,8 @@ private fun ChildrenBuilder.buttonBuilder(
         title?.let {
             asDynamic()["data-toggle"] = "tooltip"
             asDynamic()["data-placement"] = "top"
+            this.title = title
         }
-        this.title = title
         labelBuilder()
     }
 }
