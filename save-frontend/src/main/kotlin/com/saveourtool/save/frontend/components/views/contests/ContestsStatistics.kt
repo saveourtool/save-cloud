@@ -110,7 +110,7 @@ private fun statistics() = VFC {
 
     div {
         className = ClassName("col-lg-4")
-        ReactHTML.div {
+        div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
                 minHeight = 15.rem

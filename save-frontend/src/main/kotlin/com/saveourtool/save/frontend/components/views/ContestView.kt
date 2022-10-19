@@ -159,7 +159,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                     }
                 }
                 div {
-                    ReactHTML.label {
+                    label {
                         className = ClassName("form-check-label")
                         htmlFor = "isFeaturedCheckbox"
                         +"Featured contest"

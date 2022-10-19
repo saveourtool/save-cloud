@@ -78,11 +78,11 @@ private fun ChildrenBuilder.stayTunedImage() {
 private fun ChildrenBuilder.stayTuned() {
     div {
         className = ClassName("card-body d-flex flex-column align-items-start")
-        ReactHTML.strong {
+        strong {
             className = ClassName("d-inline-block mb-2 text-primary")
             +"Featured Contest"
         }
-        ReactHTML.h3 {
+        h3 {
             className = ClassName("mb-0 text-dark")
             +"Stay turned..."
         }
