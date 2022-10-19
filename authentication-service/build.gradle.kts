@@ -29,6 +29,5 @@ dependencies {
     implementation(libs.spring.security.core)
 }
 
-
 configureJacoco()
 configureSpotless()

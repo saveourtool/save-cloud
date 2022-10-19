@@ -1,6 +1,6 @@
 package com.saveourtool.save.authservice.security
 
-import com.saveourtool.save.authservice.service.UserDetailsService
+import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
@@ -21,7 +21,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Component
 class ConvertingAuthenticationManager(
-    @Autowired private var userDetailsService: UserDetailsService
+    @Autowired private var authenticationUserDetailsService: AuthenticationUserDetailsService
 ) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
@@ -32,7 +32,7 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        userDetailsService.findByUsername(name)
+        authenticationUserDetailsService.findByUsername(name)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource

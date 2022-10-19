@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
  * Repository for [com.saveourtool.save.entities.User]
  */
 @Component
-class UserRepository(
+class AuthenticationUserRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
