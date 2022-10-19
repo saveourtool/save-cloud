@@ -16,7 +16,7 @@ import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import react.*
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType

@@ -149,10 +149,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 th {
                     colSpan = tableInstance.columns.size
                     nameFiltersRow {
-                        name = state.organizationFilters.name
+                        name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters(null)
+                                OrganizationFilters.empty
                             } else {
                                 OrganizationFilters(filterValue)
                             }
@@ -242,7 +242,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters(null)
-        state.organizationFilters = OrganizationFilters(null)
+        state.organizationFilters = OrganizationFilters.empty
     }
 
     private fun getOrganization(filterValue: OrganizationFilters) {
@@ -282,8 +282,15 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
             changeUrl(state.selectedMenu, UserRatingTab, state.paths)
             val href = window.location.href.substringBeforeLast("?")
             window.location.href = when (state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "$href?projectName=$it" } ?: href
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?organizationName=$it" } ?: href
+                UserRatingTab.ORGS -> state.organizationFilters.prefix.let {
+                    buildString {
+                        append(href)
+                        if (it.isNotBlank()) {
+                            append("?organizationName=$it")
+                        }
+                    }
+                }
+                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?projectName=$it" } ?: href
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -293,7 +300,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     override fun componentDidMount() {
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
-        val organizationFilters = OrganizationFilters(props.organizationName)
+        val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
         setState {
             paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
             this.projectFilters = projectFilters

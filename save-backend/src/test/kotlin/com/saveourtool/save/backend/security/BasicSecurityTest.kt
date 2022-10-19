@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.security
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.entities.User
 import org.junit.jupiter.api.Assertions

@@ -13,9 +13,9 @@ import react.PropsWithChildren
 import react.useState
 
 import kotlin.js.Promise
-import kotlinx.js.timers.setTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import web.timers.setTimeout
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)

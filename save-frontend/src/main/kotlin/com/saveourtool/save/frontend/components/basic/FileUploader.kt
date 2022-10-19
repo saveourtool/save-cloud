@@ -8,12 +8,14 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.domain.Sdk.Default.name
+import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.ClassName
+import io.ktor.http.escapeIfNeeded
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -100,25 +102,23 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
 }
 
 /**
- * @param userName
  * @param selectedFilesFromState
  * @param selectedFilesStateSetter
  */
 fun ChildrenBuilder.fileUploaderForSandbox(
-    userName: String?,
     selectedFilesFromState: List<SandboxFileInfo>,
     selectedFilesStateSetter: (List<SandboxFileInfo>) -> Unit,
 ) {
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
         selectedFiles = selectedFilesFromState
-        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file?userName=$userName" }
-        getUrlForFileUpload = { "$sandboxApiUrl/upload-file?userName=$userName" }
+        getUrlForAvailableFilesFetch = { "$sandboxApiUrl/list-file" }
+        getUrlForFileUpload = { "$sandboxApiUrl/upload-file" }
         getUrlForFileDownload = { fileInfo ->
-            "$sandboxApiUrl/download-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/download-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         getUrlForFileDeletion = { fileInfo ->
-            "$sandboxApiUrl/delete-file?userName=$userName&fileName=${fileInfo.name}"
+            "$sandboxApiUrl/delete-file?fileName=${fileInfo.name.escapeIfNeeded()}"
         }
         fileInfoToPrettyPrint = { it.name }
         decodeFileInfoFromString = {
@@ -221,28 +221,33 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     }
 
     val (fileForUploading, setFileForUploading) = useState<File>()
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val uploadFile = useDeferredRequest {
-        fileForUploading?.let {
-            val response = post(
-                props.getUrlForFileUpload(),
-                Headers(),
-                FormData().apply {
-                    append("file", fileForUploading)
-                },
-                loadingHandler = ::noopLoadingHandler,
-            )
-                .let {
-                    props.decodeFileInfoFromString(it)
-                }
+        fileForUploading?.let { fileForUploading ->
+            if (!props.isSandboxMode || fileForUploading.name != FileType.SETUP_SH.fileName) {
+                val response = post(
+                    props.getUrlForFileUpload(),
+                    Headers(),
+                    FormData().apply {
+                        append("file", fileForUploading)
+                    },
+                    loadingHandler = ::noopLoadingHandler,
+                )
+                    .let {
+                        props.decodeFileInfoFromString(it)
+                    }
 
-            props.selectedFiles
-                .plus(response)
-                .distinctBy {
-                    props.fileInfoToPrettyPrint(it)
-                }
-                .let {
-                    props.setSelectedFiles(it)
-                }
+                props.selectedFiles
+                    .plus(response)
+                    .distinctBy {
+                        props.fileInfoToPrettyPrint(it)
+                    }
+                    .let {
+                        props.setSelectedFiles(it)
+                    }
+            } else {
+                window.alert("Use code editor instead of file uploader to manage ${fileForUploading.name}, please.")
+            }
         }
     }
 
@@ -251,47 +256,49 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             className = ClassName("list-group")
 
             // ===== SELECTED FILES =====
-            props.selectedFiles.map { file ->
-                li {
-                    className = ClassName("list-group-item")
-                    if (!props.isSandboxMode) {
+            props.selectedFiles
+                .filter { !props.isSandboxMode || it.name != FileType.SETUP_SH.fileName }
+                .map { file ->
+                    li {
+                        className = ClassName("list-group-item")
+                        if (!props.isSandboxMode) {
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn")
+                                fontAwesomeIcon(icon = faTimesCircle)
+                                onClick = {
+                                    props.setSelectedFiles(props.selectedFiles - file)
+                                    setAvailableFiles(availableFiles + file)
+                                }
+                            }
+                        }
+                        a {
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn")
+                                fontAwesomeIcon(icon = faDownload)
+                            }
+                            download = file.name
+                            href = props.getUrlForFileDownload(file)
+                        }
                         button {
                             type = ButtonType.button
                             className = ClassName("btn")
-                            fontAwesomeIcon(icon = faTimesCircle)
+                            fontAwesomeIcon(icon = faTrash)
                             onClick = {
-                                props.setSelectedFiles(props.selectedFiles - file)
-                                setAvailableFiles(availableFiles + file)
+                                val confirm = window.confirm(
+                                    "Are you sure you want to delete ${file.name} file?"
+                                )
+                                if (confirm) {
+                                    setFileToDelete(file)
+                                    deleteFile()
+                                }
                             }
                         }
-                    }
-                    a {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn")
-                            fontAwesomeIcon(icon = faDownload)
-                        }
-                        download = file.name
-                        href = props.getUrlForFileDownload(file)
-                    }
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn")
-                        fontAwesomeIcon(icon = faTrash)
-                        onClick = {
-                            val confirm = window.confirm(
-                                "Are you sure you want to delete ${file.name} file?"
-                            )
-                            if (confirm) {
-                                setFileToDelete(file)
-                                deleteFile()
-                            }
-                        }
-                    }
 
-                    +props.fileInfoToPrettyPrint(file)
+                        +props.fileInfoToPrettyPrint(file)
+                    }
                 }
-            }
 
             // ===== SELECTOR =====
             if (!props.isSandboxMode) {
