@@ -6,11 +6,11 @@
 
 package com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions
 
-import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.MANAGE
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.MESSAGE
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.PUBLISH
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.SUITE_SELECTOR_FOR_PUBLISH
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.SUITE_SELECTOR_FOR_RIGHTS
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.TRANSFER
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.testSuiteSelector
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
@@ -59,7 +59,12 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
     var closeModal: () -> Unit
 }
 
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 private fun ChildrenBuilder.displayPermissionManager(
     selectedTestSuites: List<TestSuiteDto>,
     organizationName: String,
@@ -69,6 +74,10 @@ private fun ChildrenBuilder.displayPermissionManager(
     setRequestedRights: (Rights) -> Unit,
 ) {
     div {
+        div {
+            className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+            +TRANSFER.purpose.orEmpty()
+        }
         div {
             className = ClassName("row mb-2")
             label {
@@ -127,7 +136,12 @@ private fun ChildrenBuilder.displayPermissionManager(
     }
 }
 
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "TOO_LONG_FUNCTION", "LongMethod")
+@Suppress(
+    "TOO_MANY_PARAMETERS",
+    "LongParameterList",
+    "TOO_LONG_FUNCTION",
+    "LongMethod"
+)
 private fun ChildrenBuilder.displayMassPermissionManager(
     selectedTestSuites: List<TestSuiteDto>,
     isToBePublic: Boolean,
@@ -135,6 +149,10 @@ private fun ChildrenBuilder.displayMassPermissionManager(
     setIsToBePublic: (Boolean) -> Unit,
 ) {
     div {
+        div {
+            className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
+            +PUBLISH.purpose.orEmpty()
+        }
         div {
             className = ClassName("row mb-2")
             label {
@@ -209,7 +227,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
 
     val (isToBePublic, setIsToBePublic) = useState(true)
 
-    val (currentMode, setCurrentMode) = useState(MANAGE)
+    val (currentMode, setCurrentMode) = useState(TRANSFER)
     val (backendResponseMessage, setBackendResponseMessage) = useState("")
     val sendTransferRequest = useDeferredRequest {
         val response = post(
@@ -245,7 +263,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
 
     val clearFields = {
         setSelectedTestSuites(emptyList())
-        setCurrentMode(MANAGE)
+        setCurrentMode(TRANSFER)
         setBackendResponseMessage("")
         setRequiredRights(Rights.NONE)
         setOrganizationName("")
@@ -256,12 +274,12 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         modalProps.isOpen = props.isModalOpen
         modalProps.style = largeTransparentModalStyle
         modalBuilder(
-            title = "Test Suite Permission Manager",
+            title = "Test Suite Permission Manager${currentMode.title?.let { " - $it" }}",
             classes = "modal-lg modal-dialog-scrollable",
             onCloseButtonPressed = { props.closeModal() },
             bodyBuilder = {
                 when (currentMode) {
-                    MANAGE -> displayPermissionManager(
+                    TRANSFER -> displayPermissionManager(
                         selectedTestSuites,
                         organizationName,
                         requiredRights,
@@ -286,7 +304,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             }
         ) {
             when (currentMode) {
-                MANAGE -> {
+                TRANSFER -> {
                     buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
                         sendTransferRequest()
                         setCurrentMode(MESSAGE)
@@ -296,7 +314,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
                     }
                 }
                 SUITE_SELECTOR_FOR_RIGHTS -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                    setCurrentMode(MANAGE)
+                    setCurrentMode(TRANSFER)
                 }
                 SUITE_SELECTOR_FOR_PUBLISH -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
                     setCurrentMode(PUBLISH)
@@ -307,20 +325,20 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
                         setCurrentMode(MESSAGE)
                     }
                     buttonBuilder("Transfers", style = "info") {
-                        setCurrentMode(MANAGE)
+                        setCurrentMode(TRANSFER)
                     }
                 }
                 else -> {}
             }
             buttonBuilder("Cancel", "secondary") {
                 when (currentMode) {
-                    MANAGE, PUBLISH, MESSAGE -> {
+                    TRANSFER, PUBLISH, MESSAGE -> {
                         clearFields()
                         props.closeModal()
                     }
                     SUITE_SELECTOR_FOR_RIGHTS -> {
                         setSelectedTestSuites(emptyList())
-                        setCurrentMode(MANAGE)
+                        setCurrentMode(TRANSFER)
                     }
                     SUITE_SELECTOR_FOR_PUBLISH -> {
                         setSelectedTestSuites(emptyList())

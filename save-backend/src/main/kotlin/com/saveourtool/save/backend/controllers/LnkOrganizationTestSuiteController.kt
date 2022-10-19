@@ -390,13 +390,13 @@ class LnkOrganizationTestSuiteController(
         description = "Make given test suites public or private.",
     )
     @Parameters(
-        Parameter(name = "isPublic", `in` = ParameterIn.PATH, description = "flag to make test suite public or private", required = true),
-        Parameter(name = "isPublic", `in` = ParameterIn.PATH, description = "flag to make test suite public or private", required = true),
+        Parameter(name = "ownerOrganizationName", `in` = ParameterIn.PATH, description = "name of an organization-maintainer", required = true),
+        Parameter(name = "isPublic", `in` = ParameterIn.QUERY, description = "flag to make test suite public or private", required = true),
     )
-    @ApiResponse(responseCode = "200", description = "Rights changed")
-    @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite rights")
-    @ApiResponse(responseCode = "404", description = "Requested organization, test suite or organization-maintainer doesn't exist")
-    fun changeVisibilityBatch(
+    @ApiResponse(responseCode = "200", description = "Visibility changed")
+    @ApiResponse(responseCode = "403", description = "Given organization has been forbidden to change given test suite visibility")
+    @ApiResponse(responseCode = "404", description = "Test suite or organization-maintainer doesn't exist")
+    fun changeTestSuiteVisibilityBatch(
         @PathVariable ownerOrganizationName: String,
         @RequestParam isPublic: Boolean,
         @RequestBody testSuiteIds: List<Long>,
@@ -420,19 +420,6 @@ class LnkOrganizationTestSuiteController(
                 .also {
                     testSuitesService.updateTestSuites(it)
                 }
-        }
-        .map {
-            val responseMessage: String = buildString {
-                append("Successfully made test suites ")
-                if (isPublic) {
-                    append("public.")
-                } else {
-                    append("private.")
-                }
-                // if (listOfFilteredOutTestSuiteIds.isNotEmpty()) {
-                // append("Test suites [${listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")}] were skipped.")
-                // }
-            }
             ResponseEntity.ok(
                 "Successfully made test suites ${if (isPublic) "public." else "private."}"
             )

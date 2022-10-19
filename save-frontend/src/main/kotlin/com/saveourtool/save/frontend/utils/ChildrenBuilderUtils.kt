@@ -38,6 +38,7 @@ enum class ConfirmationType {
  * @param isActive flag that defines whether button should be displayed as pressed or not
  * @param classes additional classes for button
  * @param onClickFun button click handler
+ * @param title title for tooltip
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.buttonBuilder(
@@ -47,6 +48,7 @@ fun ChildrenBuilder.buttonBuilder(
     isOutline: Boolean = false,
     isActive: Boolean = false,
     classes: String = "",
+    title: String? = null,
     onClickFun: MouseEventHandler<HTMLButtonElement>,
 ) {
     button {
@@ -64,6 +66,11 @@ fun ChildrenBuilder.buttonBuilder(
         className = ClassName("btn btn-$outline$style $active $classes")
         disabled = isDisabled
         onClick = onClickFun
+        title?.let {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
+        }
+        this.title = title
         +label
     }
 }

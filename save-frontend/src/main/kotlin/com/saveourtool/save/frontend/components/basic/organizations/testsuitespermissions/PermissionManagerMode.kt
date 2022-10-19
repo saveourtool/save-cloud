@@ -2,13 +2,10 @@ package com.saveourtool.save.frontend.components.basic.organizations.testsuitesp
 
 /**
  * Enum class that defines current state of [manageTestSuitePermissionsComponent] (mostly state of the modal inside component)
+ * @property title
+ * @property purpose
  */
-internal enum class PermissionManagerMode {
-    /**
-     * State when a modal with three input forms is shown: what, where and how to add.
-     */
-    MANAGE,
-
+internal enum class PermissionManagerMode(val title: String? = null, val purpose: String? = null) {
     /**
      * State when success (or error) message is shown.
      */
@@ -17,7 +14,10 @@ internal enum class PermissionManagerMode {
     /**
      * Make test suites public or private
      */
-    PUBLISH,
+    PUBLISH(
+        title = "Visibility mode",
+        purpose = "Make test suites private or public",
+    ),
 
     /**
      * Select test suites that should be managed in case of visibility.
@@ -28,5 +28,13 @@ internal enum class PermissionManagerMode {
      * Select test suites that should be managed in case of rights.
      */
     SUITE_SELECTOR_FOR_RIGHTS,
+
+    /**
+     * State when a modal with three input forms is shown: what, where and how to add.
+     */
+    TRANSFER(
+        title = "Transfer mode",
+        purpose = "Share test suites with selected organization",
+    ),
     ;
 }
