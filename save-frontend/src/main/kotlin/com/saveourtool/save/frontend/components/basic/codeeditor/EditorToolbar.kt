@@ -8,11 +8,8 @@ import com.saveourtool.save.frontend.externals.reactace.AceModes
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
-import com.saveourtool.save.frontend.utils.withUnusedArg
 import csstype.ClassName
 import react.ChildrenBuilder
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 
 private val toolbarCard = cardComponent(isBordered = true)
@@ -54,24 +51,11 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
             className = ClassName("input-group")
             div {
                 className = ClassName("input-group-prepend")
-
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-primary")
-                    onClick = onUploadChanges.withUnusedArg()
-                    fontAwesomeIcon(icon = faUpload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Save changes on server"
+                buttonBuilder(faUpload, isOutline = true, title = "Save changes on server") {
+                    onUploadChanges()
                 }
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-primary")
-                    onClick = onReloadChanges.withUnusedArg()
-                    fontAwesomeIcon(icon = faDownload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Load changes from server"
+                buttonBuilder(faDownload, isOutline = true, title = "Save changes on server") {
+                    onReloadChanges()
                 }
                 FileType.values().forEach { fileType ->
                     val buttonStyle = if (hasUncommittedChanges.getValue(fileType)) {
@@ -107,24 +91,11 @@ fun ChildrenBuilder.displayCodeEditorToolbar(
             }
             div {
                 className = ClassName("input-group-append")
-
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-info")
-                    onClick = onResultReload.withUnusedArg()
-                    fontAwesomeIcon(icon = faReload)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Fetch debug info"
+                buttonBuilder(faReload, style = "info", isOutline = true, title = "Fetch debug info") {
+                    onResultReload()
                 }
-                button {
-                    type = ButtonType.button
-                    className = ClassName("btn btn-outline-success")
-                    onClick = onRunExecution.withUnusedArg()
-                    fontAwesomeIcon(icon = faCaretSquareRight)
-                    asDynamic()["data-toggle"] = "tooltip"
-                    asDynamic()["data-placement"] = "top"
-                    title = "Run execution"
+                buttonBuilder(faCaretSquareRight, style = "success", isOutline = true, title = "Run execution") {
+                    onRunExecution()
                 }
             }
         }
