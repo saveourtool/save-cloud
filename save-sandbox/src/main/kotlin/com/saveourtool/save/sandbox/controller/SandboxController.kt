@@ -12,7 +12,7 @@ import com.saveourtool.save.sandbox.storage.SandboxStorage
 import com.saveourtool.save.sandbox.storage.SandboxStorageKey
 import com.saveourtool.save.sandbox.storage.SandboxStorageKeyType
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.userName
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.utils.*
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -142,7 +142,7 @@ class SandboxController(
             storage.download(it)
         }
         .switchIfEmptyToNotFound {
-            "There is no file $fileName for user ${authentication.userName()}"
+            "There is no file $fileName for user ${authentication.username()}"
         }
 
     @Operation(
@@ -279,7 +279,7 @@ class SandboxController(
             storage.download(SandboxStorageKey.debugInfoKey(userId))
         }
         .switchIfEmptyToNotFound {
-            "There is no DebugInfo for ${authentication.userName()}"
+            "There is no DebugInfo for ${authentication.username()}"
         }
 
     @Operation(

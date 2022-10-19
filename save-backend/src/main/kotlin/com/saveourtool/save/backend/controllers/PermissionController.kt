@@ -5,7 +5,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.PermissionService
 import com.saveourtool.save.backend.service.ProjectService
-import com.saveourtool.save.backend.utils.toUser
+import com.saveourtool.save.authservice.utils.toUser
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
