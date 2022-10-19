@@ -125,17 +125,18 @@ private fun ChildrenBuilder.buttonBuilder(
 ) {
     button {
         type = ButtonType.button
-        val outline = if (isOutline) {
-            "outline-"
-        } else {
-            ""
+        val builtClasses = buildString {
+            append("btn btn-")
+            if (isOutline) {
+                append("outline-")
+            }
+            append(style)
+            if (isActive) {
+                append(" active")
+            }
+            append(" $classes")
         }
-        val active = if (isActive) {
-            "active"
-        } else {
-            ""
-        }
-        className = ClassName("btn btn-$outline$style $active $classes")
+        className = ClassName(builtClasses)
         disabled = isDisabled
         onClick = onClickFun
         title?.let {
