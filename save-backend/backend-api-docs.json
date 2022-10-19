@@ -572,6 +572,104 @@
         ]
       }
     },
+    "/api/v1/test-suites/{ownerOrganizationName}/batch-change-visibility": {
+      "post": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Make given test suites public or private.",
+        "description": "Make given test suites public or private.",
+        "operationId": "changeVisibilityBatch",
+        "parameters": [
+          {
+            "name": "ownerOrganizationName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isPublic",
+            "in": "path",
+            "description": "flag to make test suite public or private",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Given organization has been forbidden to change given test suite rights",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Requested organization, test suite or organization-maintainer doesn\u0027t exist",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Rights changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/test-suites/{organizationName}/get-by-ids": {
       "post": {
         "tags": [
