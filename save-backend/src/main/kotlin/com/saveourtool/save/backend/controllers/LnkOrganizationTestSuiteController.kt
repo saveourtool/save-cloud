@@ -433,7 +433,9 @@ class LnkOrganizationTestSuiteController(
                 // append("Test suites [${listOfFilteredOutTestSuiteIds.sorted().joinToString(", ")}] were skipped.")
                 // }
             }
-            ResponseEntity.ok(responseMessage)
+            ResponseEntity.ok(
+                "Successfully made test suites ${if (isPublic) "public." else "private."}"
+            )
         }
 
     private fun getOrganizationIfParticipant(
