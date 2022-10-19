@@ -581,11 +581,12 @@
         ],
         "summary": "Make given test suites public or private.",
         "description": "Make given test suites public or private.",
-        "operationId": "changeVisibilityBatch",
+        "operationId": "changeTestSuiteVisibilityBatch",
         "parameters": [
           {
             "name": "ownerOrganizationName",
             "in": "path",
+            "description": "name of an organization-maintainer",
             "required": true,
             "schema": {
               "type": "string"
@@ -593,7 +594,7 @@
           },
           {
             "name": "isPublic",
-            "in": "path",
+            "in": "query",
             "description": "flag to make test suite public or private",
             "required": true,
             "schema": {
@@ -623,17 +624,7 @@
         },
         "responses": {
           "403": {
-            "description": "Given organization has been forbidden to change given test suite rights",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Requested organization, test suite or organization-maintainer doesn\u0027t exist",
+            "description": "Given organization has been forbidden to change given test suite visibility",
             "content": {
               "*/*": {
                 "schema": {
@@ -643,7 +634,17 @@
             }
           },
           "200": {
-            "description": "Rights changed",
+            "description": "Visibility changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test suite or organization-maintainer doesn\u0027t exist",
             "content": {
               "*/*": {
                 "schema": {
