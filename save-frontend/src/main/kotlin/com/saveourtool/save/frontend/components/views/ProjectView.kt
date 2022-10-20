@@ -426,6 +426,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
 
                 // ======== file selector =========
                 div {
+                    className = ClassName("mb-2")
                     label {
                         className =
                                 ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
@@ -509,12 +510,8 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center")
                     withNavigate { navigateContext ->
-                        button {
-                            type = ButtonType.button
-                            disabled = state.files.isEmpty()
-                            className = ClassName("btn btn-primary")
-                            onClick = { navigateContext.submitExecutionRequest() }
-                            +"Test the tool now"
+                        buttonBuilder("Test the tool now", isDisabled = isRunButtonDisabled()) {
+                            navigateContext.submitExecutionRequest()
                         }
                     }
                 }
@@ -599,20 +596,10 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
             className = ClassName(divClass)
-            button {
-                type = ButtonType.button
-                className =
-                        if (state.testingType == selectedTestingType) {
-                            ClassName("btn btn-primary")
-                        } else {
-                            ClassName("btn btn-outline-primary")
-                        }
-                onClick = {
-                    setState {
-                        testingType = selectedTestingType
-                    }
+            buttonBuilder(text, isOutline = true, isActive = state.testingType == selectedTestingType) {
+                setState {
+                    testingType = selectedTestingType
                 }
-                +text
             }
         }
     }
@@ -644,6 +631,10 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             }
         }
     }
+
+    private fun isRunButtonDisabled() = state.files.isEmpty() ||
+            (state.testingType == TestingType.PRIVATE_TESTS && state.selectedPrivateTestSuites.isEmpty()) ||
+            (state.testingType == TestingType.PUBLIC_TESTS && state.selectedPublicTestSuites.isEmpty())
 
     private suspend fun getContests() = get(
         "$apiUrl/contests/active",

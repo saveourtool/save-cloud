@@ -23,8 +23,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.option
-import react.dom.html.ReactHTML.select
 
 val testResourcesSelection = prepareTestResourcesSelection()
 
@@ -204,22 +202,16 @@ private fun ChildrenBuilder.renderForContestMode(
         div {
             className = ClassName("input-group-prepend")
 
-            select {
-                className = ClassName("form-control")
-                props.availableContests.forEach {
-                    option {
-                        +it.label()
-                    }
+            selectorBuilder(
+                props.selectedContest.label(),
+                props.availableContests.map { it.label() },
+                "form-control custom-select",
+            ) { event ->
+                val selectedContestLabel = event.target.value
+                val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
+                    "Invalid contest is selected $selectedContestLabel"
                 }
-                required = true
-                value = props.selectedContest.label()
-                onChange = { event ->
-                    val selectedContestLabel = event.target.value
-                    val selectedContest = requireNotNull(props.availableContests.find { it.label() == selectedContestLabel }) {
-                        "Invalid contest is selected $selectedContestLabel"
-                    }
-                    props.setSelectedContest(selectedContest)
-                }
+                props.setSelectedContest(selectedContest)
             }
         }
     }
