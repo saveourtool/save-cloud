@@ -154,6 +154,17 @@ class WebSecurityConfig(
                 },
                 SecurityWebFiltersOrder.HTTP_BASIC
             )
+            .exceptionHandling {
+                it.authenticationEntryPoint(
+                    HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
+                )
+            }
+            .csrf()
+            .disable()
+            .logout()
+            .disable()
+            .formLogin()
+            .disable()
             .build()
     }
 
