@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Instant
@@ -52,6 +53,12 @@ class TestsPreprocessorToBackendBridge(
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(BodyInserters.fromMultipartData("content", resourceWithContent))
         .retrieve()
+        .onStatus({ !it.is2xxSuccessful }) {
+            Mono.error(
+                IllegalStateException("Failed to upload test suite source snapshot",
+                    ResponseStatusException(it.statusCode()))
+            )
+        }
         .bodyToMono()
 
     /**
