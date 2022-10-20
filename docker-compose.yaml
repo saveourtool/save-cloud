@@ -150,6 +150,11 @@ services:
         constraints:
           - "node.role==manager"
 
+networks:
+  default:
+    driver: overlay
+    attachable: true
+
 volumes:
   save:
   save-fs-storage:
