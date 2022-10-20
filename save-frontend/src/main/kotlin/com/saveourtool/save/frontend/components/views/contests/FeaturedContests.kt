@@ -43,7 +43,7 @@ private fun ChildrenBuilder.carouselArrows() {
         }
         className = ClassName("carousel-control-prev ")
         href = "#contestCarousel"
-        role = AriaRole.button
+        role = "button".unsafeCast<AriaRole>()
         asDynamic()["data-slide"] = "prev"
         span {
             className = ClassName("carousel-control-prev-icon")
@@ -55,7 +55,7 @@ private fun ChildrenBuilder.carouselArrows() {
         }
         className = ClassName("carousel-control-next")
         href = "#contestCarousel"
-        role = AriaRole.button
+        role = "button".unsafeCast<AriaRole>()
         asDynamic()["data-slide"] = "next"
         span {
             className = ClassName("carousel-control-next-icon")
