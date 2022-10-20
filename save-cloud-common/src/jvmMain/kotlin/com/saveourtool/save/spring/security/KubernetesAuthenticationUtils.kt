@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.spring.security
 
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -8,6 +8,8 @@ import io.fabric8.kubernetes.client.utils.Serialization
 import org.intellij.lang.annotations.Language
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform
 import org.springframework.boot.cloud.CloudPlatform
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -19,6 +21,10 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+
+@Configuration
+@Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
+open class KubernetesAuthenticationUtils
 
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
@@ -38,7 +44,7 @@ class ServiceAccountTokenExtractorConverter : ServerAuthenticationConverter {
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 class ServiceAccountAuthenticatingManager(
-    val kubernetesClient: KubernetesClient,
+    private val kubernetesClient: KubernetesClient,
 ) : ReactiveAuthenticationManager {
     override fun authenticate(authentication: Authentication): Mono<Authentication> {
         return authentication.toMono()

@@ -6,12 +6,14 @@ package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.backend.utils.CustomAuthenticationBasicConverter
-import com.saveourtool.save.backend.utils.ServiceAccountAuthenticatingManager
-import com.saveourtool.save.backend.utils.ServiceAccountTokenExtractorConverter
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.spring.security.KubernetesAuthenticationUtils
+import com.saveourtool.save.spring.security.ServiceAccountAuthenticatingManager
+import com.saveourtool.save.spring.security.ServiceAccountTokenExtractorConverter
 import com.saveourtool.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -36,6 +38,7 @@ import javax.annotation.PostConstruct
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")
+@Import(KubernetesAuthenticationUtils::class)
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,

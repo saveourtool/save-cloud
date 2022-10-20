@@ -44,6 +44,7 @@ kotlin {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
+                implementation(libs.spring.security.web)
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
@@ -56,6 +57,7 @@ kotlin {
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
                 implementation(libs.swagger.annotations)
+                implementation(libs.fabric8.kubernetes.client)
             }
         }
         val jvmTest by getting {
