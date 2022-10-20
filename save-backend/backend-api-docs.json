@@ -2819,6 +2819,56 @@
         ]
       }
     },
+    "/api/v1/executionDtoList": {
+      "post": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getExecutionByProject",
+        "parameters": [
+          {
+            "name": "projectName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecutionFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/execution/delete": {
       "post": {
         "tags": [
@@ -5810,47 +5860,6 @@
         }
       }
     },
-    "/api/v1/executionDtoList": {
-      "get": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "getExecutionByProject",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "organizationName",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ExecutionDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/contests/{organizationName}/{projectName}/eligible-contests": {
       "get": {
         "tags": [
@@ -8371,6 +8380,138 @@
           }
         }
       },
+      "ExecutionFilters": {
+        "required": [
+          "startTime"
+        ],
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "$ref": "#/components/schemas/TripleIntegerIntegerInteger"
+          },
+          "endTime": {
+            "$ref": "#/components/schemas/TripleIntegerIntegerInteger"
+          }
+        }
+      },
+      "TripleIntegerIntegerInteger": {
+        "required": [
+          "first",
+          "second",
+          "third"
+        ],
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "second": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "third": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ExecutionDto": {
+        "required": [
+          "allTests",
+          "expectedChecks",
+          "failedTests",
+          "id",
+          "matchedChecks",
+          "passedTests",
+          "runningTests",
+          "skippedTests",
+          "startTime",
+          "status",
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "FINISHED",
+              "OBSOLETE",
+              "PENDING",
+              "RUNNING"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "runningTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "testSuiteSourceName": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ContestDto": {
         "required": [
           "name",
@@ -8689,102 +8830,6 @@
           },
           "content": {
             "$ref": "#/components/schemas/TestSuitesSourceDto"
-          }
-        }
-      },
-      "ExecutionDto": {
-        "required": [
-          "allTests",
-          "expectedChecks",
-          "failedTests",
-          "id",
-          "matchedChecks",
-          "passedTests",
-          "runningTests",
-          "skippedTests",
-          "startTime",
-          "status",
-          "type",
-          "unexpectedChecks",
-          "unmatchedChecks"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "FINISHED",
-              "OBSOLETE",
-              "PENDING",
-              "RUNNING"
-            ]
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CONTEST_MODE",
-              "PRIVATE_TESTS",
-              "PUBLIC_TESTS"
-            ]
-          },
-          "version": {
-            "type": "string"
-          },
-          "startTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "endTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "allTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "runningTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "passedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "failedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "skippedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "unmatchedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "matchedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "expectedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "unexpectedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "testSuiteSourceName": {
-            "type": "string"
-          },
-          "score": {
-            "type": "number",
-            "format": "double"
           }
         }
       },
