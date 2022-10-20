@@ -115,13 +115,12 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .flatMap { organization ->
             projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-                executionService.getExecutionByNameAndOrganization(name, organization).map {
-                    if (it.type == TestingType.CONTEST_MODE) {
-                        it.toDto().copy(contestName = lnkContestExecutionService.findContestByExecution(it)?.name)
-                    } else {
-                        it.toDto()
-                    }
-                }.reversed()
+                executionService.getExecutionByNameAndOrganization(name, organization).filter {
+                    it.type != TestingType.CONTEST_MODE
+                }.map {
+                    it.toDto()
+                }
+                    .reversed()
             }
         }
 
