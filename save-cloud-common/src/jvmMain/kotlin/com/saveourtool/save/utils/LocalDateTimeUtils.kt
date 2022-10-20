@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 /**
  * Utilities for LocalDateTime
  */
