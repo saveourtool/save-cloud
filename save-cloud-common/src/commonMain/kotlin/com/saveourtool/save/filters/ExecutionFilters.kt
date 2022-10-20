@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 /**
  * Aff filters in one property
- * @property startTime to filter by [startTime] execution
- * @property endTime to use filter by [endTime] execution
+ * @property startTime to filter by [startTime] execution formatting: <year, month, day>
+ * @property endTime to use filter by [endTime] execution formatting: <year, month, day>
  */
 @Serializable
 data class ExecutionFilters(
 
-    val startTime: Long?,
+    val startTime: Triple<Int, Int, Int>,
 
-    val endTime: Long?,
+    val endTime: Triple<Int, Int, Int>?,
 ) {
     companion object {
-        val empty = ExecutionFilters(endTime = null, startTime = null)
+        val empty = ExecutionFilters(startTime = Triple(1970, 0, 1), endTime = null)
     }
 }

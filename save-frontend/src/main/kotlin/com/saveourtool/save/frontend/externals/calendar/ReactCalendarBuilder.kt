@@ -12,15 +12,14 @@ import kotlin.js.Date
  * @param handler
  */
 fun ChildrenBuilder.calendar(
-    // defaultValue: Array<Date>,
     onChange: (Date, Event) -> Unit,
     handler: ChildrenBuilder.(ReactCalendarProps) -> Unit = {},
 ) {
     kotlinext.js.require("react-calendar/dist/Calendar.css")
     ReactCalendar::class.react {
-        // this.defaultValue = defaultValue
         this.onChange = onChange
         this.showNeighboringMonth = false
+        this.locale = "en-EN"
         handler(this)
     }
 }

@@ -16,7 +16,10 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.filters.ExecutionFilters
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.createLocalDateTime
+import com.saveourtool.save.utils.getEndLocalDateTime
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
@@ -33,6 +36,8 @@ import reactor.core.publisher.GroupedFlux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -98,30 +103,46 @@ class ExecutionController(private val executionService: ExecutionService,
                 .map { it.toDto() }
 
     /**
-     * @param name
+     * @param projectName
      * @param authentication
      * @param organizationName
+     * @param filters
      * @return list of execution dtos
      */
-    @GetMapping(path = ["/api/$v1/executionDtoList"])
+    @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
+    @PostMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(
-        @RequestParam name: String,
+        @RequestParam projectName: String,
         @RequestParam organizationName: String,
+        @RequestBody(required = false) filters: ExecutionFilters?,
         authentication: Authentication,
     ): Mono<List<ExecutionDto>> = organizationService.findByName(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
             "Organization with name [$organizationName] was not found."
         }
-        .flatMap { organization ->
-            projectService.findWithPermissionByNameAndOrganization(authentication, name, organization.name, Permission.READ).map {
-                executionService.getExecutionByNameAndOrganization(name, organization).filter {
-                    it.type != TestingType.CONTEST_MODE
-                }.map {
-                    it.toDto()
-                }
-                    .reversed()
+        .zipWhen { organization ->
+            projectService.findWithPermissionByNameAndOrganization(authentication, projectName, organization.name, Permission.READ)
+        }
+        .map { (organization, _) ->
+            filters?.let {
+                val startTime = createLocalDateTime(filters.startTime)
+                val endTime = filters.endTime?.let { createLocalDateTime(it) } ?: getEndLocalDateTime(filters.startTime)
+                executionService.getExecutionByNameAndOrganizationAndStartTimeBetween(
+                    projectName,
+                    organization,
+                    startTime,
+                    endTime
+                )
+            } ?: executionService.getExecutionByNameAndOrganization(projectName, organization)
+        }
+        .map {
+            it.filter {execution ->
+                execution.type != TestingType.CONTEST_MODE
+            }.map { execution ->
+                execution.toDto()
             }
+                .reversed()
         }
 
     /**

@@ -70,4 +70,18 @@ external interface ReactCalendarProps : PropsWithChildren {
      * or doesn't end on the last day of the week, respectively.
      */
     var showNeighboringMonth: Boolean
+
+    /**
+     * Locale that should be used by the calendar.
+     * Can be any IETF language tag.
+     */
+    var locale: String
+
+    /**
+     * Type of calendar that should be used. Can be "ISO 8601", "US", "Arabic", or "Hebrew".
+     * Setting to "US" or "Hebrew" will change the first day of the week to Sunday.
+     * Setting to "Arabic" will change the first day of the week to Saturday.
+     * Setting to "Arabic" or "Hebrew" will make weekends appear on Friday to Saturday.
+     */
+    var calendarType: String
 }

@@ -34,10 +34,15 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.table.columns
 
+import kotlin.js.Date
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.js.jso
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * [Props] for tests execution history
@@ -87,6 +92,11 @@ external interface HistoryViewState : State {
      * Label of confirm Window
      */
     var confirmLabel: String
+
+    /**
+     * All filters in one value [filters]
+     */
+    var filters: ExecutionFilters
 }
 
 /**
@@ -96,7 +106,7 @@ external interface FiltersProps<D : Any> : TableProps<D> {
     /**
      * All filters in one value [filters]
      */
-    var filters: ExecutionFilters
+    var filters: ExecutionFilters?
 }
 
 /**
@@ -104,12 +114,13 @@ external interface FiltersProps<D : Any> : TableProps<D> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
+@Suppress(
+    "MAGIC_NUMBER",
+    "TYPE_ALIAS",
+    "GENERIC_VARIABLE_WRONG_DECLARATION",
+)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
-    @Suppress(
-        "MAGIC_NUMBER",
-        "TYPE_ALIAS",
-    )
-    private val executionsTable: FC<TableProps<ExecutionDto>> = tableComponent(
+    private val executionsTable = tableComponent<ExecutionDto, FiltersProps<ExecutionDto>>(
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
@@ -263,6 +274,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
+        },
+        getAdditionalDependencies = {
+            arrayOf(it.filters)
         }
     )
     init {
@@ -327,10 +341,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                 div {
                     className = ClassName("card shadow mb-4")
                     calendar(
-                        onChange = { d, _ ->
-                            println("this day is ${d.getDate()}, month: ${d.getMonth()}, year: ${d.getFullYear()}")
+                        onChange = { date, _ ->
+                            setState {
+                                filters = createFilter(date)
+                            }
                         }
-                        // defaultValue = arrayOf(Date(2022, 9, 12), Date())
                     )
                 }
             }
@@ -338,16 +353,21 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             div {
                 className = ClassName("col-9")
                 executionsTable {
+                    filters = state.filters
                     tableHeader = "Executions details"
                     getData = { _, _ ->
-                        get(
+                        post(
                             url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
                             headers = jsonHeaders,
-                            loadingHandler = ::classLoadingHandler
-                        )
-                            .unsafeMap {
-                                it.decodeFromJsonString<Array<ExecutionDto>>()
-                            }
+                            body = filters?.let { Json.encodeToString(filters) } ?: undefined,
+                            loadingHandler = ::classLoadingHandler,
+                        ).unsafeMap {
+                            Json.decodeFromString<Array<ExecutionDto>>(
+                                it.text().await()
+                            )
+                        }.apply {
+                            asDynamic().debugInfo = null
+                        }
                     }
                     getPageCount = null
                 }
@@ -360,6 +380,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
             .toString()
             .replace("[TZ]".toRegex(), " ")
     }
+
+    private fun createFilter(date: Date): ExecutionFilters = ExecutionFilters(
+        startTime = Triple(date.getFullYear(), date.getMonth(), date.getDate()),
+        endTime = null
+    )
 
     private fun deleteExecutions() {
         setState {
