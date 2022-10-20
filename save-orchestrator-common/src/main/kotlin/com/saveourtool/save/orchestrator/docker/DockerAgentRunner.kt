@@ -192,9 +192,6 @@ class DockerAgentRunner(
             )
             .withHostConfig(
                 HostConfig.newHostConfig()
-                    .run {
-                        System.getenv("DOCKER_NETWORK_NAME")?.let(::withNetworkMode) ?: this
-                    }
                     .withRuntime(settings.runtime)
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
@@ -227,6 +224,13 @@ class DockerAgentRunner(
             envFileTargetPath.substringBeforeLast("/"),
             listOf(envFile.toFile())
         )
+
+        System.getenv("DOCKER_NETWORK_NAME")?.let { networkName ->
+            dockerClient.connectToNetworkCmd()
+                .withContainerId(containerId)
+                .withNetworkId(networkName)
+                .exec()
+        }
 
         return containerId
     }
