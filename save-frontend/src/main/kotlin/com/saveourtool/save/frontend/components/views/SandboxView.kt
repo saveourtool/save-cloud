@@ -198,14 +198,9 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
                     role = "alert".unsafeCast<AriaRole>()
                     div {
                         displayTestResultDebugInfoStatus(debugInfo)
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-link p-0")
-                            +"See more details..."
-                            onClick = {
-                                setState {
-                                    isModalOpen = true
-                                }
+                        buttonBuilder("See more details...", "link", classes = "p-0") {
+                            setState {
+                                isModalOpen = true
                             }
                         }
                     }

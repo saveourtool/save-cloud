@@ -12,6 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.orchestrator.managementPort }}
     orchestrator.agent-settings.orchestrator-url=http://{{ .Values.orchestrator.name }}
     orchestrator.agent-settings.backend-url=http://{{ .Values.backend.name }}
     orchestrator.agent-settings.debug=true
