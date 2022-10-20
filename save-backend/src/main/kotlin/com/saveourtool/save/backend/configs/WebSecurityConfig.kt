@@ -109,32 +109,6 @@ class WebSecurityConfig(
         defaultMethodSecurityExpressionHandler.setRoleHierarchy(roleHierarchy())
     }
 
-    companion object {
-        /**
-         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
-         * because it won't allow us to configure authenticated access to all other endpoints by default.
-         * Or we can use custom AccessDecisionManager later.
-         */
-        internal val publicEndpoints = listOf(
-            "/error",
-            // `CollectionView` is a public page
-            "/api/$v1/projects/not-deleted",
-            "/api/$v1/awesome-benchmarks",
-            "/api/$v1/check-git-connectivity-adaptor",
-            // `OrganizationView` is a public page
-            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
-            "/api/$v1/organizations/**",
-            "/api/$v1/projects/get/projects-by-organization",
-            // `ContestListView` and `ContestView` are public pages
-            "/api/$v1/contests/*",
-            "/api/$v1/contests/active",
-            "/api/$v1/contests/finished",
-            "/api/$v1/contests/*/public-test",
-            "/api/$v1/contests/*/scores",
-            "/api/$v1/contests/*/*/best",
-        )
-    }
-
     @Profile("kubernetes")
     @Bean
     @Order(2)
@@ -174,6 +148,32 @@ class WebSecurityConfig(
             .permitAll()
             .and()
             .build()
+    }
+
+    companion object {
+        /**
+         * These endpoints will have `permitAll` enabled on them. We can't selectively put `@PreAuthorize("permitAll")` in the code,
+         * because it won't allow us to configure authenticated access to all other endpoints by default.
+         * Or we can use custom AccessDecisionManager later.
+         */
+        internal val publicEndpoints = listOf(
+            "/error",
+            // `CollectionView` is a public page
+            "/api/$v1/projects/not-deleted",
+            "/api/$v1/awesome-benchmarks",
+            "/api/$v1/check-git-connectivity-adaptor",
+            // `OrganizationView` is a public page
+            // fixme: when we will want to make organizations accessible for everyone, wi will need to add more endpoints here
+            "/api/$v1/organizations/**",
+            "/api/$v1/projects/get/projects-by-organization",
+            // `ContestListView` and `ContestView` are public pages
+            "/api/$v1/contests/*",
+            "/api/$v1/contests/active",
+            "/api/$v1/contests/finished",
+            "/api/$v1/contests/*/public-test",
+            "/api/$v1/contests/*/scores",
+            "/api/$v1/contests/*/*/best",
+        )
     }
 }
 

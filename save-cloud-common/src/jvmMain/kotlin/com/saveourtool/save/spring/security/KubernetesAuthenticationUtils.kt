@@ -1,7 +1,12 @@
+/**
+ * Utilities to configure Kubernetes ServiceAccount token-based authentication in Spring Security.
+ */
+
 package com.saveourtool.save.spring.security
 
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
+
 import io.fabric8.kubernetes.api.model.authentication.TokenReview
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.utils.Serialization
@@ -15,8 +20,8 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
-import org.springframework.security.core.Authentication
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
@@ -27,85 +32,101 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
+const val SA_HEADER_NAME = "X-Service-Account-Token"
+
+/**
+ * A Configuration class that can be used to import all related beans to set up Spring Security
+ * to work with Kubernetes ServiceAccount tokens.
+ */
 @Configuration
 @Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
 open class KubernetesAuthenticationUtils
 
-fun ServerHttpSecurity.serviceAccountTokenAuthentication(
-    serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
-    serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
-): ServerHttpSecurity = addFilterBefore(
-        AuthenticationWebFilter(serviceAccountAuthenticatingManager).apply {
-            setServerAuthenticationConverter(serviceAccountTokenExtractorConverter)
-        },
-        SecurityWebFiltersOrder.HTTP_BASIC
-    )
-        .exceptionHandling {
-            it.authenticationEntryPoint(
-                HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
-            )
-        }
-
+/**
+ * A [ServerAuthenticationConverter] that attempts to convert a [ServerWebExchange] to an [Authentication]
+ * if it encounters a SA token in [SA_HEADER_NAME] header.
+ */
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 class ServiceAccountTokenExtractorConverter : ServerAuthenticationConverter {
-    override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
-        return Mono.justOrEmpty(
-            exchange.request.headers["X-Service-Account-Token"]?.firstOrNull()
-        ).map { token ->
-            logger.debug { "Starting to process `X-Service-Account-Token` of an incoming request" }
-            PreAuthenticatedAuthenticationToken("TokenSupplier", token)
-        }
-    }
-
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountTokenExtractorConverter>()
+    override fun convert(exchange: ServerWebExchange): Mono<Authentication> = Mono.justOrEmpty(
+        exchange.request.headers["X-Service-Account-Token"]?.firstOrNull()
+    ).map { token ->
+        logger.debug { "Starting to process `X-Service-Account-Token` of an incoming request" }
+        PreAuthenticatedAuthenticationToken("TokenSupplier", token)
+    }
 }
 
+/**
+ * A [ReactiveAuthenticationManager] that is intended to be used together with [ServerAuthenticationConverter].
+ * Attempts to authenticate an [Authentication] validating ServiceAccount token using TokeReview API.
+ */
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 class ServiceAccountAuthenticatingManager(
     private val kubernetesClient: KubernetesClient,
 ) : ReactiveAuthenticationManager {
-    override fun authenticate(authentication: Authentication): Mono<Authentication> {
-        return authentication.toMono()
-            .filter { it is PreAuthenticatedAuthenticationToken }
-            .map {
-                val token = it.credentials
-                @Language("yaml")
-                val tokenReview = """
-                    |apiVersion: authentication.k8s.io/v1
-                    |kind: TokenReview
-                    |metadata:
-                    |  name: service-account-validity-check
-                    |  namespace: ${kubernetesClient.namespace}
-                    |spec:
-                    |  token: $token
-                """.trimMargin()
-                logger.debug {
-                    "Will create k8s resource from the following YAML:\n${tokenReview.prependIndent("    ")}"
-                }
-                val response = kubernetesClient.resource(tokenReview).createOrReplace() as TokenReview
-                logger.debug {
-                    "Got the following response from the API server:\n${
-                        Serialization.yamlMapper().writeValueAsString(response).prependIndent("    ")
-                    }"
-                }
-                response
-            }
-            .filter { response ->
-                val isAuthenticated = response.status.error.isNullOrEmpty() && response.status.authenticated
-                logger.debug { "After the response from TokenReview, request authentication is $isAuthenticated" }
-                isAuthenticated
-            }
-            .map<Authentication> {
-                with (authentication) {
-                    UsernamePasswordAuthenticationToken.authenticated(principal, credentials, authorities)
-                }
-            }
-            .switchIfEmpty {
-                Mono.error { BadCredentialsException("Invalid token") }
-            }
-    }
-
+    @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val logger = getLogger<ServiceAccountAuthenticatingManager>()
+    override fun authenticate(authentication: Authentication): Mono<Authentication> = authentication.toMono()
+        .filter { it is PreAuthenticatedAuthenticationToken }
+        .map { preAuthenticatedAuthenticationToken ->
+            val tokenReview = tokenReviewSpec(preAuthenticatedAuthenticationToken.credentials as String)
+            logger.debug {
+                "Will create k8s resource from the following YAML:\n${tokenReview.prependIndent("    ")}"
+            }
+            val response = kubernetesClient.resource(tokenReview).createOrReplace() as TokenReview
+            logger.debug {
+                "Got the following response from the API server:\n${
+                    Serialization.yamlMapper().writeValueAsString(response).prependIndent("    ")
+                }"
+            }
+            response
+        }
+        .filter { response ->
+            val isAuthenticated = response.status.error.isNullOrEmpty() && response.status.authenticated
+            logger.debug { "After the response from TokenReview, request authentication is $isAuthenticated" }
+            isAuthenticated
+        }
+        .map<Authentication> {
+            with(authentication) {
+                UsernamePasswordAuthenticationToken.authenticated(principal, credentials, authorities)
+            }
+        }
+        .switchIfEmpty {
+            Mono.error { BadCredentialsException("Invalid token") }
+        }
+
+    @Language("YAML")
+    private fun tokenReviewSpec(token: String): String = """
+                |apiVersion: authentication.k8s.io/v1
+                |kind: TokenReview
+                |metadata:
+                |  name: service-account-validity-check
+                |  namespace: ${kubernetesClient.namespace}
+                |spec:
+                |  token: $token
+            """.trimMargin()
 }
+
+/**
+ * Configures authentication and authorization using Kubernetes ServiceAccount tokens.
+ * This method requires two beans which can be imported with [KubernetesAuthenticationUtils] configuration class.
+ */
+@Suppress("KDOC_WITHOUT_PARAM_TAG", "KDOC_WITHOUT_RETURN_TAG")
+fun ServerHttpSecurity.serviceAccountTokenAuthentication(
+    serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
+    serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
+): ServerHttpSecurity = addFilterBefore(
+    AuthenticationWebFilter(serviceAccountAuthenticatingManager).apply {
+        setServerAuthenticationConverter(serviceAccountTokenExtractorConverter)
+    },
+    SecurityWebFiltersOrder.HTTP_BASIC
+)
+    .exceptionHandling {
+        it.authenticationEntryPoint(
+            HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
+        )
+    }
