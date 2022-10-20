@@ -8785,9 +8785,6 @@
           "score": {
             "type": "number",
             "format": "double"
-          },
-          "contestName": {
-            "type": "string"
           }
         }
       },

@@ -66,7 +66,7 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
 
                         div {
                             className = ClassName("row mb-2")
-                            featuredContest()
+                            welcomeContest()
                             newContestsCard()
                         }
 
@@ -74,7 +74,6 @@ class ContestListView : AbstractView<ContestListViewProps, ContestListViewState>
                             className = ClassName("row mb-2")
                             yourContests()
                             statistics()
-                            proposeContest()
                         }
 
                         div {
