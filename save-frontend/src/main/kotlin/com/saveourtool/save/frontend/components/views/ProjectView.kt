@@ -436,16 +436,12 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                         state.files,
                         { fileToAdd ->
                             setState {
-                                files = files.toMutableList().apply {
-                                    add(fileToAdd)
-                                }.toList()
+                                files = files + fileToAdd
                             }
                         }
                     ) { fileToRemove ->
                         setState {
-                            files = files.toMutableList().apply {
-                                remove(fileToRemove)
-                            }
+                            files = files - fileToRemove
                         }
                     }
                 }

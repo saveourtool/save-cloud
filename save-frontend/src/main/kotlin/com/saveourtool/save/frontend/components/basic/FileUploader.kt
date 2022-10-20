@@ -203,7 +203,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     val (availableFiles, setAvailableFiles) = useState<List<F>>(emptyList())
 
     val (bytesReceived, setBytesReceived) = useState(0L)
-    val (bytesInGeneral, setBytesInGeneral) = useState(0L)
+    val (bytesTotal, setBytesTotal) = useState(0L)
 
     useRequest {
         val listOfFileInfos = get(
@@ -218,7 +218,6 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             listOfFileInfos.forEach {
                 props.addSelectedFile(it)
             }
-            // props.setSelectedFiles(listOfFileInfos)
         } else {
             setAvailableFiles(listOfFileInfos)
         }
@@ -237,7 +236,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             if (response.ok) {
                 props.removeSelectedFile(fileToDelete)
                 setBytesReceived(bytesReceived - fileToDelete.sizeBytes)
-                setBytesInGeneral(bytesInGeneral - fileToDelete.sizeBytes)
+                setBytesTotal(bytesTotal - fileToDelete.sizeBytes)
                 setFileToDelete(null)
             }
         }
@@ -346,7 +345,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                             props.addSelectedFile(availableFile)
                             setAvailableFiles(availableFiles - availableFile)
                             setBytesReceived(bytesReceived + availableFile.sizeBytes)
-                            setBytesInGeneral(bytesInGeneral + availableFile.sizeBytes)
+                            setBytesTotal(bytesTotal + availableFile.sizeBytes)
                         }
                     }
                 }
@@ -364,7 +363,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                         onChange = { event ->
                             event.target.files!!.asList()
                                 .also { filesToUpload ->
-                                    setBytesInGeneral(filesToUpload.sumOf { it.size.toLong() })
+                                    setBytesTotal(filesToUpload.sumOf { it.size.toLong() })
                                 }
                                 .let { setFilesForUploading(it) }
                             uploadFiles()
@@ -378,20 +377,20 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                 }
             }
 
-            if (!props.isSandboxMode && (bytesReceived < bytesInGeneral)) {
+            if (!props.isSandboxMode && (bytesReceived < bytesTotal)) {
                 div {
                     className = ClassName("progress")
                     div {
                         className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
                         role = "progressbar".unsafeCast<AriaRole>()
                         style = jso {
-                            width = if (bytesInGeneral != 0L) {
-                                "${ (100 * bytesReceived / bytesInGeneral) }%"
+                            width = if (bytesTotal != 0L) {
+                                "${ (100 * bytesReceived / bytesTotal) }%"
                             } else {
                                 "100%"
                             }.unsafeCast<Width>()
                         }
-                        +"${ bytesReceived / 1024 } / ${ bytesInGeneral / 1024 } kb"
+                        +"${ bytesReceived / 1024 } / ${ bytesTotal / 1024 } kb"
                     }
                 }
             }

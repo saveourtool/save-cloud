@@ -233,12 +233,12 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
                 state.files,
                 { fileToAdd ->
                     setState {
-                        files = files.toMutableList().apply { add(fileToAdd) }.toList()
+                        files = files + fileToAdd
                     }
                 }
             ) { fileToDelete ->
                 setState {
-                    files = files.toMutableList().apply { remove(fileToDelete) }.toList()
+                    files = files - fileToDelete
                 }
             }
         }
