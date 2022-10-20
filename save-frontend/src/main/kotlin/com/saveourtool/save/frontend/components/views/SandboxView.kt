@@ -225,10 +225,15 @@ class SandboxView : AbstractView<Props, SandboxViewState>(true) {
         div {
             className = ClassName("col-6")
             fileUploaderForSandbox(
-                state.files
-            ) { selectedFiles ->
+                state.files,
+                { fileToAdd ->
+                    setState {
+                        files = files + fileToAdd
+                    }
+                }
+            ) { fileToDelete ->
                 setState {
-                    files = selectedFiles
+                    files = files - fileToDelete
                 }
             }
         }
