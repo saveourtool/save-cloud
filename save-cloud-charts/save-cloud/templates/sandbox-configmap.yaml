@@ -12,6 +12,7 @@ data:
 
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.sandbox.managementPort }}
     sandbox.agent-settings.orchestrator-url=http://{{ .Values.sandbox.name }}
     sandbox.agent-settings.backend-url=http://{{ .Values.sandbox.name }}
     sandbox.agent-settings.debug=true
