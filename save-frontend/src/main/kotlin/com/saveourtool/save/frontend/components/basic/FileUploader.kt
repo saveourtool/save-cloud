@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import csstype.ClassName
+import csstype.Width
 import io.ktor.http.escapeIfNeeded
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
@@ -22,6 +23,7 @@ import org.w3c.fetch.Response
 import org.w3c.files.File
 import org.w3c.xhr.FormData
 import react.*
+import react.dom.aria.AriaRole
 import react.dom.html.ButtonType
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.a
@@ -39,6 +41,7 @@ import kotlinx.browser.window
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.js.jso
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val fileUploaderOverFileInfo = fileUploader<FileInfo>()
@@ -56,9 +59,14 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
     var selectedFiles: List<F>
 
     /**
-     * Callback to update [selectedFiles]
+     * Callback to add file to [selectedFiles]
      */
-    var setSelectedFiles: (List<F>) -> Unit
+    var addSelectedFile: (F) -> Unit
+
+    /**
+     * Callback to remove file from [selectedFiles]
+     */
+    var removeSelectedFile: (F) -> Unit
 
     /**
      * Url for fetching existing in storage files
@@ -103,11 +111,13 @@ external interface UploaderProps<F : AbstractFileInfo> : PropsWithChildren {
 
 /**
  * @param selectedFilesFromState
- * @param selectedFilesStateSetter
+ * @param addSelectedFile
+ * @param removeSelectedFile
  */
 fun ChildrenBuilder.fileUploaderForSandbox(
     selectedFilesFromState: List<SandboxFileInfo>,
-    selectedFilesStateSetter: (List<SandboxFileInfo>) -> Unit,
+    addSelectedFile: (SandboxFileInfo) -> Unit,
+    removeSelectedFile: (SandboxFileInfo) -> Unit,
 ) {
     fileUploaderOverSandboxFileInfo {
         isSandboxMode = true
@@ -127,7 +137,8 @@ fun ChildrenBuilder.fileUploaderForSandbox(
         decodeListOfFileInfosFromString = {
             it.decodeFromJsonString()
         }
-        setSelectedFiles = selectedFilesStateSetter
+        this.addSelectedFile = addSelectedFile
+        this.removeSelectedFile = removeSelectedFile
     }
 }
 
@@ -136,12 +147,14 @@ fun ChildrenBuilder.fileUploaderForSandbox(
  *
  * @param projectCoordinates
  * @param selectedFilesFromState
- * @param selectedFilesStateSetter
+ * @param addSelectedFile
+ * @param removeSelectedFile
  */
 fun ChildrenBuilder.fileUploaderForProjectRun(
     projectCoordinates: ProjectCoordinates,
     selectedFilesFromState: List<FileInfo>,
-    selectedFilesStateSetter: (List<FileInfo>) -> Unit,
+    addSelectedFile: (FileInfo) -> Unit,
+    removeSelectedFile: (FileInfo) -> Unit,
 ) {
     fileUploaderOverFileInfo {
         isSandboxMode = false
@@ -172,7 +185,8 @@ fun ChildrenBuilder.fileUploaderForProjectRun(
         decodeListOfFileInfosFromString = {
             it.decodeFromJsonString()
         }
-        setSelectedFiles = selectedFilesStateSetter
+        this.addSelectedFile = addSelectedFile
+        this.removeSelectedFile = removeSelectedFile
     }
 }
 
@@ -187,6 +201,10 @@ fun ChildrenBuilder.fileUploaderForProjectRun(
 )
 fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
     val (availableFiles, setAvailableFiles) = useState<List<F>>(emptyList())
+
+    val (bytesReceived, setBytesReceived) = useState(0L)
+    val (bytesInGeneral, setBytesInGeneral) = useState(0L)
+
     useRequest {
         val listOfFileInfos = get(
             props.getUrlForAvailableFilesFetch(),
@@ -197,7 +215,10 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                 props.decodeListOfFileInfosFromString(it)
             }
         if (props.isSandboxMode) {
-            props.setSelectedFiles(listOfFileInfos)
+            listOfFileInfos.forEach {
+                props.addSelectedFile(it)
+            }
+            // props.setSelectedFiles(listOfFileInfos)
         } else {
             setAvailableFiles(listOfFileInfos)
         }
@@ -214,16 +235,18 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
             )
 
             if (response.ok) {
-                props.setSelectedFiles(props.selectedFiles - fileToDelete)
+                props.removeSelectedFile(fileToDelete)
+                setBytesReceived(bytesReceived - fileToDelete.sizeBytes)
+                setBytesInGeneral(bytesInGeneral - fileToDelete.sizeBytes)
                 setFileToDelete(null)
             }
         }
     }
 
-    val (fileForUploading, setFileForUploading) = useState<File>()
+    val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    val uploadFile = useDeferredRequest {
-        fileForUploading?.let { fileForUploading ->
+    val uploadFiles = useDeferredRequest {
+        filesForUploading.forEach { fileForUploading ->
             if (!props.isSandboxMode || fileForUploading.name != FileType.SETUP_SH.fileName) {
                 val response = post(
                     props.getUrlForFileUpload(),
@@ -231,20 +254,14 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     FormData().apply {
                         append("file", fileForUploading)
                     },
-                    loadingHandler = ::noopLoadingHandler,
+                    loadingHandler = if (props.isSandboxMode) ::loadingHandler else ::noopLoadingHandler,
                 )
                     .let {
                         props.decodeFileInfoFromString(it)
                     }
 
-                props.selectedFiles
-                    .plus(response)
-                    .distinctBy {
-                        props.fileInfoToPrettyPrint(it)
-                    }
-                    .let {
-                        props.setSelectedFiles(it)
-                    }
+                setBytesReceived { it + response.sizeBytes }
+                props.addSelectedFile(response)
             } else {
                 window.alert("Use code editor instead of file uploader to manage ${fileForUploading.name}, please.")
             }
@@ -267,7 +284,7 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                                 className = ClassName("btn")
                                 fontAwesomeIcon(icon = faTimesCircle)
                                 onClick = {
-                                    props.setSelectedFiles(props.selectedFiles - file)
+                                    props.removeSelectedFile(file)
                                     setAvailableFiles(availableFiles + file)
                                 }
                             }
@@ -326,8 +343,10 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                             val availableFile = availableFiles.first {
                                 props.fileInfoToPrettyPrint(it) == event.target.value
                             }
-                            props.setSelectedFiles(props.selectedFiles + availableFile)
+                            props.addSelectedFile(availableFile)
                             setAvailableFiles(availableFiles - availableFile)
+                            setBytesReceived(bytesReceived + availableFile.sizeBytes)
+                            setBytesInGeneral(bytesInGeneral + availableFile.sizeBytes)
                         }
                     }
                 }
@@ -340,13 +359,15 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     className = ClassName("btn btn-outline-secondary m-0")
                     input {
                         type = InputType.file
-                        multiple = false
+                        multiple = !props.isSandboxMode
                         hidden = true
                         onChange = { event ->
                             event.target.files!!.asList()
-                                .single()
-                                .let { setFileForUploading(it) }
-                            uploadFile()
+                                .also { filesToUpload ->
+                                    setBytesInGeneral(filesToUpload.sumOf { it.size.toLong() })
+                                }
+                                .let { setFilesForUploading(it) }
+                            uploadFiles()
                         }
                     }
                     fontAwesomeIcon(icon = faUpload)
@@ -354,6 +375,24 @@ fun <F : AbstractFileInfo> fileUploader() = FC<UploaderProps<F>> { props ->
                     asDynamic()["data-placement"] = "top"
                     title = "Regular files/Executable files/ZIP Archives"
                     strong { +" Upload files " }
+                }
+            }
+
+            if (!props.isSandboxMode && (bytesReceived < bytesInGeneral)) {
+                div {
+                    className = ClassName("progress")
+                    div {
+                        className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
+                        role = "progressbar".unsafeCast<AriaRole>()
+                        style = jso {
+                            width = if (bytesInGeneral != 0L) {
+                                "${ (100 * bytesReceived / bytesInGeneral) }%"
+                            } else {
+                                "100%"
+                            }.unsafeCast<Width>()
+                        }
+                        +"${ bytesReceived / 1024 } / ${ bytesInGeneral / 1024 } kb"
+                    }
                 }
             }
         }

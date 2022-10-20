@@ -431,9 +431,21 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                                 ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
                         +"1. Upload or select the tool (and other resources) for testing:"
                     }
-                    fileUploaderForProjectRun(ProjectCoordinates(props.owner, props.name), state.files) { newFiles ->
+                    fileUploaderForProjectRun(
+                        ProjectCoordinates(props.owner, props.name),
+                        state.files,
+                        { fileToAdd ->
+                            setState {
+                                files = files.toMutableList().apply {
+                                    add(fileToAdd)
+                                }.toList()
+                            }
+                        }
+                    ) { fileToRemove ->
                         setState {
-                            files = newFiles
+                            files = files.toMutableList().apply {
+                                remove(fileToRemove)
+                            }
                         }
                     }
                 }
