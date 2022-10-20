@@ -21,11 +21,11 @@ jobs:
         # This should replicate list of SDKs from com.saveourtool.save.domain.Sdk
         include:
           - base_image_name: eclipse-temurin
-            base_image_tag: 8
+            base_image_tag: 8-focal
           - base_image_name: eclipse-temurin
-            base_image_tag: 11
+            base_image_tag: 11-focal
           - base_image_name: eclipse-temurin
-            base_image_tag: 17
+            base_image_tag: 17-focal
           - base_image_name: python
             base_image_tag: 2.7
           - base_image_name: python
@@ -47,7 +47,7 @@ jobs:
           - base_image_name: python
             base_image_tag: '3.10'
           - base_image_name: ubuntu
-            base_image_tag: latest
+            base_image_tag: '20.04'
     steps:
       - uses: actions/checkout@v3
       - if: github.event_name == 'workflow_dispatch'
@@ -60,6 +60,9 @@ jobs:
           registry: ghcr.io
           username: saveourtool
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare formatted tags
+        run: |
+          echo FORMATTED_TAG=${{ matrix.base_image_tag }} | sed -e "s/$-focal$//" >> $GITHUB_ENV
       - uses: docker/build-push-action@v3
         with:
           context: save-deploy/base-images
@@ -69,4 +72,4 @@ jobs:
           build-args: |
             BASE_IMAGE_NAME=${{ matrix.base_image_name }}
             BASE_IMAGE_TAG=${{ matrix.base_image_tag }}
-          tags: ghcr.io/saveourtool/save-base:${{ matrix.base_image_name }}-${{ matrix.base_image_tag }}
+          tags: ghcr.io/saveourtool/save-base:${{ matrix.base_image_name }}-${{ env.FORMATTED_TAG }}
