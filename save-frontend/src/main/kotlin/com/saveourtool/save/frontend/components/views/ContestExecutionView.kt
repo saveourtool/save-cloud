@@ -222,7 +222,7 @@ class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(fals
     )
     override fun ChildrenBuilder.render() {
         executionsTable {
-            tableHeader = "Executions details"
+            tableHeader = "Executions details for contest ${props.contestName}"
             getData = { _, _ ->
                 get(
                     url = "$apiUrl/contests/${props.contestName}/executions/${props.organizationName}/${props.projectName}",
