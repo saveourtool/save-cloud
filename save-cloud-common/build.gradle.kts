@@ -47,6 +47,7 @@ kotlin {
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
+                implementation(libs.spring.boot.autoconfigure)
                 implementation(libs.spring.data.jpa)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)

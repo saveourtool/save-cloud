@@ -1,5 +1,7 @@
 package com.saveourtool.save.configs
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform
+import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.web.reactive.function.client.ClientRequest
 import org.springframework.context.annotation.Bean
@@ -10,7 +12,7 @@ import kotlin.io.path.readText
 @Component
 class WebClientCustomizers {
     @Bean
-//    @ConditionalOnCloudPlatform
+    @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
     fun serviceAccountTokenHeaderWebClientCustomizer() = WebClientCustomizer { builder ->
         builder.filter { request, next ->
             val token = Path.of("/var/run/secrets/tokens/service-account-projected-token").readText()
