@@ -10,11 +10,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.core.Authentication
+import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
@@ -25,6 +30,21 @@ import reactor.kotlin.core.publisher.toMono
 @Configuration
 @Import(ServiceAccountTokenExtractorConverter::class, ServiceAccountAuthenticatingManager::class)
 open class KubernetesAuthenticationUtils
+
+fun ServerHttpSecurity.serviceAccountTokenAuthentication(
+    serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
+    serviceAccountAuthenticatingManager: ServiceAccountAuthenticatingManager,
+): ServerHttpSecurity = addFilterBefore(
+        AuthenticationWebFilter(serviceAccountAuthenticatingManager).apply {
+            setServerAuthenticationConverter(serviceAccountTokenExtractorConverter)
+        },
+        SecurityWebFiltersOrder.HTTP_BASIC
+    )
+        .exceptionHandling {
+            it.authenticationEntryPoint(
+                HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
+            )
+        }
 
 @Component
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)

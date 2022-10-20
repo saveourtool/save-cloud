@@ -91,6 +91,7 @@ spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-aut
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 spring-security-core = { module = "org.springframework.security:spring-security-core" }
 spring-security-web = { module = "org.springframework.security:spring-security-web" }
+spring-security-config = { module = "org.springframework.security:spring-security-config" }
 spring-security-oauth2-client = { module = "org.springframework.security:spring-security-oauth2-client" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }

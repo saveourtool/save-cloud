@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.spring.security.KubernetesAuthenticationUtils
 import com.saveourtool.save.spring.security.ServiceAccountAuthenticatingManager
 import com.saveourtool.save.spring.security.ServiceAccountTokenExtractorConverter
+import com.saveourtool.save.spring.security.serviceAccountTokenAuthentication
 import com.saveourtool.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -151,17 +152,7 @@ class WebSecurityConfig(
             .pathMatchers("/internal/**")
             .authenticated()
             .and()
-            .addFilterBefore(
-                AuthenticationWebFilter(serviceAccountAuthenticatingManager).apply {
-                    setServerAuthenticationConverter(serviceAccountTokenExtractorConverter)
-                },
-                SecurityWebFiltersOrder.HTTP_BASIC
-            )
-            .exceptionHandling {
-                it.authenticationEntryPoint(
-                    HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
-                )
-            }
+            .serviceAccountTokenAuthentication(serviceAccountTokenExtractorConverter, serviceAccountAuthenticatingManager)
             .csrf()
             .disable()
             .logout()

@@ -45,6 +45,7 @@ kotlin {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
                 implementation(libs.spring.security.web)
+                implementation(libs.spring.security.config)
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
