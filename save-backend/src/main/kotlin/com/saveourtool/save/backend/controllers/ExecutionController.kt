@@ -119,7 +119,8 @@ class ExecutionController(private val executionService: ExecutionService,
                     it.type != TestingType.CONTEST_MODE
                 }.map {
                     it.toDto()
-                }.reversed()
+                }
+                    .reversed()
             }
         }
 

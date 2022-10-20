@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
-import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faSpinner
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
