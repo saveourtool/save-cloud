@@ -181,6 +181,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
         }
         gitSelectionForm {
             formType = InputTypes.SOURCE_GIT
+            selectClasses = "custom-select"
             validInput = saveStatus != EntitySaveStatus.CONFLICT
             classes = "mb-2"
             formName = "Git Credentials"
