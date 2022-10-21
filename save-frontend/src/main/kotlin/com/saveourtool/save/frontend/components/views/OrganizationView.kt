@@ -214,7 +214,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                                     id = "delete-project-$projectName"
                                     classes = deleteButtonClasses
                                     tooltipText = "Delete the project"
-                                    children = { childrenBuilder ->
+                                    elementChildren = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(icon = faTrashAlt, classes = deleteIconClasses.joinToString(" "))
                                         }

@@ -29,7 +29,7 @@ internal val deleteButton: FC<DeleteButtonProps> = FC { props ->
         id = props.id
         className = ClassName(props.classes.joinToString(separator = " "))
         title = props.tooltipText
-        props.children(this)
+        props.elementChildren(this)
         onClick = {
             confirmDialogWindow.openWindow()
         }
@@ -65,7 +65,7 @@ internal external interface DeleteButtonProps : Props {
     /**
      * The child elements of this button.
      */
-    var children: (ChildrenBuilder) -> Unit
+    var elementChildren: (ChildrenBuilder) -> Unit
 
     /**
      * The confirmation dialog window to show when this button is clicked.
