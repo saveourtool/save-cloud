@@ -149,7 +149,7 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuiteSourceWithIdToUpsert(null)
             testSuitesSourceUpsertWindowOpenness.openWindow()
         }
-        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
+        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2 ml-2") {
             setManagePermissionsMode(PermissionManagerMode.TRANSFER)
         }
         buttonBuilder("Publish test suites", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
