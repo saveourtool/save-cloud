@@ -57,6 +57,11 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
      * Callback to hide component
      */
     var closeModal: () -> Unit
+
+    /**
+     * Mode that is used to tell if PUBLISH or TRANSFER manager should be opened.
+     */
+    var mode: PermissionManagerMode?
 }
 
 @Suppress(
@@ -110,7 +115,7 @@ private fun ChildrenBuilder.displayPermissionManager(
                     getOptionFromString = { it }
                     getString = { it }
                     getUrlForOptions = { prefix -> "$apiUrl/organizations/get/by-prefix?prefix=$prefix" }
-                    placeholder = "Select organization name..."
+                    placeholder = "Start typing organization name..."
                     decodeListFromJsonString = { it.decodeFromJsonString() }
                     getHTMLDataListElementFromOption = { childrenBuilder, organizationName ->
                         with(childrenBuilder) {
@@ -227,7 +232,12 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
 
     val (isToBePublic, setIsToBePublic) = useState(true)
 
-    val (currentMode, setCurrentMode) = useState(TRANSFER)
+    val (currentMode, setCurrentMode) = useState(props.mode ?: TRANSFER)
+    useEffect(props.mode) {
+        if (currentMode in listOf(TRANSFER, PUBLISH) && props.mode != currentMode) {
+            props.mode?.let { setCurrentMode(it) }
+        }
+    }
     val (backendResponseMessage, setBackendResponseMessage) = useState("")
     val sendTransferRequest = useDeferredRequest {
         val response = post(
@@ -274,7 +284,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         modalProps.isOpen = props.isModalOpen
         modalProps.style = largeTransparentModalStyle
         modalBuilder(
-            title = "Test Suite Permission Manager${currentMode.title?.let { " - $it" }}",
+            title = "Test Suite Permission Manager${currentMode.title?.let { " - $it" }.orEmpty()}",
             classes = "modal-lg modal-dialog-scrollable",
             onCloseButtonPressed = { props.closeModal() },
             bodyBuilder = {
@@ -304,14 +314,9 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
             }
         ) {
             when (currentMode) {
-                TRANSFER -> {
-                    buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                        sendTransferRequest()
-                        setCurrentMode(MESSAGE)
-                    }
-                    buttonBuilder("Mass permissions", style = "info") {
-                        setCurrentMode(PUBLISH)
-                    }
+                TRANSFER -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                    sendTransferRequest()
+                    setCurrentMode(MESSAGE)
                 }
                 SUITE_SELECTOR_FOR_RIGHTS -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
                     setCurrentMode(TRANSFER)
@@ -319,14 +324,9 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
                 SUITE_SELECTOR_FOR_PUBLISH -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
                     setCurrentMode(PUBLISH)
                 }
-                PUBLISH -> {
-                    buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
-                        sendPublishRequest()
-                        setCurrentMode(MESSAGE)
-                    }
-                    buttonBuilder("Transfers", style = "info") {
-                        setCurrentMode(TRANSFER)
-                    }
+                PUBLISH -> buttonBuilder("Apply", isDisabled = selectedTestSuites.isEmpty()) {
+                    sendPublishRequest()
+                    setCurrentMode(MESSAGE)
                 }
                 else -> {}
             }
