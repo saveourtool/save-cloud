@@ -8382,27 +8382,126 @@
       },
       "ExecutionFilters": {
         "required": [
+          "endTime",
           "startTime"
         ],
         "type": "object",
         "properties": {
           "startTime": {
-            "$ref": "#/components/schemas/TripleIntegerIntegerInteger"
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "endTime": {
-            "$ref": "#/components/schemas/TripleIntegerIntegerInteger"
+            "$ref": "#/components/schemas/LocalDateTime"
           }
         }
       },
-      "TripleIntegerIntegerInteger": {
+      "LocalDate": {
         "required": [
-          "first",
-          "second",
-          "third"
+          "dayOfMonth",
+          "dayOfWeek",
+          "dayOfYear",
+          "month",
+          "monthNumber",
+          "value$kotlinx_datetime",
+          "year"
         ],
         "type": "object",
         "properties": {
-          "first": {
+          "value": {
+            "type": "string",
+            "format": "date",
+            "writeOnly": true
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ]
+          },
+          "dayOfYear": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "string",
+            "enum": [
+              "JANUARY",
+              "FEBRUARY",
+              "MARCH",
+              "APRIL",
+              "MAY",
+              "JUNE",
+              "JULY",
+              "AUGUST",
+              "SEPTEMBER",
+              "OCTOBER",
+              "NOVEMBER",
+              "DECEMBER"
+            ]
+          },
+          "monthNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "LocalDateTime": {
+        "required": [
+          "date",
+          "dayOfMonth",
+          "dayOfWeek",
+          "dayOfYear",
+          "hour",
+          "minute",
+          "month",
+          "monthNumber",
+          "nanosecond",
+          "second",
+          "time",
+          "value$kotlinx_datetime",
+          "year"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "date-time",
+            "writeOnly": true
+          },
+          "time": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minute": {
             "type": "integer",
             "format": "int32"
           },
@@ -8410,9 +8509,87 @@
             "type": "integer",
             "format": "int32"
           },
-          "third": {
+          "dayOfWeek": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ]
+          },
+          "dayOfYear": {
             "type": "integer",
             "format": "int32"
+          },
+          "month": {
+            "type": "string",
+            "enum": [
+              "JANUARY",
+              "FEBRUARY",
+              "MARCH",
+              "APRIL",
+              "MAY",
+              "JUNE",
+              "JULY",
+              "AUGUST",
+              "SEPTEMBER",
+              "OCTOBER",
+              "NOVEMBER",
+              "DECEMBER"
+            ]
+          },
+          "date": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "monthNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nanosecond": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LocalTime": {
+        "required": [
+          "hour",
+          "minute",
+          "nanosecond",
+          "second",
+          "value$kotlinx_datetime"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minute": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "second": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nanosecond": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "$ref": "#/components/schemas/LocalTime"
           }
         }
       },
