@@ -154,7 +154,7 @@ loki:
       write:
   loki:
     image:
-      tag: 2.5.0
+      tag: 2.6.1
     auth_enabled: false
     commonConfig:
       replication_factor: 1
