@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.readText
 
 /**
- * A configration class that can be used to import all related [WebClientCustomizer] beans.
+ * A configuration class that can be used to import all related [WebClientCustomizer] beans.
  */
 @Component
 class WebClientCustomizers {

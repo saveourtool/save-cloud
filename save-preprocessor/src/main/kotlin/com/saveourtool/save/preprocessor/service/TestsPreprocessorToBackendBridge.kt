@@ -3,6 +3,7 @@ package com.saveourtool.save.preprocessor.service
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.preprocessor.EmptyResponse
 import com.saveourtool.save.preprocessor.config.ConfigProperties
+import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.testsuite.*
 import com.saveourtool.save.utils.debug
@@ -25,13 +26,11 @@ import java.time.Instant
 @Service
 class TestsPreprocessorToBackendBridge(
     configProperties: ConfigProperties,
-    kotlinSerializationWebClientCustomizer: WebClientCustomizer,
-    serviceAccountTokenHeaderWebClientCustomizer: WebClientCustomizer,
+    customizers: List<WebClientCustomizer>,
 ) {
     private val webClientBackend = WebClient.builder()
         .baseUrl(configProperties.backend)
-        .apply(kotlinSerializationWebClientCustomizer::customize)
-        .apply(serviceAccountTokenHeaderWebClientCustomizer::customize)
+        .applyAll(customizers)
         .build()
 
     /**

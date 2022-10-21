@@ -147,6 +147,8 @@ class WebSecurityConfig(
         authorizeExchange().pathMatchers("/internal/**", "/actuator/**")
             .permitAll()
             .and()
+            .csrf()
+            .disable()
             .build()
     }
 
