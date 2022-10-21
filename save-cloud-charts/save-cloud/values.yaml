@@ -142,11 +142,13 @@ promtail:
             - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
-  # for compatibility with PV created in v2
+  # For compatibility with PV created in v2; see https://github.com/grafana/loki/issues/7267#issuecomment-1264472870
+  # for a more comprehensive list.
   fullnameOverride: save-cloud-loki
   gateway:
     enabled: false
   ingress:
+    # See https://github.com/grafana/loki/issues/7318
     paths:
       headless:
         - /
