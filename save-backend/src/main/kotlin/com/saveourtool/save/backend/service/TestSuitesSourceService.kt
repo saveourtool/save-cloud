@@ -1,17 +1,20 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.EmptyResponse
+import com.saveourtool.save.backend.StringList
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.TestSuitesSourceRepository
-import com.saveourtool.save.domain.SourceSaveStatus
+import com.saveourtool.save.domain.EntitySaveStatus
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
+import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
@@ -25,7 +28,6 @@ import reactor.core.publisher.Mono
 class TestSuitesSourceService(
     private val testSuitesSourceRepository: TestSuitesSourceRepository,
     private val organizationService: OrganizationService,
-    private val gitService: GitService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
@@ -40,6 +42,12 @@ class TestSuitesSourceService(
      */
     fun getAllByOrganization(organization: Organization) =
             testSuitesSourceRepository.findAllByOrganizationId(organization.requiredId())
+
+    /**
+     * @param id [TestSuitesSource.id]
+     * @return entity of [TestSuitesSource] or null
+     */
+    fun findById(id: Long): TestSuitesSource? = testSuitesSourceRepository.findByIdOrNull(id)
 
     /**
      * @param organization [TestSuitesSource.organization]
@@ -85,11 +93,12 @@ class TestSuitesSourceService(
      * @param entity [TestSuitesSource] to be updated
      * @return status of updating [TestSuitesSource]
      */
-    @Suppress("FUNCTION_BOOLEAN_PREFIX")
     @Transactional
-    fun update(entity: TestSuitesSource): Boolean {
-        requireNotNull(entity.id) {
-            "Cannot update entity as it is not saved yet: $this"
+    fun update(entity: TestSuitesSource): EntitySaveStatus {
+        with(entity) {
+            requireNotNull(id) {
+                "Cannot update entity ($name in ${organization.name}) as it is not saved yet"
+            }
         }
         return save(entity)
     }
@@ -101,45 +110,29 @@ class TestSuitesSourceService(
     @Transactional
     fun createSourceIfNotPresent(
         entity: TestSuitesSource,
-    ): SourceSaveStatus = findByName(entity.organization, entity.name)?.let {
-        SourceSaveStatus.EXIST
-    } ?: run {
-        val isSaved = save(entity)
-        if (isSaved) SourceSaveStatus.NEW else SourceSaveStatus.CONFLICT
+    ): EntitySaveStatus {
+        require(entity.id == null) {
+            "Cannot create a new entity as it is saved already: $entity"
+        }
+        return save(entity)
     }
 
-    private fun save(entity: TestSuitesSource) = try {
-        testSuitesSourceRepository.save(entity)
-        true
-    } catch (e: DataIntegrityViolationException) {
-        false
-    }
-
-    /**
-     * @return list of [TestSuitesSource] for STANDARD tests or empty
-     */
-    @Transactional
-    fun getStandardTestSuitesSources(): List<TestSuitesSource> {
-        // FIXME: a hardcoded values for standard test suites
-        // Will be removed in phase 3
-        val organizationName = "CQFN.org"
-        val gitUrl = "https://github.com/saveourtool/save-cli"
-        val testRootPaths = listOf("examples/kotlin-diktat", "examples/discovery-test")
-        val organization = organizationService.getByName(organizationName)
-        val git = gitService.getByOrganizationAndUrl(organization, gitUrl)
-        return testRootPaths.map { testRootPath ->
-            testSuitesSourceRepository.findByOrganizationAndGitAndTestRootPath(
-                organization,
-                git,
-                testRootPath
-            ) ?: testSuitesSourceRepository.save(TestSuitesSource(
-                organization = organization,
-                name = "Standard-${testRootPath.removePrefix("examples/")}",
-                description = "Standard test suites from $organizationName: $testRootPath",
-                git = git,
-                testRootPath = testRootPath,
-                latestFetchedVersion = null,
-            ))
+    private fun save(entity: TestSuitesSource): EntitySaveStatus {
+        findByName(entity.organization, entity.name)?.run {
+            if (entity.id != id) {
+                return EntitySaveStatus.EXIST
+            }
+        }
+        return try {
+            val isUpdate = entity.id != null
+            testSuitesSourceRepository.save(entity)
+            if (isUpdate) {
+                EntitySaveStatus.UPDATED
+            } else {
+                EntitySaveStatus.NEW
+            }
+        } catch (e: DataIntegrityViolationException) {
+            EntitySaveStatus.CONFLICT
         }
     }
 
@@ -150,36 +143,44 @@ class TestSuitesSourceService(
 
     /**
      * @param testSuitesSource test suites source which requested to be fetched
+     * @param mode mode of fetching, it controls how [version] is used
+     * @param version tag, branch or commit (depends on [mode])
      * @return empty response
      */
     fun fetch(
         testSuitesSource: TestSuitesSourceDto,
-    ): Mono<EmptyResponse> = preprocessorWebClient.post()
+        mode: TestSuitesSourceFetchMode,
+        version: String,
+    ): Mono<EmptyResponse> = preprocessorWebClient
+        .post()
+        .uri("/test-suites-sources/fetch?mode={mode}&version={version}", mode, version)
+        .bodyValue(testSuitesSource)
+        .retrieve()
+        .toBodilessEntity()
+
+    /**
+     * @param testSuitesSource test suites source for which a list of tags is requested
+     * @return list of all tags
+     */
+    fun tagList(
+        testSuitesSource: TestSuitesSourceDto,
+    ): Mono<StringList> = preprocessorWebClient
+        .post()
         .uri("/git/tag-list")
         .bodyValue(testSuitesSource.gitDto)
         .retrieve()
-        .bodyToMono<List<String>>()
-        .flatMapIterable { it }
-        .flatMap { tagName ->
-            preprocessorWebClient.post()
-                .uri("/test-suites-sources/fetch-from-tag?tagName={tagName}", tagName)
-                .bodyValue(testSuitesSource)
-                .retrieve()
-                .toBodilessEntity()
-        }
-        .collectList()
-        .flatMap {
-            preprocessorWebClient.post()
-                .uri("/git/default-branch-name")
-                .bodyValue(testSuitesSource.gitDto)
-                .retrieve()
-                .bodyToMono<String>()
-        }
-        .flatMap { branchName ->
-            preprocessorWebClient.post()
-                .uri("/test-suites-sources/fetch-from-branch?branchName={branchName}", branchName)
-                .bodyValue(testSuitesSource)
-                .retrieve()
-                .toBodilessEntity()
-        }
+        .bodyToMono()
+
+    /**
+     * @param testSuitesSource test suites source for which a list of branches is requested
+     * @return list of all branches
+     */
+    fun branchList(
+        testSuitesSource: TestSuitesSourceDto,
+    ): Mono<StringList> = preprocessorWebClient
+        .post()
+        .uri("/git/branch-list")
+        .bodyValue(testSuitesSource.gitDto)
+        .retrieve()
+        .bodyToMono()
 }

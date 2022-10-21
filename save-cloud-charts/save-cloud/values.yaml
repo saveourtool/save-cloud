@@ -10,14 +10,27 @@ backend:
   profile: dev,secure,kubernetes
   imageName: save-backend
   containerPort: 5800
+  managementPort: 5801
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
-  dbPasswordFile: /home/cnb/secrets/db_secrets
+frontend:
+  name: frontend
+  imageName: save-frontend
+  containerPort: 5810
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator
   containerPort: 5100
+  managementPort: 5101
+  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
+  clusterIP: null
+  dockerHost: tcp://${HOST_IP}:2375
+sandbox:
+  name: sandbox
+  imageName: save-sandbox
+  containerPort: 5400
+  managementPort: 5401
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
@@ -25,6 +38,7 @@ preprocessor:
   name: preprocessor
   imageName: save-preprocessor
   containerPort: 5200
+  managementPort: 5201
   # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
   clusterIP: null
 gateway:
@@ -53,10 +67,13 @@ mysql:
   # As an example, this is what may be a resolved IP of `host.minikube.internal`.
   ip: 192.168.65.2
   # Name of the database schema that will be used by save-cloud deployment
-  schema: save_cloud
+  backend_schema: save_cloud
+  sandbox_schema: save_sandbox
+  root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application
     enabled: false
+  dbPasswordFile: /home/cnb/secrets/db_secrets
 
 # Values for dependencies
 grafana:
@@ -94,27 +111,6 @@ prometheus:
       type: Recreate
   pushgateway:
     enabled: false
-  serverFiles:
-    prometheus.yml:
-      scrape_configs:
-      - job_name: 'save-cloud-kubernetes'
-        kubernetes_sd_configs:
-          - role: pod
-        relabel_configs:
-          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-            action: replace
-            regex: (.+?)(?::\d+)?;(\d+)
-            replacement: $1:$2
-            target_label: __address__
-          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-            action: replace
-            target_label: __metrics_path__
-            regex: (.+)
-          - source_labels: [__meta_kubernetes_pod_label_io_kompose_service]
-            regex: .+
-            action: keep
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            target_label: job
 
 promtail:
   image:

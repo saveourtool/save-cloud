@@ -2,13 +2,14 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
-import org.springframework.beans.factory.annotation.Autowired
+import com.saveourtool.save.utils.AuthenticationDetails
+
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
@@ -21,13 +22,10 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * Class that is capable of assessing user's permissions regarding projects.
  */
 @Component
-class ProjectPermissionEvaluator {
-    @Autowired
-    private lateinit var lnkUserProjectService: LnkUserProjectService
-
-    @Autowired
-    private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
-
+class ProjectPermissionEvaluator(
+    private var lnkUserProjectService: LnkUserProjectService,
+    private var lnkUserProjectRepository: LnkUserProjectRepository,
+) {
     /**
      * @param authentication [Authentication] describing an authenticated request
      * @param project
@@ -83,8 +81,6 @@ class ProjectPermissionEvaluator {
             // if project either is not found or shouldn't be visible for current user.
             Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND))
         }
-
-    private fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
     private fun hasReadAccess(userId: Long?, projectRole: Role): Boolean = hasWriteAccess(userId, projectRole) ||
             userId?.let { projectRole == Role.VIEWER } ?: false

@@ -21,12 +21,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.PolymorphicSerializer
 
+@Suppress("WRONG_ORDER_IN_CLASS_LIKE_STRUCTURES")
 class SaveAgentTest {
     init {
         setenv(AgentEnvName.AGENT_ID.name, "agent-for-test", 1)
+        setenv(AgentEnvName.AGENT_NAME.name, "save-agent-for-test", 1)
         setenv(AgentEnvName.BACKEND_URL.name, "http://localhost:5800", 1)
         setenv(AgentEnvName.ORCHESTRATOR_URL.name, "http://localhost:5100", 1)
         setenv(AgentEnvName.CLI_COMMAND.name, "echo Doing nothing it test mode", 1)
+        setenv(AgentEnvName.EXECUTION_ID.name, "1", 1)
     }
 
     private val configuration: AgentConfiguration = AgentConfiguration.initializeFromEnv().let {
@@ -44,8 +47,6 @@ class SaveAgentTest {
                         HttpStatusCode.OK,
                         headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                     )
-                    "/executionData" -> respond("", status = HttpStatusCode.OK)
-                    "/executionLogs" -> respond("", status = HttpStatusCode.OK)
                     else -> error("Unhandled ${request.url}")
                 }
             }
@@ -76,8 +77,8 @@ class SaveAgentTest {
 
     @Test
     fun `should change state to FINISHED after SAVE CLI returns`() = runBlocking {
-        assertEquals(AgentState.BUSY, saveAgentForTest.state.value)
+        assertEquals(AgentState.BUSY, saveAgentForTest.state.get())
         runBlocking { saveAgentForTest.run { startSaveProcess("") } }
-        assertEquals(AgentState.FINISHED, saveAgentForTest.state.value)
+        assertEquals(AgentState.FINISHED, saveAgentForTest.state.get())
     }
 }

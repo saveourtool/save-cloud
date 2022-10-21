@@ -3,7 +3,8 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.backend.service.LnkContestExecutionService
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
@@ -44,6 +45,9 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
+
+    @MockBean
+    private lateinit var lnkContestExecutionService: LnkContestExecutionService
 
     @Test
     @WithMockUser("JohnDoe")

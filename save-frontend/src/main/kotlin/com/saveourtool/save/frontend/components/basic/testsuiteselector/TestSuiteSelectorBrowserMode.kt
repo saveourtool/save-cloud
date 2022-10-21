@@ -16,6 +16,7 @@ import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
+import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -34,12 +35,12 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
     /**
      * Lambda invoked when test suites were successfully set
      */
-    var onTestSuiteIdsUpdate: (List<Long>) -> Unit
+    var onTestSuitesUpdate: (List<TestSuiteDto>) -> Unit
 
     /**
-     * List of test suite ids that should be preselected
+     * List of test suites that should be preselected
      */
-    var preselectedTestSuiteIds: List<Long>
+    var preselectedTestSuites: List<TestSuiteDto>
 
     /**
      * Specific organization name which reduces list of test suites source.
@@ -51,6 +52,11 @@ external interface TestSuiteSelectorBrowserModeProps : Props {
      * Mode that defines what kind of test suites will be shown
      */
     var selectorPurpose: TestSuiteSelectorPurpose
+
+    /**
+     * Name of an organization by the name of which test suites are being managed.
+     */
+    var currentOrganizationName: String
 }
 
 @Suppress(
@@ -163,14 +169,13 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
     val (availableTestSuites, setAvailableTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     val (fetchedTestSuites, setFetchedTestSuites) = useState<List<TestSuiteDto>>(emptyList())
     useRequest {
-        val url = when (props.selectorPurpose) {
-            TestSuiteSelectorPurpose.PUBLIC -> "$apiUrl/test-suites/available"
-            TestSuiteSelectorPurpose.PRIVATE -> "$apiUrl/test-suites/get-by-organization?organizationName=${props.specificOrganizationName}"
-            TestSuiteSelectorPurpose.STANDARD -> "$apiUrl/test-suites/get-standard"
-            TestSuiteSelectorPurpose.CONTEST -> "$apiUrl/test-suites/available?isContest=true"
+        val options = when (props.selectorPurpose) {
+            TestSuiteSelectorPurpose.PUBLIC -> ""
+            TestSuiteSelectorPurpose.PRIVATE -> "?onlyPrivate=true"
+            TestSuiteSelectorPurpose.CONTEST -> "?isContest=true"
         }
         val response = get(
-            url = url,
+            url = "$apiUrl/test-suites/${props.currentOrganizationName}/available$options",
             headers = jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -260,6 +265,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                     ""
                 }
                 button {
+                    type = ButtonType.button
                     className = ClassName("btn btn-outline-secondary $active")
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "bottom"
@@ -276,7 +282,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                                     .distinctBy { it.id }
                             }
                                 .also { testSuites ->
-                                    props.onTestSuiteIdsUpdate(testSuites.map { it.requiredId() })
+                                    props.onTestSuitesUpdate(testSuites)
                                 }
                         }
                     }
@@ -322,7 +328,7 @@ private fun testSuiteSelectorBrowserMode() = FC<TestSuiteSelectorBrowserModeProp
                             }
                             .toList()
                             .also { listOfTestSuiteDtos ->
-                                props.onTestSuiteIdsUpdate(listOfTestSuiteDtos.map { it.requiredId() })
+                                props.onTestSuitesUpdate(listOfTestSuiteDtos)
                             }
                     }
                 }

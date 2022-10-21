@@ -16,10 +16,12 @@ import kotlinx.serialization.Serializable
  * @property organizationName
  * @property testSuiteIds
  * @property creationTime
+ * @property status
  */
 @Serializable
 data class ContestDto(
     val name: String,
+    val status: ContestStatus,
     @Contextual
     val startTime: LocalDateTime?,
     @Contextual
@@ -35,6 +37,7 @@ data class ContestDto(
     companion object {
         val empty = ContestDto(
             "",
+            ContestStatus.CREATED,
             null,
             null,
             null,

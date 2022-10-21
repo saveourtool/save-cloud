@@ -9,23 +9,19 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 
 import kotlinx.js.jso
-
-const val NUMBER_OF_CHARACTERS_TRIMMED = 20
 
 val userRating = userRating()
 
@@ -64,15 +60,14 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                 className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
+                    strong {
                         className = ClassName("d-block text-gray-dark")
-                        +project.name
+                        a {
+                            href = "#/${project.url}"
+                            +project.name
+                        }
                     }
-                    +("${project.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
-                    a {
-                        href = "#/${project.url}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
+                    +("${project.description} ")
                 }
             }
 
@@ -102,15 +97,14 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                 className = ClassName("col-lg-6")
                 p {
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
-                    ReactHTML.strong {
+                    strong {
                         className = ClassName("d-block text-gray-dark")
-                        +organization.name
+                        a {
+                            href = "#/${organization.name}"
+                            +organization.name
+                        }
                     }
-                    +("${organization.description?.take(NUMBER_OF_CHARACTERS_TRIMMED) ?: ""}... ")
-                    a {
-                        href = "#/${organization.name}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
+                    +("${organization.description} ")
                 }
             }
 
@@ -143,7 +137,7 @@ private fun userRating() = VFC {
         setOrganizations(organizationsFromBackend.toSet())
     }
 
-    val (projects, setProjects) = useState<Set<Project>>(emptySet())
+    val (projects, setProjects) = useState(emptySet<Project>())
     useRequest {
         val projectsFromBackend: List<Project> = post(
             url = "$apiUrl/projects/not-deleted",
@@ -156,11 +150,11 @@ private fun userRating() = VFC {
     }
 
     div {
-        className = ClassName("col-lg-3")
+        className = ClassName("col-lg-4")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 30.rem
+                minHeight = 40.rem
             }
 
             div {

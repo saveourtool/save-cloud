@@ -3,14 +3,14 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.core.utils.runIf
 import com.saveourtool.save.domain.DebugInfoStorageKey
 import com.saveourtool.save.domain.TestResultLocation
@@ -18,7 +18,6 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilters
 import com.saveourtool.save.from
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.test.TestDto
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -194,15 +193,6 @@ class TestExecutionController(
                 }
 
     /**
-     * @param agentContainerId id of an agent
-     * @param testDtos test that will be executed by [agentContainerId] agent
-     */
-    @PostMapping(value = ["/internal/testExecution/assignAgent"])
-    fun assignAgentByTest(@RequestParam agentContainerId: String, @RequestBody testDtos: List<TestDto>) {
-        testExecutionService.assignAgentByTest(agentContainerId, testDtos)
-    }
-
-    /**
      * @param status
      * @param agentIds the list of agents, for which, according the [status] test executions should be updated
      * @throws ResponseStatusException
@@ -225,11 +215,29 @@ class TestExecutionController(
     }
 
     /**
+     * @param onlyReadyForTesting
+     * @param containerIds
+     */
+    @PostMapping("/internal/test-executions/mark-as-failed-by-container-ids")
+    fun markTestExecutionsOfAgentsAsFailed(
+        @RequestParam(defaultValue = "false", required = false) onlyReadyForTesting: Boolean,
+        @RequestBody containerIds: Collection<String>,
+    ) {
+        testExecutionService.markTestExecutionsOfAgentsAsFailed(containerIds) {
+            if (onlyReadyForTesting) {
+                it.status == TestResultStatus.READY_FOR_TESTING
+            } else {
+                true
+            }
+        }
+    }
+
+    /**
      * @param testExecutionsDto
      * @return response
      */
     @PostMapping(value = ["/internal/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>) = try {
+    fun saveTestResult(@RequestBody testExecutionsDto: List<TestExecutionDto>): ResponseEntity<String> = try {
         if (testExecutionsDto.isEmpty()) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
         } else if (testExecutionService.saveTestResult(testExecutionsDto).isEmpty()) {

@@ -1,10 +1,15 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.FileKey
+import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
+import com.saveourtool.save.domain.toFileKeyList
+import com.saveourtool.save.domain.toSdk
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -19,7 +24,6 @@ import javax.persistence.ManyToOne
  * @property startTime
  * @property endTime If the state is RUNNING we are not considering it, so it can never be null
  * @property status
- * @property testSuiteIds a list of test suite IDs, that should be executed under this Execution.
  * @property batchSize Maximum number of returning tests per execution
  * @property type
  * @property version
@@ -54,8 +58,6 @@ class Execution(
 
     @Enumerated(EnumType.STRING)
     var status: ExecutionStatus,
-
-    var testSuiteIds: String?,
 
     var batchSize: Int?,
 
@@ -124,27 +126,25 @@ class Execution(
     )
 
     /**
-     * Parse and get testSuiteIds as List<Long>
-     *
-     * @return list of TestSuite IDs
-     */
-    fun parseAndGetTestSuiteIds(): List<Long>? = parseAndGetTestSuiteIds(this.testSuiteIds)
-
-    /**
-     * Format and set provided list of TestSuite IDs
-     *
-     * @param testSuiteIds list of TestSuite IDs
-     */
-    fun formatAndSetTestSuiteIds(testSuiteIds: List<Long>) {
-        this.testSuiteIds = formatTestSuiteIds(testSuiteIds)
-    }
-
-    /**
-     * Parse and get additionalFiles as List<String>
+     * Parse and get additionalFiles as [List] of [FileKey]
      *
      * @return list of keys [FileKey] of additional files
      */
-    fun parseAndGetAdditionalFiles(): List<FileKey> = FileKey.parseList(additionalFiles)
+    fun getFileKeys(): List<FileKey> = additionalFiles.toFileKeyList(project.toProjectCoordinates())
+
+    /**
+     * @return [RunExecutionRequest] created from current entity
+     */
+    fun toRunRequest(): RunExecutionRequest {
+        require(status == ExecutionStatus.PENDING) {
+            "${RunExecutionRequest::class.simpleName} can be created only for ${Execution::class.simpleName} with status = ${ExecutionStatus.PENDING}"
+        }
+        return RunExecutionRequest(
+            projectCoordinates = ProjectCoordinates(project.organization.name, project.name),
+            executionId = requiredId(),
+            sdk = sdk.toSdk()
+        )
+    }
 
     companion object {
         /**
@@ -158,7 +158,6 @@ class Execution(
             startTime = LocalDateTime.now(),
             endTime = null,
             status = ExecutionStatus.RUNNING,
-            testSuiteIds = null,
             batchSize = 20,
             type = TestingType.PUBLIC_TESTS,
             version = null,

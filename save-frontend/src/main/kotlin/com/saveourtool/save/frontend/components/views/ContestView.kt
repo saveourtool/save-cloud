@@ -3,12 +3,14 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.http.getContest
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.HasSelectedMenu
 import com.saveourtool.save.frontend.utils.changeUrl
@@ -21,10 +23,10 @@ import csstype.ClassName
 import history.Location
 import react.*
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
@@ -42,7 +44,7 @@ enum class ContestMenuBar {
 
     companion object : TabMenuBar<ContestMenuBar> {
         // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().map { it.name.lowercase() }.joinToString("|")
+        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ContestMenuBar = INFO
         override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
@@ -69,6 +71,16 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
      * Flag that shows if current contest is featured or not
      */
     var isFeatured: Boolean
+
+    /**
+     * Contest. This field is acts as a marker of contest existence
+     */
+    var contest: ContestDto
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -80,28 +92,44 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     init {
         state.selectedMenu = ContestMenuBar.defaultTab
         state.isFeatured = false
+        state.contest = ContestDto.empty
     }
 
     override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, ContestMenuBar, "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}",
-                "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}")
+            changeUrl(state.selectedMenu, ContestMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ContestMenuBar, Role.NONE, false)
+        } else if (props.currentContestName != prevProps.currentContestName) {
+            fetchContest()
         }
     }
 
     override fun componentDidMount() {
         super.componentDidMount()
+        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
+        fetchContest()
+    }
+
+    private fun fetchContest() {
+        scope.launch {
+            val name = props.currentContestName
+            name?.let {
+                val contest = getContest(name)
+                setState {
+                    this.contest = contest
+                }
+            }
+        }
     }
 
     override fun ChildrenBuilder.render() {
         div {
             className = ClassName("d-flex justify-content-around")
             h1 {
-                +"${props.currentContestName}"
+                +state.contest.name
             }
         }
         renderFeaturedCheckbox()
@@ -131,7 +159,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                     }
                 }
                 div {
-                    ReactHTML.label {
+                    label {
                         className = ClassName("form-check-label")
                         htmlFor = "isFeaturedCheckbox"
                         +"Featured contest"

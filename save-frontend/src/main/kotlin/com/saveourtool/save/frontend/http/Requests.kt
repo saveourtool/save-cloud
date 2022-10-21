@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.http
 
 import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.utils.*
@@ -64,6 +65,20 @@ suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
     .decodeFromJsonString<Organization>()
+
+/**
+ * @param name contest name
+ * @return contestDTO
+ */
+suspend fun ComponentWithScope<*, *>.getContest(name: String) = get(
+    "$apiUrl/contests/$name",
+    Headers().apply {
+        set("Accept", "application/json")
+    },
+    loadingHandler = ::classLoadingHandler,
+    responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
+)
+    .decodeFromJsonString<ContestDto>()
 
 /**
  * @param name username

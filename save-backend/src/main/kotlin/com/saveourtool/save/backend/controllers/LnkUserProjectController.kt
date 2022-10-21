@@ -7,16 +7,19 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.configs.ApiSwaggerSupport
-import com.saveourtool.save.backend.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
+import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.Project
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -27,6 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tags
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
@@ -40,12 +44,29 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping("/api/$v1/projects/")
+@RequestMapping("/api/$v1/projects")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
+    @GetMapping(path = ["/get-for-current-user"])
+    @RequiresAuthorizationSourceHeader
+    @Operation(
+        method = "GET",
+        summary = "Get projects of current authenticated user",
+        description = "Get list of projects related to current user",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
+    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<Project> {
+        val userIdFromAuth = (authentication.details as AuthenticationDetails).id
+        return Flux.fromIterable(
+            lnkUserProjectService.getNonDeletedProjectsByUserId(userIdFromAuth)
+        ).filter {
+            it.public
+        }
+    }
+
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")

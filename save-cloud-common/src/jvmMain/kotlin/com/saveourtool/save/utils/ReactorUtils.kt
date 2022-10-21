@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.utils
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
@@ -11,12 +13,16 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.switchIfEmptyDeferred
+import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
+import java.io.InputStream
+import java.io.SequenceInputStream
+import java.nio.ByteBuffer
 
 /**
  * @param status
  * @param messageCreator
- * @return original [Mono] or [Mono.error] with 404 status otherwise
+ * @return original [Mono] or [Mono.error] with [status] otherwise
  */
 fun <T> Mono<T>.switchIfEmptyToResponseException(status: HttpStatus, messageCreator: (() -> String?) = { null }) = switchIfEmpty {
     Mono.error(ResponseStatusException(status, messageCreator()))
@@ -35,6 +41,19 @@ fun <T> Mono<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null
 fun <T> Flux<T>.switchIfEmptyToNotFound(messageCreator: (() -> String?) = { null }) = switchIfEmptyDeferred {
     Mono.error(ResponseStatusException(HttpStatus.NOT_FOUND, messageCreator()))
 }
+
+/**
+ * @param predicate
+ * @param status
+ * @param messageCreator
+ * @return original [Mono] or [Mono.error] with [status] if [predicate] is true for value in [Mono]
+ */
+@Suppress("LAMBDA_IS_NOT_LAST_PARAMETER")
+fun <T> Mono<T>.requireOrSwitchToResponseException(
+    predicate: T.() -> Boolean,
+    status: HttpStatus,
+    messageCreator: (() -> String?) = { null }
+) = filter(predicate).switchIfEmptyToResponseException(status, messageCreator)
 
 /**
  * @param lazyValue default value creator
@@ -65,6 +84,25 @@ fun <T : Any> Mono<T>.asyncEffectIf(predicate: T.() -> Boolean, effect: (T) -> M
         Mono.just(value)
     }
 }
+
+/**
+ * @return convert [Flux] of [ByteBuffer] to [Mono] of [InputStream]
+ */
+fun Flux<ByteBuffer>.mapToInputStream(): Mono<InputStream> = this
+    // take simple implementation from Jackson library
+    .map { ByteBufferBackedInputStream(it) }
+    .cast(InputStream::class.java)
+    .reduce { in1, in2 ->
+        SequenceInputStream(in1, in2)
+    }
+
+/**
+ * @param objectMapper
+ * @return convert current object to [Flux] of [ByteBuffer] as Json string using [objectMapper]
+ */
+fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> = Mono.fromCallable { objectMapper.writeValueAsBytes(this) }
+    .map { ByteBuffer.wrap(it) }
+    .toFlux()
 
 /**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking

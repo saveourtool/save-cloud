@@ -7,26 +7,36 @@ package com.saveourtool.save.api.utils
 import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.domain.FileInfo
-import com.saveourtool.save.domain.ShortFileInfo
-import com.saveourtool.save.entities.RunExecutionRequest
 import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.utils.LocalDateTimeSerializer
 import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.v1
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.apache.*
-import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.auth.providers.*
-import io.ktor.client.plugins.json.*
-import io.ktor.client.plugins.kotlinx.serializer.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BasicAuthCredentials
+import io.ktor.client.plugins.auth.providers.basic
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.InternalAPI
 import okio.Path.Companion.toPath
 
 import java.io.File
@@ -69,7 +79,7 @@ suspend fun HttpClient.getAvailableFilesList(
 @OptIn(InternalAPI::class)
 suspend fun HttpClient.uploadAdditionalFile(
     file: String,
-): ShortFileInfo = this.post {
+): FileInfo = this.post {
     url("${Backend.url}/api/$v1/files/upload")
     header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
@@ -86,15 +96,15 @@ suspend fun HttpClient.uploadAdditionalFile(
 /**
  * Submit execution
  *
- * @param runExecutionRequest execution request
+ * @param createExecutionRequest execution request
  * @return HttpResponse
  */
 @Suppress("TOO_LONG_FUNCTION")
-suspend fun HttpClient.submitExecution(runExecutionRequest: RunExecutionRequest): HttpResponse = this.post {
+suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
     url("${Backend.url}/api/$v1/run/trigger")
     header("X-Authorization-Source", UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
-    setBody(runExecutionRequest)
+    setBody(createExecutionRequest)
 }
 
 /**
@@ -139,13 +149,13 @@ fun initializeHttpClient(
     UserInformation.username = name
     UserInformation.source = source
 
-    return HttpClient(Apache) {
+    return HttpClient {
         install(Logging) {
             logger = Logger.DEFAULT
             level = LogLevel.NONE
         }
-        install(JsonPlugin) {
-            serializer = KotlinxSerializer(json)
+        install(ContentNegotiation) {
+            json(json)
         }
         install(Auth) {
             basic {

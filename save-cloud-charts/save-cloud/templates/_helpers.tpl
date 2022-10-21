@@ -2,7 +2,6 @@
 io.kompose.service: {{ .service.name }}
 version: {{ or .service.dockerTag .Values.dockerTag }}
 env: {{ .Values.env }}
-prometheus-job: {{ .service.imageName }}
 {{- end }}
 
 {{- define "pod.common.labels" }}
@@ -11,14 +10,15 @@ version: {{ or .service.dockerTag .Values.dockerTag }}
 {{- end }}
 
 {{- define "pod.common.annotations" }}
+prometheus.io/scrape: 'true'
 prometheus.io/path: /actuator/prometheus
 {{- if (hasKey .service "managementPort") }}
 prometheus.io/port: {{ .service.managementPort | quote }}
 {{- end }}
 {{- end }}
 
-{{/* Common Linux user configuration for spring-boot created containers, where user is cnb:cnb */}}
-{{- define "spring-boot.securityContext" -}}
+{{/* Common Linux user configuration for paketo-created containers, where user is cnb:cnb */}}
+{{- define "cnb.securityContext" -}}
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000

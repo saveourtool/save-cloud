@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.utils
 
+import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.HttpStatusException
@@ -22,7 +23,8 @@ import react.useState
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
 
 val apiUrl = "${window.location.origin}/api/$v1"
 
@@ -30,6 +32,8 @@ val jsonHeaders = Headers().apply {
     set("Accept", "application/json")
     set("Content-Type", "application/json")
 }
+
+typealias DtoWithIdList<T> = List<DtoWithId<T>>
 
 /**
  * Interface for objects that have access to [requestStatusContext]
@@ -83,6 +87,41 @@ suspend fun <T> Response.unsafeMap(map: suspend (Response) -> T) = if (this.ok) 
  * @return response body deserialized as [T]
  */
 suspend inline fun <reified T> Response.decodeFromJsonString() = Json.decodeFromString<T>(text().await())
+
+/**
+ * A temporary workaround till migrated to JS Frontend IR: https://github.com/Kotlin/kotlinx.serialization/issues/1448
+ *
+ * @return response body deserialized as [List] of [DtoWithId] with content with type [T]
+ */
+// 
+suspend inline fun <reified T> Response.decodeListDtoWithIdFromJsonString(): DtoWithIdList<T> = text().await()
+    .let { Json.parseToJsonElement(it) }
+    .jsonArray
+    .map { it.jsonObject }
+    .map { jsonObject ->
+        val id = requireNotNull(jsonObject["id"]?.jsonPrimitive?.longOrNull)
+        val content: T = Json.decodeFromJsonElement(requireNotNull(jsonObject["content"]))
+        DtoWithId(id, content)
+    }
+
+/**
+ * Read [this] Response body as text and deserialize it using [Json] to [JsonObject] and take [fieldName]
+ *
+ * @param fieldName
+ * @return content of [fieldName] taken from response body
+ */
+suspend inline fun Response.decodeFieldFromJsonString(fieldName: String): String = text().await()
+    .let { Json.parseToJsonElement(it) }
+    .let { it as? JsonObject }
+    ?.let { it[fieldName] }
+    ?.let { it as? JsonPrimitive }
+    ?.content
+    ?: throw IllegalArgumentException("Not found field \'$fieldName\' in response body")
+
+/**
+ * @return content of [this] with type [T] encoded as JSON
+ */
+inline fun <reified T : Any> T.toJsonBody(): String = Json.encodeToString(this)
 
 /**
  * Perform GET request from a class component. See [request] for parameter description.

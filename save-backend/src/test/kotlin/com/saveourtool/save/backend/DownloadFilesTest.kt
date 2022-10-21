@@ -14,12 +14,11 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.Agent
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
@@ -139,17 +138,18 @@ class DownloadFilesTest {
             .writeLines("Lorem ipsum".lines())
         Paths.get(configProperties.fileStorage.location).createDirectories()
 
-        val sampleFileInfo = tmpFile.toFileInfo()
-        val fileKey = FileKey(sampleFileInfo)
-        fileStorage.upload(ProjectCoordinates("Example.com", "TheProject"), fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
+        val projectCoordinates = ProjectCoordinates("Example.com", "TheProject")
+        val sampleFileInfo = tmpFile.toFileInfo(projectCoordinates)
+        val fileKey = sampleFileInfo.key
+        fileStorage.upload(fileKey, tmpFile.toDataBufferFlux().map { it.asByteBuffer() })
             .subscribeOn(Schedulers.immediate())
             .toFuture()
             .get()
 
         webTestClient.method(HttpMethod.POST)
-            .uri("/api/$v1/files/Example.com/TheProject/download")
+            .uri("/api/$v1/files/Example.com/TheProject/download?name={name}&uploadedMillis={uploadedMillis}",
+                sampleFileInfo.key.name, sampleFileInfo.key.uploadedMillis)
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(sampleFileInfo)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
@@ -168,7 +168,7 @@ class DownloadFilesTest {
             .hasSize(1)
             .consumeWith<WebTestClient.ListBodySpec<FileInfo>> {
                 Assertions.assertEquals(
-                    tmpFile.name, it.responseBody!!.first().name
+                    tmpFile.name, it.responseBody!!.first().key.name
                 )
                 Assertions.assertTrue(
                     it.responseBody!!.first().sizeBytes > 0
@@ -203,6 +203,7 @@ class DownloadFilesTest {
         }
             .build()
 
+        val projectCoordinates = ProjectCoordinates("Huawei", "huaweiName")
         webTestClient.post()
             .uri("/api/$v1/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -210,12 +211,12 @@ class DownloadFilesTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<ShortFileInfo>()
+            .expectBody<FileInfo>()
             .consumeWith { result ->
                 Assertions.assertTrue(
                     Flux.just(result.responseBody!!)
-                        .map { it.toStorageKey() }
-                        .flatMap { fileStorage.contentSize(ProjectCoordinates("Huawei", "huaweiName"), it) }
+                        .map { it.key }
+                        .flatMap { fileStorage.contentSize(it) }
                         .single()
                         .subscribeOn(Schedulers.immediate())
                         .toFuture()
@@ -228,11 +229,9 @@ class DownloadFilesTest {
     fun `should save test data`() {
         val execution: Execution = mock()
         whenever(execution.id).thenReturn(1)
-        whenever(agentRepository.findByContainerId("container-1"))
-            .thenReturn(Agent("container-1", execution, "0.0.1"))
 
         webTestClient.post()
-            .uri("/internal/files/debug-info?agentId=container-1")
+            .uri("/internal/files/debug-info?executionId=1")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 TestResultDebugInfo(

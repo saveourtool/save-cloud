@@ -33,7 +33,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register("generateComposeFile") {
         description = "Set project version in docker-compose file"
         val templateFile = "$rootDir/docker-compose.yaml"
-        val composeFile = "$buildDir/docker-compose.yaml"
+        val composeFile = file("$buildDir/docker-compose.yaml")
         val envFile = "$buildDir/.env"
         inputs.file(templateFile)
         inputs.property("project version", version.toString())
@@ -53,7 +53,7 @@ fun Project.createStackDeployTask(profile: String) {
                            |      - "3306:3306"
                            |    environment:
                            |      - "MYSQL_ROOT_PASSWORD=123"
-                           |      - "MYSQL_DATABASE=save_cloud"
+                           |    command: ["--log_bin_trust_function_creators=1"]
                            |  zookeeper:
                            |    image: confluentinc/cp-zookeeper:latest
                            |    environment:
@@ -75,6 +75,8 @@ fun Project.createStackDeployTask(profile: String) {
                            |      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
                            |      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
                            |      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                           |  
+                           |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
                         ""
@@ -82,7 +84,7 @@ fun Project.createStackDeployTask(profile: String) {
                         it
                     }
                 }
-            file(composeFile)
+            composeFile
                 .apply { createNewFile() }
                 .writeText(newText)
         }
@@ -96,14 +98,25 @@ fun Project.createStackDeployTask(profile: String) {
                     ?: findProperty("dockerTag") as String?
                     ?: versionForDockerImages()
             }
+            val defaultDockerNetworkOrProperty =
+                    // When deploying to Docker Swarm, the network name cannot be determined automatically.
+                    // The network name is assigned on swarm creation and hence should be passed as a property to Gradle.
+                    // In Docker Compose mode, however, network name defaults to project directoy name (unless
+                    // overridden explicitly).
+                    findProperty("dockerNetwork") as String?
+                    // https://docs.docker.com/compose/networking/
+                        ?: "${composeFile.parentFile.name}_default"
             // https://docs.docker.com/compose/environment-variables/#the-env-file
             file(envFile).writeText(
                 """
                     BACKEND_TAG=${defaultVersionOrProperty("backend.dockerTag")}
+                    FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
+                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     PROFILE=$profile
+                    DOCKER_NETWORK_NAME=$defaultDockerNetworkOrProperty
                 """.trimIndent()
             )
         }
@@ -137,6 +150,7 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("backend"))
             Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
+            Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
         }
         description =
@@ -222,7 +236,9 @@ fun Project.createStackDeployTask(profile: String) {
             "up",
             "-d",
             "orchestrator",
+            "sandbox",
             "backend",
+            "frontend",
             "preprocessor"
         )
     }
@@ -239,7 +255,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-sandbox", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }
@@ -247,3 +263,13 @@ fun Project.createStackDeployTask(profile: String) {
         }
     }
 }
+
+private fun Project.declareDexService() =
+        """
+            |dex:
+            |  image: ghcr.io/dexidp/dex:latest-distroless
+            |  ports:
+            |    - "5556:5556"
+            |  volumes:
+            |    - $rootDir/save-deploy/dex.dev.yaml:/etc/dex/config.docker.yaml
+        """.trimMargin()

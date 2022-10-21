@@ -16,7 +16,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
-import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.FC
 import react.Props
@@ -26,9 +25,6 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
 import react.useState
-
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 typealias RequestWithDependency<R> = Triple<R, StateSetter<R>, () -> Unit>
 
@@ -54,7 +50,8 @@ external interface ManageGitCredentialsCardProps : Props {
     /**
      * Lambda to show error after fail response
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Lambda to show warning if current user is super admin
@@ -86,24 +83,20 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
 
     val (gitCredentials, _, fetchGitCredentialsRequest) = prepareFetchGitCredentials(props.organizationName)
 
-    val (gitCredentialToUpsert, setGitCredentialToUpsert, upsertGitCredentialRequest) =
-            prepareUpsertGitCredential(props.organizationName, props.updateErrorMessage, fetchGitCredentialsRequest)
+    val (isUpdate, setUpdateFlag) = useState(false)
+    val gitCredentialToUpsertState = useState(GitDto.empty)
+    val (_, setGitCredentialToUpsert) = gitCredentialToUpsertState
 
     val (gitCredentialToDelete, setGitCredentialToDelete, deleteGitCredentialRequest) =
             prepareDeleteGitCredential(props.organizationName, props.updateErrorMessage, fetchGitCredentialsRequest)
 
-    val (isGitWindowOpened, setGitWindowOpened) = useState(false)
+    val gitWindowOpenness = useWindowOpenness()
     gitWindow {
-        isOpen = isGitWindowOpened
+        windowOpenness = gitWindowOpenness
         organizationName = props.organizationName
-        gitDto = gitCredentialToUpsert
-        onGitUpdate = {
-            setGitCredentialToUpsert(it)
-            upsertGitCredentialRequest()
-        }
-        setClosedState = {
-            setGitWindowOpened(false)
-        }
+        gitToUpsertState = gitCredentialToUpsertState
+        this.isUpdate = isUpdate
+        fetchGitCredentials = fetchGitCredentialsRequest
     }
 
     val (isConfirmDeleteGitCredentialWindowOpened, setConfirmDeleteGitCredentialWindowOpened) = useState(false)
@@ -152,15 +145,18 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 div {
                     className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faEdit)
                         id = "edit-git-credential-$index"
                         onClick = {
                             setGitCredentialToUpsert(gitCredential)
-                            setGitWindowOpened(true)
+                            setUpdateFlag(true)
+                            gitWindowOpenness.openWindow()
                         }
                     }
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
                         id = "remove-git-credential-$index"
@@ -183,8 +179,9 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                     type = ButtonType.button
                     className = ClassName("btn btn-sm btn-primary")
                     onClick = {
-                        setGitCredentialToUpsert(null)
-                        setGitWindowOpened(true)
+                        setGitCredentialToUpsert(GitDto.empty)
+                        setUpdateFlag(false)
+                        gitWindowOpenness.openWindow()
                     }
                     +"Add new"
                 }
@@ -215,35 +212,11 @@ private fun prepareFetchGitCredentials(organizationName: String): RequestWithDep
     return Triple(gitCredentials, setGitCredentials, fetchGitCredentialsRequest)
 }
 
-private fun prepareUpsertGitCredential(
-    organizationName: String,
-    updateErrorMessage: (Response) -> Unit,
-    fetchGitCredentialsRequest: () -> Unit
-): RequestWithDependency<GitDto?> {
-    val (gitCredentialToUpsert, setGitCredentialToUpsert) = useState<GitDto?>(null)
-    val upsertGitCredentialRequest = useDeferredRequest {
-        val headers = Headers().apply {
-            set("Accept", "application/json")
-            set("Content-Type", "application/json")
-        }
-        val response = post(
-            "$apiUrl/organizations/$organizationName/upsert-git",
-            headers = headers,
-            body = Json.encodeToString(requireNotNull(gitCredentialToUpsert)),
-            loadingHandler = ::loadingHandler,
-        )
-        if (!response.ok) {
-            updateErrorMessage(response)
-        } else {
-            fetchGitCredentialsRequest()
-        }
-    }
-    return Triple(gitCredentialToUpsert, setGitCredentialToUpsert, upsertGitCredentialRequest)
-}
-
+@Suppress("TYPE_ALIAS")
 private fun prepareDeleteGitCredential(
     organizationName: String,
-    updateErrorMessage: (Response) -> Unit,
+    @Suppress("TYPE_ALIAS")
+    updateErrorMessage: (Response, String) -> Unit,
     fetchGitCredentialsRequest: () -> Unit
 ): RequestWithDependency<GitDto> {
     val (gitCredentialToDelete, setGitCredentialToDelete) = useState(GitDto("N/A"))
@@ -255,7 +228,7 @@ private fun prepareDeleteGitCredential(
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
-            updateErrorMessage(response)
+            updateErrorMessage(response, response.unpackMessage())
         } else {
             fetchGitCredentialsRequest()
         }

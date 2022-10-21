@@ -6,9 +6,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.ImageInfo
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
@@ -17,6 +15,7 @@ import com.saveourtool.save.frontend.components.basic.organizations.organization
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
@@ -31,8 +30,8 @@ import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.*
+import dom.html.HTMLInputElement
 import history.Location
-import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
@@ -58,7 +57,6 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.table.columns
 
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
@@ -152,36 +150,43 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
      * Current state of description input form
      */
     var draftOrganizationDescription: String
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
  * A Component for owner view
  */
 class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
-    private val tableWithProjects = tableComponent(
-        columns = columns<Project> {
-            column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +cellProps.value
+    private val tableWithProjects: FC<TableProps<Project>> = tableComponent(
+        columns = {
+            columns<Project> {
+                column(id = "name", header = "Evaluated Tool", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                +cellProps.value
+                            }
+                            privacySpan(cellProps.row.original)
                         }
-                        privacySpan(cellProps.row.original)
                     }
                 }
-            }
-            column(id = "description", header = "Description") {
-                Fragment.create {
-                    td {
-                        +(it.value.description ?: "Description not provided")
+                column(id = "description", header = "Description") {
+                    Fragment.create {
+                        td {
+                            +(it.value.description ?: "Description not provided")
+                        }
                     }
                 }
-            }
-            column(id = "rating", header = "Contest Rating") {
-                Fragment.create {
-                    td {
-                        +"0"
+                column(id = "rating", header = "Contest Rating") {
+                    Fragment.create {
+                        td {
+                            +"0"
+                        }
                     }
                 }
             }
@@ -204,19 +209,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.confirmationType = ConfirmationType.DELETE_CONFIRM
     }
 
-    private fun deleteOrganization() {
-        val newOrganization = state.organization
-            ?.copy(status = OrganizationStatus.DELETED)
-            ?.apply { id = state.organization?.id }
-        setState {
-            organization = newOrganization
-            confirmationType = ConfirmationType.DELETE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this organization?"
-        }
-    }
-
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
         setState {
             isErrorOpen = true
@@ -228,7 +220,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, OrganizationMenuBar, "#/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
+            changeUrl(state.selectedMenu, OrganizationMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
         }
@@ -244,6 +236,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
+                paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 image = ImageInfo(organizationLoaded.avatar)
                 draftOrganizationDescription = organizationLoaded.description ?: ""
@@ -266,19 +259,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
         displayModal(state.isErrorOpen, state.errorLabel, state.errorMessage, smallTransparentModalStyle, errorCloseCallback) {
             buttonBuilder(state.closeButtonLabel ?: "Close", "secondary") { errorCloseCallback() }
-        }
-
-        displayModal(state.isConfirmWindowOpen, state.confirmLabel, state.confirmMessage, smallTransparentModalStyle, { setState { isConfirmWindowOpen = false } }) {
-            buttonBuilder("Ok") {
-                when (state.confirmationType) {
-                    ConfirmationType.DELETE_CONFIRM -> deleteOrganizationBuilder()
-                    else -> throw IllegalStateException("Not implemented yet")
-                }
-                setState { isConfirmWindowOpen = false }
-            }
-            buttonBuilder("Close", "secondary") {
-                setState { isConfirmWindowOpen = false }
-            }
         }
 
         renderOrganizationMenuBar()
@@ -364,6 +344,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                             }
                             if (state.selfRole.hasWritePermission() && state.isEditDisabled) {
                                 button {
+                                    type = ButtonType.button
                                     className = ClassName("btn btn-link text-xs text-muted text-left ml-auto")
                                     +"Edit  "
                                     fontAwesomeIcon(icon = faEdit)
@@ -496,23 +477,11 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             organizationName = props.organizationName
             currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
             selfRole = state.selfRole
-            deleteOrganizationCallback = {
-                if (state.projects?.size != 0) {
-                    setState {
-                        isErrorOpen = true
-                        errorLabel = ""
-                        errorMessage = "You cannot delete an organization because there are projects connected to it. " +
-                                "Delete all the projects and try again."
-                    }
-                } else {
-                    deleteOrganization()
-                }
-            }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
                     isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "Failed to update or delete organization info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                 }
             }
             updateNotificationMessage = ::showNotification
@@ -534,9 +503,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getProjectsForOrganization(): Array<Project> = get(
         url = "$apiUrl/projects/get/not-deleted-projects-by-organization?organizationName=${props.organizationName}",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
+        headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap {
@@ -544,11 +511,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
 
     private fun onCanCreateContestsChange(canCreateContests: Boolean) {
-        val headers = jsonHeaders
         scope.launch {
             val response = post(
                 "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
-                headers,
+                headers = jsonHeaders,
                 undefined,
                 loadingHandler = ::classLoadingHandler,
             )
@@ -712,26 +678,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private fun deleteOrganizationBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            responseFromDeleteOrganization =
-                    delete(
-                        "$apiUrl/organizations/${props.organizationName}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteOrganization.ok) {
-                window.location.href = "${window.location.origin}/"
             }
         }
     }

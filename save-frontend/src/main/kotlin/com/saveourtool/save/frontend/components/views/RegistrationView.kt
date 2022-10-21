@@ -19,7 +19,7 @@ import com.saveourtool.save.validation.isValidName
 
 import csstype.ClassName
 import csstype.rem
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import org.w3c.dom.asList
 import org.w3c.fetch.Headers
 import org.w3c.xhr.FormData

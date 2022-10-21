@@ -6,11 +6,10 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.getSdkVersions
-import com.saveourtool.save.domain.sdks
+import com.saveourtool.save.domain.*
 
 import csstype.ClassName
-import org.w3c.dom.HTMLSelectElement
+import dom.html.HTMLSelectElement
 import react.ChildrenBuilder
 import react.FC
 import react.PropsWithChildren
@@ -18,6 +17,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import react.useState
 
 /**
  * Component for sdk selection
@@ -29,24 +29,19 @@ val sdkSelection = sdkSelection()
  */
 external interface SdkProps : PropsWithChildren {
     /**
-     * Name of the selected SDK
+     * Title for sdk selector
      */
-    var selectedSdk: String
+    var title: String
 
     /**
-     * Version of the selected SDK
+     * The selected SDK
      */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 
     /**
-     * Callback invoked when `input` for SDK name is changed
+     * Callback invoked when SDK is changed
      */
-    var onSdkChange: (HTMLSelectElement) -> Unit
-
-    /**
-     * Callback invoked when `input` for SDK version is changed
-     */
-    var onVersionChange: (HTMLSelectElement) -> Unit
+    var onSdkChange: (Sdk) -> Unit
 }
 
 private fun ChildrenBuilder.selection(
@@ -82,9 +77,14 @@ private fun ChildrenBuilder.selection(
 
 private fun sdkSelection() =
         FC<SdkProps> { props ->
-            label {
-                className = ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                +"2. Select the SDK if needed:"
+            val (sdkName, setSdkName) = useState(props.selectedSdk.name)
+            val (sdkVersion, setSdkVersion) = useState(props.selectedSdk.version)
+            if (props.title.isNotBlank()) {
+                label {
+                    className =
+                            ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                    +props.title
+                }
             }
             div {
                 className = ClassName("card align-items-left mb-3 pt-0 pb-0")
@@ -94,20 +94,28 @@ private fun sdkSelection() =
                         className = ClassName("row no-gutters align-items-left")
                         selection(
                             "SDK",
-                            props.selectedSdk,
+                            sdkName,
                             sdks,
-                            props.onSdkChange,
-                        )
+                        ) { element ->
+                            val newSdkName = element.value
+                            val newSdkVersion = newSdkName.getSdkVersions().first()
+                            setSdkName(newSdkName)
+                            setSdkVersion(newSdkVersion)
+                            props.onSdkChange("$newSdkName:$newSdkVersion".toSdk())
+                        }
                     }
                     div {
                         className = ClassName("row no-gutters align-items-left")
                         className = ClassName("d-inline")
                         selection(
                             "Version",
-                            props.selectedSdkVersion,
-                            props.selectedSdk.getSdkVersions(),
-                            props.onVersionChange,
-                        )
+                            sdkVersion,
+                            sdkName.getSdkVersions(),
+                        ) { element ->
+                            val newSdkVersion = element.value
+                            setSdkVersion(newSdkVersion)
+                            props.onSdkChange("$sdkName:$newSdkVersion".toSdk())
+                        }
                     }
                 }
             }

@@ -93,109 +93,119 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<IdType<*>, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable = tableComponent<TestExecutionDto, StatusProps<TestExecutionDto>>(
-        columns = columns {
-            column(id = "index", header = "#") {
-                Fragment.create {
-                    td {
-                        +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
+        columns = {
+            columns {
+                column(id = "index", header = "#") {
+                    Fragment.create {
+                        td {
+                            +"${it.row.index + 1 + it.state.pageIndex * it.state.pageSize}"
+                        }
                     }
                 }
-            }
-            column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${
-                            cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
-                            ?: "Running"
-                        }"
+                column(id = "startTime", header = "Start time", { startTimeSeconds }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${
+                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
+                        }
                     }
                 }
-            }
-            column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${
-                            cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
-                            ?: "Running"
-                        }"
+                column(id = "endTime", header = "End time", { endTimeSeconds }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${
+                                cellProps.value?.let { Instant.fromEpochSeconds(it, 0) }
+                                ?: "Running"
+                            }"
+                        }
                     }
                 }
-            }
-            column(id = "status", header = "Status", { status.name }) {
-                Fragment.create {
-                    td {
-                        +it.value
+                column(id = "status", header = "Status", { status.name }) {
+                    Fragment.create {
+                        td {
+                            +it.value
+                        }
                     }
                 }
-            }
-            column(id = "missing", header = "Missing", { unmatched }) {
-                Fragment.create {
-                    td {
-                        +formatCounter(it.value)
+                column(id = "missing", header = "Missing", { unmatched }) {
+                    Fragment.create {
+                        td {
+                            +formatCounter(it.value)
+                        }
                     }
                 }
-            }
-            column(id = "matched", header = "Matched", { matched }) {
-                Fragment.create {
-                    td {
-                        +formatCounter(it.value)
+                column(id = "matched", header = "Matched", { matched }) {
+                    Fragment.create {
+                        td {
+                            +formatCounter(it.value)
+                        }
                     }
                 }
-            }
-            column(id = "path", header = "Test Name") { cellProps ->
-                Fragment.create {
-                    td {
-                        val testName = cellProps.value.filePath
-                        val shortTestName = if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
-                        +shortTestName
+                column(id = "path", header = "Test Name") { cellProps ->
+                    Fragment.create {
+                        td {
+                            val testName = cellProps.value.filePath
+                            val shortTestName =
+                                    if (testName.length > 35) "${testName.take(15)} ... ${testName.takeLast(15)}" else testName
+                            +shortTestName
 
-                        // debug info is provided by agent after the execution
-                        // possibly there can be cases when this info is not available
-                        if (cellProps.value.hasDebugInfo == true) {
-                            spread(cellProps.row.getToggleRowExpandedProps())
-                            style = jso {
-                                textDecoration = "underline".unsafeCast<TextDecoration>()
-                                color = "blue".unsafeCast<Color>()
-                                cursor = "pointer".unsafeCast<Cursor>()
-                            }
+                            // debug info is provided by agent after the execution
+                            // possibly there can be cases when this info is not available
+                            if (cellProps.value.hasDebugInfo == true) {
+                                spread(cellProps.row.getToggleRowExpandedProps())
+                                style = jso {
+                                    textDecoration = "underline".unsafeCast<TextDecoration>()
+                                    color = "blue".unsafeCast<Color>()
+                                    cursor = "pointer".unsafeCast<Cursor>()
+                                }
 
-                            onClick = {
-                                this@ExecutionView.scope.launch {
-                                    if (!cellProps.row.isExpanded) {
-                                        getAdditionalInfoFor(cellProps.value, cellProps.row.id)
+                                onClick = {
+                                    this@ExecutionView.scope.launch {
+                                        if (!cellProps.row.isExpanded) {
+                                            getAdditionalInfoFor(cellProps.value, cellProps.row.id)
+                                        }
+                                        cellProps.row.toggleRowExpanded()
                                     }
-                                    cellProps.row.toggleRowExpanded()
                                 }
                             }
                         }
                     }
                 }
-            }
-            column(id = "plugin", header = "Plugin type", { pluginName }) {
-                Fragment.create {
-                    td {
-                        +it.value
+                column(id = "plugin", header = "Plugin type", { pluginName }) {
+                    Fragment.create {
+                        td {
+                            +it.value
+                        }
                     }
                 }
-            }
-            column(id = "suiteName", header = "Test suite", { testSuiteName }) {
-                Fragment.create {
-                    td {
-                        +"${it.value}"
+                column(id = "suiteName", header = "Test suite", { testSuiteName }) {
+                    Fragment.create {
+                        td {
+                            +"${it.value}"
+                        }
                     }
                 }
-            }
-            column(id = "tags", header = "Tags") {
-                Fragment.create {
-                    td {
-                        +"${it.value.tags}"
+                column(id = "tags", header = "Tags") {
+                    Fragment.create {
+                        td {
+                            +"${it.value.tags}"
+                        }
                     }
                 }
-            }
-            column(id = "agentId", header = "Agent ID") {
-                Fragment.create {
-                    td {
-                        +"${it.value.agentContainerId}".takeLast(12)
+                column(id = "agentName", header = "Agent Name") {
+                    Fragment.create {
+                        td {
+                            +"${it.value.agentContainerName}"
+                        }
+                    }
+                }
+                column(id = "agentId", header = "Agent ID") {
+                    Fragment.create {
+                        td {
+                            +"${it.value.agentContainerId}".takeLast(12)
+                        }
                     }
                 }
             }

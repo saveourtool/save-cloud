@@ -3,9 +3,9 @@ import com.saveourtool.save.buildutils.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
-    id("com.saveourtool.save.buildutils.spring-boot-configuration")
-    id("de.undercouch.download")  // can't use `alias`, because this plugin is a transitive dependency of kotlin-gradle-plugin
+    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
+    id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
+    alias(libs.plugins.download)
     id("org.gradle.test-retry") version "1.4.1"
 }
 
@@ -14,13 +14,11 @@ configureSpotless()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = Versions.jdk
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn" + "-Xcontext-receivers"
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
     }
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
     retry {
         // There once were flaky tests in orchestrator, but it seems like they became stable.
         // Settings can be restored or removed, as required.
@@ -32,6 +30,8 @@ tasks.withType<Test> {
 
 dependencies {
     api(projects.saveCloudCommon)
+    implementation(projects.saveOrchestratorCommon)
+    implementation(libs.save.common.jvm)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)

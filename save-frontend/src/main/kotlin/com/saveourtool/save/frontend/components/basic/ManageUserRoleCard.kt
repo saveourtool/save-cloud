@@ -7,30 +7,26 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.lodash.debounce
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
-import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
-import csstype.None
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ButtonType
-import react.dom.html.InputType
 import react.dom.html.ReactHTML.button
-import react.dom.html.ReactHTML.datalist
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 
-import kotlinx.js.jso
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+val manageUserRoleCardComponent = manageUserRoleCardComponent()
 
 /**
  * [Props] for card component
@@ -58,8 +54,10 @@ external interface ManageUserRoleCardProps : Props {
 
     /**
      * Lambda to show error after fail response
+     * todo: remove [updateErrorMessage] and use response handlers
      */
-    var updateErrorMessage: (Response) -> Unit
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
 
     /**
      * Lambda to get users from project/organization
@@ -84,7 +82,7 @@ external interface ManageUserRoleCardProps : Props {
     "MAGIC_NUMBER",
     "ComplexMethod",
 )
-fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
+private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
     val getUsersFromGroup = useDeferredRequest {
         val usersFromDb = get(
@@ -107,41 +105,26 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             loadingHandler = ::noopLoadingHandler,
         )
         if (!response.ok) {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         } else {
             getUsersFromGroup()
         }
     }
 
     val (userToAdd, setUserToAdd) = useState(UserInfo(""))
-    val (usersNotFromGroup, setUsersNotFromGroup) = useState(emptyList<UserInfo>())
-    val getUsersNotFromGroup = debounce(
-        useDeferredRequest {
-            val users = get(
-                url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=${userToAdd.name}",
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-            )
-                .unsafeMap {
-                    it.decodeFromJsonString<List<UserInfo>>()
-                }
-            setUsersNotFromGroup(users)
-        },
-        DEFAULT_DEBOUNCE_PERIOD,
-    )
     val addUserToGroup = useDeferredRequest {
         val response = post(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
             headers = jsonHeaders,
             body = Json.encodeToString(SetRoleRequest(userToAdd.name, Role.VIEWER)),
             loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
             setUserToAdd(UserInfo(""))
             getUsersFromGroup()
-            setUsersNotFromGroup(emptyList())
         } else {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         }
     }
 
@@ -154,10 +137,9 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
-            props.updateErrorMessage(response)
+            props.updateErrorMessage(response, response.unpackMessage())
         } else {
             getUsersFromGroup()
-            setUsersNotFromGroup(emptyList())
         }
     }
 
@@ -185,30 +167,23 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
         div {
-            className = ClassName("row mt-0 ml-0 mr-0")
+            className = ClassName("row mt-0 ml-0 mr-0 shadow-sm rounded")
             div {
                 className = ClassName("input-group")
-                input {
-                    type = InputType.text
-                    className = ClassName("form-control")
-                    id = "input-users-to-add"
-                    list = "complete-users-to-add"
+                inputWithDebounceForUserInfo {
+                    getOptionFromString = { UserInfo(it) }
+                    selectedOption = userToAdd
+                    setSelectedOption = { setUserToAdd(it) }
+                    getUrlForOptions = { prefix -> "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=$prefix" }
+                    getString = { it.name }
                     placeholder = "username"
-                    value = userToAdd.name
-                    onChange = {
-                        setUserToAdd(UserInfo(it.target.value))
-                        getUsersNotFromGroup()
-                    }
-                }
-                datalist {
-                    id = "complete-users-to-add"
-                    style = jso {
-                        appearance = None.none
-                    }
-                    for (user in usersNotFromGroup) {
-                        option {
-                            value = user.name
-                            label = user.source ?: ""
+                    decodeListFromJsonString = { it.decodeFromJsonString() }
+                    getHTMLDataListElementFromOption = { childrenBuilder, userInfo ->
+                        with(childrenBuilder) {
+                            option {
+                                value = userInfo.name
+                                label = userInfo.source
+                            }
                         }
                     }
                 }
@@ -220,6 +195,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                         onClick = {
                             addUserToGroup()
                         }
+                        disabled = userToAdd.name.isBlank()
                         +"Add user"
                     }
                 }
@@ -252,6 +228,7 @@ fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
                 div {
                     className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
                     button {
+                        type = ButtonType.button
                         className = ClassName("btn col-2 align-items-center mr-2")
                         fontAwesomeIcon(icon = faTimesCircle)
                         val canDelete = selfRole == Role.SUPER_ADMIN ||

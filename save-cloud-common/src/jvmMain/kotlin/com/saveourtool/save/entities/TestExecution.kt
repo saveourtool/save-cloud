@@ -2,6 +2,7 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.spring.entity.BaseEntity
 
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -64,6 +65,7 @@ class TestExecution(
         test.filePath,
         test.pluginName,
         agent?.containerId,
+        agent?.containerName,
         status,
         startTime?.toEpochSecond(ZoneOffset.UTC),
         endTime?.toEpochSecond(ZoneOffset.UTC),

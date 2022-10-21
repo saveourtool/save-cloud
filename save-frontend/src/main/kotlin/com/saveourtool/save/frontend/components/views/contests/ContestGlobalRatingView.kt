@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.filters.OrganizationFilters
 import com.saveourtool.save.filters.ProjectFilters
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
@@ -79,6 +80,11 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
      * All filters for organization
      */
     var organizationFilters: OrganizationFilters
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -89,42 +95,45 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
 class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(false) {
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
+        "TYPE_ALIAS",
     )
-    private val tableWithOrganizationRating = tableComponent(
-        columns = columns<OrganizationDto> {
-            column(id = "index", header = "Position") {
-                Fragment.create {
-                    td {
-                        val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +"$index"
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            img {
-                                className =
-                                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                src = cellProps.row.original.avatar?.let {
-                                    "/api/$v1/avatar$it"
-                                } ?: "img/company.svg"
-                                style = jso {
-                                    height = 2.rem
-                                    width = 2.rem
-                                }
-                            }
-                            href = "#/${cellProps.value}"
-                            +" ${cellProps.value}"
+    private val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
+        columns = {
+            columns {
+                column(id = "index", header = "Position") {
+                    Fragment.create {
+                        td {
+                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            +"$index"
                         }
                     }
                 }
-            }
-            column(id = "rating", header = "Rating") { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${cellProps.value.globalRating?.toFixed(2)}"
+                column(id = "name", header = "Name", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                img {
+                                    className =
+                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = cellProps.row.original.avatar?.let {
+                                        "/api/$v1/avatar$it"
+                                    } ?: "img/company.svg"
+                                    style = jso {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                }
+                                href = "#/${cellProps.value}"
+                                +" ${cellProps.value}"
+                            }
+                        }
+                    }
+                }
+                column(id = "rating", header = "Rating") { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${cellProps.value.globalRating?.toFixed(2)}"
+                        }
                     }
                 }
             }
@@ -140,10 +149,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 th {
                     colSpan = tableInstance.columns.size
                     nameFiltersRow {
-                        name = state.organizationFilters.name
+                        name = state.organizationFilters.prefix
                         onChangeFilters = { filterValue ->
                             val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilters(null)
+                                OrganizationFilters.empty
                             } else {
                                 OrganizationFilters(filterValue)
                             }
@@ -165,30 +174,32 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
     )
-    private val renderingProjectChampionsTable = tableComponent(
-        columns = columns<Project> {
-            column(id = "index", header = "Position") {
-                Fragment.create {
-                    td {
-                        val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
-                        +"$index"
-                    }
-                }
-            }
-            column(id = "name", header = "Name", { name }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
-                            +" ${cellProps.value}"
+    private val renderingProjectChampionsTable: FC<TableProps<Project>> = tableComponent(
+        columns = {
+            columns<Project> {
+                column(id = "index", header = "Position") {
+                    Fragment.create {
+                        td {
+                            val index = it.row.index + 1 + it.state.pageIndex * it.state.pageSize
+                            +"$index"
                         }
                     }
                 }
-            }
-            column(id = "rating", header = "Rating") { cellProps ->
-                Fragment.create {
-                    td {
-                        +"${cellProps.value.contestRating.toFixed(2)}"
+                column(id = "name", header = "Name", { name }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = "#/${cellProps.row.original.organization.name}/${cellProps.value}"
+                                +" ${cellProps.value}"
+                            }
+                        }
+                    }
+                }
+                column(id = "rating", header = "Rating") { cellProps ->
+                    Fragment.create {
+                        td {
+                            +"${cellProps.value.contestRating.toFixed(2)}"
+                        }
                     }
                 }
             }
@@ -231,7 +242,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         state.projects = emptyArray()
         state.selectedMenu = UserRatingTab.defaultTab
         state.projectFilters = ProjectFilters(null)
-        state.organizationFilters = OrganizationFilters(null)
+        state.organizationFilters = OrganizationFilters.empty
     }
 
     private fun getOrganization(filterValue: OrganizationFilters) {
@@ -268,12 +279,18 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
 
     override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
         if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, UserRatingTab, "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}",
-                "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
+            changeUrl(state.selectedMenu, UserRatingTab, state.paths)
             val href = window.location.href.substringBeforeLast("?")
             window.location.href = when (state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilters.name?.let { "$href?projectName=$it" } ?: href
-                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?organizationName=$it" } ?: href
+                UserRatingTab.ORGS -> state.organizationFilters.prefix.let {
+                    buildString {
+                        append(href)
+                        if (it.isNotBlank()) {
+                            append("?organizationName=$it")
+                        }
+                    }
+                }
+                UserRatingTab.TOOLS -> state.projectFilters.name?.let { "$href?projectName=$it" } ?: href
             }
         } else if (props.location != prevProps.location) {
             urlAnalysis(UserRatingTab, Role.NONE, false)
@@ -283,8 +300,9 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
     override fun componentDidMount() {
         super.componentDidMount()
         val projectFilters = ProjectFilters(props.projectName)
-        val organizationFilters = OrganizationFilters(props.organizationName)
+        val organizationFilters = OrganizationFilters(props.organizationName.orEmpty())
         setState {
+            paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
             this.projectFilters = projectFilters
             this.organizationFilters = organizationFilters
         }

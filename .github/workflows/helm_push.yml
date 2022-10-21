@@ -31,7 +31,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: 3.*
+          version: latest
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -42,10 +42,10 @@ jobs:
         name: Prepare to build from branch
         run: |
           git checkout origin/${{ inputs.branch }}
-      - uses: gittools/actions/gitversion/setup@v0.9.13
+      - uses: gittools/actions/gitversion/setup@v0.9.14
         with:
           versionSpec: 5.x
-      - uses: gittools/actions/gitversion/execute@v0.9.13
+      - uses: gittools/actions/gitversion/execute@v0.9.14
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
@@ -65,3 +65,4 @@ jobs:
           cd -
           helm package --version ${{ env.VERSION }} ${{ env.CHARTS_DIR }}
           find . -name "save-cloud-*.tgz" -exec helm push {} oci://ghcr.io/saveourtool \;
+          echo "Packaged and uploaded chart with version ${{ env.VERSION }}" >> $GITHUB_STEP_SUMMARY

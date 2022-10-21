@@ -29,4 +29,14 @@
         <addUniqueConstraint tableName="git" columnNames="organization_id,url" constraintName="uq_git_organization_url"/>
     </changeSet>
 
+    <changeSet id="remove-and-add-fk-git" author="frolov">
+        <dropForeignKeyConstraint baseTableName="git" constraintName="fk_git_organization"/>
+        <addForeignKeyConstraint baseColumnNames="organization_id"
+          baseTableName="git"
+          constraintName="fk_git_organization"
+          referencedColumnNames="id"
+          referencedTableName="organization"
+          onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

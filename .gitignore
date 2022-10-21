@@ -10,3 +10,9 @@ save-cloud-charts/save-cloud/charts
 *.log
 *.jar
 /save-backend/files/testSuites/CQFN.org/Standard+test+suites/*/*.zip
+
+# JPA Buddy
+/.jpb/
+
+# Vim swap files
+*.swp

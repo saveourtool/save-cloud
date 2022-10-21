@@ -28,8 +28,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import csstype.ClassName
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.url.URLSearchParams
+import dom.html.HTMLElement
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -37,6 +36,7 @@ import react.router.Navigate
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
+import web.url.URLSearchParams
 
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -222,6 +222,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 }
 
                                 Route {
+                                    path = "/${FrontendRoutes.SANDBOX.path}"
+                                    element = SandboxView::class.react.create()
+                                }
+
+                                Route {
                                     path = "/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
                                     element = awesomeBenchmarksView.create()
                                 }
@@ -254,6 +259,11 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName/:projectName"
                                     element = contestExecutionView.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.CONTESTS.path}/:contestName/:organizationName"
+                                    element = Navigate.create { to = "/${FrontendRoutes.CONTESTS.path}" }
                                 }
 
                                 Route {
@@ -290,6 +300,13 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                             userName = it
                                         }
                                     } ?: fallbackNode
+                                }
+
+                                state.userInfo?.name.run {
+                                    Route {
+                                        path = "/$this"
+                                        element = Navigate.create { to = "/$this/${FrontendRoutes.SETTINGS_PROFILE.path}" }
+                                    }
                                 }
 
                                 Route {

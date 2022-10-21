@@ -1,8 +1,11 @@
 package com.saveourtool.save.backend.utils
 
+import com.saveourtool.save.utils.AuthenticationDetails
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
+import org.springframework.security.web.server.authentication.ServerHttpBasicAuthenticationConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
@@ -11,7 +14,7 @@ import reactor.core.publisher.Mono
  * Implementation of [ServerAuthenticationConverter] that embeds user identity source into [UsernamePasswordAuthenticationToken]
  */
 @Component
-class CustomAuthenticationBasicConverter : org.springframework.security.web.server.authentication.ServerHttpBasicAuthenticationConverter(),
+class CustomAuthenticationBasicConverter : ServerHttpBasicAuthenticationConverter(),
 ServerAuthenticationConverter {
     /**
      * Convert exchange, received from gateway into UsernamePasswordAuthenticationToken, specify source identity, laid
@@ -26,7 +29,7 @@ ServerAuthenticationConverter {
             authentication.credentials as String
         ).apply {
             details = AuthenticationDetails(
-                id = -1,
+                id = -1L,
                 identitySource = source,
             )
         }

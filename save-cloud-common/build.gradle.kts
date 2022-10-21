@@ -22,7 +22,7 @@ kotlin {
         }
     }
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+        this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
     js(BOTH).browser()
 
@@ -45,12 +45,15 @@ kotlin {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
                 implementation(libs.spring.security.core)
                 implementation(libs.spring.web)
+                implementation(libs.spring.boot)
+                implementation(libs.spring.data.jpa)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
                 implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
                 implementation(libs.commons.compress)
                 implementation(libs.validation.api)
+                implementation(libs.swagger.annotations)
             }
         }
         val jvmTest by getting {

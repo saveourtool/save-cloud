@@ -213,7 +213,7 @@ class TestDiscoveringService(
     private fun Map<TestSuiteDto, List<TestDto>>.saveTestSuites() = entries
         .toFlux()
         .flatMap { (testSuiteDto, tests) ->
-            listOf(testSuiteDto).save().map { it.first() to tests }
+            testSuiteDto.save().map { it to tests }
         }
         .collectList()
         .map { it.toMap() }
@@ -246,7 +246,7 @@ class TestDiscoveringService(
     /**
      * Save test suites via backend
      */
-    private fun List<TestSuiteDto>.save(): Mono<List<TestSuite>> = testsPreprocessorToBackendBridge.saveTestSuites(this)
+    private fun TestSuiteDto.save(): Mono<TestSuite> = testsPreprocessorToBackendBridge.saveTestSuite(this)
 
     /**
      * Save tests via backend

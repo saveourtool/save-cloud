@@ -5,8 +5,12 @@ server:
 gateway:
   backend:
     url: http://backend:5800
+  frontend:
+    url: http://frontend:5810
   grafana:
     url: http://grafana:9100
+  sandbox:
+    url: http://sandbox:5400
 management:
   endpoints:
     web:
@@ -27,7 +31,7 @@ spring:
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
         - id: index_route
-          uri: ${gateway.backend.url}/index.html
+          uri: ${gateway.frontend.url}/index.html
           predicates:
             - Path=/
           filters:
@@ -38,7 +42,7 @@ spring:
           predicates:
             - Path=/error
         - id: resource_route
-          uri: ${gateway.backend.url}
+          uri: ${gateway.frontend.url}
           predicates:
             - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
           filters:
@@ -48,14 +52,14 @@ spring:
           uri: ${gateway.grafana.url}
           predicates:
             - Path=/grafana/**
-  security:
-    oauth2:
-      client:
-        provider:
-          github:
-            # value that will work with GitHub API, where GitHub provides username as "login" in the response
-            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
-            user-name-attribute: login
+        - id: sandbox-api_route
+          uri: ${gateway.sandbox.url}
+          predicates:
+            - Path=/sandbox/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
 
 ---
 spring:
@@ -65,3 +69,16 @@ spring:
 gateway:
   grafana:
     url: http://save-cloud-grafana:9100
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  security:
+    oauth2:
+      client:
+        provider:
+          github:
+            # value that will work with GitHub API, where GitHub provides username as "login" in the response
+            # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+            user-name-attribute: login

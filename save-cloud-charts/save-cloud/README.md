@@ -6,8 +6,7 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
 ## Prerequisites
 * save-backend expects the following secrets to be set under the secret `db-secrets` (`kubectl create secret generic db-secrets <...>`, 
-  also see Secrets section in dev profile in [mysql-deployment.yaml](templates/mysql-deployment.yaml) as a reference): 
-  * `spring.datasource.url`
+  also see Secrets section in dev profile in [mysql-deployment.yaml](templates/mysql-deployment.yaml) as a reference):
   * `spring.datasource.username`
   * `spring.datasource.password`
   

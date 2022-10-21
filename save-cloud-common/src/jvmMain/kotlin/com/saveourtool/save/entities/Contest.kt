@@ -1,9 +1,14 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.utils.EnumType
 import com.saveourtool.save.utils.LocalDateTime
 import com.saveourtool.save.validation.isValidName
+import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 
 /**
  * @property name organization
@@ -38,6 +43,7 @@ class Contest(
     @Suppress("UnsafeCallOnNullableType")
     fun toDto() = ContestDto(
         name,
+        status,
         startTime!!,
         endTime!!,
         description,
@@ -94,13 +100,11 @@ class Contest(
          * Create [Contest] from [ContestDto]
          *
          * @param organization that created contest
-         * @param status [ContestStatus]
          * @param creationTime specified time when contest was created
          * @return [Contest] entity
          */
         fun ContestDto.toContest(
             organization: Organization,
-            status: ContestStatus = ContestStatus.CREATED,
             creationTime: LocalDateTime? = null,
         ) = Contest(
             name,

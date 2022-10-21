@@ -6,7 +6,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.utils.AuthenticationDetails
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.MySqlExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.backend.utils.secondsToLocalDateTime
@@ -116,6 +116,7 @@ class TestExecutionControllerTest {
             "testPath63",
             "WarnPlugin",
             "container-3",
+            "save-container-3",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -128,6 +129,7 @@ class TestExecutionControllerTest {
             "testPath42",
             "WarnPlugin",
             "container-3",
+            "save-container-3",
             TestResultStatus.PASSED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,
@@ -173,6 +175,7 @@ class TestExecutionControllerTest {
             "test-not-exists",
             "WarnPlugin",
             "container-1",
+            "save-container-1",
             TestResultStatus.FAILED,
             DEFAULT_DATE_TEST_EXECUTION,
             DEFAULT_DATE_TEST_EXECUTION,

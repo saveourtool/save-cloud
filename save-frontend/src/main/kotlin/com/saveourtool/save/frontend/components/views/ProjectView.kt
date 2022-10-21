@@ -19,7 +19,6 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
-import com.saveourtool.save.frontend.externals.fontawesome.faEdit
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.http.getProject
@@ -29,40 +28,33 @@ import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.getHighestRole
 
 import csstype.ClassName
 import history.Location
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.asList
 import org.w3c.fetch.Headers
-import org.w3c.fetch.Response
-import org.w3c.xhr.FormData
 import react.*
 import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 
-import kotlinx.browser.document
-import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.Month
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * `Props` retrieved from router
+ * [Props] retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface ProjectExecutionRouteProps : PropsWithChildren {
+external interface ProjectViewProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
@@ -82,6 +74,11 @@ external interface ContestRunState : State {
      * All available contest
      */
     var availableContests: List<ContestDto>
+
+    /**
+     * All available contest
+     */
+    var selectedContestTestSuites: List<TestSuiteDto>
 }
 
 /**
@@ -96,12 +93,7 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     /**
      * Files required for tests execution for this project
      */
-    var files: MutableList<FileInfo>
-
-    /**
-     * Files that are available on server side
-     */
-    var availableFiles: MutableList<FileInfo>
+    var files: List<FileInfo>
 
     /**
      * Message of error
@@ -119,29 +111,9 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var errorLabel: String
 
     /**
-     * Message of warning
-     */
-    var confirmMessage: String
-
-    /**
-     * Flag to handle confirm Window
-     */
-    var isConfirmWindowOpen: Boolean?
-
-    /**
-     * Label of confirm Window
-     */
-    var confirmLabel: String
-
-    /**
      * Selected sdk
      */
-    var selectedSdk: String
-
-    /**
-     * Selected version
-     */
-    var selectedSdkVersion: String
+    var selectedSdk: Sdk
 
     /**
      * Flag to handle upload type project
@@ -149,24 +121,14 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var testingType: TestingType
 
     /**
-     * Submit button was pressed
+     * List of Test Suites of private [TestSuiteDto] for execution run
      */
-    var isSubmitButtonPressed: Boolean?
+    var selectedPrivateTestSuites: List<TestSuiteDto>
 
     /**
-     * State for the creation of unified confirmation logic
+     * List of Test Suites of public [TestSuiteDto] for execution run
      */
-    var confirmationType: ConfirmationType
-
-    /**
-     * List of IDs of private [TestSuiteDto] for execution run
-     */
-    var selectedPrivateTestSuiteIds: List<Long>
-
-    /**
-     * List of IDs of public [TestSuiteDto] for execution run
-     */
-    var selectedPublicTestSuiteIds: List<Long>
+    var selectedPublicTestSuites: List<TestSuiteDto>
 
     /**
      * Execution command for standard mode
@@ -179,26 +141,6 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
     var batchSizeForAnalyzer: String
 
     /**
-     * General size of test suite in bytes
-     */
-    var suiteByteSize: Long
-
-    /**
-     * Bytes received by server
-     */
-    var bytesReceived: Long
-
-    /**
-     * Flag to handle uploading a file
-     */
-    var isUploading: Boolean?
-
-    /**
-     * Whether editing of project info is disabled
-     */
-    var isEditDisabled: Boolean?
-
-    /**
      * latest execution id for this project
      */
     var latestExecutionId: Long?
@@ -207,6 +149,11 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
      * Label that will be shown on close button
      */
     var closeButtonLabel: String?
+
+    /**
+     * Contains the paths of default and other tabs
+     */
+    var paths: PathsForTabs
 }
 
 /**
@@ -216,64 +163,30 @@ external interface ProjectViewState : StateWithRole, ContestRunState, HasSelecte
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
-class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(false) {
-    private val date = LocalDateTime(1970, Month.JANUARY, 1, 0, 0, 1)
-    private val projectInfo = projectInfo(
-        turnEditMode = ::turnEditMode,
-        onProjectSave = { draftProject, setDraftProject ->
-            if (draftProject != state.project) {
-                scope.launch {
-                    val response = updateProject(draftProject!!)
-                    if (response.ok) {
-                        setState {
-                            project = draftProject
-                        }
-                    } else {
-                        // rollback form content
-                        setDraftProject(state.project)
-                    }
-                }
-            }
-        },
-    )
+class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
     private val typeSelection = cardComponent()
-    private lateinit var responseFromDeleteProject: Response
 
     init {
-        state.project = Project(
-            "N/A",
-            "N/A",
-            "N/A",
-            ProjectStatus.CREATED,
-            userId = -1,
-            organization = Organization("stub", OrganizationStatus.CREATED, null, date)
-        )
+        state.project = Project.stub(null, Organization.stub(null))
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
-        state.selectedPrivateTestSuiteIds = emptyList()
-        state.selectedPublicTestSuiteIds = emptyList()
+        state.selectedPrivateTestSuites = emptyList()
+        state.selectedPublicTestSuites = emptyList()
         state.execCmd = ""
         state.batchSizeForAnalyzer = ""
-        state.confirmationType = ConfirmationType.NO_CONFIRM
         state.testingType = TestingType.PRIVATE_TESTS
         state.selectedContest = ContestDto.empty
         state.availableContests = emptyList()
         state.isErrorOpen = false
-        state.isSubmitButtonPressed = false
         state.errorMessage = ""
         state.errorLabel = ""
         state.files = mutableListOf()
-        state.availableFiles = mutableListOf()
-        state.selectedSdk = Sdk.Default.name
-        state.selectedSdkVersion = Sdk.Default.version
-        state.suiteByteSize = state.files.sumOf { it.sizeBytes }
-        state.bytesReceived = state.availableFiles.sumOf { it.sizeBytes }
-        state.isUploading = false
-        state.isEditDisabled = true
+        state.selectedSdk = Sdk.Default
         state.selectedMenu = ProjectMenuBar.defaultTab
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
+        state.selectedContestTestSuites = emptyList()
     }
 
     private fun showNotification(notificationLabel: String, notificationMessage: String) {
@@ -285,11 +198,14 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    override fun componentDidUpdate(prevProps: ProjectExecutionRouteProps, prevState: ProjectViewState, snapshot: Any) {
+    override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
         if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, ProjectMenuBar, "#/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
         } else if (props.location != prevProps.location) {
             urlAnalysis(ProjectMenuBar, state.selfRole, false)
+        }
+        if (prevState.selectedContestTestSuites != state.selectedContestTestSuites) {
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
@@ -304,25 +220,30 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             } else {
                 result.getOrThrow()
             }
-            setState { this.project = project }
-
-            val currentUserRole: Role = get(
+            setState {
+                this.project = project
+                paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
+            }
+            val currentUserRoleInProject: Role = get(
                 "$apiUrl/projects/${project.organization.name}/${project.name}/users/roles",
                 jsonHeaders,
                 loadingHandler = ::classLoadingHandler,
             ).decodeFromJsonString()
+
+            val currentUserRoleInOrganization: Role = get(
+                url = "$apiUrl/organizations/${project.organization.name}/users/roles",
+                headers = jsonHeaders,
+                loadingHandler = ::classLoadingHandler,
+            ).decodeFromJsonString()
+
+            val currentUserRole = getHighestRole(currentUserRoleInProject, currentUserRoleInOrganization)
+
             val role = getHighestRole(currentUserRole, props.currentUserInfo?.globalRole)
             setState {
                 selfRole = role
             }
 
             urlAnalysis(ProjectMenuBar, role, false)
-
-            val availableFiles = getFilesList(project.organization.name, project.name)
-            setState {
-                this.availableFiles.clear()
-                this.availableFiles.addAll(availableFiles)
-            }
 
             val contests = getContests()
             setState {
@@ -331,29 +252,29 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             }
 
             fetchLatestExecutionId()
+            fetchTestSuiteDtos(state.selectedContest.testSuiteIds)
         }
     }
 
     @Suppress("ComplexMethod", "TOO_LONG_FUNCTION")
-    private fun submitExecutionRequest() {
+    private fun NavigateFunctionContext.submitExecutionRequest() {
         when (state.testingType) {
-            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuiteIds, state.testingType)
-            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuiteIds, state.testingType)
-            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContest.testSuiteIds, state.testingType)
+            TestingType.PRIVATE_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPrivateTestSuites, state.testingType)
+            TestingType.PUBLIC_TESTS -> submitExecutionRequestByTestSuiteIds(state.selectedPublicTestSuites, state.testingType)
+            TestingType.CONTEST_MODE -> submitExecutionRequestByTestSuiteIds(state.selectedContestTestSuites, state.testingType)
             else -> throw IllegalStateException("Not supported testing type: ${state.testingType}")
         }
     }
 
-    private fun submitExecutionRequestByTestSuiteIds(selectedTestSuiteIds: List<Long>, testingType: TestingType) {
-        val selectedSdk = "${state.selectedSdk}:${state.selectedSdkVersion}".toSdk()
-        val executionRequest = RunExecutionRequest(
+    private fun NavigateFunctionContext.submitExecutionRequestByTestSuiteIds(selectedTestSuites: List<TestSuiteDto>, testingType: TestingType) {
+        val executionRequest = CreateExecutionRequest(
             projectCoordinates = ProjectCoordinates(
                 organizationName = state.project.organization.name,
                 projectName = state.project.name
             ),
-            testSuiteIds = selectedTestSuiteIds,
-            files = state.files.map { it.toStorageKey() },
-            sdk = selectedSdk,
+            testSuiteIds = selectedTestSuites.map { it.requiredId() },
+            files = state.files.map { it.key },
+            sdk = state.selectedSdk,
             execCmd = state.execCmd.takeUnless { it.isBlank() },
             batchSizeForAnalyzer = state.batchSizeForAnalyzer.takeUnless { it.isBlank() },
             testingType = testingType,
@@ -362,7 +283,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
     }
 
-    private fun submitRequest(url: String, headers: Headers, body: dynamic) {
+    private fun NavigateFunctionContext.submitRequest(url: String, headers: Headers, body: dynamic) {
         scope.launch {
             val response = post(
                 apiUrl + url,
@@ -371,7 +292,24 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 loadingHandler = ::classLoadingHandler,
             )
             if (response.ok) {
-                window.location.href = "${window.location}/history"
+                navigate(to = "/${state.project.organization.name}/${state.project.name}/history")
+            }
+        }
+    }
+
+    // fixme: can be removed after https://github.com/saveourtool/save-cloud/issues/1192
+    private fun fetchTestSuiteDtos(ids: List<Long>) {
+        scope.launch {
+            val testSuitesFromBackend: List<TestSuiteDto> = post(
+                url = "$apiUrl/test-suites/${props.owner}/get-by-ids",
+                headers = jsonHeaders,
+                body = Json.encodeToString(ids),
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+                .decodeFromJsonString()
+            setState {
+                selectedContestTestSuites = testSuitesFromBackend
             }
         }
     }
@@ -395,7 +333,6 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 modalCloseCallback()
             }
         }
-
         // Page Heading
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -488,57 +425,42 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 }
 
                 // ======== file selector =========
-                fileUploader {
-                    isSubmitButtonPressed = state.isSubmitButtonPressed
-                    files = state.files
-                    availableFiles = state.availableFiles
-                    suiteByteSize = state.suiteByteSize
-                    bytesReceived = state.bytesReceived
-                    isUploading = state.isUploading
-                    projectCoordinates = ProjectCoordinates(props.owner, props.name)
-                    onFileSelect = { element ->
-                        setState {
-                            val availableFile = availableFiles.first { it.name == element.value }
-                            files.add(availableFile)
-                            bytesReceived += availableFile.sizeBytes
-                            suiteByteSize += availableFile.sizeBytes
-                            availableFiles.remove(availableFile)
-                        }
+                div {
+                    className = ClassName("mb-2")
+                    label {
+                        className =
+                                ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
+                        +"1. Upload or select the tool (and other resources) for testing:"
                     }
-                    onFileRemove = {
-                        setState {
-                            files.remove(it)
-                            bytesReceived -= it.sizeBytes
-                            suiteByteSize -= it.sizeBytes
-                            availableFiles.add(it)
+                    fileUploaderForProjectRun(
+                        ProjectCoordinates(props.owner, props.name),
+                        state.files,
+                        { fileToAdd ->
+                            setState {
+                                files = files + fileToAdd
+                            }
                         }
-                    }
-                    onFileInput = { postFileUpload(it) }
-                    onFileDelete = { postFileDelete(it) }
-                    onExecutableChange = { selectedFile, checked ->
+                    ) { fileToRemove ->
                         setState {
-                            files[files.indexOf(selectedFile)] = selectedFile.copy(isExecutable = checked)
+                            files = files - fileToRemove
                         }
                     }
                 }
 
                 // ======== sdk selection =========
                 sdkSelection {
+                    title = "2. Select the SDK if needed:"
                     selectedSdk = state.selectedSdk
-                    selectedSdkVersion = state.selectedSdkVersion
                     onSdkChange = {
                         setState {
-                            selectedSdk = it.value
-                            selectedSdkVersion = selectedSdk.getSdkVersions().first()
+                            selectedSdk = it
                         }
                     }
-                    onVersionChange = { setState { selectedSdkVersion = it.value } }
                 }
 
                 // ======== test resources selection =========
                 testResourcesSelection {
                     testingType = state.testingType
-                    isSubmitButtonPressed = state.isSubmitButtonPressed
                     // properties for CONTEST_TESTS mode
                     projectName = props.name
                     organizationName = props.owner
@@ -557,17 +479,17 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                     }
                     availableContests = state.availableContests
                     // properties for PRIVATE_TESTS mode
-                    selectedPrivateTestSuiteIds = state.selectedPrivateTestSuiteIds
-                    setSelectedPrivateTestSuiteIds = { selectedTestSuiteIds ->
+                    selectedPrivateTestSuiteDtos = state.selectedPrivateTestSuites
+                    setSelectedPrivateTestSuiteDtos = { selectedTestSuiteDtos ->
                         setState {
-                            this.selectedPrivateTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPrivateTestSuites = selectedTestSuiteDtos
                         }
                     }
                     // properties for PUBLIC_TESTS mode
-                    selectedPublicTestSuiteIds = state.selectedPublicTestSuiteIds
-                    setSelectedPublicTestSuiteIds = { selectedTestSuiteIds ->
+                    selectedPublicTestSuiteDtos = state.selectedPublicTestSuites
+                    setSelectedPublicTestSuiteDtos = { selectedTestSuiteDtos ->
                         setState {
-                            this.selectedPublicTestSuiteIds = selectedTestSuiteIds
+                            this.selectedPublicTestSuites = selectedTestSuiteDtos
                         }
                     }
                     // properties for PRIVATE_TESTS and PUBLIC_TESTS modes
@@ -587,11 +509,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
 
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-primary")
-                        onClick = { submitWithValidation() }
-                        +"Test the tool now"
+                    withNavigate { navigateContext ->
+                        buttonBuilder("Test the tool now", isDisabled = isRunButtonDisabled()) {
+                            navigateContext.submitExecutionRequest()
+                        }
                     }
                 }
             }
@@ -601,33 +522,30 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                 div {
                     className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                     +"Information"
-                    button {
-                        className = ClassName("btn btn-link text-xs text-muted text-left p-1 ml-2")
-                        +"Edit  "
-                        fontAwesomeIcon(icon = faEdit)
-                        onClick = {
-                            turnEditMode(isOff = false)
-                        }
-                    }
                 }
 
                 projectInfoCard {
                     projectInfo {
                         project = state.project
-                        isEditDisabled = state.isEditDisabled
+                        onProjectUpdate = {
+                            setState {
+                                project = it
+                            }
+                        }
                     }
 
                     div {
                         className = ClassName("ml-3 mt-2 align-items-left justify-content-between")
                         fontAwesomeIcon(icon = faHistory)
-
-                        button {
-                            className = ClassName("btn btn-link text-left")
-                            +"Latest Execution"
-                            disabled = state.latestExecutionId == null
-
-                            onClick = {
-                                window.location.href = "${window.location}/history/execution/${state.latestExecutionId}"
+                        withNavigate { navigateContext ->
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn btn-link text-left")
+                                +"Latest Execution"
+                                disabled = state.latestExecutionId == null
+                                onClick = {
+                                    navigateContext.navigateToLinkWithSuffix(state.paths.pathDefaultTab, "history/execution/${state.latestExecutionId}")
+                                }
                             }
                         }
                     }
@@ -635,7 +553,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
                         className = ClassName("ml-3 align-items-left")
                         fontAwesomeIcon(icon = faCalendarAlt)
                         a {
-                            href = "#/${state.project.organization.name}/${state.project.name}/history"
+                            href = "#${state.paths.pathDefaultTab}/history"
                             className = ClassName("btn btn-link text-left")
                             +"Execution History"
                         }
@@ -664,21 +582,10 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
             project = state.project
             currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
             selfRole = state.selfRole
-            deleteProjectCallback = ::deleteProject
-            updateProjectSettings = { project ->
-                scope.launch {
-                    val response = updateProject(project)
-                    if (response.ok) {
-                        setState {
-                            this.project = project
-                        }
-                    }
-                }
-            }
-            updateErrorMessage = {
+            updateErrorMessage = { response, message ->
                 setState {
-                    errorLabel = "Failed to save project info"
-                    errorMessage = "Failed to save project info: ${it.status} ${it.statusText}"
+                    errorLabel = response.statusText
+                    errorMessage = message
                     isErrorOpen = true
                 }
             }
@@ -686,169 +593,21 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private fun fileDelete(file: FileInfo) {
-        scope.launch {
-            val response = delete(
-                "$apiUrl/files/${props.owner}/${props.name}/${file.uploadedMillis}",
-                jsonHeaders,
-                Json.encodeToString(file),
-                loadingHandler = ::noopLoadingHandler,
-            )
-
-            if (response.ok) {
-                setState {
-                    files.remove(file)
-                    bytesReceived -= file.sizeBytes
-                    suiteByteSize -= file.sizeBytes
-                }
-            }
-        }
-    }
-
-    private fun postFileDelete(fileForDelete: FileInfo) {
-        val confirm = window.confirm(
-            "Are you sure you want to delete ${fileForDelete.name} file?"
-        )
-
-        if (confirm) {
-            fileDelete(fileForDelete)
-        }
-    }
-
-    private fun postFileUpload(element: HTMLInputElement) =
-            scope.launch {
-                setState {
-                    isUploading = true
-                    element.files!!.asList().forEach { file ->
-                        suiteByteSize += file.size.toLong()
-                    }
-                }
-
-                element.files!!.asList().forEach { file ->
-                    val response: FileInfo = post(
-                        "$apiUrl/files/${props.owner}/${props.name}/upload?returnShortFileInfo=false",
-                        Headers(),
-                        FormData().apply {
-                            append("file", file)
-                        },
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-                        .decodeFromJsonString()
-
-                    setState {
-                        // add only to selected files so that this entry isn't duplicated
-                        files.add(response)
-                        bytesReceived += response.sizeBytes
-                    }
-                }
-                setState {
-                    isUploading = false
-                }
-            }
-
-    private fun turnEditMode(isOff: Boolean) {
-        setState {
-            isEditDisabled = isOff
-        }
-        (document.getElementById("Save new project info") as HTMLButtonElement).hidden = isOff
-        (document.getElementById("Cancel") as HTMLButtonElement).hidden = isOff
-    }
-
     private fun ChildrenBuilder.testingTypeButton(selectedTestingType: TestingType, text: String, divClass: String) {
         div {
             className = ClassName(divClass)
-            button {
-                type = ButtonType.button
-                className =
-                        if (state.testingType == selectedTestingType) {
-                            ClassName("btn btn-primary")
-                        } else {
-                            ClassName("btn btn-outline-primary")
-                        }
-                onClick = {
-                    setState {
-                        testingType = selectedTestingType
-                    }
+            buttonBuilder(text, isOutline = true, isActive = state.testingType == selectedTestingType) {
+                setState {
+                    testingType = selectedTestingType
                 }
-                +text
-            }
-        }
-    }
-
-    /**
-     * In some cases scripts and binaries can be uploaded to a git repository, so users won't be providing or uploading
-     * binaries. For this case we should open a window, so user will need to click a checkbox, so he will confirm that
-     * he understand what he is doing.
-     */
-    private fun submitWithValidation() {
-        setState {
-            isSubmitButtonPressed = true
-        }
-        when {
-            // no binaries were provided
-            state.files.isEmpty() -> setState {
-                confirmationType = ConfirmationType.NO_BINARY_CONFIRM
-                isConfirmWindowOpen = true
-                confirmLabel = "Single binary confirmation"
-                confirmMessage = "You have not provided any files related to your tested tool." +
-                        " If these files were uploaded to your repository - press OK, otherwise - please upload these files using 'Upload files' button."
-            }
-            // everything is in place, can proceed
-            else -> submitExecutionRequest()
-        }
-    }
-
-    private fun deleteProject() {
-        val newProject = state.project.copy(status = ProjectStatus.DELETED)
-
-        setState {
-            project = newProject
-            confirmationType = ConfirmationType.DELETE_CONFIRM
-            isConfirmWindowOpen = true
-            confirmLabel = ""
-            confirmMessage = "Are you sure you want to delete this project?"
-        }
-    }
-
-    @Suppress("COMMENTED_OUT_CODE")
-    private suspend fun updateProject(draftProject: Project): Response {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        return post(
-            "$apiUrl/projects/update",
-            headers,
-            Json.encodeToString(draftProject.toDto()),
-            loadingHandler = ::noopLoadingHandler,
-        )
-    }
-
-    private fun deleteProjectBuilder() {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-        scope.launch {
-            responseFromDeleteProject =
-                    delete(
-                        "$apiUrl/projects/${state.project.organization.name}/${state.project.name}/delete",
-                        headers,
-                        body = undefined,
-                        loadingHandler = ::noopLoadingHandler,
-                    )
-        }.invokeOnCompletion {
-            if (responseFromDeleteProject.ok) {
-                window.location.href = "${window.location.origin}/"
             }
         }
     }
 
     private suspend fun fetchLatestExecutionId() {
-        val headers = Headers().apply { set("Accept", "application/json") }
         val response = get(
             "$apiUrl/latestExecution?name=${state.project.name}&organizationName=${state.project.organization.name}",
-            headers,
+            jsonHeaders,
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -873,21 +632,13 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
     }
 
-    private suspend fun getFilesList(
-        organizationName: String,
-        projectName: String,
-    ) = get(
-        "$apiUrl/files/$organizationName/$projectName/list",
-        Headers(),
-        loadingHandler = ::noopLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString<List<FileInfo>>()
-        }
+    private fun isRunButtonDisabled() = state.files.isEmpty() ||
+            (state.testingType == TestingType.PRIVATE_TESTS && state.selectedPrivateTestSuites.isEmpty()) ||
+            (state.testingType == TestingType.PUBLIC_TESTS && state.selectedPublicTestSuites.isEmpty())
 
     private suspend fun getContests() = get(
         "$apiUrl/contests/active",
-        Headers(),
+        jsonHeaders,
         loadingHandler = ::noopLoadingHandler,
     )
         .unsafeMap {
@@ -895,7 +646,7 @@ class ProjectView : AbstractView<ProjectExecutionRouteProps, ProjectViewState>(f
         }
 
     companion object :
-        RStatics<ProjectExecutionRouteProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
+        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>

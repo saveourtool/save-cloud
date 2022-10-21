@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.externals.fontawesome.faExclamationTriangle
@@ -92,119 +93,145 @@ external interface HistoryViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
-    @Suppress("MAGIC_NUMBER")
-    private val executionsTable = tableComponent(
-        columns = columns<ExecutionDto> {
-            column("result", "", { status }) { cellProps ->
-                val result = when (cellProps.row.original.status) {
-                    ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
-                    ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                    ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
-                    ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
-                    ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                        ResultColorAndIcon("text-danger", faExclamationTriangle)
-                    } else {
-                        ResultColorAndIcon("text-success", faCheck)
+    @Suppress(
+        "MAGIC_NUMBER",
+        "TYPE_ALIAS",
+    )
+    private val executionsTable: FC<TableProps<ExecutionDto>> = tableComponent(
+        columns = {
+            columns {
+                column("result", "", { status }) { cellProps ->
+                    val result = when (cellProps.row.original.status) {
+                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
+                        ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
+                        ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
+                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
+                        ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
+                            ResultColorAndIcon("text-danger", faExclamationTriangle)
+                        } else {
+                            ResultColorAndIcon("text-success", faCheck)
+                        }
                     }
-                }
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                            fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                    Fragment.create {
+                        td {
+                            a {
+                                href =
+                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                            }
                         }
                     }
                 }
-            }
-            column("status", "Status", { status }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                            +"${cellProps.value}"
+                column("status", "Status", { status }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href =
+                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("startDate", "Start time", { startTime }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                            +(formattingDate(cellProps.value) ?: "Starting")
+                column("startDate", "Start time", { startTime }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href =
+                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                +(formattingDate(cellProps.value) ?: "Starting")
+                            }
                         }
                     }
                 }
-            }
-            column("endDate", "End time", { endTime }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                            +(formattingDate(cellProps.value) ?: "Starting")
+                column("endDate", "End time", { endTime }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href =
+                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                +(formattingDate(cellProps.value) ?: "Starting")
+                            }
                         }
                     }
                 }
-            }
-            column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                            +"${cellProps.value}"
+                column("testSuiteSource", "Test Suite Source", { testSuiteSourceName }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href =
+                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("running", "Running", { runningTests }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.RUNNING)
-                            +"${cellProps.value}"
+                column("running", "Running", { runningTests }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = getHrefToExecution(
+                                    cellProps.row.original.id,
+                                    cellProps.row.original.status,
+                                    TestResultStatus.RUNNING
+                                )
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("passed", "Passed", { passedTests }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.PASSED)
-                            +"${cellProps.value}"
+                column("passed", "Passed", { passedTests }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = getHrefToExecution(
+                                    cellProps.row.original.id,
+                                    cellProps.row.original.status,
+                                    TestResultStatus.PASSED
+                                )
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("failed", "Failed", { failedTests }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.FAILED)
-                            +"${cellProps.value}"
+                column("failed", "Failed", { failedTests }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = getHrefToExecution(
+                                    cellProps.row.original.id,
+                                    cellProps.row.original.status,
+                                    TestResultStatus.FAILED
+                                )
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("skipped", "Skipped", { skippedTests }) { cellProps ->
-                Fragment.create {
-                    td {
-                        a {
-                            href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, TestResultStatus.IGNORED)
-                            +"${cellProps.value}"
+                column("skipped", "Skipped", { skippedTests }) { cellProps ->
+                    Fragment.create {
+                        td {
+                            a {
+                                href = getHrefToExecution(
+                                    cellProps.row.original.id,
+                                    cellProps.row.original.status,
+                                    TestResultStatus.IGNORED
+                                )
+                                +"${cellProps.value}"
+                            }
                         }
                     }
                 }
-            }
-            column("checkBox", "") { cellProps ->
-                Fragment.create {
-                    td {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-small")
-                            fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                            onClick = {
-                                deleteExecution(cellProps.value.id)
+                column("checkBox", "") { cellProps ->
+                    Fragment.create {
+                        td {
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn btn-small")
+                                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
+                                onClick = {
+                                    deleteExecution(cellProps.value.id)
+                                }
                             }
                         }
                     }
@@ -314,7 +341,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         scope.launch {
             val responseFromDeleteExecutions =
                     post(
-                        "$apiUrl/execution/deleteAll?name=${props.name}&organizationName=${props.organizationName}",
+                        "$apiUrl/execution/delete-all-except-contest?name=${props.name}&organizationName=${props.organizationName}",
                         jsonHeaders,
                         undefined,
                         loadingHandler = ::noopLoadingHandler,

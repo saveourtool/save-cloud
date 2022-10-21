@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.utils
 
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.utils.AuthenticationDetails
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetails
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
@@ -9,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.cast
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 /**
@@ -17,10 +19,9 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * where user identity is already guaranteed.
  */
 @Component
-class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
-    @Autowired
-    private lateinit var userDetailsService: UserDetailsService
-
+class ConvertingAuthenticationManager(
+    @Autowired private var userDetailsService: UserDetailsService
+) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
      * by [CustomAuthenticationBasicConverter] with record in DB
@@ -35,7 +36,7 @@ class ConvertingAuthenticationManager : ReactiveAuthenticationManager {
         }
         val name = authentication.name.drop(identitySource.length + 1)
         userDetailsService.findByUsername(name)
-            .map { it as IdentitySourceAwareUserDetails }
+            .cast<IdentitySourceAwareUserDetails>()
             .filter { it.identitySource == identitySource }
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }

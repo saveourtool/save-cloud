@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.sandbox.name }}-config
+data:
+  application.properties: |
+    sandbox.backendUrl=N/A
+
+    sandbox.kubernetes.apiServerUrl=http://kubernetes.default.svc
+    sandbox.kubernetes.serviceAccount=${POD_SERVICE_ACCOUNT}
+    sandbox.kubernetes.namespace=${POD_NAMESPACE}
+
+    server.shutdown=graceful
+    management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.sandbox.managementPort }}
+    sandbox.agent-settings.orchestrator-url=http://{{ .Values.sandbox.name }}
+    sandbox.agent-settings.backend-url=http://{{ .Values.sandbox.name }}
+    sandbox.agent-settings.debug=true
+
+    sandbox.test-resources.tmp-path=/tmp/save/resources
+
+    logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
+
+    {{ if .Values.sandbox.applicationProperties }}
+    {{- .Values.sandbox.applicationProperties | nindent 4 }}
+    {{ end }}

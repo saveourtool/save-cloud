@@ -54,15 +54,15 @@ private fun newContestsCard() = VFC {
                 }
                 h3 {
                     className = ClassName("mb-0")
-                    a {
+
+                    p {
                         className = ClassName("text-dark")
-                        href = "#/contests"
                         +"Hurry up! 🔥"
                     }
                 }
                 p {
                     className = ClassName("card-text mb-auto")
-                    +"Checkout and participate in newest contests!"
+                    +"Checkout and participate in newest contests"
                 }
                 newContests.forEach { contest ->
                     a {

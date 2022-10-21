@@ -14,8 +14,8 @@ import com.saveourtool.save.validation.URL_ERROR_MESSAGE
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
 
-private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, hyphens and underscores." +
-        "No hyphen at the beginning and at the end of the line."
+private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+        "No dot, hyphen or underscore at the beginning and at the end of the line."
 
 /**
  * @property str
@@ -110,8 +110,17 @@ enum class InputTypes(
         )
     ),
 
+    // ==== test suites source fetcher
+    SOURCE_TAG("source_tag", placeholder = "select a tag"),
+    SOURCE_BRANCH("source_branch", placeholder = "select a branch"),
+    SOURCE_COMMIT("source_commit", placeholder = "select a commit"),
+
     // ==== execution run
     TEST_SUITE_IDS("test suite ids", placeholder = "click to open selector"),
+
+    // ==== ace editor
+    ACE_THEME_SELECTOR("theme"),
+    ACE_MODE_SELECTOR("mode"),
     ;
 }
 

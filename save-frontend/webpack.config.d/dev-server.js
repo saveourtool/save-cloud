@@ -13,6 +13,15 @@ config.devServer = Object.assign(
           }
         },
         {
+          context: ["/sandbox/api/**"],
+          target: 'http://localhost:5400',
+          logLevel: 'debug',
+          onProxyReq: function (proxyReq, req, res) {
+            proxyReq.setHeader("Authorization", "Basic YWRtaW46");
+            proxyReq.setHeader("X-Authorization-Source", "basic");
+          }
+        },
+        {
           bypass: (req, res) => {
             if (req.url.endsWith("/sec/user")) {
               return res.send(

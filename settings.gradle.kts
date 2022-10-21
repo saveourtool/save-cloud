@@ -25,6 +25,7 @@ dependencyResolutionManagement {
 
 include("api-gateway")
 include("save-backend")
+include("save-orchestrator-common")
 include("save-orchestrator")
 include("save-frontend")
 include("save-cloud-common")
@@ -33,5 +34,6 @@ include("save-preprocessor")
 include("test-utils")
 include("save-api")
 include("save-api-cli")
+include("save-sandbox")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

@@ -1,4 +1,5 @@
 import com.saveourtool.save.buildutils.configureSpotless
+import com.saveourtool.save.buildutils.versionForDockerImages
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
@@ -24,11 +25,13 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ktor.http)
 }
 
 kotlin {
@@ -61,7 +64,8 @@ kotlin {
             // https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-precompiled-sass
             compileOnly(devNpm("postcss-loader", "^6.2.1"))
             compileOnly(devNpm("postcss", "^8.2.13"))
-            compileOnly(devNpm("autoprefixer", ">9"))
+            // See https://stackoverflow.com/a/72828500; newer versions are supported only for Bootstrap 5.2+
+            compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
 
@@ -70,6 +74,7 @@ kotlin {
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("devicon", "^2.15.1"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0"))
@@ -89,6 +94,7 @@ kotlin {
             implementation(npm("lodash.debounce", "^4.0.8"))
             implementation(npm("react-markdown", "^8.0.3"))
             implementation(npm("rehype-highlight", "^5.0.2"))
+            implementation(npm("react-ace", "^10.1.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))
@@ -219,12 +225,39 @@ val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
     dependsOn(":save-frontend:browserDistribution")
     archiveClassifier.set("distribution")
-    from("$buildDir/distributions")
-    into("static")
-    exclude("scss")
+    from("$buildDir/distributions") {
+        into("static")
+        exclude("scss")
+    }
+    from("$projectDir/nginx.conf") {
+        into("")
+    }
 }
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
+}
+
+tasks.register<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("buildImage") {
+    inputs.property("project version", version.toString())
+    inputs.file("$projectDir/nginx.conf")
+
+    imageName = "ghcr.io/saveourtool/${project.name}:${project.versionForDockerImages()}"
+    archiveFile.set(distributionJarTask.flatMap { it.archiveFile })
+    buildpacks = listOf("paketo-buildpacks/nginx")
+    environment = mapOf(
+        "BP_WEB_SERVER_ROOT" to "static",
+    )
+    isVerboseLogging = true
+    System.getenv("GHCR_PWD")?.let { registryPassword ->
+        isPublish = true
+        docker {
+            publishRegistry {
+                username = "saveourtool"
+                password = registryPassword
+                url = "https://ghcr.io"
+            }
+        }
+    }
 }
 
 detekt {

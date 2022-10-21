@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional
 
@@ -33,10 +34,4 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * @return execution
      */
     fun findTopByProjectOrderByStartTimeDesc(project: Project): Execution?
-
-    /**
-     * @param id to find execution, which contain this suite id
-     * @return list of [Execution]'s
-     */
-    fun findAllByTestSuiteIdsContaining(id: String): List<Execution>
 }
