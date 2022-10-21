@@ -39,6 +39,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.js.jso
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -102,7 +103,7 @@ external interface HistoryViewState : State {
 /**
  * [Props] of a data table with filters for execution
  */
-external interface FiltersProps<D : Any> : TableProps<D> {
+external interface FiltersProps : TableProps<ExecutionDto> {
     /**
      * All filters in one value [filters]
      */
@@ -120,7 +121,7 @@ external interface FiltersProps<D : Any> : TableProps<D> {
     "GENERIC_VARIABLE_WRONG_DECLARATION",
 )
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
-    private val executionsTable = tableComponent<ExecutionDto, FiltersProps<ExecutionDto>>(
+    private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
@@ -357,9 +358,9 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     tableHeader = "Executions details"
                     getData = { _, _ ->
                         post(
-                            url = "$apiUrl/executionDtoList?name=${props.name}&organizationName=${props.organizationName}",
+                            url = "$apiUrl/executionDtoList?projectName=${props.name}&organizationName=${props.organizationName}",
                             headers = jsonHeaders,
-                            body = filters?.let { Json.encodeToString(filters) } ?: undefined,
+                            body = filters?.let { Json.encodeToString(it) } ?: undefined,
                             loadingHandler = ::classLoadingHandler,
                         ).unsafeMap {
                             Json.decodeFromString<Array<ExecutionDto>>(
@@ -382,8 +383,8 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
     }
 
     private fun createFilter(date: Date): ExecutionFilters = ExecutionFilters(
-        startTime = Triple(date.getFullYear(), date.getMonth(), date.getDate()),
-        endTime = null
+        startTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 0, 0, 0),
+        endTime = LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), 23, 59, 59),
     )
 
     private fun deleteExecutions() {

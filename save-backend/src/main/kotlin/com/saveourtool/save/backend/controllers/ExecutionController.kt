@@ -18,8 +18,6 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.filters.ExecutionFilters
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.utils.createLocalDateTime
-import com.saveourtool.save.utils.getEndLocalDateTime
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
@@ -40,6 +38,8 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 import java.util.concurrent.atomic.AtomicBoolean
+
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Controller that accepts executions
@@ -126,13 +126,13 @@ class ExecutionController(private val executionService: ExecutionService,
         }
         .map { (organization, _) ->
             filters?.let {
-                val startTime = createLocalDateTime(filters.startTime)
-                val endTime = filters.endTime?.let { createLocalDateTime(it) } ?: getEndLocalDateTime(filters.startTime)
+                val startTime = filters.startTime.toJavaLocalDateTime()
+                val endTime = filters.endTime.toJavaLocalDateTime()
                 executionService.getExecutionByNameAndOrganizationAndStartTimeBetween(
                     projectName,
                     organization,
                     startTime,
-                    endTime
+                    endTime,
                 )
             } ?: executionService.getExecutionByNameAndOrganization(projectName, organization)
         }
