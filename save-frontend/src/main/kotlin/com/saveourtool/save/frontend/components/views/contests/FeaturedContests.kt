@@ -119,7 +119,7 @@ private fun ChildrenBuilder.slide(
             }
 
             div {
-                className = ClassName("col-3 mr-auto")
+                className = ClassName("col-6 mr-auto")
                 contestDescription(contestToShow, setSelectedContest, setIsContestEnrollerModalOpen)
             }
         }
@@ -155,7 +155,7 @@ private fun ChildrenBuilder.contestDescription(
             +("Created by: ${contestToShow.organizationName}")
         }
         div {
-            className = ClassName("row ml-auto mt-1")
+            className = ClassName("row mt-1")
             button {
                 type = ButtonType.button
                 className = ClassName("btn btn-sm btn-outline-primary mr-1")

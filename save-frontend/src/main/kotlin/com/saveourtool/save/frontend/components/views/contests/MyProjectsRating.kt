@@ -71,7 +71,7 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                             justifyContent = JustifyContent.center
                         }
                         h4 {
-                            +it.contestRating.toString()
+                            +(it.contestRating.toFixed(2).toString())
                         }
                     }
                     div {
