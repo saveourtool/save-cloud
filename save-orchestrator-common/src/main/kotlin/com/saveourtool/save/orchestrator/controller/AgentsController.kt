@@ -13,18 +13,17 @@ import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
+import com.saveourtool.save.orchestrator.service.AgentLogService
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
+import java.time.LocalDateTime
 
 /**
  * Controller used to start agents with needed information
@@ -35,6 +34,7 @@ class AgentsController(
     private val dockerService: DockerService,
     private val agentRunner: AgentRunner,
     private val configProperties: ConfigProperties,
+    private val agentLogService: AgentLogService,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -118,6 +118,15 @@ class AgentsController(
         .flatMap {
             Mono.just(ResponseEntity<Void>(HttpStatus.OK))
         }
+
+    /**
+     * @param containerId ID of container\agent
+     * @return logs
+     */
+    @GetMapping("/logs")
+    fun logs(@RequestParam containerId: String): Mono<List<String>> = Mono.fromCallable {
+        agentLogService.get(containerId, LocalDateTime.now().minusHours(2), LocalDateTime.now())
+    }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

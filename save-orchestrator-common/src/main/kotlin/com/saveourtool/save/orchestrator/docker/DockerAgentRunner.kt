@@ -199,18 +199,17 @@ class DockerAgentRunner(
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
                     .withLogConfig(
-                        when (settings.loggingDriver) {
-                            "loki" -> LogConfig(
+                        settings.lokiServiceUrl?.let {
+                            LogConfig(
                                 LogConfig.LoggingType.LOKI,
                                 mapOf(
                                     // similar to config in docker-compose.yaml
                                     "mode" to "non-blocking",
-                                    "loki-url" to "http://127.0.0.1:9110/loki/api/v1/push",
+                                    "loki-url" to "$it/loki/api/v1/push",
                                     "loki-external-labels" to "container_name={{.Name}},source=save-agent"
                                 )
                             )
-                            else -> LogConfig(LogConfig.LoggingType.DEFAULT)
-                        }
+                        } ?: LogConfig(LogConfig.LoggingType.DEFAULT)
                     )
             )
             .execTimed(meterRegistry, "$DOCKER_METRIC_PREFIX.container.create")
