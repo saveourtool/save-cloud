@@ -88,6 +88,7 @@ dependencies {
     implementation(projects.authenticationService)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
+    implementation(libs.save.common.jvm)
 }
 
 // todo: this logic is duplicated between agent and frontend, can be moved to a shared plugin in buildSrc

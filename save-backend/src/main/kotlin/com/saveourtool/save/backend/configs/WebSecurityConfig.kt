@@ -10,8 +10,6 @@ import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
-import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.service.UserDetailsService
 
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Profile
@@ -27,8 +25,8 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
     WebSecurityConfig::class,
     ConvertingAuthenticationManager::class,
     CustomAuthenticationBasicConverter::class,
-    UserDetailsService::class,
-    UserRepository::class,
+    AuthenticationUserDetailsService::class,
+    AuthenticationUserRepository::class,
 )
 class BackendWebSecurityConfig
 
