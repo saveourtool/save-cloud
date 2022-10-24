@@ -1,10 +1,10 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
 

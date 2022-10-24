@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 
-
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")
@@ -28,9 +27,11 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
 )
+@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class BackendWebSecurityConfig
 
 @EnableWebFluxSecurity
 @Profile("!secure")
 @Import(NoopWebSecurityConfig::class)
+@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class BackendNoopWebSecurityConfig

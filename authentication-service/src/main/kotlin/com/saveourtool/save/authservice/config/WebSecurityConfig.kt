@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.authservice.config
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.utils.roleHierarchy

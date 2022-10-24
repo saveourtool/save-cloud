@@ -16,10 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails
 
 /**
  * Extract userId from this [Authentication]
+ *
  * @return userId
  */
 fun Authentication.userId() = (this.details as AuthenticationDetails).id
-
 
 /**
  * Extract username from this [Authentication].
@@ -36,7 +36,10 @@ fun Authentication.username(): String = when (principal) {
 }
 
 /**
+ * Extract identitySource from this [Authentication].
+ *
  * @return identitySource
+ * @throws BadCredentialsException
  */
 fun Authentication.identitySource(): String {
     val identitySource = (this.details as AuthenticationDetails).identitySource
@@ -47,12 +50,10 @@ fun Authentication.identitySource(): String {
 }
 
 /**
- * @return pair of username and identitySource
+ * @return pair of username and identitySource from this [Authentication].
  * @throws BadCredentialsException
  */
-fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> {
-    return this.username() to this.identitySource()
-}
+fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = this.username() to this.identitySource()
 
 /**
  * Convert [Authentication] to [User] based on convention in backend.
@@ -73,7 +74,11 @@ fun Authentication.toUser(): User {
     )
 }
 
-
+/**
+ * Set role hierarchy for spring security
+ *
+ * @return map of role hierarchy
+ */
 fun roleHierarchy(): RoleHierarchy = mapOf(
     Role.SUPER_ADMIN to listOf(Role.ADMIN, Role.OWNER, Role.VIEWER),
     Role.ADMIN to listOf(Role.OWNER, Role.VIEWER),
