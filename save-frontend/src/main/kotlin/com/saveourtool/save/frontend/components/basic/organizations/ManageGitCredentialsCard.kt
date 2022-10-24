@@ -224,7 +224,6 @@ private fun prepareDeleteGitCredential(
         val response = delete(
             url = "$apiUrl/organizations/$organizationName/delete-git?url=${gitCredentialToDelete.url}",
             headers = jsonHeaders,
-            body = undefined,
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
