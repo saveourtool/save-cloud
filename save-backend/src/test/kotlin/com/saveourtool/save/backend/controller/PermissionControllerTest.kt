@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.backend.configs.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -11,7 +10,6 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.utils.ConvertingAuthenticationManager
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
