@@ -199,7 +199,7 @@ class DockerAgentRunner(
                     // processes from inside the container will be able to access host's network using this hostname
                     .withExtraHosts("host.docker.internal:${getHostIp()}")
                     .withLogConfig(
-                        settings.lokiServiceUrl?.let {
+                        configProperties.lokiServiceUrl?.let {
                             LogConfig(
                                 LogConfig.LoggingType.LOKI,
                                 mapOf(
