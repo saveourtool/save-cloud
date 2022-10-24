@@ -62,7 +62,7 @@ private fun newContestsCard() = VFC {
                 }
                 p {
                     className = ClassName("card-text mb-auto")
-                    +"Checkout and participate in newest contests!"
+                    +"Checkout and participate in newest contests"
                 }
                 newContests.forEach { contest ->
                     a {

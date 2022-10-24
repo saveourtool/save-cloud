@@ -23,10 +23,10 @@ import csstype.ClassName
 import history.Location
 import react.*
 import react.dom.html.InputType
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
@@ -159,7 +159,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
                     }
                 }
                 div {
-                    ReactHTML.label {
+                    label {
                         className = ClassName("form-check-label")
                         htmlFor = "isFeaturedCheckbox"
                         +"Featured contest"

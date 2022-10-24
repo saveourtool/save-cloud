@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.externals.modal
 
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
+import dom.Element
+import dom.html.HTMLDivElement
+import dom.html.HTMLElement
 import react.Component
 import react.PropsWithChildren
 import react.ReactElement

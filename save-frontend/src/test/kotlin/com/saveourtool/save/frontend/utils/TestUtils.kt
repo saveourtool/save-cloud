@@ -11,9 +11,9 @@ import org.w3c.fetch.Response
 import react.FC
 import react.PropsWithChildren
 import react.useState
+import web.timers.setTimeout
 
 import kotlin.js.Promise
-import kotlinx.js.timers.setTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

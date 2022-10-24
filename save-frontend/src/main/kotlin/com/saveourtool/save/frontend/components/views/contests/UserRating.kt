@@ -9,9 +9,7 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -64,13 +62,12 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(projects: Set<Project
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     strong {
                         className = ClassName("d-block text-gray-dark")
-                        +project.name
+                        a {
+                            href = "#/${project.url}"
+                            +project.name
+                        }
                     }
                     +("${project.description} ")
-                    a {
-                        href = "#/${project.url}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
                 }
             }
 
@@ -102,13 +99,12 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(organizations: S
                     className = ClassName("media-body pb-3 mb-0 small lh-125 text-left")
                     strong {
                         className = ClassName("d-block text-gray-dark")
-                        +organization.name
+                        a {
+                            href = "#/${organization.name}"
+                            +organization.name
+                        }
                     }
                     +("${organization.description} ")
-                    a {
-                        href = "#/${organization.name}"
-                        fontAwesomeIcon(faArrowRight)
-                    }
                 }
             }
 

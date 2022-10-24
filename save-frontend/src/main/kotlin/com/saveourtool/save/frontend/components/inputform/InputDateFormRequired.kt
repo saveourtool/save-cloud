@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.inputform
 
 import csstype.ClassName
-import org.w3c.dom.HTMLInputElement
+import dom.html.HTMLInputElement
 import react.ChildrenBuilder
 import react.dom.events.ChangeEvent
 import react.dom.html.InputType

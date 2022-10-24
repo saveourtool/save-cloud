@@ -256,6 +256,12 @@ class TestSuitesService(
         dto.version
     ).orNotFound { "TestSuite (name=${dto.name} in ${dto.source.name} with version ${dto.version}) not found" }
 
+    /**
+     * @param testSuites list of test suites to be updated
+     * @return saved [testSuites]
+     */
+    fun updateTestSuites(testSuites: List<TestSuite>): List<TestSuite> = testSuiteRepository.saveAll(testSuites)
+
     companion object {
         private val log = LoggerFactory.getLogger(TestSuitesService::class.java)
     }

@@ -49,6 +49,9 @@ kotlin {
                     }
                 }
             }
+            commonWebpackConfig {
+                cssSupport.enabled = true
+            }
         }
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
@@ -74,6 +77,7 @@ kotlin {
             implementation(npm("@fortawesome/free-solid-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/free-brands-svg-icons", "5.15.3"))
             implementation(npm("@fortawesome/react-fontawesome", "^0.1.16"))
+            implementation(npm("devicon", "^2.15.1"))
             implementation(npm("animate.css", "^4.1.1"))
             implementation(npm("react-scroll-motion", "^0.3.0"))
             implementation(npm("react-spinners", "0.13.0"))
@@ -83,6 +87,7 @@ kotlin {
             // BS5: implementation(npm("@popperjs/core", "2.11.0"))
             implementation(npm("popper.js", "1.16.1"))
             // BS5: implementation(npm("bootstrap", "5.0.1"))
+            implementation(npm("react-calendar", "^3.8.0"))
             implementation(npm("bootstrap", "^4.6.0"))
             implementation(npm("react", "^18.0.0"))
             implementation(npm("react-dom", "^18.0.0"))

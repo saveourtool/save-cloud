@@ -3,10 +3,10 @@ kotlin = "1.7.20"
 save-core = "0.3.4"
 ktor = "2.1.2"
 okio = "3.2.0"
-serialization = "1.4.0"
+serialization = "1.4.1"
 kotlinx-datetime = "0.4.0"
 kotlinx-coroutines = "1.6.4"
-kotlin-wrappers = "1.0.0-pre.402"
+kotlin-wrappers = "1.0.0-pre.408"
 spring = "5.3.23"
 spring-boot = "2.7.4"
 spring-cloud = "3.1.4"
@@ -16,13 +16,13 @@ junit = "5.9.1"
 assertj = "3.23.1"
 diktat = "1.2.3"
 detekt = "1.21.0"
-liquibase-core = "4.16.1"
+liquibase-core = "4.17.0"
 docker-java = "3.2.13"
 jgit = "6.3.0.202209071007-r"
 mockito-kotlin = "4.0.0"
 slf4j = "1.7.36"
 log4j = "2.19.0"
-micrometer = "1.9.4"
+micrometer = "1.9.5"
 jpa = "1.0.2"
 hibernate = "5.6.12.Final"
 mySql = "8.0.30"
@@ -33,7 +33,7 @@ commons-compress = "1.21"
 picocli = "4.6.3"
 zip4j = "2.11.2"
 ktoml = "0.2.13"
-springdoc = "1.6.11"
+springdoc = "1.6.12"
 kotlinx-cli = "0.3.5"
 spotless = "6.11.0"
 fabric8 = "6.1.1"
@@ -48,7 +48,7 @@ kotlin-plugin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kot
 kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
 liquibase-gradle = { id = "org.liquibase.gradle", version = "2.1.1" }
 talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "1.5.3" }
-download = { id = "de.undercouch.download", version = "5.2.1" }
+download = { id = "de.undercouch.download", version = "5.3.0" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
 
 [libraries]
@@ -109,7 +109,7 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.3" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.4" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }

@@ -8,6 +8,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.manageTestSuitePermissionsComponent
 import com.saveourtool.save.frontend.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
 import com.saveourtool.save.frontend.components.basic.testsuitessources.showTestSuiteSourceUpsertModal
@@ -98,8 +99,6 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
                 url = "$apiUrl/test-suites-sources/${key.organizationName}/${encodeURIComponent(key.testSuitesSourceName)}/delete-test-suites-and-snapshot?version=${key.version}",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-                // TODO: body is forbidden in delete in some implementations, probably we should not support it
-                body = undefined
             )
             setTestSuitesSourceSnapshotKeyToDelete(null)
         }
@@ -128,11 +127,12 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
     }
     val testSuitesSourceSnapshotKeysTable = prepareTestSuitesSourceSnapshotKeysTable(deleteHandler)
-    val testSuitePermissionModalOpener = useWindowOpenness()
+    val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {
         organizationName = props.organizationName
-        isModalOpen = testSuitePermissionModalOpener.isOpen()
-        closeModal = testSuitePermissionModalOpener.closeWindowAction()
+        isModalOpen = managePermissionsMode != null
+        closeModal = { setManagePermissionsMode(null) }
+        mode = managePermissionsMode
     }
     showTestSuiteSourceUpsertModal(
         windowOpenness = testSuitesSourceUpsertWindowOpenness,
@@ -147,8 +147,11 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
             setTestSuiteSourceWithIdToUpsert(null)
             testSuitesSourceUpsertWindowOpenness.openWindow()
         }
-        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
-            testSuitePermissionModalOpener.openWindow()
+        buttonBuilder("Manage permissions", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm mr-2 ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.TRANSFER)
+        }
+        buttonBuilder("Publish test suites", "info", !props.selfRole.hasWritePermission(), classes = "btn-sm ml-2") {
+            setManagePermissionsMode(PermissionManagerMode.PUBLISH)
         }
     }
     div {
