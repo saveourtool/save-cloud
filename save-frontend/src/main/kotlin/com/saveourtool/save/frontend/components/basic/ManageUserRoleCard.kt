@@ -133,7 +133,6 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         val response = delete(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",
             headers = jsonHeaders,
-            body = Json.encodeToString(userToDelete),
             loadingHandler = ::loadingHandler,
         )
         if (!response.ok) {
