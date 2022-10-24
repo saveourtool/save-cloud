@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.cloud.CloudPlatform
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -17,12 +16,21 @@ import org.springframework.security.web.server.util.matcher.AndServerWebExchange
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
+/**
+ * Configuration class to set up Spring Security
+ */
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Import(KubernetesAuthenticationUtils::class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 class WebSecurityConfig {
+    /**
+     * Configures spring-security to use ServiceAccount based authentication.
+     * Beans [serviceAccountTokenExtractorConverter] and [serviceAccountAuthenticatingManager] need to be passed into
+     * [serviceAccountTokenAuthentication].
+     */
     @Bean
+    @Suppress("KDOC_WITHOUT_PARAM_TAG", "KDOC_WITHOUT_RETURN_TAG")
     fun securityWebFilterChain(
         http: ServerHttpSecurity,
         serviceAccountTokenExtractorConverter: ServiceAccountTokenExtractorConverter,
