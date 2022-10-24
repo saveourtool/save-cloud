@@ -71,6 +71,7 @@ kotlin {
             compileOnly(devNpm("autoprefixer", "10.4.5"))
             compileOnly(devNpm("webpack-bundle-analyzer", "^4.5.0"))
             compileOnly(devNpm("mini-css-extract-plugin", "^2.6.0"))
+            compileOnly(devNpm("html-webpack-plugin", "^5.5.0"))
 
             // web-specific dependencies
             implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
@@ -217,6 +218,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>().f
     kotlinWebpack.doFirst {
         val additionalWebpackResources = fileTree("$buildDir/processedResources/js/main/") {
             include("scss/**")
+            include("index.html")
         }
         copy {
             from(additionalWebpackResources)

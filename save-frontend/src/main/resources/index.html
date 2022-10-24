@@ -33,7 +33,8 @@
 </div>
 
 <!-- Kotlin/JS compiled script -->
-<script src="save-frontend.js"></script>
-<script src="save-frontend-vendors.js"></script>
+<% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+<script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+<% } %>
 </body>
 </html>
