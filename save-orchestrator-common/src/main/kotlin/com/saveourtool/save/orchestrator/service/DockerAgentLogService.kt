@@ -4,6 +4,7 @@ import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
 import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.time.Instant
@@ -12,7 +13,8 @@ import java.util.concurrent.CompletableFuture
 /**
  * @property dockerClient a client to docker
  */
-@Profile("dev")
+//@Profile("dev")
+//@Component
 class DockerAgentLogService(
     private val dockerClient: DockerClient,
 ) : AgentLogService {

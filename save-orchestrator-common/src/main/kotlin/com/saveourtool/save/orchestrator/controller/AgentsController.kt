@@ -127,7 +127,7 @@ class AgentsController(
      * @return logs
      */
     @GetMapping("/logs")
-    fun logs(@RequestParam containerName: String): Mono<List<String>> = agentLogService.get(containerName, Instant.now().minus(2, ChronoUnit.HOURS), Instant.now())
+    fun logs(@RequestParam containerName: String): Mono<List<String>> = agentLogService.get(containerName, Instant.now().minus(720, ChronoUnit.HOURS), Instant.now())
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

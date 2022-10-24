@@ -11,6 +11,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import com.github.dockerjava.transport.DockerHttpClient
 import com.saveourtool.save.orchestrator.service.AgentLogService
 import com.saveourtool.save.orchestrator.service.DockerAgentLogService
+import com.saveourtool.save.orchestrator.service.LokiAgentLogService
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
 import org.springframework.beans.factory.annotation.Value
@@ -78,4 +79,9 @@ class Beans {
             )
         )
     } ?: LogConfig(LogConfig.LoggingType.DEFAULT)
+
+    @Bean
+    fun agentLogService(configProperties: ConfigProperties, dockerClient: DockerClient): AgentLogService = configProperties.lokiServiceUrl?.let {
+        LokiAgentLogService(it)
+    } ?: DockerAgentLogService(dockerClient)
 }
