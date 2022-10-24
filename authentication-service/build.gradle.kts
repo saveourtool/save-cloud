@@ -1,8 +1,6 @@
 import com.saveourtool.save.buildutils.*
 
 plugins {
-    id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
-    id("com.saveourtool.save.buildutils.spring-data-configuration")
     alias(libs.plugins.download)
     kotlin("plugin.allopen")
     alias(libs.plugins.kotlin.plugin.jpa)
