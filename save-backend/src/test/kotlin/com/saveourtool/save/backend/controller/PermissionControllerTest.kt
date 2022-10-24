@@ -1,5 +1,7 @@
 package com.saveourtool.save.backend.controller
 
+import com.saveourtool.save.authservice.config.WebSecurityConfig
+import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
 import com.saveourtool.save.backend.configs.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
