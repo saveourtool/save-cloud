@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 import java.util.Optional
 
 /**
@@ -18,6 +19,20 @@ interface ExecutionRepository : BaseEntityRepository<Execution> {
      * @return list of executions
      */
     fun getAllByProjectNameAndProjectOrganization(name: String, organization: Organization): List<Execution>
+
+    /**
+     * @param name name of project
+     * @param organization organization of project
+     * @param start start date
+     * @param end end date
+     * @return list of executions
+     */
+    fun findByProjectNameAndProjectOrganizationAndStartTimeBetween(
+        name: String,
+        organization: Organization,
+        start: LocalDateTime,
+        end: LocalDateTime
+    ): List<Execution>
 
     /**
      * Get latest (by start time an) execution by project name and organization
