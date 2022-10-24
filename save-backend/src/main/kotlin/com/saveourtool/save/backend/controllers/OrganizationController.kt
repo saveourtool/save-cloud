@@ -97,8 +97,9 @@ internal class OrganizationController(
         @RequestBody(required = false) organizationFilters: OrganizationFilters?,
         authentication: Authentication,
     ): Flux<OrganizationDto> =
-            organizationService.getNotDeletedOrganizations(organizationFilters)
-                .toFlux<Organization>()
+            (organizationFilters ?: OrganizationFilters("", OrganizationStatus.CREATED))
+                .let { organizationService.getFiltered(it) }
+                .toFlux()
                 .flatMap { organization ->
                     organizationService.getGlobalRating(organization.name, authentication).map {
                         organization to it
@@ -136,7 +137,6 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUser(
         authentication: Authentication?,
     ): Flux<Organization> = authentication.toMono()
@@ -149,6 +149,20 @@ internal class OrganizationController(
         .mapNotNull {
             it.organization as Organization
         }
+
+    @GetMapping("/get/by-prefix")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get organization by prefix.",
+        description = "Get list of organizations matching prefix.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationNamesByPrefix(
+        @RequestParam prefix: String
+    ): Mono<List<String>> = organizationService.getFiltered(OrganizationFilters(prefix, OrganizationStatus.CREATED))
+        .map { it.name }
+        .toMono()
 
     @GetMapping("/{organizationName}/avatar")
     @PreAuthorize("permitAll()")

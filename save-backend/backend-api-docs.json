@@ -37,6 +37,37 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "version of uploading snapshot",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "creationTime",
+            "in": "query",
+            "description": "creationTime of uploading snapshot",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "content",
+            "in": "query",
+            "description": "content of uploading snapshot",
+            "required": true
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
           }
         ],
         "requestBody": {
@@ -49,16 +80,7 @@
                 "type": "object",
                 "properties": {
                   "content": {
-                    "description": "content of uploading snapshot"
-                  },
-                  "version": {
-                    "description": "version of uploading snapshot"
-                  },
-                  "creationTime": {
-                    "description": "creationTime of uploading snapshot"
-                  },
-                  "X-Authorization-Source": {
-                    "example": "basic"
+                    "$ref": "#/components/schemas/Part"
                   }
                 }
               }
@@ -524,6 +546,105 @@
           },
           "200": {
             "description": "Rights changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/api/v1/test-suites/{ownerOrganizationName}/batch-change-visibility": {
+      "post": {
+        "tags": [
+          "rights",
+          "organizations",
+          "test-suites"
+        ],
+        "summary": "Make given test suites public or private.",
+        "description": "Make given test suites public or private.",
+        "operationId": "changeTestSuiteVisibilityBatch",
+        "parameters": [
+          {
+            "name": "ownerOrganizationName",
+            "in": "path",
+            "description": "name of an organization-maintainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isPublic",
+            "in": "query",
+            "description": "flag to make test suite public or private",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "X-Authorization-Source",
+            "in": "header",
+            "required": true,
+            "example": "basic"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Given organization has been forbidden to change given test suite visibility",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Visibility changed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test suite or organization-maintainer doesn\u0027t exist",
             "content": {
               "*/*": {
                 "schema": {
@@ -1694,6 +1815,7 @@
           },
           {
             "name": "setRoleRequest",
+            "in": "query",
             "description": "pair of userName and role that is requested to be set",
             "required": true
           },
@@ -2251,6 +2373,28 @@
           "files"
         ],
         "operationId": "uploadImage",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "USER"
+              ]
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -2263,9 +2407,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary"
-                  },
-                  "owner": {},
-                  "type": {}
+                  }
                 }
               }
             }
@@ -2677,6 +2819,56 @@
         ]
       }
     },
+    "/api/v1/executionDtoList": {
+      "post": {
+        "tags": [
+          "execution-controller"
+        ],
+        "operationId": "getExecutionByProject",
+        "parameters": [
+          {
+            "name": "projectName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizationName",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecutionFilters"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/execution/delete": {
       "post": {
         "tags": [
@@ -2760,6 +2952,7 @@
         "parameters": [
           {
             "name": "contestRequest",
+            "in": "query",
             "description": "name of an organization",
             "required": true
           },
@@ -2848,6 +3041,7 @@
           },
           {
             "name": "contestDto",
+            "in": "query",
             "description": "contest requested for creation",
             "required": true
           },
@@ -2908,6 +3102,7 @@
         "parameters": [
           {
             "name": "contestDto",
+            "in": "query",
             "description": "contest requested for creation",
             "required": true
           },
@@ -5303,6 +5498,59 @@
         ]
       }
     },
+    "/api/v1/organizations/get/by-prefix": {
+      "get": {
+        "tags": [
+          "organizations"
+        ],
+        "summary": "Get organization by prefix.",
+        "description": "Get list of organizations matching prefix.",
+        "operationId": "getOrganizationNamesByPrefix",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched list of organizations.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
     "/api/v1/organizations/can-create-contests": {
       "get": {
         "tags": [
@@ -5605,47 +5853,6 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/executionDtoList": {
-      "get": {
-        "tags": [
-          "execution-controller"
-        ],
-        "operationId": "getExecutionByProject",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "organizationName",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ExecutionDto"
-                  }
                 }
               }
             }
@@ -7476,6 +7683,9 @@
   },
   "components": {
     "schemas": {
+      "Part": {
+        "type": "object"
+      },
       "Unit": {
         "type": "object"
       },
@@ -8120,10 +8330,21 @@
         }
       },
       "OrganizationFilters": {
+        "required": [
+          "prefix",
+          "status"
+        ],
         "type": "object",
         "properties": {
-          "name": {
+          "prefix": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "DELETED"
+            ]
           }
         }
       },
@@ -8156,6 +8377,315 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ExecutionFilters": {
+        "required": [
+          "endTime",
+          "startTime"
+        ],
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "endTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
+      "LocalDate": {
+        "required": [
+          "dayOfMonth",
+          "dayOfWeek",
+          "dayOfYear",
+          "month",
+          "monthNumber",
+          "value$kotlinx_datetime",
+          "year"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "date",
+            "writeOnly": true
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ]
+          },
+          "dayOfYear": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "string",
+            "enum": [
+              "JANUARY",
+              "FEBRUARY",
+              "MARCH",
+              "APRIL",
+              "MAY",
+              "JUNE",
+              "JULY",
+              "AUGUST",
+              "SEPTEMBER",
+              "OCTOBER",
+              "NOVEMBER",
+              "DECEMBER"
+            ]
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date"
+          },
+          "monthNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "LocalDateTime": {
+        "required": [
+          "date",
+          "dayOfMonth",
+          "dayOfWeek",
+          "dayOfYear",
+          "hour",
+          "minute",
+          "month",
+          "monthNumber",
+          "nanosecond",
+          "second",
+          "time",
+          "value$kotlinx_datetime",
+          "year"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "format": "date-time",
+            "writeOnly": true
+          },
+          "time": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minute": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "second": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "enum": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY",
+              "SATURDAY",
+              "SUNDAY"
+            ]
+          },
+          "dayOfYear": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "string",
+            "enum": [
+              "JANUARY",
+              "FEBRUARY",
+              "MARCH",
+              "APRIL",
+              "MAY",
+              "JUNE",
+              "JULY",
+              "AUGUST",
+              "SEPTEMBER",
+              "OCTOBER",
+              "NOVEMBER",
+              "DECEMBER"
+            ]
+          },
+          "date": {
+            "$ref": "#/components/schemas/LocalDate"
+          },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "monthNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nanosecond": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "LocalTime": {
+        "required": [
+          "hour",
+          "minute",
+          "nanosecond",
+          "second",
+          "value$kotlinx_datetime"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "hour": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "minute": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "second": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "value$kotlinx_datetime": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
+          "nanosecond": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ExecutionDto": {
+        "required": [
+          "allTests",
+          "expectedChecks",
+          "failedTests",
+          "id",
+          "matchedChecks",
+          "passedTests",
+          "runningTests",
+          "skippedTests",
+          "startTime",
+          "status",
+          "type",
+          "unexpectedChecks",
+          "unmatchedChecks"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ERROR",
+              "FINISHED",
+              "OBSOLETE",
+              "PENDING",
+              "RUNNING"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CONTEST_MODE",
+              "PRIVATE_TESTS",
+              "PUBLIC_TESTS"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endTime": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "allTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "runningTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "passedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skippedTests": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unmatchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "matchedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "unexpectedChecks": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "testSuiteSourceName": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "format": "double"
           }
         }
       },
@@ -8477,105 +9007,6 @@
           },
           "content": {
             "$ref": "#/components/schemas/TestSuitesSourceDto"
-          }
-        }
-      },
-      "ExecutionDto": {
-        "required": [
-          "allTests",
-          "expectedChecks",
-          "failedTests",
-          "id",
-          "matchedChecks",
-          "passedTests",
-          "runningTests",
-          "skippedTests",
-          "startTime",
-          "status",
-          "type",
-          "unexpectedChecks",
-          "unmatchedChecks"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "ERROR",
-              "FINISHED",
-              "OBSOLETE",
-              "PENDING",
-              "RUNNING"
-            ]
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CONTEST_MODE",
-              "PRIVATE_TESTS",
-              "PUBLIC_TESTS"
-            ]
-          },
-          "version": {
-            "type": "string"
-          },
-          "startTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "endTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "allTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "runningTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "passedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "failedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "skippedTests": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "unmatchedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "matchedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "expectedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "unexpectedChecks": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "testSuiteSourceName": {
-            "type": "string"
-          },
-          "score": {
-            "type": "number",
-            "format": "double"
-          },
-          "contestName": {
-            "type": "string"
           }
         }
       },

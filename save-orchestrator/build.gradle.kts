@@ -31,6 +31,7 @@ tasks.withType<Test> {
 dependencies {
     api(projects.saveCloudCommon)
     implementation(projects.saveOrchestratorCommon)
+    implementation(libs.save.common.jvm)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)
