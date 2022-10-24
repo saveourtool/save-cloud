@@ -3,15 +3,26 @@ package com.saveourtool.save.orchestrator.service
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.Frame
+import org.springframework.context.annotation.Profile
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
+/**
+ * @property dockerClient a client to docker
+ */
+@Profile("dev")
 class DockerAgentLogService(
     private val dockerClient: DockerClient,
 ) : AgentLogService {
     override fun get(containerName: String, from: Instant, to: Instant): Mono<List<String>> {
-        val callback = LogContainerResultCallback()
+        val logs = mutableListOf<String>()
+        val callback = object : ResultCallback.Adapter<Frame>() {
+            override fun onNext(frame: Frame?) {
+                frame?.let { logs.add(it.toString()) }
+            }
+        }
         dockerClient.logContainerCmd(containerName)
             .withStdOut(true)
             .withStdErr(true)
@@ -19,16 +30,6 @@ class DockerAgentLogService(
             .withUntil(to.epochSecond.toInt())
             .exec(callback)
             .awaitCompletion()
-        return callback.getResult().toMono()
+        return logs.toMono()
     }
-}
-
-internal class LogContainerResultCallback : ResultCallback.Adapter<Frame>() {
-    private val logs: MutableList<String> = mutableListOf()
-
-    override fun onNext(frame: Frame?) {
-        frame?.let { logs.add(it.toString()) }
-    }
-
-    fun getResult(): List<String> = logs
 }

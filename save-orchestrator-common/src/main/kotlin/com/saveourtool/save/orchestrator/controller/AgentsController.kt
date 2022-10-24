@@ -23,7 +23,10 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 
 /**
  * Controller used to start agents with needed information
@@ -120,13 +123,11 @@ class AgentsController(
         }
 
     /**
-     * @param containerId ID of container\agent
+     * @param containerName name of container\agent
      * @return logs
      */
     @GetMapping("/logs")
-    fun logs(@RequestParam containerId: String): Mono<List<String>> = Mono.fromCallable {
-        agentLogService.get(containerId, LocalDateTime.now().minusHours(2), LocalDateTime.now())
-    }
+    fun logs(@RequestParam containerName: String): Mono<List<String>> = agentLogService.get(containerName, Instant.now().minus(2, ChronoUnit.HOURS), Instant.now())
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)
