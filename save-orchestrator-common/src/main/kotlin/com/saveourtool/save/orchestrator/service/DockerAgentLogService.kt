@@ -13,6 +13,10 @@ class DockerAgentLogService(
     override fun get(containerName: String, from: Instant, to: Instant): Mono<List<String>> {
         val callback = LogContainerResultCallback()
         dockerClient.logContainerCmd(containerName)
+            .withStdOut(true)
+            .withStdErr(true)
+            .withSince(from.epochSecond.toInt())
+            .withUntil(to.epochSecond.toInt())
             .exec(callback)
             .awaitCompletion()
         return callback.getResult().toMono()
