@@ -7,6 +7,7 @@ package com.saveourtool.save.orchestrator.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
+const val CONFIG_PROPERTIES_PREFIX = "orchestrator"
 /**
  * Class for properties
  *
@@ -24,9 +25,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentSettings if set, this will override defaults in agent.properties
  * @property agentsStartTimeoutMillis interval in milliseconds, which indicates how much time is given to agents for starting, if time's up - mark execution with internal error
  * @property agentsStartCheckIntervalMillis interval in milliseconds, within which agents will be checked, whether they are started
+ * @property lokiServiceUrl URL of loki service for logging
  */
 @ConstructorBinding
-@ConfigurationProperties(prefix = "orchestrator")
+@ConfigurationProperties(prefix = CONFIG_PROPERTIES_PREFIX)
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,
@@ -42,6 +44,7 @@ data class ConfigProperties(
     val agentSettings: AgentSettings = AgentSettings(),
     val agentsStartTimeoutMillis: Long,
     val agentsStartCheckIntervalMillis: Long,
+    val lokiServiceUrl: String? = null,
 ) {
     /**
      * @property tmpPath Path to the directory, where test resources can be copied into when creating volumes with test resources.
@@ -57,7 +60,6 @@ data class ConfigProperties(
     /**
      * @property host hostname of docker daemon
      * @property runtime OCI compliant runtime for docker
-     * @property loggingDriver logging driver for the container
      * @property registry docker registry to pull images for test executions from
      * @property testResourcesVolumeType Type of Docker volume (bind/volume). `bind` should only be used for local running and for tests.
      * @property testResourcesVolumeName Name of a Docker volume which acts as a temporary storage of resources for execution.
@@ -65,7 +67,6 @@ data class ConfigProperties(
      */
     data class DockerSettings(
         val host: String,
-        val loggingDriver: String,
         val runtime: String? = null,
         val registry: String = "docker.io/library",
         val testResourcesVolumeType: String = "volume",
