@@ -53,7 +53,7 @@ data class ConfigProperties(
      * as a host location for this shared mount.
      */
     data class TestResources(
-        val tmpPath: String,
+        val tmpPath: String = "/tmp",
     )
 
     /**
