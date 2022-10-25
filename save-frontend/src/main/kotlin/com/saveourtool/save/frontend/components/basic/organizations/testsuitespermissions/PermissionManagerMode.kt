@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.basic.organizations.testsuitesp
  * @property title
  * @property purpose
  */
-internal enum class PermissionManagerMode(val title: String? = null, val purpose: String? = null) {
+enum class PermissionManagerMode(val title: String? = null, val purpose: String? = null) {
     /**
      * State when success (or error) message is shown.
      */

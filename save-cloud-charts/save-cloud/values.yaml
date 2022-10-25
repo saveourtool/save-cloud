@@ -120,7 +120,7 @@ promtail:
     io.kompose.service: promtail
   config:
     clients:
-      - url: http://save-cloud-loki:3100/loki/api/v1/push
+      - url: http://loki:3100/loki/api/v1/push
     snippets:
       pipelineStages:
         - cri: {}
@@ -142,12 +142,32 @@ promtail:
             - __meta_kubernetes_pod_labelpresent_executionId
 loki:
   enabled: false
-  image:
-    tag: 2.5.0
-  persistence:
-    enabled: true
-  config:
-    ingester:
-      # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
-      max_chunk_age: 2h
-      chunk_idle_period: 2h
+  # For compatibility with PV created in v2; see https://github.com/grafana/loki/issues/7267#issuecomment-1264472870
+  # for a more comprehensive list.
+  fullnameOverride: save-cloud-loki
+  gateway:
+    enabled: false
+  ingress:
+    # See https://github.com/grafana/loki/issues/7318
+    paths:
+      headless:
+        - /
+      read:
+      write:
+  loki:
+    image:
+      tag: 2.6.1
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    structuredConfig:
+      ingester:
+        # https://grafana.com/docs/loki/latest/operations/storage/filesystem/
+        max_chunk_age: 2h
+        chunk_idle_period: 2h
+    storage:
+      type: 'filesystem'
+    rulerConfig:
+      storage:
+        type: 'local'
+  singleBinary:

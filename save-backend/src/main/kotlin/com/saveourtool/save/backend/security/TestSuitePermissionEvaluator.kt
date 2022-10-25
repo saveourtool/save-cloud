@@ -1,8 +1,6 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
-import com.saveourtool.save.backend.utils.hasRole
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.permission.Permission
@@ -30,7 +28,7 @@ class TestSuitePermissionEvaluator(
         permission: Permission,
         authentication: Authentication?,
     ): Boolean = lnkOrganizationTestSuiteService.getDto(organization, testSuite).rights.let { currentRights ->
-        authentication?.hasRole(Role.SUPER_ADMIN) == true || when (permission) {
+        when (permission) {
             Permission.READ -> testSuite.isPublic || canAccessTestSuite(currentRights)
             Permission.WRITE, Permission.DELETE, Permission.RECOVERY -> canMaintainTestSuite(currentRights)
         }
