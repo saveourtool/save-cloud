@@ -70,18 +70,20 @@ internal class OrganizationController(
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
-    /**
-     * @param onlyActive whether deleted organizations should be excluded in
-     *   the response.
-     *   The default is `false`.
-     * @return the list of organizations.
-     */
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get all organizations",
         description = "Get organizations",
+    )
+    @Parameters(
+        Parameter(
+            name = "onlyActive",
+            `in` = ParameterIn.QUERY,
+            description = "Whether deleted organizations should be excluded from the response. The default is false.",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizations(
