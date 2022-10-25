@@ -163,7 +163,7 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
             deleteContests.add(it.copy(status = ContestStatus.DELETED))
         }
         val response = post(
-            "$apiUrl/contests/updateAll",
+            "$apiUrl/contests/update-all",
             jsonHeaders,
             Json.encodeToString(deleteContests),
             loadingHandler = ::noopLoadingHandler,

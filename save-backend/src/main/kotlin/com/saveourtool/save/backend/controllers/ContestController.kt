@@ -367,7 +367,7 @@ internal class ContestController(
             ResponseEntity.ok("Contest successfully updated")
         }
 
-    @PostMapping("/updateAll")
+    @PostMapping("/update-all")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
