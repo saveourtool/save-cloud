@@ -5704,10 +5704,14 @@
         "operationId": "getAllOrganizations",
         "parameters": [
           {
-            "name": "organizationName",
-            "in": "path",
-            "description": "name of an organization",
-            "required": true
+            "name": "onlyActive",
+            "in": "query",
+            "description": "Whether deleted organizations should be excluded from the response. The default is false.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -8453,13 +8457,13 @@
               "DECEMBER"
             ]
           },
-          "monthNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
           "value$kotlinx_datetime": {
             "type": "string",
             "format": "date"
+          },
+          "monthNumber": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -8545,6 +8549,10 @@
           "date": {
             "$ref": "#/components/schemas/LocalDate"
           },
+          "value$kotlinx_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
           "monthNumber": {
             "type": "integer",
             "format": "int32"
@@ -8552,10 +8560,6 @@
           "nanosecond": {
             "type": "integer",
             "format": "int32"
-          },
-          "value$kotlinx_datetime": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -8584,12 +8588,12 @@
             "type": "integer",
             "format": "int32"
           },
+          "value$kotlinx_datetime": {
+            "$ref": "#/components/schemas/LocalTime"
+          },
           "nanosecond": {
             "type": "integer",
             "format": "int32"
-          },
-          "value$kotlinx_datetime": {
-            "$ref": "#/components/schemas/LocalTime"
           }
         }
       },
