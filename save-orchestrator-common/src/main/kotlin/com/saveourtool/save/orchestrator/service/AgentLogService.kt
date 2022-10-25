@@ -3,6 +3,9 @@ package com.saveourtool.save.orchestrator.service
 import reactor.core.publisher.Mono
 import java.time.Instant
 
+/**
+ * A service which provides logs of agents
+ */
 interface AgentLogService {
     /**
      * @param containerName name of container\agent

@@ -106,6 +106,12 @@ fun <T> T.toFluxByteBufferAsJson(objectMapper: ObjectMapper): Flux<ByteBuffer> =
     .toFlux()
 
 /**
+ * @param keyExtractor the function used to extract the [Comparable] sort key
+ * @return sorted original [Flux]
+ */
+fun <T : Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -119,9 +125,3 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = supplier.toMono()
  * @return [Flux] from result of blocking operation [List] of [T]
  */
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = blockingToMono(supplier).flatMapIterable { it }
-
-/**
- * @param keyExtractor the function used to extract the [Comparable] sort key
- * @return sorted original [Flux]
- */
-fun <T: Any, K : Comparable<K>> Flux<T>.sortBy(keyExtractor: (T) -> K): Flux<T> = sort(Comparator.comparing(keyExtractor))

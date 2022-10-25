@@ -17,7 +17,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.springframework.http.ResponseEntity
 
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
@@ -27,8 +26,6 @@ import java.util.function.Supplier
 import java.util.zip.GZIPOutputStream
 
 internal const val DOCKER_METRIC_PREFIX = "save.orchestrator.docker"
-
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 /**
  * Execute this async docker command while recording its execution duration.

@@ -42,17 +42,22 @@ class AgentsController(
 ) {
     /**
      * @param containerId [Agent.containerId]
+     * @return [Mono] with [Agent.containerName]
+     */
+    @GetMapping("/agents/get-container-name")
+    fun getContainerName(
+        @RequestParam containerId: String,
+    ): Mono<String> = getAgentByContainerIdAsMono(containerId)
+        .map { it.containerName }
+
+    /**
+     * @param containerId [Agent.containerId]
      * @return [Mono] with [AgentInitConfig]
      */
     @GetMapping("/agents/get-init-config")
     fun getInitConfig(
         @RequestParam containerId: String,
-    ): Mono<AgentInitConfig> = blockingToMono {
-        agentRepository.findByContainerId(containerId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found agent with container id $containerId"
-        }
+    ): Mono<AgentInitConfig> = getAgentByContainerIdAsMono(containerId)
         .map {
             it.execution
         }
@@ -95,7 +100,9 @@ class AgentsController(
     @Transactional
     fun getNextTestBatch(
         @RequestParam containerId: String,
-    ): Mono<TestBatch> = testService.getTestBatches(containerId)
+    ): Mono<TestBatch> = getAgentByContainerIdAsMono(containerId)
+        .map { it.execution.requiredId() }
+        .flatMap { testService.getTestBatches(it) }
         .asyncEffectIf(TestBatch::isNotEmpty) { testBatch ->
             blockingToMono { testExecutionService.assignAgentByTest(containerId, testBatch) }
                 .doOnSuccess {
@@ -148,14 +155,14 @@ class AgentsController(
 
     /**
      * @param agentVersion [AgentVersion] to update agent version
+     * @return updated [Agent]
      */
     @PostMapping("/saveAgentVersion")
-    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion) {
-        agentRepository.findByContainerId(agentVersion.containerId)?.let {
+    fun updateAgentVersion(@RequestBody agentVersion: AgentVersion): Mono<Agent> = getAgentByContainerIdAsMono(agentVersion.containerId)
+        .map {
             it.version = agentVersion.version
             agentRepository.save(it)
         }
-    }
 
     /**
      * Get statuses of all agents in the same execution with provided agent (including itself).
@@ -169,7 +176,7 @@ class AgentsController(
     @Suppress("UnsafeCallOnNullableType")  // id will be available because it's retrieved from DB
     fun findAllAgentStatusesForSameExecution(@RequestParam agentId: String): AgentStatusesForExecution {
         val execution = getAgentByContainerId(agentId).execution
-        val agentStatuses = agentRepository.findByExecutionId(execution.id!!).map { agent ->
+        val agentStatuses = agentRepository.findByExecutionId(execution.requiredId()).map { agent ->
             val latestStatus = requireNotNull(
                 agentStatusRepository.findTopByAgentContainerIdOrderByEndTimeDescIdDesc(agent.containerId)
             ) {
@@ -177,7 +184,7 @@ class AgentsController(
             }
             latestStatus.toDto()
         }
-        return AgentStatusesForExecution(execution.id!!, agentStatuses)
+        return AgentStatusesForExecution(execution.requiredId(), agentStatuses)
     }
 
     /**
@@ -214,7 +221,7 @@ class AgentsController(
      * @param executionId id of execution
      * @return list of container ids
      */
-    @GetMapping("/getAgentsIdsForExecution")
+    @GetMapping("/agents/get-container-ids")
     fun findAgentIdsForExecution(@RequestParam executionId: Long) = agentRepository.findByExecutionId(executionId)
         .map(Agent::containerId)
 
@@ -222,14 +229,19 @@ class AgentsController(
      * Get agent by containerId.
      *
      * @param containerId containerId of an agent.
-     * @return list of agent statuses
+     * @return [Agent]
      */
-    private fun getAgentByContainerId(containerId: String): Agent {
-        val agent = agentRepository.findOne { root, _, cb ->
-            cb.equal(root.get<String>("containerId"), containerId)
+    private fun getAgentByContainerId(containerId: String): Agent = agentRepository.findByContainerId(containerId)
+        .orNotFound {
+            "Agent with containerId=$containerId not found in the DB"
         }
-        return agent.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Agent with containerId=$containerId not found in the DB") }
+
+    private fun getAgentByContainerIdAsMono(containerId: String): Mono<Agent> = blockingToMono {
+        agentRepository.findByContainerId(containerId)
     }
+        .switchIfEmptyToNotFound {
+            "Not found agent with container id $containerId"
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

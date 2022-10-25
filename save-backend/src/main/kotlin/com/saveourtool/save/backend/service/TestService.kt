@@ -11,6 +11,7 @@ import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.test.TestDto
+import com.saveourtool.save.utils.orNotFound
 import org.apache.commons.io.FilenameUtils
 
 import org.slf4j.LoggerFactory
@@ -83,11 +84,19 @@ class TestService(
      * @return Test batches
      */
     @Transactional
-    @Suppress("UnsafeCallOnNullableType")
     fun getTestBatches(agentId: String): Mono<TestBatch> {
-        val agent = agentRepository.findByContainerId(agentId) ?: error("The specified agent does not exist")
+        val agent = agentRepository.findByContainerId(agentId)
+            .orNotFound { "The specified agent does not exist" }
         log.debug("Agent found, id=${agent.id}")
-        val executionId = agent.execution.id!!
+        return getTestBatches(agent.execution.requiredId())
+    }
+
+    /**
+     * @param executionId
+     * @return Test batches
+     */
+    @Transactional
+    fun getTestBatches(executionId: Long): Mono<TestBatch> {
         val lock = locks.computeIfAbsent(executionId) { Any() }
         return synchronized(lock) {
             log.debug("Acquired lock for executionId=$executionId")

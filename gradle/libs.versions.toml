@@ -99,7 +99,6 @@ spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web" }
-spring-webflux = { module = "org.springframework:spring-webflux" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-client" }

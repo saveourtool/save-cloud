@@ -7,7 +7,6 @@ package com.saveourtool.save.orchestrator.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
-const val CONFIG_PROPERTIES_PREFIX = "orchestrator"
 /**
  * Class for properties
  *
@@ -28,7 +27,7 @@ const val CONFIG_PROPERTIES_PREFIX = "orchestrator"
  * @property lokiServiceUrl URL of loki service for logging
  */
 @ConstructorBinding
-@ConfigurationProperties(prefix = CONFIG_PROPERTIES_PREFIX)
+@ConfigurationProperties(prefix = "orchestrator")
 data class ConfigProperties(
     val backendUrl: String,
     val testResources: TestResources,

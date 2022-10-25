@@ -1,19 +1,22 @@
 package com.saveourtool.save.orchestrator.controller
 
 import com.saveourtool.save.entities.AgentDto
+import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
+import com.saveourtool.save.orchestrator.service.AgentLogService
+import com.saveourtool.save.orchestrator.service.AgentRepository
 import com.saveourtool.save.orchestrator.service.AgentService
 import com.saveourtool.save.orchestrator.service.DockerService
 import com.saveourtool.save.orchestrator.utils.LoggingContextImpl
 import com.saveourtool.save.request.RunExecutionRequest
+import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.save.utils.StringList
 import com.saveourtool.save.utils.info
 
 import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.api.exception.DockerException
-import com.saveourtool.save.orchestrator.service.AgentLogService
 import io.fabric8.kubernetes.client.KubernetesClientException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -23,10 +26,11 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.doOnError
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalUnit
+import reactor.kotlin.core.util.function.component1
+import reactor.kotlin.core.util.function.component2
+
+import java.time.ZoneId
+import java.util.*
 
 /**
  * Controller used to start agents with needed information
@@ -38,6 +42,7 @@ class AgentsController(
     private val agentRunner: AgentRunner,
     private val configProperties: ConfigProperties,
     private val agentLogService: AgentLogService,
+    private val agentRepository: AgentRepository,
 ) {
     /**
      * Schedules tasks to build base images, create a number of containers and put their data into the database.
@@ -48,7 +53,7 @@ class AgentsController(
      */
     @Suppress("TOO_LONG_FUNCTION", "LongMethod", "UnsafeCallOnNullableType")
     @PostMapping("/initializeAgents")
-    fun initialize(@RequestBody request: RunExecutionRequest): Mono<BodilessResponseEntity> {
+    fun initialize(@RequestBody request: RunExecutionRequest): Mono<EmptyResponse> {
         val response = Mono.just(ResponseEntity<Void>(HttpStatus.ACCEPTED))
             .subscribeOn(agentService.scheduler)
         return response.doOnSuccess {
@@ -115,19 +120,34 @@ class AgentsController(
      * @return empty response
      */
     @PostMapping("/cleanup")
-    fun cleanup(@RequestParam executionId: Long) = Mono.fromCallable {
+    fun cleanup(@RequestParam executionId: Long): Mono<EmptyResponse> = Mono.fromCallable {
         dockerService.cleanup(executionId)
     }
         .flatMap {
-            Mono.just(ResponseEntity<Void>(HttpStatus.OK))
+            Mono.just(ResponseEntity.ok().build())
         }
 
     /**
-     * @param containerName name of container\agent
+     * @param containerId name of container\agent
      * @return logs
      */
     @GetMapping("/logs")
-    fun logs(@RequestParam containerName: String): Mono<List<String>> = agentLogService.get(containerName, Instant.now().minus(720, ChronoUnit.HOURS), Instant.now())
+    fun logs(
+        @RequestParam containerId: String,
+    ): Mono<StringList> = agentRepository.getAgentsStatuses(listOf(containerId))
+        .map {
+            it.sortedBy(AgentStatusDto::time)
+        }
+        .map { it.first().time to it.last().time }
+        .zipWith(agentRepository.getContainerName(containerId))
+        .flatMap { (fromTo, containerName) ->
+            val (from, to) = fromTo
+            agentLogService.get(
+                containerName,
+                from.atZone(ZoneId.systemDefault()).toInstant(),
+                to.atZone(ZoneId.systemDefault()).toInstant()
+            )
+        }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentsController::class.java)

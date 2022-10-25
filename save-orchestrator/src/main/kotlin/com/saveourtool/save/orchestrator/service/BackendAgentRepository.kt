@@ -11,14 +11,13 @@ import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.test.TestBatch
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
-import org.springframework.http.ResponseEntity
 
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 /**
  * Service for work with agents and backend
@@ -28,6 +27,12 @@ class BackendAgentRepository(
     configProperties: ConfigProperties,
 ) : AgentRepository {
     private val webClientBackend = WebClient.create(configProperties.backendUrl)
+    override fun getContainerName(containerId: String): Mono<String> = webClientBackend
+        .get()
+        .uri("/agents/get-container-name?containerId=$containerId")
+        .retrieve()
+        .bodyToMono()
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
@@ -47,7 +52,7 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> =
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> =
             webClientBackend
                 .post()
                 .uri("/updateAgentStatusesWithDto")
@@ -72,7 +77,7 @@ class BackendAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
-    ): Mono<BodilessResponseEntity> =
+    ): Mono<EmptyResponse> =
             webClientBackend.post()
                 .uri("/updateExecutionByDto")
                 .bodyValue(ExecutionUpdateDto(executionId, executionStatus, failReason))
@@ -85,7 +90,7 @@ class BackendAgentRepository(
         .retrieve()
         .bodyToMono()
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> {
         log.debug("Attempt to mark test executions of agents=$containerIds as failed with internal error")
         return webClientBackend.post()
             .uri("/test-executions/mark-as-failed-by-container-ids?onlyReadyForTesting=$onlyReadyForTesting")
@@ -93,6 +98,12 @@ class BackendAgentRepository(
             .retrieve()
             .toBodilessEntity()
     }
+
+    override fun getContainerIds(executionId: Long): Flux<String> = webClientBackend
+        .get()
+        .uri("/agents/get-container-ids?executionId=$executionId")
+        .retrieve()
+        .bodyToFlux()
 
     companion object {
         private val log: Logger = getLogger<BackendAgentRepository>()

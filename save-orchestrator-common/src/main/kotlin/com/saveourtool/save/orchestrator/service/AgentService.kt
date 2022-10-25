@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.AgentRunner
 import com.saveourtool.save.test.TestBatch
@@ -36,6 +35,11 @@ class AgentService(
     internal val scheduler: Scheduler = Schedulers.boundedElastic().also { it.start() }
 
     /**
+     * @param containerId
+     */
+    internal fun getContainerName(containerId: String): Mono<String> = agentRepository.getContainerName(containerId)
+
+    /**
      * Gets configuration to init agent
      *
      * @param agentId
@@ -62,7 +66,7 @@ class AgentService(
      * @return Mono with response body
      * @throws WebClientResponseException if any of the requests fails
      */
-    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<BodilessResponseEntity> = agentRepository
+    fun saveAgentsWithInitialStatuses(agents: List<AgentDto>): Mono<EmptyResponse> = agentRepository
         .addAgents(agents)
         .flatMap {
             agentRepository.updateAgentStatusesWithDto(agents.map { agent ->
@@ -74,7 +78,7 @@ class AgentService(
      * @param agentState [AgentStatus] to update in the DB
      * @return a Mono containing bodiless entity of response or an empty Mono if request has failed
      */
-    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<BodilessResponseEntity> =
+    fun updateAgentStatusesWithDto(agentState: AgentStatusDto): Mono<EmptyResponse> =
             agentRepository
                 .updateAgentStatusesWithDto(listOf(agentState))
                 .onErrorResume(WebClientException::class) {
@@ -137,7 +141,7 @@ class AgentService(
     private fun markExecutionBasedOnAgentStates(
         executionId: Long,
         agentIds: List<String>,
-    ): Mono<BodilessResponseEntity> {
+    ): Mono<EmptyResponse> {
         // all { STOPPED_BY_ORCH || TERMINATED } -> FINISHED
         // all { CRASHED } -> ERROR; set all test executions to CRASHED
         return agentRepository
@@ -168,7 +172,7 @@ class AgentService(
      * @param failReason to show to user in case of error status
      * @return a bodiless response entity
      */
-    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<BodilessResponseEntity> =
+    fun updateExecution(executionId: Long, executionStatus: ExecutionStatus, failReason: String? = null): Mono<EmptyResponse> =
             agentRepository.updateExecutionByDto(executionId, executionStatus, failReason)
 
     /**
@@ -219,7 +223,7 @@ class AgentService(
     fun markTestExecutionsAsFailed(
         agentsList: Collection<String>,
         onlyReadyForTesting: Boolean
-    ): Mono<BodilessResponseEntity> = agentRepository.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
+    ): Mono<EmptyResponse> = agentRepository.markTestExecutionsOfAgentsAsFailed(agentsList, onlyReadyForTesting)
 
     private fun TestBatch.toHeartbeatResponse(agentId: String): HeartbeatResponse =
             if (isNotEmpty()) {

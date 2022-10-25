@@ -4,10 +4,11 @@ import com.saveourtool.save.agent.AgentInitConfig
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.orchestrator.BodilessResponseEntity
 import com.saveourtool.save.test.TestBatch
+import com.saveourtool.save.utils.EmptyResponse
 
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 typealias IdList = List<Long>
@@ -18,6 +19,14 @@ typealias TestExecutionList = List<TestExecutionDto>
  * Repository to work with agents
  */
 interface AgentRepository {
+    /**
+     * Gets containerName by ID of container
+     *
+     * @param containerId
+     * @return [Mono] of [String]
+     */
+    fun getContainerName(containerId: String): Mono<String>
+
     /**
      * Gets config to init agent
      *
@@ -47,7 +56,7 @@ interface AgentRepository {
      * @param agentStates list of [AgentStatusDto] to update/insert in the DB
      * @return a Mono without body
      */
-    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity>
+    fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse>
 
     /**
      * Get List of [TestExecutionDto] for agent [containerId] have status READY_FOR_TESTING
@@ -79,7 +88,7 @@ interface AgentRepository {
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?,
-    ): Mono<BodilessResponseEntity>
+    ): Mono<EmptyResponse>
 
     /**
      * @param containerId containerId of an agent
@@ -94,5 +103,11 @@ interface AgentRepository {
      * @param onlyReadyForTesting mark only [TestExecution] with status [com.saveourtool.save.domain.TestResultStatus.READY_FOR_TESTING]
      * @return a Mono without body
      */
-    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity>
+    fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse>
+
+    /**
+     * @param executionId the execution ID
+     * @return container id where [executionId] was running
+     */
+    fun getContainerIds(executionId: Long): Flux<String>
 }

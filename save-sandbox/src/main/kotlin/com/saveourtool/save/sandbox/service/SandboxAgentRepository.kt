@@ -26,11 +26,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
-
-internal typealias BodilessResponseEntity = ResponseEntity<Void>
 
 /**
  * Sandbox implementation for agent service
@@ -43,6 +42,10 @@ class SandboxAgentRepository(
     private val sandboxStorage: SandboxStorage,
     @Value("\${sandbox.url}") private val sandboxUrl: String,
 ) : com.saveourtool.save.orchestrator.service.AgentRepository {
+    override fun getContainerName(containerId: String): Mono<String> = blockingToMono {
+        getAgent(containerId).containerName
+    }
+
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
             sandboxStorage.list(execution.userId, SandboxStorageKeyType.FILE)
@@ -91,7 +94,7 @@ class SandboxAgentRepository(
             .map { it.requiredId() }
     }
 
-    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<BodilessResponseEntity> = blockingToMono {
+    override fun updateAgentStatusesWithDto(agentStates: List<AgentStatusDto>): Mono<EmptyResponse> = blockingToMono {
         agentStates
             .map { it.toEntity(this::getAgent) }
             .let { sandboxAgentStatusRepository.saveAll(it) }
@@ -115,7 +118,7 @@ class SandboxAgentRepository(
         executionId: Long,
         executionStatus: ExecutionStatus,
         failReason: String?
-    ): Mono<BodilessResponseEntity> = getExecutionAsMono(executionId)
+    ): Mono<EmptyResponse> = getExecutionAsMono(executionId)
         .map { execution ->
             sandboxExecutionRepository.save(
                 execution.apply {
@@ -143,10 +146,15 @@ class SandboxAgentRepository(
                 }
         }
 
-    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<BodilessResponseEntity> = Mono.fromCallable {
+    override fun markTestExecutionsOfAgentsAsFailed(containerIds: Collection<String>, onlyReadyForTesting: Boolean): Mono<EmptyResponse> = Mono.fromCallable {
         // sandbox doesn't have TestExecution
         ResponseEntity.ok().build()
     }
+
+    override fun getContainerIds(executionId: Long): Flux<String> = blockingToFlux {
+        sandboxAgentRepository.findByExecutionId(executionId)
+    }
+        .map { it.containerId }
 
     /**
      * @param executionId
