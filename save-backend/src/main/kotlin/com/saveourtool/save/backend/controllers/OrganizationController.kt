@@ -70,6 +70,12 @@ internal class OrganizationController(
 ) {
     private val webClientToPreprocessor = WebClient.create(config.preprocessorUrl)
 
+    /**
+     * @param includeDeleted whether deleted organizations should be included in
+     *   the response.
+     *   The default is `true`.
+     * @return the list of organizations.
+     */
     @GetMapping("/all")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -77,12 +83,15 @@ internal class OrganizationController(
         summary = "Get all organizations",
         description = "Get organizations",
     )
-    @Parameters(
-        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
-    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
-    fun getAllOrganizations() = Mono.fromCallable {
-        organizationService.findAll()
+    fun getAllOrganizations(
+        @RequestParam(required = false, defaultValue = "true") includeDeleted: Boolean
+    ): Mono<List<Organization>> = Mono.fromCallable {
+        when {
+            includeDeleted -> organizationService.findAll()
+
+            else -> organizationService.getFiltered(organizationFilters = OrganizationFilters.empty)
+        }
     }
 
     @PostMapping("/not-deleted")

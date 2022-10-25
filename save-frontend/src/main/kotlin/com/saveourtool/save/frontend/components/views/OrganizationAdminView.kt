@@ -3,7 +3,6 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.OrganizationStatus.DELETED
 import com.saveourtool.save.frontend.components.modal.ModalDialogStrings
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -153,18 +152,13 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      */
     private suspend fun getOrganizations(): MutableList<Organization> {
         val response = get(
-            url = "$apiUrl/organizations/all",
+            url = "$apiUrl/organizations/all?includeDeleted=${false}",
             headers = jsonHeaders,
             loadingHandler = ::classLoadingHandler,
         )
 
         return when {
-            response.ok -> response.decodeFromJsonString<Array<Organization>>()
-                .asSequence()
-                .filter { organization ->
-                    organization.status != DELETED
-                }
-                .toMutableList()
+            response.ok -> response.decodeFromJsonString()
 
             else -> mutableListOf()
         }
