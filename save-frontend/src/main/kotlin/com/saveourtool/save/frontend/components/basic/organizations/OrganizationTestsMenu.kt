@@ -20,6 +20,8 @@ import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 
+import kotlinx.browser.window
+
 /**
  * TESTS tab in OrganizationView
  */
@@ -117,9 +119,11 @@ private fun organizationTestsMenu() = FC<OrganizationTestsMenuProps> { props ->
         testSuitesSourceUpsertWindowOpenness.openWindow()
     }
     val deleteHandler: (TestSuitesSourceSnapshotKey) -> Unit = {
-        setTestSuitesSourceSnapshotKeyToDelete(it)
-        deleteTestSuitesSourcesSnapshotKey()
-        setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+        if (window.confirm("Are you sure you want to delete snapshot ${it.version} of ${it.testSuitesSourceName}?")) {
+            setTestSuitesSourceSnapshotKeyToDelete(it)
+            deleteTestSuitesSourcesSnapshotKey()
+            setTestSuitesSourceSnapshotKeys(testSuitesSourceSnapshotKeys.filterNot(it::equals))
+        }
     }
     val (managePermissionsMode, setManagePermissionsMode) = useState<PermissionManagerMode?>(null)
     manageTestSuitePermissionsComponent {

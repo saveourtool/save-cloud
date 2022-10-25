@@ -127,12 +127,12 @@ private fun ChildrenBuilder.buttonBuilder(
         type = ButtonType.button
         val builtClasses = buildString {
             append("btn")
-            style?.let { style ->
+            style?.let {
                 append(" btn-")
                 if (isOutline) {
                     append("outline-")
                 }
-                append(style)
+                append(it)
                 if (isActive) {
                     append(" active")
                 }
