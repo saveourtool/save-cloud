@@ -230,22 +230,19 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
 
     div {
         className = ClassName("d-flex justify-content-end")
-        button {
-            type = ButtonType.button
-            className = ClassName("btn btn-danger mb-4 mr-2")
-            onClick = {
-                windowOpenness.openWindow()
-            }
-            +"Delete selected contests"
+        buttonBuilder(
+            classes = "mb-4 mr-2",
+            label = "Delete selected contests",
+            style = "danger",
+        ) {
+            windowOpenness.openWindow()
         }
-        button {
-            type = ButtonType.button
-            className = ClassName("btn btn-primary mb-4")
-            disabled = !props.selfRole.hasDeletePermission()
-            onClick = {
-                setIsContestCreationModalOpen(true)
-            }
-            +"Create contest"
+        buttonBuilder(
+            classes = "mb-4",
+            label = "Create contest",
+            isDisabled = !props.selfRole.hasDeletePermission(),
+        ) {
+            setIsContestCreationModalOpen(true)
         }
     }
     div {

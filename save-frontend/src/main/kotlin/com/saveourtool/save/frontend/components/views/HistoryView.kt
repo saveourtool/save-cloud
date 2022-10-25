@@ -339,22 +339,21 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
 
         div {
             className = ClassName("d-flex justify-content-end")
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-outline-danger mb-4 mr-2")
-                onClick = {
-                    deleteSelectedExecutions()
-                }
-                disabled = state.selectedExecutionIds.isEmpty()
-                +"Delete selected executions"
+            buttonBuilder(
+                classes = "mb-4 mr-2",
+                label = "Delete selected executions",
+                isDisabled = state.selectedExecutionIds.isEmpty(),
+                isOutline = true,
+                style = "danger"
+            ) {
+                deleteSelectedExecutions()
             }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-danger mb-4 mr-5")
-                onClick = {
-                    deleteExecutions()
-                }
-                +"Delete all executions"
+            buttonBuilder(
+                classes = "mb-4 mr-5",
+                label = "Delete all executions",
+                style = "danger",
+            ) {
+                deleteExecutions()
             }
         }
         div {
