@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -75,7 +76,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                 it.decodeFromJsonString<String>()
             }
             .toRole()
-        if (!props.wasConfirmationModalShown && role.priority < Role.OWNER.priority && props.selfUserInfo.globalRole == Role.SUPER_ADMIN) {
+        if (!props.wasConfirmationModalShown && role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
             props.showGlobalRoleWarning()
         }
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
@@ -117,7 +118,7 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         }
     }
 
-    val canModify = selfRole == Role.SUPER_ADMIN || selfRole == Role.ADMIN
+    val canModify = selfRole.isSuperAdmin() || selfRole == Role.ADMIN
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
         gitCredentials.forEachIndexed { index, gitCredential ->

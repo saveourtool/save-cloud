@@ -142,7 +142,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
     }
 
     private fun ChildrenBuilder.renderFeaturedCheckbox() {
-        if (props.currentUserInfo?.globalRole == Role.SUPER_ADMIN) {
+        if (props.currentUserInfo.isSuperAdmin()) {
             div {
                 className = ClassName("d-sm-flex justify-content-center form-check pb-2")
                 div {

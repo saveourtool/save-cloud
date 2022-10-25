@@ -115,7 +115,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             projectName = params["projectName"]!!
         }
     }
-    private val creationView: FC<Props> = withRouter { location, params ->
+    private val creationView: FC<Props> = withRouter { _, params ->
         CreationView::class.react {
             organizationName = params["owner"]
         }
@@ -182,7 +182,12 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         }
     }
 
-    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION", "LongMethod")
+    @Suppress(
+        "EMPTY_BLOCK_STRUCTURE_ERROR",
+        "TOO_LONG_FUNCTION",
+        "LongMethod",
+        "ComplexMethod",
+    )
     override fun ChildrenBuilder.render() {
         HashRouter {
             requestModalHandler {
@@ -322,6 +327,14 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 Route {
                                     path = "/${FrontendRoutes.CREATE_ORGANIZATION.path}"
                                     element = CreateOrganizationView::class.react.create()
+                                }
+
+                                Route {
+                                    path = "/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}"
+                                    element = when (state.userInfo.isSuperAdmin()) {
+                                        true -> OrganizationAdminView::class.react.create()
+                                        else -> fallbackNode
+                                    }
                                 }
 
                                 Route {
