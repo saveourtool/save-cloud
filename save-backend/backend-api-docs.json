@@ -3022,7 +3022,7 @@
         ]
       }
     },
-    "/api/v1/contests/updateAll": {
+    "/api/v1/contests/update-all": {
       "post": {
         "tags": [
           "contests"
