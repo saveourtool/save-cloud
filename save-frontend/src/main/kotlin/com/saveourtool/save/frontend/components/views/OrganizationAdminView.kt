@@ -152,7 +152,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
      */
     private suspend fun getOrganizations(): MutableList<Organization> {
         val response = get(
-            url = "$apiUrl/organizations/all?includeDeleted=${false}",
+            url = "$apiUrl/organizations/all?onlyActive=${true}",
             headers = jsonHeaders,
             loadingHandler = ::classLoadingHandler,
         )
